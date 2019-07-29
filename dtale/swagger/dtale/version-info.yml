@@ -1,0 +1,8 @@
+summary: helper route for displaying current version information of D-Tale
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: text representing version information
+    content:
+      text/html

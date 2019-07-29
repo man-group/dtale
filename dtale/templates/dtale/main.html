@@ -1,0 +1,13 @@
+{% extends "dtale/base.html" %}
+
+{% block full_content %}
+<input type="hidden" id="settings" value="{{settings}}" />
+<div class="container-fluid">
+    <div id="content">
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript" src="{{ url_for('static', filename='dist/dtale_bundle.js') }}"></script>
+{% endblock %}

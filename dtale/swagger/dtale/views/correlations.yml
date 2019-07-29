@@ -1,0 +1,51 @@
+summary: Gathers Pearson correlations against all combinations of columns with numeric data
+description: |
+  * Correlations generated using [pandas.DataFrame.corr](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.corr.html)
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to perform correlations on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON structure of Pearson correlations
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                data:
+                  type: array
+                  description: correlations of column combinations
+                  items:
+                    type: object
+                    properties:
+                      column:
+                        type: string
+                        description: column name of column being correlated against all other columns
+                      col1:
+                        type: float
+                        description: correlation of 'column' vs. col1
+                      col2:
+                        type: float
+                        description: correlation of 'column' vs. col2
+                      colN:
+                        type: float
+                        description: correlation of 'column' vs. colN
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

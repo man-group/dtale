@@ -1,0 +1,5 @@
+{
+  "postcss-sorting": {
+    "preserve-empty-lines-between-children-rules": 1
+  }
+}

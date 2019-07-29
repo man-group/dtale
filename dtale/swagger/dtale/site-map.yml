@@ -1,0 +1,19 @@
+summary: helper route showing all Flask routes available in D-Tale
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: JSON array containing pairs of flask endpoints & function paths
+    content:
+      application/json:
+        type: array
+        description: array of available endpoints
+        items:
+          type: array
+          description: endpoint pair
+          items:
+            type: string
+            description: endpoint pair [endpoint, function path]
+            maxItems: 2
+            minItems: 2
+

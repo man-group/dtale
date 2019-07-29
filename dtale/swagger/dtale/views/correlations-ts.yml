@@ -1,0 +1,63 @@
+summary: Gathers timeseries of Pearson correlations for a set of two columns with numeric data
+description: |
+  * Correlations generated using [pandas.DataFrame.corr](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.corr.html)
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to perform correlations on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: cols
+    in: query
+    required: true
+    schema:
+      type: string
+    description: comma separated string containing the two columns of pandas dataframe to correlate
+  - name: dateCol
+    in: query
+    required: true
+    schema:
+      type: string
+    description: date-based column in pandas dataframe to drive the timeseries chunks
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON structure of Pearson timeseries correlations
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                ':col1:col2':
+                  type: object
+                  description: correlation data for col1 & col2
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          corr:
+                            type: float
+                            description: correlation
+                          date:
+                            type: string
+                            description: date of correlation
+                    max:
+                      type: float
+                      description: maximum correlation for timeseries (used for drawing Y-axis of chart)
+                    min:
+                      type: float
+                      description: minimum correlation for timeseries (used for drawing Y-axis of chart)
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

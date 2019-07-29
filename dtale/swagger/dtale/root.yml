@@ -1,0 +1,8 @@
+summary: base path wihich gets redirected to /dtale/main
+tags:
+  - D-Tale API
+responses:
+  302:
+    description: base path wihich gets redirected to /dtale/main
+    content:
+      text/html
