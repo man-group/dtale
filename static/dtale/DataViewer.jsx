@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import scrollbarSize from "dom-helpers/util/scrollbarSize";
+import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
@@ -274,7 +274,7 @@ class ReactDataViewer extends React.Component {
   }
 }
 ReactDataViewer.displayName = "ReactDataViewer";
-ReactDataViewer.props = {
+ReactDataViewer.propTypes = {
   settings: PropTypes.object,
 };
 

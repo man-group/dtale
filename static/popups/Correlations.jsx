@@ -233,6 +233,8 @@ ReactCorrelations.propTypes = {
     title: PropTypes.string,
     columns: PropTypes.arrayOf(PropTypes.object),
   }),
+  onClose: PropTypes.func,
+  propagateState: PropTypes.func,
 };
 
 const ReduxCorrelations = connect(

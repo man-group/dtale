@@ -87,6 +87,7 @@ describe("TimeseriesChartBody tests", () => {
 
       result.setProps({ visible: false });
       result.update();
+      result.unmount();
 
       done();
     }, 200);
@@ -102,6 +103,7 @@ describe("TimeseriesChartBody tests", () => {
     setTimeout(() => {
       result.update();
       t.ok(_.includes(result.html(), "No data found."), "shoudl render no data message");
+      result.unmount();
       done();
     }, 200);
   });
@@ -116,6 +118,7 @@ describe("TimeseriesChartBody tests", () => {
     setTimeout(() => {
       result.update();
       t.ok(_.includes(result.html(), "Error test."), "should render error");
+      result.unmount();
       done();
     }, 200);
   });

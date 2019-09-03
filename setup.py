@@ -59,7 +59,7 @@ setup(
     url="https://github.com/manahl/dtale",
     install_requires=[
         "jsonschema<3.0.0",
-        "flasgger",
+        "flasgger==0.9.3",
         "Flask",
         "Flask-Caching",
         "Flask-Compress",

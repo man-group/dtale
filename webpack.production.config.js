@@ -14,9 +14,7 @@ function createConfig(subConfig) {
       minimizer: [
         new UglifyJsPlugin({
           uglifyOptions: {
-            compress: {
-              warnings: false,
-            },
+            warnings: false,
           },
         }),
       ],

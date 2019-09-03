@@ -1,14 +1,15 @@
 /* eslint-disable no-restricted-globals */
 const webpack = require("webpack");
-const CleanWebpackPlugin = require("clean-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const autoprefixer = require("autoprefixer");
 const postcssNested = require("postcss-nested");
 const _ = require("lodash");
+const path = require("path");
 
 const entries = [
-  ["base_styles", "/static/base_styles.js"],
-  ["polyfills", "/static/polyfills.js"],
-  ["dtale", "/static/dtale/dtale_main.jsx"],
+  ["base_styles", "./static/base_styles.js"],
+  ["polyfills", "./static/polyfills.js"],
+  ["dtale", "./static/dtale/dtale_main.jsx"],
 ];
 
 function createConfig(entry) {
@@ -17,9 +18,9 @@ function createConfig(entry) {
   return {
     devtool: "inline-source-map",
     mode: "development",
-    entry: __dirname + entryPath,
+    entry: path.resolve(__dirname, entryPath),
     output: {
-      path: __dirname + "/dtale/static/dist",
+      path: path.resolve(__dirname, "./dtale/static/dist"),
       filename: entryName + "_bundle.js",
       publicPath: "/dist/",
     },
@@ -95,8 +96,10 @@ function createConfig(entry) {
           NODE_ENV: '"dev"',
         },
       }),
-      new CleanWebpackPlugin(["dtale/static/dist"], {
-        verbose: false,
+      new CleanWebpackPlugin({
+        cleanOnceBeforeBuildPatterns: [entryName + "_bundle.js"],
+        cleanAfterEveryBuildPatterns: [entryName + "_bundle.js"],
+        verbose: true,
         exclude: [".git_keep"],
       }),
       new webpack.HotModuleReplacementPlugin(),

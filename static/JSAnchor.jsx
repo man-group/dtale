@@ -5,11 +5,19 @@ import React from "react";
 class JSAnchor extends React.Component {
   constructor(props) {
     super(props);
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick(e) {
+    e.preventDefault();
+    if (this.props.onClick) {
+      this.props.onClick(e);
+    }
   }
 
   render() {
     return (
-      <a href="javascript:void(0)" {..._.omit(this.props, "children")}>
+      <a href="#" onClick={this.handleClick} {..._.omit(this.props, ["children", "onClick"])}>
         {this.props.children}
       </a>
     );
