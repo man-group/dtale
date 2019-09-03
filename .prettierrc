@@ -1,0 +1,13 @@
+{
+    "trailingComma": "es5",
+    "printWidth": 120,
+    "jsxBracketSameLine": true,
+    "overrides": [
+    {
+        "files": "*.css",
+        "options": {
+            "singleQuote": true
+        }
+    }
+    ]
+}

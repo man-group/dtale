@@ -1,0 +1,14 @@
+{
+    "libs": [
+        "browser"
+    ],
+    "loadEagerly": [
+        "static/**/*.js",
+        "static/**/*.jsx"
+    ],
+    "plugins": {
+        "es_modules": {},
+        "node": {},
+        "jsx": {}
+    }
+}

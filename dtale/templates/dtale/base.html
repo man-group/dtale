@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <title>D-Tale</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
+    {% block css %}{% endblock %}
+    {#
+        Despite the fact we reload these again later on, in order for the header to rendered correctly
+        before the rest of the page is built we need to load them here as well.
+    #}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </head>
+    <body>
+        {% block full_content %}{% endblock %}
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>
+        {% block js %}{% endblock %}
+        {#
+          In order to get styles to load correctly, we need to reload these files.
+          In CSS, the last style declared takes precedence.
+        #}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </body>
+</html>

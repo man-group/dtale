@@ -1,0 +1,274 @@
+import { mount } from "enzyme";
+import _ from "lodash";
+import React from "react";
+import { ModalClose } from "react-modal-bootstrap";
+import { Provider } from "react-redux";
+import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
+
+import { DataViewerMenu } from "../../dtale/DataViewerMenu";
+import mockPopsicle from "../MockPopsicle";
+import * as t from "../jest-assertions";
+import reduxUtils from "../redux-test-utils";
+import { withGlobalJquery } from "../test-utils";
+
+const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+
+const COL_PROPS = [
+  { locked: true, width: 70, name: "dtale_index", dtype: "int64" },
+  { locked: false, width: 20, name: "col1", dtype: "int64" },
+  { locked: false, width: 20, name: "col2", dtype: "float64" },
+  { locked: false, width: 20, name: "col3", dtype: "object" },
+  { locked: false, width: 85, name: "col4", dtype: "datetime64[ns]" },
+];
+
+describe("DataViewer tests", () => {
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+
+    const mockBuildLibs = withGlobalJquery(() =>
+      mockPopsicle.mock(url => {
+        const { urlFetcher } = require("../redux-test-utils").default;
+        return urlFetcher(url);
+      })
+    );
+
+    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
+      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
+      chartCfg.destroy = () => (chartCfg.destroyed = true);
+      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      return chartCfg;
+    });
+
+    jest.mock("popsicle", () => mockBuildLibs);
+    jest.mock("chart.js", () => mockChartUtils);
+    jest.mock("chartjs-plugin-zoom", () => ({}));
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+  });
+
+  test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
+    const { DataViewer } = require("../../dtale/DataViewer");
+    const Histogram = require("../../popups/Histogram").ReactHistogram;
+
+    const store = reduxUtils.createDtaleStore();
+    const body = document.getElementsByTagName("body")[0];
+    body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
+    const result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
+
+    setTimeout(() => {
+      result.update();
+      const grid = result
+        .find(MultiGrid)
+        .first()
+        .instance();
+      t.deepEqual(
+        result.find("div.headerCell").map(hc => hc.text()),
+        ["col1", "col2", "col3", "col4"],
+        "should render column headers"
+      );
+      t.deepEqual(grid.props.columns, COL_PROPS, "should properly size/lock columns");
+      result
+        .find("div.crossed")
+        .first()
+        .find("div.grid-menu")
+        .first()
+        .simulate("click");
+      t.deepEqual(
+        result
+          .find(DataViewerMenu)
+          .find("ul li span.font-weight-bold")
+          .map(s => s.text()),
+        ["Filter", "Correlations", "Coverage", "Resize", "Shutdown"],
+        "Should render default menu options"
+      );
+
+      result
+        .find("div.headerCell div")
+        .last()
+        .simulate("click");
+      result.update();
+      t.equal(result.find("div.headerCell.selected").length, 1, "should select col4");
+      result
+        .find("div.headerCell div")
+        .last()
+        .simulate("click");
+      result.update();
+      t.equal(result.find("div.headerCell.selected").length, 0, "should clear selection");
+      result
+        .find("div.headerCell div")
+        .last()
+        .simulate("click");
+      result.update();
+
+      t.deepEqual(
+        result
+          .find(DataViewerMenu)
+          .find("ul li span.font-weight-bold")
+          .map(s => s.text()),
+        _.concat(
+          ["Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
+          ["Histogram", "Correlations", "Coverage", "Resize", "Shutdown"]
+        ),
+        "Should render menu options associated with selected column"
+      );
+
+      result
+        .find(DataViewerMenu)
+        .find("ul li button")
+        .at(3)
+        .simulate("click");
+      t.equal(
+        result
+          .find("div.row div.col-md-4")
+          .first()
+          .text(),
+        "Selected:col4",
+        "should display selected column"
+      );
+      t.equal(
+        result
+          .find("div.row div.col-md-4")
+          .at(1)
+          .text(),
+        "Sort:col4 (DESC)",
+        "should display column sort"
+      );
+      setTimeout(() => {
+        result.update();
+        result
+          .find("div.headerCell div")
+          .at(2)
+          .simulate("click");
+        result.update();
+        t.equal(
+          result
+            .find("div.row div.col-md-4")
+            .first()
+            .text(),
+          "Selected:col4, col3",
+          "should display selected columns"
+        );
+
+        // deselect
+        result
+          .find("div.row i.ico-cancel")
+          .first()
+          .simulate("click");
+        result.update();
+        result
+          .find("div.headerCell div")
+          .last()
+          .simulate("click");
+        result.update();
+
+        // move to front
+        result
+          .find(DataViewerMenu)
+          .find("ul li button")
+          .first()
+          .simulate("click");
+        result.update();
+        t.deepEqual(
+          result.find("div.headerCell").map(hc => hc.text()),
+          ["▲col4", "col1", "col2", "col3"],
+          "should move col4 to front of main grid"
+        );
+
+        // lock
+        result
+          .find(DataViewerMenu)
+          .find("ul li button")
+          .at(1)
+          .simulate("click");
+        result.update();
+        t.deepEqual(
+          result
+            .find("div.TopRightGrid_ScrollWrapper")
+            .first()
+            .find("div.headerCell")
+            .map(hc => hc.text()),
+          ["col1", "col2", "col3"],
+          "should move col4 out of main grid"
+        );
+
+        //unlock
+        result
+          .find("div.headerCell div")
+          .first()
+          .simulate("click");
+        result.update();
+        result
+          .find(DataViewerMenu)
+          .find("ul li button")
+          .at(1)
+          .simulate("click");
+        result.update();
+        t.deepEqual(
+          result
+            .find("div.TopRightGrid_ScrollWrapper")
+            .first()
+            .find("div.headerCell")
+            .map(hc => hc.text()),
+          ["▲col4", "col1", "col2", "col3"],
+          "should move col4 back into main grid"
+        );
+
+        //clear sorts
+        result
+          .find("div.row i.ico-cancel")
+          .first()
+          .simulate("click");
+        setTimeout(() => {
+          result.update();
+          t.equal(result.find("div.row").length, 0, "should remove information row");
+
+          result
+            .find("div.headerCell div")
+            .last()
+            .simulate("click");
+          result
+            .find(DataViewerMenu)
+            .find("ul li button")
+            .at(7)
+            .simulate("click");
+          setTimeout(() => {
+            result.update();
+            t.equal(result.find(Histogram).length, 1, "should show histogram");
+            setTimeout(() => {
+              result.update();
+              result
+                .find(ModalClose)
+                .first()
+                .simulate("click");
+              t.equal(result.find(Histogram).length, 0, "should hide histogram");
+              result
+                .find(DataViewerMenu)
+                .find("ul li button")
+                .at(10)
+                .simulate("click");
+              result
+                .find(DataViewerMenu)
+                .find("ul li button")
+                .last()
+                .simulate("click");
+              done();
+            }, 400);
+          }, 400);
+        }, 400);
+      }, 400);
+    }, 600);
+  });
+});

@@ -1,0 +1,8 @@
+summary: shuts down D-Tale instance running at server:port
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: server shutdown has been initiated
+    content:
+      text/html

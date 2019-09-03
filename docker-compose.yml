@@ -1,0 +1,17 @@
+version: '3.4'
+
+services:
+  dtale_2_7:
+    image: dtale_2_7:latest
+    environment:
+      - TZ=America/New_York
+    build:
+      context: .
+      dockerfile: docker/2_7/Dockerfile
+  dtale_3_6:
+    image: dtale_3_6:latest
+    environment:
+      - TZ=America/New_York
+    build:
+      context: .
+      dockerfile: docker/3_6/Dockerfile

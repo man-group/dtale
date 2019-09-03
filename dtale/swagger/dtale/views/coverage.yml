@@ -1,0 +1,100 @@
+summary: Gathers coverage information(counts) for a column grouped by other column(s)
+description: |
+  * >
+  Groups data by group column (if group column is datetime then a frequency (D, W, M, Q, Y) can be specified as well
+  using [pandas.DataFrame.groupby](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.groupby.html)
+  * >
+  Counts are created using the [pandas.core.groupby.GroupBy.count](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.groupby.GroupBy.count.html)
+  which excludes missing values(nan)
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to perform coverage on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: col
+    in: query
+    required: true
+    schema:
+      type: string
+    description: column of pandas dataframe to record coverage on
+  - name: filters (deprecated)
+    in: query
+    schema:
+      type: array
+    description: >
+      breadcrumb trail of filters when grouping on datetime column.  For example, if the original frequency of your
+      datetime group is Yearly, then you can do the following drill downs Yearly -> Quarterly -> Monthly -> Weekly -> Daily
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+          description: name of datetime column used in group
+        prevFreq:
+          type: string
+          enum: [Y, Q, M, W, D]
+          description: frequency you are performing the drill-down on
+        freq:
+          type: string
+          enum: [Y, Q, M, W, D]
+          description: sub-frequency you want to convert to, `prevFreq` must be greater than `freq`
+        date:
+          type: string
+          description: date string of the data point for `prevFreq` you want broken up into `freq`
+  - name: group
+    in: query
+    required: true
+    schema:
+      type: array
+    description: list of columns (and frequency if column is datetime) to group on
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+          description: name of column in dataframe
+          required: true
+        freq:
+          type: string
+          enum: [Y, Q, M, W, D]
+          description: if column is datetime you have the additional option to specify a frequency
+          default: D
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON structure of coverage data
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                data:
+                  type: object
+                  description: coverage information
+                  properties:
+                    col:
+                      type: array
+                      items:
+                        type: integer
+                        description: count of non-missing records for column at specific group value
+                    labels:
+                      type: array
+                      items:
+                        type: string
+                        decription: string representation of group values (should be same length as *col* property)
+                    success:
+                      type: boolean
+                      default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

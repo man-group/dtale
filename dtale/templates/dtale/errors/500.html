@@ -1,0 +1,13 @@
+{% extends "dtale/base.html" %}
+
+{% block title %}Internal Server Error{% endblock %}
+
+{% block full_content %}
+<div class="container-fluid">
+    <h1>Internal Server Error</h1>
+    <p>Error:</p>
+    <pre>{{ error }}</pre>
+    <p>Stacktrace:</p>
+    <pre>{{ stacktrace }}</pre>
+</div>
+{% endblock %}

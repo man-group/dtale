@@ -1,0 +1,11 @@
+{% extends "dtale/base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block full_content %}
+<div class="container-fluid">
+    <h1>Page Not Found</h1>
+    <p>The page you were looking for <code>{{ request.path }}</code> does not exist.</p>
+    <p>Please go to the <a href="/">main page</a> to see available functions.</p>
+</div>
+{% endblock %}

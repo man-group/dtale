@@ -1,0 +1,134 @@
+defaults: &defaults
+    parallelism: 1
+    shell: /bin/bash --login
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      COVERALLS_REPO_TOKEN: WnzSri2b3no9Fh0buPancG1krS4jVfQiG
+      COVERALLS_PARALLEL: true
+    notify:
+      webhooks:
+        - url: https://coveralls.io/webhook?repo_token=WnzSri2b3no9Fh0buPancG1krS4jVfQiG
+    steps:
+    - checkout
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+    # Restore the dependency cache
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+    - restore_cache:
+        name: Restore Yarn Package Cache
+        keys:
+          - yarn-packages-{{ checksum "yarn.lock" }}
+    - run:
+        name: Install Dependencies
+        command: |
+          yarn install --frozen-lockfile
+    - save_cache:
+        name: Save Yarn Package Cache
+        key: yarn-packages-{{ checksum "yarn.lock" }}
+        paths:
+          - ~/.cache/yarn
+    - run:
+        name: Lint & Format JS Code
+        command: |
+          yarn run lint
+          yarn run format
+    - run:
+        name: Check for JS Formatting Diffs
+        command: |
+          git diff --name-status
+          git diff-files --quiet || (echo 'The files above have not been formatted!' && (exit 1))
+    - run:
+        name: Run JS Tests & Coverage
+        command: |
+          yarn run test-with-coverage
+          yarn run report-duplicate-code
+          cat ./JS_coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+          cp -r ./JS_coverage /tmp/circleci-test-results
+    - run:
+        name: Build JS
+        command: |
+          yarn run build
+    - run: sudo apt-get install pandoc
+    - run:
+       name: Create and activate virtualenv
+       command: |
+         virtualenv ci
+         . ci/bin/activate
+         pip install six
+         pip install lxml
+         pip install coveralls
+         pip install flake8
+         pip install isort
+         pip install -r docs/source/requirements.txt
+         python setup.py develop
+    # Save dependency cache
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        paths:
+        - ~/ci
+    - run:
+        name: Run Flake8
+        command: |
+          . ci/bin/activate
+          flake8
+    - run:
+        name: Run isort
+        command: |
+          . ci/bin/activate
+          isort --recursive -c -vb setup.py dtale tests
+    # Test
+    - run:
+       name: Run all tests
+       command: |
+         set -e
+         . ci/bin/activate
+         export TZ=America/New_York
+         python setup.py test
+         cp -r ./htmlcov /tmp/circleci-test-results
+         cp ./coverage.xml /tmp/circleci-test-results
+         python setup.py build_sphinx
+         cp -r ./build /tmp/circleci-artifacts
+    - run:
+       name: Get Python code coverage
+       command: |
+         . ci/bin/activate
+         coveralls
+    - run:
+       name: Copy test artifacts
+       command: |
+         cp -r ./JS_coverage /tmp/circleci-test-results
+    # Save test results
+    - store_test_results:
+        path: /tmp/circleci-test-results
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
+    - store_artifacts:
+        path: /tmp/circleci-test-results
+
+
+version: 2
+jobs:
+  build_2_7:
+    working_directory: ~/manahl/dtale_2_7
+    docker:
+    - image: circleci/python:2.7-stretch-node-browsers
+    <<: *defaults
+  build_3:
+    working_directory: ~/manahl/dtale_3
+    docker:
+    - image: circleci/python:3.6-stretch-node-browsers
+    <<: *defaults
+workflows:
+  version: 2
+  build_all:
+    jobs:
+      - build_2_7
+      - build_3

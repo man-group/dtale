@@ -1,0 +1,12 @@
+summary: Main route which is hit from browsers returning HTML structure for housing all AJAX operations
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: HTML from jinja template containing base DOM and JS script imports
+    content:
+      text/html
+  500:
+    description: poorly formed jinja templates have been used causing exceptions
+    content:
+      text/html
