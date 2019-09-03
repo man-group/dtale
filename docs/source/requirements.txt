@@ -1,0 +1,11 @@
+jsonschema<3.0.0 # needed for sphinx, flasgger, Flask-Caching collisons
+sphinx==1.6.7
+nbsphinx
+matplotlib
+ipython[notebook]
+bs4
+markdown
+pandas
+future
+Flask
+scipy

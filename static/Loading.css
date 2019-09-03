@@ -1,0 +1,26 @@
+.loading {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.loading:after {
+  display: inline-block;
+  overflow: hidden;
+  width: 0;
+  content: '\2026'; /* ascii code for the ellipsis character */
+  vertical-align: bottom;
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+  animation: ellipsis steps(4, end) 900ms infinite;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
+}
+
+@-webkit-keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
+}
