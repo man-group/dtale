@@ -1,0 +1,80 @@
+summary: Returns data and correlation summary of two columns with numeric data
+description: |
+  * Correlations generated using [pandas.DataFrame.corr](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.corr.html) with method argument set to 'pearson' & 'spearman'
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to gather scatter on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: cols
+    in: query
+    required: true
+    schema:
+      type: string
+    description: comma separated string containing the two columns of pandas dataframe to correlate
+  - name: dateCol
+    in: query
+    required: true
+    schema:
+      type: string
+    description: date-based column in pandas dataframe to drive the timeseries chunks
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON structure of scatter data
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                data:
+                  type: array
+                  description: correlation data for col1 & col2
+                  properties:
+                    col1:
+                      type: number
+                      description: value of col2 at index
+                    col2:
+                      type: number
+                      description: value of col2 at index
+                    index:
+                      type: integer
+                      description: row index (used for jumping to row in grid on point click)
+                stats:
+                  type: object
+                  description: maximum correlation for timeseries (used for drawing Y-axis of chart)
+                  properties:
+                    correlated:
+                      type: integer
+                      description: count of records in correlation
+                    only_in_s0:
+                      type: integer
+                      description: count of records only in col1
+                    only_in_s1:
+                      type: integer
+                      description: count of records only in col2
+                    pearson:
+                      type: float
+                      description: pearson correlation of col1 vs. col2
+                    spearman:
+                      type: float
+                      description: spearman correlation of col1 vs. col2
+                x:
+                  type: string
+                  description: column name to be used as x-axis in chart
+                y:
+                  type: string
+                  description: column name to be used as y-axis in chart
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

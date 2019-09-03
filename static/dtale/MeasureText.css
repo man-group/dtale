@@ -1,0 +1,6 @@
+#text-measure {
+  position: absolute;
+  float: left;
+  white-space: nowrap;
+  visibility: hidden;
+}

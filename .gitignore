@@ -1,0 +1,29 @@
+*.pyc
+*.egg-info
+
+# test output files
+.cache
+.coverage
+.nyc_output
+js_junit.xml
+duplicates.xml
+tap-output
+results.tap
+TEST-dtale-tests.xml
+coverage.xml
+htmlcov/
+JS_coverage/
+
+build/
+dist/
+node_modules/
+npm-debug.log
+.idea
+.tern-port
+.vscode
+.project
+.pydevproject
+
+# built JS files
+dtale/static/dist
+jest_tmp

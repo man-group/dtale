@@ -1,0 +1,70 @@
+summary: Computes histogram with N bins for column of dataframe
+description: |
+  * Histogram data generated using [numpy.histogram](https://docs.scipy.org/doc/numpy/reference/generated/numpy.histogram.html)
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to compute histogram on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: col
+    in: query
+    required: true
+    schema:
+      type: string
+    description: column of pandas dataframe to generate histogram from
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+  - name: bins
+    in: query
+    required: true
+    schema:
+      type: int
+    description: number of bins to break histogram into
+    default: 20
+responses:
+  200:
+    description: JSON structure of histogram data
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                data:
+                  type: array
+                  description: correlations of column combinations
+                  items:
+                    type: integer
+                    description: # of records within that bin
+                desc:
+                  type: object
+                  description: information returned by running pandas.DataFrame.describe()[col].to_dict()
+                  properties:
+                    '25%': {type: number, description: value at the 25th percentile}
+                    '50%': {type: number, description: value at the 50th percentile}
+                    '75%': {type: number, description: value at the 75th percentile}
+                    count: {type: integer, description: count of non-nan values}
+                    max: {type: number, description: maximum value}
+                    mean: {type: number, description: mean value}
+                    min: {type: number, description: minimum value}
+                    std: {type: number, description: standard deviation of values}
+                labels:
+                  type: array
+                  description: correlations of column combinations
+                  items:
+                    type: string
+                    description: the cutoff for that bin
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

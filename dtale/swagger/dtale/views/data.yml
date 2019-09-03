@@ -1,0 +1,85 @@
+summary: Fetch specific set of rows in panadas dataframe by natural row index
+description: |
+  * Query is tested using [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to perform correlations on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: ids
+    in: query
+    schema:
+      type: array
+    description: list of dash-separated strings denoting ranges of natural row indexes to fetch from dataframe
+    items:
+      type: string
+      description: |
+       * dash-separated string denoting range of natural row indexes
+       * "1-5" => rows [1,2,3,4,5]
+       * "1" => rows [1]
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+  - name: sort
+    in: query
+    type: array
+    description: array of column/direction pairs describing how to sort the dataframe
+    items:
+      type: array
+      description: column/direction pair, for example ['column1', ('ASC','DESC')]
+      items:
+        type: string
+      minItems: 2
+      maxItems: 2
+responses:
+  200:
+    description: JSON object containing success flag for pass/fail of pandas query
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                results:
+                  type: object
+                  description: object with natural row index as keys and column-value objects as values
+                  properties:
+                    dtale_index:
+                      type: object
+                      properties:
+                        dtale_index:
+                          type: integer
+                        column:
+                          description: value of column at dtale_index, can be number or string
+                      required:
+                        - dtale_index
+                columns:
+                  type: array
+                  description: list of column specs for dataframe
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: column name
+                      dtype:
+                        type: string
+                        description: dtype of column in pandas dataframe
+                      required:
+                        - name
+                        - dtype
+                total:
+                  type: integer
+                  description: count of total rows in dataframe
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

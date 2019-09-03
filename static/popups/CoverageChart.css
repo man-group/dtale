@@ -1,0 +1,50 @@
+.coverage-popup .list-group-item {
+  padding: 0.25rem 0.5rem;
+  background-color: inherit;
+}
+
+.coverage-popup .list-group-item.active {
+  color: white;
+}
+
+.coverage-popup .date-group > div:first-child {
+  float: left;
+  margin-top: 0.1em;
+}
+
+.coverage-popup .date-group > div.input-group {
+  float: right;
+  display: inline-flex;
+  width: auto;
+}
+
+.coverage-popup .date-group select {
+  height: auto !important;
+  width: auto;
+  padding: 0.1rem 1.75rem 0.1rem 0.75rem;
+}
+
+.coverage-popup label.list-group-item {
+  z-index: 9;
+}
+
+.coverage-popup .scrollable-list {
+  height: 450px;
+  overflow-y: scroll;
+  position: relative;
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  border: 1px solid rgba(64, 64, 64, 0.125);
+}
+
+.coverage-popup .scrollable-list .list-group-item:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.coverage-popup .scrollable-list .list-group-item {
+  border: 1px solid rgba(64, 64, 64, 0.125);
+  border-top-width: 0px;
+  border-left-width: 0px;
+  border-right-width: 0px;
+}

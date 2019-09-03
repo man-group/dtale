@@ -1,0 +1,46 @@
+summary: Push updates to stateful settings associated with the port in request (sort, filter)
+tags:
+  - D-Tale API
+parameters:
+  - name: settings
+    in: query
+    schema:
+      type: object
+      properties:
+        sort:
+          type: array
+          description: array of column/direction pairs describing how to sort the dataframe
+          items:
+            type: array
+            description: column/direction pair, for example ['column1', ('ASC','DESC')]
+            items:
+              type: string
+            minItems: 2
+            maxItems: 2
+        filter:
+          type: string
+          description: pandas query
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON object containing success flag for pass/fail of settings update
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                success:
+                  type: boolean
+                  description: update succeeded
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  description: update failed
+                  default: false
