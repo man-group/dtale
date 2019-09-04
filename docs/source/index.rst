@@ -12,7 +12,7 @@ The following section is available as a Jupyter notebook in `docs/source/running
 .. toctree::
   :maxdepth: 2
 
-  running_ipynb.ipynb
+  running_dtale.ipynb
 
 Indices and tables
 ==================

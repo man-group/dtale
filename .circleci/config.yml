@@ -55,6 +55,7 @@ defaults: &defaults
         name: Build JS
         command: |
           yarn run build
+    - run: sudo apt-get install pandoc
     - run:
        name: Create and activate virtualenv
        command: |
@@ -93,6 +94,7 @@ defaults: &defaults
          cp -r ./htmlcov /tmp/circleci-test-results
          cp ./coverage.xml /tmp/circleci-test-results
          python setup.py build_sphinx
+         cp -r ./build /tmp/circleci-artifacts
     - run:
        name: Get Python code coverage
        command: |
