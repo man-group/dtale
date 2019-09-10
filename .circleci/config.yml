@@ -4,11 +4,7 @@ defaults: &defaults
     environment:
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-      COVERALLS_REPO_TOKEN: WnzSri2b3no9Fh0buPancG1krS4jVfQiG
-      COVERALLS_PARALLEL: true
-    notify:
-      webhooks:
-        - url: https://coveralls.io/webhook?repo_token=WnzSri2b3no9Fh0buPancG1krS4jVfQiG
+      CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
     steps:
     - checkout
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
@@ -48,8 +44,8 @@ defaults: &defaults
         name: Run JS Tests & Coverage
         command: |
           yarn run test-with-coverage
+          bash <(curl -s https://codecov.io/bash) -c -F javascript
           yarn run report-duplicate-code
-          cat ./JS_coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
           cp -r ./JS_coverage /tmp/circleci-test-results
     - run:
         name: Build JS
@@ -63,7 +59,6 @@ defaults: &defaults
          . ci/bin/activate
          pip install six
          pip install lxml
-         pip install coveralls
          pip install flake8
          pip install isort
          pip install -r docs/source/requirements.txt
@@ -91,19 +86,10 @@ defaults: &defaults
          . ci/bin/activate
          export TZ=America/New_York
          python setup.py test
+         bash <(curl -s https://codecov.io/bash) -c -F python
          cp -r ./htmlcov /tmp/circleci-test-results
-         cp ./coverage.xml /tmp/circleci-test-results
          python setup.py build_sphinx
          cp -r ./build /tmp/circleci-artifacts
-    - run:
-       name: Get Python code coverage
-       command: |
-         . ci/bin/activate
-         coveralls
-    - run:
-       name: Copy test artifacts
-       command: |
-         cp -r ./JS_coverage /tmp/circleci-test-results
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
