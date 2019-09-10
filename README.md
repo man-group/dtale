@@ -3,7 +3,7 @@
 [![CircleCI](https://circleci.com/gh/manahl/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/manahl/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
-[![Coverage Status](https://coveralls.io/repos/github/manahl/dtale/badge.svg?branch=master)](https://coveralls.io/github/manahl/dtale?branch=master)
+[![codecov](https://codecov.io/gh/manahl/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale/master)
 
 ## Getting Started
 

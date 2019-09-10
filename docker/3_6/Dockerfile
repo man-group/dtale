@@ -25,7 +25,6 @@ WORKDIR /workspace
 RUN set -eux \
   ; pip install six \
   ; pip install lxml \
-  ; pip install coveralls \
   ; pip install isort \
   ; pip install -r docs/source/requirements.txt \
   ; python setup.py develop \

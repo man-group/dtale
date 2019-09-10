@@ -1,0 +1,12 @@
+github_enterprise:
+  webhook_secret: dtale2019manNumeric
+coverage:
+  status:
+    project:
+      default: false
+      python:
+        target: 85%
+        paths: "dtale/"
+      react:
+        target: 85%
+        paths: "static/"
