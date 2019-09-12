@@ -1,4 +1,5 @@
-# [![D-Tale](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
+[![D-Tale](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
+-----------------
 
 [![CircleCI](https://circleci.com/gh/manahl/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/manahl/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
@@ -10,7 +11,7 @@
 Setup/Activate your environment and install the egg
 
 ```bash
-# create a vritualenv (if you haven't already created one) 
+# create a virtualenv, if you haven't already created one (use "python -m virtualenv ~/pyenvs/dtale" if you're running Python2)
 $ python3 -m venv ~/pyenvs/dtale
 $ source ~/pyenvs/dtale/bin/activate
 # install dtale egg (important to use the "-U" every time you install so it will grab the latest version)
@@ -251,6 +252,8 @@ Contributors:
 
  * [Wilfred Hughes](https://github.com/Wilfred)
  * [Dominik Christ](https://github.com/DominikMChrist)
+ * [Jason Holden](https://github.com/jasonkholden)
+ * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...
 
 Contributions welcome!
