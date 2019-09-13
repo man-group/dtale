@@ -34,7 +34,7 @@ function mock(getReturnValue) {
       } else {
         body = getReturnValue;
       }
-      fullfill({ body });
+      fullfill({ json: () => body });
     });
 
     p.use = () => p;
@@ -42,7 +42,7 @@ function mock(getReturnValue) {
     return p;
   };
   return _.assignIn({}, popsicle, {
-    get: boomshaka,
+    fetch: boomshaka,
   });
 }
 

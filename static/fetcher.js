@@ -8,10 +8,7 @@ function logException(e, callStack) {
 
 // Useful for libraries that want a Promise.
 function fetchJsonPromise(url) {
-  return popsicle
-    .get(url)
-    .use(popsicle.plugins.parse(["json"]))
-    .then(response => response.body);
+  return popsicle.fetch(url).then(response => response.json());
 }
 
 // Load JSON from `url`, then call `callback` with the JSON-decoded
