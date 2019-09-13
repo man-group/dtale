@@ -21,6 +21,8 @@ FROM continuumio/anaconda:latest as python_build
 
 COPY --from=node_build /workspace /workspace
 
+ENV PATH="/opt/conda/bin/:${PATH}"
+
 WORKDIR /workspace
 RUN set -eux \
   ; pip install six \
