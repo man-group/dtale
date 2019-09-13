@@ -2,7 +2,7 @@
 
 const assign = require("lodash/assign");
 const webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 const _ = require("lodash");
 const baseConfig = require("./webpack.config.js");
 
@@ -12,8 +12,8 @@ function createConfig(subConfig) {
     devtool: "source-map",
     optimization: {
       minimizer: [
-        new UglifyJsPlugin({
-          uglifyOptions: {
+        new TerserPlugin({
+          terserOptions: {
             warnings: false,
           },
         }),
