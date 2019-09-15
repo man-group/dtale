@@ -5,8 +5,11 @@
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/manahl/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
+[![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
 ## Getting Started
+
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/blog/dtale_demo_mini.gif)
 
 Setup/Activate your environment and install the egg
 
