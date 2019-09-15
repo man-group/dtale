@@ -280,4 +280,4 @@ ReactDataViewer.propTypes = {
 
 const ReduxDataViewer = connect()(ReactDataViewer);
 
-export { ReduxDataViewer as DataViewer };
+export { ReduxDataViewer as DataViewer, ReactDataViewer };
