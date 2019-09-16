@@ -31,6 +31,15 @@ Loading data from **CSV**
 dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
 ```
 
+### Docker-compose
+Launch dtale using **docker-compose**
+```bash
+docker-compose up
+# Then navigate your web brwoser to:
+# 127.0.0.1 (dtale in python 3.6)
+# 127.0.0.1:8080 (dtale in python 2.7)
+```
+
 ### Python Terminal
 This comes courtesy of PyCharm
 ![Python Terminal](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Python_Terminal.png "Python_Terminal")
