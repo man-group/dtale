@@ -42,6 +42,18 @@ COPY --from=python_build /workspace/dist/*.egg /app/
 
 WORKDIR /app
 
+# Copy in demo csv data
+COPY ./demo .
+
+# Expose dtale port (match port in cli)
+EXPOSE 3000
+
 RUN set -eux \
   ; . /root/.bashrc \
   ; easy_install dtale-1.0.0-py3.7.egg
+
+RUN ln -sf /bin/bash /bin/sh
+ENV PATH="/opt/conda/bin/:${PATH}"
+
+CMD ["dtale", "--port",  "3000", "--csv-path", "./demo.csv"]
+

@@ -8,6 +8,8 @@ services:
     build:
       context: .
       dockerfile: docker/2_7/Dockerfile
+    ports:
+      - "8080:3000"
   dtale_3_6:
     image: dtale_3_6:latest
     environment:
@@ -15,3 +17,5 @@ services:
     build:
       context: .
       dockerfile: docker/3_6/Dockerfile
+    ports:
+      - "80:3000"
