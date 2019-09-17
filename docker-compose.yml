@@ -8,6 +8,9 @@ services:
     build:
       context: .
       dockerfile: docker/2_7/Dockerfile
+    depends_on:
+     - mongo
+     - dtale_3_6_arctic_demo
     ports:
       - "8080:3000"
   dtale_3_6:
@@ -17,5 +20,55 @@ services:
     build:
       context: .
       dockerfile: docker/3_6/Dockerfile
+    depends_on:
+     - mongo
+     - dtale_3_6_arctic_demo
+    links:
+     - mongo
     ports:
       - "80:3000"
+  dtale_3_6_arctic:
+    image: dtale_3_6:latest
+    environment:
+      - TZ=America/New_York
+    build:
+      context: .
+      dockerfile: docker/3_6/Dockerfile
+    depends_on:
+     - mongo
+     - dtale_3_6_arctic_demo
+    links:
+     - mongo
+    ports:
+      - "8081:3000"
+    command: dtale --port 3000 --arctic-host mongodb://mongo:27017 --arctic-library dtale_demo --arctic-node test/data_symbol --arctic-start 20190901 --arctic-end 20190930
+  mongo:
+    # Helper service to store arctic data for fast timeseries of pandas df's
+    image: mongo:latest
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - mongo_data:/data/db
+  dtale_3_6_arctic_demo:
+    # Helper service to populate arctic data to mongo
+    image: dtale_3_6:latest
+    environment:
+      - TZ=America/New_York
+    #build:
+    #  context: .
+    #  dockerfile: docker/3_6/Dockerfile
+    depends_on:
+     - mongo
+    links:
+     - mongo
+    volumes:
+     - ./demo/demo_populate_arctic.py:/app/demo_populate_arctic.py
+    entrypoint:
+      /bin/bash
+    command: -c "python ./demo_populate_arctic.py"
+
+volumes:
+  mongo_data:
+    # Make mongo data persist across docker-compose down
+    # external:
+    #   name: "mongo-data-dtale"
