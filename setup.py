@@ -59,6 +59,7 @@ setup(
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/manahl/dtale",
     install_requires=[
+        "arctic",
         "jsonschema<3.0.0",
         "flasgger==0.9.3",
         "Flask",
