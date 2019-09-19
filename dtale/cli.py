@@ -43,7 +43,7 @@ def main(host, port=None, debug=False, no_reaper=False, **kwargs):
                 from arctic import Arctic
                 from arctic.store.versioned_item import VersionedItem
             except BaseException as ex:
-                logger.exception('In order to use the arctic loader you must install ahl.core!')
+                logger.exception('In order to use the arctic loader you must arctic!')
                 raise ex
             host = Arctic(arctic_opts['host'])
             lib = host.get_library(arctic_opts['library'])
