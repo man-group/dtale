@@ -33,12 +33,22 @@ function createConfig(entry) {
           test: /.jsx?$/,
           loader: "babel-loader",
           exclude(file) {
+            // popsicle's code is not IE compliant so we need to run it through the babel plugins
+            if (file.startsWith(__dirname + "/node_modules/@servie")) {
+              return false;
+            }
+            if (file.startsWith(__dirname + "/node_modules/servie")) {
+              return false;
+            }
+            if (file.startsWith(__dirname + "/node_modules/popsicle")) {
+              return false;
+            }
             return file.startsWith(__dirname + "/node_modules");
           },
           query: {
             cacheDirectory: true,
             presets: ["@babel/env", "@babel/react", "@babel/flow"],
-            plugins: ["@babel/plugin-proposal-class-properties"],
+            plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-classes"],
           },
         },
         {
