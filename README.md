@@ -1,4 +1,7 @@
 [![D-Tale](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
+
+[Live Demo](http://andrewschonfeld.pythonanywhere.com/dtale/main)
+
 -----------------
 
 [![CircleCI](https://circleci.com/gh/manahl/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/manahl/dtale)
