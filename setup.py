@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.0.0",
+    version="1.1.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -98,6 +98,6 @@ setup(
                             "swagger/**/**/*",
                             "templates/**/*",
                             "templates/**/**/*"]},
-    entry_points={"console_scripts": ["dtale = dtale.cli:main"]},
+    entry_points={"console_scripts": ["dtale = dtale.cli.script:main"]},
     zip_safe=False
 )

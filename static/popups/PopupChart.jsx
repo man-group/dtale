@@ -4,9 +4,12 @@ import React from "react";
 import { Modal, ModalClose, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 import { connect } from "react-redux";
 
+import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
+import About from "./About";
 import { Correlations } from "./Correlations";
 import { CoverageChart } from "./CoverageChart";
+import { Describe } from "./Describe";
 import { Histogram } from "./Histogram";
 
 class ReactPopupChart extends React.Component {
@@ -27,8 +30,8 @@ class ReactPopupChart extends React.Component {
   render() {
     let modalTitle = null;
     let body = null;
-    const { chartData, onClose } = this.props;
-    const { type, title, visible } = chartData;
+    const { chartData } = this.props;
+    const { type, title, visible, size, backdrop } = chartData;
     switch (type) {
       case "histogram":
         modalTitle = (
@@ -59,16 +62,35 @@ class ReactPopupChart extends React.Component {
         );
         body = <Correlations propagateState={this.props.propagateState} />;
         break;
+      case "describe":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-view-column" />
+            <strong>{"Describe"}</strong>
+          </ModalTitle>
+        );
+        body = <Describe />;
+        break;
+      case "about":
+        modalTitle = (
+          <ModalTitle>
+            <i className="fa fa-info-circle la-lg" />
+            <strong>{"About"}</strong>
+          </ModalTitle>
+        );
+        body = <About />;
+        break;
       default:
         break;
     }
+    const onClose = () => this.props.onClose({ size: size || "modal-lg" });
     return (
-      <Modal {...{ isOpen: visible, onRequestHide: onClose, size: "modal-lg", backdrop: false }}>
+      <Modal {...{ isOpen: visible, onRequestHide: onClose, size: size || "modal-lg", backdrop: backdrop || false }}>
         <ModalHeader>
           {modalTitle}
           <ModalClose onClick={onClose} />
         </ModalHeader>
-        {body}
+        <ConditionalRender display={_.get(this.props, "chartData.visible")}>{body}</ConditionalRender>
       </Modal>
     );
   }
@@ -81,6 +103,8 @@ ReactPopupChart.propTypes = {
     type: PropTypes.string,
     node: PropTypes.string,
     title: PropTypes.string,
+    size: PropTypes.string,
+    backdrop: PropTypes.bool,
   }),
   propagateState: PropTypes.func,
 };
@@ -96,7 +120,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    onClose: () => dispatch(closeChart()),
+    onClose: chartData => dispatch(closeChart(chartData || {})),
   };
 }
 

@@ -23,7 +23,12 @@ npm-debug.log
 .vscode
 .project
 .pydevproject
+docs/source/dtale*rst
+docs/source/modules.rst
 
 # built JS files
 dtale/static/dist
 jest_tmp
+
+# custom CLI loaders
+custom_loaders/

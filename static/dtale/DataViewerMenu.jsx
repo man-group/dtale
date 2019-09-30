@@ -97,6 +97,14 @@ class ReactDataViewerMenu extends React.Component {
         style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
         <header className="menu-font">D-TALE</header>
         <ul>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "describe" })}>
+                <i className="ico-view-column" />
+                <span className="font-weight-bold">Describe</span>
+              </button>
+            </span>
+          </li>
           <ConditionalRender display={colCount > 0}>
             <li>
               <span className="toggler-action">
@@ -186,6 +194,16 @@ class ReactDataViewerMenu extends React.Component {
               <button className="btn btn-plain" onClick={resize}>
                 <i className="fa fa-expand ml-2 mr-4" />
                 <span className="font-weight-bold">Resize</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button
+                className="btn btn-plain"
+                onClick={() => this.props.openChart({ type: "about", size: "modal-sm", backdrop: true })}>
+                <i className="fa fa-info-circle la-lg mr-4" />
+                <span className="font-weight-bold">About</span>
               </button>
             </span>
           </li>

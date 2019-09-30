@@ -248,7 +248,7 @@ class ReactDataViewer extends React.Component {
           {({ onRowsRendered }) => {
             this._onRowsRendered = onRowsRendered;
             return (
-              <AutoSizer onResize={() => this._grid.recomputeGridSize()}>
+              <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
                 {({ width, height }) => (
                   <MultiGrid
                     {...this.state}

@@ -4,9 +4,9 @@ function openChart(chartData) {
   };
 }
 
-function closeChart() {
+function closeChart(chartData) {
   return function(dispatch) {
-    dispatch({ type: "close-chart" });
+    dispatch({ type: "close-chart", chartData });
   };
 }
 

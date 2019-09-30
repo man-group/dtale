@@ -13,15 +13,18 @@ from future.utils import string_types
 from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
-from dtale.utils import (dict_merge, filter_df_for_grid, find_selected_column,
-                         get_int_arg, get_str_arg, grid_columns,
-                         grid_formatter, json_float, json_int, jsonify,
-                         make_list, retrieve_grid_params, running_with_flask,
-                         running_with_pytest, sort_df_for_grid)
+from dtale.cli.clickutils import retrieve_meta_info_and_version
+from dtale.utils import (dict_merge, filter_df_for_grid, find_dtype_formatter,
+                         find_selected_column, get_dtypes, get_int_arg,
+                         get_str_arg, grid_columns, grid_formatter, json_float,
+                         json_int, jsonify, make_list, retrieve_grid_params,
+                         running_with_flask, running_with_pytest,
+                         sort_df_for_grid)
 
 logger = getLogger(__name__)
 
 DATA = None
+DTYPES = None
 SETTINGS = {}
 
 
@@ -36,18 +39,30 @@ def startup(data=None, data_loader=None, port=None):
     :param data_loader: function which returns pandas.DataFrame
     :param port: integer port for running Flask process
     """
-    global DATA, SETTINGS
+    global DATA, DTYPES, SETTINGS
 
     if data_loader is not None:
         data = data_loader()
-    elif data is None:
-        logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
 
     if data is not None:
+        if not isinstance(data, (pd.DataFrame, pd.Series, pd.DatetimeIndex, pd.MultiIndex)):
+            raise Exception(
+                'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'
+            )
+
+        if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
+            data = data.to_frame(index=False)
+
+        logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
         curr_index = [i for i in make_list(data.index.name or data.index.names) if i is not None]
         logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
         SETTINGS[str(port)] = dict(locked=curr_index)
         DATA = data.reset_index().drop('index', axis=1, errors='ignore')
+        dtypes = get_dtypes(DATA)
+        DTYPES = [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(DATA.columns)]
+
+    else:
+        raise Exception('data loaded is None!')
 
 
 @dtale.route('/main')
@@ -59,7 +74,8 @@ def view_main():
     :return: HTML
     """
     curr_settings = SETTINGS.get(request.environ.get('SERVER_PORT', 'curr'), {})
-    return render_template('dtale/main.html', settings=json.dumps(curr_settings))
+    _, version = retrieve_meta_info_and_version('dtale')
+    return render_template('dtale/main.html', settings=json.dumps(curr_settings), version=str(version))
 
 
 @dtale.route('/update-settings')
@@ -103,6 +119,81 @@ def test_filter():
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
+@dtale.route('/dtypes')
+@swag_from('swagger/dtale/views/dtypes.yaml')
+def dtypes():
+    """
+    Flask route which returns a list of column names and dtypes to the front-end as JSON
+
+    :return: JSON {
+        dtypes: [
+            {index: 1, name: col1, dtype: int64},
+            ...,
+            {index: N, name: colN, dtype: float64}
+        ],
+        success: True/False
+    }
+    """
+    try:
+        global DTYPES
+        return jsonify(dtypes=DTYPES, success=True)
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))
+
+
+def load_describe(column_series):
+    """
+    Helper function for grabbing the output from pandas.Series.describe in a JSON serializable format
+
+    :param column_series: data to describe
+    :type column_series: pandas.Series
+    :return: JSON serializable dictionary of the output from calling pandas.Series.describe
+    """
+    desc = column_series.describe().to_frame().T
+    desc_f_overrides = {
+        'I': lambda f, i, c: f.add_int(i, c, as_string=True),
+        'F': lambda f, i, c: f.add_float(i, c, precision=4, as_string=True),
+    }
+    desc_f = grid_formatter(grid_columns(desc), nan_display='N/A', overrides=desc_f_overrides)
+    desc = desc_f.format_dict(next(desc.itertuples(), None))
+    if 'count' in desc:
+        # pandas always returns 'count' as a float and it adds useless decimal points
+        desc['count'] = desc['count'].split('.')[0]
+    return desc
+
+
+@dtale.route('/describe/<column>')
+@swag_from('swagger/dtale/views/describe.yaml')
+def describe(column):
+    """
+    Flask route which returns standard details about column data using pandas.DataFrame[col].describe to
+    the front-end as JSON
+
+    :param column: required dash separated string "START-END" stating a range of row indexes to be returned
+                   to the screen
+    :return: JSON {
+        describe: object representing output from pandas.Series.describe,
+        unique_data: array of unique values when data has <= 100 unique values
+        success: True/False
+    }
+
+    """
+    try:
+        global DATA
+
+        desc = load_describe(DATA[column])
+        return_data = dict(describe=desc, success=True)
+        uniq_vals = DATA[column].unique()
+        if 'unique' not in return_data['describe']:
+            return_data['describe']['unique'] = json_int(len(uniq_vals), as_string=True)
+        if len(uniq_vals) <= 100:
+            uniq_f = find_dtype_formatter(get_dtypes(DATA)[column])
+            return_data['uniques'] = [uniq_f(u, nan_display='N/A') for u in uniq_vals]
+        return jsonify(return_data)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
 @dtale.route('/data')
 @swag_from('swagger/dtale/views/data.yml')
 def get_data():
@@ -119,7 +210,7 @@ def get_data():
         results: [
             {dtale_index: 1, col1: val1_1, ...,colN: valN_1},
             ...,
-            {dtale_index: N2, col1: val1_N2, ...,colN: valN_N2}.
+            {dtale_index: N2, col1: val1_N2, ...,colN: valN_N2}
         ],
         columns: [{name: col1, dtype: 'int64'},...,{name: colN, dtype: 'datetime'}],
         total: N2,
@@ -195,7 +286,8 @@ def get_histogram():
         selected_col = find_selected_column(DATA, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
         hist = np.histogram(data, bins=bins)
-        desc = data.describe()[selected_col].to_dict()
+
+        desc = load_describe(data[selected_col])
         return jsonify(data=[json_float(h) for h in hist[0]], labels=['{0:.1f}'.format(l) for l in hist[1]], desc=desc)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -227,6 +319,17 @@ def get_correlations():
 
 
 def _build_timeseries_chart_data(name, df, cols, min=None, max=None, sub_group=None):
+    """
+    Helper function for grabbing JSON serialized data for one or many date groupings
+
+    :param name: base name of series in chart
+    :param df: data frame to be grouped
+    :param cols: columns whose data is to be returned
+    :param min: optional hardcoded minimum to be returned for all series
+    :param max: optional hardcoded maximum to be returned for all series
+    :param sub_group: optional sub group to be used in addition to date
+    :return: generator of string keys and JSON serialized dictionaries
+    """
     base_cols = ['date']
     if sub_group in df:
         dfs = df.groupby(sub_group)

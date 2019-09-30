@@ -40,6 +40,7 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
@@ -54,6 +55,7 @@ describe("DataViewer tests", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
     body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
     const result = mount(
       <Provider store={store}>
@@ -71,7 +73,7 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .first()
+        .at(1)
         .simulate("click");
       result.update();
       t.equal(result.find(Filter).length, 1, "should open filter");
@@ -86,7 +88,21 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
+        .at(1)
+        .simulate("click");
+      result.update();
+      result
+        .find(ModalFooter)
         .first()
+        .find("button")
+        .at(1)
+        .simulate("click");
+      result.update();
+      t.notOk(result.find(Filter).instance().props.visible, "should close filter");
+      result
+        .find(DataViewerMenu)
+        .find("ul li button")
+        .at(1)
         .simulate("click");
       result.update();
       result
@@ -133,6 +149,7 @@ describe("DataViewer tests", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
     body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
     const result = mount(
       <Provider store={store}>
@@ -150,7 +167,7 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .first()
+        .at(1)
         .simulate("click");
       result.update();
       result

@@ -11,6 +11,7 @@ function testMain(mainName, isDev = false) {
   const body = document.getElementsByTagName("body")[0];
   const settings = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}";
   body.innerHTML += `<input type="hidden" id="settings" value="${settings}" />`;
+  body.innerHTML += `<input type="hidden" id="version" value="1.0.0" />`;
   body.innerHTML += '<div id="content"></div>';
   const mockReactDOM = { renderStatus: false };
   mockReactDOM.render = () => {

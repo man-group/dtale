@@ -156,7 +156,7 @@ class ReactCorrelations extends React.Component {
       <div key="body" className="modal-body scatter-body">
         <BouncerWrapper showBouncer={_.isEmpty(correlations)}>
           <b>Pearson Correlation Matrix</b>
-          <AutoSizer disableHeight>
+          <AutoSizer className="correlations-grid" disableHeight>
             {({ width }) => (
               <MultiGrid
                 {...gu.buildGridStyles()}
@@ -171,7 +171,6 @@ class ReactCorrelations extends React.Component {
                 columnWidth={100}
                 rowHeight={gu.ROW_HEIGHT}
                 width={width}
-                onSectionRendered={this._onSectionRendered}
               />
             )}
           </AutoSizer>

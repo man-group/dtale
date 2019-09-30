@@ -22,8 +22,14 @@ app = build_app()
 def test_startup(unittest):
     import dtale.views as views
 
-    views.startup()
-    assert views.DATA is None
+    with pytest.raises(BaseException) as error:
+        views.startup()
+    assert 'data loaded is None!' in str(error.value)
+
+    with pytest.raises(BaseException) as error:
+        views.startup(dict())
+    assert 'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'\
+           in str(error.value)
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1, foo=1.5)])
     test_data = test_data.set_index(['date', 'security_id'])
@@ -36,6 +42,22 @@ def test_startup(unittest):
     views.startup(data=test_data, port=80)
     pdt.assert_frame_equal(views.DATA, test_data)
     unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'no index = nothing locked')
+
+    test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1)])
+    test_data = test_data.set_index('security_id').date
+    views.startup(data_loader=lambda: test_data, port=80)
+    pdt.assert_frame_equal(views.DATA, test_data.reset_index())
+    unittest.assertEqual(views.SETTINGS['80'], dict(locked=['security_id']), 'should lock index columns')
+
+    test_data = pd.DatetimeIndex([pd.Timestamp('now')], name='date')
+    views.startup(data_loader=lambda: test_data, port=80)
+    pdt.assert_frame_equal(views.DATA, test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'should lock index columns')
+
+    test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=('a', 'b'))
+    views.startup(data_loader=lambda: test_data, port=80)
+    pdt.assert_frame_equal(views.DATA, test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'should lock index columns')
 
 
 @pytest.mark.unit
@@ -72,6 +94,34 @@ def test_update_settings(unittest):
             c.get('/dtale/main')
             _, kwargs = mock_render_template.call_args
             unittest.assertEqual(kwargs['settings'], settings, 'settings should be retrieved')
+
+    settings = 'a'
+    with app.test_client(port='82') as c:
+        response = c.get('/dtale/update-settings', query_string=dict(settings=settings))
+        assert response.status_code == 200, 'should return 200 response'
+
+        response_data = json.loads(response.data)
+        assert 'error' in response_data
+
+
+@pytest.mark.unit
+def test_dtypes(test_data):
+    from dtale.utils import get_dtypes
+
+    dtypes = get_dtypes(test_data)
+    DTYPES = [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(test_data.columns)]
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', test_data))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', DTYPES))
+            response = c.get('/dtale/dtypes')
+            response_data = json.loads(response.data)
+            assert response_data['success']
+
+            for col in test_data.columns:
+                response = c.get('/dtale/describe/{}'.format(col))
+                response_data = json.loads(response.data)
+                assert response_data['success']
 
 
 @pytest.mark.unit
@@ -124,7 +174,7 @@ def test_get_data(unittest, test_data):
                     dict(dtype='int64', name='security_id'),
                     dict(dtype='int64', name='foo'),
                     dict(dtype='float64', name='bar'),
-                    dict(dtype='object', name='baz')
+                    dict(dtype='string', name='baz')
                 ]
             )
             unittest.assertEqual(response_data, expected, 'should return data at index 1')
@@ -180,7 +230,7 @@ def test_get_histogram(unittest, test_data):
                 ],
                 data=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 desc={
-                    'count': 50.0, 'std': 0.0, 'min': 1.0, 'max': 1.0, '50%': 1.0, '25%': 1.0, '75%': 1.0, 'mean': 1.0
+                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 }
             )
             unittest.assertEqual(response_data, expected, 'should return 20-bin histogram for foo')
@@ -191,7 +241,7 @@ def test_get_histogram(unittest, test_data):
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
                 data=[0, 0, 50, 0, 0],
                 desc={
-                    'count': 50.0, 'std': 0.0, 'min': 1.0, 'max': 1.0, '50%': 1.0, '25%': 1.0, '75%': 1.0, 'mean': 1.0
+                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 }
             )
             unittest.assertEqual(response_data, expected, 'should return 5-bin histogram for foo')
@@ -202,7 +252,7 @@ def test_get_histogram(unittest, test_data):
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
                 data=[0, 0, 39, 0, 0],
                 desc={
-                    'count': 39.0, 'std': 0.0, 'min': 1.0, 'max': 1.0, '50%': 1.0, '25%': 1.0, '75%': 1.0, 'mean': 1.0
+                    'count': '39', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 }
             )
             unittest.assertEqual(response_data, expected, 'should return a filtered 5-bin histogram for foo')
@@ -431,8 +481,19 @@ def test_get_coverage(unittest, test_data):
 
 
 @pytest.mark.unit
+def test_version_info():
+    with app.test_client() as c:
+        with mock.patch(
+                'dtale.cli.clickutils.pkg_resources.get_distribution',
+                mock.Mock(side_effect=Exception('blah'))
+        ):
+            response = c.get('version-info')
+            assert 'unknown' in str(response.data)
+
+
+@pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main', 'site-map', 'apidocs/']
+    paths = ['/dtale/main', 'site-map', 'apidocs/', 'version-info']
     with app.test_client() as c:
         for path in paths:
             response = c.get(path)

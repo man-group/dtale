@@ -33,7 +33,7 @@ parameters:
       maxItems: 2
 responses:
   200:
-    description: JSON object containing success flag for pass/fail of pandas query
+    description: JSON object containing rows, columns and success flag
     content:
       application/json:
         schema:

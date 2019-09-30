@@ -2,4 +2,4 @@
 max_line_length = 120
 select = E, W, F
 ignore = W503
-exclude = node_modules,ci,build,docs
+exclude = node_modules,ci,build,docs,custom_loaders
