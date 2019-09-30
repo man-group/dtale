@@ -37,6 +37,7 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
@@ -53,6 +54,7 @@ describe("DataViewer tests", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
     body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
     const result = mount(
       <Provider store={store}>
@@ -66,14 +68,14 @@ describe("DataViewer tests", () => {
     setTimeout(() => {
       result.update();
       result
-        .find("div.headerCell div")
+        .find(".main-grid div.headerCell div")
         .last()
         .simulate("click");
       result.update();
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .at(9)
+        .at(10)
         .simulate("click");
       result.update();
       t.ok(result.find(PopupChart).instance().props.chartData.visible, "should open coverage");
@@ -89,7 +91,7 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .at(9)
+        .at(10)
         .simulate("click");
       result.update();
       result

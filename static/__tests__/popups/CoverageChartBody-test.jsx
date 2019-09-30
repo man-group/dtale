@@ -31,6 +31,7 @@ describe("CoverageChartBody tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   test("CoverageChartBody missing data", done => {

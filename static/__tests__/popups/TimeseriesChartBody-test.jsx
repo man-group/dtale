@@ -62,6 +62,7 @@ describe("TimeseriesChartBody tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   test("TimeseriesChartBody rendering chart per dataset", done => {
@@ -69,6 +70,7 @@ describe("TimeseriesChartBody tests", () => {
 
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
     body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
 
     const url = buildURL("ts-test", { tsColumns: { x1: ["y1"], x2: ["y2"] } });

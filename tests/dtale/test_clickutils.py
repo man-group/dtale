@@ -5,7 +5,7 @@ import mock
 import pytest
 from six import PY3
 
-from dtale.clickutils import setup_logging
+from dtale.cli.clickutils import setup_logging
 
 if PY3:
     from contextlib import ExitStack

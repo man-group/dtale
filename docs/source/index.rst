@@ -10,7 +10,7 @@ General use
 The following section is available as a Jupyter notebook in `docs/source/running_dtale.ipynb`.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 4
 
   running_dtale.ipynb
 

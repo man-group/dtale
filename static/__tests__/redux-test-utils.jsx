@@ -1,5 +1,7 @@
 import qs from "querystring";
 
+import _ from "lodash";
+
 import dtaleApp from "../reducers/dtale";
 import { createStore } from "../reducers/store";
 import correlationsData from "./data/correlations";
@@ -24,6 +26,23 @@ const DATA = {
   ],
   total: 4,
   success: true,
+};
+
+const DTYPES = {
+  dtypes: [
+    { index: 0, name: "col1", dtype: "int64" },
+    { index: 1, name: "col2", dtype: "float64" },
+    { index: 2, name: "col3", dtype: "string" },
+    { index: 3, name: "col4", dtype: "datetime[ns]" },
+  ],
+  success: true,
+};
+
+const DESCRIBE = {
+  col1: { describe: { count: 4, max: 4, mean: 2.5, min: 1, std: 0, unique: 4, "25%": 1, "50%": 2.5, "75%": 4 } },
+  col2: { describe: { count: 4, max: 4, mean: 4, min: 2.5, std: 0, unique: 4, "25%": 2.5, "50%": 4, "75%": 5.5 } },
+  col3: { describe: { count: 4, freq: 4, top: "foo", unique: 1 }, uniques: ["foo"] },
+  col4: { describe: { count: 3, first: "2000-01-01", freq: 1, last: "2000-01-01", top: "2000-01-01", unique: 1 } },
 };
 
 function urlFetcher(url) {
@@ -51,6 +70,16 @@ function urlFetcher(url) {
       return { error: "No data found" };
     }
     return { success: true };
+  } else if (url.startsWith("/dtale/dtypes")) {
+    return DTYPES;
+  } else if (url.startsWith("/dtale/describe")) {
+    const column = _.last(url.split("/"));
+    if (_.has(DESCRIBE, column)) {
+      return _.assignIn({ success: true }, DESCRIBE[column]);
+    }
+    return { error: "Column not found!" };
+  } else if (_.includes(url, "pypi.org")) {
+    return { info: { version: "1.0.0" } };
   }
   return {};
 }

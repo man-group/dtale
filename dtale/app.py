@@ -18,7 +18,7 @@ from flask_compress import Compress
 from six import PY3
 
 from dtale import dtale
-from dtale.clickutils import retrieve_meta_info_and_version, setup_logging
+from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import dict_merge
 from dtale.views import startup
 
@@ -71,28 +71,32 @@ class DtaleFlask(Flask):
     Overriding Flask's implementation of
     get_send_file_max_age, test_client & run
 
+    :param import_name: the name of the application package
+    :param reaper_on: whether to run auto-reaper subprocess
+    :type reaper_on: bool
     :param args: Optional arguments to be passed to :class:`flask.Flask`
     :param kwargs: Optional keyword arguments to be passed to :class:`flask.Flask`
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, import_name, reaper_on=True, *args, **kwargs):
         """
         Constructor method
-        """
-        super(DtaleFlask, self).__init__(*args, **kwargs)
-        self.reaper_on = True
-        self.reaper = None
-        self.shutdown_url = None
-
-    def run(self, reaper_on=True, *args, **kwargs):
-        """
         :param reaper_on: whether to run auto-reaper subprocess
         :type reaper_on: bool
+        """
+        self.reaper_on = reaper_on
+        self.reaper = None
+        self.shutdown_url = None
+        super(DtaleFlask, self).__init__(import_name, *args, **kwargs)
+
+    def run(self, *args, **kwargs):
+        """
         :param args: Optional arguments to be passed to :meth:`flask.run`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask.run`
         """
         self.shutdown_url = 'http://{}:{}/shutdown'.format(socket.gethostname(), kwargs.get('port'))
-        self.reaper_on = reaper_on and not kwargs.get('debug', False)
+        if kwargs.get('debug', False):
+            self.reaper_on = False
         self.build_reaper()
         super(DtaleFlask, self).run(use_reloader=kwargs.get('debug', False), *args, **kwargs)
 
@@ -148,14 +152,15 @@ class DtaleFlask(Flask):
 
         :param name: filename
         :return: Flask's default behavior for get_send_max_age if filename is not in SHORT_LIFE_PATHS
-        otherwise SHORT_LIFE_TIMEOUT
+                 otherwise SHORT_LIFE_TIMEOUT
+
         """
         if name and any([name.startswith(path) for path in SHORT_LIFE_PATHS]):
             return SHORT_LIFE_TIMEOUT
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
-def build_app():
+def build_app(reaper_on=True):
     """
     Builds Flask application encapsulating endpoints for D-Tale's front-end
 
@@ -163,7 +168,7 @@ def build_app():
     :rtype: :class:`dtale.app.DtaleFlask`
     """
 
-    app = DtaleFlask('dtale', static_url_path='')
+    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='')
     app.config['SECRET_KEY'] = 'Dtale'
 
     app.jinja_env.trim_blocks = True
@@ -301,7 +306,8 @@ def build_app():
 
         :return: text/html version information
         """
-        return retrieve_meta_info_and_version('dtale')
+        _, version = retrieve_meta_info_and_version('dtale')
+        return str(version)
 
     return app
 
@@ -355,7 +361,7 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
     def _show():
         selected_port = int(port or find_free_port())
         startup(data=data, data_loader=data_loader, port=selected_port)
-        app = build_app()
+        app = build_app(reaper_on=reaper_on)
 
         if debug:
             app.jinja_env.auto_reload = True
@@ -364,7 +370,7 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
             getLogger("werkzeug").setLevel(LOG_ERROR)
 
         logger.info('D-Tale started at: http://{}:{}'.format(socket.gethostname(), selected_port))
-        app.run(host=host, port=selected_port, debug=debug, reaper_on=reaper_on)
+        app.run(host=host, port=selected_port, debug=debug)
 
     if subprocess:
         _thread.start_new_thread(_show, ())

@@ -80,6 +80,7 @@ describe("Histogram tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   test("Histogram rendering data", done => {

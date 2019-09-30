@@ -1,4 +1,5 @@
 import Chart from "chart.js";
+import "chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js";
 import "chartjs-plugin-zoom";
 import _ from "lodash";
 

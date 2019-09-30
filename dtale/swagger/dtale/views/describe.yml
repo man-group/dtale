@@ -1,0 +1,32 @@
+summary: Fetch descriptive information for a specific column
+description: |
+  * [pandas.Series.describe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.describe.html)
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: JSON object containing describe information, unique values and success flag
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                describe:
+                  type: object
+                  description: object containing serialized output of pandas.Series.describe
+                uniques:
+                  type: array
+                  description: array of unique values for column when it has <= 100 unique values
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

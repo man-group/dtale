@@ -1,0 +1,42 @@
+summary: Fetch list of column names and dtypes
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: JSON object containing column name/dtype pairs and success flag
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                dtypes:
+                  type: array
+                  description: list of columns, indexes and dtypes
+                  items:
+                    type: object
+                    properties:
+                      index:
+                        type: integer
+                        description: index of column within original dataframe
+                      name:
+                        type: string
+                        description: column name
+                      dtype:
+                        type: string
+                        description: "data type of column in pandas dataframe (EX: int64, float64, object)"
+                    required:
+                      - name
+                      - dtype
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

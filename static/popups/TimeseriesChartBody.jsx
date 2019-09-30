@@ -134,8 +134,6 @@ class TimeseriesChartBody extends React.Component {
           data: { datasets },
           options: _.assign(
             {
-              //maintainAspectRatio: false,
-              //responsive: false,
               scales,
               tooltips: {
                 callbacks: {

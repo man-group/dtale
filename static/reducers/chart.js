@@ -6,7 +6,7 @@ function chartData(state = { visible: false }, action = {}) {
       return _.assign({ visible: true }, action.chartData);
     case "loaded-report-data":
     case "close-chart":
-      return { visible: false };
+      return _.assign({ visible: false }, action.chartData);
   }
   return state;
 }

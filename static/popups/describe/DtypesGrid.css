@@ -1,0 +1,34 @@
+.dtypes .cell,
+.dtypes .headerCell {
+  width: 100%;
+  height: 100%;
+  display: inherit;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(170, 170, 170, 0.25);
+}
+.dtypes .headerCell {
+  font-weight: bold;
+  cursor: pointer;
+}
+.dtypes .headerCell.filterable .row {
+  margin-left: 0;
+  margin-right: 0;
+  padding-bottom: 0.5em;
+  padding-top: 0.5em;
+}
+.dtypes .headerCell.filterable .col,
+.dtypes .headerCell.filterable .col-auto {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.dtypes .dtype-row-selected {
+  font-weight: bold;
+  background-color: rgba(82, 187, 239, 0.2);
+}
+.dtypes .dtype-row:hover {
+  font-weight: bold;
+  cursor: pointer;
+  background-color: rgba(82, 187, 239, 0.2);
+}

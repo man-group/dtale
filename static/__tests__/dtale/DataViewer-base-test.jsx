@@ -44,6 +44,7 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
+    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
@@ -58,6 +59,7 @@ describe("DataViewer tests", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML += '<input type="hidden" id="settings" value="" />';
+    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
     body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
     const result = mount(
       <Provider store={store}>
@@ -75,7 +77,7 @@ describe("DataViewer tests", () => {
         .first()
         .instance();
       t.deepEqual(
-        result.find("div.headerCell").map(hc => hc.text()),
+        result.find(".main-grid div.headerCell").map(hc => hc.text()),
         ["col1", "col2", "col3", "col4"],
         "should render column headers"
       );
@@ -91,24 +93,24 @@ describe("DataViewer tests", () => {
           .find(DataViewerMenu)
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
-        ["Filter", "Correlations", "Coverage", "Resize", "Shutdown"],
+        ["Describe", "Filter", "Correlations", "Coverage", "Resize", "About", "Shutdown"],
         "Should render default menu options"
       );
 
       result
-        .find("div.headerCell div")
+        .find(".main-grid div.headerCell div")
         .last()
         .simulate("click");
       result.update();
-      t.equal(result.find("div.headerCell.selected").length, 1, "should select col4");
+      t.equal(result.find(".main-grid div.headerCell.selected").length, 1, "should select col4");
       result
-        .find("div.headerCell div")
+        .find(".main-grid div.headerCell div")
         .last()
         .simulate("click");
       result.update();
-      t.equal(result.find("div.headerCell.selected").length, 0, "should clear selection");
+      t.equal(result.find(".main-grid div.headerCell.selected").length, 0, "should clear selection");
       result
-        .find("div.headerCell div")
+        .find(".main-grid div.headerCell div")
         .last()
         .simulate("click");
       result.update();
@@ -119,8 +121,8 @@ describe("DataViewer tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
-          ["Histogram", "Correlations", "Coverage", "Resize", "Shutdown"]
+          ["Describe", "Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
+          ["Histogram", "Correlations", "Coverage", "Resize", "About", "Shutdown"]
         ),
         "Should render menu options associated with selected column"
       );
@@ -128,7 +130,7 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .at(3)
+        .at(4)
         .simulate("click");
       t.equal(
         result
@@ -149,7 +151,7 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         result
-          .find("div.headerCell div")
+          .find(".main-grid div.headerCell div")
           .at(2)
           .simulate("click");
         result.update();
@@ -169,7 +171,7 @@ describe("DataViewer tests", () => {
           .simulate("click");
         result.update();
         result
-          .find("div.headerCell div")
+          .find(".main-grid div.headerCell div")
           .last()
           .simulate("click");
         result.update();
@@ -178,11 +180,11 @@ describe("DataViewer tests", () => {
         result
           .find(DataViewerMenu)
           .find("ul li button")
-          .first()
+          .at(1)
           .simulate("click");
         result.update();
         t.deepEqual(
-          result.find("div.headerCell").map(hc => hc.text()),
+          result.find(".main-grid div.headerCell").map(hc => hc.text()),
           ["▲col4", "col1", "col2", "col3"],
           "should move col4 to front of main grid"
         );
@@ -191,7 +193,7 @@ describe("DataViewer tests", () => {
         result
           .find(DataViewerMenu)
           .find("ul li button")
-          .at(1)
+          .at(2)
           .simulate("click");
         result.update();
         t.deepEqual(
@@ -206,14 +208,14 @@ describe("DataViewer tests", () => {
 
         //unlock
         result
-          .find("div.headerCell div")
+          .find(".main-grid div.headerCell div")
           .first()
           .simulate("click");
         result.update();
         result
           .find(DataViewerMenu)
           .find("ul li button")
-          .at(1)
+          .at(2)
           .simulate("click");
         result.update();
         t.deepEqual(
@@ -234,15 +236,15 @@ describe("DataViewer tests", () => {
         setTimeout(() => {
           result.update();
           t.equal(result.find("div.row").length, 0, "should remove information row");
-
           result
-            .find("div.headerCell div")
+            .find(".main-grid div.headerCell div")
             .last()
             .simulate("click");
+          result.update();
           result
             .find(DataViewerMenu)
             .find("ul li button")
-            .at(7)
+            .at(8)
             .simulate("click");
           setTimeout(() => {
             result.update();
@@ -257,7 +259,7 @@ describe("DataViewer tests", () => {
               result
                 .find(DataViewerMenu)
                 .find("ul li button")
-                .at(10)
+                .at(11)
                 .simulate("click");
               result
                 .find(DataViewerMenu)

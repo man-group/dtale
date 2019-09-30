@@ -1,5 +1,6 @@
 from __future__ import division
 
+import decimal
 import json
 import os
 import sys
@@ -122,33 +123,50 @@ def json_string(x, nan_display=''):
     return nan_display
 
 
-def json_int(x, nan_display=''):
+def json_int(x, nan_display='', as_string=False):
     """
     Convert value to integer to be used within JSON output
 
     :param x: value to be converted to integer
     :param nan_display: if `x` is nan then return this value
+    :param as_string: return integer as a formatted string (EX: 1,000,000)
     :return: integer value
     :rtype: int
     """
     try:
-        return int(x) if not np.isnan(x) and not np.isinf(x) else nan_display
+        if not np.isnan(x) and not np.isinf(x):
+            return '{:,d}'.format(int(x)) if as_string else int(x)
+        return nan_display
     except BaseException:
         return nan_display
 
 
-def json_float(x, precision=2, nan_display='nan'):
+# hack to solve issues with formatting floats with a precision more than 4 decimal points
+# https://stackoverflow.com/questions/38847690/convert-float-to-string-without-scientific-notation-and-false-precision
+DECIMAL_CTX = decimal.Context()
+DECIMAL_CTX.prec = 20
+
+
+def json_float(x, precision=2, nan_display='nan', as_string=False):
     """
     Convert value to float to be used within JSON output
 
     :param x: value to be converted to integer
     :param precision: precision of float to be returned
     :param nan_display: if `x` is nan then return this value
+    :param as_string: return float as a formatted string (EX: 1,234.5643)
     :return: float value
     :rtype: float
     """
     try:
-        return float(round(x, precision)) if not np.isnan(x) and not np.isinf(x) else nan_display
+        if not np.isnan(x) and not np.isinf(x):
+            output = float(round(x, precision))
+            if as_string:
+                str_output = format(DECIMAL_CTX.create_decimal(repr(x)), ',.{}f'.format(str(precision)))
+                # drop trailing zeroes off & trailing decimal points if necessary
+                return str_output.rstrip('0').rstrip('.')
+            return output
+        return nan_display
     except BaseException:
         return nan_display
 
@@ -163,6 +181,8 @@ def json_date(x, nan_display=''):
     :rtype: str (YYYY-MM-DD)
     """
     try:
+        if isinstance(x, np.datetime64):  # calling unique on a pandas datetime column returns numpy datetime64
+            return pd.Timestamp(x).strftime('%Y-%m-%d')
         return x.strftime('%Y-%m-%d')
     except BaseException:
         return nan_display
@@ -204,12 +224,14 @@ class JSONFormatter(object):
     def add_string(self, idx, name=None):
         self.fmts.append([idx, name, json_string])
 
-    def add_int(self, idx, name=None):
-        self.fmts.append([idx, name, json_int])
-
-    def add_float(self, idx, name=None, precision=6):
+    def add_int(self, idx, name=None, as_string=False):
         def f(x, nan_display):
-            return json_float(x, precision, nan_display=nan_display)
+            return json_int(x, nan_display=nan_display, as_string=as_string)
+        self.fmts.append([idx, name, f])
+
+    def add_float(self, idx, name=None, precision=6, as_string=False):
+        def f(x, nan_display):
+            return json_float(x, precision, nan_display=nan_display, as_string=as_string)
         self.fmts.append([idx, name, f])
 
     def add_timestamp(self, idx, name=None):
@@ -422,7 +444,13 @@ def get_dtypes(df):
     """
     Build dictionary of column/dtype name pairs from :class:`pandas.DataFrame`
     """
-    return {c: d.name for c, d in df.dtypes.to_dict().items()}
+    def _load():
+        for col, dtype in df.dtypes.to_dict().items():
+            if dtype.name == 'object':
+                yield col, pd.api.types.infer_dtype(df[col], skipna=True)
+            else:
+                yield col, dtype.name
+    return dict(list(_load()))
 
 
 def grid_columns(df):
@@ -439,6 +467,17 @@ DF_MAPPINGS = {
     'F': lambda f, i, c: f.add_float(i, c),
     'S': lambda f, i, c: f.add_string(i, c)
 }
+
+
+def find_dtype_formatter(dtype):
+    type_classification = classify_type(dtype)
+    if type_classification == 'I':
+        return json_int
+    if type_classification == 'D':
+        return json_date
+    if type_classification == 'F':
+        return json_float
+    return json_string
 
 
 def grid_formatter(col_types, nan_display='', overrides=None):
@@ -542,16 +581,12 @@ def dict_merge(d1, d2):
     Either dictionary can be None.  An empty dictionary {} will be
     returned if both dictionaries are None.
 
-    Parameters
-    ----------
-    d1: dictionary
-        First dictionary can be None
-    d2: dictionary
-        Second dictionary can be None
-
-    Returns
-    -------
-    Dictionary
+    :param d1: First dictionary can be None
+    :type d1: dict
+    :param d2: Second dictionary can be None
+    :type d1: dict
+    :return: new dictionary with the contents of d2 overlaying the contents of d1
+    :rtype: dict
     """
     if not d1:
         return d2 or {}

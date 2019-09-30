@@ -16,15 +16,24 @@
 
 Setup/Activate your environment and install the egg
 
+**Python 3**
 ```bash
-# create a virtualenv, if you haven't already created one (use "python -m virtualenv ~/pyenvs/dtale" if you're running Python2)
+# create a virtualenv, if you haven't already created one
 $ python3 -m venv ~/pyenvs/dtale
 $ source ~/pyenvs/dtale/bin/activate
-# install dtale egg (important to use the "-U" every time you install so it will grab the latest version)
+
+# install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
 $ pip install --upgrade dtale
 ```
+**Python 2**
+```bash
+# create a virtualenv, if you haven't already created one
+$ python -m virtualenv ~/pyenvs/dtale
+$ source ~/pyenvs/dtale/bin/activate
 
-
+# install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
+$ pip install --upgrade dtale
+```
 Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
 
 ### Command-line
@@ -36,6 +45,71 @@ Loading data from **CSV**
 ```bash
 dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
 ```
+Loading data from a **Custom** loader
+- Using the DTALE_CLI_LOADERS environment variable, specify a path to a location containing some python modules
+- Any python module containing the global variables LOADER_KEY & LOADER_PROPS will be picked up as a custom loader
+  - LOADER_KEY: the key that will be associated with your loader.  By default you are given **arctic** & **csv** (if you use one of these are your key it will override these)
+  - LOADER_PROPS: the individual props available to be specified.
+    - For example, with arctic we have host, library, node, start & end.
+    - If you leave this property as an empty list your loader will be treated as a flag.  For example, instead of using all the arctic properties we would simply specify `--arctic` (this wouldn't work well in arctic's case since it depends on all those properties)
+- You will also need to specify a function with the following signature `def find_loader(kwargs)` which returns a function that returns a dataframe or `None`
+- Here is an example of a custom loader:
+```
+from dtale.cli.clickutils import get_loader_options
+
+'''
+  IMPORTANT!!! This global variable is required for building any customized CLI loader.
+  When find loaders on startup it will search for any modules containing the global variable LOADER_KEY.
+'''
+LOADER_KEY = 'testdata'
+LOADER_PROPS = ['rows', 'columns']
+
+
+def test_data(rows, columns):
+    import pandas as pd
+    import numpy as np
+    import random
+    from past.utils import old_div
+    from pandas.tseries.offsets import Day
+    from dtale.utils import dict_merge
+    import string
+
+    now = pd.Timestamp(pd.Timestamp('now').date())
+    dates = pd.date_range(now - Day(364), now)
+    num_of_securities = old_div(rows, len(dates))
+    securities = [
+        dict(security_id=100000 + sec_id, int_val=random.randint(1, 100000000000),
+             str_val=random.choice(string.ascii_letters) * 5)
+        for sec_id in range(num_of_securities)
+    ]
+    data = pd.concat([
+        pd.DataFrame([dict_merge(dict(date=date), sd) for sd in securities])
+        for date in dates
+    ], ignore_index=True)[['date', 'security_id', 'int_val', 'str_val']]
+
+    col_names = ['Col{}'.format(c) for c in range(columns)]
+    return pd.concat([data, pd.DataFrame(np.random.randn(len(data), columns), columns=col_names)], axis=1)
+
+
+# IMPORTANT!!! This function is required for building any customized CLI loader.
+def find_loader(kwargs):
+    test_data_opts = get_loader_options(LOADER_KEY, kwargs)
+    if len([f for f in test_data_opts.values() if f]):
+        def _testdata_loader():
+            return test_data(int(test_data_opts.get('rows', 1000500)), int(test_data_opts.get('columns', 96)))
+
+        return _testdata_loader
+    return None
+```
+In this example we simplying building a dataframe with some dummy data based on dimensions specified on the command-line:
+- `--testdata-rows`
+- `--testdata-columns`
+
+Here's how you would use this loader:
+```bash
+DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
+```
+
 
 ### Python Terminal
 This comes courtesy of PyCharm
@@ -60,6 +134,15 @@ Selecting/Deselecting Columns
 ### Menu functions w/ no columns selected
 
 ![Menu](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu.png "Menu")
+
+- **Describe**: view all the columns & their data types as well as individual details of each column ![Describe](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe.png "Describe")
+
+|Data Type|Display|Notes|
+|--------|:------:|:------:|
+|date|![Describe date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_date.png "Describe Date")||
+|string|![Describe string](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_string.png "Describe String")|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
+|int|![Describe int](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_int.png "Describe Int")|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
+|float|![Describe float](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_float.png "Describe Float")||
 
 - **Filter**: apply a simple pandas `query` to your data (link to pandas documentation included in popup)
 
@@ -87,6 +170,13 @@ Selecting/Deselecting Columns
 |Matrix|Timeseries|Scatter|
 |------|----------|-------|
 |![Correlations](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations.png "Correlations")|![Timeseries](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_ts.png "Timeseries")|![Scatter](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_scatter.png "Scatter")|
+
+- **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
+
+|Up To Date|Out Of Date|
+|--------|:------:|
+|![About-up-to-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-up-to-date.png "About - Out of Date")|![About-out-of-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-out-of-date.png "About - Up to Date")|
+
 
 - Resize: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 - Shutdown: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
@@ -237,6 +327,7 @@ Have a look at the [detailed documentation](https://dtale.readthedocs.io).
 D-Tale works with:
   
   * Back-end
+    * arctic
     * Flask
     * Flask-Caching
     * Flask-Compress
@@ -258,6 +349,7 @@ Contributors:
 
  * [Wilfred Hughes](https://github.com/Wilfred)
  * [Dominik Christ](https://github.com/DominikMChrist)
+ * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...

@@ -87,8 +87,8 @@ def test_DtaleFlask():
         stack.enter_context(mock.patch('dtale.app.socket.gethostname', mock.Mock(return_value='test')))
         mock_timer = stack.enter_context(mock.patch('dtale.app.Timer', mock.Mock()))
 
-        tmp = DtaleFlask('dtale', static_url_path='')
-        tmp.run(reaper_on=False, port='9999')
+        tmp = DtaleFlask('dtale', static_url_path='', reaper_on=False)
+        tmp.run(port='9999')
 
         mock_run.assert_called_once()
         assert not tmp.reaper_on
