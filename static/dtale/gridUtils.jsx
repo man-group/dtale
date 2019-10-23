@@ -100,10 +100,16 @@ function calcColWidth({ name, dtype }, { data, rowCount }) {
         w = 85;
         break;
       case "int":
-      case "float":
-      case "string":
-        w = measureText(_.last(_.sortBy(data, [name, "raw"]))[name].view);
+        w = measureText(_.last(_.sortBy(data, [name, "view", "length"], 0))[name].view);
         break;
+      case "float":
+        w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);
+        break;
+      case "string": {
+        const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
+        w = _.max(_.map(upperWords, measureText));
+        break;
+      }
       default:
     }
     w = headerWidth > w ? headerWidth : w;
