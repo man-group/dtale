@@ -97,10 +97,8 @@ function calcColWidth({ name, dtype }, { data, rowCount }) {
     const headerWidth = measureText(name);
     switch (findColType((dtype || "").toLowerCase())) {
       case "date":
-        w = 85;
-        break;
       case "int":
-        w = measureText(_.last(_.sortBy(data, [name, "view", "length"], 0))[name].view);
+        w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);
         break;
       case "float":
         w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);

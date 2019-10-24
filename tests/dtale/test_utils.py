@@ -66,23 +66,25 @@ def test_formatters(unittest):
     formatters.add_date(3, name='date')
     formatters.add_timestamp(4, name='timestamp')
     formatters.add_json(5, name='json')
+    formatters.add_date(6, name='ts_date')
 
     date = pd.Timestamp('20180430').tz_localize('US/Eastern')
-    data = [['hello', 1, 1.6666666, date, date, {'a': 1}]]
+    timestamp = pd.Timestamp('20180430 12:36:44').tz_localize('US/Eastern')
+    data = [['hello', 1, 1.6666666, date, date, {'a': 1}, timestamp]]
     unittest.assertEqual(
         formatters.format_dicts(data),
         [{'int': 1, 'date': '2018-04-30', 'float': 1.666667, 'str': 'hello', 'timestamp': 1525060800000,
-          'json': {'a': 1}}]
+          'json': {'a': 1}, 'ts_date': '2018-04-30 12:36:44'}]
     )
-    bad_data = [[None, np.nan, np.nan, np.nan, np.nan, np.nan]]
+    bad_data = [[None, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]]
     unittest.assertEqual(
         formatters.format_dicts(bad_data),
-        [{'int': '', 'date': '', 'float': '', 'str': '', 'timestamp': '', 'json': None}]
+        [{'int': '', 'date': '', 'float': '', 'str': '', 'timestamp': '', 'json': None, 'ts_date': ''}]
     )
-    bad_data = [['hello', 'hello', 'hello', 'hello', 'hello', 'hello']]
+    bad_data = [['hello', 'hello', 'hello', 'hello', 'hello', 'hello', 'hello']]
     unittest.assertEqual(
         formatters.format_dicts(bad_data),
-        [{'int': '', 'date': '', 'float': '', 'str': 'hello', 'timestamp': '', 'json': 'hello'}]
+        [{'int': '', 'date': '', 'float': '', 'str': 'hello', 'timestamp': '', 'json': 'hello', 'ts_date': ''}]
     )
 
 

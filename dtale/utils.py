@@ -171,19 +171,23 @@ def json_float(x, precision=2, nan_display='nan', as_string=False):
         return nan_display
 
 
-def json_date(x, nan_display=''):
+def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display=''):
     """
     Convert value to date string to be used within JSON output
 
     :param x: value to be converted to date string
+    :param fmt: the data string formatting to be applied
     :param nan_display: if `x` is nan then return this value
     :return: date string value
     :rtype: str (YYYY-MM-DD)
     """
     try:
-        if isinstance(x, np.datetime64):  # calling unique on a pandas datetime column returns numpy datetime64
-            return pd.Timestamp(x).strftime('%Y-%m-%d')
-        return x.strftime('%Y-%m-%d')
+        # calling unique on a pandas datetime column returns numpy datetime64
+        output = (pd.Timestamp(x) if isinstance(x, np.datetime64) else x).strftime(fmt)
+        empty_time = ' 00:00:00'
+        if output.endswith(empty_time):
+            return output[:-1 * len(empty_time)]
+        return output
     except BaseException:
         return nan_display
 
@@ -237,8 +241,10 @@ class JSONFormatter(object):
     def add_timestamp(self, idx, name=None):
         self.fmts.append([idx, name, json_timestamp])
 
-    def add_date(self, idx, name=None):
-        self.fmts.append([idx, name, json_date])
+    def add_date(self, idx, name=None, fmt='%Y-%m-%d %H:%M:%S'):
+        def f(x, nan_display):
+            return json_date(x, fmt=fmt, nan_display=nan_display)
+        self.fmts.append([idx, name, f])
 
     def add_json(self, idx, name=None):
         def f(x, nan_display):

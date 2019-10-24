@@ -19,7 +19,7 @@ const COL_PROPS = [
   { locked: false, width: 20, name: "col1", dtype: "int64" },
   { locked: false, width: 20, name: "col2", dtype: "float64" },
   { locked: false, width: 20, name: "col3", dtype: "object" },
-  { locked: false, width: 85, name: "col4", dtype: "datetime64[ns]" },
+  { locked: false, width: 20, name: "col4", dtype: "datetime64[ns]" },
 ];
 
 describe("DataViewer tests", () => {
