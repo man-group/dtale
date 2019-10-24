@@ -8,18 +8,19 @@ from flask import json, render_template, request
 
 import numpy as np
 import pandas as pd
+import requests
 from flasgger.utils import swag_from
 from future.utils import string_types
 from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.utils import (dict_merge, filter_df_for_grid, find_dtype_formatter,
-                         find_selected_column, get_dtypes, get_int_arg,
-                         get_str_arg, grid_columns, grid_formatter, json_float,
-                         json_int, jsonify, make_list, retrieve_grid_params,
-                         running_with_flask, running_with_pytest,
-                         sort_df_for_grid)
+from dtale.utils import (build_shutdown_url, dict_merge, filter_df_for_grid,
+                         find_dtype_formatter, find_selected_column,
+                         get_dtypes, get_int_arg, get_str_arg, grid_columns,
+                         grid_formatter, json_float, json_int, jsonify,
+                         make_list, retrieve_grid_params, running_with_flask,
+                         running_with_pytest, sort_df_for_grid)
 
 logger = getLogger(__name__)
 
@@ -29,6 +30,24 @@ SETTINGS = {}
 
 
 class DtaleData(object):
+    """
+    Wrapper class to abstract the global state of a D-Tale process while allowing
+    a user to programatically interact with a running D-Tale instance
+
+    :param port: integer string for a D-Tale process's port
+    :type port: str
+
+    :Example:
+
+        >>> import dtale
+        >>> import pandas as pd
+        >>> df = pd.DataFrame([dict(a=1,b=2,c=3)])
+        >>> d = dtale.show(df)
+        >>> tmp = d.data.copy()
+        >>> tmp['d'] = 4
+        >>> d.data = tmp
+        >>> d.kill()
+    """
 
     def __init__(self, port):
         self._port = port
@@ -41,8 +60,18 @@ class DtaleData(object):
     def data(self, data):
         startup(data=data, port=self._port)
 
+    def kill(self):
+        requests.get(build_shutdown_url(self._port))
 
-def build_dtypes(data):
+
+def build_dtypes_state(data):
+    """
+    Helper function to build globally managed state pertaining to a D-Tale instances columns & data types
+
+    :param data: dataframe to build data type information for
+    :type data: pandas.DataFrame
+    :return: a list of dictionaries containing column names, indexes and data types
+    """
     dtypes = get_dtypes(data)
     return [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(data.columns)]
 
@@ -79,10 +108,25 @@ def startup(data=None, data_loader=None, port=None):
         SETTINGS[port_key] = dict(locked=curr_index)
         data = data.reset_index().drop('index', axis=1, errors='ignore')
         DATA[port_key] = data
-        DTYPES[port_key] = build_dtypes(data)
+        DTYPES[port_key] = build_dtypes_state(data)
         return DtaleData(port_key)
     else:
         raise Exception('data loaded is None!')
+
+
+def cleanup(port):
+    """
+    Helper function for cleanup up state related to a D-Tale process with a specific port
+
+    :param port: integer string for a D-Tale process's port
+    :type port: str
+    """
+    global DATA, DTYPES, SETTINGS
+
+    # use pop() because in some pytests port is not available
+    DATA.pop(port, None)
+    SETTINGS.pop(port, None)
+    DTYPES.pop(port, None)
 
 
 @dtale.route('/main')
@@ -244,7 +288,7 @@ def get_data():
         # state of the dataframe (EX: d.data['new_col'] = 'foo')
         curr_dtypes = [c['name'] for c in DTYPES[port]]
         if any(c not in curr_dtypes for c in data.columns):
-            DTYPES[port] = build_dtypes(data)
+            DTYPES[port] = build_dtypes_state(data)
 
         params = retrieve_grid_params(request)
         ids = get_str_arg(request, 'ids')

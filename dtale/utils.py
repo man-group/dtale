@@ -3,6 +3,7 @@ from __future__ import division
 import decimal
 import json
 import os
+import socket
 import sys
 import time
 from builtins import map, object
@@ -35,6 +36,17 @@ def running_with_flask():
     :rtype: bool
     """
     return os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+
+
+def build_shutdown_url(port):
+    """
+    Builds the shutdown endpoint for the specified port
+
+    :param port: integer string for a D-Tale process's port
+    :type port: str
+    :return: URL string of the shutdown endpoint for the current server and port passed
+    """
+    return 'http://{}:{}/shutdown'.format(socket.gethostname(), port)
 
 
 def get_str_arg(r, name, default=None):
