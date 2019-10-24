@@ -21,6 +21,7 @@ def test_show(unittest):
         mock_find_free_port = stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         mock_logger = stack.enter_context(mock.patch('dtale.app.logger', mock.Mock()))
+        mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
         data_hook = show(data=test_data, subprocess=False)
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
@@ -30,7 +31,14 @@ def test_show(unittest):
         tmp = test_data.copy()
         tmp['biz'] = 2.5
         data_hook.data = tmp
-        unittest.assertEqual(views.DTYPES[data_hook._port], views.build_dtypes(tmp), 'should update app data/dtypes')
+        unittest.assertEqual(
+            views.DTYPES[data_hook._port],
+            views.build_dtypes_state(tmp),
+            'should update app data/dtypes'
+        )
+        data_hook.kill()
+        mock_requests.assert_called_once()
+        mock_requests.call_args[0][0] == 'http://localhost:9999/shutdown'
 
     with ExitStack() as stack:
         mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))

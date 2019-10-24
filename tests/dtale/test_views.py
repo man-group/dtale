@@ -107,12 +107,12 @@ def test_update_settings(unittest):
 
 @pytest.mark.unit
 def test_dtypes(test_data):
-    from dtale.views import build_dtypes
+    from dtale.views import build_dtypes_state
 
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes(test_data)}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
             response = c.get('/dtale/dtypes')
             response_data = json.loads(response.data)
             assert response_data['success']
@@ -159,7 +159,7 @@ def test_get_data(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes(test_data)}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/data')
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data, {}, 'if no "ids" parameter an empty dict should be returned')
@@ -212,7 +212,7 @@ def test_get_data(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes(test_data)}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
@@ -223,7 +223,7 @@ def test_get_data(unittest, test_data):
         with ExitStack() as stack:
             mocked_data = stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             mocked_dtypes = stack.enter_context(
-                mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes(test_data)})
+                mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)})
             )
             response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['1'])))
             assert response.status_code == 200

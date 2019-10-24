@@ -54,7 +54,7 @@ Loading data from a **Custom** loader
     - If you leave this property as an empty list your loader will be treated as a flag.  For example, instead of using all the arctic properties we would simply specify `--arctic` (this wouldn't work well in arctic's case since it depends on all those properties)
 - You will also need to specify a function with the following signature `def find_loader(kwargs)` which returns a function that returns a dataframe or `None`
 - Here is an example of a custom loader:
-```
+```python
 from dtale.cli.clickutils import get_loader_options
 
 '''
@@ -115,6 +115,27 @@ DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata
 This comes courtesy of PyCharm
 ![Python Terminal](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Python_Terminal.png "Python_Terminal")
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
+#####Additional functions available programatically
+```python
+import dtale
+import pandas as pd
+
+df = pd.DataFrame([dict(a=1,b=2,c=3)])
+
+# Assigning a reference to a running D-Tale process
+d = dtale.show(df)
+
+# Accessing data associated with D-Tale process
+tmp = d.data.copy()
+tmp['d'] = 4
+
+# Altering data associated with D-Tale process
+# FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
+d.data = tmp
+
+# Shutting down D-Tale process
+d.kill()
+```
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser

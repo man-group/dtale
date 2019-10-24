@@ -20,8 +20,8 @@ from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import dict_merge
-from dtale.views import startup
+from dtale.utils import build_shutdown_url, dict_merge
+from dtale.views import cleanup, startup
 
 if PY3:
     import _thread
@@ -97,7 +97,7 @@ class DtaleFlask(Flask):
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask.run`
         """
         self.port = str(kwargs.get('port'))
-        self.shutdown_url = 'http://{}:{}/shutdown'.format(socket.gethostname(), self.port)
+        self.shutdown_url = build_shutdown_url(self.port)
         if kwargs.get('debug', False):
             self.reaper_on = False
         self.build_reaper()
@@ -252,12 +252,7 @@ def build_app(reaper_on=True):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
-
-        from dtale.views import DATA, SETTINGS, DTYPES
-
-        DATA.pop(app.port, None)
-        SETTINGS.pop(app.port, None)
-        DTYPES.pop(app.port, None)
+        cleanup(app.port)
 
     @app.route('/shutdown')
     @swag_from('swagger/dtale/shutdown.yml')
