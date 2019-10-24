@@ -23,9 +23,28 @@ from dtale.utils import (dict_merge, filter_df_for_grid, find_dtype_formatter,
 
 logger = getLogger(__name__)
 
-DATA = None
-DTYPES = None
+DATA = {}
+DTYPES = {}
 SETTINGS = {}
+
+
+class DtaleData(object):
+
+    def __init__(self, port):
+        self._port = port
+
+    @property
+    def data(self):
+        return DATA[self._port]
+
+    @data.setter
+    def data(self, data):
+        startup(data=data, port=self._port)
+
+
+def build_dtypes(data):
+    dtypes = get_dtypes(data)
+    return [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(data.columns)]
 
 
 def startup(data=None, data_loader=None, port=None):
@@ -56,11 +75,12 @@ def startup(data=None, data_loader=None, port=None):
         logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
         curr_index = [i for i in make_list(data.index.name or data.index.names) if i is not None]
         logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
-        SETTINGS[str(port)] = dict(locked=curr_index)
-        DATA = data.reset_index().drop('index', axis=1, errors='ignore')
-        dtypes = get_dtypes(DATA)
-        DTYPES = [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(DATA.columns)]
-
+        port_key = str(port)
+        SETTINGS[port_key] = dict(locked=curr_index)
+        data = data.reset_index().drop('index', axis=1, errors='ignore')
+        DATA[port_key] = data
+        DTYPES[port_key] = build_dtypes(data)
+        return DtaleData(port_key)
     else:
         raise Exception('data loaded is None!')
 
@@ -113,7 +133,7 @@ def test_filter():
     try:
         query = get_str_arg(request, 'query')
         if query is not None and len(query):
-            DATA.query(query)
+            DATA[request.environ.get('SERVER_PORT', 'curr')].query(query)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -135,8 +155,7 @@ def dtypes():
     }
     """
     try:
-        global DTYPES
-        return jsonify(dtypes=DTYPES, success=True)
+        return jsonify(dtypes=DTYPES[request.environ.get('SERVER_PORT', 'curr')], success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -179,15 +198,14 @@ def describe(column):
 
     """
     try:
-        global DATA
-
-        desc = load_describe(DATA[column])
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        desc = load_describe(data[column])
         return_data = dict(describe=desc, success=True)
-        uniq_vals = DATA[column].unique()
+        uniq_vals = data[column].unique()
         if 'unique' not in return_data['describe']:
             return_data['describe']['unique'] = json_int(len(uniq_vals), as_string=True)
         if len(uniq_vals) <= 100:
-            uniq_f = find_dtype_formatter(get_dtypes(DATA)[column])
+            uniq_f = find_dtype_formatter(get_dtypes(data)[column])
             return_data['uniques'] = [uniq_f(u, nan_display='N/A') for u in uniq_vals]
         return jsonify(return_data)
     except BaseException as e:
@@ -218,7 +236,15 @@ def get_data():
     }
     """
     try:
-        global SETTINGS, DATA
+        global SETTINGS, DATA, DTYPES
+        port = request.environ.get('SERVER_PORT', 'curr')
+        data = DATA[port]
+
+        # this will check for when someone instantiates D-Tale programatically and directly alters the internal
+        # state of the dataframe (EX: d.data['new_col'] = 'foo')
+        curr_dtypes = [c['name'] for c in DTYPES[port]]
+        if any(c not in curr_dtypes for c in data.columns):
+            DTYPES[port] = build_dtypes(data)
 
         params = retrieve_grid_params(request)
         ids = get_str_arg(request, 'ids')
@@ -226,35 +252,35 @@ def get_data():
             ids = json.loads(ids)
         else:
             return jsonify({})
-        col_types = grid_columns(DATA)
+        col_types = grid_columns(data)
 
         f = grid_formatter(col_types)
-        curr_settings = SETTINGS.get(request.environ.get('SERVER_PORT', 'curr'), {})
+        curr_settings = SETTINGS.get(port, {})
         if curr_settings.get('sort') != params.get('sort'):
-            DATA = sort_df_for_grid(DATA, params)
-        df = DATA
+            data = sort_df_for_grid(data, params)
+            DATA[port] = data
         if params.get('sort') is not None:
             curr_settings = dict_merge(curr_settings, dict(sort=params['sort']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'sort'}
-        df = filter_df_for_grid(df, params)
+        data = filter_df_for_grid(data, params)
         if params.get('query') is not None:
             curr_settings = dict_merge(curr_settings, dict(query=params['query']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'query'}
-        SETTINGS[request.environ.get('SERVER_PORT', 'curr')] = curr_settings
+        SETTINGS[port] = curr_settings
 
-        total = len(df)
+        total = len(data)
         results = {}
         for sub_range in ids:
             sub_range = list(map(int, sub_range.split('-')))
             if len(sub_range) == 1:
-                sub_df = df.iloc[sub_range[0]:sub_range[0] + 1]
+                sub_df = data.iloc[sub_range[0]:sub_range[0] + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 results[sub_range[0]] = dict_merge(dict(dtale_index=sub_range[0]), sub_df[0])
             else:
                 [start, end] = sub_range
-                sub_df = df.iloc[start:] if end >= len(df) - 1 else df.iloc[start:end + 1]
+                sub_df = data.iloc[start:] if end >= len(data) - 1 else data.iloc[start:end + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
                     results[i] = dict_merge(dict(dtale_index=i), d)
@@ -279,11 +305,11 @@ def get_histogram():
     query = get_str_arg(request, 'query')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = DATA
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
         if query:
             data = data.query(query)
 
-        selected_col = find_selected_column(DATA, col)
+        selected_col = find_selected_column(data, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
         hist = np.histogram(data, bins=bins)
 
@@ -307,7 +333,8 @@ def get_correlations():
     """
     try:
         query = get_str_arg(request, 'query')
-        data = DATA.query(query) if query is not None else DATA
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = data.query(query) if query is not None else data
         data = data.corr(method='pearson')
         data.index.name = 'column'
         data = data.reset_index()
@@ -365,7 +392,8 @@ def get_correlations_ts():
     """
     try:
         query = get_str_arg(request, 'query')
-        data = DATA.query(query) if query is not None else DATA
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = data.query(query) if query is not None else data
         cols = get_str_arg(request, 'cols')
         cols = cols.split(',')
         date_col = get_str_arg(request, 'dateCol')
@@ -409,7 +437,8 @@ def get_scatter():
     date = get_str_arg(request, 'date')
     date_col = get_str_arg(request, 'dateCol')
     try:
-        data = DATA[DATA[date_col] == date] if date else DATA
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = data[data[date_col] == date] if date else data
         if query:
             data = data.query(query)
 
@@ -488,8 +517,8 @@ def find_coverage():
         groups = get_str_arg(request, 'group')
         if groups:
             groups = json.loads(groups)
-
-        data, groups, query = filter_data(DATA, request, groups, query=get_str_arg(request, 'query'))
+        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data, groups, query = filter_data(data, request, groups, query=get_str_arg(request, 'query'))
         grouper = []
         for g_cfg in groups:
             if 'freq' in g_cfg:

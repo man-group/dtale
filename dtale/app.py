@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import random
 import socket
 import traceback
 from builtins import map, str
@@ -53,7 +54,7 @@ class DtaleFlaskTesting(FlaskClient):
         Constructor method
         """
         self.host = kwargs.pop('hostname', 'localhost')
-        self.port = kwargs.pop('port', '80')
+        self.port = kwargs.pop('port', str(random.randint(0, 65535))) or str(random.randint(0, 65535))
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
@@ -87,6 +88,7 @@ class DtaleFlask(Flask):
         self.reaper_on = reaper_on
         self.reaper = None
         self.shutdown_url = None
+        self.port = None
         super(DtaleFlask, self).__init__(import_name, *args, **kwargs)
 
     def run(self, *args, **kwargs):
@@ -94,7 +96,8 @@ class DtaleFlask(Flask):
         :param args: Optional arguments to be passed to :meth:`flask.run`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask.run`
         """
-        self.shutdown_url = 'http://{}:{}/shutdown'.format(socket.gethostname(), kwargs.get('port'))
+        self.port = str(kwargs.get('port'))
+        self.shutdown_url = 'http://{}:{}/shutdown'.format(socket.gethostname(), self.port)
         if kwargs.get('debug', False):
             self.reaper_on = False
         self.build_reaper()
@@ -250,6 +253,12 @@ def build_app(reaper_on=True):
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
 
+        from dtale.views import DATA, SETTINGS, DTYPES
+
+        DATA.pop(app.port, None)
+        SETTINGS.pop(app.port, None)
+        DTYPES.pop(app.port, None)
+
     @app.route('/shutdown')
     @swag_from('swagger/dtale/shutdown.yml')
     def shutdown():
@@ -358,17 +367,16 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
     logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
     setup_logging(logfile, log_level or 'info', verbose)
 
-    def _show():
-        selected_port = int(port or find_free_port())
-        startup(data=data, data_loader=data_loader, port=selected_port)
-        app = build_app(reaper_on=reaper_on)
+    selected_port = int(port or find_free_port())
+    data_hook = startup(data=data, data_loader=data_loader, port=selected_port)
 
+    def _show():
+        app = build_app(reaper_on=reaper_on)
         if debug:
             app.jinja_env.auto_reload = True
             app.config['TEMPLATES_AUTO_RELOAD'] = True
         else:
             getLogger("werkzeug").setLevel(LOG_ERROR)
-
         logger.info('D-Tale started at: http://{}:{}'.format(socket.gethostname(), selected_port))
         app.run(host=host, port=selected_port, debug=debug)
 
@@ -376,3 +384,5 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
         _thread.start_new_thread(_show, ())
     else:
         _show()
+
+    return data_hook

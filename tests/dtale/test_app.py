@@ -1,5 +1,6 @@
 import mock
 import pandas as pd
+import pandas.util.testing as pdt
 import pytest
 from six import PY3
 
@@ -10,7 +11,7 @@ else:
 
 
 @pytest.mark.unit
-def test_show():
+def test_show(unittest):
     from dtale.app import show
     import dtale.views as views
 
@@ -20,20 +21,28 @@ def test_show():
         mock_find_free_port = stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         mock_logger = stack.enter_context(mock.patch('dtale.app.logger', mock.Mock()))
-        show(data=test_data, subprocess=False)
+        data_hook = show(data=test_data, subprocess=False)
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
         assert mock_logger.info.call_args[0][0] == 'D-Tale started at: http://localhost:9999'
+
+        pdt.assert_frame_equal(data_hook.data, test_data)
+        tmp = test_data.copy()
+        tmp['biz'] = 2.5
+        data_hook.data = tmp
+        unittest.assertEqual(views.DTYPES[data_hook._port], views.build_dtypes(tmp), 'should update app data/dtypes')
 
     with ExitStack() as stack:
         mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
         mock_find_free_port = stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         mock_data_loader = mock.Mock(return_value=test_data)
-        show(data_loader=mock_data_loader, subprocess=False, port=9999, debug=True)
+        data_hook = show(data_loader=mock_data_loader, subprocess=False, port=9999, debug=True)
         mock_run.assert_called_once()
         mock_find_free_port.assert_not_called()
         mock_data_loader.assert_called_once()
         _, kwargs = mock_run.call_args
+
+        assert data_hook._port == '9999'
 
     def mock_run(self, *args, **kwargs):
         assert self.jinja_env.auto_reload
@@ -46,7 +55,8 @@ def test_show():
         show(data=test_data, subprocess=True)
         mock_thread.assert_called()
     # cleanup
-    views.DATA = None
+    views.DATA = {}
+    views.DTYPES = {}
     views.SETTINGS = {}
 
 
