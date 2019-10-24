@@ -556,8 +556,11 @@ def find_coverage():
         else:
             data = dict([(c, [json_int(v) for v in group_data[c].values]) for c in group_data.columns])
         labels = pd.DataFrame(group_data.index.values, columns=group_data.index.names)
-        f = grid_formatter(grid_columns(labels))
-        labels = f.format_dicts(labels.itertuples())
+        labels_f_overrides = {
+            'D': lambda f, i, c: f.add_date(i, c, fmt='%Y-%m-%d'),
+        }
+        labels_f = grid_formatter(grid_columns(labels), overrides=labels_f_overrides)
+        labels = labels_f.format_dicts(labels.itertuples())
         return jsonify(data=data, labels=labels, success=True)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
