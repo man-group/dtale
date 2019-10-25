@@ -52,6 +52,43 @@ def test_show(unittest):
 
         assert data_hook._port == '9999'
 
+    with ExitStack() as stack:
+        mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        stack.enter_context(mock.patch('dtale.app.running_with_pytest', mock.Mock(return_value=False)))
+        stack.enter_context(mock.patch('dtale.app.running_with_flask', mock.Mock(return_value=True)))
+        mock_data_loader = mock.Mock(return_value=test_data)
+        mock_webbrowser = stack.enter_context(mock.patch('webbrowser.get'))
+        data_hook = show(data_loader=mock_data_loader, subprocess=False, port=9999, open_browser=True)
+        mock_run.assert_called_once()
+        webbrowser_instance = mock_webbrowser.return_value
+        assert 'http://localhost:9999' == webbrowser_instance.open.call_args[0][0]
+        data_hook.open_browser()
+        assert 'http://localhost:9999' == webbrowser_instance.open.mock_calls[1][1][0]
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        stack.enter_context(mock.patch('dtale.app.running_with_pytest', mock.Mock(return_value=True)))
+        stack.enter_context(mock.patch('dtale.app.running_with_flask', mock.Mock(return_value=True)))
+        mock_data_loader = mock.Mock(return_value=test_data)
+        mock_webbrowser = stack.enter_context(mock.patch('webbrowser.get'))
+        show(data_loader=mock_data_loader, subprocess=False, port=9999, open_browser=True)
+        mock_webbrowser.assert_not_called()
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        stack.enter_context(mock.patch('dtale.app.running_with_pytest', mock.Mock(return_value=False)))
+        stack.enter_context(mock.patch('dtale.app.running_with_flask', mock.Mock(return_value=False)))
+        mock_data_loader = mock.Mock(return_value=test_data)
+        mock_webbrowser = stack.enter_context(mock.patch('webbrowser.get'))
+        show(data_loader=mock_data_loader, subprocess=False, port=9999, open_browser=True)
+        mock_webbrowser.assert_not_called()
+
     def mock_run(self, *args, **kwargs):
         assert self.jinja_env.auto_reload
         assert self.config['TEMPLATES_AUTO_RELOAD']

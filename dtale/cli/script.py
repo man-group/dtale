@@ -11,10 +11,12 @@ logger = getLogger(__name__)
 
 
 @click.command(name='main', help='Run dtale from command-line')
-@click.option('--host', type=str, default='0.0.0.0')
-@click.option('--port', type=int)
-@click.option('--debug', is_flag=True)
-@click.option('--no-reaper', is_flag=True)
+@click.option('--host', type=str, default='0.0.0.0', help='hostname or IP address of process')
+@click.option('--port', type=int, help='port number of process')
+@click.option('--debug', is_flag=True, help="flag to switch on Flask's debug mode")
+@click.option('--no-reaper', is_flag=True,
+              help='flag to turn off auto-reaping (process cleanup after period of inactivity)')
+@click.option('--open-browser', is_flag=True, help='flag to automatically open default web browser on startup')
 @setup_loader_options()
 @click.option('--log', 'logfile', help='Log file name')
 @click.option('--log-level',
@@ -23,7 +25,7 @@ logger = getLogger(__name__)
               default='info',
               show_default=True)
 @click.option('-v', '--verbose', help='Set the logging level to debug', is_flag=True)
-def main(host, port=None, debug=False, no_reaper=False, **kwargs):
+def main(host, port=None, debug=False, no_reaper=False, open_browser=False, **kwargs):
     """
     Runs a local server for the D-Tale application.
 
@@ -36,7 +38,7 @@ def main(host, port=None, debug=False, no_reaper=False, **kwargs):
     data_loader = check_loaders(kwargs)
 
     show(host=host, port=int(port or find_free_port()), debug=debug, subprocess=False, data_loader=data_loader,
-         reaper_on=not no_reaper, **kwargs)
+         reaper_on=not no_reaper, open_browser=open_browser, **kwargs)
 
 
 if __name__ == '__main__':

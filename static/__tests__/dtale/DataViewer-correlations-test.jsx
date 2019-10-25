@@ -108,6 +108,9 @@ describe("DataViewer tests", () => {
             });
             tsChart.cfg.plugins[0].afterLayout(layoutObj);
             tsChart.cfg.options.onClick({});
+            const ticks = { ticks: [0, 0] };
+            tsChart.cfg.options.scales.yAxes[0].afterTickToLabelConversion(ticks);
+            t.deepEqual(ticks.ticks, [null, null], "should hide first and last tick");
             setTimeout(() => {
               result.update();
               t.ok(result.find(Correlations).instance().state.chart !== null, "should render scatter");

@@ -199,10 +199,18 @@ class ReactCorrelations extends React.Component {
             visible={true}
             units="month"
             configHandler={config => {
-              config.options.scales.yAxes = [{ ticks: { min: -1, max: 1 } }];
+              config.options.scales.yAxes = [
+                {
+                  ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
+                  afterTickToLabelConversion: data => {
+                    data.ticks[0] = null;
+                    data.ticks[data.ticks.length - 1] = null;
+                  },
+                },
+              ];
               config.options.onClick = this.viewScatter;
               config.options.legend = { display: false };
-              config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale)];
+              config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, -1, 1)];
               return config;
             }}
             height={300}

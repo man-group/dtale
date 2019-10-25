@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division
 
 import traceback
+import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
 
@@ -15,12 +16,13 @@ from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.utils import (build_shutdown_url, dict_merge, filter_df_for_grid,
-                         find_dtype_formatter, find_selected_column,
-                         get_dtypes, get_int_arg, get_str_arg, grid_columns,
-                         grid_formatter, json_float, json_int, jsonify,
-                         make_list, retrieve_grid_params, running_with_flask,
-                         running_with_pytest, sort_df_for_grid)
+from dtale.utils import (build_shutdown_url, build_url, dict_merge,
+                         filter_df_for_grid, find_dtype_formatter,
+                         find_selected_column, get_dtypes, get_int_arg,
+                         get_str_arg, grid_columns, grid_formatter, json_float,
+                         json_int, jsonify, make_list, retrieve_grid_params,
+                         running_with_flask, running_with_pytest,
+                         sort_df_for_grid)
 
 logger = getLogger(__name__)
 
@@ -51,6 +53,7 @@ class DtaleData(object):
 
     def __init__(self, port):
         self._port = port
+        self._url = build_url(port)
 
     @property
     def data(self):
@@ -62,6 +65,9 @@ class DtaleData(object):
 
     def kill(self):
         requests.get(build_shutdown_url(self._port))
+
+    def open_browser(self):
+        webbrowser.get().open(self._url)
 
 
 def build_dtypes_state(data):
@@ -103,10 +109,21 @@ def startup(data=None, data_loader=None, port=None):
 
         logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
         curr_index = [i for i in make_list(data.index.name or data.index.names) if i is not None]
-        logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
-        port_key = str(port)
-        SETTINGS[port_key] = dict(locked=curr_index)
         data = data.reset_index().drop('index', axis=1, errors='ignore')
+        port_key = str(port)
+        if port_key in SETTINGS:
+            curr_settings = SETTINGS[port_key]
+            curr_locked = curr_settings.get('locked', [])
+            # filter out previous locked columns that don't exist
+            curr_locked = [c for c in curr_locked if c in data.columns]
+            # add any new columns in index
+            curr_locked += [c for c in curr_index if c not in curr_locked]
+        else:
+            logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
+            curr_locked = curr_index
+
+        # in the case that data has been updated we will drop any sorts or filter for ease of use
+        SETTINGS[port_key] = dict(locked=curr_locked)
         DATA[port_key] = data
         DTYPES[port_key] = build_dtypes_state(data)
         return DtaleData(port_key)
@@ -164,6 +181,11 @@ def update_settings():
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
+def _test_filter(data, query):
+    if query is not None and len(query):
+        data.query(query)
+
+
 @dtale.route('/test-filter')
 @swag_from('swagger/dtale/views/test-filter.yml')
 def test_filter():
@@ -176,8 +198,7 @@ def test_filter():
     """
     try:
         query = get_str_arg(request, 'query')
-        if query is not None and len(query):
-            DATA[request.environ.get('SERVER_PORT', 'curr')].query(query)
+        _test_filter(DATA[request.environ.get('SERVER_PORT', 'curr')], query)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))

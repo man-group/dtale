@@ -16,7 +16,7 @@ describe("menuUtils tests", () => {
     });
   });
 
-  test("fetcher: testing exceptions", done => {
+  test("menuUtils: testing exceptions", done => {
     const { openMenu } = require("../menuUtils").default;
     const $ = require("jquery");
 
