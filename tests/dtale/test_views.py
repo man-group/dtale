@@ -33,31 +33,36 @@ def test_startup(unittest):
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1, foo=1.5)])
     test_data = test_data.set_index(['date', 'security_id'])
-    views.startup(data_loader=lambda: test_data, port=80)
+    port = '80'
+    views.startup(data_loader=lambda: test_data, port=port)
 
-    pdt.assert_frame_equal(views.DATA['80'], test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS['80'], dict(locked=['date', 'security_id']), 'should lock index columns')
+    pdt.assert_frame_equal(views.DATA[port], test_data.reset_index())
+    unittest.assertEqual(views.SETTINGS[port], dict(locked=['date', 'security_id']), 'should lock index columns')
 
     test_data = test_data.reset_index()
-    views.startup(data=test_data, port=80)
-    pdt.assert_frame_equal(views.DATA['80'], test_data)
-    unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'no index = nothing locked')
+    port = '81'
+    views.startup(data=test_data, port=port)
+    pdt.assert_frame_equal(views.DATA[port], test_data)
+    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'no index = nothing locked')
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1)])
     test_data = test_data.set_index('security_id').date
-    views.startup(data_loader=lambda: test_data, port=80)
-    pdt.assert_frame_equal(views.DATA['80'], test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS['80'], dict(locked=['security_id']), 'should lock index columns')
+    port = '82'
+    views.startup(data_loader=lambda: test_data, port=port)
+    pdt.assert_frame_equal(views.DATA[port], test_data.reset_index())
+    unittest.assertEqual(views.SETTINGS[port], dict(locked=['security_id']), 'should lock index columns')
 
     test_data = pd.DatetimeIndex([pd.Timestamp('now')], name='date')
-    views.startup(data_loader=lambda: test_data, port=80)
-    pdt.assert_frame_equal(views.DATA['80'], test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'should lock index columns')
+    port = '83'
+    views.startup(data_loader=lambda: test_data, port=port)
+    pdt.assert_frame_equal(views.DATA[port], test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'should lock index columns')
 
     test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=('a', 'b'))
-    views.startup(data_loader=lambda: test_data, port=80)
-    pdt.assert_frame_equal(views.DATA['80'], test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS['80'], dict(locked=[]), 'should lock index columns')
+    port = '84'
+    views.startup(data_loader=lambda: test_data, port=port)
+    pdt.assert_frame_equal(views.DATA[port], test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'should lock index columns')
 
 
 @pytest.mark.unit

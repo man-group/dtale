@@ -52,7 +52,7 @@ function buildRGBA(colorScale) {
     ")";
 }
 
-const gradientLinePlugin = colorScale => ({
+const gradientLinePlugin = (colorScale, minY = null, maxY = null) => ({
   afterLayout: chartInstance => {
     const rgbaBuilder = buildRGBA(colorScale);
     // The context, needed for the creation of the linear gradient.
@@ -60,9 +60,13 @@ const gradientLinePlugin = colorScale => ({
     // The first (and, assuming, only) dataset.
     const dataset = chartInstance.data.datasets[0];
     // Calculate sort data for easy min/max access.
-    const data = _.sortBy(dataset.data || [], "y");
-    const minY = _.head(data).y,
-      maxY = _.last(data).y;
+    let finalMinY = minY;
+    let finalMaxY = maxY;
+    if (_.isNull(minY) || _.isNull(maxY)) {
+      const data = _.sortBy(dataset.data || [], "y");
+      finalMinY = _.isNull(finalMinY) ? _.head(data).y : finalMinY;
+      finalMaxY = _.isNull(finalMaxY) ? _.last(data).y : finalMaxY;
+    }
     // Calculate Y pixels for min and max values.
     const yAxis = chartInstance.scales["y-axis-0"];
     const minValueYPixel = yAxis.getPixelForValue(minY);
@@ -70,7 +74,7 @@ const gradientLinePlugin = colorScale => ({
     // Create the gradient.
     const gradient = ctx.createLinearGradient(0, minValueYPixel, 0, maxValueYPixel);
     gradient.addColorStop(0, rgbaBuilder(minY)); //red
-    if (minY < 0 && maxY > 0) {
+    if (finalMinY < 0 && finalMaxY > 0) {
       gradient.addColorStop(0.5, rgbaBuilder(0)); //yellow
     }
     gradient.addColorStop(1, rgbaBuilder(maxY)); //green

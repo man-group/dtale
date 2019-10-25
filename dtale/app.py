@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import random
 import socket
 import traceback
+import webbrowser
 from builtins import map, str
 from contextlib import closing
 from logging import ERROR as LOG_ERROR
@@ -20,7 +21,8 @@ from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import build_shutdown_url, dict_merge
+from dtale.utils import (build_shutdown_url, build_url, dict_merge,
+                         running_with_flask, running_with_pytest)
 from dtale.views import cleanup, startup
 
 if PY3:
@@ -329,7 +331,7 @@ def find_free_port():
 
 
 def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, data_loader=None, reaper_on=True,
-         **kwargs):
+         open_browser=False, **kwargs):
     """
     Entry point for kicking off D-Tale Flask process from python process
 
@@ -347,6 +349,9 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
     :type data_loader: func, optional
     :param reaper_on: turn on subprocess which will terminate D-Tale after 1 hour of inactivity
     :type reaper_on: bool, optional
+    :param open_browser: if true, this will try using the webbrowser package to automatically open you default
+                         browser to your D-Tale process
+    :type open_browser: bool, optional
 
     :Example:
 
@@ -372,7 +377,12 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
             app.config['TEMPLATES_AUTO_RELOAD'] = True
         else:
             getLogger("werkzeug").setLevel(LOG_ERROR)
-        logger.info('D-Tale started at: http://{}:{}'.format(socket.gethostname(), selected_port))
+        logger.info('D-Tale started at: {}'.format(build_url(selected_port)))
+        if open_browser:
+            # when running flask in debug it spins up two instances, we only want this code
+            # run during startup of the second instance
+            if not running_with_pytest() and running_with_flask():
+                webbrowser.get().open(build_url(selected_port))
         app.run(host=host, port=selected_port, debug=debug)
 
     if subprocess:
