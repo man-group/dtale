@@ -2,17 +2,13 @@ import _ from "lodash";
 
 import mockPopsicle from "./MockPopsicle";
 import * as t from "./jest-assertions";
-import { withGlobalJquery } from "./test-utils";
+import { buildInnerHTML, withGlobalJquery } from "./test-utils";
 
 function testMain(mainName, isDev = false) {
   if (isDev) {
     process.env.NODE_ENV = "dev";
   }
-  const body = document.getElementsByTagName("body")[0];
-  const settings = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}";
-  body.innerHTML += `<input type="hidden" id="settings" value="${settings}" />`;
-  body.innerHTML += `<input type="hidden" id="version" value="1.0.0" />`;
-  body.innerHTML += '<div id="content"></div>';
+  buildInnerHTML();
   const mockReactDOM = { renderStatus: false };
   mockReactDOM.render = () => {
     mockReactDOM.renderStatus = true;

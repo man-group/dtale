@@ -165,7 +165,7 @@ class DtaleFlask(Flask):
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
-def build_app(reaper_on=True):
+def build_app(reaper_on=True, hide_shutdown=False):
     """
     Builds Flask application encapsulating endpoints for D-Tale's front-end
 
@@ -175,6 +175,7 @@ def build_app(reaper_on=True):
 
     app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='')
     app.config['SECRET_KEY'] = 'Dtale'
+    app.config['HIDE_SHUTDOWN'] = hide_shutdown
 
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True

@@ -7,7 +7,7 @@ import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -51,10 +51,7 @@ describe("DataViewer tests", () => {
     const About = require("../../popups/About").default;
 
     const store = reduxUtils.createDtaleStore();
-    const body = document.getElementsByTagName("body")[0];
-    body.innerHTML += '<input type="hidden" id="settings" value="" />';
-    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
-    body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
+    buildInnerHTML("");
     const result = mount(
       <Provider store={store}>
         <DataViewer />
