@@ -5,7 +5,7 @@ import React from "react";
 import { buildURL } from "../../actions/url-utils";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
-import { withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const tsData = {
   data: {
@@ -67,12 +67,7 @@ describe("TimeseriesChartBody tests", () => {
 
   test("TimeseriesChartBody rendering chart per dataset", done => {
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-
-    const body = document.getElementsByTagName("body")[0];
-    body.innerHTML += '<input type="hidden" id="settings" value="" />';
-    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
-    body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
-
+    buildInnerHTML("");
     const url = buildURL("ts-test", { tsColumns: { x1: ["y1"], x2: ["y2"] } });
     const result = mount(<TimeseriesChartBody url={url} visible={true} chartPerDataset={true} />, {
       attachTo: document.getElementById("content"),

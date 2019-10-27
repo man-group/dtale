@@ -35,4 +35,13 @@ function timeoutChain(tests, result, done) {
   }
 }
 
-export { withGlobalJquery, replaceNBSP, timeoutChain, logException };
+function buildInnerHTML(settings = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}", hideShutdown = "False") {
+  const body = document.getElementsByTagName("body")[0];
+  let innerHTML = `<input type="hidden" id="settings" value="${settings}" />`;
+  innerHTML += `<input type="hidden" id="version" value="1.0.0" />`;
+  innerHTML += `<input type="hidden" id="hide_shutdown" value="${hideShutdown}" />`;
+  innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
+  body.innerHTML = innerHTML;
+}
+
+export { withGlobalJquery, replaceNBSP, timeoutChain, logException, buildInnerHTML };

@@ -6,7 +6,7 @@ import React from "react";
 
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
-import { withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const chartData = {
   visible: true,
@@ -65,12 +65,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering data", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-
-    const body = document.getElementsByTagName("body")[0];
-    body.innerHTML += '<input type="hidden" id="settings" value="" />';
-    body.innerHTML += '<input type="hidden" id="version" value="1.0.0" />';
-    body.innerHTML += '<div id="content" style="height: 1000px;width: 1000px;"></div>';
-
+    buildInnerHTML("");
     const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
     result.update();
     setTimeout(() => {

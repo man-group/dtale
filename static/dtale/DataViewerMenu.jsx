@@ -14,6 +14,7 @@ const SORT_PROPS = [
 ];
 class ReactDataViewerMenu extends React.Component {
   render() {
+    const hideShutdown = document.getElementById("hide_shutdown").value === "True";
     const colCount = (this.props.selectedCols || []).length;
     const lockedColCount = _.filter(
       this.props.columns,
@@ -207,14 +208,16 @@ class ReactDataViewerMenu extends React.Component {
               </button>
             </span>
           </li>
-          <li>
-            <span className="toggler-action">
-              <a className="btn btn-plain" href="/shutdown">
-                <i className="fa fa-power-off ml-2 mr-4" />
-                <span className="font-weight-bold">Shutdown</span>
-              </a>
-            </span>
-          </li>
+          <ConditionalRender display={hideShutdown == false}>
+            <li>
+              <span className="toggler-action">
+                <a className="btn btn-plain" href="/shutdown">
+                  <i className="fa fa-power-off ml-2 mr-4" />
+                  <span className="font-weight-bold">Shutdown</span>
+                </a>
+              </span>
+            </li>
+          </ConditionalRender>
         </ul>
       </div>
     );
