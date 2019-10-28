@@ -49,7 +49,7 @@ describe("DataViewer tests", () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const CoverageChart = require("../../popups/CoverageChart").ReactCoverageChart;
     const CoverageChartBody = require("../../popups/CoverageChartBody").default;
-    const PopupChart = require("../../popups/PopupChart").ReactPopupChart;
+    const Popup = require("../../popups/Popup").ReactPopup;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML("");
@@ -75,15 +75,15 @@ describe("DataViewer tests", () => {
         .at(10)
         .simulate("click");
       result.update();
-      t.ok(result.find(PopupChart).instance().props.chartData.visible, "should open coverage");
+      t.ok(result.find(Popup).instance().props.chartData.visible, "should open coverage");
       result
-        .find(PopupChart)
+        .find(Popup)
         .first()
         .find(ModalClose)
         .first()
         .simulate("click");
       result.update();
-      t.notOk(result.find(PopupChart).instance().props.chartData.visible, "should close coverage");
+      t.notOk(result.find(Popup).instance().props.chartData.visible, "should close coverage");
       result.update();
       result
         .find(DataViewerMenu)

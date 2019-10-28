@@ -21,8 +21,7 @@ from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import (build_shutdown_url, build_url, dict_merge,
-                         running_with_flask, running_with_pytest)
+from dtale.utils import build_shutdown_url, build_url, dict_merge
 from dtale.views import cleanup, startup
 
 if PY3:
@@ -331,8 +330,8 @@ def find_free_port():
         return s.getsockname()[1]
 
 
-def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, data_loader=None, reaper_on=True,
-         open_browser=False, **kwargs):
+def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subprocess=True, data_loader=None,
+         reaper_on=True, open_browser=False, **kwargs):
     """
     Entry point for kicking off D-Tale Flask process from python process
 
@@ -342,6 +341,8 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
     :type host: str, optional
     :param port: port number of D-Tale process, defaults to any open port on server
     :type port: str, optional
+    :param name: optional label to assign a D-Tale process
+    :type name: str, optional
     :param debug: will turn on Flask debug functionality, defaults to False
     :type debug: bool, optional
     :param subprocess: run D-Tale as a subprocess of your current process, defaults to True
@@ -369,7 +370,7 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
     setup_logging(logfile, log_level or 'info', verbose)
 
     selected_port = int(port or find_free_port())
-    data_hook = startup(data=data, data_loader=data_loader, port=selected_port)
+    data_hook = startup(data=data, data_loader=data_loader, port=selected_port, name=name)
 
     def _show():
         app = build_app(reaper_on=reaper_on)
@@ -380,10 +381,7 @@ def show(data=None, host='0.0.0.0', port=None, debug=False, subprocess=True, dat
             getLogger("werkzeug").setLevel(LOG_ERROR)
         logger.info('D-Tale started at: {}'.format(build_url(selected_port)))
         if open_browser:
-            # when running flask in debug it spins up two instances, we only want this code
-            # run during startup of the second instance
-            if not running_with_pytest() and running_with_flask():
-                webbrowser.get().open(build_url(selected_port))
+            webbrowser.get().open(build_url(selected_port))
         app.run(host=host, port=selected_port, debug=debug)
 
     if subprocess:

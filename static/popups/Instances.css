@@ -1,0 +1,37 @@
+.instances .cell,
+.instances .headerCell,
+.preview .cell {
+  width: 100%;
+  height: 100%;
+  display: inherit;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(170, 170, 170, 0.25);
+}
+
+.instances .headerCell,
+.preview .headerCell {
+  font-weight: bold;
+}
+
+.preview .headerCell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 45px;
+}
+
+.preview .headerCell.ellipsisCell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 30px;
+}
+
+.instances .clickable:hover {
+  font-weight: bold;
+  cursor: pointer;
+  background-color: rgba(82, 187, 239, 0.2);
+}
+.instances .active {
+  font-weight: bold;
+  background-color: rgba(0, 255, 0, 0.2);
+}

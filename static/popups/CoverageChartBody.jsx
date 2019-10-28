@@ -11,7 +11,7 @@ import { fetchJson } from "../fetcher";
 
 function toggleBouncer() {
   $("#chart-bouncer").toggle();
-  $("#coveragePopupChart").toggle();
+  $("#coveragePopup").toggle();
 }
 
 const COLOR_PROPS = [
@@ -153,7 +153,7 @@ class CoverageChartBody extends React.Component {
 
           return createChart(ctx, fetchedChartData, this.props);
         };
-        const chart = chartUtils.chartWrapper("coveragePopupChart", this.state.chart, builder);
+        const chart = chartUtils.chartWrapper("coveragePopup", this.state.chart, builder);
         this.setState({ chart, error: null });
       }
     });
@@ -166,7 +166,7 @@ class CoverageChartBody extends React.Component {
           <Bouncer />
         </div>
         {this.state.error}
-        <canvas id="coveragePopupChart" height={this.props.height} />
+        <canvas id="coveragePopup" height={this.props.height} />
       </div>
     );
   }

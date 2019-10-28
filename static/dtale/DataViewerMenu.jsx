@@ -15,6 +15,7 @@ const SORT_PROPS = [
 class ReactDataViewerMenu extends React.Component {
   render() {
     const hideShutdown = document.getElementById("hide_shutdown").value === "True";
+    const processCt = document.getElementById("processes").value;
     const colCount = (this.props.selectedCols || []).length;
     const lockedColCount = _.filter(
       this.props.columns,
@@ -203,11 +204,21 @@ class ReactDataViewerMenu extends React.Component {
               <button
                 className="btn btn-plain"
                 onClick={() => this.props.openChart({ type: "about", size: "modal-sm", backdrop: true })}>
-                <i className="fa fa-info-circle la-lg mr-4" />
+                <i className="fa fa-info-circle la-lg mr-4 ml-1" />
                 <span className="font-weight-bold">About</span>
               </button>
             </span>
           </li>
+          <ConditionalRender display={processCt > 1}>
+            <li>
+              <span className="toggler-action">
+                <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "instances" })}>
+                  <i className="ico-apps" />
+                  <span className="font-weight-bold">Instances</span>
+                </button>
+              </span>
+            </li>
+          </ConditionalRender>
           <ConditionalRender display={hideShutdown == false}>
             <li>
               <span className="toggler-action">

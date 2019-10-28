@@ -9,6 +9,8 @@ import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
+const pjson = require("../../../package.json");
+
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
@@ -20,7 +22,7 @@ describe("DataViewer tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.includes(url, "pypi.org")) {
-          return { info: { version: "2.0.0" } };
+          return { info: { version: "999.0.0" } };
         }
         const { urlFetcher } = require("../redux-test-utils").default;
         return urlFetcher(url);
@@ -75,7 +77,7 @@ describe("DataViewer tests", () => {
             .find("div.modal-body div.row")
             .first()
             .text(),
-          "Your Version:1.0.0",
+          `Your Version:${pjson.version}`,
           "renders our version"
         );
         t.equal(
@@ -83,7 +85,7 @@ describe("DataViewer tests", () => {
             .find("div.modal-body div.row")
             .at(1)
             .text(),
-          "PyPi Version:2.0.0",
+          "PyPi Version:999.0.0",
           "renders PyPi version"
         );
         t.equal(about.find("div.dtale-alert").length, 1, "should render alert");

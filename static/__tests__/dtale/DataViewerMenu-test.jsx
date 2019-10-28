@@ -48,4 +48,25 @@ describe("DataViewerMenu tests", () => {
     );
     done();
   });
+
+  test("DataViewerMenu: processes == 2", done => {
+    buildInnerHTML("", "True", 2);
+    const props = {
+      openChart: _.noop,
+      propagateState: _.noop,
+      menuOpen: true,
+      selectedCols: [],
+      sortInfo: [],
+      columns: [],
+    };
+    const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
+    t.ok(
+      result
+        .find("ul li span.toggler-action")
+        .last()
+        .text() === "Instances",
+      "should show instances"
+    );
+    done();
+  });
 });

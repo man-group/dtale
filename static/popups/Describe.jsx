@@ -29,7 +29,11 @@ class ReactDescribe extends React.Component {
         newState.error = <RemovableError {...dtypesData} />;
       }
       newState.dtypes = dtypesData.dtypes;
-      this.setState(newState);
+      let callback = _.noop;
+      if (dtypesData.dtypes.length) {
+        callback = () => this.loadDetails({ rowData: _.head(dtypesData.dtypes) }); // by default, display first column
+      }
+      this.setState(newState, callback);
     });
   }
 

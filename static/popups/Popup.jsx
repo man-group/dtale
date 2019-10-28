@@ -11,8 +11,9 @@ import { Correlations } from "./Correlations";
 import { CoverageChart } from "./CoverageChart";
 import { Describe } from "./Describe";
 import { Histogram } from "./Histogram";
+import Instances from "./Instances";
 
-class ReactPopupChart extends React.Component {
+class ReactPopup extends React.Component {
   constructor(props) {
     super(props);
     this.state = { title: "" };
@@ -80,6 +81,15 @@ class ReactPopupChart extends React.Component {
         );
         body = <About />;
         break;
+      case "instances":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-apps" />
+            <strong>{"Active D-Tale Instances"}</strong>
+          </ModalTitle>
+        );
+        body = <Instances />;
+        break;
       default:
         break;
     }
@@ -95,8 +105,8 @@ class ReactPopupChart extends React.Component {
     );
   }
 }
-ReactPopupChart.displayName = "PopupChart";
-ReactPopupChart.propTypes = {
+ReactPopup.displayName = "Popup";
+ReactPopup.propTypes = {
   onClose: PropTypes.func,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
@@ -124,9 +134,9 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-const ReduxPopupChart = connect(
+const ReduxPopup = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ReactPopupChart);
+)(ReactPopup);
 
-export { ReactPopupChart, ReduxPopupChart as PopupChart };
+export { ReactPopup, ReduxPopup as Popup };
