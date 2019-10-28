@@ -19,16 +19,17 @@ from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.utils import (build_shutdown_url, build_url, dict_merge,
                          filter_df_for_grid, find_dtype_formatter,
                          find_selected_column, get_dtypes, get_int_arg,
-                         get_str_arg, grid_columns, grid_formatter, json_float,
-                         json_int, jsonify, make_list, retrieve_grid_params,
-                         running_with_flask, running_with_pytest,
-                         sort_df_for_grid)
+                         get_str_arg, grid_columns, grid_formatter, json_date,
+                         json_float, json_int, json_timestamp, jsonify,
+                         make_list, retrieve_grid_params, running_with_flask,
+                         running_with_pytest, sort_df_for_grid)
 
 logger = getLogger(__name__)
 
 DATA = {}
 DTYPES = {}
 SETTINGS = {}
+METADATA = {}
 
 
 class DtaleData(object):
@@ -82,7 +83,7 @@ def build_dtypes_state(data):
     return [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(data.columns)]
 
 
-def startup(data=None, data_loader=None, port=None):
+def startup(data=None, data_loader=None, port=None, name=None):
     """
     Loads and stores data globally
     - If data has indexes then it will lock save those columns as locked on the front-end
@@ -93,7 +94,7 @@ def startup(data=None, data_loader=None, port=None):
     :param data_loader: function which returns pandas.DataFrame
     :param port: integer port for running Flask process
     """
-    global DATA, DTYPES, SETTINGS
+    global DATA, DTYPES, SETTINGS, METADATA
 
     if data_loader is not None:
         data = data_loader()
@@ -108,8 +109,9 @@ def startup(data=None, data_loader=None, port=None):
             data = data.to_frame(index=False)
 
         logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
-        curr_index = [i for i in make_list(data.index.name or data.index.names) if i is not None]
+        curr_index = [str(i) for i in make_list(data.index.name or data.index.names) if i is not None]
         data = data.reset_index().drop('index', axis=1, errors='ignore')
+        data.columns = [str(c) for c in data.columns]
         port_key = str(port)
         if port_key in SETTINGS:
             curr_settings = SETTINGS[port_key]
@@ -121,6 +123,7 @@ def startup(data=None, data_loader=None, port=None):
         else:
             logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
             curr_locked = curr_index
+            METADATA[port_key] = dict(start=pd.Timestamp('now'), name=name)
 
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         SETTINGS[port_key] = dict(locked=curr_locked)
@@ -156,7 +159,51 @@ def view_main():
     """
     curr_settings = SETTINGS.get(request.environ.get('SERVER_PORT', 'curr'), {})
     _, version = retrieve_meta_info_and_version('dtale')
-    return render_template('dtale/main.html', settings=json.dumps(curr_settings), version=str(version))
+    return render_template(
+        'dtale/main.html', settings=json.dumps(curr_settings), version=str(version), processes=len(DATA)
+    )
+
+
+@dtale.route('/processes')
+@swag_from('swagger/dtale/views/test-filter.yml')
+def get_processes():
+    """
+    Flask route which returns list of running D-Tale processes within current python process
+
+    :return: JSON {
+        data: [
+            {
+                port: 1, name: 'name1', rows: 5, columns: 5, names: 'col1,...,col5', start: '2018-04-30 12:36:44',
+                ts: 1525106204000
+            },
+            ...,
+            {
+                port: N, name: 'nameN', rows: 5, columns: 5, names: 'col1,...,col5', start: '2018-04-30 12:36:44',
+                ts: 1525106204000
+            }
+        ],
+        success: True/False
+    }
+    """
+    def _load_process(port):
+        data = DATA[port]
+        dtypes = DTYPES[port]
+        mdata = METADATA[port]
+        return dict(
+            port=port,
+            rows=len(data),
+            columns=len(dtypes),
+            names=','.join([c['name'] for c in dtypes]),
+            start=json_date(mdata['start']),
+            ts=json_timestamp(mdata['start']),
+            name=mdata['name']
+        )
+
+    try:
+        processes = sorted([_load_process(port) for port in DATA], key=lambda p: p['ts'])
+        return jsonify(dict(data=processes, success=True))
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
 @dtale.route('/update-settings')
@@ -302,7 +349,7 @@ def get_data():
     """
     try:
         global SETTINGS, DATA, DTYPES
-        port = request.environ.get('SERVER_PORT', 'curr')
+        port = get_str_arg(request, 'port', request.environ.get('SERVER_PORT', 'curr'))
         data = DATA[port]
 
         # this will check for when someone instantiates D-Tale programatically and directly alters the internal
@@ -337,19 +384,24 @@ def get_data():
 
         total = len(data)
         results = {}
+        idx_col = str('dtale_index')
         for sub_range in ids:
             sub_range = list(map(int, sub_range.split('-')))
             if len(sub_range) == 1:
                 sub_df = data.iloc[sub_range[0]:sub_range[0] + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
-                results[sub_range[0]] = dict_merge(dict(dtale_index=sub_range[0]), sub_df[0])
+                results[sub_range[0]] = dict_merge({idx_col: sub_range[0]}, sub_df[0])
             else:
                 [start, end] = sub_range
                 sub_df = data.iloc[start:] if end >= len(data) - 1 else data.iloc[start:end + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
-                    results[i] = dict_merge(dict(dtale_index=i), d)
-        return_data = dict(results=results, columns=[dict(name='dtale_index', dtype='int64')] + col_types, total=total)
+                    results[i] = dict_merge({idx_col: i}, d)
+        return_data = dict(
+            results=results,
+            columns=[dict(name=idx_col, dtype='int64')] + col_types,
+            total=total
+        )
         return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))

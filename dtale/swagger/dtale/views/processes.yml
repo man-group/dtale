@@ -1,0 +1,58 @@
+summary: Fetch list of running D-Tale processes
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: JSON object containing array of instance objects and success flag
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                dtypes:
+                  type: array
+                  description: list of process objects
+                  items:
+                    type: object
+                    properties:
+                      rows:
+                        type: integer
+                        description: number of rows in dataframe for process
+                      columns:
+                        type: integer
+                        description: number of columns in dataframe for process
+                      ts:
+                        type: integer
+                        description: millisecond representation of process start
+                      start:
+                        type: string
+                        description: pretty printed representation of process start
+                      name:
+                        type: string
+                        description: optional name assigned to process
+                      port:
+                        type: string
+                        description: integer string of port assigned to process
+                      names:
+                        type: string
+                        description: comma-separated string of column names in dataframe for process
+                    required:
+                      - rows
+                      - columns
+                      - ts
+                      - start
+                      - names
+                      - port
+                success:
+                  type: boolean
+                  default: true
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

@@ -8,7 +8,7 @@ import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { withGlobalJquery } from "../test-utils";
 
-describe("PopupChart redux tests", () => {
+describe("Popup redux tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -20,14 +20,14 @@ describe("PopupChart redux tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  test("PopupChart redux rendering", () => {
+  test("Popup redux rendering", () => {
     const chartActions = require("../../actions/charts");
-    const PopupChart = require("../../popups/PopupChart").PopupChart;
+    const Popup = require("../../popups/Popup").Popup;
 
     const store = reduxUtils.createDtaleStore();
     const result = mount(
       <Provider store={store}>
-        <PopupChart onClose={_.noop} />
+        <Popup onClose={_.noop} />
       </Provider>
     );
     t.notOk(result.find("canvas").length, "should render nothing by default");

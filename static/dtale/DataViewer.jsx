@@ -10,7 +10,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
-import { PopupChart } from "../popups/PopupChart";
+import { Popup } from "../popups/Popup";
 import DataViewerInfo from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
@@ -265,7 +265,7 @@ class ReactDataViewer extends React.Component {
           }}
         </InfiniteLoader>
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
-        <PopupChart propagateState={this.propagateState} />
+        <Popup propagateState={this.propagateState} />
         <Filter {...{ visible: filterOpen, propagateState: this.propagateState, query }} />
         <Formatting {...{ visible: formattingOpen, save: saveFormatting, propagateState: this.propagateState }} />
         <MeasureText />

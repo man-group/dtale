@@ -10,6 +10,8 @@ import coverageData from "./data/coverage";
 import histogramData from "./data/histogram";
 import scatterData from "./data/scatter";
 
+const pjson = require("../../package.json");
+
 const DATA = {
   results: [
     { dtale_index: 0, col1: 1, col2: 2.5, col3: "foo", col4: "2000-01-01" },
@@ -45,6 +47,43 @@ const DESCRIBE = {
   col4: { describe: { count: 3, first: "2000-01-01", freq: 1, last: "2000-01-01", top: "2000-01-01", unique: 1 } },
 };
 
+const PROCESSES = [
+  {
+    rows: 50,
+    ts: 1525106204000,
+    start: "2018-04-30 12:36:44",
+    names: "date,security_id,foo,bar,baz",
+    port: "8080",
+    columns: 5,
+  },
+  {
+    rows: 50,
+    name: "foo",
+    ts: 1525106204000,
+    start: "2018-04-30 12:36:44",
+    names: "date,security_id,foo,bar,baz",
+    port: "8081",
+    columns: 5,
+  },
+  {
+    rows: 50,
+    name: "foo2",
+    ts: 1525106204000,
+    start: "2018-04-30 12:36:44",
+    names: "date,security_id,foo,bar,baz",
+    port: "8082",
+    columns: 5,
+  },
+  {
+    rows: 3,
+    ts: 1525106204000,
+    start: "2018-04-30 12:36:44",
+    names: "date,security_id,foo,bar,baz",
+    port: "8083",
+    columns: 3,
+  },
+];
+
 function urlFetcher(url) {
   const urlParams = qs.parse(url.split("?")[1]);
   const query = urlParams.query;
@@ -79,7 +118,9 @@ function urlFetcher(url) {
     }
     return { error: "Column not found!" };
   } else if (_.includes(url, "pypi.org")) {
-    return { info: { version: "1.0.0" } };
+    return { info: { version: pjson.version } };
+  } else if (url.startsWith("/dtale/processes")) {
+    return { data: PROCESSES, success: true };
   }
   return {};
 }

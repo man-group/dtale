@@ -35,11 +35,17 @@ function timeoutChain(tests, result, done) {
   }
 }
 
-function buildInnerHTML(settings = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}", hideShutdown = "False") {
+function buildInnerHTML(
+  settings = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}",
+  hideShutdown = "False",
+  processes = 1
+) {
+  const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   let innerHTML = `<input type="hidden" id="settings" value="${settings}" />`;
-  innerHTML += `<input type="hidden" id="version" value="1.0.0" />`;
+  innerHTML += `<input type="hidden" id="version" value="${pjson.version}" />`;
   innerHTML += `<input type="hidden" id="hide_shutdown" value="${hideShutdown}" />`;
+  innerHTML += `<input type="hidden" id="processes" value=${processes} />`;
   innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
   body.innerHTML = innerHTML;
 }

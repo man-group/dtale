@@ -87,6 +87,42 @@ def test_get_send_file_max_age():
 
 
 @pytest.mark.unit
+def test_processes(test_data, unittest):
+    from dtale.views import build_dtypes_state
+
+    now = pd.Timestamp('20180430 12:36:44').tz_localize('US/Eastern')
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict(start=now, name='foo')}))
+            response = c.get('/dtale/processes')
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                [{
+                    'rows': 50,
+                    'name': u'foo',
+                    'ts': 1525106204000,
+                    'start': '2018-04-30 12:36:44',
+                    'names': u'date,security_id,foo,bar,baz',
+                    'port': c.port,
+                    'columns': 5
+                }],
+                response_data['data']
+            )
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.views.METADATA', {}))
+            response = c.get('/dtale/processes')
+            response_data = json.loads(response.data)
+            assert 'error' in response_data
+
+
+@pytest.mark.unit
 def test_update_settings(unittest):
     settings = json.dumps(dict(locked=['a', 'b']))
 
@@ -126,6 +162,17 @@ def test_dtypes(test_data):
                 response = c.get('/dtale/describe/{}'.format(col))
                 response_data = json.loads(response.data)
                 assert response_data['success']
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {}))
+            response = c.get('/dtale/dtypes')
+            response_data = json.loads(response.data)
+            assert 'error' in response_data
+
+            response = c.get('/dtale/describe/foo')
+            response_data = json.loads(response.data)
+            assert 'error' in response_data
 
 
 @pytest.mark.unit

@@ -8,7 +8,7 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
 
-describe("PopupChart tests", () => {
+describe("Popup tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -22,14 +22,14 @@ describe("PopupChart tests", () => {
     jest.mock("../../popups/Correlations", () => ({ Correlations: mockReactCorrelations }));
   });
 
-  test("PopupChart w/ Histogram initial rendering", () => {
-    const ReactPopupChart = require("../../popups/PopupChart").ReactPopupChart;
+  test("Popup w/ Histogram initial rendering", () => {
+    const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
       chartData: { visible: true, type: "histogram", title: "Histogram Test" },
     };
 
-    const result = shallow(<ReactPopupChart {...props} onClose={_.noop} />);
+    const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
     const title = _.join(
       result
         .find("ModalTitle")
@@ -41,14 +41,14 @@ describe("PopupChart tests", () => {
     t.ok(result.find("Histogram").length, "should render histogram canvas");
   });
 
-  test("PopupChart w/ Correlations initial rendering", () => {
-    const ReactPopupChart = require("../../popups/PopupChart").ReactPopupChart;
+  test("Popup w/ Correlations initial rendering", () => {
+    const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
       chartData: { visible: true, type: "correlations", title: "Correlations Test" },
     };
 
-    const result = shallow(<ReactPopupChart {...props} onClose={_.noop} />);
+    const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
     const title = _.join(
       result
         .find("ModalTitle")

@@ -9,8 +9,6 @@ import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
-const pjson = require("../../../package.json");
-
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
@@ -26,18 +24,6 @@ describe("DataViewer tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      return chartCfg;
-    });
-
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
@@ -45,12 +31,12 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: about", done => {
+  test("DataViewer: instances", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const About = require("../../popups/About").default;
+    const Instances = require("../../popups/Instances").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML("", "True", 2);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -63,44 +49,17 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .at(5)
+        .last()
         .simulate("click");
       setTimeout(() => {
         result.update();
-        t.equal(result.find(About).length, 1, "should show about");
+        t.equal(result.find(Instances).length, 1, "should show instances");
         result
           .find(ModalClose)
           .first()
           .simulate("click");
-        t.equal(result.find(About).length, 0, "should hide about");
-        result
-          .find(DataViewerMenu)
-          .find("ul li button")
-          .at(5)
-          .simulate("click");
-        setTimeout(() => {
-          result.update();
-
-          const about = result.find(About).first();
-          t.equal(
-            about
-              .find("div.modal-body div.row")
-              .first()
-              .text(),
-            `Your Version:${pjson.version}`,
-            "renders our version"
-          );
-          t.equal(
-            about
-              .find("div.modal-body div.row")
-              .at(1)
-              .text(),
-            `PyPi Version:${pjson.version}`,
-            "renders PyPi version"
-          );
-          t.equal(about.find("div.dtale-alert").length, 0, "should not render alert");
-          done();
-        }, 400);
+        t.equal(result.find(Instances).length, 0, "should hide instances");
+        done();
       }, 400);
     }, 600);
   });

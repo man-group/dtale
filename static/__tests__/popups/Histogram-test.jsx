@@ -6,7 +6,7 @@ import React from "react";
 
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
-import { withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const HISTOGRAM_DATA = {
   desc: { count: 20 },
@@ -85,10 +85,7 @@ describe("Histogram tests", () => {
 
   test("Histogram rendering data", done => {
     const Histogram = require("../../popups/Histogram").ReactHistogram;
-
-    const body = document.getElementsByTagName("body")[0];
-    body.innerHTML += '<div id="content"></div>';
-
+    buildInnerHTML();
     const result = mount(<Histogram {...props} />, { attachTo: document.getElementById("content") });
     t.deepEqual(result.find("option").map(o => o.text()), ["5", "10", "20", "50"], "Should render bins options");
 
