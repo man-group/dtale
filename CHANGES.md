@@ -26,3 +26,6 @@ Changelog
   * `webbrowser` integration (the ability to automatically open a webbrowser upon calling `dtale.show()`)
   * flag for hiding the "Shutdown" button for long-running demos
   * "Instances" navigator popup for viewing all activate D-Tale instances for the current python process
+
+### 1.3.1 (2019-10-29)
+  * fix for incompatible str types when directly altering state of data in running D-Tale instance

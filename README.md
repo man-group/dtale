@@ -1,4 +1,4 @@
-[![D-Tale](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
+[![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
 
 [Live Demo](http://andrewschonfeld.pythonanywhere.com/dtale/main)
 
@@ -123,7 +123,7 @@ DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata
 
 ### Python Terminal
 This comes courtesy of PyCharm
-![Python Terminal](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Python_Terminal.png "Python_Terminal")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
 #####Additional functions available programatically
 ```python
@@ -157,37 +157,39 @@ d._url  # the url to access the process
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
-![Chrome #1](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Browser1.png "Chrome #1")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Browser1.png)
 
-The information in the upper right-hand corner is similar to saslook  ![Info](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_cell.png "Info")
+The information in the upper right-hand corner is similar to saslook ![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_cell.png)
 - lower-left => row count
 - upper-right => column count
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
-![Menu](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu_small.png "Menu")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu_small.png)
 
 Selecting/Deselecting Columns
 - to select a column, simply click on the column header (to deselect, click the column header again)
   - You'll notice that the columns you've selected will display in the top of your browser
-![Column Select](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Col_select.png "Column Select")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Col_select.png)
 
 ### Menu functions w/ no columns selected
 
-![Menu](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu.png "Menu")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu.png)
 
-- **Describe**: view all the columns & their data types as well as individual details of each column ![Describe](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe.png "Describe")
+- **Describe**: view all the columns & their data types as well as individual details of each column
+
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe.png)
 
 |Data Type|Display|Notes|
 |--------|:------:|:------:|
-|date|![Describe date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_date.png "Describe Date")||
-|string|![Describe string](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_string.png "Describe String")|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
-|int|![Describe int](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_int.png "Describe Int")|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
-|float|![Describe float](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_float.png "Describe Float")||
+|date|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_date.png)||
+|string|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_string.png)|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
+|int|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
+|float|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_float.png)||
 
 - **Filter**: apply a simple pandas `query` to your data (link to pandas documentation included in popup)
 
 |Editing|Result|
 |--------|:------:|
-|![Filter Apply](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Filter_apply.png "Filter Apply")|![Filter Applied](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_filter.png "Filter Applied")|
+|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_filter.png)|
 
 - **Coverage**: check for coverage gaps on column(s) by way of other column(s) as group(s)
   - Select column(s) in "Group(s)" & "Col(s)"
@@ -198,7 +200,7 @@ Selecting/Deselecting Columns
 
 |Daily|Daily Regional|
 |-----|:-------------:|
-|![Coverage Daily](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily.png "Coverage Daily")|![Coverage Daily Regions](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily_regions.png "Coverage Daily Regions")|
+|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily_regions.png)|
 
 - **Correlations**: shows a pearson correlation matrix of all numeric columns against all other numeric columns
   - By deafult, it will show a grid of pearson correlations
@@ -208,15 +210,15 @@ Selecting/Deselecting Columns
 
 |Matrix|Timeseries|Scatter|
 |------|----------|-------|
-|![Correlations](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations.png "Correlations")|![Timeseries](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_ts.png "Timeseries")|![Scatter](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_scatter.png "Scatter")|
+|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_scatter.png)|
 
 - **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
 
 |Up To Date|Out Of Date|
 |--------|:------:|
-|![About-up-to-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-up-to-date.png "About - Out of Date")|![About-out-of-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-out-of-date.png "About - Up to Date")|
+|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-out-of-date.png)|
 
-- **Instances**: This will give you information about other D-Tale instances are running under your current Python process.
+- **Instances**: this will give you information about other D-Tale instances are running under your current Python process.
 
 For example, if you ran the following script:
 ```python
@@ -234,26 +236,27 @@ dtale.show(pd.DataFrame([range(6), range(6), range(6), range(6), range(6), range
 ```
 This will make the **Instances** button available in all 3 of these D-Tale instances. Clicking that button while in the first instance invoked above will give you this popup:
 
-![Instances](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances.png "Instances")
-* Grid with the following information
-  * Process: timestamp when the process was started along with the name (if specified in `dtale.show()`)
-  * Rows: number of rows
-  * Columns: number of columns
-  * Column Names: comma-separated string of column names (only first 30 characters, hover for full listing)
-  * Preview: this button is available any of the non-current instances.  Clicking this will bring up left-most 5X5 grid information for that instance
-* The row highlighted in green signifys the current D-Tale instance
-* Any other row can be clicked to switch to that D-Tale instance
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances.png)
+
+The grid above contains the following information:
+  - Process: timestamp when the process was started along with the name (if specified in `dtale.show()`)
+  - Rows: number of rows
+  - Columns: number of columns
+  - Column Names: comma-separated string of column names (only first 30 characters, hover for full listing)
+  - Preview: this button is available any of the non-current instances.  Clicking this will bring up left-most 5X5 grid information for that instance
+  - The row highlighted in green signifys the current D-Tale instance
+  - Any other row can be clicked to switch to that D-Tale instance
 
 Here is an example of clicking the "Preview" button:
 
-![Instances_w_preview](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances_preview.png "Instances Preview")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances_preview.png)
 
-- Resize: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
-- Shutdown: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
+- **Resize**: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
+- **Shutdown**: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
 
 ### Menu functions w/ one column is selected
 
-![Menu Single-Column](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Menu_one_col.png "Menu Single-Column")
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Menu_one_col.png)
 
 - **Move To Front**: moves your column to the front of the "unlocked" columns
 - **Lock**: adds your column to "locked" columns
@@ -280,10 +283,11 @@ Here is an example of clicking the "Preview" button:
 
 - **Formats**: apply simple formats to numeric values in your grid
 
-  |Editing|Result|
-  |--------|:------:|
-  |![Formatting Apply](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Formatting_apply.png "Formatting Apply")|![Formatting Applied](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_formatting.png "Formatting Applied")|
-  - Here's a grid of all the formats available with -123456.789 as input:
+|Editing|Result|
+|--------|:------:|
+|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_formatting.png)|
+
+Here's a grid of all the formats available with -123456.789 as input:
   
 | Format        | Output         |
 | ------------- |:--------------:|
@@ -295,7 +299,8 @@ Here is an example of clicking the "Preview" button:
 | Red Negatives | <span style="color: red;">-123457</span>|
 
 - **Histogram**: display histograms in bins of 5, 10, 20 or 50 for any numeric column
-![Histogram](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Histogram.png "Histogram")
+
+![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Histogram.png)
 
 ## For Developers
 
