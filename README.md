@@ -37,6 +37,16 @@ $ pip install --upgrade dtale
 Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
 
 ### Command-line
+Base CLI options (run `dtale --help` to see all options available)
+
+|Prop|Description|
+|:--------:|------|
+|`--host`|the name of the host you would like to use (most likely not needed since `socket.gethostname()` should figure this out)|
+|`--port`|the port you would like to assign to your D-Tale instance|
+|`--debug`|turn on Flask's "debug" mode for your D-Tale instance|
+|`--no-reaper`|flag to turn off auto-reaping subprocess (kill D-Tale instances after an hour of inactivity), good for long-running displays |
+|`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
+
 Loading data from **arctic**
 ```bash
 dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arctic-node my_node --arctic-start 20130101 --arctic-end 20161231
@@ -135,6 +145,14 @@ d.data = tmp
 
 # Shutting down D-Tale process
 d.kill()
+
+# using Python's `webbrowser` package it will try and open your server's default browser to this process
+d.open_browser()
+
+# There is also some helpful metadata about the process
+d._port  # the process's port
+d._url  # the url to access the process
+
 ```
 
 ## UI
@@ -198,6 +216,37 @@ Selecting/Deselecting Columns
 |--------|:------:|
 |![About-up-to-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-up-to-date.png "About - Out of Date")|![About-out-of-date](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-out-of-date.png "About - Up to Date")|
 
+- **Instances**: This will give you information about other D-Tale instances are running under your current Python process.
+
+For example, if you ran the following script:
+```python
+import pandas as pd
+import dtale
+
+dtale.show(pd.DataFrame([dict(foo=1, bar=2, biz=3, baz=4, snoopy_D_O_double_gizzle=5)]))
+dtale.show(pd.DataFrame([
+    dict(a=1, b=2, c=3, d=4),
+    dict(a=2, b=3, c=4, d=5),
+    dict(a=3, b=4, c=5, d=6),
+    dict(a=4, b=5, c=6, d=7)
+]))
+dtale.show(pd.DataFrame([range(6), range(6), range(6), range(6), range(6), range(6)]), name="foo")
+```
+This will make the **Instances** button available in all 3 of these D-Tale instances. Clicking that button while in the first instance invoked above will give you this popup:
+
+![Instances](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances.png "Instances")
+* Grid with the following information
+  * Process: timestamp when the process was started along with the name (if specified in `dtale.show()`)
+  * Rows: number of rows
+  * Columns: number of columns
+  * Column Names: comma-separated string of column names (only first 30 characters, hover for full listing)
+  * Preview: this button is available any of the non-current instances.  Clicking this will bring up left-most 5X5 grid information for that instance
+* The row highlighted in green signifys the current D-Tale instance
+* Any other row can be clicked to switch to that D-Tale instance
+
+Here is an example of clicking the "Preview" button:
+
+![Instances_w_preview](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances_preview.png "Instances Preview")
 
 - Resize: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 - Shutdown: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)

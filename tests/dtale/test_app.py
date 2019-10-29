@@ -1,4 +1,5 @@
 import mock
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -65,6 +66,16 @@ def test_show(unittest):
         assert 'http://localhost:9999' == webbrowser_instance.open.call_args[0][0]
         data_hook.open_browser()
         assert 'http://localhost:9999' == webbrowser_instance.open.mock_calls[1][1][0]
+
+    # RangeIndex test
+    test_data = pd.DataFrame([1, 2, 3])
+    with ExitStack() as stack:
+        mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        mock_find_free_port = stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        mock_logger = stack.enter_context(mock.patch('dtale.app.logger', mock.Mock()))
+        data_hook = show(data=test_data, subprocess=False, name='foo')
+        assert np.array_equal(data_hook.data['0'].values, test_data[0].values)
 
     def mock_run(self, *args, **kwargs):
         assert self.jinja_env.auto_reload
