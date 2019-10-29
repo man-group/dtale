@@ -83,6 +83,17 @@ def build_dtypes_state(data):
     return [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(data.columns)]
 
 
+def format_data(data):
+    if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
+        data = data.to_frame(index=False)
+
+    logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
+    index = [str(i) for i in make_list(data.index.name or data.index.names) if i is not None]
+    data = data.reset_index().drop('index', axis=1, errors='ignore')
+    data.columns = [str(c) for c in data.columns]
+    return data, index
+
+
 def startup(data=None, data_loader=None, port=None, name=None):
     """
     Loads and stores data globally
@@ -109,9 +120,7 @@ def startup(data=None, data_loader=None, port=None, name=None):
             data = data.to_frame(index=False)
 
         logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
-        curr_index = [str(i) for i in make_list(data.index.name or data.index.names) if i is not None]
-        data = data.reset_index().drop('index', axis=1, errors='ignore')
-        data.columns = [str(c) for c in data.columns]
+        data, curr_index = format_data(data)
         port_key = str(port)
         if port_key in SETTINGS:
             curr_settings = SETTINGS[port_key]
@@ -356,6 +365,8 @@ def get_data():
         # state of the dataframe (EX: d.data['new_col'] = 'foo')
         curr_dtypes = [c['name'] for c in DTYPES[port]]
         if any(c not in curr_dtypes for c in data.columns):
+            data, _ = format_data(data)
+            DATA[port] = data
             DTYPES[port] = build_dtypes_state(data)
 
         params = retrieve_grid_params(request)

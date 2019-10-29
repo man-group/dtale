@@ -210,6 +210,7 @@ def test_get_data(unittest, test_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
+            test_data, _ = views.format_data(test_data)
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/data')
