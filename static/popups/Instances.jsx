@@ -1,3 +1,4 @@
+import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
@@ -25,14 +26,18 @@ function renderProcessLabel({ start, name }) {
 class Instances extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { processes: [], loadingProcesses: false, preview: null, loadingPreview: false };
+    this.state = { processes: {}, loadingProcesses: false, preview: null, loadingPreview: false };
     this.viewPreview = this.viewPreview.bind(this);
     this.renderPreview = this.renderPreview.bind(this);
   }
 
   componentDidMount() {
     this.setState({ loadingProcesses: true });
-    fetchJson(INSTANCES_URL, processes => this.setState({ processes, loadingProcesses: false }));
+    fetchJson(INSTANCES_URL, processes =>
+      this.setState({ processes, loadingProcesses: false }, () =>
+        $("input#processes").val(_.get(processes, "data.length", 1))
+      )
+    );
   }
 
   viewPreview(instance) {

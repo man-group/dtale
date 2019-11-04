@@ -464,7 +464,7 @@ def get_correlations():
         data = DATA[request.environ.get('SERVER_PORT', 'curr')]
         data = data.query(query) if query is not None else data
         data = data.corr(method='pearson')
-        data.index.name = 'column'
+        data.index.name = str('column')
         data = data.reset_index()
         col_types = grid_columns(data)
         f = grid_formatter(col_types, nan_display=None)

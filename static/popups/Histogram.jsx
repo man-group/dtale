@@ -16,7 +16,7 @@ const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max"];
 
 function createHistogram(ctx, fetchedData, col) {
   const { desc, labels, data } = fetchedData;
-  const descHTML = _.map(DESC_PROPS, p => `${_.capitalize(p)}: <b>${_.round(desc[p], 4)}</b>`).join(", ");
+  const descHTML = _.map(DESC_PROPS, p => `${_.capitalize(p)}: <b>${desc[p]}</b>`).join(", ");
   $("#describe").html(`<small>${descHTML}</small>`);
   return chartUtils.createChart(ctx, {
     type: "bar",
