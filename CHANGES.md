@@ -38,3 +38,7 @@ Changelog
     * display of histogram column information
     * reload of hidden "processes" input when loading instances data
     * correlations json failures on string conversion
+
+### 1.3.3 (2019-11-05)
+
+  * hotfix for failing test under certain versions of `future` package

@@ -269,7 +269,7 @@ def test_get_data(unittest, test_data):
             response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
-                response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
+                response_data['error'], "name 'missing_col' is not defined", 'should handle data exception'
             )
 
     with app.test_client() as c:
@@ -350,7 +350,10 @@ def test_get_histogram(unittest, test_data):
 
 @pytest.mark.unit
 def test_get_correlations(unittest, test_data):
+    import dtale.views as views
+
     with app.test_client() as c:
+        test_data, _ = views.format_data(test_data)
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
             response = c.get('/dtale/correlations')
             response_data = json.loads(response.data)
