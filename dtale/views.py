@@ -582,7 +582,7 @@ def get_scatter():
             data = data.query(query)
 
         data = data[list(set(cols))].dropna(how='any')
-        data['index'] = data.index
+        data[str('index')] = data.index
         s0 = data[cols[0]]
         s1 = data[cols[1]]
         pearson = s0.corr(s1, method='pearson')

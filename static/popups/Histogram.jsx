@@ -73,12 +73,10 @@ class ReactHistogram extends React.Component {
     return false;
   }
 
-  componentDidUpdate() {
-    if (!this.props.chartData.visible || this.state.error) {
-      return;
+  componentDidUpdate(_prevProps, prevState) {
+    if (this.state.bins !== prevState.bins) {
+      this.buildHistogram();
     }
-
-    this.buildHistogram();
   }
 
   componentDidMount() {
