@@ -419,10 +419,14 @@ def test_get_correlations_ts(unittest):
 
 @pytest.mark.unit
 def test_get_scatter(unittest):
-    test_data = pd.DataFrame(build_ts_data(), columns=['date', 'security_id', 'foo', 'bar'])
+    import dtale.views as views
 
+    test_data = pd.DataFrame(build_ts_data(), columns=['date', 'security_id', 'foo', 'bar'])
+    test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get(
                 '/dtale/scatter',
                 query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="date == '20000101'")
@@ -451,7 +455,9 @@ def test_get_scatter(unittest):
     test_data = pd.DataFrame(build_ts_data(size=15001, days=1), columns=['date', 'security_id', 'foo', 'bar'])
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/scatter', query_string=dict(dateCol='date', cols='foo,bar', date='20000101'))
             response_data = json.loads(response.data)
             expected = dict(
@@ -467,7 +473,9 @@ def test_get_scatter(unittest):
             unittest.assertEqual(response_data, expected, 'should return scatter')
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get(
                 '/dtale/scatter',
                 query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="missing_col == 'blah'")
