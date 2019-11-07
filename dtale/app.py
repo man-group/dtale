@@ -192,7 +192,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
             'contact': {
                 'name': 'Man Alpha Technology',
                 'email': 'ManAlphaTech@man.com',
-                'url': 'https://github.com/manahl/dtale'
+                'url': 'https://github.com/man-group/dtale'
             },
         },
         host=socket.gethostname(),

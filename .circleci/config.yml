@@ -100,15 +100,16 @@ defaults: &defaults
         path: /tmp/circleci-test-results
 
 
+
 version: 2
 jobs:
   build_2_7:
-    working_directory: ~/manahl/dtale_2_7
+    working_directory: ~/man-group/dtale_2_7
     docker:
     - image: circleci/python:2.7-stretch-node-browsers
     <<: *defaults
   build_3:
-    working_directory: ~/manahl/dtale_3
+    working_directory: ~/man-group/dtale_3
     docker:
     - image: circleci/python:3.6-stretch-node-browsers
     <<: *defaults

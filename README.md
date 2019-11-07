@@ -1,10 +1,10 @@
-[![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Title.png)](https://github.com/manahl/dtale)
+[![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Title.png)](https://github.com/man-group/dtale)
 
 [Live Demo](http://andrewschonfeld.pythonanywhere.com/dtale/main)
 
 -----------------
 
-[![CircleCI](https://circleci.com/gh/manahl/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/manahl/dtale)
+[![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/manahl/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
@@ -12,7 +12,7 @@
 
 ## Getting Started
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/blog/dtale_demo_mini.gif)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)
 
 Setup/Activate your environment and install the egg
 
@@ -123,7 +123,7 @@ DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata
 
 ### Python Terminal
 This comes courtesy of PyCharm
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Python_Terminal.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
 #####Additional functions available programatically
 ```python
@@ -157,39 +157,39 @@ d._url  # the url to access the process
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Browser1.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Browser1.png)
 
-The information in the upper right-hand corner is similar to saslook ![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_cell.png)
+The information in the upper right-hand corner is similar to saslook ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_cell.png)
 - lower-left => row count
 - upper-right => column count
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu_small.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu_small.png)
 
 Selecting/Deselecting Columns
 - to select a column, simply click on the column header (to deselect, click the column header again)
   - You'll notice that the columns you've selected will display in the top of your browser
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Col_select.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_select.png)
 
 ### Menu functions w/ no columns selected
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Info_menu.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu.png)
 
 - **Describe**: view all the columns & their data types as well as individual details of each column
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe.png)
 
 |Data Type|Display|Notes|
 |--------|:------:|:------:|
-|date|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_date.png)||
-|string|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_string.png)|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
-|int|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
-|float|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Describe_float.png)||
+|date|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_date.png)||
+|string|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_string.png)|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
+|int|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
+|float|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_float.png)||
 
 - **Filter**: apply a simple pandas `query` to your data (link to pandas documentation included in popup)
 
 |Editing|Result|
 |--------|:------:|
-|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_filter.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
 
 - **Coverage**: check for coverage gaps on column(s) by way of other column(s) as group(s)
   - Select column(s) in "Group(s)" & "Col(s)"
@@ -200,7 +200,7 @@ Selecting/Deselecting Columns
 
 |Daily|Daily Regional|
 |-----|:-------------:|
-|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Coverage_daily_regions.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily_regions.png)|
 
 - **Correlations**: shows a pearson correlation matrix of all numeric columns against all other numeric columns
   - By deafult, it will show a grid of pearson correlations
@@ -210,13 +210,13 @@ Selecting/Deselecting Columns
 
 |Matrix|Timeseries|Scatter|
 |------|----------|-------|
-|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Correlations_scatter.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_scatter.png)|
 
 - **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
 
 |Up To Date|Out Of Date|
 |--------|:------:|
-|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/About-out-of-date.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-out-of-date.png)|
 
 - **Instances**: this will give you information about other D-Tale instances are running under your current Python process.
 
@@ -236,7 +236,7 @@ dtale.show(pd.DataFrame([range(6), range(6), range(6), range(6), range(6), range
 ```
 This will make the **Instances** button available in all 3 of these D-Tale instances. Clicking that button while in the first instance invoked above will give you this popup:
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances.png)
 
 The grid above contains the following information:
   - Process: timestamp when the process was started along with the name (if specified in `dtale.show()`)
@@ -249,14 +249,14 @@ The grid above contains the following information:
 
 Here is an example of clicking the "Preview" button:
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Instances_preview.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances_preview.png)
 
 - **Resize**: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 - **Shutdown**: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
 
 ### Menu functions w/ one column is selected
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Menu_one_col.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Menu_one_col.png)
 
 - **Move To Front**: moves your column to the front of the "unlocked" columns
 - **Lock**: adds your column to "locked" columns
@@ -285,7 +285,7 @@ Here is an example of clicking the "Preview" button:
 
 |Editing|Result|
 |--------|:------:|
-|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Post_formatting.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_formatting.png)|
 
 Here's a grid of all the formats available with -123456.789 as input:
   
@@ -300,7 +300,7 @@ Here's a grid of all the formats available with -123456.789 as input:
 
 - **Histogram**: display histograms in bins of 5, 10, 20 or 50 for any numeric column
 
-![](https://raw.githubusercontent.com/manahl/dtale/master/docs/images/Histogram.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
 
 ## For Developers
 
