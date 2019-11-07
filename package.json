@@ -1,7 +1,7 @@
 {
   "name": "dtale",
-  "version": "1.3.3",
-  "description": "Numeric Data Viewer",
+  "version": "1.3.5",
+  "description": "All-purpose Data Viewer",
   "main": "main.js",
   "directories": {
     "test": "tests"

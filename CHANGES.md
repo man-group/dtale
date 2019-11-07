@@ -46,3 +46,10 @@ Changelog
 ### 1.3.4 (2019-11-07)
 
   * updated correlation calculation to use `numpy.corrcoef` for performance purposes
+  * github rebranding from manahl -> man-group
+
+### 1.3.5 (2019-11-07)
+
+  * Bug fixes for:
+    * duplicate loading of histogram data
+    * string serialization failing when mixing `future.str` & `str` in scatter function
