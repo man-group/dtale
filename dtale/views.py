@@ -158,6 +158,10 @@ def cleanup(port):
     DTYPES.pop(port, None)
 
 
+def get_port():
+    return get_str_arg(request, 'port', request.environ.get('SERVER_PORT', 'curr'))
+
+
 @dtale.route('/main')
 @swag_from('swagger/dtale/views/main.yml')
 def view_main():
@@ -166,7 +170,7 @@ def view_main():
 
     :return: HTML
     """
-    curr_settings = SETTINGS.get(request.environ.get('SERVER_PORT', 'curr'), {})
+    curr_settings = SETTINGS.get(get_port(), {})
     _, version = retrieve_meta_info_and_version('dtale')
     return render_template(
         'dtale/main.html', settings=json.dumps(curr_settings), version=str(version), processes=len(DATA)
@@ -228,10 +232,10 @@ def update_settings():
     try:
         global SETTINGS
 
-        server_port = request.environ.get('SERVER_PORT', 'curr')
-        curr_settings = SETTINGS.get(server_port, {})
+        port = get_port()
+        curr_settings = SETTINGS.get(port, {})
         updated_settings = dict_merge(curr_settings, json.loads(get_str_arg(request, 'settings', '{}')))
-        SETTINGS[server_port] = updated_settings
+        SETTINGS[port] = updated_settings
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -254,7 +258,7 @@ def test_filter():
     """
     try:
         query = get_str_arg(request, 'query')
-        _test_filter(DATA[request.environ.get('SERVER_PORT', 'curr')], query)
+        _test_filter(DATA[get_port()], query)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -276,7 +280,7 @@ def dtypes():
     }
     """
     try:
-        return jsonify(dtypes=DTYPES[request.environ.get('SERVER_PORT', 'curr')], success=True)
+        return jsonify(dtypes=DTYPES[get_port()], success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -319,7 +323,7 @@ def describe(column):
 
     """
     try:
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = DATA[get_port()]
         desc = load_describe(data[column])
         return_data = dict(describe=desc, success=True)
         uniq_vals = data[column].unique()
@@ -358,7 +362,7 @@ def get_data():
     """
     try:
         global SETTINGS, DATA, DTYPES
-        port = get_str_arg(request, 'port', request.environ.get('SERVER_PORT', 'curr'))
+        port = get_port()
         data = DATA[port]
 
         # this will check for when someone instantiates D-Tale programatically and directly alters the internal
@@ -433,7 +437,7 @@ def get_histogram():
     query = get_str_arg(request, 'query')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = DATA[get_port()]
         if query:
             data = data.query(query)
 
@@ -461,9 +465,16 @@ def get_correlations():
     """
     try:
         query = get_str_arg(request, 'query')
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        port = get_port()
+        data = DATA[port]
         data = data.query(query) if query is not None else data
-        data = data.corr(method='pearson')
+
+        # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
+        # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
+        valid_corr_cols = [c['name'] for c in DTYPES[port] if any((c['dtype'].startswith(s) for s in ['int', 'float']))]
+        data = np.corrcoef(data[valid_corr_cols].values, rowvar=False)
+        data = pd.DataFrame(data, columns=valid_corr_cols, index=valid_corr_cols)
+
         data.index.name = str('column')
         data = data.reset_index()
         col_types = grid_columns(data)
@@ -520,7 +531,7 @@ def get_correlations_ts():
     """
     try:
         query = get_str_arg(request, 'query')
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = DATA[get_port()]
         data = data.query(query) if query is not None else data
         cols = get_str_arg(request, 'cols')
         cols = cols.split(',')
@@ -565,7 +576,7 @@ def get_scatter():
     date = get_str_arg(request, 'date')
     date_col = get_str_arg(request, 'dateCol')
     try:
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = DATA[get_port()]
         data = data[data[date_col] == date] if date else data
         if query:
             data = data.query(query)
@@ -645,7 +656,7 @@ def find_coverage():
         groups = get_str_arg(request, 'group')
         if groups:
             groups = json.loads(groups)
-        data = DATA[request.environ.get('SERVER_PORT', 'curr')]
+        data = DATA[get_port()]
         data, groups, query = filter_data(data, request, groups, query=get_str_arg(request, 'query'))
         grouper = []
         for g_cfg in groups:

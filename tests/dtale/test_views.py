@@ -353,8 +353,10 @@ def test_get_correlations(unittest, test_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        test_data, _ = views.format_data(test_data)
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            test_data, _ = views.format_data(test_data)
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations')
             response_data = json.loads(response.data)
             expected = dict(data=[
@@ -365,7 +367,10 @@ def test_get_correlations(unittest, test_data):
             unittest.assertEqual(response_data, expected, 'should return correlations')
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            test_data, _ = views.format_data(test_data)
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations', query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(

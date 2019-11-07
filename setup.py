@@ -50,14 +50,14 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.3.3",
+    version="1.3.4",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
     license="LGPL",
     long_description='\n'.join((long_description, changelog)),
     keywords=["numeric", "pandas", "visualization", "flask"],
-    url="https://github.com/manahl/dtale",
+    url="https://github.com/man-group/dtale",
     install_requires=[
         "arctic",
         "jsonschema<3.0.0",

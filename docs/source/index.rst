@@ -3,7 +3,7 @@ Welcome to D-Tale's documentation!
 
 Installation
 ------------
-For installation steps, please refer to the project `README <https://github.com/manahl/dtale>`_.
+For installation steps, please refer to the project `README <https://github.com/man-group/dtale>`_.
 
 General use
 -----------
