@@ -2,6 +2,7 @@ import json
 from builtins import str
 
 import mock
+import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -359,16 +360,18 @@ def test_get_correlations(unittest, test_data):
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations')
             response_data = json.loads(response.data)
-            expected = dict(data=[
-                dict(column='security_id', security_id=1.0, foo=None, bar=None),
-                dict(column='foo', security_id=None, foo=None, bar=None),
-                dict(column='bar', security_id=None, foo=None, bar=None)
-            ])
+            expected = dict(
+                data=[
+                    dict(column='security_id', security_id=1.0, foo=None, bar=None),
+                    dict(column='foo', security_id=None, foo=None, bar=None),
+                    dict(column='bar', security_id=None, foo=None, bar=None)
+                ],
+                dates=[]
+            )
             unittest.assertEqual(response_data, expected, 'should return correlations')
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            test_data, _ = views.format_data(test_data)
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations', query_string=dict(query="missing_col == 'blah'"))
@@ -376,6 +379,26 @@ def test_get_correlations(unittest, test_data):
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
             )
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            test_data.loc[test_data.security_id == 1, 'bar'] = np.nan
+            test_data2 = test_data.copy()
+            test_data2.loc[:, 'date'] = pd.Timestamp('20000102')
+            test_data = pd.concat([test_data, test_data2], ignore_index=True)
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            response = c.get('/dtale/correlations')
+            response_data = json.loads(response.data)
+            expected = expected = dict(
+                data=[
+                    dict(column='security_id', security_id=1.0, foo=None, bar=None),
+                    dict(column='foo', security_id=None, foo=None, bar=None),
+                    dict(column='bar', security_id=None, foo=None, bar=None)
+                ],
+                dates=['date']
+            )
+            unittest.assertEqual(response_data, expected, 'should return correlations')
 
 
 def build_ts_data(size=5, days=5):

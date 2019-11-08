@@ -16,8 +16,8 @@ from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.utils import (build_shutdown_url, build_url, dict_merge,
-                         filter_df_for_grid, find_dtype_formatter,
+from dtale.utils import (build_shutdown_url, build_url, classify_type,
+                         dict_merge, filter_df_for_grid, find_dtype_formatter,
                          find_selected_column, get_dtypes, get_int_arg,
                          get_str_arg, grid_columns, grid_formatter, json_date,
                          json_float, json_int, json_timestamp, jsonify,
@@ -469,17 +469,29 @@ def get_correlations():
         data = DATA[port]
         data = data.query(query) if query is not None else data
 
-        # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
-        # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
-        valid_corr_cols = [c['name'] for c in DTYPES[port] if any((c['dtype'].startswith(s) for s in ['int', 'float']))]
-        data = np.corrcoef(data[valid_corr_cols].values, rowvar=False)
-        data = pd.DataFrame(data, columns=valid_corr_cols, index=valid_corr_cols)
+        valid_corr_cols = []
+        valid_date_cols = []
+        for col_info in DTYPES[port]:
+            name, dtype = map(col_info.get, ['name', 'dtype'])
+            dtype = classify_type(dtype)
+            if dtype in ['I', 'F']:
+                valid_corr_cols.append(name)
+            elif dtype == 'D' and len(data[name].dropna().unique()) > 1:
+                valid_date_cols.append(name)
+
+        if data[valid_corr_cols].isnull().values.any():
+            data = data.corr(method='pearson')
+        else:
+            # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
+            # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
+            data = np.corrcoef(data[valid_corr_cols].values, rowvar=False)
+            data = pd.DataFrame(data, columns=valid_corr_cols, index=valid_corr_cols)
 
         data.index.name = str('column')
         data = data.reset_index()
         col_types = grid_columns(data)
         f = grid_formatter(col_types, nan_display=None)
-        return jsonify(data=f.format_dicts(data.itertuples()))
+        return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 

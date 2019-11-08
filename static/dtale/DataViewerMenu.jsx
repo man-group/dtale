@@ -43,7 +43,7 @@ class ReactDataViewerMenu extends React.Component {
       const col = _.head(this.props.selectedCols);
       this.props.openChart(_.assignIn({ type: "histogram", col, title: col }, this.props));
     };
-    const openScatter = () => {
+    const openCorrelations = () => {
       this.props.openChart(_.assignIn({ type: "correlations", title: "Correlations" }, this.props));
     };
     const openCoverage = () => {
@@ -177,7 +177,7 @@ class ReactDataViewerMenu extends React.Component {
           </ConditionalRender>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openScatter}>
+              <button className="btn btn-plain" onClick={openCorrelations}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>

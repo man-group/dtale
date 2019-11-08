@@ -5,6 +5,7 @@ import _ from "lodash";
 import React from "react";
 
 import mockPopsicle from "../MockPopsicle";
+import correlationsData from "../data/correlations";
 import * as t from "../jest-assertions";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
@@ -13,14 +14,6 @@ const chartData = {
   type: "correlations",
   title: "Correlations Test",
   query: "col == 3",
-  columns: [
-    { name: "dtale_index", dtype: "int64" },
-    { name: "col1", dtype: "int64" },
-    { name: "col2", dtype: "float64" },
-    { name: "col3", dtype: "object" },
-    { name: "col4", dtype: "datetime64[ns]" },
-    { name: "col5", dtype: "datetime64[ns]" },
-  ],
 };
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
@@ -35,8 +28,14 @@ describe("Correlations tests", () => {
       mockPopsicle.mock(url => {
         if (url.startsWith("/dtale/correlations")) {
           const query = qs.parse(url.split("?")[1]).query;
-          if (query == "null") {
+          if (url.startsWith("/dtale/correlations?") && query == "null") {
             return { error: "No data found." };
+          }
+          if (url.startsWith("/dtale/correlations?") && query == "one-date") {
+            return { data: correlationsData.data, dates: ["col4"] };
+          }
+          if (url.startsWith("/dtale/correlations?") && query == "no-date") {
+            return { data: correlationsData.data, dates: [] };
           }
         }
         const { urlFetcher } = require("../redux-test-utils").default;
@@ -96,6 +95,53 @@ describe("Correlations tests", () => {
           t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
           done();
         }, 200);
+      }, 200);
+    }, 200);
+  });
+
+  test("Correlations rendering data w/ one date column", done => {
+    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
+    buildInnerHTML("");
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} />, {
+      attachTo: document.getElementById("content"),
+    });
+    result.update();
+    setTimeout(() => {
+      result.update();
+      const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
+      corrGrid
+        .find("div.cell")
+        .at(1)
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
+        t.ok(result.find("select.custom-select").length == 0, "should not render date options for timeseries");
+        t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
+        done();
+      }, 200);
+    }, 200);
+  });
+
+  test("Correlations rendering data w/ no date columns", done => {
+    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    buildInnerHTML("");
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} />, {
+      attachTo: document.getElementById("content"),
+    });
+    result.update();
+    setTimeout(() => {
+      result.update();
+      const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
+      corrGrid
+        .find("div.cell")
+        .at(1)
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
+        done();
       }, 200);
     }, 200);
   });

@@ -53,3 +53,9 @@ Changelog
   * Bug fixes for:
     * duplicate loading of histogram data
     * string serialization failing when mixing `future.str` & `str` in scatter function
+
+### 1.3.6 (2019-11-08)
+
+  * Bug fixes for:
+    * choose between `pandas.corr` & `numpy.corrcoef` depending on presence of NaNs
+    * hide timeseries correlations when date columns only contain one day

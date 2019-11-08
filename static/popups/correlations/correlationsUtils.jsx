@@ -10,7 +10,6 @@ function toggleBouncer() {
   $("#rawScatterChart").toggle();
 }
 
-const findDateCols = columns => _.map(_.filter(columns, ({ dtype }) => dtype.startsWith("datetime")), "name");
 const pointFormatter = (xProp, yProp) => point => ({ x: point[xProp], y: point[yProp], index: point.index });
 const colorScale = chroma.scale(["red", "yellow", "green"]).domain([-1, 0, 1]);
 const percent = num => (num === "N/A" ? num : `${_.round(num * 100, 2)}%`);
@@ -63,29 +62,10 @@ function createScatter(ctx, chartData, xProp, yProp, label, onClick) {
   return chart;
 }
 
-function buildState(props) {
-  const { columns } = props.chartData;
-  const dates = findDateCols(columns);
-  const hasDate = _.size(dates) > 0;
-  const selectedDate = hasDate ? _.head(dates) : null;
-  return {
-    chart: null,
-    error: null,
-    scatterError: null,
-    correlations: null,
-    selectedCols: [],
-    tsUrl: null,
-    dates,
-    hasDate,
-    selectedDate,
-  };
-}
-
 export default {
   toggleBouncer,
   colorScale,
   createScatter,
-  buildState,
   percent,
   pointFormatter,
 };

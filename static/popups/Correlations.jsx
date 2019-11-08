@@ -24,10 +24,22 @@ const BASE_SCATTER_URL = "/dtale/scatter?";
 const BASE_CORRELATIONS_URL = "/dtale/correlations?";
 const BASE_CORRELATIONS_TS_URL = "/dtale/correlations-ts?";
 
+function buildState() {
+  return {
+    chart: null,
+    error: null,
+    scatterError: null,
+    correlations: null,
+    selectedCols: [],
+    tsUrl: null,
+    selectedDate: null,
+  };
+}
+
 class ReactCorrelations extends React.Component {
   constructor(props) {
     super(props);
-    this.state = corrUtils.buildState(props);
+    this.state = buildState();
     _.forEach(
       ["buildTs", "buildScatter", "viewScatter", "_cellRenderer", "viewScatterRow", "changeDate"],
       f => (this[f] = this[f].bind(this))
@@ -65,7 +77,8 @@ class ReactCorrelations extends React.Component {
         this.setState({ error: <RemovableError {...gridData} /> });
         return;
       }
-      this.setState({ correlations: gridData.data });
+      const { data, dates } = gridData;
+      this.setState({ correlations: data, dates, hasDate: _.size(dates) > 0, selectedDate: _.get(dates, 0, null) });
     });
   }
 
@@ -151,7 +164,7 @@ class ReactCorrelations extends React.Component {
         </div>
       );
     }
-    const { correlations, selectedCols, tsUrl, hasDate, selectedDate, dates } = this.state;
+    const { correlations, selectedCols, tsUrl, selectedDate, hasDate, dates } = this.state;
     return (
       <div key="body" className="modal-body scatter-body">
         <BouncerWrapper showBouncer={_.isEmpty(correlations)}>

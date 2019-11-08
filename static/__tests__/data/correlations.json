@@ -28,5 +28,6 @@
       "col4": 1.0,
       "column": "col4"
     }
-  ]
+  ],
+  "dates": ["col4", "col5"]
 }
