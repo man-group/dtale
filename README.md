@@ -7,7 +7,7 @@
 [![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
-[![codecov](https://codecov.io/gh/manahl/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
+[![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
 ## Getting Started
@@ -86,7 +86,7 @@ def test_data(rows, columns):
 
     now = pd.Timestamp(pd.Timestamp('now').date())
     dates = pd.date_range(now - Day(364), now)
-    num_of_securities = old_div(rows, len(dates))
+    num_of_securities = max(old_div(rows, len(dates)), 1)  # always have at least one security
     securities = [
         dict(security_id=100000 + sec_id, int_val=random.randint(1, 100000000000),
              str_val=random.choice(string.ascii_letters) * 5)
