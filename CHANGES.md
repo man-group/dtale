@@ -59,3 +59,10 @@ Changelog
   * Bug fixes for:
     * choose between `pandas.corr` & `numpy.corrcoef` depending on presence of NaNs
     * hide timeseries correlations when date columns only contain one day
+
+### 1.3.7 (2019-11-12)
+
+  * Bug fixes for:
+    * [#28](https://github.com/man-group/dtale/issues/28): "Instances" menu option will now be displayed by default
+    * [#29](https://github.com/man-group/dtale/issues/29): add hints to how users can navigate the correlations popup
+    * add "unicode" as a string classification for column width calculation
