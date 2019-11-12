@@ -15,11 +15,11 @@ class CorrelationScatterStats extends React.Component {
     let i = 0;
     const pearsonInfo = [<dt key={i++}>Pearson</dt>, <dd key={i++}>{corrUtils.percent(pearson)}</dd>];
     const spearmanInfo = [<dt key={i++}>Spearman</dt>, <dd key={i++}>{corrUtils.percent(spearman)}</dd>];
-    return (
-      <div className="pt-5">
+    return [
+      <div key={0} className="pt-5">
         <dl className="property-pair inline">
           <dt>
-            <b>{`${col0} vs. ${col1}${this.props.date ? ` for ${this.props.date}` : ""}`}</b>
+            <b style={{ color: "black" }}>{`${col0} vs. ${col1}${this.props.date ? ` for ${this.props.date}` : ""}`}</b>
           </dt>
         </dl>
         <dl className="property-pair inline">{pearsonInfo}</dl>
@@ -36,8 +36,9 @@ class CorrelationScatterStats extends React.Component {
           <dt>{`Only in ${col1}`}</dt>
           <dd>{stats.only_in_s1}</dd>
         </dl>
-      </div>
-    );
+      </div>,
+      <small key={1}>(Click on any point in the scatter to filter the grid down to that record)</small>,
+    ];
   }
 }
 CorrelationScatterStats.displayName = "CorrelationScatterStats";

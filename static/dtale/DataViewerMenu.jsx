@@ -209,16 +209,17 @@ class ReactDataViewerMenu extends React.Component {
               </button>
             </span>
           </li>
-          <ConditionalRender display={processCt > 1}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "instances" })}>
-                  <i className="ico-apps" />
-                  <span className="font-weight-bold">Instances</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "instances" })}>
+                <i className="ico-apps" />
+                <span className="font-weight-bold">
+                  {"Instances "}
+                  <span className="badge badge-secondary">{processCt}</span>
+                </span>
+              </button>
+            </span>
+          </li>
           <ConditionalRender display={hideShutdown == false}>
             <li>
               <span className="toggler-action">

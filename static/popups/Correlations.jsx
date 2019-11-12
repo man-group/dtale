@@ -169,6 +169,7 @@ class ReactCorrelations extends React.Component {
       <div key="body" className="modal-body scatter-body">
         <BouncerWrapper showBouncer={_.isEmpty(correlations)}>
           <b>Pearson Correlation Matrix</b>
+          <small className="pl-3">(Click on any cell to view the details of that correlation)</small>
           <AutoSizer className="correlations-grid" disableHeight>
             {({ width }) => (
               <MultiGrid
@@ -190,9 +191,12 @@ class ReactCorrelations extends React.Component {
         </BouncerWrapper>
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
           <div className="row d-inline">
-            <b className="float-left pt-5">
-              {`Timeseries of Pearson Correlation for ${selectedCols[0]} vs. ${selectedCols[1]}`}
-            </b>
+            <div className="float-left pt-5">
+              <b>{`Timeseries of Pearson Correlation for ${selectedCols[0]} vs. ${selectedCols[1]}`}</b>
+              <small className="pl-3">
+                (Click on any point in the chart to view the scatter plot of that correlation)
+              </small>
+            </div>
             <ConditionalRender display={_.size(dates) > 1}>
               <div className="form-group row small-gutters float-right pt-5 pr-3">
                 <label className="col-form-label text-right">Date Column</label>
@@ -210,7 +214,6 @@ class ReactCorrelations extends React.Component {
             ref={r => (this._ts_chart = r)}
             url={tsUrl}
             visible={true}
-            units="month"
             configHandler={config => {
               config.options.scales.yAxes = [
                 {

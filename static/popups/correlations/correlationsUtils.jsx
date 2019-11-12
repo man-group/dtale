@@ -51,6 +51,7 @@ function createScatter(ctx, chartData, xProp, yProp, label, onClick) {
           },
         ],
       },
+      legend: { display: false },
       pan: { enabled: true, mode: "x" },
       zoom: { enabled: true, mode: "x" },
       maintainAspectRatio: false,

@@ -43,7 +43,7 @@ describe("DataViewerMenu tests", () => {
       result
         .find("ul li span.toggler-action")
         .last()
-        .text() === "About",
+        .text() === "Instances 1",
       "should hide shutdown"
     );
     done();
@@ -64,7 +64,7 @@ describe("DataViewerMenu tests", () => {
       result
         .find("ul li span.toggler-action")
         .last()
-        .text() === "Instances",
+        .text() === "Instances 2",
       "should show instances"
     );
     done();
