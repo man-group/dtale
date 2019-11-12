@@ -90,7 +90,7 @@ describe("DataViewer tests", () => {
           .find(DataViewerMenu)
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
-        ["Describe", "Filter", "Correlations", "Coverage", "Resize", "About", "Shutdown"],
+        ["Describe", "Filter", "Correlations", "Coverage", "Resize", "About", "Instances 1", "Shutdown"],
         "Should render default menu options"
       );
 
@@ -119,7 +119,7 @@ describe("DataViewer tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
-          ["Histogram", "Correlations", "Coverage", "Resize", "About", "Shutdown"]
+          ["Histogram", "Correlations", "Coverage", "Resize", "About", "Instances 1", "Shutdown"]
         ),
         "Should render menu options associated with selected column"
       );

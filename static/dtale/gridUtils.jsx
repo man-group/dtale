@@ -10,7 +10,7 @@ const DEFAULT_COL_WIDTH = 70;
 numeral.nullFormat("");
 
 function isStringCol(dtype) {
-  return _.some(["string", "object"], s => dtype.startsWith(s));
+  return _.some(["string", "object", "unicode"], s => dtype.startsWith(s));
 }
 
 function isIntCol(dtype) {

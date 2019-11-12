@@ -5,12 +5,16 @@ import React from "react";
 import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
 
+function hasNoInfo({ selectedCols, sortInfo, query }) {
+  return _.isEmpty(selectedCols) && _.isEmpty(sortInfo) && _.isEmpty(query);
+}
+
 class DataViewerInfo extends React.Component {
   render() {
     const { error, propagateState } = this.props;
     if (error) {
       return (
-        <div className="row">
+        <div style={{ width: this.props.width || "100%" }} className="row">
           <div className="col-md-12">
             <RemovableError {...this.props} onRemove={() => propagateState({ error: null, traceback: null })} />
           </div>
@@ -24,7 +28,7 @@ class DataViewerInfo extends React.Component {
       return null;
     }
     return (
-      <div className="row text-center">
+      <div style={{ width: this.props.width || "100%" }} className="row text-center">
         <div className="col-md-4">
           <ConditionalRender display={!hideSelected}>
             <div className="font-weight-bold d-inline-block">Selected:</div>
@@ -71,6 +75,7 @@ DataViewerInfo.propTypes = {
   query: PropTypes.string,
   propagateState: PropTypes.func,
   error: PropTypes.string,
+  width: PropTypes.number,
 };
 
-export default DataViewerInfo;
+export { DataViewerInfo, hasNoInfo };

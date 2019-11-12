@@ -11,7 +11,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
-import DataViewerInfo from "./DataViewerInfo";
+import { DataViewerInfo, hasNoInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
 import { Formatting } from "./Formatting";
@@ -238,8 +238,7 @@ class ReactDataViewer extends React.Component {
           logException(e, callstack);
         });
     };
-    return [
-      <DataViewerInfo key={0} {...this.state} propagateState={this.propagateState} />,
+    return (
       <div key={1} style={{ height: "100%", width: "100%" }}>
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
@@ -249,17 +248,22 @@ class ReactDataViewer extends React.Component {
             this._onRowsRendered = onRowsRendered;
             return (
               <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
-                {({ width, height }) => (
-                  <MultiGrid
-                    {...this.state}
-                    cellRenderer={this._cellRenderer}
-                    height={height - 3}
-                    width={width - 3}
-                    columnWidth={({ index }) => gu.getColWidth(index, this.state)}
-                    onSectionRendered={this._onSectionRendered}
-                    ref={mg => (this._grid = mg)}
-                  />
-                )}
+                {({ width, height }) => {
+                  const gridHeight = height - (hasNoInfo(this.state) ? 3 : 23);
+                  return [
+                    <DataViewerInfo key={0} width={width} {...this.state} propagateState={this.propagateState} />,
+                    <MultiGrid
+                      {...this.state}
+                      key={1}
+                      cellRenderer={this._cellRenderer}
+                      height={gridHeight}
+                      width={width - 3}
+                      columnWidth={({ index }) => gu.getColWidth(index, this.state)}
+                      onSectionRendered={this._onSectionRendered}
+                      ref={mg => (this._grid = mg)}
+                    />,
+                  ];
+                }}
               </AutoSizer>
             );
           }}
@@ -269,8 +273,8 @@ class ReactDataViewer extends React.Component {
         <Filter {...{ visible: filterOpen, propagateState: this.propagateState, query }} />
         <Formatting {...{ visible: formattingOpen, save: saveFormatting, propagateState: this.propagateState }} />
         <MeasureText />
-      </div>,
-    ];
+      </div>
+    );
   }
 }
 ReactDataViewer.displayName = "ReactDataViewer";

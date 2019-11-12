@@ -95,7 +95,11 @@ class TimeseriesChartBody extends React.Component {
       chartUtils.fitToContainer(ctx);
       let i = 0;
       const yAxises = [];
+      let points = 0;
       let datasets = _.map(chartData, (tsData, key) => {
+        if (tsData.data.length > points) {
+          points = tsData.data.length;
+        }
         const dataset = this.props.datasetHandler(key, tsData.data, i++);
         if (dataset.yAxisID && !_.find(yAxises, { id: dataset.yAxisID })) {
           const axisCfg = { id: dataset.yAxisID };
@@ -107,14 +111,18 @@ class TimeseriesChartBody extends React.Component {
         return dataset;
       });
       datasets = this.props.datasetSorter(datasets);
+      let units = this.props.units;
+      if (!units) {
+        units = points > 150 ? "month" : "day";
+      }
       const scales = {
         xAxes: [
           {
             type: "time",
             time: {
-              unit: this.props.units,
+              unit: units,
               displayFormats: {
-                [this.props.units]: "YYYYMMDD",
+                [units]: "YYYYMMDD",
               },
               min: _.get(datasets, "0.data.0.x"),
               max: _.get(datasets, [0, "data", _.get(datasets, "0.data", []).length - 1, "x"]),
@@ -237,7 +245,6 @@ TimeseriesChartBody.propTypes = {
   useMinMax: PropTypes.bool,
 };
 TimeseriesChartBody.defaultProps = {
-  units: "day",
   height: 400,
   chartOptions: {},
   datasetHandler: defaultDatasetHandler,

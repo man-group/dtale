@@ -2,7 +2,7 @@ import { mount } from "enzyme";
 import React from "react";
 
 import { RemovableError } from "../../RemovableError";
-import DataViewerInfo from "../../dtale/DataViewerInfo";
+import { DataViewerInfo } from "../../dtale/DataViewerInfo";
 import * as t from "../jest-assertions";
 import { buildInnerHTML } from "../test-utils";
 
