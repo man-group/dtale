@@ -7,7 +7,7 @@
 [![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
-[![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
+[![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
 ## Getting Started
@@ -34,15 +34,16 @@ $ source ~/pyenvs/dtale/bin/activate
 # install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
 $ pip install --upgrade dtale
 ```
-Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
+Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal (**FYI: Due a dependency on Flasgger, jsonschema is limited to version <3.0.0**)
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
 
 |Prop|Description|
-|:--------:|------|
+|:--------|------|
 |`--host`|the name of the host you would like to use (most likely not needed since `socket.gethostname()` should figure this out)|
 |`--port`|the port you would like to assign to your D-Tale instance|
+|`--name`|an optional name you can assign to your D-Tale instance (this will be displayed in the `<title>` & Instances popup)|
 |`--debug`|turn on Flask's "debug" mode for your D-Tale instance|
 |`--no-reaper`|flag to turn off auto-reaping subprocess (kill D-Tale instances after an hour of inactivity), good for long-running displays |
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
@@ -203,7 +204,7 @@ Selecting/Deselecting Columns
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily_regions.png)|
 
 - **Correlations**: shows a pearson correlation matrix of all numeric columns against all other numeric columns
-  - By deafult, it will show a grid of pearson correlations
+  - By deafult, it will show a grid of pearson correlations (filtering available by using drop-down see 2nd table of screenshots)
   - If you have a date-type column, you can click an individual cell and see a timeseries of pearson correlations for that column combination
     - Currently if you have multiple date-type columns you will have the ability to toggle between them by way of a drop-down
   - Furthermore, you can click on individual points in the timeseries to view the scatter plot of the points going into that correlation
@@ -212,11 +213,17 @@ Selecting/Deselecting Columns
 |------|----------|-------|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_scatter.png)|
 
-- **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
+|Col1 Filtered|Col2 Filtered|Col1 & Col2 Filtered|
+|------|----------|-------|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_both.png)|
 
-|Up To Date|Out Of Date|
-|--------|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-out-of-date.png)|
+- **Heat Map**: this will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
+  - Each float is renormalized to be a value between 0 and 1.0
+  - Each renormalized value is passed to a color scale of red(0) - yellow(0.5) - green(1.0)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap.png)
+
+Turn off Heat Map by clicking menu option again
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap_toggle.png)
 
 - **Instances**: this will give you information about other D-Tale instances are running under your current Python process.
 
@@ -250,6 +257,12 @@ The grid above contains the following information:
 Here is an example of clicking the "Preview" button:
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances_preview.png)
+
+- **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
+
+|Up To Date|Out Of Date|
+|--------|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-out-of-date.png)|
 
 - **Resize**: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 - **Shutdown**: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)

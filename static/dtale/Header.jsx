@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import menuUtils from "../menuUtils";
+import * as gu from "./gridUtils";
 
 const SORT_CHARS = { DESC: String.fromCharCode("9650"), ASC: String.fromCharCode("9660") };
 
@@ -11,9 +12,14 @@ class Header extends React.Component {
     super(props);
   }
 
+  shouldComponentUpdate(newProps) {
+    return !_.isEqual(this.props, newProps);
+  }
+
   render() {
-    const { columnIndex, style, columns, sortInfo, propagateState, menuOpen, selectedCols, rowCount } = this.props;
-    const colName = _.get(columns, [columnIndex, "name"]);
+    const { columnIndex, style, sortInfo, propagateState, menuOpen, selectedCols, rowCount } = this.props;
+    const activeCols = gu.getActiveCols(this.props);
+    const colName = _.get(gu.getCol(columnIndex, this.props), "name");
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     if (columnIndex == 0) {
       const menuHandler = menuUtils.openMenu(
@@ -29,7 +35,7 @@ class Header extends React.Component {
               <span>&#8227;</span>
             </div>
             <div className="rows">{rowCount ? rowCount - 1 : 0}</div>
-            <div className="cols">{columns.length ? columns.length - 1 : 0}</div>
+            <div className="cols">{activeCols.length ? activeCols.length - 1 : 0}</div>
           </div>
         </div>
       );
@@ -55,7 +61,7 @@ Header.displayName = "Header";
 Header.propTypes = {
   columnIndex: PropTypes.number,
   style: PropTypes.object,
-  columns: PropTypes.arrayOf(PropTypes.object),
+  columns: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
   sortInfo: PropTypes.arrayOf(PropTypes.array),
   propagateState: PropTypes.func,
   menuOpen: PropTypes.bool,

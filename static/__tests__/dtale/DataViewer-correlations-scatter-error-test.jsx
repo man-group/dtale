@@ -1,16 +1,13 @@
 import { mount } from "enzyme";
-import _ from "lodash";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
+import { RemovableError } from "../../RemovableError";
 import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-
-const pjson = require("../../../package.json");
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -23,10 +20,12 @@ describe("DataViewer tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
+        if (url.startsWith("/dtale/scatter")) {
+          return { error: "scatter errror", traceback: "scatter error traceback" };
+        }
         return urlFetcher(url);
       })
     );
-    jest.mock("popsicle", () => mockBuildLibs);
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
@@ -36,6 +35,7 @@ describe("DataViewer tests", () => {
       return chartCfg;
     });
 
+    jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
@@ -46,9 +46,10 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: about", done => {
+  test("DataViewer: correlations scatter error", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const About = require("../../popups/About").default;
+    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML("");
@@ -64,47 +65,30 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .findWhere(b => _.includes(b.text(), "About"))
-        .first()
+        .at(2)
         .simulate("click");
       setTimeout(() => {
         result.update();
-        t.equal(result.find(About).length, 1, "should show about");
-        result
-          .find(ModalClose)
+        const corrGrid = result
+          .find(Correlations)
           .first()
-          .simulate("click");
-        t.equal(result.find(About).length, 0, "should hide about");
-        result
-          .find(DataViewerMenu)
-          .find("ul li button")
-          .findWhere(b => _.includes(b.text(), "About"))
-          .first()
+          .find("div.ReactVirtualized__Grid__innerScrollContainer");
+        corrGrid
+          .find("div.cell")
+          .at(1)
           .simulate("click");
         setTimeout(() => {
           result.update();
-
-          const about = result.find(About).first();
-          t.equal(
-            about
-              .find("div.modal-body div.row")
-              .first()
-              .text(),
-            `Your Version:${pjson.version}`,
-            "renders our version"
-          );
-          t.equal(
-            about
-              .find("div.modal-body div.row")
-              .at(1)
-              .text(),
-            `PyPi Version:${pjson.version}`,
-            "renders PyPi version"
-          );
-          t.equal(about.find("div.dtale-alert").length, 0, "should not render alert");
-          done();
+          t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
+          const tsChart = result.find(TimeseriesChartBody).instance().state.chart["ts-chart"];
+          tsChart.cfg.options.onClick({});
+          setTimeout(() => {
+            result.update();
+            t.ok(result.find(RemovableError).length == 1, "should render scatter error");
+            done();
+          }, 400);
         }, 400);
       }, 400);
-    }, 600);
+    }, 400);
   });
 });

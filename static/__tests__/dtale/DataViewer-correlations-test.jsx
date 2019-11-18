@@ -124,4 +124,60 @@ describe("DataViewer tests", () => {
       }, 400);
     }, 600);
   });
+
+  test("DataViewer: correlations close", done => {
+    const { DataViewer } = require("../../dtale/DataViewer");
+    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
+
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML("");
+    const result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      { attachTo: document.getElementById("content") }
+    );
+
+    setTimeout(() => {
+      result.update();
+      result
+        .find(DataViewerMenu)
+        .find("ul li button")
+        .at(2)
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        const corrGrid = result
+          .find(Correlations)
+          .first()
+          .find("div.ReactVirtualized__Grid__innerScrollContainer");
+        corrGrid
+          .find("div.cell")
+          .at(1)
+          .simulate("click");
+        setTimeout(() => {
+          result.update();
+          t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
+          const tsChart = result.find(TimeseriesChartBody).instance().state.chart["ts-chart"];
+          tsChart.cfg.options.onClick({});
+          setTimeout(() => {
+            result.update();
+            t.ok(result.find(Correlations).instance().state.chart !== null, "should render scatter");
+            tsChart.cfg.options.onClick({});
+            setTimeout(() => {
+              result.update();
+              result
+                .find(ModalClose)
+                .first()
+                .simulate("click");
+              result.update();
+              t.equal(result.find(Correlations).length, 0, "should hide correlations");
+              done();
+            }, 400);
+          }, 400);
+        }, 400);
+      }, 400);
+    }, 400);
+  });
 });

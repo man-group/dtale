@@ -3,21 +3,17 @@ import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
-import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
-import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { Bouncer } from "../Bouncer";
-import { BouncerWrapper } from "../BouncerWrapper";
 import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
 import { closeChart } from "../actions/charts";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
-import * as gu from "../dtale/gridUtils";
 import { fetchJson } from "../fetcher";
 import { TimeseriesChartBody } from "./TimeseriesChartBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
-import CorrelationsCell from "./correlations/CorrelationsCell";
+import CorrelationsGrid from "./correlations/CorrelationsGrid";
 import corrUtils from "./correlations/correlationsUtils";
 
 const BASE_SCATTER_URL = "/dtale/scatter?";
@@ -41,7 +37,7 @@ class ReactCorrelations extends React.Component {
     super(props);
     this.state = buildState();
     _.forEach(
-      ["buildTs", "buildScatter", "viewScatter", "_cellRenderer", "viewScatterRow", "changeDate"],
+      ["buildTs", "buildScatter", "viewScatter", "viewScatterRow", "changeDate"],
       f => (this[f] = this[f].bind(this))
     );
   }
@@ -59,16 +55,6 @@ class ReactCorrelations extends React.Component {
       return false;
     }
     return false; // Otherwise, use the default react behaviour.
-  }
-
-  componentDidUpdate() {
-    if (!this.props.chartData.visible) {
-      if (this.state.chart) {
-        this.state.chart.destroy();
-        this.setState(corrUtils.buildState(this.props));
-      }
-      return;
-    }
   }
 
   componentDidMount() {
@@ -149,13 +135,6 @@ class ReactCorrelations extends React.Component {
     }
   }
 
-  _cellRenderer(cellProps) {
-    const props = _.assignIn({}, _.pick(this.state, ["correlations", "hasDate", "selectedDate"]), cellProps);
-    props.buildTs = this.buildTs;
-    props.buildScatter = this.buildScatter;
-    return <CorrelationsCell key={cellProps.key} {...props} />;
-  }
-
   render() {
     if (this.state.error) {
       return (
@@ -164,31 +143,10 @@ class ReactCorrelations extends React.Component {
         </div>
       );
     }
-    const { correlations, selectedCols, tsUrl, selectedDate, hasDate, dates } = this.state;
+    const { selectedCols, tsUrl, selectedDate, hasDate, dates } = this.state;
     return (
       <div key="body" className="modal-body scatter-body">
-        <BouncerWrapper showBouncer={_.isEmpty(correlations)}>
-          <b>Pearson Correlation Matrix</b>
-          <small className="pl-3">(Click on any cell to view the details of that correlation)</small>
-          <AutoSizer className="correlations-grid" disableHeight>
-            {({ width }) => (
-              <MultiGrid
-                {...gu.buildGridStyles()}
-                scrollToColumn={0}
-                scrollToRow={0}
-                cellRenderer={this._cellRenderer}
-                fixedColumnCount={1}
-                fixedRowCount={1}
-                rowCount={_.size(correlations) + 1}
-                columnCount={_.size(correlations) + 1}
-                height={300}
-                columnWidth={100}
-                rowHeight={gu.ROW_HEIGHT}
-                width={width}
-              />
-            )}
-          </AutoSizer>
-        </BouncerWrapper>
+        <CorrelationsGrid buildTs={this.buildTs} buildScatter={this.buildScatter} {...this.state} />
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
           <div className="row d-inline">
             <div className="float-left pt-5">

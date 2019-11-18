@@ -3,6 +3,7 @@ import qs from "querystring";
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
+import Select from "react-select";
 
 import mockPopsicle from "../MockPopsicle";
 import correlationsData from "../data/correlations";
@@ -96,6 +97,37 @@ describe("Correlations tests", () => {
           done();
         }, 200);
       }, 200);
+    }, 200);
+  });
+
+  test("Correlations rendering data and filtering it", done => {
+    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
+    buildInnerHTML("");
+    const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
+    result.update();
+    setTimeout(() => {
+      result.update();
+      let corrGrid = result.find(CorrelationsGrid).first();
+      const filters = corrGrid.find(Select);
+      filters
+        .first()
+        .instance()
+        .onChange({ value: "col1" });
+      result.update();
+      corrGrid = result.find(CorrelationsGrid).first();
+      t.deepEqual([correlationsData.data[0]], corrGrid.instance().state.correlations, "should filter on col1");
+      filters
+        .last()
+        .instance()
+        .onChange({ value: "col3" });
+      result.update();
+      t.deepEqual(
+        [{ column: "col1", col3: -0.098802 }],
+        corrGrid.instance().state.correlations,
+        "should filter on col2"
+      );
+      done();
     }, 200);
   });
 

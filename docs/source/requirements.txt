@@ -1,4 +1,4 @@
-jsonschema<3.0.0 # needed for sphinx, flasgger, Flask-Caching collisons
+jsonschema<3.0.0 # needed for sphinx, flasgger collisons
 flasgger==0.9.3
 sphinx==1.6.7
 nbsphinx

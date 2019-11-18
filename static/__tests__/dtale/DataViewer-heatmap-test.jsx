@@ -9,38 +9,21 @@ import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
-const pjson = require("../../../package.json");
-
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer tests", () => {
+describe("DataViewer heatmap tests", () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (_.includes(url, "pypi.org")) {
-          return { info: { version: "999.0.0" } };
-        }
         const { urlFetcher } = require("../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      return chartCfg;
-    });
-
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
@@ -48,12 +31,11 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: about expired version", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const About = require("../../popups/About").default;
+  test("DataViewer: heatmap", done => {
+    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML("", "True", 2);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -66,32 +48,43 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .findWhere(b => _.includes(b.text(), "About"))
+        .findWhere(b => _.includes(b.text(), "Heat Map"))
         .first()
         .simulate("click");
-      setTimeout(() => {
-        result.update();
-
-        const about = result.find(About).first();
-        t.equal(
-          about
-            .find("div.modal-body div.row")
-            .first()
-            .text(),
-          `Your Version:${pjson.version}`,
-          "renders our version"
-        );
-        t.equal(
-          about
-            .find("div.modal-body div.row")
-            .at(1)
-            .text(),
-          "PyPi Version:999.0.0",
-          "renders PyPi version"
-        );
-        t.equal(about.find("div.dtale-alert").length, 1, "should render alert");
-        done();
-      }, 400);
+      result.update();
+      let dv = result.find(ReactDataViewer).instance().state;
+      t.ok(
+        _.every(
+          result
+            .find(ReactDataViewer)
+            .find("div.cell")
+            .map(c => _.includes(c.html(), "background: rgb"))
+        ),
+        "should turn on background css attribute on for all cells"
+      );
+      t.deepEqual(
+        _.map(_.filter(dv.columns, { visible: true }), "name"),
+        ["dtale_index", "col2"],
+        "should hide non-float columns"
+      );
+      result
+        .find(DataViewerMenu)
+        .find("ul li button")
+        .findWhere(b => _.includes(b.text(), "Heat Map"))
+        .first()
+        .simulate("click");
+      dv = result.find(ReactDataViewer).instance().state;
+      t.ok(_.filter(dv.columns, { visible: true }).length, 5, "should turn all columns back on");
+      t.ok(
+        _.every(
+          result
+            .find(ReactDataViewer)
+            .find("div.cell")
+            .map(c => !_.includes(c.html(), "background: rgb"))
+        ),
+        "should turn background css attribute off for all cells"
+      );
+      done();
     }, 600);
   });
 });

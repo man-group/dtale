@@ -225,11 +225,11 @@ def test_get_data(unittest, test_data):
                 results={'1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz')},
                 columns=[
                     dict(dtype='int64', name='dtale_index'),
-                    dict(dtype='datetime64[ns]', name='date'),
-                    dict(dtype='int64', name='security_id'),
-                    dict(dtype='int64', name='foo'),
-                    dict(dtype='float64', name='bar'),
-                    dict(dtype='string', name='baz')
+                    dict(dtype='datetime64[ns]', name='date', index=0),
+                    dict(dtype='int64', name='security_id', index=1),
+                    dict(dtype='int64', name='foo', index=2),
+                    dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3),
+                    dict(dtype='string', name='baz', index=4)
                 ]
             )
             unittest.assertEqual(response_data, expected, 'should return data at index 1')
@@ -294,7 +294,7 @@ def test_get_data(unittest, test_data):
             )
             unittest.assertEqual(
                 mocked_dtypes[c.port][-1],
-                dict(index=5, name='biz', dtype='float64'),
+                dict(index=5, name='biz', dtype='float64', min=2.5, max=2.5),
                 'should update dtypes on data structure change'
             )
 
@@ -609,6 +609,27 @@ def test_version_info():
         ):
             response = c.get('version-info')
             assert 'unknown' in str(response.data)
+
+
+@pytest.mark.unit
+def test_main():
+    import dtale.views as views
+
+    test_data = pd.DataFrame(build_ts_data(), columns=['date', 'security_id', 'foo', 'bar'])
+    test_data, _ = views.format_data(test_data)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict(name='test_name')}))
+            stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
+            response = c.get('/dtale/main')
+            assert '<title>D-Tale (test_name)</title>' in str(response.data)
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict()}))
+            stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
+            response = c.get('/dtale/main')
+            assert '<title>D-Tale</title>' in str(response.data)
 
 
 @pytest.mark.unit

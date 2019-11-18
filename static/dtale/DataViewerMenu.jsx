@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
-import { IDX } from "./gridUtils";
+import { IDX, toggleHeatMap } from "./gridUtils";
 
 const SORT_PROPS = [
   ["ASC", "Sort Ascending", "fa fa-sort-down ml-4 mr-4"],
@@ -201,11 +201,9 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button
-                className="btn btn-plain"
-                onClick={() => this.props.openChart({ type: "about", size: "modal-sm", backdrop: true })}>
-                <i className="fa fa-info-circle la-lg mr-4 ml-1" />
-                <span className="font-weight-bold">About</span>
+              <button className="btn btn-plain" onClick={() => this.props.propagateState(toggleHeatMap(this.props))}>
+                <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
+                <span className={`font-weight-bold${this.props.heatMapMode ? " flames" : ""}`}>Heat Map</span>
               </button>
             </span>
           </li>
@@ -217,6 +215,16 @@ class ReactDataViewerMenu extends React.Component {
                   {"Instances "}
                   <span className="badge badge-secondary">{processCt}</span>
                 </span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button
+                className="btn btn-plain"
+                onClick={() => this.props.openChart({ type: "about", size: "modal-sm", backdrop: true })}>
+                <i className="fa fa-info-circle la-lg mr-4 ml-1" />
+                <span className="font-weight-bold">About</span>
               </button>
             </span>
           </li>
@@ -243,17 +251,12 @@ ReactDataViewerMenu.propTypes = {
   selectedCols: PropTypes.array,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
+  heatMapMode: PropTypes.bool,
 };
-
-function mapDispatchToProps(dispatch) {
-  return {
-    openChart: chartProps => dispatch(openChart(chartProps)),
-  };
-}
 
 const ReduxDataViewerMenu = connect(
   () => ({}),
-  mapDispatchToProps
+  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactDataViewerMenu);
 
 export { ReduxDataViewerMenu as DataViewerMenu, ReactDataViewerMenu };
