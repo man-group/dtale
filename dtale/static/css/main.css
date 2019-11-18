@@ -10322,3 +10322,18 @@ table tbody tr.highlight-row {
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+.flames {
+    background: url('../images/fire.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-animation: fire .4s linear infinite;
+}
+
+@keyframes fire {
+    0%{background-position:0% 50%;}
+    0%{background-position:100% -50%;}
+}

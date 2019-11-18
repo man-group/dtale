@@ -7,7 +7,7 @@
 [![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
 [![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
-[![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/manahl/dtale)
+[![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
 ## Getting Started
@@ -35,6 +35,7 @@ $ source ~/pyenvs/dtale/bin/activate
 $ pip install --upgrade dtale
 ```
 Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
+**FYI: Due a dependency on Flasgger, jsonschema is limited to version <3.0.0**
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
@@ -43,6 +44,7 @@ Base CLI options (run `dtale --help` to see all options available)
 |:--------:|------|
 |`--host`|the name of the host you would like to use (most likely not needed since `socket.gethostname()` should figure this out)|
 |`--port`|the port you would like to assign to your D-Tale instance|
+|`--name`|an optional name you can assign to your D-Tale instance (this will be displayed in the <title> & Instances popup)|
 |`--debug`|turn on Flask's "debug" mode for your D-Tale instance|
 |`--no-reaper`|flag to turn off auto-reaping subprocess (kill D-Tale instances after an hour of inactivity), good for long-running displays |
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
@@ -211,6 +213,11 @@ Selecting/Deselecting Columns
 |Matrix|Timeseries|Scatter|
 |------|----------|-------|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_scatter.png)|
+
+**Using Pearson matrix filters**
+|Col1|Col2|Col1 & Col2|
+|------|----------|-------|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_both.png)|
 
 - **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
 

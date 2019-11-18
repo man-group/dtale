@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import _ from "lodash";
 import numeral from "numeral";
 
@@ -68,8 +69,16 @@ function buildDataProps({ name, dtype }, rawValue, { numberFormats }) {
   };
 }
 
+function getActiveCols({ columns }) {
+  return _.filter(columns || [], { visible: true });
+}
+
+function getCol(index, { columns }) {
+  return _.get(getActiveCols({ columns }), index, {});
+}
+
 function getColWidth(index, { columns }) {
-  return _.get(columns, [index, "width"], DEFAULT_COL_WIDTH);
+  return _.get(getCol(index, { columns }), "width", DEFAULT_COL_WIDTH);
 }
 
 function getRanges(array) {
@@ -134,8 +143,35 @@ function buildGridStyles(headerHeight = HEADER_HEIGHT) {
   };
 }
 
+function toggleHeatMap({ columns, heatMapMode }) {
+  const toggledHeatMapMode = !heatMapMode;
+  if (toggledHeatMapMode) {
+    const isHeated = c => c.locked || _.has(c, "min");
+    return {
+      heatMapMode: toggledHeatMapMode,
+      columns: _.map(columns, c => _.assignIn({}, c, { visible: isHeated(c) })),
+    };
+  }
+  return {
+    heatMapMode: toggledHeatMapMode,
+    columns: _.map(columns, c => _.assignIn({}, c, { visible: true })),
+  };
+}
+
+const heatMap = chroma.scale(["red", "yellow", "green"]).domain([0, 0.5, 1]);
+
+function heatMapBackground({ raw, view }, { min, max }) {
+  if (view === "") {
+    return 0;
+  }
+  const factor = min * -1;
+  return heatMap((raw + factor) / (max + factor));
+}
+
 export {
   buildDataProps,
+  getActiveCols,
+  getCol,
   getColWidth,
   getRanges,
   calcColWidth,
@@ -144,4 +180,6 @@ export {
   buildGridStyles,
   ROW_HEIGHT,
   HEADER_HEIGHT,
+  toggleHeatMap,
+  heatMapBackground,
 };

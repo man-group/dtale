@@ -1,6 +1,6 @@
 {
   "name": "dtale",
-  "version": "1.3.7",
+  "version": "1.4.0",
   "description": "All-purpose Data Viewer",
   "main": "main.js",
   "directories": {
@@ -141,6 +141,7 @@
     "react-modal-bootstrap": "1.1.1",
     "react-motion": "0.5.2",
     "react-redux": "7.1.1",
+    "react-select": "3.0.8",
     "react-virtualized": "9.21.1",
     "redux": "4.0.4",
     "redux-thunk": "2.3.0",

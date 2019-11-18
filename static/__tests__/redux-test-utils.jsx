@@ -22,7 +22,7 @@ const DATA = {
   columns: [
     { name: "dtale_index", dtype: "int64" },
     { name: "col1", dtype: "int64" },
-    { name: "col2", dtype: "float64" },
+    { name: "col2", dtype: "float64", min: 2.5, max: 5.5 },
     { name: "col3", dtype: "object" },
     { name: "col4", dtype: "datetime64[ns]" },
   ],

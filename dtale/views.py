@@ -80,7 +80,18 @@ def build_dtypes_state(data):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     dtypes = get_dtypes(data)
-    return [dict(name=c, dtype=dtypes[c], index=i) for i, c in enumerate(data.columns)]
+    mins = data.min().to_dict()
+    maxs = data.max().to_dict()
+
+    def _format_dtype(col_index, col):
+        dtype = dtypes[col]
+        dtype_data = dict(name=col, dtype=dtype, index=col_index)
+        if classify_type(dtype) == 'F':  # floats
+            dtype_data['min'] = mins[col]
+            dtype_data['max'] = maxs[col]
+        return dtype_data
+
+    return [_format_dtype(i, c) for i, c in enumerate(data.columns)]
 
 
 def format_data(data):
@@ -104,6 +115,7 @@ def startup(data=None, data_loader=None, port=None, name=None):
     :param data: pandas.DataFrame or pandas.Series
     :param data_loader: function which returns pandas.DataFrame
     :param port: integer port for running Flask process
+    :param name: string label to apply to your session
     """
     global DATA, DTYPES, SETTINGS, METADATA
 
@@ -115,9 +127,6 @@ def startup(data=None, data_loader=None, port=None, name=None):
             raise Exception(
                 'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'
             )
-
-        if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
-            data = data.to_frame(index=False)
 
         logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
         data, curr_index = format_data(data)
@@ -170,10 +179,15 @@ def view_main():
 
     :return: HTML
     """
-    curr_settings = SETTINGS.get(get_port(), {})
+    port = get_port()
+    curr_settings = SETTINGS.get(port, {})
+    curr_metadata = METADATA.get(port, {})
     _, version = retrieve_meta_info_and_version('dtale')
+    title = 'D-Tale'
+    if curr_metadata.get('name'):
+        title = '{} ({})'.format(title, curr_metadata['name'])
     return render_template(
-        'dtale/main.html', settings=json.dumps(curr_settings), version=str(version), processes=len(DATA)
+        'dtale/main.html', settings=json.dumps(curr_settings), version=str(version), processes=len(DATA), title=title
     )
 
 
@@ -379,7 +393,7 @@ def get_data():
             ids = json.loads(ids)
         else:
             return jsonify({})
-        col_types = grid_columns(data)
+        col_types = DTYPES[port]
 
         f = grid_formatter(col_types)
         curr_settings = SETTINGS.get(port, {})

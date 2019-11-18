@@ -26,7 +26,6 @@ class ReactDataViewer extends React.Component {
   constructor(props) {
     super(props);
     const state = {
-      columnCount: 0,
       numberFormats: _.get(props.settings, "formats", {}),
       overscanColumnCount: 0,
       overscanRowCount: 5,
@@ -46,6 +45,7 @@ class ReactDataViewer extends React.Component {
       filterOpen: false,
       formattingOpen: false,
       triggerResize: false,
+      heatMapMode: false,
     };
     this.state = _.assignIn(state, gu.buildGridStyles());
     this._cellRenderer = this._cellRenderer.bind(this);
@@ -88,15 +88,16 @@ class ReactDataViewer extends React.Component {
       });
       return;
     }
-    const widthChange = _.sum(_.map(this.state.columns, "width")) != _.sum(_.map(prevState.columns, "width"));
-    if (widthChange) {
+    const currWidth = _.sum(_.map(gu.getActiveCols(this.state), "width"));
+    const prevWidth = _.sum(_.map(gu.getActiveCols(prevState), "width"));
+    if (currWidth != prevWidth) {
       this.setState({ triggerResize: true });
       return;
     }
   }
 
   getData(ids, refresh = false) {
-    const { loading, loadQueue } = this.state;
+    const { loading, loadQueue, heatMapMode } = this.state;
     const data = this.state.data || {};
     if (loading) {
       this.setState({ loadQueue: _.concat(loadQueue, [ids]) });
@@ -138,7 +139,6 @@ class ReactDataViewer extends React.Component {
         }
         const newState = {
           rowCount: data.total + 1,
-          columnCount: data.columns.length,
           data: _.assignIn(savedData, formattedData),
           loading: false,
         };
@@ -146,12 +146,13 @@ class ReactDataViewer extends React.Component {
         if (_.isEmpty(columns)) {
           const preLocked = _.concat(_.get(this.props, "settings.locked", []), [gu.IDX]);
           newState.columns = _.map(data.columns, c =>
-            _.assignIn({ locked: _.includes(preLocked, c.name), width: gu.calcColWidth(c, newState) }, c)
+            _.assignIn({ locked: _.includes(preLocked, c.name), visible: true, width: gu.calcColWidth(c, newState) }, c)
           );
         } else {
-          const newCols = _.map(_.filter(data.columns, ({ name }) => !_.find(columns, { name })), c =>
-            _.assignIn({ locked: false, width: gu.calcColWidth(c, newState) }, c)
-          );
+          const newCols = _.map(_.filter(data.columns, ({ name }) => !_.find(columns, { name })), c => {
+            const visible = heatMapMode ? _.has(c, "min") : true;
+            return _.assignIn({ locked: false, visible, width: gu.calcColWidth(c, newState) }, c);
+          });
           newState.columns = _.concat(columns, newCols);
         }
         this.setState(newState);
@@ -173,23 +174,27 @@ class ReactDataViewer extends React.Component {
         />
       );
     }
-    const colCfg = _.get(this.state, ["columns", columnIndex], {});
+    const colCfg = gu.getCol(columnIndex, this.state);
     let value = "-";
     let valueStyle = {};
     if (colCfg.name) {
       const rec = _.get(this.state, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
-      valueStyle = rec.style;
+      valueStyle = _.get(rec, "style", {});
+      if (this.state.heatMapMode) {
+        valueStyle = _.assignIn({ background: gu.heatMapBackground(rec, colCfg) }, valueStyle);
+      }
     }
     return (
-      <div className="cell" key={key} style={_.assignIn(style, valueStyle)}>
+      <div className="cell" key={key} style={_.assignIn({}, style, valueStyle)}>
         {value}
       </div>
     );
   }
 
   _onSectionRendered({ columnStartIndex, columnStopIndex, rowStartIndex, rowStopIndex }) {
-    const { ids, columnCount } = this.state;
+    const { ids } = this.state;
+    const columnCount = gu.getActiveCols(this.state).length;
     const startIndex = rowStartIndex * columnCount + columnStartIndex;
     const stopIndex = rowStopIndex * columnCount + columnStopIndex;
     const newIds = _.difference(_.range(rowStartIndex, rowStopIndex + 1), _.range(ids[0], ids[1] + 1));
@@ -255,6 +260,7 @@ class ReactDataViewer extends React.Component {
                     <MultiGrid
                       {...this.state}
                       key={1}
+                      columnCount={gu.getActiveCols(this.state).length}
                       cellRenderer={this._cellRenderer}
                       height={gridHeight}
                       width={width - 3}

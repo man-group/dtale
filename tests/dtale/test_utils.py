@@ -124,6 +124,25 @@ def test_filter_df_for_grid(test_data):
     results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req))
     pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
 
+    req = build_req_tuple({'page': 1, 'page_size': 50})
+    page, page_size = utils.retrieve_grid_params(req, props=['page', 'page_size'])
+    assert page == 1
+    assert page_size == 50
+
+
+@pytest.mark.unit
+def test_format_grid(unittest):
+    output = utils.format_grid(pd.DataFrame([dict(a=1, b='foo', c=3.5, d=pd.Timestamp('20190101'))]))
+    unittest.assertEqual(output, {
+        'results': [{'a': 1, 'c': 3.5, 'b': 'foo', 'd': '2019-01-01'}],
+        'columns': [
+            {'dtype': 'int64', 'name': 'a'},
+            {'dtype': 'string', 'name': 'b'},
+            {'dtype': 'float64', 'name': 'c'},
+            {'dtype': 'datetime64[ns]', 'name': 'd'}
+        ]
+    }, 'should format dataframe correctly')
+
 
 @pytest.mark.unit
 def test_make_list():
@@ -138,3 +157,14 @@ def test_dict_merge():
     assert utils.dict_merge(dict(a=1), dict(a=2)) == dict(a=2)
     assert utils.dict_merge(None, dict(b=2)) == dict(b=2)
     assert utils.dict_merge(dict(a=1), None) == dict(a=1)
+
+
+@pytest.mark.unit
+def test_classify_type():
+    assert utils.classify_type('string') == 'S'
+    assert utils.classify_type('boolean') == 'B'
+    assert utils.classify_type('float64') == 'F'
+    assert utils.classify_type('integer64') == 'I'
+    assert utils.classify_type('timestamp') == 'D'
+    assert utils.classify_type('timedelta') == 'TD'
+    assert utils.classify_type('foo') == 'S'

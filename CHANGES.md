@@ -66,3 +66,10 @@ Changelog
     * [#28](https://github.com/man-group/dtale/issues/28): "Instances" menu option will now be displayed by default
     * [#29](https://github.com/man-group/dtale/issues/29): add hints to how users can navigate the correlations popup
     * add "unicode" as a string classification for column width calculation
+
+### 1.4.0 (2019-11-19)
+
+  * Correlations Pearson Matrix filters
+  * "name" display in title tab
+  * "Heat Map" toggle
+  * dropped unused "Flask-Caching" requirement

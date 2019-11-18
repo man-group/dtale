@@ -42,7 +42,8 @@ describe("DataViewerMenu tests", () => {
     t.ok(
       result
         .find("ul li span.toggler-action")
-        .last()
+        .findWhere(b => _.includes(b.text(), "Instances"))
+        .first()
         .text() === "Instances 1",
       "should hide shutdown"
     );
@@ -63,7 +64,8 @@ describe("DataViewerMenu tests", () => {
     t.ok(
       result
         .find("ul li span.toggler-action")
-        .last()
+        .findWhere(b => _.includes(b.text(), "Instances"))
+        .first()
         .text() === "Instances 2",
       "should show instances"
     );

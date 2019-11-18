@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
@@ -49,7 +50,8 @@ describe("DataViewer tests", () => {
       result
         .find(DataViewerMenu)
         .find("ul li button")
-        .last()
+        .findWhere(b => _.includes(b.text(), "Instances"))
+        .first()
         .simulate("click");
       setTimeout(() => {
         result.update();

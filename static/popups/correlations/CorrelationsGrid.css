@@ -1,0 +1,6 @@
+.correlations-filters .Select__control {
+  height: calc(1.51562rem + 2px);
+}
+.correlations-filters .Select__placeholder {
+  height: calc(1.91562rem);
+}
