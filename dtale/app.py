@@ -200,8 +200,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
         from flasgger import Swagger  # flake8: NOQA
         Swagger(app, template=template)
     except ImportError:
-        import warnings
-        warnings.warn('flasgger dependency not found, please install to enable feature')
+        logger.debug('flasgger dependency not found, please install to enable feature')
 
     @app.route('/')
     @app.route('/dtale')

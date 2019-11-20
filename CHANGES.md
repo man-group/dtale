@@ -73,3 +73,7 @@ Changelog
   * "name" display in title tab
   * "Heat Map" toggle
   * dropped unused "Flask-Caching" requirement
+
+### 1.4.1 (2019-11-20)
+
+  * [#32](https://github.com/man-group/dtale/issues/32): unpin jsonschema by moving flasgger to `extras_require`

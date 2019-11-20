@@ -34,7 +34,7 @@ $ source ~/pyenvs/dtale/bin/activate
 # install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
 $ pip install --upgrade dtale
 ```
-Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal (**FYI: Due a dependency on Flasgger, jsonschema is limited to version <3.0.0**)
+Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
