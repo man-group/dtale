@@ -14,14 +14,12 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.testing import FlaskClient
 
 import requests
-from flasgger import Swagger
-from flasgger.utils import swag_from
 from flask_compress import Compress
 from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import build_shutdown_url, build_url, dict_merge
+from dtale.utils import build_shutdown_url, build_url, dict_merge, swag_from
 from dtale.views import cleanup, startup
 
 if PY3:
@@ -198,11 +196,16 @@ def build_app(reaper_on=True, hide_shutdown=False):
         host=socket.gethostname(),
         schemes=['http'],
     )
-    Swagger(app, template=template)
+    try:
+        from flasgger import Swagger  # flake8: NOQA
+        Swagger(app, template=template)
+    except ImportError:
+        import warnings
+        warnings.warn('flasgger dependency not found, please install to enable feature')
 
     @app.route('/')
     @app.route('/dtale')
-    @swag_from('./swagger/dtale/root.yml')
+    @swag_from('swagger/dtale/root.yml')
     def root():
         """
         Flask routes which redirect to dtale/main

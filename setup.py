@@ -60,8 +60,6 @@ setup(
     url="https://github.com/man-group/dtale",
     install_requires=[
         "arctic",
-        "jsonschema<3.0.0",
-        "flasgger==0.9.3",
         "Flask",
         "Flask-Compress",
         "future",
@@ -71,6 +69,9 @@ setup(
         "scipy",
         "six"
     ],
+    extras_require={
+        'flasgger': ["jsonschema<3.0.0", "flasgger==0.9.3"]
+    },
     tests_require=[
         "mock",
         "pytest==4.6.4",
