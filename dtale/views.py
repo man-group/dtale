@@ -10,7 +10,6 @@ from flask import json, render_template, request
 import numpy as np
 import pandas as pd
 import requests
-from flasgger.utils import swag_from
 from future.utils import string_types
 from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
@@ -22,7 +21,7 @@ from dtale.utils import (build_shutdown_url, build_url, classify_type,
                          get_str_arg, grid_columns, grid_formatter, json_date,
                          json_float, json_int, json_timestamp, jsonify,
                          make_list, retrieve_grid_params, running_with_flask,
-                         running_with_pytest, sort_df_for_grid)
+                         running_with_pytest, sort_df_for_grid, swag_from)
 
 logger = getLogger(__name__)
 
@@ -192,7 +191,7 @@ def view_main():
 
 
 @dtale.route('/processes')
-@swag_from('swagger/dtale/views/test-filter.yml')
+@swag_from('swagger/dtale/views/processes.yml')
 def get_processes():
     """
     Flask route which returns list of running D-Tale processes within current python process
@@ -279,7 +278,7 @@ def test_filter():
 
 
 @dtale.route('/dtypes')
-@swag_from('swagger/dtale/views/dtypes.yaml')
+@swag_from('swagger/dtale/views/dtypes.yml')
 def dtypes():
     """
     Flask route which returns a list of column names and dtypes to the front-end as JSON
@@ -321,7 +320,7 @@ def load_describe(column_series):
 
 
 @dtale.route('/describe/<column>')
-@swag_from('swagger/dtale/views/describe.yaml')
+@swag_from('swagger/dtale/views/describe.yml')
 def describe(column):
     """
     Flask route which returns standard details about column data using pandas.DataFrame[col].describe to

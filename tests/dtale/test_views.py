@@ -634,7 +634,13 @@ def test_main():
 
 @pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main', 'site-map', 'apidocs/', 'version-info']
+    paths = ['/dtale/main', 'site-map', 'version-info']
+    try:
+        # flake8: NOQA
+        from flasgger import Swagger
+        paths.append('apidocs/')
+    except ImportError:
+        pass
     with app.test_client() as c:
         for path in paths:
             response = c.get(path)

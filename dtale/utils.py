@@ -7,6 +7,7 @@ import socket
 import sys
 import time
 from builtins import map, object
+from functools import wraps
 from logging import getLogger
 
 from flask import jsonify as _jsonify
@@ -615,3 +616,16 @@ def dict_merge(d1, d2):
     elif not d2:
         return d1 or {}
     return dict(list(d1.items()) + list(d2.items()))
+
+
+def swag_from(path):
+    try:
+        from flasgger.utils import swag_from as flasgger_swag_from
+        return flasgger_swag_from(path)
+    except ImportError:
+        def _swag_from(f):
+            @wraps(f)
+            def decorated(*args, **kwargs):
+                return f(*args, **kwargs)
+            return decorated
+        return _swag_from

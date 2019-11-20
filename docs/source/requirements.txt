@@ -1,7 +1,5 @@
-jsonschema<3.0.0 # needed for sphinx, flasgger collisons
-flasgger==0.9.3
 sphinx==1.6.7
-nbsphinx
+nbsphinx==0.4.3
 matplotlib
 prompt-toolkit<2.0.0,>=1.0.4,!=1.0.17; python_version < '3.0'
 prompt-toolkit<2.1.0,>=2.0.0; python_version > '3.0'
