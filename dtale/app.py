@@ -44,8 +44,8 @@ class DtaleFlaskTesting(FlaskClient):
     we won't have SETTING keys colliding with other tests since the default
     for every test would be 80.
 
-    :param args: Optional arguments to be passed to :class:`flask.FlaskClient`
-    :param kwargs: Optional keyword arguments to be passed to :class:`flask.FlaskClient`
+    :param args: Optional arguments to be passed to :class:`flask:flask.FlaskClient`
+    :param kwargs: Optional keyword arguments to be passed to :class:`flask:flask.FlaskClient`
     """
 
     def __init__(self, *args, **kwargs):
@@ -58,8 +58,8 @@ class DtaleFlaskTesting(FlaskClient):
 
     def get(self, *args, **kwargs):
         """
-        :param args: Optional arguments to be passed to :meth:`flask.FlaskClient.get`
-        :param kwargs: Optional keyword arguments to be passed to :meth:`flask.FlaskClient.get`
+        :param args: Optional arguments to be passed to :meth:`flask:flask.FlaskClient.get`
+        :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.FlaskClient.get`
         """
         return super(DtaleFlaskTesting, self).get(
             base_url='http://{host}:{port}'.format(host=self.host, port=self.port), *args, **kwargs
@@ -74,8 +74,8 @@ class DtaleFlask(Flask):
     :param import_name: the name of the application package
     :param reaper_on: whether to run auto-reaper subprocess
     :type reaper_on: bool
-    :param args: Optional arguments to be passed to :class:`flask.Flask`
-    :param kwargs: Optional keyword arguments to be passed to :class:`flask.Flask`
+    :param args: Optional arguments to be passed to :class:`flask:flask.Flask`
+    :param kwargs: Optional keyword arguments to be passed to :class:`flask:flask.Flask`
     """
 
     def __init__(self, import_name, reaper_on=True, *args, **kwargs):
@@ -92,8 +92,8 @@ class DtaleFlask(Flask):
 
     def run(self, *args, **kwargs):
         """
-        :param args: Optional arguments to be passed to :meth:`flask.run`
-        :param kwargs: Optional keyword arguments to be passed to :meth:`flask.run`
+        :param args: Optional arguments to be passed to :meth:`flask:flask.run`
+        :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
         self.port = str(kwargs.get('port'))
         self.shutdown_url = build_shutdown_url(self.port)
@@ -111,8 +111,8 @@ class DtaleFlask(Flask):
         :type reaper_on: bool
         :param port: port number of flask application
         :type port: int
-        :param args: Optional arguments to be passed to :meth:`flask.Flask.test_client`
-        :param kwargs: Optional keyword arguments to be passed to :meth:`flask.Flask.test_client`
+        :param args: Optional arguments to be passed to :meth:`flask:flask.Flask.test_client`
+        :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.Flask.test_client`
         :return: Flask's test client
         :rtype: :class:`dtale.app.DtaleFlaskTesting`
         """
@@ -273,7 +273,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
     @app.before_request
     def before_request():
         """
-        Logic executed before each flask request
+        Logic executed before each :attr:`flask:flask.request`
 
         :return: text/html with server shutdown message
         """
@@ -317,6 +317,16 @@ def build_app(reaper_on=True, hide_shutdown=False):
         _, version = retrieve_meta_info_and_version('dtale')
         return str(version)
 
+    @app.route('/health')
+    @swag_from('swagger/dtale/health.yml')
+    def health_check():
+        """
+        Flask route for checking if D-Tale is up and running
+
+        :return: text/html 'ok'
+        """
+        return 'ok'
+
     return app
 
 
@@ -333,12 +343,13 @@ def find_free_port():
 
 
 def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subprocess=True, data_loader=None,
-         reaper_on=True, open_browser=False, **kwargs):
+         reaper_on=True, open_browser=False, notebook=False, **kwargs):
     """
     Entry point for kicking off D-Tale Flask process from python process
 
     :param data: data which D-Tale will display
-    :type data: Union[:class:`pandas.DataFrame`, :class:`pandas.Series`], optional
+    :type data: :class:`pandas:pandas.DataFrame` or :class:`pandas:pandas.Series`
+                or :class:`pandas:pandas.DatetimeIndex` or :class:`pandas:pandas.MultiIndex`, optional
     :param host: hostname of D-Tale, defaults to 0.0.0.0
     :type host: str, optional
     :param port: port number of D-Tale process, defaults to any open port on server
@@ -353,9 +364,11 @@ def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subproces
     :type data_loader: func, optional
     :param reaper_on: turn on subprocess which will terminate D-Tale after 1 hour of inactivity
     :type reaper_on: bool, optional
-    :param open_browser: if true, this will try using the webbrowser package to automatically open you default
-                         browser to your D-Tale process
+    :param open_browser: if true, this will try using the :mod:`python:webbrowser` package to automatically open
+                         your default browser to your D-Tale process
     :type open_browser: bool, optional
+    :param notebook: if true, this will try displaying an :class:`ipython:IPython.display.IFrame`
+    :type notebook: bool, optional
 
     :Example:
 
@@ -372,7 +385,7 @@ def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subproces
     setup_logging(logfile, log_level or 'info', verbose)
 
     selected_port = int(port or find_free_port())
-    data_hook = startup(data=data, data_loader=data_loader, port=selected_port, name=name)
+    instance = startup(data=data, data_loader=data_loader, port=selected_port, name=name)
 
     def _show():
         app = build_app(reaper_on=reaper_on)
@@ -381,14 +394,19 @@ def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subproces
             app.config['TEMPLATES_AUTO_RELOAD'] = True
         else:
             getLogger("werkzeug").setLevel(LOG_ERROR)
-        logger.info('D-Tale started at: {}'.format(build_url(selected_port)))
+        url = build_url(selected_port)
+        logger.info('D-Tale started at: {}'.format(url))
         if open_browser:
-            webbrowser.get().open(build_url(selected_port))
+            webbrowser.get().open(url)
+
         app.run(host=host, port=selected_port, debug=debug)
 
     if subprocess:
         _thread.start_new_thread(_show, ())
+
+        if notebook:
+            instance.notebook()
     else:
         _show()
 
-    return data_hook
+    return instance

@@ -1,14 +1,12 @@
 import { mount } from "enzyme";
-import _ from "lodash";
 import React from "react";
 import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -37,7 +35,7 @@ describe("DataViewer tests", () => {
     const Instances = require("../../popups/Instances").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("", "True", 2);
+    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -47,12 +45,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .findWhere(b => _.includes(b.text(), "Instances"))
-        .first()
-        .simulate("click");
+      clickMainMenuButton(result, "Instances");
       setTimeout(() => {
         result.update();
         t.equal(result.find(Instances).length, 1, "should show instances");

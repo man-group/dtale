@@ -10,9 +10,36 @@
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
+## What is it?
+
+D-Tale was born out a conversion from SAS to Python.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas dat structures.  D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.  It integrates seamlessly with ipython notebooks & python/ipython terminals.
+
+## Contents
+
+- [Getting Started](#getting-started)
+  - [Python Terminal](#python-terminal)
+  - [Jupyter Notebook](#jupyter-notebook)
+  - [Command-line](#command-line)
+- [UI](#ui)
+  - [Menu functions w/ no columns selected](#menu-functions-w\/-no-columns-selected)
+  - [Menu functions w/ column(s) selected](#menu-functions-w\/-column\(s\)-selected)
+  - [Menu functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
+- [For Developers](#for-developers)
+  - [Cloning](#cloning)
+  - [Running Tests](#running-tests)
+  - [Linting](#linting)
+  - [Formatting JS](#formatting-js)
+  - [Docker Development](#docker-development)
+- [Documentation](#documentation)
+- [Requirements](#requirements)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
 ## Getting Started
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)
+|PyCharm|jupyter|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_ipython.gif)|
 
 Setup/Activate your environment and install the egg
 
@@ -35,6 +62,57 @@ $ source ~/pyenvs/dtale/bin/activate
 $ pip install --upgrade dtale
 ```
 Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
+
+### Python Terminal
+This comes courtesy of PyCharm
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
+Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
+#####Additional functions available programatically
+```python
+import dtale
+import pandas as pd
+
+df = pd.DataFrame([dict(a=1,b=2,c=3)])
+
+# Assigning a reference to a running D-Tale process
+d = dtale.show(df)
+
+# Accessing data associated with D-Tale process
+tmp = d.data.copy()
+tmp['d'] = 4
+
+# Altering data associated with D-Tale process
+# FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
+d.data = tmp
+
+# Shutting down D-Tale process
+d.kill()
+
+# using Python's `webbrowser` package it will try and open your server's default browser to this process
+d.open_browser()
+
+# There is also some helpful metadata about the process
+d._port  # the process's port
+d._url  # the url to access the process
+
+```
+
+### Jupyter Notebook
+Within any jupyter (ipython) notebook executing a cell like this will display a small instance of D-Tale in the output cell.  Here are some examples:
+
+|`dtale.show`|assignment|instance|
+|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython3.png)|
+
+If you are running ipython<=5.0 then you also have the ability to adjust the size of your output cell for the most recent instance displayed:
+
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython_adjust.png)
+
+One thing of note is that alot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
+
+|Column Menus|Correlations|Describe|Histogram|Coverage|Instances|
+|:------:|:------:|:------:|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)||![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/coverage_popup.png)||![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
@@ -119,41 +197,6 @@ In this example we simplying building a dataframe with some dummy data based on 
 Here's how you would use this loader:
 ```bash
 DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
-```
-
-
-### Python Terminal
-This comes courtesy of PyCharm
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
-Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
-#####Additional functions available programatically
-```python
-import dtale
-import pandas as pd
-
-df = pd.DataFrame([dict(a=1,b=2,c=3)])
-
-# Assigning a reference to a running D-Tale process
-d = dtale.show(df)
-
-# Accessing data associated with D-Tale process
-tmp = d.data.copy()
-tmp['d'] = 4
-
-# Altering data associated with D-Tale process
-# FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
-d.data = tmp
-
-# Shutting down D-Tale process
-d.kill()
-
-# using Python's `webbrowser` package it will try and open your server's default browser to this process
-d.open_browser()
-
-# There is also some helpful metadata about the process
-d._port  # the process's port
-d._url  # the url to access the process
-
 ```
 
 ## UI
@@ -267,7 +310,7 @@ Here is an example of clicking the "Preview" button:
 - **Resize**: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 - **Shutdown**: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
 
-### Menu functions w/ one column is selected
+### Menu functions w/ column(s) selected
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Menu_one_col.png)
 
@@ -315,9 +358,15 @@ Here's a grid of all the formats available with -123456.789 as input:
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
 
+### Menu functions within a Jupyter Notebook
+These are the same functions as the menu listed earlier, but there is no more column selection (instead theres menus for each column).  Also the following buttons will no longer open modals, but separate browser windows:  Correlations, Describe, Coverage & Instances (see images from [Jupyter Notebook](#jupyter-notebook))
+
+There are also menus associated with each column header which can be trigger by clicking on a column header.  The functions that are contained within each are: Sorting, Move To Front, Lock/Unlock, Histogram, Describe, Formats (see image from [Jupyter Notebook](#jupyter-notebook))
+ - Histogram & Describe open separate browser windows
+
 ## For Developers
 
-### Getting Started
+### Cloning
 
 Clone the code (git clone ssh://git@github.com:manahl/dtale.git), then start the backend server:
 
@@ -378,7 +427,7 @@ You can auto-format code as follows:
 $ npm run format
 ```
 
-### Docker development
+### Docker Development
 
 You can build python 27-3 & run D-Tale as follows:
 ```bash
@@ -439,6 +488,9 @@ Contributors:
  * [Dominik Christ](https://github.com/DominikMChrist)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
+ * [Tom Taylor](https://github.com/TomTaylorLondon)
+ * [Vincent Riemer](https://github.com/vincentriemer)
+ * Mike Kelly
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...
 

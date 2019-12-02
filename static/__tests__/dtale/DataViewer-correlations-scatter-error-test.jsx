@@ -3,11 +3,10 @@ import React from "react";
 import { Provider } from "react-redux";
 
 import { RemovableError } from "../../RemovableError";
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -52,7 +51,7 @@ describe("DataViewer tests", () => {
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -62,11 +61,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(2)
-        .simulate("click");
+      clickMainMenuButton(result, "Correlations");
       setTimeout(() => {
         result.update();
         const corrGrid = result

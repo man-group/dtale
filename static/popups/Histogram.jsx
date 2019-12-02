@@ -7,6 +7,7 @@ import React from "react";
 import { connect } from "react-redux";
 
 import { RemovableError } from "../RemovableError";
+import actions from "../actions/dtale";
 import { buildURLParams } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
@@ -129,7 +130,18 @@ class ReactHistogram extends React.Component {
         </div>
       );
     }
+    let description = null;
+    if (actions.isPopup()) {
+      description = (
+        <div key="description">
+          {" Histogram for "}
+          <strong>{_.get(this.props, "chartData.col")}</strong>
+          <div id="describe" />
+        </div>
+      );
+    }
     return [
+      description,
       <div key="inputs" className="modal-body modal-form">
         <form>{this.buildHistogramFilters()}</form>
       </div>,

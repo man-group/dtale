@@ -16,6 +16,8 @@ describe("DataViewerMenu tests", () => {
       selectedCols: [],
       sortInfo: [],
       columns: [],
+      hideShutdown: false,
+      iframe: false,
     };
     const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
     t.ok(
@@ -29,7 +31,7 @@ describe("DataViewerMenu tests", () => {
   });
 
   test("DataViewerMenu: hide_shutdown == True", done => {
-    buildInnerHTML("", "True");
+    buildInnerHTML({ settings: "", hideShutdown: "True" });
     const props = {
       openChart: _.noop,
       propagateState: _.noop,
@@ -37,6 +39,8 @@ describe("DataViewerMenu tests", () => {
       selectedCols: [],
       sortInfo: [],
       columns: [],
+      hideShutdown: true,
+      iframe: false,
     };
     const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
     t.ok(
@@ -51,7 +55,7 @@ describe("DataViewerMenu tests", () => {
   });
 
   test("DataViewerMenu: processes == 2", done => {
-    buildInnerHTML("", "True", 2);
+    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 });
     const props = {
       openChart: _.noop,
       propagateState: _.noop,
@@ -59,6 +63,8 @@ describe("DataViewerMenu tests", () => {
       selectedCols: [],
       sortInfo: [],
       columns: [],
+      hideShutdown: true,
+      iframe: false,
     };
     const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
     t.ok(

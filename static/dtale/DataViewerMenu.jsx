@@ -5,91 +5,51 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
-import { IDX, toggleHeatMap } from "./gridUtils";
+import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuUtils";
+import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
 
-const SORT_PROPS = [
-  ["ASC", "Sort Ascending", "fa fa-sort-down ml-4 mr-4"],
-  ["DESC", "Sort Descending", "fa fa-sort-up ml-4 mr-4"],
-  ["NONE", "Clear Sort", "fa fa-sort ml-4 mr-4"],
-];
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const hideShutdown = document.getElementById("hide_shutdown").value === "True";
+    const { hideShutdown, iframe, selectedCols } = this.props;
     const processCt = document.getElementById("processes").value;
     const colCount = (this.props.selectedCols || []).length;
-    const lockedColCount = _.filter(
-      this.props.columns,
-      ({ name, locked }) => locked && _.includes(this.props.selectedCols, name)
-    ).length;
+    const lockedColCount = _.filter(this.props.columns, ({ name, locked }) => locked && _.includes(selectedCols, name))
+      .length;
     const unlockedColCount = _.filter(
       this.props.columns,
-      ({ name, locked }) => !locked && _.includes(this.props.selectedCols, name)
+      ({ name, locked }) => !locked && _.includes(selectedCols, name)
     ).length;
-    const updateSort = dir => {
-      const { selectedCols } = this.props;
-      let sortInfo = _.filter(this.props.sortInfo, ([col, _dir]) => !_.includes(selectedCols, col));
-      switch (dir) {
-        case "ASC":
-        case "DESC":
-          sortInfo = _.concat(sortInfo, _.map(selectedCols, col => [col, dir]));
-          break;
-        case "NONE":
-        default:
-          break;
-      }
-      this.props.propagateState({ sortInfo });
-    };
     const openHistogram = () => {
       const col = _.head(this.props.selectedCols);
       this.props.openChart(_.assignIn({ type: "histogram", col, title: col }, this.props));
     };
+    const openDescribe = () => {
+      if (iframe) {
+        window.open("/dtale/popup/describe", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+      } else {
+        this.props.openChart({ type: "describe" });
+      }
+    };
     const openCorrelations = () => {
-      this.props.openChart(_.assignIn({ type: "correlations", title: "Correlations" }, this.props));
+      if (iframe) {
+        window.open("/dtale/popup/correlations", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+      } else {
+        this.props.openChart(_.assignIn({ type: "correlations", title: "Correlations" }, this.props));
+      }
     };
     const openCoverage = () => {
-      const chartCols = _.filter(this.props.columns, ({ name }) => name !== IDX);
-      this.props.openChart(_.assignIn({ type: "coverage", cols: chartCols }, this.props));
+      if (iframe) {
+        window.open("/dtale/popup/coverage", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+      } else {
+        this.props.openChart(_.assignIn({ type: "coverage" }, this.props));
+      }
     };
-    const moveToFront = () => {
-      const locked = _.filter(this.props.columns, "locked");
-      const colsToFront = _.filter(
-        this.props.columns,
-        ({ name, locked }) => _.includes(this.props.selectedCols, name) && !locked
-      );
-      let finalCols = _.filter(this.props.columns, ({ name }) => !_.includes(this.props.selectedCols, name));
-      finalCols = _.filter(finalCols, ({ name }) => !_.find(locked, { name }));
-      finalCols = _.concat(locked, colsToFront, finalCols);
-      this.props.propagateState({ columns: finalCols, triggerResize: true });
-    };
-    const lockCols = () => {
-      let locked = _.filter(this.props.columns, "locked");
-      locked = _.concat(
-        locked,
-        _.map(_.filter(this.props.columns, ({ name }) => _.includes(this.props.selectedCols, name)), c =>
-          _.assignIn({}, c, { locked: true })
-        )
-      );
-      const finalCols = _.concat(locked, _.filter(this.props.columns, ({ name }) => !_.find(locked, { name })));
-      this.props.propagateState({
-        columns: finalCols,
-        fixedColumnCount: locked.length,
-        selectedCols: [],
-        triggerResize: true,
-      });
-    };
-    const unlockCols = () => {
-      let locked = _.filter(this.props.columns, "locked");
-      const unlocked = _.map(_.filter(locked, ({ name }) => _.includes(this.props.selectedCols, name)), c =>
-        _.assignIn({}, c, { locked: false })
-      );
-      locked = _.filter(locked, ({ name }) => !_.includes(this.props.selectedCols, name));
-      const finalCols = _.concat(locked, unlocked, _.filter(this.props.columns, c => !_.get(c, "locked", false)));
-      this.props.propagateState({
-        columns: finalCols,
-        fixedColumnCount: locked.length,
-        selectedCols: [],
-        triggerResize: true,
-      });
+    const openInstances = () => {
+      if (iframe) {
+        window.open("/dtale/popup/instances", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+      } else {
+        this.props.openChart({ type: "instances" });
+      }
     };
     const resize = () => this.props.propagateState({ columns: _.map(this.props.columns, c => _.assignIn({}, c)) });
     return (
@@ -101,7 +61,7 @@ class ReactDataViewerMenu extends React.Component {
         <ul>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "describe" })}>
+              <button className="btn btn-plain" onClick={openDescribe}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>
@@ -110,7 +70,7 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={colCount > 0}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={moveToFront}>
+                <button className="btn btn-plain" onClick={moveToFront(selectedCols, this.props)}>
                   <i className="fa fa-caret-left ml-4 mr-4" />
                   <span className="ml-3 font-weight-bold">Move To Front</span>
                 </button>
@@ -120,7 +80,7 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={unlockedColCount > 0}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={lockCols}>
+                <button className="btn btn-plain" onClick={lockCols(selectedCols, this.props)}>
                   <i className="fa fa-lock ml-3 mr-4" />
                   <span className="font-weight-bold">Lock</span>
                 </button>
@@ -130,25 +90,25 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={lockedColCount > 0}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={unlockCols}>
+                <button className="btn btn-plain" onClick={unlockCols(selectedCols, this.props)}>
                   <i className="fa fa-lock-open ml-2 mr-4" />
                   <span className="font-weight-bold">Unlock</span>
                 </button>
               </span>
             </li>
           </ConditionalRender>
-          {_.map(SORT_PROPS, ([dir, label, icon]) => (
-            <ConditionalRender key={`${dir}-action`} display={colCount > 0}>
-              <li>
+          <ConditionalRender display={colCount > 0 && !iframe}>
+            {_.map(SORT_PROPS, ({ dir, full }) => (
+              <li key={`${dir}-action`}>
                 <span className="toggler-action">
-                  <button className="btn btn-plain" onClick={() => updateSort(dir)}>
-                    <i className={icon} />
-                    <span className="font-weight-bold">{label}</span>
+                  <button className="btn btn-plain" onClick={() => updateSort(selectedCols, dir, this.props)}>
+                    <i className={full.icon} />
+                    <span className="font-weight-bold">{full.label}</span>
                   </button>
                 </span>
               </li>
-            </ConditionalRender>
-          ))}
+            ))}
+          </ConditionalRender>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={() => this.props.propagateState({ filterOpen: true })}>
@@ -209,7 +169,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => this.props.openChart({ type: "instances" })}>
+              <button className="btn btn-plain" onClick={openInstances}>
                 <i className="ico-apps" />
                 <span className="font-weight-bold">
                   {"Instances "}
@@ -228,6 +188,16 @@ class ReactDataViewerMenu extends React.Component {
               </button>
             </span>
           </li>
+          <ConditionalRender display={iframe}>
+            <li>
+              <span className="toggler-action">
+                <button className="btn btn-plain" onClick={() => window.location.reload()}>
+                  <i className="ico-sync" />
+                  <span className="font-weight-bold">Refresh</span>
+                </button>
+              </span>
+            </li>
+          </ConditionalRender>
           <ConditionalRender display={hideShutdown == false}>
             <li>
               <span className="toggler-action">
@@ -247,15 +217,16 @@ ReactDataViewerMenu.displayName = "ReactDataViewerMenu";
 ReactDataViewerMenu.propTypes = {
   columns: PropTypes.array,
   menuOpen: PropTypes.bool,
-  sortInfo: PropTypes.array,
   selectedCols: PropTypes.array,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
   heatMapMode: PropTypes.bool,
+  hideShutdown: PropTypes.bool,
+  iframe: PropTypes.bool,
 };
 
 const ReduxDataViewerMenu = connect(
-  () => ({}),
+  ({ hideShutdown, iframe }) => ({ hideShutdown, iframe }),
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactDataViewerMenu);
 

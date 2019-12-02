@@ -212,7 +212,6 @@ ReactCorrelations.propTypes = {
     visible: PropTypes.bool.isRequired,
     query: PropTypes.string,
     title: PropTypes.string,
-    columns: PropTypes.arrayOf(PropTypes.object),
   }),
   onClose: PropTypes.func,
   propagateState: PropTypes.func,

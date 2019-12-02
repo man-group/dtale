@@ -5,11 +5,10 @@ import { ModalClose, ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -23,9 +22,13 @@ const TEXT_TESTS = [
 ];
 
 describe("DataViewer tests", () => {
+  const { open } = window;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    delete window.open;
+    window.open = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -56,6 +59,7 @@ describe("DataViewer tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    window.open = open;
   });
 
   test("DataViewer: formatting", done => {
@@ -63,7 +67,7 @@ describe("DataViewer tests", () => {
     const { Formatting } = require("../../dtale/Formatting");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -81,11 +85,7 @@ describe("DataViewer tests", () => {
         .at(1)
         .simulate("click");
       result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(7)
-        .simulate("click");
+      clickMainMenuButton(result, "Formats");
       result.update();
       t.equal(result.find(Formatting).length, 1, "should open formatting");
       result
@@ -96,23 +96,15 @@ describe("DataViewer tests", () => {
       result.update();
       t.notOk(result.find(Formatting).instance().props.visible, "should close formatting");
       result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(7)
-        .simulate("click");
+      clickMainMenuButton(result, "Formats");
       result.update();
 
-      let url = null;
-      global.window.open = input => {
-        url = input;
-      };
       result
         .find(Formatting)
         .find("i.ico-info-outline")
         .first()
         .simulate("click");
-      t.equal(url, "http://numeraljs.com/#format", "should open pandas documentation");
+      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("http://numeraljs.com/#format");
       _.forEach(TEXT_TESTS, ([expected, msg], i) => {
         let clicker = result
           .find(Formatting)

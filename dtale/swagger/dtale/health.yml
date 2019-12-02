@@ -1,0 +1,8 @@
+summary: helper route for checking if D-Tale is up and running
+tags:
+  - D-Tale API
+responses:
+  200:
+    description: text 'ok'
+    content:
+      text/html

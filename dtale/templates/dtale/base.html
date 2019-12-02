@@ -16,6 +16,10 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
     <body>
+        <input type="hidden" id="settings" value="{{settings}}" />
+        <input type="hidden" id="version" value="{{version}}" />
+        <input type="hidden" id="hide_shutdown" value="{{config.HIDE_SHUTDOWN}}" />
+        <input type="hidden" id="processes" value={{processes}} />
         {% block full_content %}{% endblock %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>
         {% block js %}{% endblock %}

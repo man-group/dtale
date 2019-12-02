@@ -3,6 +3,7 @@ import React from "react";
 import { ModalClose, ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
+import { RemovableError } from "../../RemovableError";
 import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
@@ -13,9 +14,13 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer tests", () => {
+  const { open } = window;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    delete window.open;
+    window.open = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -46,6 +51,7 @@ describe("DataViewer tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    window.open = open;
   });
 
   test("DataViewer: filtering", done => {
@@ -53,7 +59,7 @@ describe("DataViewer tests", () => {
     const Filter = require("../../dtale/Filter").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -144,7 +150,7 @@ describe("DataViewer tests", () => {
     const Filter = require("../../dtale/Filter").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -180,27 +186,28 @@ describe("DataViewer tests", () => {
         result.update();
         t.equal(
           result
-            .find(Filter)
+            .find(RemovableError)
             .find("div.dtale-alert")
             .text(),
           "No data found",
           "should display error"
         );
-        let url = null;
-        global.window.open = input => {
-          url = input;
-        };
+        result
+          .find(Filter)
+          .find(RemovableError)
+          .first()
+          .instance()
+          .props.onRemove();
+        result.update();
+        t.equal(result.find(Filter).find("div.dtale-alert").length, 0, "should hide error");
         result
           .find(Filter)
           .find(ModalFooter)
           .find("button")
           .first()
           .simulate("click");
-        t.equal(
-          url,
-          "https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query",
-          "should open pandas documentation"
-        );
+        const pandasURL = "https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query";
+        expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(pandasURL);
         done();
       }, 400);
     }, 400);
