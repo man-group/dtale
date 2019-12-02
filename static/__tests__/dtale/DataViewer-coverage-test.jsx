@@ -52,7 +52,7 @@ describe("DataViewer tests", () => {
     const Popup = require("../../popups/Popup").ReactPopup;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -74,93 +74,97 @@ describe("DataViewer tests", () => {
         .find("ul li button")
         .at(10)
         .simulate("click");
-      result.update();
-      t.ok(result.find(Popup).instance().props.chartData.visible, "should open coverage");
-      result
-        .find(Popup)
-        .first()
-        .find(ModalClose)
-        .first()
-        .simulate("click");
-      result.update();
-      t.notOk(result.find(Popup).instance().props.chartData.visible, "should close coverage");
-      result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(10)
-        .simulate("click");
-      result.update();
-      result
-        .find(CoverageChart)
-        .find("div.scrollable-list")
-        .first()
-        .find("a")
-        .last()
-        .simulate("click");
-      result.update();
-      result
-        .find(CoverageChart)
-        .find("div.scrollable-list")
-        .last()
-        .find("a")
-        .last()
-        .simulate("click");
-      result.update();
-      result
-        .find(CoverageChart)
-        .find("button")
-        .simulate("click");
       setTimeout(() => {
         result.update();
-        t.ok(result.find(CoverageChartBody).instance().state.chart !== null, "should render coverage");
+        t.ok(result.find(Popup).instance().props.chartData.visible, "should open coverage");
         result
-          .find(CoverageChart)
-          .find("div.scrollable-list")
+          .find(Popup)
           .first()
-          .find("a")
-          .last()
-          .simulate("click", { shiftKey: true });
+          .find(ModalClose)
+          .first()
+          .simulate("click");
+        result.update();
+        t.notOk(result.find(Popup).instance().props.chartData.visible, "should close coverage");
         result.update();
         result
-          .find(CoverageChart)
-          .find("div.scrollable-list")
-          .first()
-          .find("a")
-          .first()
-          .simulate("click", { shiftKey: true });
-        result.update();
-        result
-          .find(CoverageChart)
-          .find("button")
+          .find(DataViewerMenu)
+          .find("ul li button")
+          .at(10)
           .simulate("click");
         setTimeout(() => {
           result.update();
-          t.ok(
-            result.find(CoverageChart).instance().state.url,
-            "/dtale/coverage?group=%5B%7B%22name%22%3A%22col1%22%7D%5D&col=col3&query=",
-            "should update chart URL"
-          );
           result
             .find(CoverageChart)
-            .instance()
-            .viewTimeDetails({});
+            .find("div.scrollable-list")
+            .first()
+            .find("a")
+            .last()
+            .simulate("click");
           result.update();
-          t.deepEqual(
-            result.find(CoverageChartBody).instance().state.chart.options.scales.xAxes[0],
-            { ticks: { min: "2018-12-03", max: "2018-12-17" } },
-            "should limit x-axis"
-          );
           result
             .find(CoverageChart)
-            .instance()
-            .resetZoom();
+            .find("div.scrollable-list")
+            .last()
+            .find("a")
+            .last()
+            .simulate("click");
           result.update();
-          t.notOk(
-            result.find(CoverageChartBody).instance().state.chart.options.scales.xAxes[0].length == 0,
-            "should clear limited x-axis"
-          );
-          done();
+          result
+            .find(CoverageChart)
+            .find("button")
+            .simulate("click");
+          setTimeout(() => {
+            result.update();
+            t.ok(result.find(CoverageChartBody).instance().state.chart !== null, "should render coverage");
+            result
+              .find(CoverageChart)
+              .find("div.scrollable-list")
+              .first()
+              .find("a")
+              .last()
+              .simulate("click", { shiftKey: true });
+            result.update();
+            result
+              .find(CoverageChart)
+              .find("div.scrollable-list")
+              .first()
+              .find("a")
+              .first()
+              .simulate("click", { shiftKey: true });
+            result.update();
+            result
+              .find(CoverageChart)
+              .find("button")
+              .simulate("click");
+            setTimeout(() => {
+              result.update();
+              t.ok(
+                result.find(CoverageChart).instance().state.url,
+                "/dtale/coverage?group=%5B%7B%22name%22%3A%22col1%22%7D%5D&col=col3&query=",
+                "should update chart URL"
+              );
+              result
+                .find(CoverageChartBody)
+                .instance()
+                .state.chart.cfg.options.onClick();
+              result.update();
+              t.deepEqual(
+                result.find(CoverageChartBody).instance().state.chart.options.scales.xAxes[0],
+                { ticks: { min: "2018-12-03", max: "2018-12-17" } },
+                "should limit x-axis"
+              );
+              result
+                .find(CoverageChart)
+                .instance()
+                .resetZoom();
+              result.update();
+              t.notOk(
+                result.find(CoverageChartBody).instance().state.chart.options.scales.xAxes[0].length == 0,
+                "should clear limited x-axis"
+              );
+              done();
+            }, 400);
+          }, 400);
         }, 400);
       }, 400);
     }, 600);

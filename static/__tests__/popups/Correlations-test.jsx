@@ -65,7 +65,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering data", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
     result.update();
     setTimeout(() => {
@@ -103,7 +103,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering data and filtering it", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
     result.update();
     setTimeout(() => {
@@ -134,7 +134,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering data w/ one date column", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} />, {
       attachTo: document.getElementById("content"),
     });
@@ -158,7 +158,7 @@ describe("Correlations tests", () => {
 
   test("Correlations rendering data w/ no date columns", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} />, {
       attachTo: document.getElementById("content"),
     });

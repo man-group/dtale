@@ -3,11 +3,10 @@ import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -35,7 +34,7 @@ describe("DataViewer heatmap tests", () => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("", "True", 2);
+    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -45,12 +44,7 @@ describe("DataViewer heatmap tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .findWhere(b => _.includes(b.text(), "Heat Map"))
-        .first()
-        .simulate("click");
+      clickMainMenuButton(result, "Heat Map");
       result.update();
       let dv = result.find(ReactDataViewer).instance().state;
       t.ok(
@@ -67,12 +61,7 @@ describe("DataViewer heatmap tests", () => {
         ["dtale_index", "col2"],
         "should hide non-float columns"
       );
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .findWhere(b => _.includes(b.text(), "Heat Map"))
-        .first()
-        .simulate("click");
+      clickMainMenuButton(result, "Heat Map");
       dv = result.find(ReactDataViewer).instance().state;
       t.ok(_.filter(dv.columns, { visible: true }).length, 5, "should turn all columns back on");
       t.ok(

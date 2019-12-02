@@ -5,9 +5,10 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { JSAnchor } from "../JSAnchor";
-import { closeChart } from "../actions/charts";
+import { RemovableError } from "../RemovableError";
 import { buildURLString } from "../actions/url-utils";
 import { isDateCol } from "../dtale/gridUtils";
+import { fetchJson } from "../fetcher";
 import CoverageChartBody from "./CoverageChartBody";
 
 const DATE_FREQS = ["D", "W", "M", "Q", "Y"];
@@ -49,12 +50,23 @@ class ReactCoverageChart extends React.Component {
     this.renderLabel = this.renderLabel.bind(this);
   }
 
+  componentDidMount() {
+    fetchJson("/dtale/dtypes", data => {
+      if (data.error) {
+        this.setState({ error: <RemovableError {...data} /> });
+        return;
+      }
+      const { dtypes } = data;
+      this.setState({ columns: dtypes });
+    });
+  }
+
   shouldComponentUpdate(newProps, newState) {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
 
-    const stateProps = ["group", "col", "url", "zoomed"];
+    const stateProps = ["columns", "group", "col", "url", "zoomed"];
     if (!_.isEqual(_.pick(this.state, stateProps), _.pick(newState, stateProps))) {
       return true;
     }
@@ -129,16 +141,17 @@ class ReactCoverageChart extends React.Component {
   }
 
   render() {
-    const { chartData } = this.props;
-    const { visible, cols } = chartData;
-    const { group, col } = this.state;
+    const { group, col, columns } = this.state;
+    if (_.isEmpty(columns)) {
+      return null;
+    }
     return (
       <div className="row coverage-popup p-3">
         <div className="col-md-2">
           <label className="list-group-item">Group(s)</label>
           <div className="scrollable-list">
             <ul className="list-group">
-              {_.map(_.filter(cols, ({ name }) => !_.find(col, { name })), ({ dtype, name }, idx) => {
+              {_.map(_.filter(columns, ({ name }) => !_.find(col, { name })), ({ dtype, name }, idx) => {
                 const currSelection = _.find(group, { name }) || { name };
                 const isSelected = _.find(group, { name });
                 const isDate = isDateCol(dtype);
@@ -188,7 +201,7 @@ class ReactCoverageChart extends React.Component {
           <label className="list-group-item">Col(s)</label>
           <div className="scrollable-list">
             <ul className="list-group">
-              {_.map(_.filter(cols, ({ name }) => !_.find(group, { name })), ({ name }, idx) => {
+              {_.map(_.filter(columns, ({ name }) => !_.find(group, { name })), ({ name }, idx) => {
                 const props = {
                   className: `list-group-item list-group-item-action ${_.find(col, { name }) ? "active" : ""}`,
                   key: idx,
@@ -210,7 +223,7 @@ class ReactCoverageChart extends React.Component {
           </div>
           <CoverageChartBody
             ref={r => (this._chart = r)}
-            visible={visible}
+            visible={_.get(this.props, "chartData.visible", false)}
             url={this.state.url}
             col={_.map(col, "name")}
             group={_.map(group, "name")}
@@ -228,18 +241,10 @@ ReactCoverageChart.displayName = "CoverageChart";
 ReactCoverageChart.propTypes = {
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
-    cols: PropTypes.arrayOf(PropTypes.object),
     query: PropTypes.string,
   }),
 };
 
-function mapDispatchToProps(dispatch) {
-  return { onClose: () => dispatch(closeChart()) };
-}
-
-const ReduxCoverageChart = connect(
-  ({ chartData }) => ({ chartData }),
-  mapDispatchToProps
-)(ReactCoverageChart);
+const ReduxCoverageChart = connect(({ chartData }) => ({ chartData }))(ReactCoverageChart);
 
 export { ReactCoverageChart, ReduxCoverageChart as CoverageChart };

@@ -8,6 +8,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import InfiniteLoader from "react-virtualized/dist/commonjs/InfiniteLoader";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
+import actions from "../actions/dtale";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
@@ -15,9 +16,10 @@ import { DataViewerInfo, hasNoInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
 import { Formatting } from "./Formatting";
-import Header from "./Header";
+import { Header } from "./Header";
 import { MeasureText } from "./MeasureText";
 import * as gu from "./gridUtils";
+import { ColumnMenu } from "./iframe/ColumnMenu";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo", "query"];
@@ -54,11 +56,11 @@ class ReactDataViewer extends React.Component {
     this.getData = this.getData.bind(this);
   }
 
-  propagateState(state) {
+  propagateState(state, callback = _.noop) {
     if (_.has(state, "columns")) {
       state.columns = _.map(state.columns, c => _.assignIn(c, { width: gu.calcColWidth(c, this.state) }));
     }
-    this.setState(state);
+    this.setState(state, callback);
   }
 
   componentDidMount() {
@@ -137,11 +139,7 @@ class ReactDataViewer extends React.Component {
           this.setState({ loading: false, error: data.error, traceback: data.traceback });
           return;
         }
-        const newState = {
-          rowCount: data.total + 1,
-          data: _.assignIn(savedData, formattedData),
-          loading: false,
-        };
+        const newState = { rowCount: data.total + 1, data: _.assignIn(savedData, formattedData), loading: false };
         const { columns } = this.state;
         if (_.isEmpty(columns)) {
           const preLocked = _.concat(_.get(this.props, "settings.locked", []), [gu.IDX]);
@@ -261,6 +259,7 @@ class ReactDataViewer extends React.Component {
                       {...this.state}
                       key={1}
                       columnCount={gu.getActiveCols(this.state).length}
+                      onScroll={this.props.closeColumnMenu}
                       cellRenderer={this._cellRenderer}
                       height={gridHeight}
                       width={width - 3}
@@ -279,15 +278,21 @@ class ReactDataViewer extends React.Component {
         <Filter {...{ visible: filterOpen, propagateState: this.propagateState, query }} />
         <Formatting {...{ visible: formattingOpen, save: saveFormatting, propagateState: this.propagateState }} />
         <MeasureText />
+        <ColumnMenu
+          {..._.pick(this.state, ["columns", "sortInfo"])}
+          propagateState={this.propagateState}
+          noInfo={hasNoInfo(this.state)}
+        />
       </div>
     );
   }
 }
 ReactDataViewer.displayName = "ReactDataViewer";
-ReactDataViewer.propTypes = {
-  settings: PropTypes.object,
-};
+ReactDataViewer.propTypes = { settings: PropTypes.object, iframe: PropTypes.bool, closeColumnMenu: PropTypes.func };
 
-const ReduxDataViewer = connect()(ReactDataViewer);
+const ReduxDataViewer = connect(
+  ({ iframe }) => ({ iframe }),
+  dispatch => ({ closeColumnMenu: () => dispatch(actions.closeColumnMenu()) })
+)(ReactDataViewer);
 
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

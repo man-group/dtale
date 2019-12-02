@@ -46,7 +46,7 @@ describe("DataViewer tests", () => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />

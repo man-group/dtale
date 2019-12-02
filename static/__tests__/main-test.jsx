@@ -56,4 +56,16 @@ describe("main tests", () => {
     require("../polyfills");
     t.ok(true, "polyfills.js loaded");
   });
+
+  test("correlations_popup_main rendering", done => {
+    testMain("popups/window/correlations_popup_main");
+    done();
+  });
+
+  _.forEach(["correlations", "coverage", "describe", "histogram", "instances"], popup => {
+    test(`${popup}_popup_main rendering`, done => {
+      testMain(`popups/window/${popup}_popup_main`);
+      done();
+    });
+  });
 });

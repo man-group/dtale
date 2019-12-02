@@ -1,4 +1,5 @@
 import json
+import re
 from builtins import str
 
 import mock
@@ -64,6 +65,45 @@ def test_startup(unittest):
     views.startup(data_loader=lambda: test_data, port=port)
     pdt.assert_frame_equal(views.DATA[port], test_data.to_frame(index=False))
     unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'should lock index columns')
+
+
+@pytest.mark.unit
+def test_in_ipython_frontend():
+    import dtale.views as views
+
+    builtin_pkg = '__builtin__'
+    if PY3:
+        builtin_pkg = 'builtins'
+
+    orig_import = __import__
+
+    mock_ipython = mock.Mock()
+
+    class zmq(object):
+        __name__ = 'zmq'
+
+        def __init__(self):
+            pass
+
+    mock_ipython.get_ipython = lambda: zmq()
+
+    def import_mock(name, *args, **kwargs):
+        if name == 'IPython':
+            return mock_ipython
+        return orig_import(name, *args, **kwargs)
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        assert views.in_ipython_frontend()
+
+    def import_mock(name, *args, **kwargs):
+        if name == 'IPython':
+            raise ImportError()
+        return orig_import(name, *args, **kwargs)
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        assert not views.in_ipython_frontend()
 
 
 @pytest.mark.unit
@@ -623,6 +663,10 @@ def test_main():
             stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
             response = c.get('/dtale/main')
             assert '<title>D-Tale (test_name)</title>' in str(response.data)
+            response = c.get('/dtale/iframe')
+            assert '<title>D-Tale (test_name)</title>' in str(response.data)
+            response = c.get('/dtale/popup/test', query_string=dict(col='foo'))
+            assert '<title>D-Tale (test_name) - test (col: foo)</title>' in str(response.data)
 
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -634,7 +678,7 @@ def test_main():
 
 @pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main', 'site-map', 'version-info']
+    paths = ['/dtale/main', '/dtale/iframe', '/dtale/popup/test', 'site-map', 'version-info', 'health']
     try:
         # flake8: NOQA
         from flasgger import Swagger

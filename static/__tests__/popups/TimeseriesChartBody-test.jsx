@@ -67,7 +67,7 @@ describe("TimeseriesChartBody tests", () => {
 
   test("TimeseriesChartBody rendering chart per dataset", done => {
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const url = buildURL("ts-test", { tsColumns: { x1: ["y1"], x2: ["y2"] } });
     const result = mount(<TimeseriesChartBody url={url} visible={true} chartPerDataset={true} />, {
       attachTo: document.getElementById("content"),

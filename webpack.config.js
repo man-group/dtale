@@ -10,6 +10,11 @@ const entries = [
   ["base_styles", "./static/base_styles.js"],
   ["polyfills", "./static/polyfills.js"],
   ["dtale", "./static/dtale/dtale_main.jsx"],
+  ["correlations_popup", "./static/popups/window/correlations_popup_main.jsx"],
+  ["coverage_popup", "./static/popups/window/coverage_popup_main.jsx"],
+  ["describe_popup", "./static/popups/window/describe_popup_main.jsx"],
+  ["histogram_popup", "./static/popups/window/histogram_popup_main.jsx"],
+  ["instances_popup", "./static/popups/window/instances_popup_main.jsx"],
 ];
 
 function createConfig(entry) {

@@ -1,0 +1,15 @@
+{% extends "dtale/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block full_content %}
+<div class="container-fluid {{js_prefix}}">
+    <div id="popup-content">
+    </div>
+</div>
+{% endblock %}
+
+{% set js_file = 'dist/' + js_prefix + '_popup_bundle.js' %}
+{% block js %}
+<script type="text/javascript" src="{{ url_for('static', filename=js_file) }}"></script>
+{% endblock %}

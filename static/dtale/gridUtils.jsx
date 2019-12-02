@@ -168,6 +168,28 @@ function heatMapBackground({ raw, view }, { min, max }) {
   return heatMap((raw + factor) / (max + factor));
 }
 
+const SORT_PROPS = [
+  {
+    dir: "ASC",
+    full: { label: "Sort Ascending", icon: "fa fa-sort-down ml-4 mr-4" },
+    col: { label: "Asc", icon: "fa fa-sort-down" },
+  },
+  {
+    dir: "DESC",
+    full: { label: "Sort Descending", icon: "fa fa-sort-up ml-4 mr-4" },
+    col: { label: "Desc", icon: "fa fa-sort-up" },
+  },
+  {
+    dir: "NONE",
+    full: { label: "Clear Sort", icon: "fa fa-sort ml-4 mr-4" },
+    col: { label: "None", icon: "fa fa-sort" },
+  },
+];
+
+function buildToggleId(colName) {
+  return `col-${_.join(_.split(colName, " "), "_")}-toggle`;
+}
+
 export {
   buildDataProps,
   getActiveCols,
@@ -182,4 +204,6 @@ export {
   HEADER_HEIGHT,
   toggleHeatMap,
   heatMapBackground,
+  SORT_PROPS,
+  buildToggleId,
 };

@@ -9,7 +9,7 @@ import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -57,7 +57,7 @@ describe("DataViewer tests", () => {
     const Histogram = require("../../popups/Histogram").ReactHistogram;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML("");
+    buildInnerHTML({ settings: "" });
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -90,7 +90,10 @@ describe("DataViewer tests", () => {
           .find(DataViewerMenu)
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
-        ["Describe", "Filter", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About", "Shutdown"],
+        _.concat(
+          ["Describe", "Filter", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About"],
+          ["Iframe-Mode", "Shutdown"]
+        ),
         "Should render default menu options"
       );
 
@@ -119,16 +122,13 @@ describe("DataViewer tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
-          ["Histogram", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About", "Shutdown"]
+          ["Histogram", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About", "Iframe-Mode"],
+          ["Shutdown"]
         ),
         "Should render menu options associated with selected column"
       );
 
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(4)
-        .simulate("click");
+      clickMainMenuButton(result, "Sort Descending");
       t.equal(
         result
           .find("div.row div.col-md-4")
@@ -174,11 +174,7 @@ describe("DataViewer tests", () => {
         result.update();
 
         // move to front
-        result
-          .find(DataViewerMenu)
-          .find("ul li button")
-          .at(1)
-          .simulate("click");
+        clickMainMenuButton(result, "Move To Front");
         result.update();
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
@@ -187,11 +183,7 @@ describe("DataViewer tests", () => {
         );
 
         // lock
-        result
-          .find(DataViewerMenu)
-          .find("ul li button")
-          .at(2)
-          .simulate("click");
+        clickMainMenuButton(result, "Lock");
         result.update();
         t.deepEqual(
           result
@@ -209,11 +201,7 @@ describe("DataViewer tests", () => {
           .first()
           .simulate("click");
         result.update();
-        result
-          .find(DataViewerMenu)
-          .find("ul li button")
-          .at(2)
-          .simulate("click");
+        clickMainMenuButton(result, "Unlock");
         result.update();
         t.deepEqual(
           result
@@ -238,11 +226,7 @@ describe("DataViewer tests", () => {
             .last()
             .simulate("click");
           result.update();
-          result
-            .find(DataViewerMenu)
-            .find("ul li button")
-            .at(8)
-            .simulate("click");
+          clickMainMenuButton(result, "Histogram");
           setTimeout(() => {
             result.update();
             t.equal(result.find(Histogram).length, 1, "should show histogram");
@@ -253,16 +237,9 @@ describe("DataViewer tests", () => {
                 .first()
                 .simulate("click");
               t.equal(result.find(Histogram).length, 0, "should hide histogram");
-              result
-                .find(DataViewerMenu)
-                .find("ul li button")
-                .at(11)
-                .simulate("click");
-              result
-                .find(DataViewerMenu)
-                .find("ul li button")
-                .last()
-                .simulate("click");
+              clickMainMenuButton(result, "Resize");
+              clickMainMenuButton(result, "Iframe-Mode", "a");
+              clickMainMenuButton(result, "Shutdown", "a");
               done();
             }, 400);
           }, 400);

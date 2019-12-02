@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division
 
+import time
 import traceback
 import webbrowser
 from builtins import map, range, str, zip
@@ -29,6 +30,23 @@ DATA = {}
 DTYPES = {}
 SETTINGS = {}
 METADATA = {}
+IDX_COL = str('dtale_index')
+
+
+def in_ipython_frontend():
+    """
+    Helper function which is variation of :meth:`pandas:pandas.io.formats.console.in_ipython_frontend` which
+    checks to see if we are inside an IPython zmq frontend
+
+    :return: `True` if D-Tale is being invoked within ipython notebook, `False` otherwise
+    """
+    try:
+        from IPython import get_ipython
+        ip = get_ipython()
+        return 'zmq' in str(type(ip)).lower()
+    except BaseException:
+        pass
+    return False
 
 
 class DtaleData(object):
@@ -54,20 +72,124 @@ class DtaleData(object):
     def __init__(self, port):
         self._port = port
         self._url = build_url(port)
+        self._notebook_handle = None
 
     @property
     def data(self):
+        """
+        Property which is a reference to the globally stored data associated with this instance
+
+        """
         return DATA[self._port]
 
     @data.setter
     def data(self, data):
+        """
+        Setter which will go through all standard formatting to make sure changes will be handled correctly by D-Tale
+
+        """
         startup(data=data, port=self._port)
 
     def kill(self):
+        """
+        This function fires a request to this instance's 'shutdown' route to kill it
+
+        """
         requests.get(build_shutdown_url(self._port))
 
     def open_browser(self):
+        """
+        This function uses the :mod:`python:webbrowser` library to try and automatically open server's default browser
+        to this D-Tale instance
+        """
         webbrowser.get().open(self._url)
+
+    def is_up(self):
+        """
+        This function checks to see if instance's :mod:`flask:flask.Flask` process is up by hitting 'health' route
+
+        :return: `True` if :mod:`flask:flask.Flask` process is up and running, `False` otherwise
+        """
+        try:
+            return requests.get(self._url + '/health').ok
+        except BaseException:
+            return False
+
+    def __str__(self):
+        """
+        Will try to create an :class:`ipython:IPython.display.IFrame` if being invoked from within ipython notebook
+        otherwise simply returns the output of running :meth:`pandas:pandas.DataFrame.__str__` on the data associated
+        with this instance
+
+        """
+        if in_ipython_frontend():
+            self.notebook()
+            return ''
+        return self.data.__str__()
+
+    def __repr__(self):
+        """
+        Will try to create an :class:`ipython:IPython.display.IFrame` if being invoked from within ipython notebook
+        otherwise simply returns the output of running :meth:`pandas:pandas.DataFrame.__repr__` on the data for
+        this instance
+
+        """
+        if in_ipython_frontend():
+            self.notebook()
+            return ''
+        return self.data.__repr__()
+
+    def _build_iframe(self, width='100%', height=350):
+        """
+        Helper function to build an :class:`ipython:IPython.display.IFrame` if that module exists within
+        your environment
+
+        :param width: width of the ipython cell
+        :param height: height of the ipython cell
+        :return: :class:`ipython:IPython.display.IFrame`
+        """
+        try:
+            from IPython.display import IFrame
+        except ImportError:
+            logger.info('in order to use this function, please install IPython')
+            return None
+        return IFrame('{}/dtale/iframe'.format(self._url), width=width, height=height)
+
+    def notebook(self, width='100%', height=350):
+        """
+        Helper function which checks to see if :mod:`flask:flask.Flask` process is up and running and then tries to
+        build an :class:`ipython:IPython.display.IFrame` and run :meth:`ipython:IPython.display.display` on it so
+        it will be displayed in the ipython notebook which invoked it.
+
+        A reference to the :class:`ipython:IPython.display.DisplayHandle` is stored in _notebook_handle for
+        updating if you are running ipython>=5.0
+
+        :param width: width of the ipython cell
+        :param height: height of the ipython cell
+        """
+        try:
+            from IPython.display import display
+        except ImportError:
+            logger.info('in order to use this function, please install IPython')
+            return self.data.__repr__()
+
+        while not self.is_up():
+            time.sleep(0.01)
+
+        self._notebook_handle = display(self._build_iframe(width=width, height=height), display_id=True)
+
+    def adjust_cell_dimensions(self, width='100%', height=350):
+        """
+        If you are running ipython>=5.0 then this will update the most recent notebook cell you displayed D-Tale in
+        for this instance with the height/width properties you have passed in as input
+
+        :param width: width of the ipython cell
+        :param height: height of the ipython cell
+        """
+        if self._notebook_handle is not None:
+            self._notebook_handle.update(self._build_iframe(width=width, height=height))
+        else:
+            logger.debug('You must ipython>=5.0 installed to use this functionality')
 
 
 def build_dtypes_state(data):
@@ -75,7 +197,7 @@ def build_dtypes_state(data):
     Helper function to build globally managed state pertaining to a D-Tale instances columns & data types
 
     :param data: dataframe to build data type information for
-    :type data: pandas.DataFrame
+    :type data: :class:`pandas:pandas.DataFrame`
     :return: a list of dictionaries containing column names, indexes and data types
     """
     dtypes = get_dtypes(data)
@@ -94,6 +216,17 @@ def build_dtypes_state(data):
 
 
 def format_data(data):
+    """
+    Helper function to build globally managed state pertaining to a D-Tale instances data.  Some updates being made:
+     - convert all column names to strings
+     - drop any indexes back into the dataframe so what we are left is a natural index [0,1,2,...,n]
+     - convert inputs that are indexes into dataframes
+
+    :param data: dataframe to build data type information for
+    :type data: :class:`pandas:pandas.DataFrame`
+    :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
+             in the index
+    """
     if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
         data = data.to_frame(index=False)
 
@@ -107,12 +240,12 @@ def format_data(data):
 def startup(data=None, data_loader=None, port=None, name=None):
     """
     Loads and stores data globally
-    - If data has indexes then it will lock save those columns as locked on the front-end
-    - If data has column named index it will be dropped so that it won't collide with row numbering (dtale_index)
-    - Create location in memory for storing settings which can be manipulated from the front-end (sorts, filter, ...)
+     - If data has indexes then it will lock save those columns as locked on the front-end
+     - If data has column named index it will be dropped so that it won't collide with row numbering (dtale_index)
+     - Create location in memory for storing settings which can be manipulated from the front-end (sorts, filter, ...)
 
-    :param data: pandas.DataFrame or pandas.Series
-    :param data_loader: function which returns pandas.DataFrame
+    :param data: :class:`pandas:pandas.DataFrame` or :class:`pandas:pandas.Series`
+    :param data_loader: function which returns :class:`pandas:pandas.DataFrame`
     :param port: integer port for running Flask process
     :param name: string label to apply to your session
     """
@@ -167,7 +300,46 @@ def cleanup(port):
 
 
 def get_port():
+    """
+    Helper function to grab port information (SERVER_PORT) from Flask.request.environ
+
+    """
     return get_str_arg(request, 'port', request.environ.get('SERVER_PORT', 'curr'))
+
+
+def base_render_template(template, **kwargs):
+    """
+    Overriden version of Flask.render_template which will also include vital instance information
+     - settings
+     - version
+     - processes
+    """
+    port = get_port()
+    curr_settings = SETTINGS.get(port, {})
+    _, version = retrieve_meta_info_and_version('dtale')
+    return render_template(
+        template,
+        settings=json.dumps(curr_settings),
+        version=str(version),
+        processes=len(DATA),
+        **kwargs
+    )
+
+
+def _view_main(iframe=False):
+    """
+    Helper function rendering main HTML which will also build title and store whether we are viewing from an <iframe>
+
+    :param iframe: boolean flag indicating whether this is being viewed from an <iframe> (usually means ipython)
+    :type iframe: bool
+    :return: HTML
+    """
+    port = get_port()
+    curr_metadata = METADATA.get(port, {})
+    title = 'D-Tale'
+    if curr_metadata.get('name'):
+        title = '{} ({})'.format(title, curr_metadata['name'])
+    return base_render_template('dtale/main.html', title=title, iframe=iframe)
 
 
 @dtale.route('/main')
@@ -178,16 +350,35 @@ def view_main():
 
     :return: HTML
     """
+    return _view_main()
+
+
+@dtale.route('/iframe')
+@swag_from('swagger/dtale/views/main.yml')
+def view_iframe():
+    """
+    Flask route which serves up base jinja template housing JS files
+
+    :return: HTML
+    """
+    return _view_main(iframe=True)
+
+
+@dtale.route('/popup/<popup_type>')
+def view_popup(popup_type):
     port = get_port()
-    curr_settings = SETTINGS.get(port, {})
     curr_metadata = METADATA.get(port, {})
-    _, version = retrieve_meta_info_and_version('dtale')
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
-    return render_template(
-        'dtale/main.html', settings=json.dumps(curr_settings), version=str(version), processes=len(DATA), title=title
-    )
+    title = '{} - {}'.format(title, popup_type)
+    params = request.args.to_dict()
+    if len(params):
+
+        def pretty_print(obj):
+            return ', '.join(['{}: {}'.format(k, str(v)) for k, v in obj.items()])
+        title = '{} ({})'.format(title, pretty_print(params))
+    return base_render_template('dtale/popup.html', title=title, js_prefix=popup_type)
 
 
 @dtale.route('/processes')
@@ -300,11 +491,11 @@ def dtypes():
 
 def load_describe(column_series):
     """
-    Helper function for grabbing the output from pandas.Series.describe in a JSON serializable format
+    Helper function for grabbing the output from :meth:`pandas:pandas.Series.describe` in a JSON serializable format
 
     :param column_series: data to describe
-    :type column_series: pandas.Series
-    :return: JSON serializable dictionary of the output from calling pandas.Series.describe
+    :type column_series: :class:`pandas:pandas.Series`
+    :return: JSON serializable dictionary of the output from calling :meth:`pandas:pandas.Series.describe`
     """
     desc = column_series.describe().to_frame().T
     desc_f_overrides = {
@@ -323,13 +514,13 @@ def load_describe(column_series):
 @swag_from('swagger/dtale/views/describe.yml')
 def describe(column):
     """
-    Flask route which returns standard details about column data using pandas.DataFrame[col].describe to
+    Flask route which returns standard details about column data using :meth:`pandas:pandas.DataFrame.describe` to
     the front-end as JSON
 
     :param column: required dash separated string "START-END" stating a range of row indexes to be returned
                    to the screen
     :return: JSON {
-        describe: object representing output from pandas.Series.describe,
+        describe: object representing output from :meth:`pandas:pandas.Series.describe`,
         unique_data: array of unique values when data has <= 100 unique values
         success: True/False
     }
@@ -392,8 +583,8 @@ def get_data():
             ids = json.loads(ids)
         else:
             return jsonify({})
-        col_types = DTYPES[port]
 
+        col_types = DTYPES[port]
         f = grid_formatter(col_types)
         curr_settings = SETTINGS.get(port, {})
         if curr_settings.get('sort') != params.get('sort'):
@@ -412,24 +603,19 @@ def get_data():
 
         total = len(data)
         results = {}
-        idx_col = str('dtale_index')
         for sub_range in ids:
             sub_range = list(map(int, sub_range.split('-')))
             if len(sub_range) == 1:
                 sub_df = data.iloc[sub_range[0]:sub_range[0] + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
-                results[sub_range[0]] = dict_merge({idx_col: sub_range[0]}, sub_df[0])
+                results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
             else:
                 [start, end] = sub_range
                 sub_df = data.iloc[start:] if end >= len(data) - 1 else data.iloc[start:end + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
-                    results[i] = dict_merge({idx_col: i}, d)
-        return_data = dict(
-            results=results,
-            columns=[dict(name=idx_col, dtype='int64')] + col_types,
-            total=total
-        )
+                    results[i] = dict_merge({IDX_COL: i}, d)
+        return_data = dict(results=results, columns=[dict(name=IDX_COL, dtype='int64')] + DTYPES[port], total=total)
         return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -469,7 +655,10 @@ def get_histogram():
 def get_correlations():
     """
     Flask route which gathers Pearson correlations against all combinations of columns with numeric data
-    using pandas.DataFrame.corr
+    using :meth:`pandas:pandas.DataFrame.corr`
+
+    On large datasets with no :attr:`numpy:numpy.nan` data this code will use :meth:`numpy:numpy.corrcoef`
+    for speed purposes
 
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :returns: JSON {
@@ -545,7 +734,7 @@ def _build_timeseries_chart_data(name, df, cols, min=None, max=None, sub_group=N
 def get_correlations_ts():
     """
     Flask route which returns timeseries of Pearson correlations of two columns with numeric data
-    using pandas.DataFrame.corr
+    using :meth:`pandas:pandas.DataFrame.corr`
 
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param cols: comma-separated string from flask.request.args['cols'] containing names of two columns in dataframe

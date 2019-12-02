@@ -56,9 +56,9 @@ def build_shutdown_url(port):
 
 def get_str_arg(r, name, default=None):
     """
-    Retrieve argument from flask request object and convert to string
+    Retrieve argument from :attr:`flask:flask.request` and convert to string
 
-    :param r: :meth:`flask.request`
+    :param r: :attr:`flask:flask.request`
     :param name: argument name
     :type: str
     :param default: default value if parameter is non-existent, defaults to None
@@ -76,9 +76,9 @@ def get_str_arg(r, name, default=None):
 
 def get_int_arg(r, name, default=None):
     """
-    Retrieve argument from flask request object and convert to integer
+    Retrieve argument from :attr:`flask:flask.request` and convert to integer
 
-    :param r: :meth:`flask.request`
+    :param r: :attr:`flask:flask.request`
     :param name: argument name
     :type: str
     :param default: default value if parameter is non-existent, defaults to None
@@ -96,9 +96,9 @@ def get_int_arg(r, name, default=None):
 
 def get_float_arg(r, name, default=None):
     """
-    Retrieve argument from flask request object and convert to float
+    Retrieve argument from :attr:`flask:flask.request` and convert to float
 
-    :param r: :meth:`flask.request`
+    :param r: :attr:`flask:flask.request`
     :param name: argument name
     :type: str
     :param default: default value if parameter is non-existent, defaults to None
@@ -116,9 +116,9 @@ def get_float_arg(r, name, default=None):
 
 def get_bool_arg(r, name):
     """
-    Retrieve argument from flask request object and convert to boolean
+    Retrieve argument from :attr:`flask:flask.request` and convert to boolean
 
-    :param r: :meth:`flask.request`
+    :param r: :attr:`flask:flask.request`
     :param name: argument name
     :type: str
     :return: `True` if lowercase value equals 'true', `False` otherwise
@@ -131,7 +131,7 @@ def json_string(x, nan_display=''):
     convert value to string to be used within JSON output
 
     :param x: value to be converted to string
-    :param nan_display: if `x` is nan then return this value
+    :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: string value
     :rtype: str
     """
@@ -145,7 +145,7 @@ def json_int(x, nan_display='', as_string=False):
     Convert value to integer to be used within JSON output
 
     :param x: value to be converted to integer
-    :param nan_display: if `x` is nan then return this value
+    :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :param as_string: return integer as a formatted string (EX: 1,000,000)
     :return: integer value
     :rtype: int
@@ -170,7 +170,7 @@ def json_float(x, precision=2, nan_display='nan', as_string=False):
 
     :param x: value to be converted to integer
     :param precision: precision of float to be returned
-    :param nan_display: if `x` is nan then return this value
+    :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :param as_string: return float as a formatted string (EX: 1,234.5643)
     :return: float value
     :rtype: float
@@ -194,7 +194,7 @@ def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display=''):
 
     :param x: value to be converted to date string
     :param fmt: the data string formatting to be applied
-    :param nan_display: if `x` is nan then return this value
+    :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: date string value
     :rtype: str (YYYY-MM-DD)
     """
@@ -214,7 +214,7 @@ def json_timestamp(x, nan_display=''):
     Convert value to timestamp (milliseconds) to be used within JSON output
 
     :param x: value to be converted to milliseconds
-    :param nan_display: if `x` is nan then return this value
+    :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: millisecond value
     :rtype: bigint
     """
@@ -280,7 +280,7 @@ class JSONFormatter(object):
 def classify_type(type_name):
     """
 
-    :param type_name: string label for value from :meth:`pandas.DataFrame.dtypes`
+    :param type_name: string label for value from :meth:`pandas:pandas.DataFrame.dtypes`
     :return: shortened string label for dtype
         S = str
         B = bool
@@ -308,9 +308,9 @@ def classify_type(type_name):
 
 def retrieve_grid_params(req, props=None):
     """
-    Pull out grid parameters from :meth:`flask.request` arguments and return as a `dict`
+    Pull out grid parameters from :attr:`flask:flask.request` arguments and return as a `dict`
 
-    :param req: :meth:`flask.request`
+    :param req: :attr:`flask:flask.request`
     :param props: argument names
     :type props: list
     :return: dictionary of argument/value pairs
@@ -354,11 +354,11 @@ def sort_df_for_grid(df, params):
     }
 
     :param df: dataframe
-    :type df: :class:`pandas.DataFrame`
-    :param params: arguments from flask request
+    :type df: :class:`pandas:pandas.DataFrame`
+    :param params: arguments from :attr:`flask:flask.request`
     :type params: dict
     :return: sorted dataframe
-    :rtype: :class:`pandas.DataFrame`
+    :rtype: :class:`pandas:pandas.DataFrame`
     """
     if 'sort' in params:
         cols, dirs = [], []
@@ -421,11 +421,11 @@ def filter_df_for_grid(df, params):
     }
 
     :param df: dataframe
-    :type df: :class:`pandas.DataFrame`
-    :param params: arguments from flask request
+    :type df: :class:`pandas:pandas.DataFrame`
+    :param params: arguments from :attr:`flask:flask.request`
     :type params: dict
     :return: filtering dataframe
-    :rtype: :class:`pandas.DataFrame`
+    :rtype: :class:`pandas:pandas.DataFrame`
     """
     data_type_info = get_dtypes(df)
     for col, filter_cfg in params.get('filters', {}).items():
@@ -465,7 +465,7 @@ def filter_df_for_grid(df, params):
 
 def get_dtypes(df):
     """
-    Build dictionary of column/dtype name pairs from :class:`pandas.DataFrame`
+    Build dictionary of column/dtype name pairs from :class:`pandas:pandas.DataFrame`
     """
     def _load():
         for col, dtype in df.dtypes.to_dict().items():
@@ -478,7 +478,7 @@ def get_dtypes(df):
 
 def grid_columns(df):
     """
-    Build list of {name, dtype} dictionaries for columns in :class:`pandas.DataFrame`
+    Build list of {name, dtype} dictionaries for columns in :class:`pandas:pandas.DataFrame`
     """
     data_type_info = get_dtypes(df)
     return [dict(name=c, dtype=data_type_info[c]) for c in df.columns]
@@ -505,7 +505,7 @@ def find_dtype_formatter(dtype):
 
 def grid_formatter(col_types, nan_display='', overrides=None):
     """
-    Build :class:`dtale.utils.JSONFormatter` from :class:`pandas.DataFrame`
+    Build :class:`dtale.utils.JSONFormatter` from :class:`pandas:pandas.DataFrame`
     """
     f = JSONFormatter(nan_display)
     mappings = dict_merge(DF_MAPPINGS, overrides or {})
@@ -518,7 +518,7 @@ def grid_formatter(col_types, nan_display='', overrides=None):
 
 def format_grid(df):
     """
-    Translate :class:`pandas.DataFrame` to well-formed JSON.  Structure is as follows:
+    Translate :class:`pandas:pandas.DataFrame` to well-formed JSON.  Structure is as follows:
     {
         results: [
             {col1: val1_row1,...,colN: valN_row1},
@@ -533,7 +533,7 @@ def format_grid(df):
     }
 
     :param df: dataframe
-    :type df: :class:`pandas.DataFrame`
+    :type df: :class:`pandas:pandas.DataFrame`
     :return: JSON
     """
     col_types = grid_columns(df)
@@ -555,9 +555,9 @@ def jsonify(return_data={}, **kwargs):
     """
     Overriding Flask's jsonify method to account for extra error handling
 
-    :param return_data: dictionary of data to be passed to :meth:`flask.jsonify`
+    :param return_data: dictionary of data to be passed to :meth:`flask:flask.jsonify`
     :param kwargs: Optional keyword arguments merged into return_data
-    :return: output of :meth:`flask.jsonify`
+    :return: output of :meth:`flask:flask.jsonify`
     """
     if isinstance(return_data, dict) and return_data.get('error'):
         handle_error(return_data)
@@ -574,7 +574,7 @@ def find_selected_column(data, col):
     in which case we want the last column
 
     :param data: dataframe
-    :type data: :class:`pandas.DataFrame`
+    :type data: :class:`pandas:pandas.DataFrame`
     :param col: column name
     :type col: str
     :return: column name if it exists within the dataframe's columns, the last column within the dataframe otherwise

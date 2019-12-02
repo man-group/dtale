@@ -13,6 +13,7 @@ function createConfig(subConfig) {
     optimization: {
       minimizer: [
         new TerserPlugin({
+          parallel: false,
           terserOptions: {
             warnings: false,
           },

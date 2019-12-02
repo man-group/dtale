@@ -10,9 +10,40 @@
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 
+## What is it?
+
+D-Tale was born out a conversion from SAS to Python.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas dat structures.  D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.  It integrates seamlessly with ipython notebooks & python/ipython terminals.
+
+## Contents
+
+- [Getting Started](#getting-started)
+  - [Python Terminal](#python-terminal)
+  - [Jupyter Notebook](#jupyter-notebook)
+  - [Command-line](#command-line)
+- [UI](#ui)
+  - [Dimensions/Main Menu](#dimensionsmain-menu)
+  - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
+  - [Menu functions w/ no columns selected](#menu-functions-w-no-columns-selected)
+    - [Describe](#describe), [Coverage](#coverage), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
+  - [Menu functions w/ column(s) selected](#menu-functions-w-columns-selected)
+    - [Move To Front](#move-to-front), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
+  - [Menu functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
+- [For Developers](#for-developers)
+  - [Cloning](#cloning)
+  - [Running Tests](#running-tests)
+  - [Linting](#linting)
+  - [Formatting JS](#formatting-js)
+  - [Docker Development](#docker-development)
+- [Documentation](#documentation)
+- [Requirements](#requirements)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
 ## Getting Started
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)
+|PyCharm|jupyter|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_ipython.gif)|
 
 Setup/Activate your environment and install the egg
 
@@ -36,6 +67,57 @@ $ pip install --upgrade dtale
 ```
 Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
 
+### Python Terminal
+This comes courtesy of PyCharm
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
+Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
+
+#### Additional functions available programatically
+```python
+import dtale
+import pandas as pd
+
+df = pd.DataFrame([dict(a=1,b=2,c=3)])
+
+# Assigning a reference to a running D-Tale process
+d = dtale.show(df)
+
+# Accessing data associated with D-Tale process
+tmp = d.data.copy()
+tmp['d'] = 4
+
+# Altering data associated with D-Tale process
+# FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
+d.data = tmp
+
+# Shutting down D-Tale process
+d.kill()
+
+# using Python's `webbrowser` package it will try and open your server's default browser to this process
+d.open_browser()
+
+# There is also some helpful metadata about the process
+d._port  # the process's port
+d._url  # the url to access the process
+
+```
+
+### Jupyter Notebook
+Within any jupyter (ipython) notebook executing a cell like this will display a small instance of D-Tale in the output cell.  Here are some examples:
+
+|`dtale.show`|assignment|instance|
+|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython3.png)|
+
+If you are running ipython<=5.0 then you also have the ability to adjust the size of your output cell for the most recent instance displayed:
+
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython_adjust.png)
+
+One thing of note is that alot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
+
+|Column Menus|Correlations|Describe|Histogram|Coverage|Instances|
+|:------:|:------:|:------:|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/coverage_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
 
@@ -121,52 +203,18 @@ Here's how you would use this loader:
 DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
 ```
 
-
-### Python Terminal
-This comes courtesy of PyCharm
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
-Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
-#####Additional functions available programatically
-```python
-import dtale
-import pandas as pd
-
-df = pd.DataFrame([dict(a=1,b=2,c=3)])
-
-# Assigning a reference to a running D-Tale process
-d = dtale.show(df)
-
-# Accessing data associated with D-Tale process
-tmp = d.data.copy()
-tmp['d'] = 4
-
-# Altering data associated with D-Tale process
-# FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
-d.data = tmp
-
-# Shutting down D-Tale process
-d.kill()
-
-# using Python's `webbrowser` package it will try and open your server's default browser to this process
-d.open_browser()
-
-# There is also some helpful metadata about the process
-d._port  # the process's port
-d._url  # the url to access the process
-
-```
-
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Browser1.png)
 
-The information in the upper right-hand corner is similar to saslook ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_cell.png)
+### Dimensions/Main Menu
+The information in the upper right-hand corner gives grid dimensions ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_cell.png)
 - lower-left => row count
 - upper-right => column count
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu_small.png)
 
-Selecting/Deselecting Columns
+### Selecting/Deselecting Columns
 - to select a column, simply click on the column header (to deselect, click the column header again)
   - You'll notice that the columns you've selected will display in the top of your browser
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_select.png)
@@ -175,7 +223,8 @@ Selecting/Deselecting Columns
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu.png)
 
-- **Describe**: view all the columns & their data types as well as individual details of each column
+#### Describe
+View all the columns & their data types as well as individual details of each column
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe.png)
 
@@ -186,13 +235,15 @@ Selecting/Deselecting Columns
 |int|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
 |float|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_float.png)||
 
-- **Filter**: apply a simple pandas `query` to your data (link to pandas documentation included in popup)
+#### Filter
+Apply a simple pandas `query` to your data (link to pandas documentation included in popup)
 
 |Editing|Result|
 |--------|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
 
-- **Coverage**: check for coverage gaps on column(s) by way of other column(s) as group(s)
+#### Coverage
+Check for coverage gaps on column(s) by way of other column(s) as group(s)
   - Select column(s) in "Group(s)" & "Col(s)"
     - date-type columns you can also specify a frequency of D, W, M, Q, Y
     - Select multiple values in "Cols(s)" and/or "Groups(s)" by holdings the SHIFT key as you click
@@ -203,7 +254,8 @@ Selecting/Deselecting Columns
 |-----|:-------------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily_regions.png)|
 
-- **Correlations**: shows a pearson correlation matrix of all numeric columns against all other numeric columns
+#### Correlations
+Shows a pearson correlation matrix of all numeric columns against all other numeric columns
   - By deafult, it will show a grid of pearson correlations (filtering available by using drop-down see 2nd table of screenshots)
   - If you have a date-type column, you can click an individual cell and see a timeseries of pearson correlations for that column combination
     - Currently if you have multiple date-type columns you will have the ability to toggle between them by way of a drop-down
@@ -217,7 +269,8 @@ Selecting/Deselecting Columns
 |------|----------|-------|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_both.png)|
 
-- **Heat Map**: this will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
+#### Heat Map
+This will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
   - Each float is renormalized to be a value between 0 and 1.0
   - Each renormalized value is passed to a color scale of red(0) - yellow(0.5) - green(1.0)
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap.png)
@@ -225,7 +278,8 @@ Selecting/Deselecting Columns
 Turn off Heat Map by clicking menu option again
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap_toggle.png)
 
-- **Instances**: this will give you information about other D-Tale instances are running under your current Python process.
+#### Instances
+This will give you information about other D-Tale instances are running under your current Python process.
 
 For example, if you ran the following script:
 ```python
@@ -258,27 +312,44 @@ Here is an example of clicking the "Preview" button:
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances_preview.png)
 
-- **About**: This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
+#### About
+This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
 
 |Up To Date|Out Of Date|
 |--------|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-out-of-date.png)|
 
-- **Resize**: mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
-- **Shutdown**: pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
+#### Resize
+Mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 
-### Menu functions w/ one column is selected
+#### Iframe-mode/Full-mode
+This is only available if you are not viewing D-Tale from an jupyter notebook output cell.  This will toggle between the two types of functionality:
+- **Full-mode**: column selection, column-specific options in in the main menu & all tools are displayed in modal windows
+- **Iframe-mode**: no column selection, column-specific menus on head click & some tools will now open separate browser windows (Correlations, Coverage, Describe, Histogram & Instances)
+
+#### Shutdown
+Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
+
+### Menu functions w/ column(s) selected
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Menu_one_col.png)
 
-- **Move To Front**: moves your column to the front of the "unlocked" columns
-- **Lock**: adds your column to "locked" columns
+#### Move To Front
+Moves your column to the front of the "unlocked" columns
+
+#### Lock
+Adds your column to "locked" columns
   - "locked" means that if you scroll horizontally these columns will stay pinned to the right-hand side
   - this is handy when you want to keep track of which date or security_id you're looking at
   - by default, any index columns on the data passed to D-Tale will be locked
-- **Unlock**: removed column from "locked" columns
-- **Sorting** (Ascending/Descending/Clear): applies/removes sorting to the column selected
-  - Important: as you add sorts they sort added will be added to the end of the multi-sort.  For example:
+
+#### Unlock
+Removed column from "locked" columns
+
+#### Sorting
+Applies/removes sorting (Ascending/Descending/Clear) to the column selected
+  
+*Important*: as you add sorts they sort added will be added to the end of the multi-sort.  For example:
 
 | Action        | Sort           |
 | ------------- |:--------------:|
@@ -294,7 +365,8 @@ Here is an example of clicking the "Preview" button:
 | clear sort   | |
 | sort asc     | a (asc), b(asc) | 
 
-- **Formats**: apply simple formats to numeric values in your grid
+#### Formats
+Apply simple formats to numeric values in your grid
 
 |Editing|Result|
 |--------|:------:|
@@ -311,13 +383,20 @@ Here's a grid of all the formats available with -123456.789 as input:
 | BPS           | -1234567890BPS |
 | Red Negatives | <span style="color: red;">-123457</span>|
 
-- **Histogram**: display histograms in bins of 5, 10, 20 or 50 for any numeric column
+#### Histogram
+Display histograms in bins of 5, 10, 20 or 50 for any numeric column
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
 
+### Menu functions within a Jupyter Notebook
+These are the same functions as the menu listed earlier, but there is no more column selection (instead theres menus for each column).  Also the following buttons will no longer open modals, but separate browser windows:  Correlations, Describe, Coverage & Instances (see images from [Jupyter Notebook](#jupyter-notebook))
+
+There are also menus associated with each column header which can be trigger by clicking on a column header.  The functions that are contained within each are: Sorting, Move To Front, Lock/Unlock, Histogram, Describe, Formats (see image from [Jupyter Notebook](#jupyter-notebook))
+ - Histogram & Describe open separate browser windows
+
 ## For Developers
 
-### Getting Started
+### Cloning
 
 Clone the code (git clone ssh://git@github.com:manahl/dtale.git), then start the backend server:
 
@@ -378,7 +457,7 @@ You can auto-format code as follows:
 $ npm run format
 ```
 
-### Docker development
+### Docker Development
 
 You can build python 27-3 & run D-Tale as follows:
 ```bash
@@ -439,6 +518,9 @@ Contributors:
  * [Dominik Christ](https://github.com/DominikMChrist)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
+ * [Tom Taylor](https://github.com/TomTaylorLondon)
+ * [Vincent Riemer](https://github.com/vincentriemer)
+ * Mike Kelly
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...
 

@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.4.1",
+    version="1.5.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -73,6 +73,7 @@ setup(
         'flasgger': ["jsonschema<3.0.0", "flasgger==0.9.3"]
     },
     tests_require=[
+        "ipython",
         "mock",
         "pytest==4.6.4",
         "pytest-cov",
