@@ -95,7 +95,13 @@ class ReactPopup extends React.Component {
     }
     const onClose = () => this.props.onClose({ size: size || "modal-lg" });
     return (
-      <Modal {...{ isOpen: visible, onRequestHide: onClose, size: size || "modal-lg", backdrop: backdrop || false }}>
+      <Modal
+        {...{
+          isOpen: visible,
+          onRequestHide: onClose,
+          size: size || "modal-lg",
+          backdrop: backdrop || false,
+        }}>
         <ModalHeader>
           {modalTitle}
           <ModalClose onClick={onClose} />
@@ -134,9 +140,6 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-const ReduxPopup = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(ReactPopup);
+const ReduxPopup = connect(mapStateToProps, mapDispatchToProps)(ReactPopup);
 
 export { ReactPopup, ReduxPopup as Popup };

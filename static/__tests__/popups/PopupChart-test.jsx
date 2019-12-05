@@ -18,8 +18,12 @@ describe("Popup tests", () => {
     );
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("../../popups/Histogram", () => ({ Histogram: mockReactHistogram }));
-    jest.mock("../../popups/Correlations", () => ({ Correlations: mockReactCorrelations }));
+    jest.mock("../../popups/Histogram", () => ({
+      Histogram: mockReactHistogram,
+    }));
+    jest.mock("../../popups/Correlations", () => ({
+      Correlations: mockReactCorrelations,
+    }));
   });
 
   test("Popup w/ Histogram initial rendering", () => {
@@ -45,7 +49,11 @@ describe("Popup tests", () => {
     const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
-      chartData: { visible: true, type: "correlations", title: "Correlations Test" },
+      chartData: {
+        visible: true,
+        type: "correlations",
+        title: "Correlations Test",
+      },
     };
 
     const result = shallow(<ReactPopup {...props} onClose={_.noop} />);

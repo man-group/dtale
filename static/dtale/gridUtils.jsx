@@ -2,8 +2,8 @@ import chroma from "chroma-js";
 import _ from "lodash";
 import numeral from "numeral";
 
-import { buildStyling } from "./Formatting";
 import { measureText } from "./MeasureText";
+import { buildStyling } from "./dataViewerMenuUtils";
 
 const IDX = "dtale_index";
 const DEFAULT_COL_WIDTH = 70;
@@ -130,12 +130,23 @@ const HEADER_HEIGHT = 35;
 function buildGridStyles(headerHeight = HEADER_HEIGHT) {
   return {
     style: { border: "1px solid #ddd" },
-    styleBottomLeftGrid: { borderRight: "2px solid #aaa", backgroundColor: "#f7f7f7" },
+    styleBottomLeftGrid: {
+      borderRight: "2px solid #aaa",
+      backgroundColor: "#f7f7f7",
+    },
     styleTopLeftGrid: _.assignIn(
       { height: headerHeight + 15 },
-      { borderBottom: "2px solid #aaa", borderRight: "2px solid #aaa", fontWeight: "bold" }
+      {
+        borderBottom: "2px solid #aaa",
+        borderRight: "2px solid #aaa",
+        fontWeight: "bold",
+      }
     ),
-    styleTopRightGrid: { height: headerHeight + 15, borderBottom: "2px solid #aaa", fontWeight: "bold" },
+    styleTopRightGrid: {
+      height: headerHeight + 15,
+      borderBottom: "2px solid #aaa",
+      fontWeight: "bold",
+    },
     enableFixedColumnScroll: true,
     enableFixedRowScroll: true,
     hideTopRightGridScrollbar: true,
@@ -190,6 +201,32 @@ function buildToggleId(colName) {
   return `col-${_.join(_.split(colName, " "), "_")}-toggle`;
 }
 
+function buildState(props) {
+  return {
+    ...buildGridStyles(),
+    numberFormats: _.get(props, "settings.formats", {}),
+    overscanColumnCount: 0,
+    overscanRowCount: 5,
+    rowHeight: ({ index }) => (index == 0 ? HEADER_HEIGHT : ROW_HEIGHT),
+    rowCount: 0,
+    fixedColumnCount: _.size(_.concat(_.get(props, "settings.locked", []), [IDX])),
+    fixedRowCount: 1,
+    data: {},
+    loading: false,
+    ids: [0, 55],
+    loadQueue: [],
+    columns: [],
+    query: _.get(props, "settings.query", ""),
+    sortInfo: _.get(props, "settings.sort", []),
+    selectedCols: [],
+    menuOpen: false,
+    filterOpen: false,
+    formattingOpen: false,
+    triggerResize: false,
+    heatMapMode: false,
+  };
+}
+
 export {
   buildDataProps,
   getActiveCols,
@@ -206,4 +243,5 @@ export {
   heatMapBackground,
   SORT_PROPS,
   buildToggleId,
+  buildState,
 };

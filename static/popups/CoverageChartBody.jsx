@@ -26,7 +26,15 @@ const COLOR_PROPS = [
 
 function createChart(ctx, fetchedData, { group, additionalOptions }) {
   const { data } = fetchedData;
-  const labels = _.map(fetchedData.labels, l => _.join(_.map(_.filter(group, g => _.has(l, g)), g => l[g]), ","));
+  const labels = _.map(fetchedData.labels, l =>
+    _.join(
+      _.map(
+        _.filter(group, g => _.has(l, g)),
+        g => l[g]
+      ),
+      ","
+    )
+  );
   const colors = chroma.scale(["orange", "yellow", "green", "lightblue", "darkblue"]).domain([0, _.size(data)]);
   return chartUtils.createChart(ctx, {
     type: "line",
@@ -139,11 +147,17 @@ class CoverageChartBody extends React.Component {
       toggleBouncer();
       if (this.mounted) {
         if (fetchedChartData.error) {
-          this.setState({ error: <RemovableError {...fetchedChartData} />, chart: null });
+          this.setState({
+            error: <RemovableError {...fetchedChartData} />,
+            chart: null,
+          });
           return;
         }
         if (_.isEmpty(_.get(fetchedChartData, "data", {}))) {
-          this.setState({ error: <RemovableError error="No data found." />, chart: null });
+          this.setState({
+            error: <RemovableError error="No data found." />,
+            chart: null,
+          });
           return;
         }
         const builder = ctx => {

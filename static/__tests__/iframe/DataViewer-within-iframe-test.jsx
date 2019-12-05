@@ -16,8 +16,14 @@ describe("DataViewer within iframe tests", () => {
   const { location, open, top, self } = window;
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
 
     delete window.location;
     delete window.open;

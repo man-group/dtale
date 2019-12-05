@@ -26,7 +26,12 @@ function renderProcessLabel({ start, name }) {
 class Instances extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { processes: {}, loadingProcesses: false, preview: null, loadingPreview: false };
+    this.state = {
+      processes: {},
+      loadingProcesses: false,
+      preview: null,
+      loadingPreview: false,
+    };
     this.viewPreview = this.viewPreview.bind(this);
     this.renderPreview = this.renderPreview.bind(this);
   }
@@ -43,7 +48,10 @@ class Instances extends React.Component {
   viewPreview(instance) {
     this.setState({ loadingPreview: true });
     fetchJson(`/dtale/data?ids=${JSON.stringify(["0-5"])}&port=${instance.port}`, preview =>
-      this.setState({ preview: _.assignIn({ instance }, preview), loadingPreview: false })
+      this.setState({
+        preview: _.assignIn({ instance }, preview),
+        loadingPreview: false,
+      })
     );
   }
 
@@ -178,14 +186,22 @@ class Instances extends React.Component {
                     width={50}
                     dataKey="rows"
                     label="Rows"
-                    style={{ textAlign: "right", paddingRight: ".5em", fontSize: "80%" }}
+                    style={{
+                      textAlign: "right",
+                      paddingRight: ".5em",
+                      fontSize: "80%",
+                    }}
                     className="cell"
                   />
                   <Column
                     width={50}
                     dataKey="columns"
                     label="Cols"
-                    style={{ textAlign: "right", paddingRight: ".5em", fontSize: "80%" }}
+                    style={{
+                      textAlign: "right",
+                      paddingRight: ".5em",
+                      fontSize: "80%",
+                    }}
                     className="cell"
                   />
                   <Column
@@ -193,7 +209,11 @@ class Instances extends React.Component {
                     flexGrow={1}
                     dataKey="names"
                     label="Column Names"
-                    style={{ textAlign: "center", paddingRight: ".5em", fontSize: "80%" }}
+                    style={{
+                      textAlign: "center",
+                      paddingRight: ".5em",
+                      fontSize: "80%",
+                    }}
                     cellRenderer={({ rowData }) => (
                       <span title={rowData.names.length > 30 ? _.join(_.split(rowData.names, ","), "\n") : null}>
                         {_.truncate(rowData.names)}
@@ -205,7 +225,11 @@ class Instances extends React.Component {
                     width={75}
                     dataKey="port"
                     label=""
-                    style={{ textAlign: "center", paddingRight: ".5em", fontSize: "80%" }}
+                    style={{
+                      textAlign: "center",
+                      paddingRight: ".5em",
+                      fontSize: "80%",
+                    }}
                     cellRenderer={({ rowData }) => {
                       if (rowData.port === currentPort) {
                         return null;

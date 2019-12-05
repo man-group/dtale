@@ -16,7 +16,10 @@ describe("fetcher tests", () => {
     const { fetchJson } = require("../fetcher");
 
     const errors = [];
-    global.console = { log: global.console.log, error: error => errors.push(error) };
+    global.console = {
+      log: global.console.log,
+      error: error => errors.push(error),
+    };
 
     fetchJson("url", _.noop);
     setTimeout(() => {

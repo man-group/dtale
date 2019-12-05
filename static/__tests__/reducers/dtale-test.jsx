@@ -11,7 +11,9 @@ describe("reducer tests", () => {
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML = `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
 
-    mount(<Provider store={store} />, { attachTo: document.getElementById("content") });
+    mount(<Provider store={store} />, {
+      attachTo: document.getElementById("content"),
+    });
     const state = {
       chartData: { visible: false },
       hideShutdown: false,

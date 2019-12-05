@@ -44,7 +44,10 @@ class DataViewerInfo extends React.Component {
           <ConditionalRender display={!hideSort}>
             <div className="font-weight-bold d-inline-block">Sort:</div>
             <div className="pl-3 d-inline-block">
-              {_.join(_.map(this.props.sortInfo, ([col, dir]) => `${col} (${dir})`), ", ")}
+              {_.join(
+                _.map(this.props.sortInfo, ([col, dir]) => `${col} (${dir})`),
+                ", "
+              )}
             </div>
             <i
               className="ico-cancel pl-3"

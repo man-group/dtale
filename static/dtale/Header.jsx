@@ -7,7 +7,10 @@ import actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
 import * as gu from "./gridUtils";
 
-const SORT_CHARS = { DESC: String.fromCharCode("9650"), ASC: String.fromCharCode("9660") };
+const SORT_CHARS = {
+  DESC: String.fromCharCode("9650"),
+  ASC: String.fromCharCode("9660"),
+};
 
 class ReactHeader extends React.Component {
   constructor(props) {

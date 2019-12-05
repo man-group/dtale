@@ -8,7 +8,10 @@ const PYPI_API = "https://pypi.org/pypi/dtale/json";
 class About extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { currentVersion: document.getElementById("version").value, pypiVersion: null };
+    this.state = {
+      currentVersion: document.getElementById("version").value,
+      pypiVersion: null,
+    };
   }
 
   componentDidMount() {

@@ -8,6 +8,8 @@ import { openChart } from "../actions/charts";
 import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuUtils";
 import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
 
+//import { fetchJson } from "../fetcher";
+
 class ReactDataViewerMenu extends React.Component {
   render() {
     const { hideShutdown, iframe, selectedCols } = this.props;
@@ -51,7 +53,10 @@ class ReactDataViewerMenu extends React.Component {
         this.props.openChart({ type: "instances" });
       }
     };
-    const resize = () => this.props.propagateState({ columns: _.map(this.props.columns, c => _.assignIn({}, c)) });
+    const resize = () =>
+      this.props.propagateState({
+        columns: _.map(this.props.columns, c => _.assignIn({}, c)),
+      });
     return (
       <div
         className="column-toggle__dropdown"
@@ -182,7 +187,13 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button
                 className="btn btn-plain"
-                onClick={() => this.props.openChart({ type: "about", size: "modal-sm", backdrop: true })}>
+                onClick={() =>
+                  this.props.openChart({
+                    type: "about",
+                    size: "modal-sm",
+                    backdrop: true,
+                  })
+                }>
                 <i className="fa fa-info-circle la-lg mr-4 ml-1" />
                 <span className="font-weight-bold">About</span>
               </button>

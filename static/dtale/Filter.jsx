@@ -27,7 +27,10 @@ class Filter extends React.Component {
         return;
       }
       this.setState({ error: null, traceback: null }, () =>
-        this.props.propagateState({ query: this.state.query, filterOpen: false })
+        this.props.propagateState({
+          query: this.state.query,
+          filterOpen: false,
+        })
       );
     });
   }

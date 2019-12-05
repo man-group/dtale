@@ -22,8 +22,14 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("Correlations tests", () => {
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -66,7 +72,9 @@ describe("Correlations tests", () => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
+    const result = mount(<Correlations chartData={chartData} />, {
+      attachTo: document.getElementById("content"),
+    });
     result.update();
     setTimeout(() => {
       result.update();
@@ -104,7 +112,9 @@ describe("Correlations tests", () => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} />, { attachTo: document.getElementById("content") });
+    const result = mount(<Correlations chartData={chartData} />, {
+      attachTo: document.getElementById("content"),
+    });
     result.update();
     setTimeout(() => {
       result.update();

@@ -1,7 +1,9 @@
 import _ from "lodash";
 
 function onResizeStart(context) {
-  context.setState({ resizedHeights: _.concat([0], context.state.resizedHeights) });
+  context.setState({
+    resizedHeights: _.concat([0], context.state.resizedHeights),
+  });
 }
 
 function onResize(context, height) {

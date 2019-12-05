@@ -55,8 +55,14 @@ class CorrelationsGrid extends React.Component {
     const { columns } = this.state;
     const finalOptions = _.isNull(this.state[otherProp]) ? columns : _.reject(columns, this.state[otherProp]);
     const onChange = selected => {
-      const filterState = { [prop]: selected, [otherProp]: this.state[otherProp] };
-      this.setState({ [prop]: selected, correlations: filterData(filterState, correlations) });
+      const filterState = {
+        [prop]: selected,
+        [otherProp]: this.state[otherProp],
+      };
+      this.setState({
+        [prop]: selected,
+        correlations: filterData(filterState, correlations),
+      });
     };
     return (
       <div className="input-group mr-3">

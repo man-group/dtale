@@ -16,19 +16,45 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 const COL_PROPS = [
-  { locked: true, width: 70, name: "dtale_index", dtype: "int64", visible: true },
+  {
+    locked: true,
+    width: 70,
+    name: "dtale_index",
+    dtype: "int64",
+    visible: true,
+  },
   { locked: false, width: 20, name: "col1", dtype: "int64", visible: true },
-  { locked: false, width: 20, name: "col2", dtype: "float64", visible: true, min: 2.5, max: 5.5 },
+  {
+    locked: false,
+    width: 20,
+    name: "col2",
+    dtype: "float64",
+    visible: true,
+    min: 2.5,
+    max: 5.5,
+  },
   { locked: false, width: 20, name: "col3", dtype: "object", visible: true },
-  { locked: false, width: 20, name: "col4", dtype: "datetime64[ns]", visible: true },
+  {
+    locked: false,
+    width: 20,
+    name: "col4",
+    dtype: "datetime64[ns]",
+    visible: true,
+  },
 ];
 
 describe("DataViewer iframe tests", () => {
   const { location, open } = window;
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
 
     delete window.location;
     delete window.open;
@@ -65,7 +91,7 @@ describe("DataViewer iframe tests", () => {
   test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const Header = require("../../dtale/Header").ReactHeader;
-    const { Formatting } = require("../../dtale/Formatting");
+    const Formatting = require("../../dtale/Formatting").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
