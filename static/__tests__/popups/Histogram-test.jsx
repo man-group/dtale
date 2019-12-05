@@ -48,7 +48,11 @@ const props = {
 
 describe("Histogram tests", () => {
   beforeAll(() => {
-    const urlParams = qs.stringify({ bins: 20, query: props.chartData.query, col: props.chartData.col });
+    const urlParams = qs.stringify({
+      bins: 20,
+      query: props.chartData.query,
+      col: props.chartData.col,
+    });
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (url.startsWith("/dtale/histogram")) {
@@ -86,8 +90,14 @@ describe("Histogram tests", () => {
   test("Histogram rendering data", done => {
     const Histogram = require("../../popups/Histogram").ReactHistogram;
     buildInnerHTML();
-    const result = mount(<Histogram {...props} />, { attachTo: document.getElementById("content") });
-    t.deepEqual(result.find("option").map(o => o.text()), ["5", "10", "20", "50"], "Should render bins options");
+    const result = mount(<Histogram {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
+    t.deepEqual(
+      result.find("option").map(o => o.text()),
+      ["5", "10", "20", "50"],
+      "Should render bins options"
+    );
 
     let chart = null;
     setTimeout(() => {
@@ -107,11 +117,15 @@ describe("Histogram tests", () => {
         t.ok(chart.destroyed, "should have destroyed old chart");
         t.equal(result.state("bins"), 50, "should update bins");
 
-        result.setProps({ chartData: _.assignIn(props.chartData, { col: "baz" }) });
+        result.setProps({
+          chartData: _.assignIn(props.chartData, { col: "baz" }),
+        });
         t.equal(result.props().chartData.col, "baz", "should update column");
 
         chart = result.state("chart");
-        result.setProps({ chartData: _.assignIn(props.chartData, { visible: false }) });
+        result.setProps({
+          chartData: _.assignIn(props.chartData, { visible: false }),
+        });
         t.deepEqual(chart, result.state("chart"), "should not have destroyed old chart");
         done();
       }, 200);

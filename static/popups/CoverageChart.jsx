@@ -12,10 +12,20 @@ import { fetchJson } from "../fetcher";
 import CoverageChartBody from "./CoverageChartBody";
 
 const DATE_FREQS = ["D", "W", "M", "Q", "Y"];
-const FREQ_LABELS = { D: "Daily", W: "Weekly", M: "Monthly", Q: "Quarterly", Y: "Yearly" };
+const FREQ_LABELS = {
+  D: "Daily",
+  W: "Weekly",
+  M: "Monthly",
+  Q: "Quarterly",
+  Y: "Yearly",
+};
 
 function buildURL({ group, col, query }) {
-  const params = { group: JSON.stringify(group), col: _.join(_.map(col, "name"), ","), query };
+  const params = {
+    group: JSON.stringify(group),
+    col: _.join(_.map(col, "name"), ","),
+    query,
+  };
   return buildURLString("/dtale/coverage", params);
 }
 
@@ -36,7 +46,14 @@ function generateChartState({ group, col, query }) {
   return { url: buildURL({ group, col, query }), desc };
 }
 
-const baseState = query => ({ col: [], group: [], url: null, desc: null, zoomed: null, query });
+const baseState = query => ({
+  col: [],
+  group: [],
+  url: null,
+  desc: null,
+  zoomed: null,
+  query,
+});
 
 require("./CoverageChart.css");
 
@@ -151,49 +168,52 @@ class ReactCoverageChart extends React.Component {
           <label className="list-group-item">Group(s)</label>
           <div className="scrollable-list">
             <ul className="list-group">
-              {_.map(_.filter(columns, ({ name }) => !_.find(col, { name })), ({ dtype, name }, idx) => {
-                const currSelection = _.find(group, { name }) || { name };
-                const isSelected = _.find(group, { name });
-                const isDate = isDateCol(dtype);
-                if (isDate) {
-                  currSelection.freq = currSelection.freq || "D";
-                }
-                const props = {
-                  className: `list-group-item list-group-item-action ${isSelected ? "active" : ""}`,
-                  key: idx,
-                  onClick: e => this.changeSelection(e, "group", currSelection),
-                };
-
-                if (isDate) {
-                  const updateFreq = e => {
-                    this.setState({
-                      group: _.concat(_.reject(this.state.group, { name }), [{ name, freq: e.target.value }]),
-                    });
-                    e.stopPropagation();
+              {_.map(
+                _.filter(columns, ({ name }) => !_.find(col, { name })),
+                ({ dtype, name }, idx) => {
+                  const currSelection = _.find(group, { name }) || { name };
+                  const isSelected = _.find(group, { name });
+                  const isDate = isDateCol(dtype);
+                  if (isDate) {
+                    currSelection.freq = currSelection.freq || "D";
+                  }
+                  const props = {
+                    className: `list-group-item list-group-item-action ${isSelected ? "active" : ""}`,
+                    key: idx,
+                    onClick: e => this.changeSelection(e, "group", currSelection),
                   };
-                  props.className += " date-group";
-                  return (
-                    <JSAnchor {...props}>
-                      <div>{name}</div>
-                      <div className="input-group">
-                        <select
-                          value={currSelection.freq || ""}
-                          className="form-control custom-select"
-                          disabled={!isSelected}
-                          onChange={updateFreq}
-                          onClick={e => e.stopPropagation()}>
-                          {_.map(DATE_FREQS, f => (
-                            <option key={f} value={f}>
-                              {f}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </JSAnchor>
-                  );
+
+                  if (isDate) {
+                    const updateFreq = e => {
+                      this.setState({
+                        group: _.concat(_.reject(this.state.group, { name }), [{ name, freq: e.target.value }]),
+                      });
+                      e.stopPropagation();
+                    };
+                    props.className += " date-group";
+                    return (
+                      <JSAnchor {...props}>
+                        <div>{name}</div>
+                        <div className="input-group">
+                          <select
+                            value={currSelection.freq || ""}
+                            className="form-control custom-select"
+                            disabled={!isSelected}
+                            onChange={updateFreq}
+                            onClick={e => e.stopPropagation()}>
+                            {_.map(DATE_FREQS, f => (
+                              <option key={f} value={f}>
+                                {f}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </JSAnchor>
+                    );
+                  }
+                  return <JSAnchor {...props}>{name}</JSAnchor>;
                 }
-                return <JSAnchor {...props}>{name}</JSAnchor>;
-              })}
+              )}
             </ul>
           </div>
         </div>
@@ -201,14 +221,17 @@ class ReactCoverageChart extends React.Component {
           <label className="list-group-item">Col(s)</label>
           <div className="scrollable-list">
             <ul className="list-group">
-              {_.map(_.filter(columns, ({ name }) => !_.find(group, { name })), ({ name }, idx) => {
-                const props = {
-                  className: `list-group-item list-group-item-action ${_.find(col, { name }) ? "active" : ""}`,
-                  key: idx,
-                  onClick: e => this.changeSelection(e, "col", { name }, false),
-                };
-                return <JSAnchor {...props}>{name}</JSAnchor>;
-              })}
+              {_.map(
+                _.filter(columns, ({ name }) => !_.find(group, { name })),
+                ({ name }, idx) => {
+                  const props = {
+                    className: `list-group-item list-group-item-action ${_.find(col, { name }) ? "active" : ""}`,
+                    key: idx,
+                    onClick: e => this.changeSelection(e, "col", { name }, false),
+                  };
+                  return <JSAnchor {...props}>{name}</JSAnchor>;
+                }
+              )}
             </ul>
           </div>
         </div>

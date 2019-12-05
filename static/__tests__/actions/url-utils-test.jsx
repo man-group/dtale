@@ -13,12 +13,22 @@ describe("url-utils tests", () => {
     let urlParams = buildURLParams(params);
     t.deepEqual(
       urlParams,
-      { cols: "col1,col2", query: "col == 3", sort: '[["col1","ASC"]]', ids: "[0,5]" },
+      {
+        cols: "col1,col2",
+        query: "col == 3",
+        sort: '[["col1","ASC"]]',
+        ids: "[0,5]",
+      },
       "should serialize parameters"
     );
 
     params = {
-      filters: { col1: { filterTerm: "blah", column: { filterRenderer: { displayName: "StringFilter" } } } },
+      filters: {
+        col1: {
+          filterTerm: "blah",
+          column: { filterRenderer: { displayName: "StringFilter" } },
+        },
+      },
     };
     urlParams = buildURLParams(params);
     t.deepEqual(

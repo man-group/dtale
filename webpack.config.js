@@ -58,7 +58,10 @@ function createConfig(entry) {
         },
         {
           test: require.resolve("jquery"),
-          use: [{ loader: "expose-loader", options: "jQuery" }, { loader: "expose-loader", options: "$" }],
+          use: [
+            { loader: "expose-loader", options: "jQuery" },
+            { loader: "expose-loader", options: "$" },
+          ],
         },
         {
           test: /\.css$/,

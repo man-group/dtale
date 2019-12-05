@@ -14,7 +14,9 @@ require("./ColumnMenu.css");
 class ReactColumnMenu extends React.Component {
   componentDidUpdate(prevProps) {
     if (!_.isNull(this.props.selectedCol) && this.props.selectedCol !== prevProps.selectedCol) {
-      $(this._div).css({ left: $(`div.${this.props.selectedToggle}`).offset().left });
+      $(this._div).css({
+        left: $(`div.${this.props.selectedToggle}`).offset().left,
+      });
     }
   }
 
@@ -26,11 +28,15 @@ class ReactColumnMenu extends React.Component {
     const unlocked = _.isUndefined(_.find(this.props.columns, { name: selectedCol, locked: true }));
     let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
     currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
-    const describeUrl = buildURLString("/dtale/popup/describe", { col: selectedCol });
+    const describeUrl = buildURLString("/dtale/popup/describe", {
+      col: selectedCol,
+    });
     const openDescribe = () => {
       window.open(describeUrl, "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
     };
-    const histogramUrl = buildURLString("/dtale/popup/histogram", { col: selectedCol });
+    const histogramUrl = buildURLString("/dtale/popup/histogram", {
+      col: selectedCol,
+    });
     const openHistogram = () => {
       window.open(histogramUrl, "_blank", "titlebar=1,location=1,status=1,width=400,height=350");
     };
@@ -39,7 +45,10 @@ class ReactColumnMenu extends React.Component {
         id="column-menu-div"
         className="column-toggle__dropdown"
         hidden={!this.props.columnMenuOpen}
-        style={{ minWidth: "11em", top: this.props.noInfo ? "1.25em" : "2.75em" }}
+        style={{
+          minWidth: "11em",
+          top: this.props.noInfo ? "1.25em" : "2.75em",
+        }}
         ref={cm => (this._div = cm)}>
         <header>{selectedCol} Options</header>
         <ul>

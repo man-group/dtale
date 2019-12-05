@@ -14,8 +14,14 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("DataViewer tests", () => {
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -71,7 +77,13 @@ describe("DataViewer tests", () => {
       dv = result.find(ReactDataViewer).instance();
       t.deepEqual(
         _.pick(dv.state, ["loading", "loadQueue"]),
-        { loading: true, loadQueue: [[0, 55], [0, 55]] },
+        {
+          loading: true,
+          loadQueue: [
+            [0, 55],
+            [0, 55],
+          ],
+        },
         "should update state"
       );
       setTimeout(() => {

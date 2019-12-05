@@ -5,7 +5,9 @@ describe("dtale tests", () => {
 
   beforeAll(() => {
     delete window.location;
-    window.location = { search: `col=foo&vals=a,b,c&baz=${JSON.stringify({ bizz: [1, 2] })}` };
+    window.location = {
+      search: `col=foo&vals=a,b,c&baz=${JSON.stringify({ bizz: [1, 2] })}`,
+    };
   });
 
   afterAll(() => {
@@ -16,7 +18,11 @@ describe("dtale tests", () => {
     const actions = require("../../actions/dtale").default;
     const urlParams = actions.getParams();
     t.deepEqual(
-      { col: "foo", vals: ["a", "b", "c"], baz: JSON.stringify({ bizz: [1, 2] }) },
+      {
+        col: "foo",
+        vals: ["a", "b", "c"],
+        baz: JSON.stringify({ bizz: [1, 2] }),
+      },
       urlParams,
       "should parse parameters"
     );

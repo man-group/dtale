@@ -167,11 +167,17 @@ class TimeseriesChartBody extends React.Component {
     fetchJson(this.props.url, fetchedChartData => {
       toggleBouncer(this.props.id);
       if (fetchedChartData.error) {
-        this.setState({ error: <RemovableError {...fetchedChartData} />, chart: null });
+        this.setState({
+          error: <RemovableError {...fetchedChartData} />,
+          chart: null,
+        });
         return;
       }
       if (_.isEmpty(_.get(fetchedChartData, "data", {}))) {
-        this.setState({ error: <RemovableError error="No data found." />, chart: null });
+        this.setState({
+          error: <RemovableError error="No data found." />,
+          chart: null,
+        });
         return;
       }
       const chart = {};
@@ -182,7 +188,10 @@ class TimeseriesChartBody extends React.Component {
           let colData = _.pick(fetchedChartData.data, colKeys);
           const yMin = Math.floor(_.min(_.map(fetchedChartData.data, "min")));
           const yMax = Math.ceil(_.max(_.map(fetchedChartData.data, "max")));
-          colData = _.mapKeys(_.mapValues(colData, v => _.assignIn(v, { min: yMin, max: yMax })), (_v, k) => `${k}:0`);
+          colData = _.mapKeys(
+            _.mapValues(colData, v => _.assignIn(v, { min: yMin, max: yMax })),
+            (_v, k) => `${k}:0`
+          );
           chart[chartId] = this.buildChart(chartId, colData);
         });
       } else {

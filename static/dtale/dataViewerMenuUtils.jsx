@@ -5,7 +5,10 @@ function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
   switch (dir) {
     case "ASC":
     case "DESC":
-      updatedSortInfo = _.concat(updatedSortInfo, _.map(selectedCols, col => [col, dir]));
+      updatedSortInfo = _.concat(
+        updatedSortInfo,
+        _.map(selectedCols, col => [col, dir])
+      );
       break;
     case "NONE":
     default:
@@ -30,10 +33,16 @@ function lockCols(selectedCols, { columns, propagateState }) {
     let locked = _.filter(columns, "locked");
     locked = _.concat(
       locked,
-      _.map(_.filter(columns, ({ name }) => _.includes(selectedCols, name)), c => _.assignIn({}, c, { locked: true }))
+      _.map(
+        _.filter(columns, ({ name }) => _.includes(selectedCols, name)),
+        c => _.assignIn({}, c, { locked: true })
+      )
     );
     propagateState({
-      columns: _.concat(locked, _.filter(columns, ({ name }) => !_.find(locked, { name }))),
+      columns: _.concat(
+        locked,
+        _.filter(columns, ({ name }) => !_.find(locked, { name }))
+      ),
       fixedColumnCount: locked.length,
       selectedCols: [],
       triggerResize: true,
@@ -44,12 +53,17 @@ function lockCols(selectedCols, { columns, propagateState }) {
 function unlockCols(selectedCols, { columns, propagateState }) {
   return () => {
     let locked = _.filter(columns, "locked");
-    const unlocked = _.map(_.filter(locked, ({ name }) => _.includes(selectedCols, name)), c =>
-      _.assignIn({}, c, { locked: false })
+    const unlocked = _.map(
+      _.filter(locked, ({ name }) => _.includes(selectedCols, name)),
+      c => _.assignIn({}, c, { locked: false })
     );
     locked = _.filter(locked, ({ name }) => !_.includes(selectedCols, name));
     propagateState({
-      columns: _.concat(locked, unlocked, _.filter(columns, c => !_.get(c, "locked", false))),
+      columns: _.concat(
+        locked,
+        unlocked,
+        _.filter(columns, c => !_.get(c, "locked", false))
+      ),
       fixedColumnCount: locked.length,
       selectedCols: [],
       triggerResize: true,
@@ -57,4 +71,19 @@ function unlockCols(selectedCols, { columns, propagateState }) {
   };
 }
 
-export { updateSort, moveToFront, lockCols, unlockCols };
+function buildStyling(val, colType, styleProps) {
+  const style = {};
+  if (!_.isUndefined(val) && !_.isEmpty(styleProps)) {
+    if (styleProps.redNegs) {
+      switch (colType) {
+        case "float":
+        case "int":
+          style.color = val < 0 ? "red" : "";
+          break;
+      }
+    }
+  }
+  return style;
+}
+
+export { updateSort, moveToFront, lockCols, unlockCols, buildStyling };

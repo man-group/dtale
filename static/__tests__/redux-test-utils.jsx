@@ -41,10 +41,46 @@ const DTYPES = {
 };
 
 const DESCRIBE = {
-  col1: { describe: { count: 4, max: 4, mean: 2.5, min: 1, std: 0, unique: 4, "25%": 1, "50%": 2.5, "75%": 4 } },
-  col2: { describe: { count: 4, max: 4, mean: 4, min: 2.5, std: 0, unique: 4, "25%": 2.5, "50%": 4, "75%": 5.5 } },
-  col3: { describe: { count: 4, freq: 4, top: "foo", unique: 1 }, uniques: ["foo"] },
-  col4: { describe: { count: 3, first: "2000-01-01", freq: 1, last: "2000-01-01", top: "2000-01-01", unique: 1 } },
+  col1: {
+    describe: {
+      count: 4,
+      max: 4,
+      mean: 2.5,
+      min: 1,
+      std: 0,
+      unique: 4,
+      "25%": 1,
+      "50%": 2.5,
+      "75%": 4,
+    },
+  },
+  col2: {
+    describe: {
+      count: 4,
+      max: 4,
+      mean: 4,
+      min: 2.5,
+      std: 0,
+      unique: 4,
+      "25%": 2.5,
+      "50%": 4,
+      "75%": 5.5,
+    },
+  },
+  col3: {
+    describe: { count: 4, freq: 4, top: "foo", unique: 1 },
+    uniques: ["foo"],
+  },
+  col4: {
+    describe: {
+      count: 3,
+      first: "2000-01-01",
+      freq: 1,
+      last: "2000-01-01",
+      top: "2000-01-01",
+      unique: 1,
+    },
+  },
 };
 
 const PROCESSES = [

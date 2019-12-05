@@ -64,7 +64,12 @@ class ReactCorrelations extends React.Component {
         return;
       }
       const { data, dates } = gridData;
-      this.setState({ correlations: data, dates, hasDate: _.size(dates) > 0, selectedDate: _.get(dates, 0, null) });
+      this.setState({
+        correlations: data,
+        dates,
+        hasDate: _.size(dates) > 0,
+        selectedDate: _.get(dates, 0, null),
+      });
     });
   }
 
@@ -107,7 +112,12 @@ class ReactCorrelations extends React.Component {
     }
     fetchJson(buildURL(BASE_SCATTER_URL, params, ["selectedCols", "query", "date", "dateCol"]), fetchedChartData => {
       corrUtils.toggleBouncer();
-      const newState = { selectedCols, stats: fetchedChartData.stats, date, scatterError: null };
+      const newState = {
+        selectedCols,
+        stats: fetchedChartData.stats,
+        date,
+        scatterError: null,
+      };
       if (fetchedChartData.error) {
         newState.scatterError = <RemovableError {...fetchedChartData} />;
       }

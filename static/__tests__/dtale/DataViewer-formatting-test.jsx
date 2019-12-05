@@ -25,8 +25,14 @@ describe("DataViewer tests", () => {
   const { open } = window;
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
     delete window.open;
     window.open = jest.fn();
 
@@ -64,7 +70,7 @@ describe("DataViewer tests", () => {
 
   test("DataViewer: formatting", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const { Formatting } = require("../../dtale/Formatting");
+    const Formatting = require("../../dtale/Formatting").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" });

@@ -45,9 +45,17 @@ function buildSortDtypesState(state, { sortDirection, sortBy }) {
     finalSort = "NONE";
   }
   if (finalSort === "NONE") {
-    return { dtypes: sortDtypes(state.dtypes, "index", "ASC"), sortDirection: finalSort, sortBy };
+    return {
+      dtypes: sortDtypes(state.dtypes, "index", "ASC"),
+      sortDirection: finalSort,
+      sortBy,
+    };
   }
-  return { dtypes: sortDtypes(state.dtypes, sortBy, sortDirection), sortDirection: finalSort, sortBy };
+  return {
+    dtypes: sortDtypes(state.dtypes, sortBy, sortDirection),
+    sortDirection: finalSort,
+    sortBy,
+  };
 }
 
 function filterDtypes(dtypes, dtypesFilter, { sortDirection, sortBy }) {
@@ -56,7 +64,10 @@ function filterDtypes(dtypes, dtypesFilter, { sortDirection, sortBy }) {
     const substrLower = dtypesFilter.toLowerCase();
     filteredDtypes = _.filter(dtypes, ({ name }) => _.includes(name.toLowerCase(), substrLower));
   }
-  return { dtypes: sortDtypes(filteredDtypes, sortBy, sortDirection), dtypesFilter };
+  return {
+    dtypes: sortDtypes(filteredDtypes, sortBy, sortDirection),
+    dtypesFilter,
+  };
 }
 
 class DtypesGrid extends React.Component {
@@ -148,7 +159,11 @@ class DtypesGrid extends React.Component {
               dataKey="dtype"
               label="Data Type"
               headerRenderer={this._headerRenderer}
-              style={{ textAlign: "right", paddingRight: ".5em", fontSize: "80%" }}
+              style={{
+                textAlign: "right",
+                paddingRight: ".5em",
+                fontSize: "80%",
+              }}
               className="cell"
             />
           </Table>

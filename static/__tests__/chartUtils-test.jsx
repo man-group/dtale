@@ -57,7 +57,13 @@ describe("chartUtils tests", () => {
     const { gradientLinePlugin } = require("../chartUtils").default;
 
     const plugin = gradientLinePlugin(colorScale);
-    const dataset = { data: [{ x: 0, y: 1.1 }, { x: 1, y: 1.2 }, { x: 2, y: 1.3 }] };
+    const dataset = {
+      data: [
+        { x: 0, y: 1.1 },
+        { x: 1, y: 1.2 },
+        { x: 2, y: 1.3 },
+      ],
+    };
     const chartInstance = {
       data: { datasets: [dataset] },
       scales: {

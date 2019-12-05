@@ -13,8 +13,14 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("Instances tests", () => {
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, value: 500 });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      value: 500,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      value: 500,
+    });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -24,12 +30,59 @@ describe("Instances tests", () => {
           if (port == "8081") {
             return {
               results: [
-                { dtale_index: 0, col1: 1, col2: 2.5, col3: "foo", col4: "2000-01-01", col5: 1, col6: 2 },
-                { dtale_index: 1, col1: 2, col2: 3.5, col3: "foo", col4: "2000-01-01", col5: 1, col6: 2 },
-                { dtale_index: 2, col1: 3, col2: 4.5, col3: "foo", col4: "2000-01-01", col5: 1, col6: 2 },
-                { dtale_index: 3, col1: 4, col2: 5.5, col3: "foo", col5: 1, col6: 2 },
-                { dtale_index: 4, col1: 5, col2: 6.5, col3: "foo", col4: "2000-01-01", col5: 1, col6: 2 },
-                { dtale_index: 5, col1: 6, col2: 7.5, col3: "foo", col4: "2000-01-01", col5: 1, col6: 2 },
+                {
+                  dtale_index: 0,
+                  col1: 1,
+                  col2: 2.5,
+                  col3: "foo",
+                  col4: "2000-01-01",
+                  col5: 1,
+                  col6: 2,
+                },
+                {
+                  dtale_index: 1,
+                  col1: 2,
+                  col2: 3.5,
+                  col3: "foo",
+                  col4: "2000-01-01",
+                  col5: 1,
+                  col6: 2,
+                },
+                {
+                  dtale_index: 2,
+                  col1: 3,
+                  col2: 4.5,
+                  col3: "foo",
+                  col4: "2000-01-01",
+                  col5: 1,
+                  col6: 2,
+                },
+                {
+                  dtale_index: 3,
+                  col1: 4,
+                  col2: 5.5,
+                  col3: "foo",
+                  col5: 1,
+                  col6: 2,
+                },
+                {
+                  dtale_index: 4,
+                  col1: 5,
+                  col2: 6.5,
+                  col3: "foo",
+                  col4: "2000-01-01",
+                  col5: 1,
+                  col6: 2,
+                },
+                {
+                  dtale_index: 5,
+                  col1: 6,
+                  col2: 7.5,
+                  col3: "foo",
+                  col4: "2000-01-01",
+                  col5: 1,
+                  col6: 2,
+                },
               ],
               columns: [
                 { name: "dtale_index", dtype: "int64" },
@@ -74,7 +127,9 @@ describe("Instances tests", () => {
       writable: true,
     });
     const assignSpy = jest.spyOn(global.window.location, "assign");
-    const result = mount(<Instances />, { attachTo: document.getElementById("content") });
+    const result = mount(<Instances />, {
+      attachTo: document.getElementById("content"),
+    });
     setTimeout(() => {
       result.update();
       result
@@ -154,7 +209,9 @@ describe("Instances tests", () => {
   test("Instances rendering error", done => {
     const Instances = require("../../popups/Instances").default;
     buildInnerHTML();
-    const result = mount(<Instances />, { attachTo: document.getElementById("content") });
+    const result = mount(<Instances />, {
+      attachTo: document.getElementById("content"),
+    });
     setTimeout(() => {
       result.update();
       result.setState({ processes: { error: "Error Test" } });

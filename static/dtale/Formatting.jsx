@@ -4,6 +4,11 @@ import PropTypes from "prop-types";
 import React from "react";
 import { Modal, ModalBody, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 
+import { buildURLString } from "../actions/url-utils";
+import { fetchJsonPromise, logException } from "../fetcher";
+import { buildStyling } from "./dataViewerMenuUtils";
+import * as gu from "./gridUtils";
+
 const STYLE_PROPS = ["redNegs"];
 
 function buildFormatter(fmt = { precision: 2 }) {
@@ -37,27 +42,13 @@ const BASE_STATE = {
   fmt: "",
 };
 
-function buildStyling(val, colType, styleProps) {
-  const style = {};
-  if (!_.isUndefined(val) && !_.isEmpty(styleProps)) {
-    if (styleProps.redNegs) {
-      switch (colType) {
-        case "float":
-        case "int":
-          style.color = val < 0 ? "red" : "";
-          break;
-      }
-    }
-  }
-  return style;
-}
-
 class Formatting extends React.Component {
   constructor(props) {
     super(props);
     this.state = _.assign({}, BASE_STATE);
     this.updateState = this.updateState.bind(this);
     this.buildSimpleToggle = this.buildSimpleToggle.bind(this);
+    this.save = this.save.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -95,6 +86,51 @@ class Formatting extends React.Component {
         </div>
       </div>
     );
+  }
+
+  save() {
+    const { fmt, style } = this.state;
+    const { data, columns, numberFormats, selectedCols, propagateState } = this.props;
+    const updatedNumberFormats = _.assignIn(
+      {},
+      numberFormats,
+      _.reduce(selectedCols, (res, col) => _.assignIn(res, { [col]: { fmt, style } }), {})
+    );
+    const updatedData = _.mapValues(data, d =>
+      _.assignIn(
+        {},
+        d,
+        _.mapValues(_.pick(d, selectedCols), (v, k) => {
+          const colCfg = _.find(columns, { name: k }, {});
+          return gu.buildDataProps(colCfg, v.raw, {
+            numberFormats: { [colCfg.name]: { fmt, style } },
+          });
+        })
+      )
+    );
+    const updatedCols = _.map(columns, c => {
+      if (_.includes(selectedCols, c.name)) {
+        return _.assignIn({}, c, {
+          width: gu.calcColWidth(c, _.assignIn({}, this.state, { data: updatedData })),
+        });
+      }
+      return c;
+    });
+    const updateParams = {
+      settings: JSON.stringify({ formats: updatedNumberFormats }),
+    };
+    propagateState({
+      data: updatedData,
+      numberFormats: updatedNumberFormats,
+      columns: updatedCols,
+      formattingOpen: false,
+      triggerResize: true,
+    });
+    fetchJsonPromise(buildURLString("/dtale/update-settings?", updateParams))
+      .then(_.noop)
+      .catch((e, callstack) => {
+        logException(e, callstack);
+      });
   }
 
   render() {
@@ -174,7 +210,7 @@ class Formatting extends React.Component {
           </div>
         </ModalBody>
         <ModalFooter>
-          <button className="btn btn-primary" onClick={() => this.props.save(this.state)}>
+          <button className="btn btn-primary" onClick={this.save}>
             <span>Apply</span>
           </button>
         </ModalFooter>
@@ -184,10 +220,12 @@ class Formatting extends React.Component {
 }
 Formatting.displayName = "Formatting";
 Formatting.propTypes = {
-  cols: PropTypes.arrayOf(PropTypes.string),
+  data: PropTypes.object,
+  columns: PropTypes.arrayOf(PropTypes.object),
+  numberFormats: PropTypes.object,
+  selectedCols: PropTypes.arrayOf(PropTypes.string),
   visible: PropTypes.bool,
-  save: PropTypes.func,
   propagateState: PropTypes.func,
 };
 
-export { Formatting, buildStyling };
+export default Formatting;

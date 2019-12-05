@@ -15,7 +15,7 @@ import { Popup } from "../popups/Popup";
 import { DataViewerInfo, hasNoInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
-import { Formatting } from "./Formatting";
+import Formatting from "./Formatting";
 import { Header } from "./Header";
 import { MeasureText } from "./MeasureText";
 import * as gu from "./gridUtils";
@@ -27,29 +27,7 @@ const URL_PROPS = ["ids", "sortInfo", "query"];
 class ReactDataViewer extends React.Component {
   constructor(props) {
     super(props);
-    const state = {
-      numberFormats: _.get(props.settings, "formats", {}),
-      overscanColumnCount: 0,
-      overscanRowCount: 5,
-      rowHeight: ({ index }) => (index == 0 ? gu.HEADER_HEIGHT : gu.ROW_HEIGHT),
-      rowCount: 0,
-      fixedColumnCount: _.size(_.concat(_.get(this.props, "settings.locked", []), [gu.IDX])),
-      fixedRowCount: 1,
-      data: {},
-      loading: false,
-      ids: [0, 55],
-      loadQueue: [],
-      columns: [],
-      query: _.get(props.settings, "query", ""),
-      sortInfo: _.get(props.settings, "sort", []),
-      selectedCols: [],
-      menuOpen: false,
-      filterOpen: false,
-      formattingOpen: false,
-      triggerResize: false,
-      heatMapMode: false,
-    };
-    this.state = _.assignIn(state, gu.buildGridStyles());
+    this.state = gu.buildState(props);
     this._cellRenderer = this._cellRenderer.bind(this);
     this._onSectionRendered = this._onSectionRendered.bind(this);
     this.propagateState = this.propagateState.bind(this);
@@ -136,21 +114,39 @@ class ReactDataViewer extends React.Component {
           _.mapValues(d, (val, col) => gu.buildDataProps(_.find(data.columns, { name: col }), val, this.state))
         );
         if (data.error) {
-          this.setState({ loading: false, error: data.error, traceback: data.traceback });
+          this.setState({
+            loading: false,
+            error: data.error,
+            traceback: data.traceback,
+          });
           return;
         }
-        const newState = { rowCount: data.total + 1, data: _.assignIn(savedData, formattedData), loading: false };
+        const newState = {
+          rowCount: data.total + 1,
+          data: _.assignIn(savedData, formattedData),
+          loading: false,
+        };
         const { columns } = this.state;
         if (_.isEmpty(columns)) {
           const preLocked = _.concat(_.get(this.props, "settings.locked", []), [gu.IDX]);
           newState.columns = _.map(data.columns, c =>
-            _.assignIn({ locked: _.includes(preLocked, c.name), visible: true, width: gu.calcColWidth(c, newState) }, c)
+            _.assignIn(
+              {
+                locked: _.includes(preLocked, c.name),
+                visible: true,
+                width: gu.calcColWidth(c, newState),
+              },
+              c
+            )
           );
         } else {
-          const newCols = _.map(_.filter(data.columns, ({ name }) => !_.find(columns, { name })), c => {
-            const visible = heatMapMode ? _.has(c, "min") : true;
-            return _.assignIn({ locked: false, visible, width: gu.calcColWidth(c, newState) }, c);
-          });
+          const newCols = _.map(
+            _.filter(data.columns, ({ name }) => !_.find(columns, { name })),
+            c => {
+              const visible = heatMapMode ? _.has(c, "min") : true;
+              return _.assignIn({ locked: false, visible, width: gu.calcColWidth(c, newState) }, c);
+            }
+          );
           newState.columns = _.concat(columns, newCols);
         }
         this.setState(newState);
@@ -204,43 +200,7 @@ class ReactDataViewer extends React.Component {
   }
 
   render() {
-    const { data, filterOpen, formattingOpen, query, columns, numberFormats, selectedCols } = this.state;
-    const saveFormatting = ({ fmt, style }) => {
-      const updatedNumberFormats = _.assignIn(
-        {},
-        numberFormats,
-        _.reduce(selectedCols, (res, col) => _.assignIn(res, { [col]: { fmt, style } }), {})
-      );
-      const updatedData = _.mapValues(data, d =>
-        _.assignIn(
-          {},
-          d,
-          _.mapValues(_.pick(d, selectedCols), (v, k) => {
-            const colCfg = _.find(this.state.columns, { name: k }, {});
-            return gu.buildDataProps(colCfg, v.raw, { numberFormats: { [colCfg.name]: { fmt, style } } });
-          })
-        )
-      );
-      const updatedCols = _.map(columns, c => {
-        if (_.includes(selectedCols, c.name)) {
-          return _.assignIn({}, c, { width: gu.calcColWidth(c, _.assignIn({}, this.state, { data: updatedData })) });
-        }
-        return c;
-      });
-      this.setState({
-        data: updatedData,
-        numberFormats: updatedNumberFormats,
-        columns: updatedCols,
-        formattingOpen: false,
-        triggerResize: true,
-      });
-      const updateParams = { settings: JSON.stringify({ formats: updatedNumberFormats }) };
-      fetchJsonPromise(buildURLString("/dtale/update-settings?", updateParams))
-        .then(_.noop)
-        .catch((e, callstack) => {
-          logException(e, callstack);
-        });
-    };
+    const { filterOpen, formattingOpen, query } = this.state;
     return (
       <div key={1} style={{ height: "100%", width: "100%" }}>
         <InfiniteLoader
@@ -275,8 +235,12 @@ class ReactDataViewer extends React.Component {
         </InfiniteLoader>
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
         <Popup propagateState={this.propagateState} />
-        <Filter {...{ visible: filterOpen, propagateState: this.propagateState, query }} />
-        <Formatting {...{ visible: formattingOpen, save: saveFormatting, propagateState: this.propagateState }} />
+        <Filter visible={filterOpen} propagateState={this.propagateState} query={query} />
+        <Formatting
+          {..._.pick(this.state, ["data", "columns", "numberFormats", "selectedCols"])}
+          visible={formattingOpen}
+          propagateState={this.propagateState}
+        />
         <MeasureText />
         <ColumnMenu
           {..._.pick(this.state, ["columns", "sortInfo"])}
@@ -288,7 +252,11 @@ class ReactDataViewer extends React.Component {
   }
 }
 ReactDataViewer.displayName = "ReactDataViewer";
-ReactDataViewer.propTypes = { settings: PropTypes.object, iframe: PropTypes.bool, closeColumnMenu: PropTypes.func };
+ReactDataViewer.propTypes = {
+  settings: PropTypes.object,
+  iframe: PropTypes.bool,
+  closeColumnMenu: PropTypes.func,
+};
 
 const ReduxDataViewer = connect(
   ({ iframe }) => ({ iframe }),

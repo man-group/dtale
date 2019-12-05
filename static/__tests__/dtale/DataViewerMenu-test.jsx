@@ -19,7 +19,9 @@ describe("DataViewerMenu tests", () => {
       hideShutdown: false,
       iframe: false,
     };
-    const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
+    const result = mount(<DataViewerMenu {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
     t.ok(
       result
         .find("ul li span.toggler-action")
@@ -42,7 +44,9 @@ describe("DataViewerMenu tests", () => {
       hideShutdown: true,
       iframe: false,
     };
-    const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
+    const result = mount(<DataViewerMenu {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
     t.ok(
       result
         .find("ul li span.toggler-action")
@@ -66,7 +70,9 @@ describe("DataViewerMenu tests", () => {
       hideShutdown: true,
       iframe: false,
     };
-    const result = mount(<DataViewerMenu {...props} />, { attachTo: document.getElementById("content") });
+    const result = mount(<DataViewerMenu {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
     t.ok(
       result
         .find("ul li span.toggler-action")

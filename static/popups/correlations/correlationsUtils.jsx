@@ -10,7 +10,11 @@ function toggleBouncer() {
   $("#rawScatterChart").toggle();
 }
 
-const pointFormatter = (xProp, yProp) => point => ({ x: point[xProp], y: point[yProp], index: point.index });
+const pointFormatter = (xProp, yProp) => point => ({
+  x: point[xProp],
+  y: point[yProp],
+  index: point.index,
+});
 const colorScale = chroma.scale(["red", "yellow", "green"]).domain([-1, 0, 1]);
 const percent = num => (num === "N/A" ? num : `${_.round(num * 100, 2)}%`);
 
@@ -20,7 +24,9 @@ function createScatter(ctx, chartData, xProp, yProp, label, onClick) {
   // eslint-disable-next-line new-cap
   const chart = chartUtils.createChart(ctx, {
     type: "scatter",
-    data: { datasets: [_.assign({ label, xLabels: [xProp], yLabels: [yProp] }, scatterData)] },
+    data: {
+      datasets: [_.assign({ label, xLabels: [xProp], yLabels: [yProp] }, scatterData)],
+    },
     options: {
       tooltips: {
         callbacks: {
@@ -40,13 +46,19 @@ function createScatter(ctx, chartData, xProp, yProp, label, onClick) {
       scales: {
         xAxes: [
           {
-            ticks: { min: getMin(scatterData.data, "x"), max: getMax(scatterData.data, "x") },
+            ticks: {
+              min: getMin(scatterData.data, "x"),
+              max: getMax(scatterData.data, "x"),
+            },
             scaleLabel: { display: true, labelString: xProp },
           },
         ],
         yAxes: [
           {
-            ticks: { min: getMin(scatterData.data, "y"), max: getMax(scatterData.data, "y") },
+            ticks: {
+              min: getMin(scatterData.data, "y"),
+              max: getMax(scatterData.data, "y"),
+            },
             scaleLabel: { display: true, labelString: yProp },
           },
         ],

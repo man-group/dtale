@@ -15,7 +15,13 @@ const BASE_DESCRIBE_URL = "/dtale/describe/";
 class ReactDescribe extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { loadingDtypes: true, dtypes: null, dtypesFilter: null, loadingDetails: false, details: null };
+    this.state = {
+      loadingDtypes: true,
+      dtypes: null,
+      dtypesFilter: null,
+      loadingDetails: false,
+      details: null,
+    };
     this.loadDetails = this.loadDetails.bind(this);
     this.renderDetails = this.renderDetails.bind(this);
     this.renderUniques = this.renderUniques.bind(this);
@@ -24,7 +30,12 @@ class ReactDescribe extends React.Component {
 
   componentDidMount() {
     fetchJson(DTYPES_URL, dtypesData => {
-      const newState = { error: null, loadingDtypes: false, loadingDetails: false, details: null };
+      const newState = {
+        error: null,
+        loadingDtypes: false,
+        loadingDetails: false,
+        details: null,
+      };
       if (dtypesData.error) {
         newState.error = <RemovableError {...dtypesData} />;
       }
@@ -44,7 +55,12 @@ class ReactDescribe extends React.Component {
   loadDetails({ rowData }) {
     this.setState({ loadingDetails: true });
     fetchJson(BASE_DESCRIBE_URL + rowData.name, detailData => {
-      const newState = { detailError: null, loadingDtypes: false, loadingDetails: false, details: null };
+      const newState = {
+        detailError: null,
+        loadingDtypes: false,
+        loadingDetails: false,
+        details: null,
+      };
       if (detailData.error) {
         newState.detailError = <RemovableError {...detailData} />;
       }
