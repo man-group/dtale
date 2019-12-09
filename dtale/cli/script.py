@@ -10,7 +10,7 @@ from dtale.cli.loaders import check_loaders, setup_loader_options
 logger = getLogger(__name__)
 
 
-@click.command(name='main', help='Run dtale from command-line')
+@click.command(name='main', help='Run D-Tale from command-line')
 @click.option('--host', type=str, help='hostname or IP address of process')
 @click.option('--port', type=int, help='port number of process')
 @click.option('--debug', is_flag=True, help="flag to switch on Flask's debug mode")

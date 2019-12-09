@@ -22,7 +22,7 @@ from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import (build_shutdown_url, build_url, dict_merge, get_host,
                          running_with_flask_debug, swag_from)
-from dtale.views import cleanup, is_up, kill, startup
+from dtale.views import DATA, DtaleData, cleanup, is_up, kill, startup
 
 if PY3:
     import _thread
@@ -168,9 +168,9 @@ class DtaleFlask(Flask):
 
 def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     """
-    Builds Flask application encapsulating endpoints for D-Tale's front-end
+    Builds :class:`flask:flask.Flask` application encapsulating endpoints for D-Tale's front-end
 
-    :return: Flask application
+    :return: :class:`flask:flask.Flask` application
     :rtype: :class:`dtale.app.DtaleFlask`
     """
 
@@ -211,7 +211,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @swag_from('swagger/dtale/root.yml')
     def root():
         """
-        Flask routes which redirect to dtale/main
+        :class:`flask:flask.Flask` routes which redirect to dtale/main
 
         :return: 302 - flask.redirect('/dtale/main')
         """
@@ -220,7 +220,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @app.route('/favicon.ico')
     def favicon():
         """
-        Flask routes which returns favicon
+        :class:`flask:flask.Flask` routes which returns favicon
 
         :return: image/png
         """
@@ -229,7 +229,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @app.errorhandler(404)
     def page_not_found(e=None):
         """
-        Flask routes which returns favicon
+        :class:`flask:flask.Flask` routes which returns favicon
 
         :param e: exception
         :return: text/html with exception information
@@ -241,7 +241,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @app.errorhandler(500)
     def internal_server_error(e=None):
         """
-        Flask route which returns favicon
+        :class:`flask:flask.Flask` route which returns favicon
 
         :param e: exception
         :return: text/html with exception information
@@ -269,7 +269,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @swag_from('swagger/dtale/shutdown.yml')
     def shutdown():
         """
-        Flask route for initiating server shutdown
+        :class:`flask:flask.Flask` route for initiating server shutdown
 
         :return: text/html with server shutdown message
         """
@@ -290,7 +290,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @swag_from('swagger/dtale/site-map.yml')
     def site_map():
         """
-        Flask route listing all available flask endpoints
+        :class:`flask:flask.Flask` route listing all available flask endpoints
 
         :return: JSON of all flask enpoints [
             [endpoint1, function path1],
@@ -317,7 +317,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @swag_from('swagger/dtale/version-info.yml')
     def version_info():
         """
-        Flask route for retrieving version information about D-Tale
+        :class:`flask:flask.Flask` route for retrieving version information about D-Tale
 
         :return: text/html version information
         """
@@ -328,7 +328,7 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     @swag_from('swagger/dtale/health.yml')
     def health_check():
         """
-        Flask route for checking if D-Tale is up and running
+        :class:`flask:flask.Flask` route for checking if D-Tale is up and running
 
         :return: text/html 'ok'
         """
@@ -338,6 +338,18 @@ def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
 
 
 def initialize_process_props(host=None, port=None, force=False):
+    """
+    Helper function to initalize global state corresponding to the host & port being used for your
+    :class:`flask:flask.Flask` process
+
+    :param host: hostname to use otherwise it will default to the output of :func:`python:socket.gethostname`
+    :type host: str, optional
+    :param port: port to use otherwise default to the output of :func:dtale.app.find_free_port
+    :type port: str, optional
+    :param force: boolean flag to determine whether to ignore the :func:dtale.app.find_free_port function
+    :type force: bool
+    :return:
+    """
     global ACTIVE_HOST, ACTIVE_PORT
 
     if force:
@@ -367,9 +379,17 @@ def initialize_process_props(host=None, port=None, force=False):
 
 def find_free_port():
     """
-    Searches for free port on executing server for running Flask process
+    Searches for free port on executing server to run the :class:`flask:flask.Flask` process. Checks ports in range
+    specified using environment variables:
 
-    :return: string port number
+    DTALE_MIN_PORT (default: 40000)
+    DTALE_MAX_PORT (default: 49000)
+
+    The range limitation is required for usage in tools such as jupyterhub.  Will raise an exception if an open
+    port cannot be found.
+
+    :return: port number
+    :rtype: int
     """
 
     def is_port_in_use(port):
@@ -393,7 +413,7 @@ def find_free_port():
 def show(data=None, host=None, port=None, name=None, debug=False, subprocess=True, data_loader=None,
          reaper_on=True, open_browser=False, notebook=False, force=False, **kwargs):
     """
-    Entry point for kicking off D-Tale Flask process from python process
+    Entry point for kicking off D-Tale :class:`flask:flask.Flask` process from python process
 
     :param data: data which D-Tale will display
     :type data: :class:`pandas:pandas.DataFrame` or :class:`pandas:pandas.Series`
@@ -404,7 +424,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
     :type port: str, optional
     :param name: optional label to assign a D-Tale process
     :type name: str, optional
-    :param debug: will turn on Flask debug functionality, defaults to False
+    :param debug: will turn on :class:`flask:flask.Flask` debug functionality, defaults to False
     :type debug: bool, optional
     :param subprocess: run D-Tale as a subprocess of your current process, defaults to True
     :type subprocess: bool, optional
@@ -467,5 +487,31 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
             instance.notebook()
     else:
         _start()
+        logger.info('D-Tale started at: {}'.format(url))
 
     return instance
+
+
+def instances():
+    """
+    Returns a dictionary of data IDs & :class:dtale.views.DtaleData objects pertaining to all the current pieces of
+    data being viewed
+
+    :return: dict
+    """
+    return {data_id: DtaleData(data_id, build_url(ACTIVE_PORT, host=ACTIVE_HOST)) for data_id in DATA}
+
+
+def get_instance(data_id):
+    """
+    Returns a :class:dtale.views.DtaleData object for the data_id passed as input, will return None if the data_id
+    does not exist
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :return: :class:dtale.views.DtaleData
+    """
+    data_id_str = str(data_id)
+    if data_id_str in DATA:
+        return DtaleData(data_id_str, build_url(ACTIVE_PORT, host=ACTIVE_HOST))
+    return None

@@ -62,7 +62,7 @@ describe("main tests", () => {
     done();
   });
 
-  _.forEach(["correlations", "coverage", "describe", "histogram", "instances"], popup => {
+  _.forEach(["correlations", "charts", "describe", "histogram", "instances"], popup => {
     test(`${popup}_popup_main rendering`, done => {
       testMain(`popups/window/${popup}_popup_main`);
       done();

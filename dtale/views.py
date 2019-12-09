@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import requests
 from future.utils import string_types
-from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
@@ -51,10 +50,21 @@ def in_ipython_frontend():
 
 
 def kill(base):
+    """
+    This function fires a request to this instance's 'shutdown' route to kill it
+
+    """
     requests.get(build_shutdown_url(base))
 
 
 def is_up(base):
+    """
+    This function checks to see if instance's :mod:`flask:flask.Flask` process is up by hitting 'health' route.
+
+    Using `verify=False` will allow us to validate instances being served up over SSL
+
+    :return: `True` if :mod:`flask:flask.Flask` process is up and running, `False` otherwise
+    """
     try:
         return requests.get('{}/health'.format(base), verify=False).ok
     except BaseException:
@@ -66,8 +76,15 @@ class DtaleData(object):
     Wrapper class to abstract the global state of a D-Tale process while allowing
     a user to programatically interact with a running D-Tale instance
 
-    :param port: integer string for a D-Tale process's port
-    :type port: str
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param url: endpoint for instances :class:`flask:flask.Flask` process
+    :type url: str
+
+    Attributes:
+        _data_id            data identifier
+        _url                :class:`flask:flask.Flask` endpoint
+        _notebook_handle    reference to the most recent :class:`ipython:IPython.display.DisplayHandle` created
 
     :Example:
 
@@ -103,11 +120,15 @@ class DtaleData(object):
         startup(self._url, data=data, data_id=self._data_id)
 
     def main_url(self):
+        """
+        Helper function creating main :class:`flask:flask.Flask` route using instance's url & data_id
+        :return: str
+        """
         return '{}/dtale/main/{}'.format(self._url, self._data_id)
 
     def kill(self):
         """
-        This function fires a request to this instance's 'shutdown' route to kill it
+        Helper function to pass instance's endpoint to :func:dtale.views.kill
 
         """
         kill(self._url)
@@ -121,11 +142,7 @@ class DtaleData(object):
 
     def is_up(self):
         """
-        This function checks to see if instance's :mod:`flask:flask.Flask` process is up by hitting 'health' route.
-
-        Using `verify=False` will allow us to validate instances being served up over SSL
-
-        :return: `True` if :mod:`flask:flask.Flask` process is up and running, `False` otherwise
+        Helper function to pass instance's endpoint to :func:dtale.views.is_up
         """
         return is_up(self._url)
 
@@ -154,13 +171,19 @@ class DtaleData(object):
                 return ''
         return self.main_url()
 
-    def _build_iframe(self, width='100%', height=350):
+    def _build_iframe(self, route='/dtale/iframe/', params=None, width='100%', height=350):
         """
         Helper function to build an :class:`ipython:IPython.display.IFrame` if that module exists within
         your environment
 
+        :param route: the :class:`flask:flask.Flask` route to hit on D-Tale
+        :type route: str, optional
+        :param params: properties & values passed as query parameters to the route
+        :type params: dict, optional
         :param width: width of the ipython cell
+        :type width: str or int, optional
         :param height: height of the ipython cell
+        :type height: str or int, optional
         :return: :class:`ipython:IPython.display.IFrame`
         """
         try:
@@ -168,10 +191,13 @@ class DtaleData(object):
         except ImportError:
             logger.info('in order to use this function, please install IPython')
             return None
-        iframe_url = '{}/dtale/iframe/{}'.format(self._url, self._data_id)
+        iframe_url = '{}{}{}'.format(self._url, route, self._data_id)
+        if params is not None:
+            formatted_params = ['{}={}'.format(k, ','.join(make_list(params[k]))) for k in sorted(params)]
+            iframe_url = '{}?{}'.format(iframe_url, '&'.join(formatted_params))
         return IFrame(iframe_url, width=width, height=height)
 
-    def notebook(self, width='100%', height=350):
+    def notebook(self, route='/dtale/iframe/', params=None, width='100%', height=350):
         """
         Helper function which checks to see if :mod:`flask:flask.Flask` process is up and running and then tries to
         build an :class:`ipython:IPython.display.IFrame` and run :meth:`ipython:IPython.display.display` on it so
@@ -180,8 +206,14 @@ class DtaleData(object):
         A reference to the :class:`ipython:IPython.display.DisplayHandle` is stored in _notebook_handle for
         updating if you are running ipython>=5.0
 
+        :param route: the :class:`flask:flask.Flask` route to hit on D-Tale
+        :type route: str, optional
+        :param params: properties & values passed as query parameters to the route
+        :type params: dict, optional
         :param width: width of the ipython cell
+        :type width: str or int, optional
         :param height: height of the ipython cell
+        :type height: str or int, optional
         """
         try:
             from IPython.display import display
@@ -192,9 +224,54 @@ class DtaleData(object):
         while not self.is_up():
             time.sleep(0.01)
 
-        self._notebook_handle = display(self._build_iframe(width=width, height=height), display_id=True)
+        self._notebook_handle = display(
+            self._build_iframe(route=route, params=params, width=width, height=height), display_id=True
+        )
         if self._notebook_handle is None:
             self._notebook_handle = True
+
+    def notebook_correlations(self, col1, col2, width='100%', height=350):
+        """
+        Helper function to build an `ipython:IPython.display.IFrame` pointing at the correlations popup
+
+        :param col1: column on left side of correlation
+        :type col1: str
+        :param col2: column on right side of correlation
+        :type col2: str
+        :param width: width of the ipython cell
+        :type width: str or int, optional
+        :param height: height of the ipython cell
+        :type height: str or int, optional
+        :return: :class:`ipython:IPython.display.IFrame`
+        """
+        self.notebook('/dtale/popup/correlations/', params=dict(col1=col1, col2=col2), width=width, height=height)
+
+    def notebook_charts(self, x, y, group=None, aggregation=None, width='100%', height=350):
+        """
+        Helper function to build an `ipython:IPython.display.IFrame` pointing at the charts popup
+
+        :param x: column to be used as x-axis of chart
+        :type x: str
+        :param y: column to be used as y-axis of chart
+        :type y: str
+        :param group: comma-separated string of columns to group chart data by
+        :type group: str, optional
+        :param aggregation: points to a specific function that can be applied to
+                            :func: pandas.core.groupby.DataFrameGroupBy.  Possible values are: count, first, last mean,
+                            median, min, max, std, var, mad, prod, sum
+        :type aggregation: str, optional
+        :param width: width of the ipython cell
+        :type width: str or int, optional
+        :param height: height of the ipython cell
+        :type height: str or int, optional
+        :return: :class:`ipython:IPython.display.IFrame`
+        """
+        params = dict(x=x, y=y)
+        if group:
+            params['group'] = ','.join(make_list(group))
+        if aggregation:
+            params['aggregation'] = aggregation
+        self.notebook('/dtale/popup/charts/', params=params, width=width, height=height)
 
     def adjust_cell_dimensions(self, width='100%', height=350):
         """
@@ -342,8 +419,10 @@ def _view_main(data_id, iframe=False):
     """
     Helper function rendering main HTML which will also build title and store whether we are viewing from an <iframe>
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param iframe: boolean flag indicating whether this is being viewed from an <iframe> (usually means ipython)
-    :type iframe: bool
+    :type iframe: bool, optional
     :return: HTML
     """
     curr_metadata = METADATA.get(data_id, {})
@@ -357,8 +436,10 @@ def _view_main(data_id, iframe=False):
 @swag_from('swagger/dtale/views/main.yml')
 def view_main(data_id):
     """
-    Flask route which serves up base jinja template housing JS files
+    :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :return: HTML
     """
     return _view_main(data_id)
@@ -368,8 +449,10 @@ def view_main(data_id):
 @swag_from('swagger/dtale/views/main.yml')
 def view_iframe(data_id):
     """
-    Flask route which serves up base jinja template housing JS files
+    :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :return: HTML
     """
     return _view_main(data_id, iframe=True)
@@ -377,6 +460,16 @@ def view_iframe(data_id):
 
 @dtale.route('/popup/<popup_type>/<data_id>')
 def view_popup(popup_type, data_id):
+    """
+    :class:`flask:flask.Flask` route which serves up base jinja template for any popup, additionally forwards any
+    request parameters as input to template.
+
+    :param popup_type: type of popup to be opened. Possible values: charts, correlations, describe, histogram, instances
+    :type popup_type: str
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :return: HTML
+    """
     curr_metadata = METADATA.get(data_id, {})
     title = 'D-Tale'
     if curr_metadata.get('name'):
@@ -384,7 +477,6 @@ def view_popup(popup_type, data_id):
     title = '{} - {}'.format(title, popup_type)
     params = request.args.to_dict()
     if len(params):
-
         def pretty_print(obj):
             return ', '.join(['{}: {}'.format(k, str(v)) for k, v in obj.items()])
         title = '{} ({})'.format(title, pretty_print(params))
@@ -395,7 +487,7 @@ def view_popup(popup_type, data_id):
 @swag_from('swagger/dtale/views/processes.yml')
 def get_processes():
     """
-    Flask route which returns list of running D-Tale processes within current python process
+    :class:`flask:flask.Flask` route which returns list of running D-Tale processes within current python process
 
     :return: JSON {
         data: [
@@ -437,9 +529,10 @@ def get_processes():
 @swag_from('swagger/dtale/views/update-settings.yml')
 def update_settings(data_id):
     """
-    Flask route which updates global SETTINGS for current port
+    :class:`flask:flask.Flask` route which updates global SETTINGS for current port
 
-    :param port: number string from flask.request.environ['SERVER_PORT']
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param settings: JSON string from flask.request.args['settings'] which gets decoded and stored in SETTINGS variable
     :return: JSON
     """
@@ -455,6 +548,14 @@ def update_settings(data_id):
 
 
 def _test_filter(data, query):
+    """
+    Helper function for boolean expression as a query against a :class:`pandas:pandas.DataFrame`
+
+    :param data: dataframe to be queried
+    :type data: :class:`pandas:pandas.DataFrame`
+    :param query: boolean expression
+    :return: str
+    """
     if query is not None and len(query):
         data.query(query)
 
@@ -463,9 +564,11 @@ def _test_filter(data, query):
 @swag_from('swagger/dtale/views/test-filter.yml')
 def test_filter(data_id):
     """
-    Flask route which will test out pandas query before it gets applied to DATA and return exception information to the
-    screen if there is any
+    :class:`flask:flask.Flask` route which will test out pandas query before it gets applied to DATA and return
+    exception information to the screen if there is any
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :return: JSON {success: True/False}
     """
@@ -481,7 +584,10 @@ def test_filter(data_id):
 @swag_from('swagger/dtale/views/dtypes.yml')
 def dtypes(data_id):
     """
-    Flask route which returns a list of column names and dtypes to the front-end as JSON
+    :class:`flask:flask.Flask` route which returns a list of column names and dtypes to the front-end as JSON
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
 
     :return: JSON {
         dtypes: [
@@ -523,9 +629,11 @@ def load_describe(column_series):
 @swag_from('swagger/dtale/views/describe.yml')
 def describe(data_id, column):
     """
-    Flask route which returns standard details about column data using :meth:`pandas:pandas.DataFrame.describe` to
-    the front-end as JSON
+    :class:`flask:flask.Flask` route which returns standard details about column data using
+    :meth:`pandas:pandas.DataFrame.describe` to the front-end as JSON
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param column: required dash separated string "START-END" stating a range of row indexes to be returned
                    to the screen
     :return: JSON {
@@ -554,14 +662,15 @@ def describe(data_id, column):
 @swag_from('swagger/dtale/views/data.yml')
 def get_data(data_id):
     """
-    Flask route which returns current rows from DATA (based on scrollbar specs and saved settings) to front-end as
-    JSON
+    :class:`flask:flask.Flask` route which returns current rows from DATA (based on scrollbar specs and saved settings)
+    to front-end as JSON
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param ids: required dash separated string "START-END" stating a range of row indexes to be returned to the screen
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param sort: JSON string from flask.request.args['sort'] which is applied to DATA using the sort_values() or
                  sort_index() function.  Here is the JSON structure: [col1,dir1],[col2,dir2],....[coln,dirn]
-    :param port: number string from flask.request.environ['SERVER_PORT'] for retrieving saved settings
     :return: JSON {
         results: [
             {dtale_index: 1, col1: val1_1, ...,colN: valN_1},
@@ -633,8 +742,10 @@ def get_data(data_id):
 @swag_from('swagger/dtale/views/histogram.yml')
 def get_histogram(data_id):
     """
-    Flask route which returns output from numpy.histogram to front-end as JSON
+    :class:`flask:flask.Flask` route which returns output from numpy.histogram to front-end as JSON
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param col: string from flask.request.args['col'] containing name of a column in your dataframe
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param bins: the number of bins to display in your histogram, options on the front-end are 5, 10, 20, 50
@@ -662,12 +773,14 @@ def get_histogram(data_id):
 @swag_from('swagger/dtale/views/correlations.yml')
 def get_correlations(data_id):
     """
-    Flask route which gathers Pearson correlations against all combinations of columns with numeric data
-    using :meth:`pandas:pandas.DataFrame.corr`
+    :class:`flask:flask.Flask` route which gathers Pearson correlations against all combinations of columns with
+    numeric data using :meth:`pandas:pandas.DataFrame.corr`
 
     On large datasets with no :attr:`numpy:numpy.nan` data this code will use :meth:`numpy:numpy.corrcoef`
     for speed purposes
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :returns: JSON {
         data: [{column: col1, col1: 1.0, col2: 0.99, colN: 0.45},...,{column: colN, col1: 0.34, col2: 0.88, colN: 1.0}],
@@ -705,44 +818,130 @@ def get_correlations(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-def _build_timeseries_chart_data(name, df, cols, min=None, max=None, sub_group=None):
+def build_chart(data, x, y, group_col=None, agg=None):
     """
-    Helper function for grabbing JSON serialized data for one or many date groupings
+    Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
+    dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
+    maximum of all the series for the y-axis.  If there is only one series (no group_col specified) the only key in the
+    dictionary of series data will be 'all' otherwise the keys will be the values of the groups.
 
-    :param name: base name of series in chart
-    :param df: data frame to be grouped
-    :param cols: columns whose data is to be returned
-    :param min: optional hardcoded minimum to be returned for all series
-    :param max: optional hardcoded maximum to be returned for all series
-    :param sub_group: optional sub group to be used in addition to date
-    :return: generator of string keys and JSON serialized dictionaries
+    :param data: dataframe to be used for chart
+    :type data: :class:`pandas:pandas.DataFrame`
+    :param x: column to be used as x-axis of chart
+    :type x: str
+    :param y: column to be used as y-axis of chart
+    :type y: str
+    :param group: comma-separated string of columns to group chart data by
+    :type group: str, optional
+    :param aggregation: points to a specific function that can be applied to
+                        :func: pandas.core.groupby.DataFrameGroupBy.  Possible values are: count, first, last mean,
+                        median, min, max, std, var, mad, prod, sum
+    :type aggregation: str, optional
+    :return: dict
     """
-    base_cols = ['date']
-    if sub_group in df:
-        dfs = df.groupby(sub_group)
-        base_cols.append(sub_group)
-    else:
-        dfs = [('', df)]
+    x_col, y_col = str('x'), str('y')
+    if group_col is not None:
+        data = data[group_col + [x, y]].sort_values(group_col + [x])
 
-    for sub_group_val, grp in dfs:
-        for col in cols:
-            key = '{0}:{1}:{2}'.format(
-                sub_group_val if isinstance(sub_group_val, string_types) else '{0:.0f}'.format(sub_group_val), name, col
-            )
-            data = grp[base_cols + [col]].dropna(subset=[col])
-            f = grid_formatter(grid_columns(data), overrides={'D': lambda f, i, c: f.add_timestamp(i, c)})
-            data = f.format_dicts(data.itertuples())
-            data = dict(data=data, min=min or grp[col].min(), max=max or grp[col].max())
-            yield key, data
+        data.columns = group_col + [x_col, y_col]
+        if agg is not None:
+            data = data.groupby(group_col + [x_col])
+            data = getattr(data, agg)().reset_index()
+        max_groups = 15
+        if len(data[group_col].drop_duplicates()) > max_groups:
+            msg = (
+                'Group ({}) contains more than 10 unique values, please add additional filter'
+                ' or else chart will be unreadable'
+            ).format(', '.join(group_col), max_groups)
+            raise Exception(msg)
+        f = grid_formatter(
+            grid_columns(data[[x_col, y_col]]), overrides={'D': lambda f, i, c: f.add_timestamp(i, c)}, nan_display=None
+        )
+        y_fmt = next((fmt for _, name, fmt in f.fmts if name == y_col), None)
+        ret_data = dict(data={}, min=y_fmt(data[y_col].min(), None), max=y_fmt(data[y_col].max(), None))
+
+        for group_val, grp in data.groupby(group_col):
+            group_val = '/'.join([
+                gv if isinstance(gv, string_types) else '{0:.0f}'.format(gv) for gv in make_list(group_val)
+            ])
+            ret_data['data'][group_val] = f.format_lists(grp)
+        return ret_data
+    data = data[[x, y]].sort_values(x)
+    data.columns = [x_col, y_col]
+    if agg is not None:
+        data = data.groupby(x_col)
+        data = getattr(data, agg)().reset_index()
+
+    if any(data[x_col].duplicated()):
+        raise Exception('{} contains duplicates, please specify group or additional filtering'.format(x))
+    f = grid_formatter(
+        grid_columns(data), overrides={'D': lambda f, i, c: f.add_timestamp(i, c)}, nan_display=None
+    )
+    y_fmt = next((fmt for _, name, fmt in f.fmts if name == y_col), None)
+    ret_data = dict(
+        data={str('all'): f.format_lists(data)},
+        min=y_fmt(data[y_col].min(), None),
+        max=y_fmt(data[y_col].max(), None)
+    )
+    return ret_data
+
+
+@dtale.route('/chart-data/<data_id>')
+@swag_from('swagger/dtale/views/chart-data.yml')
+def get_chart_data(data_id):
+    """
+    :class:`flask:flask.Flask` route which builds data associated with a chart.js chart
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
+    :param x: string from flask.request.args['x'] column to be used as x-axis of chart
+    :param y: string from flask.request.args['y'] column to be used as y-axis of chart
+    :param group: string from flask.request.args['group'] comma-separated string of columns to group chart data by
+    :param agg: string from flask.request.args['agg'] points to a specific function that can be applied to
+                :func: pandas.core.groupby.DataFrameGroupBy.  Possible values are: count, first, last mean,
+                median, min, max, std, var, mad, prod, sum
+    :returns: JSON {
+        data: {
+            series1: { x: [x1, x2, ..., xN], y: [y1, y2, ..., yN] },
+            series2: { x: [x1, x2, ..., xN], y: [y1, y2, ..., yN] },
+            ...,
+            seriesN: { x: [x1, x2, ..., xN], y: [y1, y2, ..., yN] },
+        },
+        min: minY,
+        max: maxY,
+    } or {error: 'Exception message', traceback: 'Exception stacktrace'}
+    """
+    try:
+        query = get_str_arg(request, 'query')
+        data = DATA[data_id]
+        if query:
+            try:
+                data = data.query(query)
+            except BaseException as e:
+                return jsonify(dict(error='Invalid query: {}'.format(str(e))))
+            if not len(data):
+                return jsonify(dict(error='query "{}" found no data, please alter'.format(query)))
+        x = get_str_arg(request, 'x')
+        y = get_str_arg(request, 'y')
+        group_col = get_str_arg(request, 'group')
+        if group_col is not None:
+            group_col = group_col.split(',')
+        agg = get_str_arg(request, 'agg')
+        return jsonify(build_chart(data, x, y, group_col, agg))
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
 @dtale.route('/correlations-ts/<data_id>')
 @swag_from('swagger/dtale/views/correlations-ts.yml')
 def get_correlations_ts(data_id):
     """
-    Flask route which returns timeseries of Pearson correlations of two columns with numeric data
+    :class:`flask:flask.Flask` route which returns timeseries of Pearson correlations of two columns with numeric data
     using :meth:`pandas:pandas.DataFrame.corr`
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param cols: comma-separated string from flask.request.args['cols'] containing names of two columns in dataframe
     :param dateCol: string from flask.request.args['dateCol'] with name of date-type column in dateframe for timeseries
@@ -762,8 +961,7 @@ def get_correlations_ts(data_id):
         data = data.reset_index()
         data = data[data.column == cols[0]][['date', cols[1]]]
         data.columns = ['date', 'corr']
-        data = {k: v for k, v in _build_timeseries_chart_data('corr', data, ['corr'])}
-        return jsonify(dict(data=data))
+        return jsonify(build_chart(data, 'date', 'corr'))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
@@ -772,8 +970,10 @@ def get_correlations_ts(data_id):
 @swag_from('swagger/dtale/views/scatter.yml')
 def get_scatter(data_id):
     """
-    Flask route which returns data used in correlation of two columns for scatter chart
+    :class:`flask:flask.Flask` route which returns data used in correlation of two columns for scatter chart
 
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param cols: comma-separated string from flask.request.args['cols'] containing names of two columns in dataframe
     :param dateCol: string from flask.request.args['dateCol'] with name of date-type column in dateframe for timeseries
@@ -824,103 +1024,5 @@ def get_scatter(data_id):
         f = grid_formatter(grid_columns(data))
         data = f.format_dicts(data.itertuples())
         return jsonify(data=data, x=cols[0], y=cols[1], stats=stats)
-    except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
-
-
-DATE_RANGES = {
-    'W': lambda today: today - Day(today.dayofweek),
-    'M': lambda today: today if today.is_month_start else today - MonthBegin(),
-    'Q': lambda today: today if today.is_quarter_start else today - QuarterBegin(startingMonth=1),
-    'Y': lambda today: today if today.is_year_start else today - YearBegin(),
-}
-
-
-@dtale.route('/coverage/<data_id>')
-@swag_from('swagger/dtale/views/coverage.yml')
-def find_coverage(data_id):
-    """
-    Flask route which returns coverage information(counts) for a column grouped by other column(s)
-
-    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
-    :param col: string from flask.request.args['col'] containing name of a column in your dataframe
-    :param filters(deprecated): JSON string from flaks.request.args['filters'] with filtering information from group
-           drilldown [
-        {name: col1, prevFreq: Y, freq: Q, date: YYYY-MM-DD},
-        ...
-        {name: col1, prevFreq: D, freq: W, date: YYYY-MM-DD},
-    ]
-    :param group: JSON string from flask.request.args['group'] containing grouping logic in this structure [
-        {name: col1} or {name: date_col1, freq: [D,W,M,Q,Y]}
-    ]
-    :returns: JSON {
-        data: {
-            [col]: [count1,count2,...,countN],
-            labels: [{group_col1: gc1_v1, group_col2: gc2_v1},...,{group_col1: gc1_vN, group_col2: gc2_vN}],
-            success: True
-    } or {error: 'Exception message', traceback: 'Exception stacktrace', success: False}
-    """
-    def filter_data(df, req, groups, query=None):
-        filters = get_str_arg(req, 'filters')
-        if not filters:
-            return df.query(query or 'index == index'), groups, ''
-        filters = json.loads(filters)
-        col, prev_freq, freq, end = map(filters[-1].get, ['name', 'prevFreq', 'freq', 'date'])
-        start = DATE_RANGES[prev_freq](pd.Timestamp(end)).strftime('%Y%m%d')
-        range_query = "{col} >= '{start}' and {col} <= '{end}'".format(col=col, start=start, end=end)
-        logger.info('filtered coverage data to slice: {}'.format(range_query))
-        updated_groups = [dict(name=col, freq=freq) if g['name'] == col else g for g in groups]
-        return df.query(query or 'index == index').query(range_query), updated_groups, range_query
-
-    try:
-        col = get_str_arg(request, 'col')
-        groups = get_str_arg(request, 'group')
-        if groups:
-            groups = json.loads(groups)
-        data = DATA[data_id]
-        data, groups, query = filter_data(data, request, groups, query=get_str_arg(request, 'query'))
-        grouper = []
-        for g_cfg in groups:
-            if 'freq' in g_cfg:
-                freq_grp = data.set_index([g_cfg['name']]).index.to_period(g_cfg['freq']).to_timestamp(how='end')
-                freq_grp.name = g_cfg['name']
-                grouper.append(freq_grp)
-            else:
-                grouper.append(data[g_cfg['name']])
-
-        data_groups = data.groupby(grouper)
-        group_data = data_groups[col].count()
-        if len(groups) > 1:
-            unstack_order = enumerate(zip(group_data.index.names, group_data.index.levels))
-            unstack_order = sorted(
-                [(uo[0], uo[1][0], len(uo[1][1])) for uo in unstack_order],
-                key=lambda k: k[2]
-            )
-            for i, n, l in unstack_order[:-1]:
-                group_data = group_data.unstack(i)
-            group_data = group_data.fillna(0)
-            if len(unstack_order[:-1]) > 1:
-                group_data.columns = [
-                    ', '.join([str(group_data.columns.levels[c2[0]][c2[1]]) for c2 in enumerate(c)])
-                    for c in zip(*group_data.columns.labels)
-                ]
-            else:
-                group_data.columns = map(str, group_data.columns.values)
-
-        if len(group_data) > 15000:
-            return jsonify(dict(error=(
-                'Your grouping created {} groups, chart will not render. '
-                'Try making date columns a higher frequency (W, M, Q, Y)').format(len(data_groups))))
-        if len(groups) == 1:
-            data = {col: [json_int(v) for v in group_data.values]}
-        else:
-            data = dict([(c, [json_int(v) for v in group_data[c].values]) for c in group_data.columns])
-        labels = pd.DataFrame(group_data.index.values, columns=group_data.index.names)
-        labels_f_overrides = {
-            'D': lambda f, i, c: f.add_date(i, c, fmt='%Y-%m-%d'),
-        }
-        labels_f = grid_formatter(grid_columns(labels), overrides=labels_f_overrides)
-        labels = labels_f.format_dicts(labels.itertuples())
-        return jsonify(data=data, labels=labels, success=True)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))

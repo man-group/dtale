@@ -11,7 +11,7 @@ import { closeChart } from "../actions/charts";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
-import { TimeseriesChartBody } from "./TimeseriesChartBody";
+import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
 import CorrelationsGrid from "./correlations/CorrelationsGrid";
 import corrUtils from "./correlations/correlationsUtils";
@@ -64,11 +64,21 @@ class ReactCorrelations extends React.Component {
         return;
       }
       const { data, dates } = gridData;
-      this.setState({
+      const state = {
         correlations: data,
         dates,
         hasDate: _.size(dates) > 0,
         selectedDate: _.get(dates, 0, null),
+      };
+      this.setState(state, () => {
+        const { col1, col2 } = this.props.chartData || {};
+        if (col1 && col2) {
+          if (state.hasDate) {
+            this.buildTs([col1, col2], state.selectedDate);
+          } else {
+            this.buildScatter([col1, col2]);
+          }
+        }
       });
     });
   }
@@ -132,11 +142,11 @@ class ReactCorrelations extends React.Component {
   }
 
   viewScatter(evt) {
-    const chart = _.get(this, "_ts_chart.state.chart.ts-chart");
+    const chart = _.get(this, "_ts_chart.state.charts.0");
     if (chart) {
       const selectedPoint = _.head(chart.getElementsAtXAxis(evt));
       if (selectedPoint) {
-        const date = moment(new Date(chart.data.datasets[0].data[selectedPoint._index].x)).format("YYYYMMDD");
+        const date = moment(new Date(chart.data.labels[selectedPoint._index])).format("YYYYMMDD");
         const { selectedCols } = this.state;
         this.buildScatter(selectedCols, date);
       }
@@ -154,7 +164,13 @@ class ReactCorrelations extends React.Component {
     const { selectedCols, tsUrl, selectedDate, hasDate, dates } = this.state;
     return (
       <div key="body" className="modal-body scatter-body">
-        <CorrelationsGrid buildTs={this.buildTs} buildScatter={this.buildScatter} {...this.state} />
+        <CorrelationsGrid
+          buildTs={this.buildTs}
+          buildScatter={this.buildScatter}
+          col1={_.get(this.props, "chartData.col1")}
+          col2={_.get(this.props, "chartData.col2")}
+          {...this.state}
+        />
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
           <div className="row d-inline">
             <div className="float-left pt-5">
@@ -176,10 +192,16 @@ class ReactCorrelations extends React.Component {
               </div>
             </ConditionalRender>
           </div>
-          <TimeseriesChartBody
+          <ChartsBody
             ref={r => (this._ts_chart = r)}
-            url={tsUrl}
             visible={true}
+            url={tsUrl}
+            columns={[
+              { name: "date", dtype: "datetime[ns]" },
+              { name: "corr", dtype: "float64" },
+            ]}
+            x="date"
+            y="corr"
             configHandler={config => {
               config.options.scales.yAxes = [
                 {
@@ -221,6 +243,8 @@ ReactCorrelations.propTypes = {
     visible: PropTypes.bool.isRequired,
     query: PropTypes.string,
     title: PropTypes.string,
+    col1: PropTypes.string,
+    col2: PropTypes.string,
   }),
   onClose: PropTypes.func,
   propagateState: PropTypes.func,

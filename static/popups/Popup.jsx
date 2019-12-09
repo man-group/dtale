@@ -8,10 +8,10 @@ import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
 import About from "./About";
 import { Correlations } from "./Correlations";
-import { CoverageChart } from "./CoverageChart";
 import { Describe } from "./Describe";
 import { Histogram } from "./Histogram";
 import Instances from "./Instances";
+import { Charts } from "./charts/Charts";
 
 class ReactPopup extends React.Component {
   constructor(props) {
@@ -44,15 +44,6 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <Histogram />;
-        break;
-      case "coverage":
-        modalTitle = (
-          <ModalTitle>
-            <i className="ico-show-chart" />
-            {" Coverage"}
-          </ModalTitle>
-        );
-        body = <CoverageChart />;
         break;
       case "correlations":
         modalTitle = (
@@ -89,6 +80,15 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <Instances {...this.props} />;
+        break;
+      case "charts":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-show-chart" />
+            <strong>Chart Builder</strong>
+          </ModalTitle>
+        );
+        body = <Charts />;
         break;
       default:
         break;

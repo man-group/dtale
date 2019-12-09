@@ -1,0 +1,82 @@
+summary: Builds chart data based off of inputs for x, y, group & aggregation
+description: |
+  * >
+  Aggregations are created using the [pandas.core.groupby.GroupBy](https://pandas.pydata.org/pandas-docs/stable/user_guide/groupby.html)
+  and the different aggregations available: count, first, last mean, median, min, max, std, var, mad, prod, sum
+  * Call this api passing a [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query) in your query string to perform coverage on certain data
+tags:
+  - D-Tale API
+parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
+  - name: x
+    in: query
+    required: true
+    schema:
+      type: string
+    description: column to be used as x-axis of chart
+  - name: y
+    in: query
+    required: true
+    schema:
+      type: string
+    description: column to be used as y-axis of chart
+  - name: group
+    in: query
+    required: false
+    schema:
+      type: string
+    description: comma-separaed list of columns to group on
+  - name: agg
+    in: query
+    required: false
+    schema:
+      type: string
+    description: name of aggregation to be applied to y-axis data
+    enum: [count, first, last mean, median, min, max, std, var, mad, prod, sum]
+  - name: query
+    in: query
+    schema:
+      type: string
+    description: pandas dataframe query for filtering data down before correlations are generated
+responses:
+  200:
+    description: JSON structure of coverage data
+    content:
+      application/json:
+        schema:
+          oneOf:
+            - properties:
+                data:
+                  type: object
+                  description: object of all series within the chart (keys are series names, 'all' if only one series)
+                  properties:
+                    all:
+                      type: object
+                      properties:
+                        x:
+                          type: array
+                          description: values for x-axis
+                        y:
+                          type: array
+                          description: values for y-axis
+                min:
+                  type: number
+                  description: minimum y-axis value amongst all series
+                max:
+                  type: number
+                  description: maximum y-axis value amongst all series
+            - properties:
+                error:
+                  type: string
+                  description: Exception summary
+                traceback:
+                  type: string
+                  description: Exception traceback
+                success:
+                  type: boolean
+                  default: false

@@ -1,6 +1,13 @@
 summary: Fetch list of running D-Tale processes
 tags:
   - D-Tale API
+parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
 responses:
   200:
     description: JSON object containing array of instance objects and success flag
