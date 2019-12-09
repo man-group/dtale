@@ -10,6 +10,11 @@ from six import PY3
 
 import dtale.utils as utils
 
+if PY3:
+    from contextlib import ExitStack
+else:
+    from contextlib2 import ExitStack
+
 
 def build_req_tuple(args):
     req = namedtuple('req', 'args')
@@ -17,11 +22,7 @@ def build_req_tuple(args):
 
 
 @pytest.mark.unit
-def test_getters():
-    builtin_pkg = '__builtin__'
-    if PY3:
-        builtin_pkg = 'builtins'
-
+def test_getters(builtin_pkg):
     req = build_req_tuple(
         {'int': '1', 'empty_int': '', 'str': 'hello', 'empty_str': '', 'bool': 'true', 'float': '1.1'}
     )
@@ -85,6 +86,16 @@ def test_formatters(unittest):
     unittest.assertEqual(
         formatters.format_dicts(bad_data),
         [{'int': '', 'date': '', 'float': '', 'str': 'hello', 'timestamp': '', 'json': 'hello', 'ts_date': ''}]
+    )
+
+    unittest.assertEqual(
+        formatters.format_lists(
+            pd.DataFrame(data, columns=['str', 'int', 'float', 'date', 'timestamp', 'json', 'ts_date'])
+        ),
+        {
+            'int': [1], 'timestamp': [1525075200000], 'float': [1.666667], 'ts_date': ['2018-04-30 16:36:44'],
+            'json': [{'a': 1}], 'str': ['hello'], 'date': ['2018-04-30 04:00:00']
+        }
     )
 
 
@@ -168,3 +179,31 @@ def test_classify_type():
     assert utils.classify_type('timestamp') == 'D'
     assert utils.classify_type('timedelta') == 'TD'
     assert utils.classify_type('foo') == 'S'
+
+
+@pytest.mark.unit
+def test_build_url():
+    assert utils.build_url(8080, 'localhost') == 'http://localhost:8080'
+    assert utils.build_url(8080, 'http://localhost') == 'http://localhost:8080'
+    assert utils.build_url(8080, 'https://localhost') == 'https://localhost:8080'
+
+    with mock.patch('socket.gethostname', mock.Mock(return_value='test')):
+        assert utils.build_url(8080) == 'http://test:8080'
+    with mock.patch('socket.gethostname', mock.Mock(return_value='http://test')):
+        assert utils.build_url(8080) == 'http://test:8080'
+
+
+@pytest.mark.unit
+def test_json_string():
+    assert utils.json_string(None, 'nan') == 'nan'
+    assert utils.json_string(u"\u25B2") is not None
+
+    builtin_pkg = '__builtin__'
+    if PY3:
+        builtin_pkg = 'builtins'
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=Exception)))
+        mock_logger = stack.enter_context(mock.patch('dtale.utils.logger', mock.Mock()))
+        assert utils.json_string('blah', 'nan') == 'nan'
+        mock_logger.exception.assert_called_once()

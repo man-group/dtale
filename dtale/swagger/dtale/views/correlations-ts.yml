@@ -5,6 +5,12 @@ description: |
 tags:
   - D-Tale API
 parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
   - name: cols
     in: query
     required: true
@@ -30,19 +36,23 @@ responses:
         schema:
           oneOf:
             - properties:
-                ':col1:col2':
+                data:
                   type: object
                   description: correlation data for col1 & col2
                   properties:
-                    data:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          corr:
+                    all:
+                      type: object
+                      properties:
+                        x:
+                          type: array
+                          description: values for x-axis
+                          items:
                             type: float
                             description: correlation
-                          date:
+                        y:
+                          type: array
+                          description: values for y-axis
+                          items:
                             type: string
                             description: date of correlation
                     max:

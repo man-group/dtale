@@ -70,7 +70,7 @@ describe("Correlations tests", () => {
 
   test("Correlations rendering data", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
+    const ChartsBody = require("../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -85,7 +85,7 @@ describe("Correlations tests", () => {
         .simulate("click");
       setTimeout(() => {
         result.update();
-        t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
+        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
         t.deepEqual(
           result
             .find("select.custom-select")
@@ -143,7 +143,7 @@ describe("Correlations tests", () => {
 
   test("Correlations rendering data w/ one date column", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
+    const ChartsBody = require("../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -158,7 +158,7 @@ describe("Correlations tests", () => {
         .simulate("click");
       setTimeout(() => {
         result.update();
-        t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
+        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
         t.ok(result.find("select.custom-select").length == 0, "should not render date options for timeseries");
         t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
         done();
@@ -183,6 +183,17 @@ describe("Correlations tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
+        const scatterChart = result.find(Correlations).instance().state.chart;
+        const title = scatterChart.cfg.options.tooltips.callbacks.title(
+          [{ datasetIndex: 0, index: 0 }],
+          scatterChart.data
+        );
+        t.deepEqual(title, [["Index: 0"]], "should render title");
+        const label = scatterChart.cfg.options.tooltips.callbacks.label(
+          { datasetIndex: 0, index: 0 },
+          scatterChart.data
+        );
+        t.deepEqual(label, ["col1: NaN", "col2: 1.5"], "should render label");
         done();
       }, 200);
     }, 200);

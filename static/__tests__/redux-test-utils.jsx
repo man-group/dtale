@@ -4,9 +4,10 @@ import _ from "lodash";
 
 import dtaleApp from "../reducers/dtale";
 import { createStore } from "../reducers/store";
+import chartsData from "./data/charts";
+import groupedChartsData from "./data/charts-grouped";
 import correlationsData from "./data/correlations";
 import correlationsTsData from "./data/correlations-ts";
-import coverageData from "./data/coverage";
 import histogramData from "./data/histogram";
 import scatterData from "./data/scatter";
 
@@ -136,8 +137,11 @@ function urlFetcher(url) {
     return correlationsData;
   } else if (url.startsWith("/dtale/scatter")) {
     return scatterData;
-  } else if (url.startsWith("/dtale/coverage")) {
-    return coverageData;
+  } else if (url.startsWith("/dtale/chart-data")) {
+    if (urlParams.group) {
+      return groupedChartsData;
+    }
+    return chartsData;
   } else if (url.startsWith("/dtale/update-settings")) {
     return { success: true };
   } else if (url.startsWith("/dtale/test-filter")) {

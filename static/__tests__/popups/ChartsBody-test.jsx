@@ -6,14 +6,14 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
 
-describe("CoverageChartBody tests", () => {
+describe("ChartsBody tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (url.startsWith("coverage-error-test1")) {
+        if (url.startsWith("chart-data-error-test1")) {
           return { data: {} };
         }
-        if (url.startsWith("coverage-error-test2")) {
+        if (url.startsWith("chart-data-error-test2")) {
           return { error: "Error test." };
         }
         const { urlFetcher } = require("../redux-test-utils").default;
@@ -34,10 +34,10 @@ describe("CoverageChartBody tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
-  test("CoverageChartBody missing data", done => {
-    const CoverageChartBody = require("../../popups/CoverageChartBody").default;
+  test("ChartsBody missing data", done => {
+    const ChartsBody = require("../../popups/charts/ChartsBody").default;
 
-    const result = mount(<CoverageChartBody url="ts-error-test1" visible={true} />, {
+    const result = mount(<ChartsBody url="chart-data-error-test1" visible={true} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -48,10 +48,10 @@ describe("CoverageChartBody tests", () => {
     }, 200);
   });
 
-  test("CoverageChartBody error handling", done => {
-    const CoverageChartBody = require("../../popups/CoverageChartBody").default;
+  test("ChartsBody error handling", done => {
+    const ChartsBody = require("../../popups/charts/ChartsBody").default;
 
-    const result = mount(<CoverageChartBody url="coverage-error-test2" visible={true} />, {
+    const result = mount(<ChartsBody url="chart-data-error-test2" visible={true} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();

@@ -98,8 +98,8 @@ def test_find_free_port():
 
 
 @pytest.mark.unit
-def test_show(unittest):
-    from dtale.app import show
+def test_show(unittest, builtin_pkg):
+    from dtale.app import show, get_instance, instances
     import dtale.views as views
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
@@ -122,6 +122,10 @@ def test_show(unittest):
             views.build_dtypes_state(tmp),
             'should update app data/dtypes'
         )
+
+        instance2 = get_instance(instance._data_id)
+        assert instance2._url == instance._url
+        assert instances()[instance._data_id]._url == instance._url
 
         instance.kill()
         mock_requests.assert_called_once()
@@ -165,10 +169,6 @@ def test_show(unittest):
         stack.enter_context(mock.patch('dtale.app.logger', mock.Mock()))
         instance = show(data=test_data, subprocess=False, name='foo')
         assert np.array_equal(instance.data['0'].values, test_data[0].values)
-
-    builtin_pkg = '__builtin__'
-    if PY3:
-        builtin_pkg = 'builtins'
 
     orig_import = __import__
 

@@ -5,9 +5,10 @@ import { RemovableError } from "../RemovableError";
 import * as t from "./jest-assertions";
 
 describe("RemovableError tests", () => {
-  test("RemovableError Remove null onRemove", () => {
+  test("RemovableError Remove null onRemove", done => {
     const result = mount(<RemovableError message="foo" onRemove={null} />);
     result.render();
     t.notOk(result.hasClass("fa-times-circle"), "the icon should not exist");
+    done();
   });
 });

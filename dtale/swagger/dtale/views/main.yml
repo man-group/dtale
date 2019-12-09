@@ -1,6 +1,13 @@
 summary: Main route which is hit from browsers returning HTML structure for housing all AJAX operations
 tags:
   - D-Tale API
+parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
 responses:
   200:
     description: HTML from jinja template containing base DOM and JS script imports

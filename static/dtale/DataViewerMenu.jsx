@@ -8,9 +8,8 @@ import { openChart } from "../actions/charts";
 import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuUtils";
 import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
 
-function open(path, dataId = null, height = 450, width = 500) {
-  const base = _.isNull(dataId) ? path : `${path}/${dataId}`;
-  window.open(base, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+function open(path, dataId, height = 450, width = 500) {
+  window.open(`${path}/${dataId}`, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
 }
 
 class ReactDataViewerMenu extends React.Component {
@@ -28,32 +27,11 @@ class ReactDataViewerMenu extends React.Component {
       const col = _.head(this.props.selectedCols);
       this.props.openChart(_.assignIn({ type: "histogram", col, title: col }, this.props));
     };
-    const openDescribe = () => {
+    const openPopup = (type, height = 450, width = 500) => () => {
       if (iframe) {
-        open("/dtale/popup/describe", dataId);
+        open(`/dtale/popup/${type}`, dataId, height, width);
       } else {
-        this.props.openChart({ type: "describe" });
-      }
-    };
-    const openCorrelations = () => {
-      if (iframe) {
-        open("/dtale/popup/correlations", dataId);
-      } else {
-        this.props.openChart(_.assignIn({ type: "correlations", title: "Correlations" }, this.props));
-      }
-    };
-    const openCoverage = () => {
-      if (iframe) {
-        open("/dtale/popup/coverage", dataId);
-      } else {
-        this.props.openChart(_.assignIn({ type: "coverage" }, this.props));
-      }
-    };
-    const openInstances = () => {
-      if (iframe) {
-        open("/dtale/popup/instances", dataId);
-      } else {
-        this.props.openChart({ type: "instances" });
+        this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
       }
     };
     const resize = () =>
@@ -69,7 +47,7 @@ class ReactDataViewerMenu extends React.Component {
         <ul>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openDescribe}>
+              <button className="btn btn-plain" onClick={openPopup("describe")}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>
@@ -145,7 +123,7 @@ class ReactDataViewerMenu extends React.Component {
           </ConditionalRender>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openCorrelations}>
+              <button className="btn btn-plain" onClick={openPopup("correlations")}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>
@@ -153,9 +131,9 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openCoverage}>
+              <button className="btn btn-plain" onClick={() => open("/dtale/popup/charts", dataId, 600, 1300)}>
                 <i className="ico-show-chart" />
-                <span className="font-weight-bold">Coverage</span>
+                <span className="font-weight-bold">Charts</span>
               </button>
             </span>
           </li>
@@ -177,7 +155,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openInstances}>
+              <button className="btn btn-plain" onClick={openPopup("instances")}>
                 <i className="ico-apps" />
                 <span className="font-weight-bold">
                   {"Instances "}

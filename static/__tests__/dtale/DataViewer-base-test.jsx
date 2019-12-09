@@ -117,7 +117,7 @@ describe("DataViewer tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About"],
+          ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
           ["Iframe-Mode", "Shutdown"]
         ),
         "Should render default menu options"
@@ -148,7 +148,7 @@ describe("DataViewer tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
-          ["Histogram", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About", "Iframe-Mode"],
+          ["Histogram", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About", "Iframe-Mode"],
           ["Shutdown"]
         ),
         "Should render menu options associated with selected column"

@@ -128,7 +128,7 @@ describe("DataViewer iframe tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Correlations", "Coverage", "Resize", "Heat Map", "Instances 1", "About"],
+          ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
           ["Refresh", "Full-Mode", "Shutdown"]
         ),
         "Should render default menu options"
@@ -262,8 +262,8 @@ describe("DataViewer iframe tests", () => {
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
           clickMainMenuButton(result, "Correlations");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations/1");
-          clickMainMenuButton(result, "Coverage");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/coverage/1");
+          clickMainMenuButton(result, "Charts");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/charts/1");
           clickMainMenuButton(result, "Instances 1");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
           clickMainMenuButton(result, "Resize");

@@ -4,6 +4,12 @@ description: |
 tags:
   - D-Tale API
 parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
   - name: query
     in: query
     schema:

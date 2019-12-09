@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.6.0 (2019-12-19)
+  * charts integration
+    * the ability to look at data in line, bar, stacked bar & pie charts
+    * the ability to group & aggregate data within the charts
+  * direct ipython iframes to correlations & charts pages with pre-selected inputs
+  * the ability to access instances from code by data id `dtale.get_instance(data_id)`
+  * view all active data instances `dtale.instances()`
+
 ### 1.5.1 (2019-12-12)
   * conversion of new flask instance for each `dtale.show` call to serving all data associated with one parent process under the same flask instance unless otherwise specified by the user (the `force` parameter)
 

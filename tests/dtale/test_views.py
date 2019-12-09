@@ -1,5 +1,4 @@
 import json
-import re
 from builtins import str
 
 import mock
@@ -64,12 +63,8 @@ def test_startup(unittest):
 
 
 @pytest.mark.unit
-def test_in_ipython_frontend():
+def test_in_ipython_frontend(builtin_pkg):
     import dtale.views as views
-
-    builtin_pkg = '__builtin__'
-    if PY3:
-        builtin_pkg = 'builtins'
 
     orig_import = __import__
 
@@ -452,19 +447,14 @@ def test_get_correlations_ts(unittest):
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
             response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=dict(dateCol='date', cols='foo,bar'))
             response_data = json.loads(response.data)
-            expected = dict(data={
-                ':corr:corr': {
-                    'max': 1.0,
-                    'data': [
-                        {'date': 946702800000, 'corr': 1.0},
-                        {'date': 946789200000, 'corr': 1.0},
-                        {'date': 946875600000, 'corr': 1.0},
-                        {'date': 946962000000, 'corr': 1.0},
-                        {'date': 947048400000, 'corr': 1.0}
-                    ],
-                    'min': 1.0
-                }
-            })
+            expected = {
+                'data': {'all': {
+                    'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
+                    'y': [1.0, 1.0, 1.0, 1.0, 1.0]
+                }},
+                'max': 1.0,
+                'min': 1.0
+            }
             unittest.assertEqual(response_data, expected, 'should return timeseries correlation')
 
     with app.test_client() as c:
@@ -549,93 +539,67 @@ def test_get_scatter(unittest):
 
 
 @pytest.mark.unit
-def test_get_coverage(unittest, test_data):
+def test_get_chart_data(unittest, test_data):
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(col='security_id', group=json.dumps([{'name': 'date', 'freq': 'Y'}]))
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
+            params = dict(x='date', y='security_id', agg='count')
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
-            expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-12-31"}], success=True)
-            unittest.assertEqual(response_data, expected, 'should return YTD coverage')
-
-            params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'Y', 'freq': 'Q', 'date': '20000331'}])
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
-            response_data = json.loads(response.data)
-            expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-03-31"}], success=True)
-            unittest.assertEqual(response_data, expected, 'should return QTD coverage')
-
-            params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'Q', 'freq': 'M', 'date': '20000131'}])
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
-            response_data = json.loads(response.data)
-            expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-01-31"}], success=True)
-            unittest.assertEqual(response_data, expected, 'should return MTD coverage')
-
-            params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'M', 'freq': 'W', 'date': '20000109'}])
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
-            response_data = json.loads(response.data)
-            expected = dict(
-                data={"security_id": [100, 150]},
-                labels=[{"date": "2000-01-02"}, {"date": "2000-01-09"}],
-                success=True
-            )
-            unittest.assertEqual(response_data, expected, 'should return WTD coverage')
-
-            params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'M', 'freq': 'D', 'date': '20000131'}])
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
-            response_data = json.loads(response.data)
-            expected = dict(
-                data={"security_id": [50, 50, 50, 50, 50]},
-                labels=[
-                    {"date": "2000-01-01"},
-                    {"date": "2000-01-02"},
-                    {"date": "2000-01-03"},
-                    {"date": "2000-01-04"},
-                    {"date": "2000-01-05"},
-                ],
-                success=True
-            )
-            unittest.assertEqual(response_data, expected, 'should return coverage')
+            expected = {
+                u'data': {u'all': {
+                    u'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
+                    u'y': [50, 50, 50, 50, 50]
+                }},
+                u'min': 50,
+                u'max': 50
+            }
+            unittest.assertEqual(response_data, expected, 'should return chart data')
 
     test_data.loc[:, 'baz'] = 'baz'
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(col='security_id', group=json.dumps([{'name': 'baz'}, {'name': 'date', 'freq': 'D'}]))
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
+            params = dict(x='date', y='security_id', group='baz', agg='mean')
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
-            expected = dict(
-                data={"baz": [50, 50, 50, 50, 50]},
-                labels=[
-                    {"date": "2000-01-01"},
-                    {"date": "2000-01-02"},
-                    {"date": "2000-01-03"},
-                    {"date": "2000-01-04"},
-                    {"date": "2000-01-05"},
-                ],
-                success=True
-            )
-            unittest.assertEqual(response_data, expected, 'should return coverage')
-
-    test_data = pd.DataFrame(build_ts_data(days=15001, size=1), columns=['date', 'security_id', 'foo', 'bar'])
-    with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(col='security_id', group=json.dumps([{'name': 'date', 'freq': 'D'}]))
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
-            response_data = json.loads(response.data)
-            expected = dict(
-                error=('Your grouping created 15001 groups, chart will not render. '
-                       'Try making date columns a higher frequency (W, M, Q, Y)'),
-                success=False
-            )
-            unittest.assertEqual(response_data, expected, 'should return coverage')
+            assert response_data['min'] == 24.5
+            assert response_data['max'] == 24.5
+            assert response_data['data']['baz']['x'][-1] == 947048400000
+            assert len(response_data['data']['baz']['y']) == 5
+            assert sum(response_data['data']['baz']['y']) == 122.5
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
+            params = dict(x='baz', y='foo')
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'baz contains duplicates, please specify group or additional filtering'
+
+    with app.test_client() as c:
+        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+            params = dict(x='date', y='foo', group='security_id')
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            assert response_data['error'] == (
+                'Group (security_id) contains more than 10 unique values, please add '
+                'additional filter or else chart will be unreadable'
+            )
+
+    with app.test_client() as c:
+        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
-                response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
+                response_data['error'], "Invalid query: name 'missing_col' is not defined", 'should handle data exception'
+            )
+
+    with app.test_client() as c:
+        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=dict(query="security_id == 51"))
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                response_data['error'], 'query "security_id == 51" found no data, please alter'
             )
 
 

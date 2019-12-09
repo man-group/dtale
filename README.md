@@ -1,6 +1,6 @@
 [![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Title.png)](https://github.com/man-group/dtale)
 
-[Live Demo](http://andrewschonfeld.pythonanywhere.com/dtale/main)
+[Live Demo](http://andrewschonfeld.pythonanywhere.com)
 
 -----------------
 
@@ -24,7 +24,7 @@ D-Tale was born out a conversion from SAS to Python.  What was originally a perl
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
   - [Menu functions w/ no columns selected](#menu-functions-w-no-columns-selected)
-    - [Describe](#describe), [Coverage](#coverage), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
+    - [Describe](#describe), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
   - [Menu functions w/ column(s) selected](#menu-functions-w-columns-selected)
     - [Move To Front](#move-to-front), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
   - [Menu functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
@@ -34,6 +34,7 @@ D-Tale was born out a conversion from SAS to Python.  What was originally a perl
   - [Linting](#linting)
   - [Formatting JS](#formatting-js)
   - [Docker Development](#docker-development)
+- [Startup Behavior](#startup-behavior)
 - [Documentation](#documentation)
 - [Requirements](#requirements)
 - [Acknowledgements](#acknowledgements)
@@ -97,8 +98,12 @@ d.kill()
 d.open_browser()
 
 # There is also some helpful metadata about the process
-d._port  # the process's port
+d._data_id  # the process's data identifier
 d._url  # the url to access the process
+
+d2 = dtale.get_instance(d._data_id)  # returns a new reference to the instance running at that data_id
+
+dtale.instances()  # returns a dictionary of all instances available, this would be { 1: ... }
 
 ```
 
@@ -115,9 +120,9 @@ If you are running ipython<=5.0 then you also have the ability to adjust the siz
 
 One thing of note is that alot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
 
-|Column Menus|Correlations|Describe|Histogram|Coverage|Instances|
+|Column Menus|Correlations|Describe|Histogram|Charts|Instances|
 |:------:|:------:|:------:|:------:|:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/coverage_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
 
@@ -129,6 +134,7 @@ Base CLI options (run `dtale --help` to see all options available)
 |`--debug`|turn on Flask's "debug" mode for your D-Tale instance|
 |`--no-reaper`|flag to turn off auto-reaping subprocess (kill D-Tale instances after an hour of inactivity), good for long-running displays |
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
+|`--force`|flag to force D-Tale to try an kill any pre-existing process at the port you've specified so it can use it|
 
 Loading data from **arctic**
 ```bash
@@ -242,17 +248,28 @@ Apply a simple pandas `query` to your data (link to pandas documentation include
 |--------|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
 
-#### Coverage
-Check for coverage gaps on column(s) by way of other column(s) as group(s)
-  - Select column(s) in "Group(s)" & "Col(s)"
-    - date-type columns you can also specify a frequency of D, W, M, Q, Y
-    - Select multiple values in "Cols(s)" and/or "Groups(s)" by holdings the SHIFT key as you click
-  - Click "Load"
-  - The output will be the counts of non-nan records in "Col(s)" grouped by your selections in "Group(s)"  
+#### Charts
+Build custom charts based off your data.
 
-|Daily|Daily Regional|
-|-----|:-------------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Coverage_daily_regions.png)|
+ - To build a chart you must pick a value for X & Y inputs which effectively drive what data is along the X & Y axes
+ - If your data along the x-axis has duplicates you have three options:
+   - specify a group, which will create series for each group
+   - specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum
+   - specify both a group & an aggregation
+ - Click the "Load" button which will load the data and display the default cahrt type "line"
+ - You now have the ability to toggle between different chart types: line, bar, stacked bar & pie
+ - If you have specified a group then you have the ability between showing all series in one chart and breaking each series out into its own chart "Chart per Group"
+
+Here are some examples with the following inputs: X: date, Y: Col0, Group: security_id, Aggregation: Mean, Query: `security_id in (100000, 100001) and date >= '20181220' and date <= '20181231'`
+
+|Chart Type|Chart|Chart per Group|
+|:------:|:------:|:------:|
+|line|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_line.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_line_pg.png)|
+|bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_pg.png)|
+|stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked_pg.png)|
+|pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie_pg.png)|
+
+This is a very powerful feature with many more features that could be offered (word cloud, different statistical aggregations, etc...) so please submit issues :)
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
@@ -484,6 +501,80 @@ $ python
 >>> dtale.show(df)
 ```
 Then view your D-Tale instance in your browser using the link that gets printed
+
+## Startup Behavior
+
+Here's a little background on how the `dtale.show()` function works:
+ - by default it will look for ports between 40000 & 49000, but you can change that range by specifying the environment variables DTALE_MIN_PORT & DTALE_MAX_PORT
+ - think of sessions as python consoles or jupyter notebooks
+
+1) Session 1 executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40000|1|http://localhost:40000/dtale/main/1|
+
+2) Session 1 executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40000|1,2|http://localhost:40000/dtale/main/[1,2]|
+
+2) Session 2 executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40000|1,2|http://localhost:40000/dtale/main/[1,2]|
+|2|40001|1|http://localhost:40001/dtale/main/1|
+
+3) Session 1 executes `dtale.show(df, port=40001, force=True)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|1,2,3|http://localhost:40001/dtale/main/[1,2,3]|
+
+4) Session 3 executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|1,2,3|http://localhost:40001/dtale/main/[1,2,3]|
+|3|40000|1|http://localhost:40000/dtale/main/1|
+
+5) Session 2 executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|1,2,3|http://localhost:40001/dtale/main/[1,2,3]|
+|3|40000|1|http://localhost:40000/dtale/main/1|
+|2|40002|1|http://localhost:40002/dtale/main/1|
+
+6) Session 4 executes `dtale.show(df, port=8080)` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|1,2,3|http://localhost:40001/dtale/main/[1,2,3]|
+|3|40000|1|http://localhost:40000/dtale/main/1|
+|2|40002|1|http://localhost:40002/dtale/main/1|
+|4|8080|1|http://localhost:8080/dtale/main/1|
+
+7) Session 1 executes `dtale.get_instance(1).kill()` our state is:
+
+|Session|Port|Active Data IDs|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|2,3|http://localhost:40001/dtale/main/[2,3]|
+|3|40000|1|http://localhost:40000/dtale/main/1|
+|2|40002|1|http://localhost:40002/dtale/main/1|
+|4|8080|1|http://localhost:8080/dtale/main/1|
+
+7) Session 5 sets DTALE_MIN_RANGE to 30000 and DTALE_MAX_RANGE 39000 and executes `dtale.show(df)` our state is:
+
+|Session|Port|Active Data ID(s)|URL(s)|
+|:-----:|:-----:|:-----:|:-----:|
+|1|40001|2,3|http://localhost:40001/dtale/main/[2,3]|
+|3|40000|1|http://localhost:40000/dtale/main/1|
+|2|40002|1|http://localhost:40002/dtale/main/1|
+|4|8080|1|http://localhost:8080/dtale/main/1|
+|5|30000|1|http://localhost:30000/dtale/main/1|
 
 ## Documentation
 

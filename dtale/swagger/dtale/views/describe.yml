@@ -3,6 +3,19 @@ description: |
   * [pandas.Series.describe](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.describe.html)
 tags:
   - D-Tale API
+parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
+  - name: column
+    in: path
+    required: true
+    schema:
+      type: string
+    description: column you want to describe
 responses:
   200:
     description: JSON object containing describe information, unique values and success flag

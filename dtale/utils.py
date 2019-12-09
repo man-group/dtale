@@ -40,10 +40,26 @@ def running_with_flask_debug():
 
 
 def get_host(host=None):
+    """
+    Returns host input if it exists otherwise the output of :func:`python:socket.gethostname`
+
+    :param host: hostname, can start with 'http://', 'https://' or just the hostname itself
+    :type host: str, optional
+    :return: str
+    """
     return host or socket.gethostname()
 
 
 def build_url(port, host=None):
+    """
+    Returns full url combining host(if not specified will use the output of :func:`python:socket.gethostname`) & port
+
+    :param port: integer string for the port to be used by the :class:`flask:flask.Flask` process
+    :type port: str
+    :param host: hostname, can start with 'http://', 'https://' or just the hostname itself
+    :type host: str, optional
+    :return: str
+    """
     final_host = get_host(host)
     if final_host.startswith('http'):
         return '{}:{}'.format(final_host, port)
@@ -137,13 +153,20 @@ def json_string(x, nan_display=''):
     """
     convert value to string to be used within JSON output
 
+    If a :class:`python.UnicodeEncodeError` occurs then :func:`python:str.encode` will be called on input
+
     :param x: value to be converted to string
     :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: string value
     :rtype: str
     """
     if x:
-        return str(x)
+        try:
+            return str(x)
+        except UnicodeEncodeError:
+            return x.encode('utf-8')
+        except BaseException as ex:
+            logger.exception(ex)
     return nan_display
 
 
@@ -226,7 +249,9 @@ def json_timestamp(x, nan_display=''):
     :rtype: bigint
     """
     try:
-        return int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000)
+        output = (pd.Timestamp(x) if isinstance(x, np.datetime64) else x)
+        output = int((time.mktime(output.timetuple()) + (old_div(output.microsecond, 1000000.0))) * 1000)
+        return output
     except BaseException:
         return nan_display
 
@@ -282,6 +307,9 @@ class JSONFormatter(object):
 
     def format_dicts(self, lsts):
         return [self.format_dict(l) for l in lsts]
+
+    def format_lists(self, df):
+        return {name: [f(v, nan_display=self.nan_display) for v in df[name].values] for _idx, name, f in self.fmts}
 
 
 def classify_type(type_name):
