@@ -57,8 +57,7 @@ describe("DataViewer tests", () => {
   test("DataViewer: correlations scatter error", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
-
+    const ChartsBody = require("../../popups/charts/ChartsBody").default;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -83,8 +82,8 @@ describe("DataViewer tests", () => {
           .simulate("click");
         setTimeout(() => {
           result.update();
-          t.equal(result.find(TimeseriesChartBody).length, 1, "should show correlation timeseries");
-          const tsChart = result.find(TimeseriesChartBody).instance().state.chart["ts-chart"];
+          t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
+          const tsChart = result.find(ChartsBody).instance().state.charts[0];
           tsChart.cfg.options.onClick({});
           setTimeout(() => {
             result.update();

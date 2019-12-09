@@ -206,7 +206,7 @@ def test_loader_retrieval():
 
 
 @pytest.mark.unit
-def test_loader_retrievers():
+def test_loader_retrievers(builtin_pkg):
     from dtale.cli.loaders import get_py35_loader, get_py33_loader, get_py2_loader
 
     orig_import = __import__
@@ -224,10 +224,7 @@ def test_loader_retrievers():
         return orig_import(name, *args, **kwargs)
 
     with ExitStack() as stack:
-        if PY3:
-            stack.enter_context(mock.patch('builtins.__import__', side_effect=import_mock))
-        else:
-            stack.enter_context(mock.patch('__builtin__.__import__', side_effect=import_mock))
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
 
         assert get_py35_loader('custom.loaders', 'loader.py') is not None
         assert mock_importlib_util.spec_from_file_location.called_once()

@@ -11,15 +11,6 @@ import CorrelationsCell from "./CorrelationsCell";
 
 require("./CorrelationsGrid.css");
 
-function buildState({ correlations }) {
-  return {
-    correlations: _.clone(correlations),
-    columns: _.map(correlations, ({ column }) => ({ value: column })),
-    col1: null,
-    col2: null,
-  };
-}
-
 function filterData({ col1, col2 }, data) {
   let updatedData = data;
   if (!_.isNull(col1)) {
@@ -29,6 +20,17 @@ function filterData({ col1, col2 }, data) {
     updatedData = _.map(updatedData, r => _.pick(r, ["column", col2.value]));
   }
   return updatedData;
+}
+
+function buildState({ correlations, col1, col2 }) {
+  const state = {
+    correlations: _.clone(correlations),
+    columns: _.map(correlations, ({ column }) => ({ value: column })),
+    col1: col1 ? { value: col1 } : null,
+    col2: col2 ? { value: col2 } : null,
+  };
+  state.correlations = filterData(state, correlations);
+  return state;
 }
 
 class CorrelationsGrid extends React.Component {

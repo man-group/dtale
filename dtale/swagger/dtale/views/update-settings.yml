@@ -2,6 +2,12 @@ summary: Push updates to stateful settings associated with the port in request (
 tags:
   - D-Tale API
 parameters:
+  - name: data_id
+    in: path
+    required: true
+    schema:
+      type: string
+    description: identifier used to get data associated with this API call
   - name: settings
     in: query
     schema:

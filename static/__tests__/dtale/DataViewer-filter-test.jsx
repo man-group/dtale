@@ -4,11 +4,10 @@ import { ModalClose, ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
 import { RemovableError } from "../../RemovableError";
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -79,11 +78,7 @@ describe("DataViewer tests", () => {
       result.update();
 
       //open filter
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(1)
-        .simulate("click");
+      clickMainMenuButton(result, "Filter");
       result.update();
       t.equal(result.find(Filter).length, 1, "should open filter");
       result
@@ -94,11 +89,7 @@ describe("DataViewer tests", () => {
         .simulate("click");
       result.update();
       t.notOk(result.find(Filter).instance().props.visible, "should close filter");
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(1)
-        .simulate("click");
+      clickMainMenuButton(result, "Filter");
       result.update();
       result
         .find(ModalFooter)
@@ -108,11 +99,7 @@ describe("DataViewer tests", () => {
         .simulate("click");
       result.update();
       t.notOk(result.find(Filter).instance().props.visible, "should close filter");
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(1)
-        .simulate("click");
+      clickMainMenuButton(result, "Filter");
       result.update();
       result
         .find(Filter)
@@ -170,11 +157,7 @@ describe("DataViewer tests", () => {
       result.update();
 
       //open filter
-      result
-        .find(DataViewerMenu)
-        .find("ul li button")
-        .at(1)
-        .simulate("click");
+      clickMainMenuButton(result, "Filter");
       result.update();
       result
         .find(Filter)

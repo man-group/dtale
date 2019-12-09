@@ -8019,67 +8019,67 @@ a.text-dark:focus, a.text-dark:hover {
 }
 
 .Select__multi-value {
-  background-color: #52bbef;
   border-radius: 2px;
-  border: 1px solid #2a91d1;
   color: white;
-  display: inline-block;
+  display: inline-flex;
   font-size: 0.9em;
   margin-left: 5px;
   vertical-align: top;
 }
 
-.Select--multi .Select__multi-value__remove,
-.Select--multi .Select__multi-value__label {
+.Select__multi-value__label {
   display: inline-block;
 }
 
-.Select--multi .Select__multi-value__label {
+.Select__multi-value__label {
   border-bottom-right-radius: 2px;
   border-top-right-radius: 2px;
   cursor: default;
-  color: white;
+  color: black;
   vertical-align: middle;
 }
 
-.Select--multi a.Select__multi-value__label {
+a.Select__multi-value__label {
   color: white;
   cursor: pointer;
   text-decoration: none;
 }
 
-.Select--multi a.Select__multi-value__label:hover {
+Select__multi-value__label:hover {
   text-decoration: underline;
 }
 
-.Select--multi .Select__multi-value__remove {
+.Select__multi-value__remove {
   cursor: pointer;
   border-bottom-left-radius: 2px;
   border-top-left-radius: 2px;
-  vertical-align: text-top;
+  color: black;
 }
 
-.Select--multi .Select__multi-value__remove:hover, .Select--multi .Select__multi-value__remove:focus {
+.Select__multi-value__remove:hover,
+.Select__multi-value__remove:focus {
   background-color: #3bb2ed;
   color: #f2f2f2;
 }
 
-.Select--multi .Select__multi-value__remove:active {
+.Select__multi-value__remove:active {
   background-color: #2a91d1;
 }
 
-.Select--multi.is-disabled .Select__multi-value {
+.Select.is-disabled .Select__multi-value {
   background-color: #ebedee;
   border: 1px solid #cfd4d7;
   color: #404040;
 }
 
-.Select--multi.is-disabled .Select__multi-value__remove {
+.Select.is-disabled .Select__multi-value__remove {
   cursor: not-allowed;
   border-right: 1px solid #cfd4d7;
 }
 
-.Select--multi.is-disabled .Select__multi-value__remove:hover, .Select--multi.is-disabled .Select__multi-value__remove:focus, .Select--multi.is-disabled .Select__multi-value__remove:active {
+.Select.is-disabled .Select__multi-value__remove:hover,
+.Select.is-disabled .Select__multi-value__remove:focus,
+.Select.is-disabled .Select__multi-value__remove:active {
   background-color: #ebedee;
 }
 
