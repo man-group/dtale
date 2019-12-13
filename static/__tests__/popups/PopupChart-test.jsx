@@ -2,11 +2,25 @@ import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
-import { ReactCorrelations as mockReactCorrelations } from "../../popups/Correlations";
-import { ReactHistogram as mockReactHistogram } from "../../popups/Histogram";
+import { ReactCorrelations } from "../../popups/Correlations";
+import { ReactHistogram } from "../../popups/Histogram";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
+
+class MockReactCorrelations extends React.Component {
+  render() {
+    return <ReactCorrelations dataId="1" />;
+  }
+}
+MockReactCorrelations.displayName = "Correlations";
+
+class MockReactHistogram extends React.Component {
+  render() {
+    return <ReactHistogram dataId="1" />;
+  }
+}
+MockReactHistogram.displayName = "Histogram";
 
 describe("Popup tests", () => {
   beforeAll(() => {
@@ -19,10 +33,10 @@ describe("Popup tests", () => {
 
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("../../popups/Histogram", () => ({
-      Histogram: mockReactHistogram,
+      Histogram: MockReactHistogram,
     }));
     jest.mock("../../popups/Correlations", () => ({
-      Correlations: mockReactCorrelations,
+      Correlations: MockReactCorrelations,
     }));
   });
 
@@ -30,6 +44,7 @@ describe("Popup tests", () => {
     const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
+      dataId: "1",
       chartData: { visible: true, type: "histogram", title: "Histogram Test" },
     };
 
@@ -49,6 +64,7 @@ describe("Popup tests", () => {
     const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
+      dataId: "1",
       chartData: {
         visible: true,
         type: "correlations",

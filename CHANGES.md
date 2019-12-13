@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.5.1 (2019-12-12)
+  * conversion of new flask instance for each `dtale.show` call to serving all data associated with one parent process under the same flask instance unless otherwise specified by the user (the `force` parameter)
+
 ### 1.5.0 (2019-12-02)
   * ipython integration
     * ipython output cell adjustment

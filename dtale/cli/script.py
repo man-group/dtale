@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 
 @click.command(name='main', help='Run dtale from command-line')
-@click.option('--host', type=str, default='0.0.0.0', help='hostname or IP address of process')
+@click.option('--host', type=str, help='hostname or IP address of process')
 @click.option('--port', type=int, help='port number of process')
 @click.option('--debug', is_flag=True, help="flag to switch on Flask's debug mode")
 @click.option('--no-reaper', is_flag=True,
@@ -26,7 +26,7 @@ logger = getLogger(__name__)
               default='info',
               show_default=True)
 @click.option('-v', '--verbose', help='Set the logging level to debug', is_flag=True)
-def main(host, port=None, debug=False, no_reaper=False, open_browser=False, name=None, **kwargs):
+def main(host=None, port=None, debug=False, no_reaper=False, open_browser=False, name=None, **kwargs):
     """
     Runs a local server for the D-Tale application.
 

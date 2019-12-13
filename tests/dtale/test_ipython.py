@@ -28,7 +28,7 @@ def test_show(unittest):
         get_calls = {'ct': 0}
         getter = namedtuple('get', 'ok')
 
-        def mock_requests_get(url):
+        def mock_requests_get(url, verify=True):
             if url.endswith('/health'):
                 is_ok = get_calls['ct'] > 0
                 get_calls['ct'] += 1

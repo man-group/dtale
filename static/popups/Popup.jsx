@@ -88,7 +88,7 @@ class ReactPopup extends React.Component {
             <strong>{"Active D-Tale Instances"}</strong>
           </ModalTitle>
         );
-        body = <Instances />;
+        body = <Instances {...this.props} />;
         break;
       default:
         break;
@@ -114,10 +114,10 @@ class ReactPopup extends React.Component {
 ReactPopup.displayName = "Popup";
 ReactPopup.propTypes = {
   onClose: PropTypes.func,
+  dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     type: PropTypes.string,
-    node: PropTypes.string,
     title: PropTypes.string,
     size: PropTypes.string,
     backdrop: PropTypes.bool,
@@ -125,21 +125,9 @@ ReactPopup.propTypes = {
   propagateState: PropTypes.func,
 };
 
-function mapStateToProps(state) {
-  return {
-    library: state.library,
-    selectedSnapshots: state.selectedSnapshots,
-    securityUid: state.securityUid,
-    chartData: state.chartData,
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    onClose: chartData => dispatch(closeChart(chartData || {})),
-  };
-}
-
-const ReduxPopup = connect(mapStateToProps, mapDispatchToProps)(ReactPopup);
+const ReduxPopup = connect(
+  state => _.pick(state, ["dataId", "iframe", "chartData"]),
+  dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
+)(ReactPopup);
 
 export { ReactPopup, ReduxPopup as Popup };

@@ -17,7 +17,8 @@ if PY3:
 else:
     from contextlib2 import ExitStack
 
-app = build_app()
+URL = 'http://localhost:40000'
+app = build_app(url=URL)
 
 
 @pytest.mark.unit
@@ -25,46 +26,41 @@ def test_startup(unittest):
     import dtale.views as views
 
     with pytest.raises(BaseException) as error:
-        views.startup()
+        views.startup(URL)
     assert 'data loaded is None!' in str(error.value)
 
     with pytest.raises(BaseException) as error:
-        views.startup(dict())
+        views.startup(URL, dict())
     assert 'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'\
            in str(error.value)
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1, foo=1.5)])
     test_data = test_data.set_index(['date', 'security_id'])
-    port = '80'
-    views.startup(data_loader=lambda: test_data, port=port)
+    instance = views.startup(URL, data_loader=lambda: test_data)
 
-    pdt.assert_frame_equal(views.DATA[port], test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS[port], dict(locked=['date', 'security_id']), 'should lock index columns')
+    pdt.assert_frame_equal(instance.data, test_data.reset_index())
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['date', 'security_id']), 'should lock index columns')
 
     test_data = test_data.reset_index()
-    port = '81'
-    views.startup(data=test_data, port=port)
-    pdt.assert_frame_equal(views.DATA[port], test_data)
-    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'no index = nothing locked')
+    instance = views.startup(URL, data=test_data)
+    pdt.assert_frame_equal(instance.data, test_data)
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'no index = nothing locked')
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1)])
     test_data = test_data.set_index('security_id').date
-    port = '82'
-    views.startup(data_loader=lambda: test_data, port=port)
-    pdt.assert_frame_equal(views.DATA[port], test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS[port], dict(locked=['security_id']), 'should lock index columns')
+    instance = views.startup(URL, data_loader=lambda: test_data)
+    pdt.assert_frame_equal(instance.data, test_data.reset_index())
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['security_id']), 'should lock index columns')
 
     test_data = pd.DatetimeIndex([pd.Timestamp('now')], name='date')
-    port = '83'
-    views.startup(data_loader=lambda: test_data, port=port)
-    pdt.assert_frame_equal(views.DATA[port], test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'should lock index columns')
+    instance = views.startup(URL, data_loader=lambda: test_data)
+    pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
 
     test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=('a', 'b'))
-    port = '84'
-    views.startup(data_loader=lambda: test_data, port=port)
-    pdt.assert_frame_equal(views.DATA[port], test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS[port], dict(locked=[]), 'should lock index columns')
+    instance = views.startup(URL, data_loader=lambda: test_data)
+    pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
 
 
 @pytest.mark.unit
@@ -147,7 +143,7 @@ def test_processes(test_data, unittest):
                     'ts': 1525106204000,
                     'start': '2018-04-30 12:36:44',
                     'names': u'date,security_id,foo,bar,baz',
-                    'port': c.port,
+                    'data_id': c.port,
                     'columns': 5
                 }],
                 response_data['data']
@@ -171,16 +167,16 @@ def test_update_settings(unittest):
         with mock.patch(
                 'dtale.views.render_template', mock.Mock(return_value=json.dumps(dict(success=True)))
         ) as mock_render_template:
-            response = c.get('/dtale/update-settings', query_string=dict(settings=settings))
+            response = c.get('/dtale/update-settings/1', query_string=dict(settings=settings))
             assert response.status_code == 200, 'should return 200 response'
 
-            c.get('/dtale/main')
+            c.get('/dtale/main/1')
             _, kwargs = mock_render_template.call_args
             unittest.assertEqual(kwargs['settings'], settings, 'settings should be retrieved')
 
     settings = 'a'
     with app.test_client() as c:
-        response = c.get('/dtale/update-settings', query_string=dict(settings=settings))
+        response = c.get('/dtale/update-settings/1', query_string=dict(settings=settings))
         assert response.status_code == 200, 'should return 200 response'
 
         response_data = json.loads(response.data)
@@ -195,23 +191,23 @@ def test_dtypes(test_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
-            response = c.get('/dtale/dtypes')
+            response = c.get('/dtale/dtypes/{}'.format(c.port))
             response_data = json.loads(response.data)
             assert response_data['success']
 
             for col in test_data.columns:
-                response = c.get('/dtale/describe/{}'.format(col))
+                response = c.get('/dtale/describe/{}/{}'.format(c.port, col))
                 response_data = json.loads(response.data)
                 assert response_data['success']
 
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DTYPES', {}))
-            response = c.get('/dtale/dtypes')
+            response = c.get('/dtale/dtypes/{}'.format(c.port))
             response_data = json.loads(response.data)
             assert 'error' in response_data
 
-            response = c.get('/dtale/describe/foo')
+            response = c.get('/dtale/describe/{}/foo'.format(c.port))
             response_data = json.loads(response.data)
             assert 'error' in response_data
 
@@ -220,27 +216,27 @@ def test_dtypes(test_data):
 def test_test_filter(test_data):
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/test-filter', query_string=dict(query='date == date'))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='date == date'))
             response_data = json.loads(response.data)
             assert response_data['success']
 
-            response = c.get('/dtale/test-filter', query_string=dict(query='foo == 1'))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='foo == 1'))
             response_data = json.loads(response.data)
             assert response_data['success']
 
-            response = c.get('/dtale/test-filter', query_string=dict(query="date == '20000101'"))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query="date == '20000101'"))
             response_data = json.loads(response.data)
             assert response_data['success']
 
-            response = c.get('/dtale/test-filter', query_string=dict(query="baz == 'baz'"))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query="baz == 'baz'"))
             response_data = json.loads(response.data)
             assert response_data['success']
 
-            response = c.get('/dtale/test-filter', query_string=dict(query="bar > 1.5"))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query="bar > 1.5"))
             response_data = json.loads(response.data)
             assert response_data['success']
 
-            response = c.get('/dtale/test-filter', query_string=dict(query='foo2 == 1'))
+            response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='foo2 == 1'))
             response_data = json.loads(response.data)
             assert 'error' in response_data
 
@@ -254,11 +250,11 @@ def test_get_data(unittest, test_data):
             test_data, _ = views.format_data(test_data)
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/data')
+            response = c.get('/dtale/data/{}'.format(c.port))
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data, {}, 'if no "ids" parameter an empty dict should be returned')
 
-            response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['1'])))
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['1'])))
             response_data = json.loads(response.data)
             expected = dict(
                 total=50,
@@ -274,7 +270,7 @@ def test_get_data(unittest, test_data):
             )
             unittest.assertEqual(response_data, expected, 'should return data at index 1')
 
-            response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['1-2'])))
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['1-2'])))
             response_data = json.loads(response.data)
             expected = {
                 '1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz'),
@@ -283,21 +279,21 @@ def test_get_data(unittest, test_data):
             unittest.assertEqual(response_data['results'], expected, 'should return data at indexes 1-2')
 
             params = dict(ids=json.dumps(['1']), sort=json.dumps([['security_id', 'DESC']]))
-            response = c.get('/dtale/data', query_string=params)
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {'1': dict(date='2000-01-01', security_id=48, dtale_index=1, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
             unittest.assertEqual(views.SETTINGS[c.port], {'sort': [['security_id', 'DESC']]}, 'should update settings')
 
             params = dict(ids=json.dumps(['1']), sort=json.dumps([['security_id', 'ASC']]))
-            response = c.get('/dtale/data', query_string=params)
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {'1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
             unittest.assertEqual(views.SETTINGS[c.port], {'sort': [['security_id', 'ASC']]}, 'should update settings')
 
             params = dict(ids=json.dumps(['0']), query='security_id == 1')
-            response = c.get('/dtale/data', query_string=params)
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {'0': dict(date='2000-01-01', security_id=1, dtale_index=0, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
@@ -307,7 +303,7 @@ def test_get_data(unittest, test_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle data exception'
@@ -319,13 +315,13 @@ def test_get_data(unittest, test_data):
             mocked_dtypes = stack.enter_context(
                 mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)})
             )
-            response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['1'])))
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['1'])))
             assert response.status_code == 200
 
             tmp = mocked_data[c.port].copy()
             tmp['biz'] = 2.5
             mocked_data[c.port] = tmp
-            response = c.get('/dtale/data', query_string=dict(ids=json.dumps(['1'])))
+            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['1'])))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['results'],
@@ -343,7 +339,7 @@ def test_get_data(unittest, test_data):
 def test_get_histogram(unittest, test_data):
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/histogram', query_string=dict(col='foo'))
+            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=[
@@ -357,7 +353,7 @@ def test_get_histogram(unittest, test_data):
             )
             unittest.assertEqual(response_data, expected, 'should return 20-bin histogram for foo')
 
-            response = c.get('/dtale/histogram', query_string=dict(col='foo', bins=5))
+            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo', bins=5))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
@@ -368,7 +364,7 @@ def test_get_histogram(unittest, test_data):
             )
             unittest.assertEqual(response_data, expected, 'should return 5-bin histogram for foo')
 
-            response = c.get('/dtale/histogram', query_string=dict(col='foo', bins=5, query='security_id > 10'))
+            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo', bins=5, query='security_id > 10'))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
@@ -384,7 +380,7 @@ def test_get_histogram(unittest, test_data):
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('numpy.histogram', mock.Mock(side_effect=Exception('histogram failure'))))
 
-            response = c.get('/dtale/histogram', query_string=dict(col='foo'))
+            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data['error'], 'histogram failure', 'should handle histogram exception')
 
@@ -398,7 +394,7 @@ def test_get_correlations(unittest, test_data):
             test_data, _ = views.format_data(test_data)
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/correlations')
+            response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             expected = dict(
                 data=[
@@ -414,7 +410,7 @@ def test_get_correlations(unittest, test_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/correlations', query_string=dict(query="missing_col == 'blah'"))
+            response = c.get('/dtale/correlations/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -428,7 +424,7 @@ def test_get_correlations(unittest, test_data):
             test_data = pd.concat([test_data, test_data2], ignore_index=True)
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/correlations')
+            response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             expected = expected = dict(
                 data=[
@@ -454,7 +450,7 @@ def test_get_correlations_ts(unittest):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/correlations-ts', query_string=dict(dateCol='date', cols='foo,bar'))
+            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=dict(dateCol='date', cols='foo,bar'))
             response_data = json.loads(response.data)
             expected = dict(data={
                 ':corr:corr': {
@@ -473,7 +469,7 @@ def test_get_correlations_ts(unittest):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/correlations-ts', query_string=dict(query="missing_col == 'blah'"))
+            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -491,7 +487,7 @@ def test_get_scatter(unittest):
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get(
-                '/dtale/scatter',
+                '/dtale/scatter/{}'.format(c.port),
                 query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="date == '20000101'")
             )
             response_data = json.loads(response.data)
@@ -521,7 +517,10 @@ def test_get_scatter(unittest):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/scatter', query_string=dict(dateCol='date', cols='foo,bar', date='20000101'))
+            response = c.get(
+                '/dtale/scatter/{}'.format(c.port),
+                query_string=dict(dateCol='date', cols='foo,bar', date='20000101')
+            )
             response_data = json.loads(response.data)
             expected = dict(
                 stats={
@@ -540,7 +539,7 @@ def test_get_scatter(unittest):
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get(
-                '/dtale/scatter',
+                '/dtale/scatter/{}'.format(c.port),
                 query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="missing_col == 'blah'")
             )
             response_data = json.loads(response.data)
@@ -555,25 +554,25 @@ def test_get_coverage(unittest, test_data):
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
             params = dict(col='security_id', group=json.dumps([{'name': 'date', 'freq': 'Y'}]))
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-12-31"}], success=True)
             unittest.assertEqual(response_data, expected, 'should return YTD coverage')
 
             params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'Y', 'freq': 'Q', 'date': '20000331'}])
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-03-31"}], success=True)
             unittest.assertEqual(response_data, expected, 'should return QTD coverage')
 
             params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'Q', 'freq': 'M', 'date': '20000131'}])
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(data={"security_id": [250]}, labels=[{"date": "2000-01-31"}], success=True)
             unittest.assertEqual(response_data, expected, 'should return MTD coverage')
 
             params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'M', 'freq': 'W', 'date': '20000109'}])
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 data={"security_id": [100, 150]},
@@ -583,7 +582,7 @@ def test_get_coverage(unittest, test_data):
             unittest.assertEqual(response_data, expected, 'should return WTD coverage')
 
             params['filters'] = json.dumps([{'name': 'date', 'prevFreq': 'M', 'freq': 'D', 'date': '20000131'}])
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 data={"security_id": [50, 50, 50, 50, 50]},
@@ -603,7 +602,7 @@ def test_get_coverage(unittest, test_data):
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
             params = dict(col='security_id', group=json.dumps([{'name': 'baz'}, {'name': 'date', 'freq': 'D'}]))
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 data={"baz": [50, 50, 50, 50, 50]},
@@ -622,7 +621,7 @@ def test_get_coverage(unittest, test_data):
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
             params = dict(col='security_id', group=json.dumps([{'name': 'date', 'freq': 'D'}]))
-            response = c.get('/dtale/coverage', query_string=params)
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 error=('Your grouping created 15001 groups, chart will not render. '
@@ -633,7 +632,7 @@ def test_get_coverage(unittest, test_data):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/coverage', query_string=dict(query="missing_col == 'blah'"))
+            response = c.get('/dtale/coverage/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -661,24 +660,24 @@ def test_main():
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict(name='test_name')}))
             stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
-            response = c.get('/dtale/main')
+            response = c.get('/dtale/main/{}'.format(c.port))
             assert '<title>D-Tale (test_name)</title>' in str(response.data)
-            response = c.get('/dtale/iframe')
+            response = c.get('/dtale/iframe/{}'.format(c.port))
             assert '<title>D-Tale (test_name)</title>' in str(response.data)
-            response = c.get('/dtale/popup/test', query_string=dict(col='foo'))
+            response = c.get('/dtale/popup/test/{}'.format(c.port), query_string=dict(col='foo'))
             assert '<title>D-Tale (test_name) - test (col: foo)</title>' in str(response.data)
 
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict()}))
             stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
-            response = c.get('/dtale/main')
+            response = c.get('/dtale/main/{}'.format(c.port))
             assert '<title>D-Tale</title>' in str(response.data)
 
 
 @pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main', '/dtale/iframe', '/dtale/popup/test', 'site-map', 'version-info', 'health']
+    paths = ['/dtale/main/1', '/dtale/iframe/1', '/dtale/popup/test/1', 'site-map', 'version-info', 'health']
     try:
         # flake8: NOQA
         from flasgger import Swagger
@@ -711,6 +710,6 @@ def test_404():
 def test_500():
     with app.test_client() as c:
         with mock.patch('dtale.views.render_template', mock.Mock(side_effect=Exception("Test"))):
-            response = c.get('/dtale/main')
+            response = c.get('/dtale/main/1')
             assert response.status_code == 500
             assert '<h1>Internal Server Error</h1>' in str(response.data)

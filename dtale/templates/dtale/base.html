@@ -16,6 +16,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
     <body>
+        <input type="hidden" id="data_id" value="{{data_id}}" />
         <input type="hidden" id="settings" value="{{settings}}" />
         <input type="hidden" id="version" value="{{version}}" />
         <input type="hidden" id="hide_shutdown" value="{{config.HIDE_SHUTDOWN}}" />

@@ -12,7 +12,7 @@ import { buildURLParams } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
 
-const BASE_HISTOGRAM_URL = "/dtale/histogram?";
+const BASE_HISTOGRAM_URL = "/dtale/histogram";
 const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max"];
 
 function createHistogram(ctx, fetchedData, col) {
@@ -105,7 +105,8 @@ class ReactHistogram extends React.Component {
     const { col } = this.props.chartData;
     const paramProps = ["col", "query", "bins"];
     const params = _.assignIn({ bins: this.state.bins }, this.props.chartData);
-    fetchJson(BASE_HISTOGRAM_URL + qs.stringify(buildURLParams(params, paramProps)), fetchedChartData => {
+    const url = `${BASE_HISTOGRAM_URL}/${this.props.dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
+    fetchJson(url, fetchedChartData => {
       const newState = { error: null };
       if (fetchedChartData.error) {
         newState.error = <RemovableError {...fetchedChartData} />;
@@ -153,6 +154,7 @@ class ReactHistogram extends React.Component {
 }
 ReactHistogram.displayName = "Histogram";
 ReactHistogram.propTypes = {
+  dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     col: PropTypes.string,
@@ -162,13 +164,6 @@ ReactHistogram.propTypes = {
 };
 ReactHistogram.defaultProps = { height: 400 };
 
-function mapStateToProps(state) {
-  return {
-    chartData: state.chartData,
-    error: state.error,
-  };
-}
-
-const ReduxHistogram = connect(mapStateToProps)(ReactHistogram);
+const ReduxHistogram = connect(state => _.pick(state, ["dataId", "chartData", "error"]))(ReactHistogram);
 
 export { ReactHistogram, ReduxHistogram as Histogram };

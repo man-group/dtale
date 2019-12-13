@@ -107,7 +107,7 @@ class ReactDataViewer extends React.Component {
       this.setState({ loading: false });
       return; // I've seen issues with react-virtualized where it will get into this method without parameters
     }
-    const url = buildURLString("/dtale/data?", params);
+    const url = buildURLString(`/dtale/data/${this.props.dataId}?`, params);
     fetchJsonPromise(url)
       .then(data => {
         const formattedData = _.mapValues(data.results, d =>
@@ -235,9 +235,10 @@ class ReactDataViewer extends React.Component {
         </InfiniteLoader>
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
         <Popup propagateState={this.propagateState} />
-        <Filter visible={filterOpen} propagateState={this.propagateState} query={query} />
+        <Filter visible={filterOpen} propagateState={this.propagateState} query={query} dataId={this.props.dataId} />
         <Formatting
           {..._.pick(this.state, ["data", "columns", "numberFormats", "selectedCols"])}
+          dataId={this.props.dataId}
           visible={formattingOpen}
           propagateState={this.propagateState}
         />
@@ -254,12 +255,13 @@ class ReactDataViewer extends React.Component {
 ReactDataViewer.displayName = "ReactDataViewer";
 ReactDataViewer.propTypes = {
   settings: PropTypes.object,
+  dataId: PropTypes.string.isRequired,
   iframe: PropTypes.bool,
   closeColumnMenu: PropTypes.func,
 };
 
 const ReduxDataViewer = connect(
-  ({ iframe }) => ({ iframe }),
+  ({ dataId, iframe }) => ({ dataId, iframe }),
   dispatch => ({ closeColumnMenu: () => dispatch(actions.closeColumnMenu()) })
 )(ReactDataViewer);
 

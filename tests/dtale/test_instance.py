@@ -31,13 +31,13 @@ def test_ipython_import_error():
         stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         stack.enter_context(mock.patch('dtale.views.in_ipython_frontend', return_value=False))
         stack.enter_context(mock.patch('dtale.views.DATA', {9999: df}))
-        instance = DtaleData(9999)
+        instance = DtaleData(9999, 'http://localhost:9999')
 
         assert not instance.is_up()
         assert instance._build_iframe() is None
         assert instance.notebook() == df.__repr__()
         assert str(instance) == str(df)
-        assert instance.__repr__() == df.__repr__()
+        assert instance.__repr__() == 'http://localhost:9999/dtale/main/9999'
         instance.adjust_cell_dimensions(width=5, height=5)
 
         instance._notebook_handle = mock.Mock()
@@ -51,7 +51,7 @@ def test_ipython_import_error():
         stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         stack.enter_context(mock.patch('dtale.views.in_ipython_frontend', return_value=True))
         stack.enter_context(mock.patch('dtale.views.DATA', return_value={9999: df}))
-        instance = DtaleData(9999)
+        instance = DtaleData(9999, 'http://localhost:9999')
 
         instance.notebook = mock.Mock()
         assert str(instance) == ''

@@ -16,13 +16,14 @@ from pandas.tseries.offsets import Day, MonthBegin, QuarterBegin, YearBegin
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.utils import (build_shutdown_url, build_url, classify_type,
-                         dict_merge, filter_df_for_grid, find_dtype_formatter,
+from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
+                         filter_df_for_grid, find_dtype_formatter,
                          find_selected_column, get_dtypes, get_int_arg,
                          get_str_arg, grid_columns, grid_formatter, json_date,
                          json_float, json_int, json_timestamp, jsonify,
-                         make_list, retrieve_grid_params, running_with_flask,
-                         running_with_pytest, sort_df_for_grid, swag_from)
+                         make_list, retrieve_grid_params,
+                         running_with_flask_debug, running_with_pytest,
+                         sort_df_for_grid, swag_from)
 
 logger = getLogger(__name__)
 
@@ -49,6 +50,17 @@ def in_ipython_frontend():
     return False
 
 
+def kill(base):
+    requests.get(build_shutdown_url(base))
+
+
+def is_up(base):
+    try:
+        return requests.get('{}/health'.format(base), verify=False).ok
+    except BaseException:
+        return False
+
+
 class DtaleData(object):
     """
     Wrapper class to abstract the global state of a D-Tale process while allowing
@@ -69,9 +81,9 @@ class DtaleData(object):
         >>> d.kill()
     """
 
-    def __init__(self, port):
-        self._port = port
-        self._url = build_url(port)
+    def __init__(self, data_id, url):
+        self._data_id = data_id
+        self._url = url
         self._notebook_handle = None
 
     @property
@@ -80,7 +92,7 @@ class DtaleData(object):
         Property which is a reference to the globally stored data associated with this instance
 
         """
-        return DATA[self._port]
+        return DATA[self._data_id]
 
     @data.setter
     def data(self, data):
@@ -88,32 +100,34 @@ class DtaleData(object):
         Setter which will go through all standard formatting to make sure changes will be handled correctly by D-Tale
 
         """
-        startup(data=data, port=self._port)
+        startup(self._url, data=data, data_id=self._data_id)
+
+    def main_url(self):
+        return '{}/dtale/main/{}'.format(self._url, self._data_id)
 
     def kill(self):
         """
         This function fires a request to this instance's 'shutdown' route to kill it
 
         """
-        requests.get(build_shutdown_url(self._port))
+        kill(self._url)
 
     def open_browser(self):
         """
         This function uses the :mod:`python:webbrowser` library to try and automatically open server's default browser
         to this D-Tale instance
         """
-        webbrowser.get().open(self._url)
+        webbrowser.get().open(self.main_url())
 
     def is_up(self):
         """
-        This function checks to see if instance's :mod:`flask:flask.Flask` process is up by hitting 'health' route
+        This function checks to see if instance's :mod:`flask:flask.Flask` process is up by hitting 'health' route.
+
+        Using `verify=False` will allow us to validate instances being served up over SSL
 
         :return: `True` if :mod:`flask:flask.Flask` process is up and running, `False` otherwise
         """
-        try:
-            return requests.get(self._url + '/health').ok
-        except BaseException:
-            return False
+        return is_up(self._url)
 
     def __str__(self):
         """
@@ -137,7 +151,7 @@ class DtaleData(object):
         if in_ipython_frontend():
             self.notebook()
             return ''
-        return self.data.__repr__()
+        return self.main_url()
 
     def _build_iframe(self, width='100%', height=350):
         """
@@ -153,7 +167,7 @@ class DtaleData(object):
         except ImportError:
             logger.info('in order to use this function, please install IPython')
             return None
-        return IFrame('{}/dtale/iframe'.format(self._url), width=width, height=height)
+        return IFrame('{}/dtale/iframe/{}'.format(self._url, self._data_id), width=width, height=height)
 
     def notebook(self, width='100%', height=350):
         """
@@ -230,14 +244,13 @@ def format_data(data):
     if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
         data = data.to_frame(index=False)
 
-    logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
     index = [str(i) for i in make_list(data.index.name or data.index.names) if i is not None]
     data = data.reset_index().drop('index', axis=1, errors='ignore')
     data.columns = [str(c) for c in data.columns]
     return data, index
 
 
-def startup(data=None, data_loader=None, port=None, name=None):
+def startup(url, data=None, data_loader=None, name=None, data_id=None):
     """
     Loads and stores data globally
      - If data has indexes then it will lock save those columns as locked on the front-end
@@ -246,8 +259,9 @@ def startup(data=None, data_loader=None, port=None, name=None):
 
     :param data: :class:`pandas:pandas.DataFrame` or :class:`pandas:pandas.Series`
     :param data_loader: function which returns :class:`pandas:pandas.DataFrame`
-    :param port: integer port for running Flask process
     :param name: string label to apply to your session
+    :param data_id: integer id assigned to a piece of data viewable in D-Tale, if this is populated then it will
+                    override the data at that id
     """
     global DATA, DTYPES, SETTINGS, METADATA
 
@@ -260,26 +274,27 @@ def startup(data=None, data_loader=None, port=None, name=None):
                 'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'
             )
 
-        logger.debug('pytest: {}, flask: {}'.format(running_with_pytest(), running_with_flask()))
+        logger.debug('pytest: {}, flask-debug: {}'.format(running_with_pytest(), running_with_flask_debug()))
         data, curr_index = format_data(data)
-        port_key = str(port)
-        if port_key in SETTINGS:
-            curr_settings = SETTINGS[port_key]
+        if data_id is None:
+            data_id = str(int(max(DATA.keys())) + 1 if len(DATA) else 1)
+        if data_id in SETTINGS:
+            curr_settings = SETTINGS[data_id]
             curr_locked = curr_settings.get('locked', [])
             # filter out previous locked columns that don't exist
             curr_locked = [c for c in curr_locked if c in data.columns]
             # add any new columns in index
             curr_locked += [c for c in curr_index if c not in curr_locked]
         else:
-            logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, port))
+            logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, data_id))
             curr_locked = curr_index
-            METADATA[port_key] = dict(start=pd.Timestamp('now'), name=name)
+            METADATA[data_id] = dict(start=pd.Timestamp('now'), name=name)
 
         # in the case that data has been updated we will drop any sorts or filter for ease of use
-        SETTINGS[port_key] = dict(locked=curr_locked)
-        DATA[port_key] = data
-        DTYPES[port_key] = build_dtypes_state(data)
-        return DtaleData(port_key)
+        SETTINGS[data_id] = dict(locked=curr_locked)
+        DATA[data_id] = data
+        DTYPES[data_id] = build_dtypes_state(data)
+        return DtaleData(data_id, url)
     else:
         raise Exception('data loaded is None!')
 
@@ -299,26 +314,18 @@ def cleanup(port):
     DTYPES.pop(port, None)
 
 
-def get_port():
-    """
-    Helper function to grab port information (SERVER_PORT) from Flask.request.environ
-
-    """
-    return get_str_arg(request, 'port', request.environ.get('SERVER_PORT', 'curr'))
-
-
-def base_render_template(template, **kwargs):
+def base_render_template(template, data_id, **kwargs):
     """
     Overriden version of Flask.render_template which will also include vital instance information
      - settings
      - version
      - processes
     """
-    port = get_port()
-    curr_settings = SETTINGS.get(port, {})
+    curr_settings = SETTINGS.get(data_id, {})
     _, version = retrieve_meta_info_and_version('dtale')
     return render_template(
         template,
+        data_id=data_id,
         settings=json.dumps(curr_settings),
         version=str(version),
         processes=len(DATA),
@@ -326,7 +333,7 @@ def base_render_template(template, **kwargs):
     )
 
 
-def _view_main(iframe=False):
+def _view_main(data_id, iframe=False):
     """
     Helper function rendering main HTML which will also build title and store whether we are viewing from an <iframe>
 
@@ -334,40 +341,38 @@ def _view_main(iframe=False):
     :type iframe: bool
     :return: HTML
     """
-    port = get_port()
-    curr_metadata = METADATA.get(port, {})
+    curr_metadata = METADATA.get(data_id, {})
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
-    return base_render_template('dtale/main.html', title=title, iframe=iframe)
+    return base_render_template('dtale/main.html', data_id, title=title, iframe=iframe)
 
 
-@dtale.route('/main')
+@dtale.route('/main/<data_id>')
 @swag_from('swagger/dtale/views/main.yml')
-def view_main():
+def view_main(data_id):
     """
     Flask route which serves up base jinja template housing JS files
 
     :return: HTML
     """
-    return _view_main()
+    return _view_main(data_id)
 
 
-@dtale.route('/iframe')
+@dtale.route('/iframe/<data_id>')
 @swag_from('swagger/dtale/views/main.yml')
-def view_iframe():
+def view_iframe(data_id):
     """
     Flask route which serves up base jinja template housing JS files
 
     :return: HTML
     """
-    return _view_main(iframe=True)
+    return _view_main(data_id, iframe=True)
 
 
-@dtale.route('/popup/<popup_type>')
-def view_popup(popup_type):
-    port = get_port()
-    curr_metadata = METADATA.get(port, {})
+@dtale.route('/popup/<popup_type>/<data_id>')
+def view_popup(popup_type, data_id):
+    curr_metadata = METADATA.get(data_id, {})
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
@@ -378,7 +383,7 @@ def view_popup(popup_type):
         def pretty_print(obj):
             return ', '.join(['{}: {}'.format(k, str(v)) for k, v in obj.items()])
         title = '{} ({})'.format(title, pretty_print(params))
-    return base_render_template('dtale/popup.html', title=title, js_prefix=popup_type)
+    return base_render_template('dtale/popup.html', data_id, title=title, js_prefix=popup_type)
 
 
 @dtale.route('/processes')
@@ -402,12 +407,12 @@ def get_processes():
         success: True/False
     }
     """
-    def _load_process(port):
-        data = DATA[port]
-        dtypes = DTYPES[port]
-        mdata = METADATA[port]
+    def _load_process(data_id):
+        data = DATA[data_id]
+        dtypes = DTYPES[data_id]
+        mdata = METADATA[data_id]
         return dict(
-            port=port,
+            data_id=data_id,
             rows=len(data),
             columns=len(dtypes),
             names=','.join([c['name'] for c in dtypes]),
@@ -417,15 +422,15 @@ def get_processes():
         )
 
     try:
-        processes = sorted([_load_process(port) for port in DATA], key=lambda p: p['ts'])
+        processes = sorted([_load_process(data_id) for data_id in DATA], key=lambda p: p['ts'])
         return jsonify(dict(data=processes, success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/update-settings')
+@dtale.route('/update-settings/<data_id>')
 @swag_from('swagger/dtale/views/update-settings.yml')
-def update_settings():
+def update_settings(data_id):
     """
     Flask route which updates global SETTINGS for current port
 
@@ -436,10 +441,9 @@ def update_settings():
     try:
         global SETTINGS
 
-        port = get_port()
-        curr_settings = SETTINGS.get(port, {})
+        curr_settings = SETTINGS.get(data_id, {})
         updated_settings = dict_merge(curr_settings, json.loads(get_str_arg(request, 'settings', '{}')))
-        SETTINGS[port] = updated_settings
+        SETTINGS[data_id] = updated_settings
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -450,9 +454,9 @@ def _test_filter(data, query):
         data.query(query)
 
 
-@dtale.route('/test-filter')
+@dtale.route('/test-filter/<data_id>')
 @swag_from('swagger/dtale/views/test-filter.yml')
-def test_filter():
+def test_filter(data_id):
     """
     Flask route which will test out pandas query before it gets applied to DATA and return exception information to the
     screen if there is any
@@ -462,15 +466,15 @@ def test_filter():
     """
     try:
         query = get_str_arg(request, 'query')
-        _test_filter(DATA[get_port()], query)
+        _test_filter(DATA[data_id], query)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/dtypes')
+@dtale.route('/dtypes/<data_id>')
 @swag_from('swagger/dtale/views/dtypes.yml')
-def dtypes():
+def dtypes(data_id):
     """
     Flask route which returns a list of column names and dtypes to the front-end as JSON
 
@@ -484,7 +488,7 @@ def dtypes():
     }
     """
     try:
-        return jsonify(dtypes=DTYPES[get_port()], success=True)
+        return jsonify(dtypes=DTYPES[data_id], success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -510,9 +514,9 @@ def load_describe(column_series):
     return desc
 
 
-@dtale.route('/describe/<column>')
+@dtale.route('/describe/<data_id>/<column>')
 @swag_from('swagger/dtale/views/describe.yml')
-def describe(column):
+def describe(data_id, column):
     """
     Flask route which returns standard details about column data using :meth:`pandas:pandas.DataFrame.describe` to
     the front-end as JSON
@@ -527,7 +531,7 @@ def describe(column):
 
     """
     try:
-        data = DATA[get_port()]
+        data = DATA[data_id]
         desc = load_describe(data[column])
         return_data = dict(describe=desc, success=True)
         uniq_vals = data[column].unique()
@@ -541,9 +545,9 @@ def describe(column):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/data')
+@dtale.route('/data/<data_id>')
 @swag_from('swagger/dtale/views/data.yml')
-def get_data():
+def get_data(data_id):
     """
     Flask route which returns current rows from DATA (based on scrollbar specs and saved settings) to front-end as
     JSON
@@ -566,16 +570,15 @@ def get_data():
     """
     try:
         global SETTINGS, DATA, DTYPES
-        port = get_port()
-        data = DATA[port]
+        data = DATA[data_id]
 
         # this will check for when someone instantiates D-Tale programatically and directly alters the internal
         # state of the dataframe (EX: d.data['new_col'] = 'foo')
-        curr_dtypes = [c['name'] for c in DTYPES[port]]
+        curr_dtypes = [c['name'] for c in DTYPES[data_id]]
         if any(c not in curr_dtypes for c in data.columns):
             data, _ = format_data(data)
-            DATA[port] = data
-            DTYPES[port] = build_dtypes_state(data)
+            DATA[data_id] = data
+            DTYPES[data_id] = build_dtypes_state(data)
 
         params = retrieve_grid_params(request)
         ids = get_str_arg(request, 'ids')
@@ -584,12 +587,12 @@ def get_data():
         else:
             return jsonify({})
 
-        col_types = DTYPES[port]
+        col_types = DTYPES[data_id]
         f = grid_formatter(col_types)
-        curr_settings = SETTINGS.get(port, {})
+        curr_settings = SETTINGS.get(data_id, {})
         if curr_settings.get('sort') != params.get('sort'):
             data = sort_df_for_grid(data, params)
-            DATA[port] = data
+            DATA[data_id] = data
         if params.get('sort') is not None:
             curr_settings = dict_merge(curr_settings, dict(sort=params['sort']))
         else:
@@ -599,7 +602,7 @@ def get_data():
             curr_settings = dict_merge(curr_settings, dict(query=params['query']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'query'}
-        SETTINGS[port] = curr_settings
+        SETTINGS[data_id] = curr_settings
 
         total = len(data)
         results = {}
@@ -615,15 +618,15 @@ def get_data():
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
                     results[i] = dict_merge({IDX_COL: i}, d)
-        return_data = dict(results=results, columns=[dict(name=IDX_COL, dtype='int64')] + DTYPES[port], total=total)
+        return_data = dict(results=results, columns=[dict(name=IDX_COL, dtype='int64')] + DTYPES[data_id], total=total)
         return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/histogram')
+@dtale.route('/histogram/<data_id>')
 @swag_from('swagger/dtale/views/histogram.yml')
-def get_histogram():
+def get_histogram(data_id):
     """
     Flask route which returns output from numpy.histogram to front-end as JSON
 
@@ -636,7 +639,7 @@ def get_histogram():
     query = get_str_arg(request, 'query')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = DATA[get_port()]
+        data = DATA[data_id]
         if query:
             data = data.query(query)
 
@@ -650,9 +653,9 @@ def get_histogram():
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/correlations')
+@dtale.route('/correlations/<data_id>')
 @swag_from('swagger/dtale/views/correlations.yml')
-def get_correlations():
+def get_correlations(data_id):
     """
     Flask route which gathers Pearson correlations against all combinations of columns with numeric data
     using :meth:`pandas:pandas.DataFrame.corr`
@@ -667,13 +670,12 @@ def get_correlations():
     """
     try:
         query = get_str_arg(request, 'query')
-        port = get_port()
-        data = DATA[port]
+        data = DATA[data_id]
         data = data.query(query) if query is not None else data
 
         valid_corr_cols = []
         valid_date_cols = []
-        for col_info in DTYPES[port]:
+        for col_info in DTYPES[data_id]:
             name, dtype = map(col_info.get, ['name', 'dtype'])
             dtype = classify_type(dtype)
             if dtype in ['I', 'F']:
@@ -729,9 +731,9 @@ def _build_timeseries_chart_data(name, df, cols, min=None, max=None, sub_group=N
             yield key, data
 
 
-@dtale.route('/correlations-ts')
+@dtale.route('/correlations-ts/<data_id>')
 @swag_from('swagger/dtale/views/correlations-ts.yml')
-def get_correlations_ts():
+def get_correlations_ts(data_id):
     """
     Flask route which returns timeseries of Pearson correlations of two columns with numeric data
     using :meth:`pandas:pandas.DataFrame.corr`
@@ -745,7 +747,7 @@ def get_correlations_ts():
     """
     try:
         query = get_str_arg(request, 'query')
-        data = DATA[get_port()]
+        data = DATA[data_id]
         data = data.query(query) if query is not None else data
         cols = get_str_arg(request, 'cols')
         cols = cols.split(',')
@@ -761,9 +763,9 @@ def get_correlations_ts():
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/scatter')
+@dtale.route('/scatter/<data_id>')
 @swag_from('swagger/dtale/views/scatter.yml')
-def get_scatter():
+def get_scatter(data_id):
     """
     Flask route which returns data used in correlation of two columns for scatter chart
 
@@ -790,7 +792,7 @@ def get_scatter():
     date = get_str_arg(request, 'date')
     date_col = get_str_arg(request, 'dateCol')
     try:
-        data = DATA[get_port()]
+        data = DATA[data_id]
         data = data[data[date_col] == date] if date else data
         if query:
             data = data.query(query)
@@ -829,9 +831,9 @@ DATE_RANGES = {
 }
 
 
-@dtale.route('/coverage')
+@dtale.route('/coverage/<data_id>')
 @swag_from('swagger/dtale/views/coverage.yml')
-def find_coverage():
+def find_coverage(data_id):
     """
     Flask route which returns coverage information(counts) for a column grouped by other column(s)
 
@@ -870,7 +872,7 @@ def find_coverage():
         groups = get_str_arg(request, 'group')
         if groups:
             groups = json.loads(groups)
-        data = DATA[get_port()]
+        data = DATA[data_id]
         data, groups, query = filter_data(data, request, groups, query=get_str_arg(request, 'query'))
         grouper = []
         for g_cfg in groups:

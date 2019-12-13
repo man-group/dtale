@@ -58,7 +58,7 @@ describe("DataViewer tests", () => {
     const Popup = require("../../popups/Popup").ReactPopup;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -146,7 +146,7 @@ describe("DataViewer tests", () => {
               result.update();
               t.ok(
                 result.find(CoverageChart).instance().state.url,
-                "/dtale/coverage?group=%5B%7B%22name%22%3A%22col1%22%7D%5D&col=col3&query=",
+                "/dtale/coverage/1?group=%5B%7B%22name%22%3A%22col1%22%7D%5D&col=col3&query=",
                 "should update chart URL"
               );
               result

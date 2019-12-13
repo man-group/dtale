@@ -15,6 +15,15 @@ function toBool(value) {
   return _.lowerCase(value) === "true";
 }
 
+function dataId(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return getHiddenValue("data_id");
+    default:
+      return state;
+  }
+}
+
 function iframe(state = false, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -69,10 +78,11 @@ function selectedToggle(state = null, action = {}) {
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
+  dataId,
   iframe,
   columnMenuOpen,
   selectedCol,
   selectedToggle,
 });
 
-export default dtaleStore;
+export default { store: dtaleStore, getHiddenValue };

@@ -90,7 +90,7 @@ class Formatting extends React.Component {
 
   save() {
     const { fmt, style } = this.state;
-    const { data, columns, numberFormats, selectedCols, propagateState } = this.props;
+    const { dataId, data, columns, numberFormats, selectedCols, propagateState } = this.props;
     const updatedNumberFormats = _.assignIn(
       {},
       numberFormats,
@@ -126,7 +126,7 @@ class Formatting extends React.Component {
       formattingOpen: false,
       triggerResize: true,
     });
-    fetchJsonPromise(buildURLString("/dtale/update-settings?", updateParams))
+    fetchJsonPromise(buildURLString(`/dtale/update-settings/${dataId}?`, updateParams))
       .then(_.noop)
       .catch((e, callstack) => {
         logException(e, callstack);
@@ -220,6 +220,7 @@ class Formatting extends React.Component {
 }
 Formatting.displayName = "Formatting";
 Formatting.propTypes = {
+  dataId: PropTypes.string.isRequired,
   data: PropTypes.object,
   columns: PropTypes.arrayOf(PropTypes.object),
   numberFormats: PropTypes.object,
