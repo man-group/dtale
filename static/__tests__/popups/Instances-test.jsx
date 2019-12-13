@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -26,8 +24,8 @@ describe("Instances tests", () => {
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
         if (url.startsWith("/dtale/data")) {
-          const port = qs.parse(url.split("?")[1]).port;
-          if (port == "8081") {
+          const dataId = _.last(url.split("?")[0].split("/"));
+          if (dataId == "8081") {
             return {
               results: [
                 {
@@ -97,7 +95,7 @@ describe("Instances tests", () => {
               success: true,
             };
           }
-          if (port == "8082") {
+          if (dataId == "8082") {
             return { error: "No data found." };
           }
         }
@@ -122,12 +120,13 @@ describe("Instances tests", () => {
         href: "http://localhost:8080",
         hostname: "localhost",
         port: "8080",
+        origin: "http://localhost:8080",
         assign: _.noop,
       },
       writable: true,
     });
     const assignSpy = jest.spyOn(global.window.location, "assign");
-    const result = mount(<Instances />, {
+    const result = mount(<Instances dataId="8080" />, {
       attachTo: document.getElementById("content"),
     });
     setTimeout(() => {
@@ -196,7 +195,7 @@ describe("Instances tests", () => {
               .find("div.clickable")
               .last()
               .simulate("click");
-            expect(assignSpy).toHaveBeenCalledWith("http://localhost:8083");
+            expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
             assignSpy.mockRestore();
             global.window = origWindow;
             done();
@@ -209,7 +208,7 @@ describe("Instances tests", () => {
   test("Instances rendering error", done => {
     const Instances = require("../../popups/Instances").default;
     buildInnerHTML();
-    const result = mount(<Instances />, {
+    const result = mount(<Instances dataId="8082" />, {
       attachTo: document.getElementById("content"),
     });
     setTimeout(() => {

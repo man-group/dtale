@@ -21,6 +21,7 @@ describe("reducer tests", () => {
       columnMenuOpen: false,
       selectedCol: null,
       selectedToggle: null,
+      dataId: null,
     };
     t.deepEqual(state, store.getState(), "should handle missing inputs correctly");
     done();

@@ -18,6 +18,7 @@ describe("DataViewerMenu tests", () => {
       columns: [],
       hideShutdown: false,
       iframe: false,
+      dataId: "1",
     };
     const result = mount(<DataViewerMenu {...props} />, {
       attachTo: document.getElementById("content"),
@@ -43,6 +44,7 @@ describe("DataViewerMenu tests", () => {
       columns: [],
       hideShutdown: true,
       iframe: false,
+      dataId: "1",
     };
     const result = mount(<DataViewerMenu {...props} />, {
       attachTo: document.getElementById("content"),
@@ -69,6 +71,7 @@ describe("DataViewerMenu tests", () => {
       columns: [],
       hideShutdown: true,
       iframe: false,
+      dataId: "1",
     };
     const result = mount(<DataViewerMenu {...props} />, {
       attachTo: document.getElementById("content"),

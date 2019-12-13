@@ -40,7 +40,7 @@ describe("DataViewer heatmap tests", () => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 });
+    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

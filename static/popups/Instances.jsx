@@ -1,5 +1,6 @@
 import $ from "jquery";
 import _ from "lodash";
+import PropTypes from "prop-types";
 import React from "react";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
@@ -47,7 +48,7 @@ class Instances extends React.Component {
 
   viewPreview(instance) {
     this.setState({ loadingPreview: true });
-    fetchJson(`/dtale/data?ids=${JSON.stringify(["0-5"])}&port=${instance.port}`, preview =>
+    fetchJson(`/dtale/data/${instance.data_id}?ids=${JSON.stringify(["0-5"])}`, preview =>
       this.setState({
         preview: _.assignIn({ instance }, preview),
         loadingPreview: false,
@@ -133,22 +134,20 @@ class Instances extends React.Component {
       return <RemovableError {...this.state.processes} />;
     }
     const processes = this.state.processes.data;
-    const currentPort = window.location.port;
 
     const _rowClass = ({ index }) => {
       if (index < 0) {
         return "";
       }
-      const currentPort = window.location.port;
-      return currentPort === _.get(processes, [index, "port"]) ? "active" : "clickable";
+      return this.props.dataId === _.get(processes, [index, "data_id"]) ? "active" : "clickable";
     };
     const _rowClick = ({ rowData }) => {
-      const currentHost = window.location.hostname;
-      const currentPort = window.location.port;
-      if (rowData.port == currentPort) {
+      if (rowData.data_id === this.props.dataId) {
         return;
       }
-      window.location.assign(`http://${currentHost}:${rowData.port}`);
+      const currentHost = window.location.origin;
+      const path = this.props.iframe ? "/dtale/iframe/" : "/dtale/main/";
+      window.location.assign(`${currentHost}${path}${rowData.data_id}`);
     };
     const viewPreview = rowData => e => {
       this.viewPreview(rowData);
@@ -223,7 +222,7 @@ class Instances extends React.Component {
                   />
                   <Column
                     width={75}
-                    dataKey="port"
+                    dataKey="data_id"
                     label=""
                     style={{
                       textAlign: "center",
@@ -231,7 +230,7 @@ class Instances extends React.Component {
                       fontSize: "80%",
                     }}
                     cellRenderer={({ rowData }) => {
-                      if (rowData.port === currentPort) {
+                      if (rowData.data_id === this.props.dataId) {
                         return null;
                       }
                       return (
@@ -253,5 +252,9 @@ class Instances extends React.Component {
   }
 }
 Instances.displayName = "Instances";
+Instances.propTypes = {
+  iframe: PropTypes.bool,
+  dataId: PropTypes.string.isRequired,
+};
 
 export default Instances;

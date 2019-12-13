@@ -21,7 +21,7 @@ class Filter extends React.Component {
 
   save() {
     const { query } = this.state;
-    fetchJson(buildURLString("/dtale/test-filter", { query }), data => {
+    fetchJson(buildURLString(`/dtale/test-filter/${this.props.dataId}`, { query }), data => {
       if (data.error) {
         this.setState({ error: data.error, traceback: data.traceback });
         return;
@@ -85,6 +85,7 @@ class Filter extends React.Component {
 }
 Filter.displayName = "Filter";
 Filter.propTypes = {
+  dataId: PropTypes.string.isRequired,
   query: PropTypes.string,
   visible: PropTypes.bool,
   propagateState: PropTypes.func,

@@ -42,9 +42,10 @@ const BASE_SETTINGS = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}";
 const HIDE_SHUTDOWN = "False";
 const PROCESSES = 1;
 const IFRAME = "False";
+const DATA_ID = 1;
 
 function buildInnerHTML(props = {}, store = null) {
-  const { settings, hideShutdown, processes, iframe } = props;
+  const { settings, hideShutdown, processes, iframe, dataId } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   let innerHTML = `<input type="hidden" id="settings" value="${settings || BASE_SETTINGS}" />`;
@@ -52,6 +53,7 @@ function buildInnerHTML(props = {}, store = null) {
   innerHTML += `<input type="hidden" id="hide_shutdown" value="${hideShutdown || HIDE_SHUTDOWN}" />`;
   innerHTML += `<input type="hidden" id="processes" value=${processes || PROCESSES} />`;
   innerHTML += `<input type="hidden" id="iframe" value="${iframe || IFRAME}" />`;
+  innerHTML += `<input type="hidden" id="data_id" value="${dataId || DATA_ID}" />`;
   innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
   body.innerHTML = innerHTML;
 

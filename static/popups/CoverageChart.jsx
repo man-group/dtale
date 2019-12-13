@@ -20,16 +20,16 @@ const FREQ_LABELS = {
   Y: "Yearly",
 };
 
-function buildURL({ group, col, query }) {
+function buildURL({ dataId, group, col, query }) {
   const params = {
     group: JSON.stringify(group),
     col: _.join(_.map(col, "name"), ","),
     query,
   };
-  return buildURLString("/dtale/coverage", params);
+  return buildURLString(`/dtale/coverage/${dataId}`, params);
 }
 
-function generateChartState({ group, col, query }) {
+function generateChartState({ dataId, group, col, query }) {
   if (_.isEmpty(group) || _.isEmpty(col)) {
     return { url: null, desc: null };
   }
@@ -43,16 +43,17 @@ function generateChartState({ group, col, query }) {
     ", "
   );
   const desc = { groups, cols: _.join(_.map(col, "name"), ", ") };
-  return { url: buildURL({ group, col, query }), desc };
+  return { url: buildURL({ dataId, group, col, query }), desc };
 }
 
-const baseState = query => ({
+const baseState = props => ({
+  dataId: props.dataId,
   col: [],
   group: [],
   url: null,
   desc: null,
   zoomed: null,
-  query,
+  query: _.get(props, "chartData.query"),
 });
 
 require("./CoverageChart.css");
@@ -60,7 +61,7 @@ require("./CoverageChart.css");
 class ReactCoverageChart extends React.Component {
   constructor(props) {
     super(props);
-    this.state = baseState(_.get(props, "chartData.query"));
+    this.state = baseState(props);
     this.changeSelection = this.changeSelection.bind(this);
     this.viewTimeDetails = this.viewTimeDetails.bind(this);
     this.resetZoom = this.resetZoom.bind(this);
@@ -68,7 +69,7 @@ class ReactCoverageChart extends React.Component {
   }
 
   componentDidMount() {
-    fetchJson("/dtale/dtypes", data => {
+    fetchJson(`/dtale/dtypes/${this.state.dataId}`, data => {
       if (data.error) {
         this.setState({ error: <RemovableError {...data} /> });
         return;
@@ -262,12 +263,13 @@ class ReactCoverageChart extends React.Component {
 }
 ReactCoverageChart.displayName = "CoverageChart";
 ReactCoverageChart.propTypes = {
+  dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     query: PropTypes.string,
   }),
 };
 
-const ReduxCoverageChart = connect(({ chartData }) => ({ chartData }))(ReactCoverageChart);
+const ReduxCoverageChart = connect(state => _.pick(state, ["dataId", "chartData"]))(ReactCoverageChart);
 
 export { ReactCoverageChart, ReduxCoverageChart as CoverageChart };

@@ -10,7 +10,7 @@ import { fetchJson } from "../fetcher";
 import { DtypesGrid } from "./describe/DtypesGrid";
 
 const DTYPES_URL = "/dtale/dtypes";
-const BASE_DESCRIBE_URL = "/dtale/describe/";
+const BASE_DESCRIBE_URL = "/dtale/describe";
 
 class ReactDescribe extends React.Component {
   constructor(props) {
@@ -29,7 +29,7 @@ class ReactDescribe extends React.Component {
   }
 
   componentDidMount() {
-    fetchJson(DTYPES_URL, dtypesData => {
+    fetchJson(`${DTYPES_URL}/${this.props.dataId}`, dtypesData => {
       const newState = {
         error: null,
         loadingDtypes: false,
@@ -54,7 +54,7 @@ class ReactDescribe extends React.Component {
 
   loadDetails({ rowData }) {
     this.setState({ loadingDetails: true });
-    fetchJson(BASE_DESCRIBE_URL + rowData.name, detailData => {
+    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${rowData.name}`, detailData => {
       const newState = {
         detailError: null,
         loadingDtypes: false,
@@ -190,6 +190,7 @@ class ReactDescribe extends React.Component {
 }
 ReactDescribe.displayName = "ReactDescribe";
 ReactDescribe.propTypes = {
+  dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     col: PropTypes.string,
@@ -199,6 +200,6 @@ ReactDescribe.propTypes = {
 };
 ReactDescribe.defaultProps = { height: 400 };
 
-const ReduxDescribe = connect(state => ({ chartData: state.chartData }))(ReactDescribe);
+const ReduxDescribe = connect(state => _.pick(state, ["dataId", "chartData"]))(ReactDescribe);
 
 export { ReactDescribe, ReduxDescribe as Describe };

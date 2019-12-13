@@ -89,7 +89,7 @@ const PROCESSES = [
     ts: 1525106204000,
     start: "2018-04-30 12:36:44",
     names: "date,security_id,foo,bar,baz",
-    port: "8080",
+    data_id: "8080",
     columns: 5,
   },
   {
@@ -98,7 +98,7 @@ const PROCESSES = [
     ts: 1525106204000,
     start: "2018-04-30 12:36:44",
     names: "date,security_id,foo,bar,baz",
-    port: "8081",
+    data_id: "8081",
     columns: 5,
   },
   {
@@ -107,7 +107,7 @@ const PROCESSES = [
     ts: 1525106204000,
     start: "2018-04-30 12:36:44",
     names: "date,security_id,foo,bar,baz",
-    port: "8082",
+    data_id: "8082",
     columns: 5,
   },
   {
@@ -115,7 +115,7 @@ const PROCESSES = [
     ts: 1525106204000,
     start: "2018-04-30 12:36:44",
     names: "date,security_id,foo,bar,baz",
-    port: "8083",
+    data_id: "8083",
     columns: 3,
   },
 ];
@@ -130,9 +130,9 @@ function urlFetcher(url) {
     return DATA;
   } else if (url.startsWith("/dtale/histogram")) {
     return histogramData;
-  } else if (url.startsWith("/dtale/correlations-ts?")) {
+  } else if (url.startsWith("/dtale/correlations-ts")) {
     return correlationsTsData;
-  } else if (url.startsWith("/dtale/correlations?")) {
+  } else if (url.startsWith("/dtale/correlations/")) {
     return correlationsData;
   } else if (url.startsWith("/dtale/scatter")) {
     return scatterData;
@@ -162,7 +162,7 @@ function urlFetcher(url) {
 }
 
 function createDtaleStore() {
-  return createStore(dtaleApp);
+  return createStore(dtaleApp.store);
 }
 
 export default {

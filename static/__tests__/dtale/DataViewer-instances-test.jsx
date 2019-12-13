@@ -41,7 +41,7 @@ describe("DataViewer tests", () => {
     const Instances = require("../../popups/Instances").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 });
+    buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

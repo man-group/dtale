@@ -37,6 +37,7 @@ const HISTOGRAM_DATA = {
 };
 
 const props = {
+  dataId: "1",
   chartData: {
     visible: true,
     type: "histogram",
@@ -61,7 +62,7 @@ describe("Histogram tests", () => {
             return null;
           }
         }
-        if (url.startsWith("/dtale/histogram?" + urlParams)) {
+        if (url.startsWith("/dtale/histogram/1?" + urlParams)) {
           return HISTOGRAM_DATA;
         }
         return {};

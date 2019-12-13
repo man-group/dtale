@@ -253,17 +253,19 @@ describe("DataViewer iframe tests", () => {
             .simulate("click");
           result.update();
           clickColMenuButton(result, "Histogram");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/histogram?col=col3");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
+            "/dtale/popup/histogram/1?col=col3"
+          );
           clickColMenuButton(result, "Describe");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe?col=col3");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1?col=col3");
           clickMainMenuButton(result, "Describe");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
           clickMainMenuButton(result, "Correlations");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations/1");
           clickMainMenuButton(result, "Coverage");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/coverage");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/coverage/1");
           clickMainMenuButton(result, "Instances 1");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
           clickMainMenuButton(result, "Resize");
           clickMainMenuButton(result, "Refresh");
           expect(window.location.reload).toHaveBeenCalled();

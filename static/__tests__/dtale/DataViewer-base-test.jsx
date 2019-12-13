@@ -83,7 +83,7 @@ describe("DataViewer tests", () => {
     const Histogram = require("../../popups/Histogram").ReactHistogram;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

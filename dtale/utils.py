@@ -29,7 +29,7 @@ def running_with_pytest():
     return hasattr(sys, '_called_from_test')
 
 
-def running_with_flask():
+def running_with_flask_debug():
     """
     Checks to see if D-Tale has been initiated from Flask
 
@@ -39,11 +39,18 @@ def running_with_flask():
     return os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
 
 
-def build_url(port):
-    return 'http://{}:{}'.format(socket.gethostname(), port)
+def get_host(host=None):
+    return host or socket.gethostname()
 
 
-def build_shutdown_url(port):
+def build_url(port, host=None):
+    final_host = get_host(host)
+    if final_host.startswith('http'):
+        return '{}:{}'.format(final_host, port)
+    return 'http://{}:{}'.format(final_host, port)
+
+
+def build_shutdown_url(base):
     """
     Builds the shutdown endpoint for the specified port
 
@@ -51,7 +58,7 @@ def build_shutdown_url(port):
     :type port: str
     :return: URL string of the shutdown endpoint for the current server and port passed
     """
-    return '{}/shutdown'.format(build_url(port))
+    return '{}/shutdown'.format(base)
 
 
 def get_str_arg(r, name, default=None):

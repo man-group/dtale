@@ -60,7 +60,7 @@ describe("DataViewer tests", () => {
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

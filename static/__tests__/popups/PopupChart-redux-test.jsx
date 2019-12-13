@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 describe("Popup redux tests", () => {
   beforeAll(() => {
@@ -25,6 +25,7 @@ describe("Popup redux tests", () => {
     const Popup = require("../../popups/Popup").Popup;
 
     const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({}, store);
     const result = mount(
       <Provider store={store}>
         <Popup onClose={_.noop} />

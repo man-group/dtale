@@ -21,25 +21,31 @@ class ReactColumnMenu extends React.Component {
   }
 
   render() {
-    const { iframe, selectedCol } = this.props;
+    const { dataId, iframe, selectedCol } = this.props;
     if (!iframe || !selectedCol) {
       return null;
     }
     const unlocked = _.isUndefined(_.find(this.props.columns, { name: selectedCol, locked: true }));
     let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
     currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
-    const describeUrl = buildURLString("/dtale/popup/describe", {
+    const describeUrl = buildURLString(`/dtale/popup/describe/${dataId}`, {
       col: selectedCol,
     });
     const openDescribe = () => {
       window.open(describeUrl, "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
     };
-    const histogramUrl = buildURLString("/dtale/popup/histogram", {
+    const histogramUrl = buildURLString(`/dtale/popup/histogram/${dataId}`, {
       col: selectedCol,
     });
     const openHistogram = () => {
       window.open(histogramUrl, "_blank", "titlebar=1,location=1,status=1,width=400,height=350");
     };
+
+    const openFormatting = () =>
+      this.props.propagateState({
+        formattingOpen: true,
+        selectedCols: [selectedCol],
+      });
     return (
       <div
         id="column-menu-div"
@@ -118,7 +124,7 @@ class ReactColumnMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => this.props.propagateState({ formattingOpen: true })}>
+              <button className="btn btn-plain" onClick={openFormatting}>
                 <i className="ico-palette" />
                 <span className="font-weight-bold">Formats</span>
               </button>
@@ -137,12 +143,13 @@ ReactColumnMenu.propTypes = {
   columnMenuOpen: PropTypes.bool,
   sortInfo: PropTypes.array,
   propagateState: PropTypes.func,
+  dataId: PropTypes.string.isRequired,
   iframe: PropTypes.bool,
   noInfo: PropTypes.bool,
 };
 
-const ReduxColumnMenu = connect(state => _.pick(state, ["iframe", "columnMenuOpen", "selectedCol", "selectedToggle"]))(
-  ReactColumnMenu
-);
+const ReduxColumnMenu = connect(state =>
+  _.pick(state, ["dataId", "iframe", "columnMenuOpen", "selectedCol", "selectedToggle"])
+)(ReactColumnMenu);
 
 export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu };

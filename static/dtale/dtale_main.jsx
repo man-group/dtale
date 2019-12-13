@@ -8,7 +8,7 @@ import app from "../reducers/dtale";
 import { createStore } from "../reducers/store";
 import { DataViewer } from "./DataViewer";
 
-const store = createStore(app);
+const store = createStore(app.store);
 store.dispatch(actions.init());
 
 const settingsElem = document.getElementById("settings");

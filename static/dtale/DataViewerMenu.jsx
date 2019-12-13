@@ -8,11 +8,14 @@ import { openChart } from "../actions/charts";
 import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuUtils";
 import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
 
-//import { fetchJson } from "../fetcher";
+function open(path, dataId = null, height = 450, width = 500) {
+  const base = _.isNull(dataId) ? path : `${path}/${dataId}`;
+  window.open(base, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+}
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, iframe, selectedCols } = this.props;
+    const { hideShutdown, dataId, iframe, selectedCols } = this.props;
     const processCt = document.getElementById("processes").value;
     const colCount = (this.props.selectedCols || []).length;
     const lockedColCount = _.filter(this.props.columns, ({ name, locked }) => locked && _.includes(selectedCols, name))
@@ -27,28 +30,28 @@ class ReactDataViewerMenu extends React.Component {
     };
     const openDescribe = () => {
       if (iframe) {
-        window.open("/dtale/popup/describe", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+        open("/dtale/popup/describe", dataId);
       } else {
         this.props.openChart({ type: "describe" });
       }
     };
     const openCorrelations = () => {
       if (iframe) {
-        window.open("/dtale/popup/correlations", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+        open("/dtale/popup/correlations", dataId);
       } else {
         this.props.openChart(_.assignIn({ type: "correlations", title: "Correlations" }, this.props));
       }
     };
     const openCoverage = () => {
       if (iframe) {
-        window.open("/dtale/popup/coverage", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+        open("/dtale/popup/coverage", dataId);
       } else {
         this.props.openChart(_.assignIn({ type: "coverage" }, this.props));
       }
     };
     const openInstances = () => {
       if (iframe) {
-        window.open("/dtale/popup/instances", "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+        open("/dtale/popup/instances", dataId);
       } else {
         this.props.openChart({ type: "instances" });
       }
@@ -212,7 +215,7 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={global.top === global.self}>
             <li>
               <span className="toggler-action">
-                <a className="btn btn-plain" href={`/dtale${iframe ? "/main" : "/iframe"}`}>
+                <a className="btn btn-plain" href={`/dtale${iframe ? "/main" : "/iframe"}/${dataId}`}>
                   <i className={`far fa-${iframe ? "window-maximize" : "window-restore"} ml-2 mr-4`} />
                   <span className="font-weight-bold">{`${iframe ? "Full" : "Iframe"}-Mode`}</span>
                 </a>
@@ -243,11 +246,12 @@ ReactDataViewerMenu.propTypes = {
   openChart: PropTypes.func,
   heatMapMode: PropTypes.bool,
   hideShutdown: PropTypes.bool,
+  dataId: PropTypes.string.isRequired,
   iframe: PropTypes.bool,
 };
 
 const ReduxDataViewerMenu = connect(
-  ({ hideShutdown, iframe }) => ({ hideShutdown, iframe }),
+  state => _.pick(state, ["dataId", "hideShutdown", "iframe"]),
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactDataViewerMenu);
 

@@ -33,15 +33,15 @@ describe("Correlations tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (url.startsWith("/dtale/correlations")) {
+        if (url.startsWith("/dtale/correlations/")) {
           const query = qs.parse(url.split("?")[1]).query;
-          if (url.startsWith("/dtale/correlations?") && query == "null") {
+          if (query == "null") {
             return { error: "No data found." };
           }
-          if (url.startsWith("/dtale/correlations?") && query == "one-date") {
+          if (query == "one-date") {
             return { data: correlationsData.data, dates: ["col4"] };
           }
-          if (url.startsWith("/dtale/correlations?") && query == "no-date") {
+          if (query == "no-date") {
             return { data: correlationsData.data, dates: [] };
           }
         }
@@ -72,7 +72,7 @@ describe("Correlations tests", () => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} />, {
+    const result = mount(<Correlations chartData={chartData} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -112,7 +112,7 @@ describe("Correlations tests", () => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} />, {
+    const result = mount(<Correlations chartData={chartData} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -145,7 +145,7 @@ describe("Correlations tests", () => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const TimeseriesChartBody = require("../../popups/TimeseriesChartBody").TimeseriesChartBody;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} />, {
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -169,7 +169,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering data w/ no date columns", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} />, {
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -190,7 +190,7 @@ describe("Correlations tests", () => {
 
   test("Correlations missing data", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "null" })} />);
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "null" })} dataId="1" />);
     setTimeout(() => {
       result.update();
       t.notOk(result.find("div.ReactVirtualized__Grid__innerScrollContainer").length, "should not create grid");

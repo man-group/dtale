@@ -65,7 +65,7 @@ describe("DataViewer tests", () => {
     const Filter = require("../../dtale/Filter").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -156,7 +156,7 @@ describe("DataViewer tests", () => {
     const Filter = require("../../dtale/Filter").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

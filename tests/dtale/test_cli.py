@@ -47,7 +47,7 @@ def test_main():
         mock_find_free_port.assert_called_once()
         _, kwargs = mock_show.call_args
         host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
-        assert host == '0.0.0.0'
+        assert host is None
         assert not subprocess
         assert debug
         assert port == 9999

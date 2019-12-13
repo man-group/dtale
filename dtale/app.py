@@ -1,9 +1,10 @@
 from __future__ import absolute_import, print_function
 
+import os
 import random
 import socket
+import time
 import traceback
-import webbrowser
 from builtins import map, str
 from contextlib import closing
 from logging import ERROR as LOG_ERROR
@@ -19,8 +20,9 @@ from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import build_shutdown_url, build_url, dict_merge, swag_from
-from dtale.views import cleanup, startup
+from dtale.utils import (build_shutdown_url, build_url, dict_merge, get_host,
+                         running_with_flask_debug, swag_from)
+from dtale.views import cleanup, is_up, kill, startup
 
 if PY3:
     import _thread
@@ -28,6 +30,9 @@ else:
     import thread as _thread
 
 logger = getLogger(__name__)
+
+ACTIVE_HOST = None
+ACTIVE_PORT = None
 
 SHORT_LIFE_PATHS = ['dist']
 SHORT_LIFE_TIMEOUT = 60
@@ -78,7 +83,7 @@ class DtaleFlask(Flask):
     :param kwargs: Optional keyword arguments to be passed to :class:`flask:flask.Flask`
     """
 
-    def __init__(self, import_name, reaper_on=True, *args, **kwargs):
+    def __init__(self, import_name, reaper_on=True, url=None, *args, **kwargs):
         """
         Constructor method
         :param reaper_on: whether to run auto-reaper subprocess
@@ -86,7 +91,7 @@ class DtaleFlask(Flask):
         """
         self.reaper_on = reaper_on
         self.reaper = None
-        self.shutdown_url = None
+        self.shutdown_url = build_shutdown_url(url)
         self.port = None
         super(DtaleFlask, self).__init__(import_name, *args, **kwargs)
 
@@ -96,7 +101,6 @@ class DtaleFlask(Flask):
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
         self.port = str(kwargs.get('port'))
-        self.shutdown_url = build_shutdown_url(self.port)
         if kwargs.get('debug', False):
             self.reaper_on = False
         self.build_reaper()
@@ -162,7 +166,7 @@ class DtaleFlask(Flask):
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
-def build_app(reaper_on=True, hide_shutdown=False):
+def build_app(url, reaper_on=True, hide_shutdown=False, host=None):
     """
     Builds Flask application encapsulating endpoints for D-Tale's front-end
 
@@ -170,7 +174,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
     :rtype: :class:`dtale.app.DtaleFlask`
     """
 
-    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='')
+    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='', url=url)
     app.config['SECRET_KEY'] = 'Dtale'
     app.config['HIDE_SHUTDOWN'] = hide_shutdown
 
@@ -193,7 +197,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
                 'url': 'https://github.com/man-group/dtale'
             },
         },
-        host=socket.gethostname(),
+        host=get_host(host),
         schemes=['http'],
     )
     try:
@@ -211,7 +215,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
 
         :return: 302 - flask.redirect('/dtale/main')
         """
-        return redirect('/dtale/main')
+        return redirect('/dtale/main/1')
 
     @app.route('/favicon.ico')
     def favicon():
@@ -247,6 +251,7 @@ def build_app(reaper_on=True, hide_shutdown=False):
                                stacktrace=str(traceback.format_exc())), 500
 
     def shutdown_server():
+        global ACTIVE_HOST, ACTIVE_PORT
         """
         This function that checks if flask.request.environ['werkzeug.server.shutdown'] exists and
         if so, executes that function
@@ -256,7 +261,9 @@ def build_app(reaper_on=True, hide_shutdown=False):
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
-        cleanup(app.port)
+        cleanup()
+        ACTIVE_PORT = None
+        ACTIVE_HOST = None
 
     @app.route('/shutdown')
     @swag_from('swagger/dtale/shutdown.yml')
@@ -330,20 +337,61 @@ def build_app(reaper_on=True, hide_shutdown=False):
     return app
 
 
+def initialize_process_props(host=None, port=None, force=False):
+    global ACTIVE_HOST, ACTIVE_PORT
+
+    if force:
+        curr_base = build_url(ACTIVE_PORT, ACTIVE_HOST)
+        new_base = build_url(port, host)
+        if curr_base != new_base:
+            if is_up(new_base):
+                try:
+                    kill(new_base)  # kill the original process
+                except BaseException:
+                    raise IOError((
+                        'Could not kill process at {}, possibly something else is running at port {}. Please try '
+                        'another port.'
+                    ).format(new_base, port))
+                while is_up(new_base):
+                    time.sleep(0.01)
+            ACTIVE_HOST = host
+            ACTIVE_PORT = port
+            return
+
+    if ACTIVE_HOST is None:
+        ACTIVE_HOST = get_host(host)
+
+    if ACTIVE_PORT is None:
+        ACTIVE_PORT = int(port or find_free_port())
+
+
 def find_free_port():
     """
     Searches for free port on executing server for running Flask process
 
     :return: string port number
     """
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]
+
+    def is_port_in_use(port):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            return s.connect_ex(('localhost', port)) == 0
+
+    min_port = int(os.environ.get('DTALE_MIN_PORT') or 40000)
+    max_port = int(os.environ.get('DTALE_MAX_PORT') or 49000)
+    base = min_port
+    while is_port_in_use(base):
+        base += 1
+        if base > max_port:
+            msg = (
+                'D-Tale could not find an open port from {} to {}, please increase your range by altering the '
+                'environment variables DTALE_MIN_PORT & DTALE_MAX_PORT.'
+            ).format(min_port, max_port)
+            raise IOError(msg)
+    return base
 
 
-def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subprocess=True, data_loader=None,
-         reaper_on=True, open_browser=False, notebook=False, **kwargs):
+def show(data=None, host=None, port=None, name=None, debug=False, subprocess=True, data_loader=None,
+         reaper_on=True, open_browser=False, notebook=False, force=False, **kwargs):
     """
     Entry point for kicking off D-Tale Flask process from python process
 
@@ -369,6 +417,9 @@ def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subproces
     :type open_browser: bool, optional
     :param notebook: if true, this will try displaying an :class:`ipython:IPython.display.IFrame`
     :type notebook: bool, optional
+    :param force: if true, this will force the D-Tale instance to run on the specified host/port by killing any
+                  other process running at that location
+    :type force: bool, optional
 
     :Example:
 
@@ -384,29 +435,37 @@ def show(data=None, host='0.0.0.0', port=None, name=None, debug=False, subproces
     logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
     setup_logging(logfile, log_level or 'info', verbose)
 
-    selected_port = int(port or find_free_port())
-    instance = startup(data=data, data_loader=data_loader, port=selected_port, name=name)
+    initialize_process_props(host, port, force)
+    url = build_url(ACTIVE_PORT, host=ACTIVE_HOST)
+    instance = startup(url, data=data, data_loader=data_loader, name=name)
+    is_active = not running_with_flask_debug() and is_up(url)
+    if is_active:
+        def _start():
+            if open_browser:
+                instance.open_browser()
+    else:
+        def _start():
+            app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST)
+            if debug:
+                app.jinja_env.auto_reload = True
+                app.config['TEMPLATES_AUTO_RELOAD'] = True
+            else:
+                getLogger("werkzeug").setLevel(LOG_ERROR)
 
-    def _show():
-        app = build_app(reaper_on=reaper_on)
-        if debug:
-            app.jinja_env.auto_reload = True
-            app.config['TEMPLATES_AUTO_RELOAD'] = True
-        else:
-            getLogger("werkzeug").setLevel(LOG_ERROR)
-        url = build_url(selected_port)
-        logger.info('D-Tale started at: {}'.format(url))
-        if open_browser:
-            webbrowser.get().open(url)
+            if open_browser:
+                instance.open_browser()
 
-        app.run(host=host, port=selected_port, debug=debug)
+            app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug)
 
     if subprocess:
-        _thread.start_new_thread(_show, ())
+        if is_active:
+            _start()
+        else:
+            _thread.start_new_thread(_start, ())
 
         if notebook:
             instance.notebook()
     else:
-        _show()
+        _start()
 
     return instance

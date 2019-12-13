@@ -16,9 +16,9 @@ import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
 import CorrelationsGrid from "./correlations/CorrelationsGrid";
 import corrUtils from "./correlations/correlationsUtils";
 
-const BASE_SCATTER_URL = "/dtale/scatter?";
-const BASE_CORRELATIONS_URL = "/dtale/correlations?";
-const BASE_CORRELATIONS_TS_URL = "/dtale/correlations-ts?";
+const BASE_SCATTER_URL = "/dtale/scatter";
+const BASE_CORRELATIONS_URL = "/dtale/correlations";
+const BASE_CORRELATIONS_TS_URL = "/dtale/correlations-ts";
 
 function buildState() {
   return {
@@ -58,7 +58,7 @@ class ReactCorrelations extends React.Component {
   }
 
   componentDidMount() {
-    fetchJson(buildURL(BASE_CORRELATIONS_URL, this.props.chartData, ["query"]), gridData => {
+    fetchJson(buildURL(`${BASE_CORRELATIONS_URL}/${this.props.dataId}`, this.props.chartData, ["query"]), gridData => {
       if (gridData.error) {
         this.setState({ error: <RemovableError {...gridData} /> });
         return;
@@ -79,11 +79,8 @@ class ReactCorrelations extends React.Component {
 
   buildTs(selectedCols, selectedDate) {
     const query = _.get(this.props, "chartData.query");
-    const tsUrl = buildURL(BASE_CORRELATIONS_TS_URL, { query, selectedCols, dateCol: selectedDate }, [
-      "query",
-      "selectedCols",
-      "dateCol",
-    ]);
+    const path = `${BASE_CORRELATIONS_TS_URL}/${this.props.dataId}`;
+    const tsUrl = buildURL(path, { query, selectedCols, dateCol: selectedDate }, ["query", "selectedCols", "dateCol"]);
     this.setState({ selectedCols, selectedDate, tsUrl });
   }
 
@@ -110,7 +107,8 @@ class ReactCorrelations extends React.Component {
       params.dateCol = this.state.selectedDate;
       params.date = date;
     }
-    fetchJson(buildURL(BASE_SCATTER_URL, params, ["selectedCols", "query", "date", "dateCol"]), fetchedChartData => {
+    const path = `${BASE_SCATTER_URL}/${this.props.dataId}`;
+    fetchJson(buildURL(path, params, ["selectedCols", "query", "date", "dateCol"]), fetchedChartData => {
       corrUtils.toggleBouncer();
       const newState = {
         selectedCols,
@@ -218,6 +216,7 @@ class ReactCorrelations extends React.Component {
 }
 ReactCorrelations.displayName = "Correlations";
 ReactCorrelations.propTypes = {
+  dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     query: PropTypes.string,
@@ -228,7 +227,7 @@ ReactCorrelations.propTypes = {
 };
 
 const ReduxCorrelations = connect(
-  state => ({ chartData: state.chartData }),
+  state => _.pick(state, ["dataId", "chartData"]),
   dispatch => ({ onClose: () => dispatch(closeChart()) })
 )(ReactCorrelations);
 

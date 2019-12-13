@@ -520,6 +520,7 @@ Contributors:
  * [Jason Holden](https://github.com/jasonkholden)
  * [Tom Taylor](https://github.com/TomTaylorLondon)
  * [Vincent Riemer](https://github.com/vincentriemer)
+ * [Fernando Saravia Rajal](https://github.com/fersarr)
  * Mike Kelly
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...

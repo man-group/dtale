@@ -58,7 +58,7 @@ describe("DataViewer tests", () => {
     const About = require("../../popups/About").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" });
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
