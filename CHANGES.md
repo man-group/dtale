@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.6.1 (2019-12-19)
+  * bugfix for url display when running from command-line
+
 ### 1.6.0 (2019-12-19)
   * charts integration
     * the ability to look at data in line, bar, stacked bar & pie charts

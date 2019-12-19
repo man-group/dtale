@@ -582,7 +582,7 @@ def test_get_chart_data(unittest, test_data):
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['error'] == (
-                'Group (security_id) contains more than 10 unique values, please add '
+                'Group (security_id) contains more than 15 unique values, please add '
                 'additional filter or else chart will be unreadable'
             )
 

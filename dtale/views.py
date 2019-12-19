@@ -850,7 +850,7 @@ def build_chart(data, x, y, group_col=None, agg=None):
         max_groups = 15
         if len(data[group_col].drop_duplicates()) > max_groups:
             msg = (
-                'Group ({}) contains more than 10 unique values, please add additional filter'
+                'Group ({}) contains more than {} unique values, please add additional filter'
                 ' or else chart will be unreadable'
             ).format(', '.join(group_col), max_groups)
             raise Exception(msg)

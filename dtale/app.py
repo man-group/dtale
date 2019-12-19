@@ -486,8 +486,8 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
         if notebook:
             instance.notebook()
     else:
-        _start()
         logger.info('D-Tale started at: {}'.format(url))
+        _start()
 
     return instance
 
