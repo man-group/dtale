@@ -24,7 +24,7 @@ D-Tale was born out a conversion from SAS to Python.  What was originally a perl
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
   - [Menu functions w/ no columns selected](#menu-functions-w-no-columns-selected)
-    - [Describe](#describe), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
+    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
   - [Menu functions w/ column(s) selected](#menu-functions-w-columns-selected)
     - [Move To Front](#move-to-front), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
   - [Menu functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)

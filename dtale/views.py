@@ -302,7 +302,7 @@ def build_dtypes_state(data):
     def _format_dtype(col_index, col):
         dtype = dtypes[col]
         dtype_data = dict(name=col, dtype=dtype, index=col_index)
-        if classify_type(dtype) == 'F':  # floats
+        if classify_type(dtype) == 'F' and not data[col].isnull().all():  # floats
             dtype_data['min'] = mins[col]
             dtype_data['max'] = maxs[col]
         return dtype_data
