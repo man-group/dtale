@@ -29,6 +29,7 @@ function buildState() {
     selectedCols: [],
     tsUrl: null,
     selectedDate: null,
+    scatterUrl: null,
   };
 }
 
@@ -111,20 +112,25 @@ class ReactCorrelations extends React.Component {
   }
 
   buildScatter(selectedCols, date = null) {
-    corrUtils.toggleBouncer();
     const params = { selectedCols, query: this.props.chartData.query };
     if (date) {
       params.dateCol = this.state.selectedDate;
       params.date = date;
     }
     const path = `${BASE_SCATTER_URL}/${this.props.dataId}`;
-    fetchJson(buildURL(path, params, ["selectedCols", "query", "date", "dateCol"]), fetchedChartData => {
+    const scatterUrl = buildURL(path, params, ["selectedCols", "query", "date", "dateCol"]);
+    if (this.state.scatterUrl === scatterUrl) {
+      return;
+    }
+    corrUtils.toggleBouncer();
+    fetchJson(scatterUrl, fetchedChartData => {
       corrUtils.toggleBouncer();
       const newState = {
         selectedCols,
         stats: fetchedChartData.stats,
         date,
         scatterError: null,
+        scatterUrl,
       };
       if (fetchedChartData.error) {
         newState.scatterError = <RemovableError {...fetchedChartData} />;

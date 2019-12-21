@@ -28,6 +28,7 @@ const AGGREGATIONS = [
   { value: "prod", label: "Product of All Items" },
   { value: "sum", label: "Sum" },
 ];
+const CHART_TYPES = ["line", "bar", "stacked", "pie", "wordcloud"];
 
 function generateChartState({ group, x, y, query, aggregation }, { dataId }) {
   if (_.isNull(x) || _.isNull(y)) {
@@ -220,7 +221,7 @@ class ReactCharts extends React.Component {
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={[{ value: "line" }, { value: "bar" }, { value: "stacked" }, { value: "pie" }]}
+                options={_.map(CHART_TYPES, ct => ({ value: ct }))}
                 getOptionLabel={_.property("value")}
                 getOptionValue={_.property("value")}
                 value={this.state.chartType}
@@ -252,7 +253,7 @@ class ReactCharts extends React.Component {
           chartPerGroup={this.state.chartPerGroup}
           x={_.get(this.state, "x.value")}
           y={_.get(this.state, "y.value")}
-          group={_.get(this.state, "group.value")}
+          group={_.join(_.map(_.get(this.state, "group") || [], "value"), ",")}
           additionalOptions={additionalOptions}
           height={450}
         />

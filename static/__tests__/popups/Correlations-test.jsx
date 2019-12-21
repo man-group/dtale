@@ -54,6 +54,7 @@ describe("Correlations tests", () => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
       chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
       return chartCfg;
     });
 
@@ -169,7 +170,13 @@ describe("Correlations tests", () => {
   test("Correlations rendering data w/ no date columns", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} dataId="1" />, {
+    const props = {
+      chartData: _.assign({}, chartData, { query: "no-date" }),
+      dataId: "1",
+      onClose: _.noop,
+      propagateState: _.noop,
+    };
+    const result = mount(<Correlations {...props} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -194,6 +201,12 @@ describe("Correlations tests", () => {
           scatterChart.data
         );
         t.deepEqual(label, ["col1: NaN", "col2: 1.5"], "should render label");
+        scatterChart.cfg.options.onClick({});
+        const corr = result.instance();
+
+        t.ok(corr.shouldComponentUpdate(_.assignIn({ foo: 1 }, corr.props)), "should update");
+        t.ok(!corr.shouldComponentUpdate(corr.props, _.assignIn({}, corr.state, { chart: null })), "shouldn't update");
+        t.ok(!corr.shouldComponentUpdate(corr.props, corr.state), "shouldn't update");
         done();
       }, 200);
     }, 200);

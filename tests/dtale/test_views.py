@@ -195,6 +195,20 @@ def test_dtypes(test_data):
                 response_data = json.loads(response.data)
                 assert response_data['success']
 
+    lots_of_groups = pd.DataFrame([dict(a=i, b=1) for i in range(150)])
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: lots_of_groups}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(lots_of_groups)}))
+            response = c.get('/dtale/dtypes/{}'.format(c.port))
+            response_data = json.loads(response.data)
+            assert response_data['success']
+
+            response = c.get('/dtale/describe/{}/{}'.format(c.port, 'a'))
+            response_data = json.loads(response.data)
+            assert response_data['uniques']['top']
+            assert response_data['success']
+
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DTYPES', {}))

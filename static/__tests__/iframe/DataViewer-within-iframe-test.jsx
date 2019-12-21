@@ -7,7 +7,7 @@ import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -29,7 +29,7 @@ describe("DataViewer within iframe tests", () => {
     delete window.open;
     delete window.top;
     delete window.self;
-    window.location = { reload: jest.fn() };
+    window.location = { reload: jest.fn(), pathname: "/dtale/iframe/1" };
     window.open = jest.fn();
     window.top = { location: { href: "http://test.com" } };
     window.self = { location: { href: "http://test/dtale/iframe" } };
@@ -86,10 +86,12 @@ describe("DataViewer within iframe tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
-          ["Refresh", "Shutdown"]
+          ["Refresh", "Open Popup", "Shutdown"]
         ),
         "Should render default iframe menu options"
       );
+      clickMainMenuButton(result, "Open Popup");
+      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/iframe/1");
       done();
     }, 600);
   });

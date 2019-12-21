@@ -257,7 +257,7 @@ Build custom charts based off your data.
    - specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum
    - specify both a group & an aggregation
  - Click the "Load" button which will load the data and display the default cahrt type "line"
- - You now have the ability to toggle between different chart types: line, bar, stacked bar & pie
+ - You now have the ability to toggle between different chart types: line, bar, stacked bar, pie & wordcloud
  - If you have specified a group then you have the ability between showing all series in one chart and breaking each series out into its own chart "Chart per Group"
 
 Here are some examples with the following inputs: X: date, Y: Col0, Group: security_id, Aggregation: Mean, Query: `security_id in (100000, 100001) and date >= '20181220' and date <= '20181231'`
@@ -268,6 +268,7 @@ Here are some examples with the following inputs: X: date, Y: Col0, Group: secur
 |bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_pg.png)|
 |stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked_pg.png)|
 |pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie_pg.png)|
+|wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud_pg.png)|
 
 This is a very powerful feature with many more features that could be offered (word cloud, different statistical aggregations, etc...) so please submit issues :)
 
