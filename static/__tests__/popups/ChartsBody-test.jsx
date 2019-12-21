@@ -43,7 +43,7 @@ describe("ChartsBody tests", () => {
     result.update();
     setTimeout(() => {
       result.update();
-      t.ok(_.includes(result.html(), "No data found."), "shoudl render no data message");
+      t.ok(_.includes(result.html(), "No data found."), "should render no data message");
       done();
     }, 200);
   });

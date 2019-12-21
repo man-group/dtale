@@ -1,3 +1,5 @@
+import qs from "querystring";
+
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -23,6 +25,10 @@ describe("Charts tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
+        const urlParams = qs.parse(url.split("?")[1]);
+        if (urlParams.x === "error" && urlParams.y === "error2") {
+          return { data: {} };
+        }
         const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
@@ -37,7 +43,30 @@ describe("Charts tests", () => {
       return chartCfg;
     });
 
+    const mockD3Cloud = withGlobalJquery(() => () => {
+      const cloudCfg = {};
+      const propUpdate = prop => val => {
+        cloudCfg[prop] = val;
+        return cloudCfg;
+      };
+      cloudCfg.size = propUpdate("size");
+      cloudCfg.padding = propUpdate("padding");
+      cloudCfg.words = propUpdate("words");
+      cloudCfg.rotate = propUpdate("rotate");
+      cloudCfg.spiral = propUpdate("spiral");
+      cloudCfg.random = propUpdate("random");
+      cloudCfg.text = propUpdate("text");
+      cloudCfg.font = propUpdate("font");
+      cloudCfg.fontStyle = propUpdate("fontStyle");
+      cloudCfg.fontWeight = propUpdate("fontWeight");
+      cloudCfg.fontSize = () => ({
+        on: () => ({ start: _.noop }),
+      });
+      return cloudCfg;
+    });
+
     jest.mock("popsicle", () => mockBuildLibs);
+    jest.mock("d3-cloud", () => mockD3Cloud);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
@@ -126,6 +155,11 @@ describe("Charts tests", () => {
         filters
           .last()
           .instance()
+          .onChange({ value: "wordcloud" });
+        result.update();
+        filters
+          .last()
+          .instance()
           .onChange({ value: "stacked" });
         result.update();
         filters
@@ -163,6 +197,16 @@ describe("Charts tests", () => {
             "val1: 1.1235",
             "should render tooltip label"
           );
+          filters
+            .last()
+            .instance()
+            .onChange({ value: "wordcloud" });
+          result.update();
+          filters
+            .last()
+            .instance()
+            .onChange({ value: "line" });
+          result.update();
           result
             .find(Charts)
             .find("input")
@@ -180,9 +224,63 @@ describe("Charts tests", () => {
             1.1235,
             "should render tooltip label"
           );
+          filters
+            .last()
+            .instance()
+            .onChange({ value: "wordcloud" });
+          result.update();
+          const cb = result.find(ChartsBody).instance();
+          t.notOk(cb.shouldComponentUpdate(cb.props, cb.state), "shouldn't update chart body");
+          t.ok(
+            cb.shouldComponentUpdate(cb.props, _.assignIn({}, cb.state, { error: "test" })),
+            "should update chart body"
+          );
+          t.ok(cb.shouldComponentUpdate(cb.props, _.assignIn({}, cb.state, { data: {} })), "should update chart body");
+          t.notOk(
+            cb.shouldComponentUpdate(cb.props, _.assignIn({}, cb.state, { chart: true })),
+            "shouldn't update chart body"
+          );
           done();
         }, 400);
       }, 400);
     }, 600);
+  });
+
+  test("Charts: rendering empty data", done => {
+    const Charts = require("../../../popups/charts/Charts").ReactCharts;
+    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
+    buildInnerHTML({ settings: "" });
+    const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+
+    setTimeout(() => {
+      result.update();
+      let filters = result.find(Charts).find(Select);
+      filters
+        .first()
+        .instance()
+        .onChange({ value: "error" });
+      filters
+        .at(1)
+        .instance()
+        .onChange({ value: "error2" });
+      result
+        .find(Charts)
+        .find("button")
+        .first()
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        filters = result.find(Charts).find(Select);
+        filters
+          .last()
+          .instance()
+          .onChange({ value: "bar" });
+        result.update();
+        t.ok(result.find(ChartsBody).instance().state.charts === null, "should not render chart");
+        done();
+      }, 400);
+    }, 400);
   });
 });

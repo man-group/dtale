@@ -71,18 +71,18 @@ class ReactDescribe extends React.Component {
   }
 
   renderUniques() {
-    const uniques = _.get(this.state, "details.uniques");
-    if (_.isEmpty(uniques)) {
+    const uniques = _.get(this.state, "details.uniques") || {};
+    if (_.isEmpty(uniques.data)) {
       return null;
     }
     return (
       <div key={3} className="row">
         <div className="col-sm-12">
           <span className="font-weight-bold" style={{ fontSize: "120%" }}>
-            Unique Values:
+            {`Unique Values${uniques.top ? " (top 100 most common)" : ""}:`}
           </span>
           <br />
-          <span>{_.join(_.sortBy(uniques), ", ")}</span>
+          <span>{_.join(uniques.top ? uniques.data : _.sortBy(uniques.data), ", ")}</span>
         </div>
       </div>
     );
@@ -147,7 +147,7 @@ class ReactDescribe extends React.Component {
         </div>
       </div>,
       <div key={2} className="row">
-        <div className="col-auto">
+        <div className="col-md-6">
           <ul>
             {_.map(details.describe, (v, k) => (
               <li key={k}>
@@ -159,8 +159,10 @@ class ReactDescribe extends React.Component {
             ))}
           </ul>
         </div>
-        <div className="col">
-          <canvas id="boxplot" />
+        <div className="col-md-6">
+          <div style={{ height: 300 }}>
+            <canvas id="boxplot" />
+          </div>
         </div>
       </div>,
       this.renderUniques(),

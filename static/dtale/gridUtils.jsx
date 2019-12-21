@@ -97,13 +97,14 @@ function getRanges(array) {
   return ranges;
 }
 
-function calcColWidth({ name, dtype }, { data, rowCount }) {
+function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
   let w = DEFAULT_COL_WIDTH;
   if (name === IDX) {
     w = measureText(rowCount - 1 + "");
     w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
   } else {
-    const headerWidth = measureText(name);
+    const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
+    const headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
     switch (findColType((dtype || "").toLowerCase())) {
       case "date":
       case "int":

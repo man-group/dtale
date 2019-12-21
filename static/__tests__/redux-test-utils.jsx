@@ -54,6 +54,7 @@ const DESCRIBE = {
       "50%": 2.5,
       "75%": 4,
     },
+    uniques: { data: [1, 2, 3, 4], top: true },
   },
   col2: {
     describe: {
@@ -70,7 +71,7 @@ const DESCRIBE = {
   },
   col3: {
     describe: { count: 4, freq: 4, top: "foo", unique: 1 },
-    uniques: ["foo"],
+    uniques: { data: ["foo"], top: false },
   },
   col4: {
     describe: {

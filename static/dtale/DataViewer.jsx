@@ -149,7 +149,15 @@ class ReactDataViewer extends React.Component {
           );
           newState.columns = _.concat(columns, newCols);
         }
-        this.setState(newState);
+        let callback = _.noop;
+        if (refresh) {
+          callback = () =>
+            this.setState({
+              columns: _.map(this.state.columns, c => _.assignIn(c, { width: gu.calcColWidth(c, this.state) })),
+              triggerResize: true,
+            });
+        }
+        this.setState(newState, callback);
       })
       .catch((e, callstack) => {
         logException(e, callstack);

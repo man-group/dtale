@@ -161,7 +161,8 @@ class DtypesGrid extends React.Component {
               headerRenderer={this._headerRenderer}
               style={{
                 textAlign: "right",
-                paddingRight: ".5em",
+                paddingLeft: ".5em",
+                paddingTop: ".35em",
                 fontSize: "80%",
               }}
               className="cell"

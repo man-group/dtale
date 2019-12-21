@@ -7,6 +7,7 @@ import { Bouncer } from "../../Bouncer";
 import { RemovableError } from "../../RemovableError";
 import chartUtils from "../../chartUtils";
 import { fetchJson } from "../../fetcher";
+import WordcloudBody from "./WordcloudBody";
 
 function toggleBouncer() {
   $("#chart-bouncer").toggle();
@@ -34,6 +35,12 @@ function createChartCfg(ctx, { data }, { columns, x, y, additionalOptions, chart
 }
 
 function createCharts(data, props) {
+  if (_.isEmpty(_.get(data, "data", {}))) {
+    return null;
+  }
+  if (props.chartType === "wordcloud") {
+    return null;
+  }
   if (props.chartPerGroup) {
     return _.map(_.get(data, "data", {}), (series, seriesKey) => {
       const mainProps = _.pick(props, ["columns", "x", "y", "additionalOptions", "chartType", "configHandler"]);
@@ -44,12 +51,7 @@ function createCharts(data, props) {
       return chartUtils.chartWrapper(`chartCanvas-${seriesKey}`, null, builder);
     });
   }
-  const builder = ctx => {
-    if (_.isEmpty(_.get(data, "data", {}))) {
-      return null;
-    }
-    return createChartCfg(ctx, data, props);
-  };
+  const builder = ctx => createChartCfg(ctx, data, props);
   return [chartUtils.chartWrapper("chartCanvas", null, builder)];
 }
 
@@ -67,6 +69,10 @@ class ChartsBody extends React.Component {
     }
 
     if (this.state.error != newState.error) {
+      return true;
+    }
+
+    if (this.props.chartType == "wordcloud" && !_.isEqual(this.state.data, newState.data)) {
       return true;
     }
 
@@ -140,16 +146,21 @@ class ChartsBody extends React.Component {
 
   render() {
     let charts = null;
-    if (this.props.chartPerGroup) {
+    if (this.props.chartPerGroup || (this.props.chartType === "wordcloud" && this.props.group)) {
       charts = (
         <div className="row">
           {_.map(_.keys(_.get(this.state, "data.data", {})), k => (
             <div key={k} className="col-md-6" style={{ height: this.props.height }}>
-              <canvas id={`chartCanvas-${k}`} height={this.props.height} />
+              {this.props.chartType !== "wordcloud" && <canvas id={`chartCanvas-${k}`} height={this.props.height} />}
+              {this.props.chartType === "wordcloud" && (
+                <WordcloudBody {...this.props} data={this.state.data} seriesKey={k} />
+              )}
             </div>
           ))}
         </div>
       );
+    } else if (this.props.chartType === "wordcloud") {
+      charts = <WordcloudBody {...this.props} data={this.state.data} seriesKey="all" />;
     } else {
       charts = <canvas id="chartCanvas" height={this.props.height} />;
     }

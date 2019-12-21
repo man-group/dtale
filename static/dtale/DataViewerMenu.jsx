@@ -9,7 +9,11 @@ import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuU
 import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
 
 function open(path, dataId, height = 450, width = 500) {
-  window.open(`${path}/${dataId}`, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+  let fullPath = path;
+  if (dataId) {
+    fullPath = `${fullPath}/${dataId}`;
+  }
+  window.open(fullPath, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
 }
 
 class ReactDataViewerMenu extends React.Component {
@@ -123,7 +127,7 @@ class ReactDataViewerMenu extends React.Component {
           </ConditionalRender>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("correlations")}>
+              <button className="btn btn-plain" onClick={openPopup("correlations", 500, 1000)}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>
@@ -197,6 +201,16 @@ class ReactDataViewerMenu extends React.Component {
                   <i className={`far fa-${iframe ? "window-maximize" : "window-restore"} ml-2 mr-4`} />
                   <span className="font-weight-bold">{`${iframe ? "Full" : "Iframe"}-Mode`}</span>
                 </a>
+              </span>
+            </li>
+          </ConditionalRender>
+          <ConditionalRender display={global.top !== global.self}>
+            <li>
+              <span className="toggler-action">
+                <button className="btn btn-plain" onClick={() => open(window.location.pathname, null, 400, 700)}>
+                  <i className="ico-open-in-new" />
+                  <span className="font-weight-bold">Open Popup</span>
+                </button>
               </span>
             </li>
           </ConditionalRender>

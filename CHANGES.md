@@ -1,9 +1,20 @@
 ## Changelog
 
+### 1.6.2 (2019-12-23)
+
+  * [#40](https://github.com/man-group/dtale/issues/40): loading initial chart as non-line in chart builder
+  * [#41](https://github.com/man-group/dtale/issues/41): double clicking cells in correlation grid for scatter will cause chart not to display
+  * "Open Popup" button for ipython iframes
+  * column width resizing on sorting
+  * additional int/float descriptors (sum, median, mode, var, sem, skew, kurt)
+  * wordcloud chart type
+
 ### 1.6.1 (2019-12-19)
+
   * bugfix for url display when running from command-line
 
 ### 1.6.0 (2019-12-19)
+
   * charts integration
     * the ability to look at data in line, bar, stacked bar & pie charts
     * the ability to group & aggregate data within the charts
@@ -12,9 +23,11 @@
   * view all active data instances `dtale.instances()`
 
 ### 1.5.1 (2019-12-12)
+
   * conversion of new flask instance for each `dtale.show` call to serving all data associated with one parent process under the same flask instance unless otherwise specified by the user (the `force` parameter)
 
 ### 1.5.0 (2019-12-02)
+
   * ipython integration
     * ipython output cell adjustment
     * column-wise menu support

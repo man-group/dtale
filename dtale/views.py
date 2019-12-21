@@ -11,7 +11,6 @@ from flask import json, render_template, request
 import numpy as np
 import pandas as pd
 import requests
-from future.utils import string_types
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
@@ -604,7 +603,7 @@ def dtypes(data_id):
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
 
-def load_describe(column_series):
+def load_describe(column_series, additional_aggs=None):
     """
     Helper function for grabbing the output from :meth:`pandas:pandas.Series.describe` in a JSON serializable format
 
@@ -613,6 +612,13 @@ def load_describe(column_series):
     :return: JSON serializable dictionary of the output from calling :meth:`pandas:pandas.Series.describe`
     """
     desc = column_series.describe().to_frame().T
+    if additional_aggs:
+        for agg in additional_aggs:
+            if agg == 'mode':
+                mode = column_series.mode().values
+                desc['mode'] = np.nan if len(mode) > 1 else mode[0]
+                continue
+            desc[agg] = getattr(column_series, agg)()
     desc_f_overrides = {
         'I': lambda f, i, c: f.add_int(i, c, as_string=True),
         'F': lambda f, i, c: f.add_float(i, c, precision=4, as_string=True),
@@ -645,14 +651,29 @@ def describe(data_id, column):
     """
     try:
         data = DATA[data_id]
-        desc = load_describe(data[column])
+        additional_aggs = None
+        dtype = next((dtype_info['dtype'] for dtype_info in DTYPES[data_id] if dtype_info['name'] == column), None)
+        if classify_type(dtype) in ['I', 'F']:
+            additional_aggs = ['sum', 'median', 'mode', 'var', 'sem', 'skew', 'kurt']
+        desc = load_describe(data[column], additional_aggs=additional_aggs)
         return_data = dict(describe=desc, success=True)
         uniq_vals = data[column].unique()
         if 'unique' not in return_data['describe']:
             return_data['describe']['unique'] = json_int(len(uniq_vals), as_string=True)
         if len(uniq_vals) <= 100:
             uniq_f = find_dtype_formatter(get_dtypes(data)[column])
-            return_data['uniques'] = [uniq_f(u, nan_display='N/A') for u in uniq_vals]
+            return_data['uniques'] = dict(
+                data=[uniq_f(u, nan_display='N/A') for u in uniq_vals],
+                top=False
+            )
+        else:  # get top 100 most common values
+            uniq_vals = data[column].value_counts().sort_values(ascending=False).head(100).index.values
+            uniq_f = find_dtype_formatter(get_dtypes(data)[column])
+            return_data['uniques'] = dict(
+                data=[uniq_f(u, nan_display='N/A') for u in uniq_vals],
+                top=True
+            )
+
         return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -859,10 +880,11 @@ def build_chart(data, x, y, group_col=None, agg=None):
         )
         y_fmt = next((fmt for _, name, fmt in f.fmts if name == y_col), None)
         ret_data = dict(data={}, min=y_fmt(data[y_col].min(), None), max=y_fmt(data[y_col].max(), None))
-
+        dtypes = get_dtypes(data)
+        group_fmts = {c: find_dtype_formatter(dtypes[c]) for c in group_col}
         for group_val, grp in data.groupby(group_col):
             group_val = '/'.join([
-                gv if isinstance(gv, string_types) else '{0:.0f}'.format(gv) for gv in make_list(group_val)
+                group_fmts[gc](gv) for gv, gc in zip(make_list(group_val), group_col)
             ])
             ret_data['data'][group_val] = f.format_lists(grp)
         return ret_data
