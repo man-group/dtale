@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.6.3 (2019-12-23)
+  
+  * updated versions of packages in yarn.lock due to issue with chart.js box & whisker plots
+
 ### 1.6.2 (2019-12-23)
 
   * [#40](https://github.com/man-group/dtale/issues/40): loading initial chart as non-line in chart builder
