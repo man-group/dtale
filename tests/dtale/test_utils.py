@@ -187,10 +187,21 @@ def test_build_url():
     assert utils.build_url(8080, 'http://localhost') == 'http://localhost:8080'
     assert utils.build_url(8080, 'https://localhost') == 'https://localhost:8080'
 
-    with mock.patch('socket.gethostname', mock.Mock(return_value='test')):
-        assert utils.build_url(8080) == 'http://test:8080'
-    with mock.patch('socket.gethostname', mock.Mock(return_value='http://test')):
-        assert utils.build_url(8080) == 'http://test:8080'
+
+@pytest.mark.unit
+def test_get_host():
+    with mock.patch('socket.gethostname', mock.Mock(return_value='test')),\
+            mock.patch('socket.gethostbyname', mock.Mock(return_value='127.0.0.1')):
+        assert utils.get_host() == 'test'
+    with mock.patch('socket.gethostbyname', mock.Mock(return_value='127.0.0.1')):
+        assert utils.get_host('test') == 'test'
+    with mock.patch('socket.gethostname', mock.Mock(return_value='http://test')),\
+            mock.patch('socket.gethostbyname', mock.Mock(side_effect=Exception)):
+        assert utils.get_host() == 'localhost'
+    with mock.patch('socket.gethostbyname', mock.Mock(side_effect=Exception)):
+        with pytest.raises(Exception) as error:
+            utils.get_host('test')
+        assert str(error.value).startswith('Hostname (test) is not recognized')
 
 
 @pytest.mark.unit

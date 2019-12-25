@@ -47,10 +47,25 @@ def get_host(host=None):
     :type host: str, optional
     :return: str
     """
-    return host or socket.gethostname()
+
+    def is_valid_host(host):
+        try:
+            socket.gethostbyname(host.split('://')[-1])
+            return True
+        except BaseException:
+            return False
+
+    if host is None:
+        socket_host = socket.gethostname()
+        if is_valid_host(socket_host):
+            return socket_host
+        return 'localhost'
+    if is_valid_host(host):
+        return host
+    raise Exception('Hostname ({}) is not recognized'.format(host))
 
 
-def build_url(port, host=None):
+def build_url(port, host):
     """
     Returns full url combining host(if not specified will use the output of :func:`python:socket.gethostname`) & port
 
@@ -60,10 +75,9 @@ def build_url(port, host=None):
     :type host: str, optional
     :return: str
     """
-    final_host = get_host(host)
-    if final_host.startswith('http'):
-        return '{}:{}'.format(final_host, port)
-    return 'http://{}:{}'.format(final_host, port)
+    if host.startswith('http'):
+        return '{}:{}'.format(host, port)
+    return 'http://{}:{}'.format(host, port)
 
 
 def build_shutdown_url(base):

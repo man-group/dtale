@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import os
 import random
 import socket
+import sys
 import time
 import traceback
 from builtins import map, str
@@ -353,8 +354,10 @@ def initialize_process_props(host=None, port=None, force=False):
     global ACTIVE_HOST, ACTIVE_PORT
 
     if force:
-        curr_base = build_url(ACTIVE_PORT, ACTIVE_HOST)
-        new_base = build_url(port, host)
+        active_host = get_host(ACTIVE_HOST)
+        curr_base = build_url(ACTIVE_PORT, active_host)
+        final_host = get_host(host)
+        new_base = build_url(port, final_host)
         if curr_base != new_base:
             if is_up(new_base):
                 try:
@@ -366,7 +369,7 @@ def initialize_process_props(host=None, port=None, force=False):
                     ).format(new_base, port))
                 while is_up(new_base):
                     time.sleep(0.01)
-            ACTIVE_HOST = host
+            ACTIVE_HOST = final_host
             ACTIVE_PORT = port
             return
 
@@ -456,7 +459,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
     setup_logging(logfile, log_level or 'info', verbose)
 
     initialize_process_props(host, port, force)
-    url = build_url(ACTIVE_PORT, host=ACTIVE_HOST)
+    url = build_url(ACTIVE_PORT, ACTIVE_HOST)
     instance = startup(url, data=data, data_loader=data_loader, name=name)
     is_active = not running_with_flask_debug() and is_up(url)
     if is_active:
@@ -474,6 +477,11 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
             if open_browser:
                 instance.open_browser()
+
+            # hide banner message in production environments
+            cli = sys.modules.get('flask.cli')
+            if cli is not None:
+                cli.show_server_banner = lambda *x: None
 
             app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug)
 
@@ -499,7 +507,7 @@ def instances():
 
     :return: dict
     """
-    return {data_id: DtaleData(data_id, build_url(ACTIVE_PORT, host=ACTIVE_HOST)) for data_id in DATA}
+    return {data_id: DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)) for data_id in DATA}
 
 
 def get_instance(data_id):
@@ -513,5 +521,5 @@ def get_instance(data_id):
     """
     data_id_str = str(data_id)
     if data_id_str in DATA:
-        return DtaleData(data_id_str, build_url(ACTIVE_PORT, host=ACTIVE_HOST))
+        return DtaleData(data_id_str, build_url(ACTIVE_PORT, ACTIVE_HOST))
     return None

@@ -18,24 +18,34 @@ class WordcloudBody extends React.Component {
       return null;
     }
     return (
-      <div className="text-center">
+      <div className="text-center" style={{ height: this.props.height }}>
         {seriesKey !== "all" && <span className="font-weight-bold">{seriesKey}</span>}
-        <ReactWordcloud
-          options={{
-            fontFamily: '"Istok", "Helvetica", Arial, sans-serif',
-            enableTooltip: true,
-            fontSizes: [5, 60],
-            scale: "linear",
-            deterministic: true,
-            rotations: 1,
-            rotationAngles: [0, 90],
-            transitionDuration: 500,
-          }}
-          words={_.map(series.x, (l, i) => ({
-            text: l + "",
-            value: series.y[i],
-          }))}
-        />
+        <div style={{ height: this.props.height - (seriesKey === "all" ? 0 : 15) }}>
+          <ReactWordcloud
+            options={{
+              fontFamily: '"Istok", "Helvetica", Arial, sans-serif',
+              enableTooltip: true,
+              fontSizes: [5, 35],
+              scale: "log",
+              deterministic: true,
+              rotations: 1,
+              rotationAngles: [0],
+              spiral: "archimedean",
+              transitionDuration: 500,
+            }}
+            words={_.sortBy(
+              _.map(series.x, (l, i) => ({
+                text: _.truncate(l + "", { length: 24 }),
+                fullText: l + "",
+                value: series.y[i],
+              })),
+              "value"
+            )}
+            callbacks={{
+              getWordTooltip: ({ fullText, value }) => `${fullText} (${value})`,
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -47,5 +57,6 @@ WordcloudBody.propTypes = {
   seriesKey: PropTypes.string,
   group: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   chartType: PropTypes.string,
+  height: PropTypes.number,
 };
 export default WordcloudBody;

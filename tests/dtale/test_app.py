@@ -110,6 +110,7 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
         instance = show(data=test_data, subprocess=False, name='foo')
+        assert 'http://localhost:9999' == instance._url
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
 
@@ -135,9 +136,11 @@ def test_show(unittest, builtin_pkg):
     with ExitStack() as stack:
         mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
         mock_find_free_port = stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         mock_data_loader = mock.Mock(return_value=test_data)
         instance = show(data_loader=mock_data_loader, subprocess=False, port=9999, force=True, debug=True)
+        assert 'http://localhost:9999' == instance._url
         mock_run.assert_called_once()
         mock_find_free_port.assert_not_called()
         mock_data_loader.assert_called_once()
