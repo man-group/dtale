@@ -445,6 +445,22 @@ def test_get_correlations(unittest, test_data):
             )
             unittest.assertEqual(response_data, expected, 'should return correlations')
 
+    # https://github.com/man-group/dtale/issues/43
+    ii = pd.date_range(start='2018-01-01', end='2019-12-01', freq='D')
+    ii = pd.Index(ii, name='date')
+    n = ii.shape[0]
+    c = 5
+    data = np.random.random((n, c))
+    df = pd.DataFrame(data, index=ii)
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            response = c.get('/dtale/correlations/{}'.format(c.port))
+            response_data = json.loads(response.data)
+            unittest.assertEqual(len(response_data['dates']), 0, 'should no correlation date columns')
+
 
 def build_ts_data(size=5, days=5):
     start = pd.Timestamp('20000101')

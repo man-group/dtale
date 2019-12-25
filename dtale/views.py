@@ -819,8 +819,12 @@ def get_correlations(data_id):
             dtype = classify_type(dtype)
             if dtype in ['I', 'F']:
                 valid_corr_cols.append(name)
-            elif dtype == 'D' and len(data[name].dropna().unique()) > 1:
-                valid_date_cols.append(name)
+            elif dtype == 'D':
+                # even if a datetime column exists, we need to make sure that there is enough data for a date
+                # to warrant a correlation, https://github.com/man-group/dtale/issues/43
+                date_counts = data[name].dropna().value_counts()
+                if len(date_counts[date_counts > 1]) > 1:
+                    valid_date_cols.append(name)
 
         if data[valid_corr_cols].isnull().values.any():
             data = data.corr(method='pearson')

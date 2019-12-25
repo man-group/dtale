@@ -80,6 +80,7 @@ describe("Charts tests", () => {
   test("Charts: rendering", done => {
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     const ChartsBody = require("../../../popups/charts/ChartsBody").default;
+    const ReactWordcloud = require("react-wordcloud").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -229,6 +230,8 @@ describe("Charts tests", () => {
             .instance()
             .onChange({ value: "wordcloud" });
           result.update();
+          const wc = result.find(ReactWordcloud).first();
+          t.ok(wc.props().callbacks.getWordTooltip({ fullText: "test", value: 5 }), "test (5)", "should show tooltip");
           const cb = result.find(ChartsBody).instance();
           t.notOk(cb.shouldComponentUpdate(cb.props, cb.state), "shouldn't update chart body");
           t.ok(

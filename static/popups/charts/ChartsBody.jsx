@@ -153,14 +153,14 @@ class ChartsBody extends React.Component {
             <div key={k} className="col-md-6" style={{ height: this.props.height }}>
               {this.props.chartType !== "wordcloud" && <canvas id={`chartCanvas-${k}`} height={this.props.height} />}
               {this.props.chartType === "wordcloud" && (
-                <WordcloudBody {...this.props} data={this.state.data} seriesKey={k} />
+                <WordcloudBody {...this.props} data={this.state.data} seriesKey={k} height={this.props.height} />
               )}
             </div>
           ))}
         </div>
       );
     } else if (this.props.chartType === "wordcloud") {
-      charts = <WordcloudBody {...this.props} data={this.state.data} seriesKey="all" />;
+      charts = <WordcloudBody {...this.props} data={this.state.data} seriesKey="all" height={this.props.height} />;
     } else {
       charts = <canvas id="chartCanvas" height={this.props.height} />;
     }
