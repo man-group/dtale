@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.6.4 (2019-12-26)
+
+  * testing of hostname returned by `socket.gethostname`, use 'localhost' if it fails
+  * removal of flask dev server banner when running in production environments
+  * better handling of long strings in wordclouds
+  * [#43](https://github.com/man-group/dtale/issues/43): only show timeseries correlations if datetime columns exist with multiple values per date
+
+
 ### 1.6.3 (2019-12-23)
   
   * updated versions of packages in yarn.lock due to issue with chart.js box & whisker plots
