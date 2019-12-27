@@ -4,6 +4,7 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import CorrelationsTsOptions from "../../../popups/correlations/CorrelationsTsOptions";
 import mockPopsicle from "../../MockPopsicle";
 import correlationsData from "../../data/correlations";
 import * as t from "../../jest-assertions";
@@ -44,6 +45,9 @@ describe("Correlations tests", () => {
           }
           if (query == "no-date") {
             return { data: correlationsData.data, dates: [] };
+          }
+          if (query == "rolling") {
+            return _.assignIn({ rolling: true }, correlationsData);
           }
         }
         const { urlFetcher } = require("../../redux-test-utils").default;
@@ -157,6 +161,50 @@ describe("Correlations tests", () => {
         result.update();
         t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
         done();
+      }, 200);
+    }, 200);
+  });
+
+  test("Correlations rendering rolling data", done => {
+    const Correlations = require("../../../popups/Correlations").ReactCorrelations;
+    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
+    buildInnerHTML({ settings: "" });
+    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "rolling" })} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+    result.update();
+    setTimeout(() => {
+      result.update();
+      setTimeout(() => {
+        result.update();
+        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
+        t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
+        t.deepEqual(
+          result
+            .find("select.custom-select")
+            .first()
+            .find("option")
+            .map(o => o.text()),
+          ["col4", "col5"],
+          "should render date options for timeseries"
+        );
+        result
+          .find("select.custom-select")
+          .first()
+          .simulate("change", { target: { value: "col5" } });
+        setTimeout(() => {
+          result.update();
+          t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
+          result
+            .find(CorrelationsTsOptions)
+            .find("input")
+            .findWhere(i => i.prop("type") === "text")
+            .simulate("change", { target: { value: "5" } });
+          setTimeout(() => {
+            result.update();
+            done();
+          }, 200);
+        }, 200);
       }, 200);
     }, 200);
   });

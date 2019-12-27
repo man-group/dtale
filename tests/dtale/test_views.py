@@ -243,7 +243,8 @@ def test_test_filter(test_data):
 
             response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query="bar > 1.5"))
             response_data = json.loads(response.data)
-            assert response_data['success']
+            assert not response_data['success']
+            assert response_data['error'] == 'Filter (bar > 1.5) returns no data'
 
             response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='foo2 == 1'))
             response_data = json.loads(response.data)
@@ -395,7 +396,7 @@ def test_get_histogram(unittest, test_data):
 
 
 @pytest.mark.unit
-def test_get_correlations(unittest, test_data):
+def test_get_correlations(unittest, test_data, rolling_data):
     import dtale.views as views
 
     with app.test_client() as c:
@@ -411,7 +412,8 @@ def test_get_correlations(unittest, test_data):
                     dict(column='foo', security_id=None, foo=None, bar=None),
                     dict(column='bar', security_id=None, foo=None, bar=None)
                 ],
-                dates=[]
+                dates=[],
+                rolling=False
             )
             unittest.assertEqual(response_data, expected, 'should return correlations')
 
@@ -441,25 +443,20 @@ def test_get_correlations(unittest, test_data):
                     dict(column='foo', security_id=None, foo=None, bar=None),
                     dict(column='bar', security_id=None, foo=None, bar=None)
                 ],
-                dates=['date']
+                dates=['date'],
+                rolling=False
             )
             unittest.assertEqual(response_data, expected, 'should return correlations')
 
-    # https://github.com/man-group/dtale/issues/43
-    ii = pd.date_range(start='2018-01-01', end='2019-12-01', freq='D')
-    ii = pd.Index(ii, name='date')
-    n = ii.shape[0]
-    c = 5
-    data = np.random.random((n, c))
-    df = pd.DataFrame(data, index=ii)
-    df, _ = views.format_data(df)
+    df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
             response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
-            unittest.assertEqual(len(response_data['dates']), 0, 'should no correlation date columns')
+            unittest.assertEqual(response_data['dates'], ['date'], 'should return correlation date columns')
+            assert response_data['rolling']
 
 
 def build_ts_data(size=5, days=5):
@@ -470,7 +467,9 @@ def build_ts_data(size=5, days=5):
 
 
 @pytest.mark.unit
-def test_get_correlations_ts(unittest):
+def test_get_correlations_ts(unittest, rolling_data):
+    import dtale.views as views
+
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
 
     with app.test_client() as c:
@@ -483,9 +482,20 @@ def test_get_correlations_ts(unittest):
                     'y': [1.0, 1.0, 1.0, 1.0, 1.0]
                 }},
                 'max': 1.0,
-                'min': 1.0
+                'min': 1.0,
+                'success': True,
             }
             unittest.assertEqual(response_data, expected, 'should return timeseries correlation')
+
+    df, _ = views.format_data(rolling_data)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            params = dict(dateCol='date', cols='0,1', rollingWindow='4')
+            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data['success'], True, 'should return rolling correlation')
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):

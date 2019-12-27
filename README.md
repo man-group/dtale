@@ -12,7 +12,7 @@
 
 ## What is it?
 
-D-Tale was born out a conversion from SAS to Python.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas dat structures.  D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.  It integrates seamlessly with ipython notebooks & python/ipython terminals.
+D-Tale was born out a conversion from SAS to Python.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.  D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.  It integrates seamlessly with ipython notebooks & python/ipython terminals.
 
 ## Contents
 

@@ -47,8 +47,8 @@ class CorrelationsGrid extends React.Component {
   }
 
   _cellRenderer(cellProps) {
-    const { hasDate, selectedDate, buildTs, buildScatter } = this.props;
-    const props = _.assignIn({ buildTs, buildScatter, hasDate, selectedDate }, this.state, cellProps);
+    const { hasDate, selectedDate, rolling, window, buildTs, buildScatter } = this.props;
+    const props = _.assignIn({ buildTs, buildScatter, hasDate, selectedDate, rolling, window }, this.state, cellProps);
     return <CorrelationsCell {...props} />;
   }
 
@@ -126,6 +126,8 @@ CorrelationsGrid.propTypes = {
   selectedDate: PropTypes.string,
   buildTs: PropTypes.func,
   buildScatter: PropTypes.func,
+  rolling: PropTypes.bool,
+  window: PropTypes.number,
 };
 
 export default CorrelationsGrid;

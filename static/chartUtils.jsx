@@ -111,6 +111,7 @@ function updateCfgForDates(cfg, { columns, x }) {
     cfg.options.scales.xAxes = [
       {
         type: "time",
+        distribution: "series",
         time: {
           unit: units,
           displayFormats: {
@@ -172,7 +173,7 @@ function createBaseCfg({ data }, { x, y, additionalOptions }, seriesFormatter = 
                   return `${label}: ${value}`;
                 }
               }
-              return value;
+              return value + "";
             },
           },
         },

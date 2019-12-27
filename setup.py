@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.6.4",
+    version="1.6.5",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -59,6 +59,8 @@ setup(
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
     install_requires=[
+        "lz4<=2.2.1; python_version < '3.0'",
+        "lz4; python_version > '3.0'",
         "arctic",
         "Flask",
         "Flask-Compress",
