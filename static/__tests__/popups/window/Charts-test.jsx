@@ -222,7 +222,7 @@ describe("Charts tests", () => {
               { xLabel: 1545973200000, yLabel: 1.123456, datasetIndex: 0 },
               chartObj.data
             ),
-            1.1235,
+            "1.1235",
             "should render tooltip label"
           );
           filters

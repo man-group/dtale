@@ -163,7 +163,7 @@ def get_bool_arg(r, name):
     return r.args.get(name, 'false').lower() == 'true'
 
 
-def json_string(x, nan_display=''):
+def json_string(x, nan_display='', **kwargs):
     """
     convert value to string to be used within JSON output
 
@@ -232,7 +232,7 @@ def json_float(x, precision=2, nan_display='nan', as_string=False):
         return nan_display
 
 
-def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display=''):
+def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display='', **kwargs):
     """
     Convert value to date string to be used within JSON output
 
@@ -253,7 +253,7 @@ def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display=''):
         return nan_display
 
 
-def json_timestamp(x, nan_display=''):
+def json_timestamp(x, nan_display='', **kwargs):
     """
     Convert value to timestamp (milliseconds) to be used within JSON output
 

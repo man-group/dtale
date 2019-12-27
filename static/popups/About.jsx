@@ -49,6 +49,25 @@ class About extends React.Component {
           </div>
         </div>
         {outOfDate}
+        <div className="row">
+          <div className="col-md-12">
+            <a
+              href={`https://github.com/man-group/dtale/tree/v${currentVersion}`}
+              rel="noopener noreferrer"
+              target="_blank">
+              <i className="fab fa-github mr-4" />
+              {"GitHub"}
+            </a>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12">
+            <a href={`https://dtale.readthedocs.io/en/v${currentVersion}`} rel="noopener noreferrer" target="_blank">
+              <i className="fas fa-book-open mr-4" />
+              {"readthedocs.io"}
+            </a>
+          </div>
+        </div>
       </div>
     );
   }

@@ -14,6 +14,7 @@ import { fetchJson } from "../fetcher";
 import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
 import CorrelationsGrid from "./correlations/CorrelationsGrid";
+import CorrelationsTsOptions from "./correlations/CorrelationsTsOptions";
 import corrUtils from "./correlations/correlationsUtils";
 
 const BASE_SCATTER_URL = "/dtale/scatter";
@@ -29,7 +30,10 @@ function buildState() {
     selectedCols: [],
     tsUrl: null,
     selectedDate: null,
+    tsType: "date",
     scatterUrl: null,
+    rolling: false,
+    window: 4,
   };
 }
 
@@ -37,17 +41,14 @@ class ReactCorrelations extends React.Component {
   constructor(props) {
     super(props);
     this.state = buildState();
-    _.forEach(
-      ["buildTs", "buildScatter", "viewScatter", "viewScatterRow", "changeDate"],
-      f => (this[f] = this[f].bind(this))
-    );
+    _.forEach(["buildTs", "buildScatter", "viewScatter", "viewScatterRow"], f => (this[f] = this[f].bind(this)));
   }
 
   shouldComponentUpdate(newProps, newState) {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
-    const stateProps = ["error", "scatterError", "stats", "correlations", "selectedCols", "selectedDate"];
+    const stateProps = ["error", "scatterError", "stats", "correlations", "selectedCols", "selectedDate", "window"];
     if (!_.isEqual(_.pick(this.state, stateProps), _.pick(newState, stateProps))) {
       return true;
     }
@@ -64,18 +65,24 @@ class ReactCorrelations extends React.Component {
         this.setState({ error: <RemovableError {...gridData} /> });
         return;
       }
-      const { data, dates } = gridData;
+      const { data, dates, rolling } = gridData;
       const state = {
         correlations: data,
         dates,
         hasDate: _.size(dates) > 0,
         selectedDate: _.get(dates, 0, null),
+        rolling,
       };
       this.setState(state, () => {
         const { col1, col2 } = this.props.chartData || {};
         if (col1 && col2) {
           if (state.hasDate) {
-            this.buildTs([col1, col2], state.selectedDate);
+            if (rolling) {
+              this.buildTs([col1, col2], state.selectedDate, 4);
+              this.buildScatter([col1, col2]);
+            } else {
+              this.buildTs([col1, col2], state.selectedDate);
+            }
           } else {
             this.buildScatter([col1, col2]);
           }
@@ -84,15 +91,20 @@ class ReactCorrelations extends React.Component {
     });
   }
 
-  changeDate(evt) {
-    this.buildTs(this.state.selectedCols, evt.target.value);
-  }
-
-  buildTs(selectedCols, selectedDate) {
+  buildTs(selectedCols, selectedDate, rollingWindow = null) {
     const query = _.get(this.props, "chartData.query");
     const path = `${BASE_CORRELATIONS_TS_URL}/${this.props.dataId}`;
-    const tsUrl = buildURL(path, { query, selectedCols, dateCol: selectedDate }, ["query", "selectedCols", "dateCol"]);
-    this.setState({ selectedCols, selectedDate, tsUrl });
+    const tsUrl = buildURL(path, { query, selectedCols, dateCol: selectedDate, rollingWindow }, [
+      "query",
+      "selectedCols",
+      "dateCol",
+      "rollingWindow",
+    ]);
+    const updatedState = { selectedCols, selectedDate, tsUrl };
+    if (this.state.rolling && !_.isNull(rollingWindow)) {
+      updatedState.window = rollingWindow;
+    }
+    this.setState(updatedState);
   }
 
   viewScatterRow(evt) {
@@ -167,7 +179,7 @@ class ReactCorrelations extends React.Component {
         </div>
       );
     }
-    const { selectedCols, tsUrl, selectedDate, hasDate, dates } = this.state;
+    const { selectedCols, tsUrl, hasDate } = this.state;
     return (
       <div key="body" className="modal-body scatter-body">
         <CorrelationsGrid
@@ -178,26 +190,7 @@ class ReactCorrelations extends React.Component {
           {...this.state}
         />
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
-          <div className="row d-inline">
-            <div className="float-left pt-5">
-              <b>{`Timeseries of Pearson Correlation for ${selectedCols[0]} vs. ${selectedCols[1]}`}</b>
-              <small className="pl-3">
-                (Click on any point in the chart to view the scatter plot of that correlation)
-              </small>
-            </div>
-            <ConditionalRender display={_.size(dates) > 1}>
-              <div className="form-group row small-gutters float-right pt-5 pr-3">
-                <label className="col-form-label text-right">Date Column</label>
-                <div>
-                  <select className="form-control custom-select" defaultValue={selectedDate} onChange={this.changeDate}>
-                    {_.map(dates, d => (
-                      <option key={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </ConditionalRender>
-          </div>
+          <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
           <ChartsBody
             ref={r => (this._ts_chart = r)}
             visible={true}
@@ -218,7 +211,9 @@ class ReactCorrelations extends React.Component {
                   },
                 },
               ];
-              config.options.onClick = this.viewScatter;
+              if (!this.state.rolling) {
+                config.options.onClick = this.viewScatter;
+              }
               config.options.legend = { display: false };
               config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, -1, 1)];
               return config;

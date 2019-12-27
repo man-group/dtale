@@ -556,7 +556,9 @@ def _test_filter(data, query):
     :return: str
     """
     if query is not None and len(query):
-        data.query(query)
+        filtered_data = data.query(query)
+        if not len(filtered_data):
+            raise Exception('Filter ({}) returns no data'.format(query))
 
 
 @dtale.route('/test-filter/<data_id>')
@@ -814,6 +816,7 @@ def get_correlations(data_id):
 
         valid_corr_cols = []
         valid_date_cols = []
+        rolling = False
         for col_info in DTYPES[data_id]:
             name, dtype = map(col_info.get, ['name', 'dtype'])
             dtype = classify_type(dtype)
@@ -825,6 +828,9 @@ def get_correlations(data_id):
                 date_counts = data[name].dropna().value_counts()
                 if len(date_counts[date_counts > 1]) > 1:
                     valid_date_cols.append(name)
+                elif date_counts.eq(1).all():
+                    valid_date_cols.append(name)
+                    rolling = True
 
         if data[valid_corr_cols].isnull().values.any():
             data = data.corr(method='pearson')
@@ -838,7 +844,7 @@ def get_correlations(data_id):
         data = data.reset_index()
         col_types = grid_columns(data)
         f = grid_formatter(col_types, nan_display=None)
-        return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols)
+        return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols, rolling=rolling)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
@@ -888,7 +894,7 @@ def build_chart(data, x, y, group_col=None, agg=None):
         group_fmts = {c: find_dtype_formatter(dtypes[c]) for c in group_col}
         for group_val, grp in data.groupby(group_col):
             group_val = '/'.join([
-                group_fmts[gc](gv) for gv, gc in zip(make_list(group_val), group_col)
+                group_fmts[gc](gv, as_string=True) for gv, gc in zip(make_list(group_val), group_col)
             ])
             ret_data['data'][group_val] = f.format_lists(grp)
         return ret_data
@@ -982,12 +988,20 @@ def get_correlations_ts(data_id):
         cols = get_str_arg(request, 'cols')
         cols = cols.split(',')
         date_col = get_str_arg(request, 'dateCol')
-        data = data.groupby(date_col)[list(set(cols))].corr(method='pearson')
-        data.index.names = ['date', 'column']
-        data = data.reset_index()
-        data = data[data.column == cols[0]][['date', cols[1]]]
+        rolling_window = get_int_arg(request, 'rollingWindow')
+        if rolling_window:
+            [col1, col2] = list(set(cols))
+            data = data[['date', col1, col2]].set_index('date')
+            data = data[col1].rolling(rolling_window).corr(data[col2]).reset_index()
+        else:
+            data = data.groupby(date_col)[list(set(cols))].corr(method='pearson')
+            data.index.names = ['date', 'column']
+            data = data.reset_index()
+            data = data[data.column == cols[0]][['date', cols[1]]]
         data.columns = ['date', 'corr']
-        return jsonify(build_chart(data, 'date', 'corr'))
+        return_data = build_chart(data.fillna(0), 'date', 'corr')
+        return_data['success'] = True
+        return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 

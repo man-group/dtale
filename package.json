@@ -1,7 +1,7 @@
 {
   "name": "dtale",
-  "version": "1.6.4",
-  "description": "All-purpose Data Viewer",
+  "version": "1.6.5",
+  "description": "Visualizer for Pandas Data Structures",
   "main": "main.js",
   "directories": {
     "test": "tests"

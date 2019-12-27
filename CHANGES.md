@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.6.5 (2019-12-29)
+
+  * test whether filters entered will return no data and block the user from apply those
+  * allow for group values of type int or float to be displayed in charts popup
+  * timeseries correlation values which return 'nan' will be replaced by zero for chart purposes
+  * update 'distribution' to 'series' on charts so that missing dates will not show up as ticks
+  * added "fork on github" flag for demo version & links to github/docs on "About" popup
+  * limited lz4 to <= 2.2.1 in python 27-3 since latest version is no longer supported
+
 ### 1.6.4 (2019-12-26)
 
   * testing of hostname returned by `socket.gethostname`, use 'localhost' if it fails
