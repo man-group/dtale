@@ -94,11 +94,7 @@ describe("Histogram tests", () => {
     const result = mount(<Histogram {...props} />, {
       attachTo: document.getElementById("content"),
     });
-    t.deepEqual(
-      result.find("option").map(o => o.text()),
-      ["5", "10", "20", "50"],
-      "Should render bins options"
-    );
+    t.deepEqual(result.find("input").prop("value"), "20", "Should render default bins");
 
     let chart = null;
     setTimeout(() => {
@@ -111,7 +107,7 @@ describe("Histogram tests", () => {
       t.equal(xlabel, "Bin", "should display correct x-axis label");
 
       const event = { target: { value: 50 } };
-      result.find("select").simulate("change", event);
+      result.find("input").simulate("change", event);
 
       setTimeout(() => {
         result.update();

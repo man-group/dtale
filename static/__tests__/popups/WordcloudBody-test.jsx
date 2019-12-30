@@ -60,7 +60,18 @@ describe("WordcloudBody tests", () => {
   test("WordcloudBody missing data", done => {
     const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
 
-    const result = mount(<WordcloudBody chartType="wordcloud" data={{}} />, {
+    const result = mount(<WordcloudBody chartType={{ value: "wordcloud" }} data={{}} />, {
+      attachTo: document.getElementById("content"),
+    });
+    result.update();
+    t.equal(result.html(), '<div class="row"></div>', "shouldn't render anything");
+    done();
+  });
+
+  test("WordcloudBody invalid chartType type", done => {
+    const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
+
+    const result = mount(<WordcloudBody chartType={{ value: "bar" }} data={{}} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
@@ -68,14 +79,17 @@ describe("WordcloudBody tests", () => {
     done();
   });
 
-  test("WordcloudBody invalid chartType type", done => {
+  test("WordcloudBody missing yProp data", done => {
     const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
 
-    const result = mount(<WordcloudBody chartType="bar" data={{}} />, {
-      attachTo: document.getElementById("content"),
-    });
+    const result = mount(
+      <WordcloudBody chartType={{ value: "wordcloud" }} y={[{ value: "foo" }]} data={{ bar: [1, 2, 3] }} />,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
     result.update();
-    t.notOk(result.html(), "shouldn't render anything");
+    t.equal(result.html(), '<div class="row"></div>', "shouldn't render anything");
     done();
   });
 });

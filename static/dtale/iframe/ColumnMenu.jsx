@@ -32,7 +32,7 @@ class ReactColumnMenu extends React.Component {
       col: selectedCol,
     });
     const openDescribe = () => {
-      window.open(describeUrl, "_blank", "titlebar=1,location=1,status=1,width=500,height=450");
+      window.open(describeUrl, "_blank", "titlebar=1,location=1,status=1,width=1100,height=450");
     };
     const histogramUrl = buildURLString(`/dtale/popup/histogram/${dataId}`, {
       col: selectedCol,

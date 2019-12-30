@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.6.6 (2020-1-2)
+
+ * [#47](https://github.com/man-group/dtale/issues/47): selection of multiple columns for y-axis
+ * updated histogram bin selection to be an input box for full customization
+ * better display of timestamps in axis ticks for charts
+ * sorting of bar charts by y-axis
+ * [#48](https://github.com/man-group/dtale/issues/48): scatter charts in chart builder
+ * "nunique" added to list of aggregations
+ * turned on "threaded=True" for app.run to avoid hanging popups
+ * [#45](https://github.com/man-group/dtale/issues/45): rolling computations as aggregations
+ * Y-Axis editor
+
 ### 1.6.5 (2019-12-29)
 
   * test whether filters entered will return no data and block the user from apply those

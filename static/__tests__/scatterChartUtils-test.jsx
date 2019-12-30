@@ -1,8 +1,7 @@
 import _ from "lodash";
 
-import corrUtils from "../../popups/correlations/correlationsUtils";
-import { formatScatterPoints } from "../../popups/scatterChartUtils";
-import * as t from "../jest-assertions";
+import { basePointFormatter, formatScatterPoints, getScatterMax, getScatterMin } from "../scatterChartUtils";
+import * as t from "./jest-assertions";
 
 describe("scatterChartUtils tests", () => {
   test("scatterChartUtils: testing filtering/highlighting logic", done => {
@@ -20,11 +19,16 @@ describe("scatterChartUtils tests", () => {
     ];
     const scatterData = formatScatterPoints(
       data,
-      corrUtils.pointFormatter("col", "col2"),
+      basePointFormatter("col", "col2"),
       _.matches({ index: 0 }),
       _.matches({ index: 9 })
     );
     t.deepEqual(scatterData.pointRadius, [3, 3, 3, 3, 3, 3, 3, 3, 0, 5], "should set correct radii");
+
+    t.equal(getScatterMin(data, "col"), -2.5);
+    t.equal(getScatterMax(data, "col"), 10.5);
+    t.equal(getScatterMax([3, 4, 2, 1]), 5.5);
+    t.equal(getScatterMin([3, 4, 2, 1]), -0.5);
     done();
   });
 });

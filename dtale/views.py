@@ -16,12 +16,12 @@ from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
                          filter_df_for_grid, find_dtype_formatter,
-                         find_selected_column, get_dtypes, get_int_arg,
-                         get_str_arg, grid_columns, grid_formatter, json_date,
-                         json_float, json_int, json_timestamp, jsonify,
-                         make_list, retrieve_grid_params,
-                         running_with_flask_debug, running_with_pytest,
-                         sort_df_for_grid, swag_from)
+                         find_selected_column, get_bool_arg, get_dtypes,
+                         get_int_arg, get_str_arg, grid_columns,
+                         grid_formatter, json_date, json_float, json_int,
+                         json_timestamp, jsonify, make_list,
+                         retrieve_grid_params, running_with_flask_debug,
+                         running_with_pytest, sort_df_for_grid, swag_from)
 
 logger = getLogger(__name__)
 
@@ -849,7 +849,7 @@ def get_correlations(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-def build_chart(data, x, y, group_col=None, agg=None):
+def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
     """
     Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
     dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
@@ -870,11 +870,21 @@ def build_chart(data, x, y, group_col=None, agg=None):
     :type aggregation: str, optional
     :return: dict
     """
-    x_col, y_col = str('x'), str('y')
-    if group_col is not None:
-        data = data[group_col + [x, y]].sort_values(group_col + [x])
 
-        data.columns = group_col + [x_col, y_col]
+    def build_formatters(df):
+        cols = grid_columns(df)
+        overrides = {'D': lambda f, i, c: f.add_timestamp(i, c)}
+        data_f = grid_formatter(cols, overrides=overrides, nan_display=None)
+        overrides['F'] = lambda f, i, c: f.add_float(i, c, precision=2)
+        range_f = grid_formatter(cols, overrides=overrides, nan_display=None)
+        return data_f, range_f
+
+    x_col = str('x')
+    y_cols = y.split(',')
+    if group_col is not None:
+        data = data[group_col + [x] + y_cols].sort_values(group_col + [x])
+        y_cols = [str(y_col) for y_col in y_cols]
+        data.columns = group_col + [x_col] + y_cols
         if agg is not None:
             data = data.groupby(group_col + [x_col])
             data = getattr(data, agg)().reset_index()
@@ -885,35 +895,43 @@ def build_chart(data, x, y, group_col=None, agg=None):
                 ' or else chart will be unreadable'
             ).format(', '.join(group_col), max_groups)
             raise Exception(msg)
-        f = grid_formatter(
-            grid_columns(data[[x_col, y_col]]), overrides={'D': lambda f, i, c: f.add_timestamp(i, c)}, nan_display=None
+
+        data_f, range_f = build_formatters(data[[x_col] + y_cols])
+        ret_data = dict(
+            data={},
+            min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
+            max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
         )
-        y_fmt = next((fmt for _, name, fmt in f.fmts if name == y_col), None)
-        ret_data = dict(data={}, min=y_fmt(data[y_col].min(), None), max=y_fmt(data[y_col].max(), None))
         dtypes = get_dtypes(data)
         group_fmts = {c: find_dtype_formatter(dtypes[c]) for c in group_col}
         for group_val, grp in data.groupby(group_col):
             group_val = '/'.join([
                 group_fmts[gc](gv, as_string=True) for gv, gc in zip(make_list(group_val), group_col)
             ])
-            ret_data['data'][group_val] = f.format_lists(grp)
+            ret_data['data'][group_val] = data_f.format_lists(grp)
         return ret_data
-    data = data[[x, y]].sort_values(x)
-    data.columns = [x_col, y_col]
+    data = data[[x] + y_cols].sort_values(x)
+    y_cols = [str(y_col) for y_col in y_cols]
+    data.columns = [x_col] + y_cols
     if agg is not None:
-        data = data.groupby(x_col)
-        data = getattr(data, agg)().reset_index()
+        if agg == 'rolling':
+            window, comp = map(kwargs.get, ['rolling_win', 'rolling_comp'])
+            data = data.set_index(x_col).rolling(window=window)
+            data = pd.DataFrame({c: getattr(data[c], comp)() for c in y_cols})
+            data = data.reset_index()
+        else:
+            data = data.groupby(x_col)
+            data = getattr(data[y_cols], agg)().reset_index()
 
-    if any(data[x_col].duplicated()):
+    if not allow_duplicates and any(data[x_col].duplicated()):
         raise Exception('{} contains duplicates, please specify group or additional filtering'.format(x))
-    f = grid_formatter(
-        grid_columns(data), overrides={'D': lambda f, i, c: f.add_timestamp(i, c)}, nan_display=None
-    )
-    y_fmt = next((fmt for _, name, fmt in f.fmts if name == y_col), None)
+    if len(data) > 15000:
+        raise Exception('Dataset exceeds 15,000 records, cannot render. Please apply filter...')
+    data_f, range_f = build_formatters(data)
     ret_data = dict(
-        data={str('all'): f.format_lists(data)},
-        min=y_fmt(data[y_col].min(), None),
-        max=y_fmt(data[y_col].max(), None)
+        data={str('all'): data_f.format_lists(data)},
+        min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
+        max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
     )
     return ret_data
 
@@ -960,7 +978,12 @@ def get_chart_data(data_id):
         if group_col is not None:
             group_col = group_col.split(',')
         agg = get_str_arg(request, 'agg')
-        return jsonify(build_chart(data, x, y, group_col, agg))
+        allow_duplicates = get_bool_arg(request, 'allowDupes')
+        window = get_int_arg(request, 'rollingWin')
+        comp = get_str_arg(request, 'rollingComp')
+        data = build_chart(data, x, y, group_col, agg, allow_duplicates, rolling_win=window, rolling_comp=comp)
+        data['success'] = True
+        return jsonify(data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
@@ -1061,8 +1084,10 @@ def get_scatter(data_id):
                 stats=stats,
                 error='Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...'
             )
-        f = grid_formatter(grid_columns(data))
-        data = f.format_dicts(data.itertuples())
-        return jsonify(data=data, x=cols[0], y=cols[1], stats=stats)
+        data = build_chart(data, cols[0], str('{},index'.format(cols[1])), allow_duplicates=True)
+        data['x'] = cols[0]
+        data['y'] = cols[1]
+        data['stats'] = stats
+        return jsonify(data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))

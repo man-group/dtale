@@ -11,6 +11,7 @@ import { closeChart } from "../actions/charts";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
+import { toggleBouncer } from "../toggleUtils";
 import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
 import CorrelationsGrid from "./correlations/CorrelationsGrid";
@@ -134,9 +135,9 @@ class ReactCorrelations extends React.Component {
     if (this.state.scatterUrl === scatterUrl) {
       return;
     }
-    corrUtils.toggleBouncer();
+    toggleBouncer(["scatter-bouncer", "rawScatterChart"]);
     fetchJson(scatterUrl, fetchedChartData => {
-      corrUtils.toggleBouncer();
+      toggleBouncer(["scatter-bouncer", "rawScatterChart"]);
       const newState = {
         selectedCols,
         stats: fetchedChartData.stats,
@@ -148,11 +149,11 @@ class ReactCorrelations extends React.Component {
         newState.scatterError = <RemovableError {...fetchedChartData} />;
       }
       const builder = ctx => {
-        if (!_.get(fetchedChartData, "data", []).length) {
+        if (!_.get(fetchedChartData, "data.all.x", []).length) {
           return null;
         }
-        const { data, x, y } = fetchedChartData;
-        return corrUtils.createScatter(ctx, data, x, y, this.props.chartData.title, this.viewScatterRow);
+        const { x, y } = fetchedChartData;
+        return corrUtils.createScatter(ctx, fetchedChartData, x, y, this.viewScatterRow);
       };
       newState.chart = chartUtils.chartWrapper("rawScatterChart", this.state.chart, builder);
       this.setState(newState);
@@ -196,11 +197,11 @@ class ReactCorrelations extends React.Component {
             visible={true}
             url={tsUrl}
             columns={[
-              { name: "date", dtype: "datetime[ns]" },
+              { name: "x", dtype: "datetime[ns]" },
               { name: "corr", dtype: "float64" },
             ]}
-            x="date"
-            y="corr"
+            x={{ value: "x" }}
+            y={[{ value: "corr" }]}
             configHandler={config => {
               config.options.scales.yAxes = [
                 {
@@ -209,16 +210,18 @@ class ReactCorrelations extends React.Component {
                     data.ticks[0] = null;
                     data.ticks[data.ticks.length - 1] = null;
                   },
+                  id: "y-corr",
                 },
               ];
               if (!this.state.rolling) {
                 config.options.onClick = this.viewScatter;
               }
               config.options.legend = { display: false };
-              config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, -1, 1)];
+              config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1)];
               return config;
             }}
             height={300}
+            showControls={false}
           />
         </ConditionalRender>
         <CorrelationScatterStats {...this.state} />

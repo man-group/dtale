@@ -8,8 +8,8 @@ import menuUtils from "../menuUtils";
 import * as gu from "./gridUtils";
 
 const SORT_CHARS = {
-  DESC: String.fromCharCode("9650"),
-  ASC: String.fromCharCode("9660"),
+  ASC: String.fromCharCode("9650"),
+  DESC: String.fromCharCode("9660"),
 };
 
 class ReactHeader extends React.Component {

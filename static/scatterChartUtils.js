@@ -1,5 +1,7 @@
 import _ from "lodash";
 
+const basePointFormatter = (xProp, yProp) => point => _.assignIn(point, { x: point[xProp], y: point[yProp] });
+
 function formatScatterPoints(chartData, formatter = p => p, highlight = () => false, filter = () => false) {
   const data = [],
     pointBackgroundColor = [],
@@ -57,14 +59,14 @@ function formatScatterPoints(chartData, formatter = p => p, highlight = () => fa
   };
 }
 
-function getMin(data, prop) {
-  const min = _.min(_.map(data, prop));
+function getScatterMin(data, prop = null) {
+  const min = _.min(_.isNull(prop) ? data : _.map(data, prop));
   return _.floor(min + (min % 1 ? 0 : -1)) - 0.5;
 }
 
-function getMax(data, prop) {
-  const max = _.max(_.map(data, prop));
+function getScatterMax(data, prop = null) {
+  const max = _.max(_.isNull(prop) ? data : _.map(data, prop));
   return _.ceil(max + (max % 1 ? 0 : 1)) + 0.5;
 }
 
-export { formatScatterPoints, getMin, getMax };
+export { basePointFormatter, formatScatterPoints, getScatterMin, getScatterMax };

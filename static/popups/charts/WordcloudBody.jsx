@@ -3,49 +3,77 @@ import PropTypes from "prop-types";
 import React from "react";
 import ReactWordcloud from "react-wordcloud";
 
+import chartUtils from "../../chartUtils";
+import { isDateCol } from "../../dtale/gridUtils";
+
 class WordcloudBody extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    const { chartType, seriesKey } = this.props;
-    if (chartType !== "wordcloud") {
+    const { chartType, x, y, columns } = this.props;
+    if (chartType.value !== "wordcloud") {
       return null;
     }
-    const series = _.get(this.props, ["data", "data", seriesKey], {});
-    if (_.isEmpty(series)) {
-      return null;
-    }
+    const yProps = _.map(y || [], "value");
+    const colWidth = _.size(_.get(this.props, "data.data", {})) * _.size(yProps) == 1 ? "12" : "6";
     return (
-      <div className="text-center" style={{ height: this.props.height }}>
-        {seriesKey !== "all" && <span className="font-weight-bold">{seriesKey}</span>}
-        <div style={{ height: this.props.height - (seriesKey === "all" ? 0 : 15) }}>
-          <ReactWordcloud
-            options={{
-              fontFamily: '"Istok", "Helvetica", Arial, sans-serif',
-              enableTooltip: true,
-              fontSizes: [5, 35],
-              scale: "log",
-              deterministic: true,
-              rotations: 1,
-              rotationAngles: [0],
-              spiral: "archimedean",
-              transitionDuration: 500,
-            }}
-            words={_.sortBy(
-              _.map(series.x, (l, i) => ({
-                text: _.truncate(l + "", { length: 24 }),
-                fullText: l + "",
-                value: series.y[i],
-              })),
-              "value"
-            )}
-            callbacks={{
-              getWordTooltip: ({ fullText, value }) => `${fullText} (${value})`,
-            }}
-          />
-        </div>
+      <div className="row">
+        {_.flatMap(_.get(this.props, "data.data", {}), (series, seriesKey) =>
+          _.map(yProps, yProp => {
+            if (_.isEmpty(series[yProp] || [])) {
+              return null;
+            }
+            const labels = [];
+            if (seriesKey !== "all") {
+              labels.push(seriesKey);
+            }
+            if (_.size(yProps) > 1) {
+              labels.push(yProp);
+            }
+            const hasLabel = _.size(labels) > 0;
+            return (
+              <div key={`${seriesKey}-${yProp}`} className={`col-md-${colWidth}`} style={{ height: this.props.height }}>
+                <div className="text-center" style={{ height: this.props.height }}>
+                  {hasLabel && <span className="font-weight-bold">{_.join(labels, " - ")}</span>}
+                  <div style={{ height: this.props.height - (hasLabel ? 15 : 0) }}>
+                    <ReactWordcloud
+                      options={{
+                        fontFamily: '"Istok", "Helvetica", Arial, sans-serif',
+                        enableTooltip: true,
+                        fontSizes: [5, 35],
+                        scale: "log",
+                        deterministic: true,
+                        rotations: 1,
+                        rotationAngles: [0],
+                        spiral: "archimedean",
+                        transitionDuration: 500,
+                      }}
+                      words={_.sortBy(
+                        _.map(series.x, (l, i) => {
+                          let labelText = l + "";
+                          if (isDateCol(_.find(columns, { name: x.value }).dtype)) {
+                            labelText = chartUtils.timestampLabel(l);
+                          }
+                          return {
+                            text: _.truncate(labelText, { length: 24 }),
+                            fullText: labelText,
+                            value: series[yProp][i],
+                          };
+                        }),
+                        "value"
+                      )}
+                      callbacks={{
+                        getWordTooltip: ({ fullText, value }) => `${fullText} (${value})`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     );
   }
@@ -54,9 +82,11 @@ class WordcloudBody extends React.Component {
 WordcloudBody.displayName = "WordcloudBody";
 WordcloudBody.propTypes = {
   data: PropTypes.object, // eslint-disable-line react/no-unused-prop-types
-  seriesKey: PropTypes.string,
-  group: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
-  chartType: PropTypes.string,
+  columns: PropTypes.arrayOf(PropTypes.object),
+  x: PropTypes.object,
+  y: PropTypes.arrayOf(PropTypes.object),
+  group: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
+  chartType: PropTypes.object,
   height: PropTypes.number,
 };
 export default WordcloudBody;
