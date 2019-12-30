@@ -43,6 +43,7 @@ defaults: &defaults
     - run:
         name: Run JS Tests & Coverage
         command: |
+          export TZ=America/New_York
           yarn run test-with-coverage --maxWorkers=50%
           bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
           yarn run report-duplicate-code

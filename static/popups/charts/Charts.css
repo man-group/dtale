@@ -4,8 +4,6 @@ div.charts-body input[type='checkbox'] {
 div.charts-body {
   padding: 1em;
 }
-/*.charts-filters .Select__control,
-.charts-filters .Select__value-container,
-.charts-filters .Select__placeholder {
-  height: calc(1.51562rem + 2px);
-}*/
+div.charts-filters > span:first-child {
+  width: 5.5em;
+}

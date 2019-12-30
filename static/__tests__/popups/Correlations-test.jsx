@@ -204,7 +204,7 @@ describe("Correlations tests", () => {
           { datasetIndex: 0, index: 0 },
           scatterChart.data
         );
-        t.deepEqual(label, ["col1: NaN", "col2: 1.5"], "should render label");
+        t.deepEqual(label, ["col1: 1.4", "col2: 1.5"], "should render label");
         scatterChart.cfg.options.onClick({});
         const corr = result.instance();
 

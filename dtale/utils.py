@@ -323,7 +323,11 @@ class JSONFormatter(object):
         return [self.format_dict(l) for l in lsts]
 
     def format_lists(self, df):
-        return {name: [f(v, nan_display=self.nan_display) for v in df[name].values] for _idx, name, f in self.fmts}
+        return {
+            name: [f(v, nan_display=self.nan_display) for v in df[name].values]
+            for _idx, name, f in self.fmts
+            if name in df.columns
+        }
 
 
 def classify_type(type_name):

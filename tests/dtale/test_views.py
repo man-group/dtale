@@ -479,10 +479,10 @@ def test_get_correlations_ts(unittest, rolling_data):
             expected = {
                 'data': {'all': {
                     'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
-                    'y': [1.0, 1.0, 1.0, 1.0, 1.0]
+                    'corr': [1.0, 1.0, 1.0, 1.0, 1.0]
                 }},
-                'max': 1.0,
-                'min': 1.0,
+                'max': {'corr': 1.0, 'x': 947048400000},
+                'min': {'corr': 1.0, 'x': 946702800000},
                 'success': True,
             }
             unittest.assertEqual(response_data, expected, 'should return timeseries correlation')
@@ -530,13 +530,15 @@ def test_get_scatter(unittest):
                     'only_in_s1': 0,
                     'spearman': 0.9999999999999999
                 },
-                data=[
-                    {u'index': 0, u'foo': 0, u'bar': 0},
-                    {u'index': 1, u'foo': 1, u'bar': 1},
-                    {u'index': 2, u'foo': 2, u'bar': 2},
-                    {u'index': 3, u'foo': 3, u'bar': 3},
-                    {u'index': 4, u'foo': 4, u'bar': 4}
-                ],
+                data={
+                    'all': {
+                        'bar': [0, 1, 2, 3, 4],
+                        'index': [0, 1, 2, 3, 4],
+                        'x': [0, 1, 2, 3, 4]
+                    }
+                },
+                max={'bar': 4, 'index': 4, 'x': 4},
+                min={'bar': 0, 'index': 0, 'x': 0},
                 x='foo'
             )
             unittest.assertEqual(response_data, expected, 'should return scatter')
@@ -579,7 +581,9 @@ def test_get_scatter(unittest):
 
 
 @pytest.mark.unit
-def test_get_chart_data(unittest, test_data):
+def test_get_chart_data(unittest, test_data, rolling_data):
+    import dtale.views as views
+
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
@@ -589,10 +593,11 @@ def test_get_chart_data(unittest, test_data):
             expected = {
                 u'data': {u'all': {
                     u'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
-                    u'y': [50, 50, 50, 50, 50]
+                    u'security_id': [50, 50, 50, 50, 50]
                 }},
-                u'min': 50,
-                u'max': 50
+                u'max': {'security_id': 50, 'x': 947048400000},
+                u'min': {'security_id': 50, 'x': 946702800000},
+                u'success': True,
             }
             unittest.assertEqual(response_data, expected, 'should return chart data')
 
@@ -603,11 +608,21 @@ def test_get_chart_data(unittest, test_data):
             params = dict(x='date', y='security_id', group='baz', agg='mean')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
-            assert response_data['min'] == 24.5
-            assert response_data['max'] == 24.5
+            assert response_data['min']['security_id'] == 24.5
+            assert response_data['max']['security_id'] == 24.5
             assert response_data['data']['baz']['x'][-1] == 947048400000
-            assert len(response_data['data']['baz']['y']) == 5
-            assert sum(response_data['data']['baz']['y']) == 122.5
+            assert len(response_data['data']['baz']['security_id']) == 5
+            assert sum(response_data['data']['baz']['security_id']) == 122.5
+
+    df, _ = views.format_data(rolling_data)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            params = dict(x='date', y='0', agg='rolling', rollingWin=10, rollingComp='count')
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            assert response_data['success']
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
@@ -640,6 +655,19 @@ def test_get_chart_data(unittest, test_data):
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], 'query "security_id == 51" found no data, please alter'
+            )
+
+    df = pd.DataFrame([dict(a=i, b=i) for i in range(15500)])
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            params = dict(x='a', y='b', allowDupes=True)
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                response_data['error'], 'Dataset exceeds 15,000 records, cannot render. Please apply filter...'
             )
 
 

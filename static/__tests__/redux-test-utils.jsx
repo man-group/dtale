@@ -121,7 +121,7 @@ const PROCESSES = [
     columns: 3,
   },
 ];
-
+// eslint-disable-next-line max-statements
 function urlFetcher(url) {
   const urlParams = qs.parse(url.split("?")[1]);
   const query = urlParams.query;
@@ -140,7 +140,17 @@ function urlFetcher(url) {
     return scatterData;
   } else if (url.startsWith("/dtale/chart-data")) {
     if (urlParams.group) {
+      if (_.includes(urlParams.y, ",")) {
+        return _.assignIn({}, groupedChartsData, {
+          data: _.mapValues(groupedChartsData.data, d => _.assignIn(d, { col2: d.col1 })),
+        });
+      }
       return groupedChartsData;
+    }
+    if (_.includes(urlParams.y, ",")) {
+      return _.assignIn({}, chartsData, {
+        data: _.mapValues(chartsData.data, d => _.assignIn(d, { col2: d.col1 })),
+      });
     }
     return chartsData;
   } else if (url.startsWith("/dtale/update-settings")) {

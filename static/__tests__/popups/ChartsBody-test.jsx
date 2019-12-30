@@ -58,6 +58,8 @@ describe("ChartsBody tests", () => {
     setTimeout(() => {
       result.update();
       t.ok(_.includes(result.html(), "Error test."), "should render error");
+      result.setProps({ visible: false });
+      t.equal(result.html(), null);
       done();
     }, 200);
   });

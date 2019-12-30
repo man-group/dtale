@@ -46,8 +46,8 @@ CorrelationScatterStats.propTypes = {
   selectedCols: PropTypes.arrayOf(PropTypes.string),
   date: PropTypes.string,
   stats: PropTypes.shape({
-    pearson: PropTypes.number,
-    spearman: PropTypes.number,
+    pearson: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    spearman: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     correlated: PropTypes.number,
     only_in_s0: PropTypes.number,
     only_in_s1: PropTypes.number,

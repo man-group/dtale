@@ -254,7 +254,8 @@ Build custom charts based off your data.
  - To build a chart you must pick a value for X & Y inputs which effectively drive what data is along the X & Y axes
  - If your data along the x-axis has duplicates you have three options:
    - specify a group, which will create series for each group
-   - specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum
+   - specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum, Rolling
+     - Specifying a "Rolling" aggregation will also require a Window & a Computation (Correlation, Coiunt, Covariance, Kurtosis, Maximum, Mean, Median, Minimum, Skew, Standard Deviation, Sum or Variance)
    - specify both a group & an aggregation
  - Click the "Load" button which will load the data and display the default cahrt type "line"
  - You now have the ability to toggle between different chart types: line, bar, stacked bar, pie & wordcloud
@@ -270,7 +271,19 @@ Here are some examples with the following inputs: X: date, Y: Col0, Group: secur
 |pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie_pg.png)|
 |wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud_pg.png)|
 
-This is a very powerful feature with many more features that could be offered (word cloud, different statistical aggregations, etc...) so please submit issues :)
+Selecting multiple columns for the Y-Axis will produce similar results to grouping in the sense that the chart will contain multiple series, but the difference is that for each column there will be a different Y-Axis associated with it in case the values contained within each column are on different scales.
+
+|Multi Y-Axis|Editing Axis Ranges|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_multi_col.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_editing_axis.png)|
+
+With a bar chart that only has a single Y-Axis you have the ability to sort the bars based on the values for the Y-Axis
+
+|Pre-sort|Post-sort|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_presort.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_postsort.png)|
+
+This is a very powerful feature with many more features that could be offered (heatmaps, different statistical aggregations, etc...) so please submit issues :)
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
@@ -286,6 +299,14 @@ Shows a pearson correlation matrix of all numeric columns against all other nume
 |Col1 Filtered|Col2 Filtered|Col1 & Col2 Filtered|
 |------|----------|-------|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_both.png)|
+
+When the data being viewed in D-Tale has date or timestamp columns but for each date/timestamp vlaue there is only one row of data the behavior of the Correlations popup is a little different
+  - Instead of a timeseries correlation chart the user is given a rolling correlation chart which can have the window (default: 10) altered
+  - The scatter chart is automatically brought up since there aren't multiple data points available for each date in the line chart
+
+|Data|Correlations|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/rolling_corr.png)|
 
 #### Heat Map
 This will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
@@ -402,7 +423,7 @@ Here's a grid of all the formats available with -123456.789 as input:
 | Red Negatives | <span style="color: red;">-123457</span>|
 
 #### Histogram
-Display histograms in bins of 5, 10, 20 or 50 for any numeric column
+Display histograms in any number of bins (defaul: 20), simply type a new integer value in the bins input
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
 

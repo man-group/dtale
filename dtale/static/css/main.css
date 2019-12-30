@@ -10224,7 +10224,7 @@ table tbody tr.highlight-row {
   background-color: rgba(82, 187, 239, 0.2);
 }
 
-.custom-select.tag-select {
+.custom-select.axis-select {
   background: white url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 2'%3E%3Cpath fill='%23333' d='M2 2 L0 0 H4 Z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
   background-clip: padding-box;
   background-size: 8px 10px;

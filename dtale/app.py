@@ -484,7 +484,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
             if cli is not None:
                 cli.show_server_banner = lambda *x: None
 
-            app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug)
+            app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
 
     if subprocess:
         if is_active:

@@ -90,7 +90,7 @@ describe("DataViewer tests", () => {
             const layoutObj = {
               chart: tsChart,
               scales: {
-                "y-axis-0": {
+                "y-corr": {
                   getPixelForValue: px => px,
                 },
               },

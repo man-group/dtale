@@ -6,7 +6,6 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
-import { RemovableError } from "../../../RemovableError";
 import { Aggregations } from "../../../popups/charts/Aggregations";
 import mockPopsicle from "../../MockPopsicle";
 import * as t from "../../jest-assertions";
@@ -41,9 +40,6 @@ describe("Charts tests", () => {
         const urlParams = qs.parse(url.split("?")[1]);
         if (urlParams.x === "error" && urlParams.y === "error2") {
           return { data: {} };
-        }
-        if (_.startsWith(url, "/dtale/dtypes/9")) {
-          return { error: "error test" };
         }
         const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
@@ -112,7 +108,7 @@ describe("Charts tests", () => {
       filters
         .at(1)
         .instance()
-        .onChange([{ value: "col1" }]);
+        .onChange([{ value: "col1" }, { value: "col2" }]);
       filters
         .at(3)
         .instance()
@@ -146,7 +142,7 @@ describe("Charts tests", () => {
         t.ok(
           _.endsWith(
             result.find(Charts).instance().state.url,
-            "x=col4&y=col1&query=col4%20%3D%3D%20'20181201'&agg=rolling&rollingWin=10&rollingComp=corr"
+            "x=col4&y=col1%2Ccol2&query=col4%20%3D%3D%20'20181201'&agg=rolling&rollingWin=10&rollingComp=corr"
           ),
           "should update chart URL"
         );
@@ -189,7 +185,7 @@ describe("Charts tests", () => {
         filters
           .at(2)
           .instance()
-          .onChange([{ value: "col3" }]);
+          .onChange([{ value: "col1" }, { value: "col3" }]);
         result
           .find(Charts)
           .find("button")
@@ -223,7 +219,7 @@ describe("Charts tests", () => {
               { xLabel: 1545973200000, yLabel: 1.123456, datasetIndex: 0 },
               chartObj.data
             ),
-            "1.1235",
+            "col1: 1.1235",
             "should render tooltip label"
           );
           updateChartType(result, ChartsBody, "wordcloud");
@@ -244,52 +240,5 @@ describe("Charts tests", () => {
         }, 400);
       }, 400);
     }, 600);
-  });
-
-  test("Charts: rendering empty data", done => {
-    const Charts = require("../../../popups/charts/Charts").ReactCharts;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-
-    setTimeout(() => {
-      result.update();
-      const filters = result.find(Charts).find(Select);
-      filters
-        .first()
-        .instance()
-        .onChange({ value: "error" });
-      filters
-        .at(1)
-        .instance()
-        .onChange([{ value: "error2" }]);
-      result
-        .find(Charts)
-        .find("button")
-        .first()
-        .simulate("click");
-      setTimeout(() => {
-        result.update();
-        updateChartType(result, ChartsBody, "bar");
-        t.ok(result.find(ChartsBody).instance().state.charts === null, "should not render chart");
-        done();
-      }, 400);
-    }, 400);
-  });
-
-  test("Charts: rendering empty data", done => {
-    const Charts = require("../../../popups/charts/Charts").ReactCharts;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Charts chartData={{ visible: true }} dataId="9" />, {
-      attachTo: document.getElementById("content"),
-    });
-
-    setTimeout(() => {
-      result.update();
-      t.equal(result.find(RemovableError).text(), "error test");
-      done();
-    }, 400);
   });
 });

@@ -51,7 +51,7 @@ function createHistogram(ctx, fetchedData, col) {
 class ReactHistogram extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { chart: null, bins: 20 };
+    this.state = { chart: null, bins: "20" };
     this.buildHistogramFilters = this.buildHistogramFilters.bind(this);
     this.buildHistogram = this.buildHistogram.bind(this);
   }
@@ -76,7 +76,9 @@ class ReactHistogram extends React.Component {
 
   componentDidUpdate(_prevProps, prevState) {
     if (this.state.bins !== prevState.bins) {
-      this.buildHistogram();
+      if (this.state.bins && parseInt(this.state.bins)) {
+        this.buildHistogram();
+      }
     }
   }
 
@@ -85,17 +87,16 @@ class ReactHistogram extends React.Component {
   }
 
   buildHistogramFilters() {
-    const binChange = e => this.setState({ bins: _.parseInt(e.target.value) });
     return (
       <div className="form-group row small-gutters">
         <label className="col-form-label text-right">Bins</label>
-        <div>
-          <select className="form-control custom-select" defaultValue={20} onChange={binChange}>
-            <option key={5}>5</option>
-            <option key={10}>10</option>
-            <option key={20}>20</option>
-            <option key={50}>50</option>
-          </select>
+        <div style={{ width: "3em" }}>
+          <input
+            type="text"
+            className="form-control"
+            value={this.state.bins}
+            onChange={e => this.setState({ bins: e.target.value })}
+          />
         </div>
       </div>
     );

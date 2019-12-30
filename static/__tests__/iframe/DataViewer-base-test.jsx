@@ -201,7 +201,7 @@ describe("DataViewer iframe tests", () => {
         clickColMenuButton(result, "Move To Front");
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
-          ["▼col4", "col1", "col2", "col3"],
+          ["▲col4", "col1", "col2", "col3"],
           "should move col4 to front of main grid"
         );
         result
@@ -235,7 +235,7 @@ describe("DataViewer iframe tests", () => {
             .first()
             .find("div.headerCell")
             .map(hc => hc.text()),
-          ["▼col4", "col1", "col2", "col3"],
+          ["▲col4", "col1", "col2", "col3"],
           "should move col4 back into main grid"
         );
 

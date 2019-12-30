@@ -1,0 +1,52 @@
+.axis-toggle__dropdown {
+  position: absolute;
+  top: 100%;
+  min-width: 15em;
+  width: 100%;
+  color: #404040;
+  font-weight: 400;
+  z-index: 10;
+  margin-top: -1px;
+  background-color: white;
+  border-width: 1px 1px 0 1px;
+  border-style: solid;
+  border-color: #a7b3b7;
+  border-top-color: #d3d9db;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.axis-toggle__dropdown ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.axis-toggle__dropdown li {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+}
+
+.axis-toggle__dropdown li:last-child {
+  border-bottom: solid 1px #a7b3b7;
+}
+
+.axis-toggle__dropdown li span {
+  padding: 0.3em;
+}
+
+.axis-toggle__dropdown li span.toggler-action {
+  border: none;
+  margin-top: -0.1em;
+}
+
+.axis-toggle__dropdown li span.toggler-action button i {
+  vertical-align: text-bottom;
+}
+
+.axis-input {
+  text-align: center;
+  width: 3em !important;
+  padding: 0.3rem 0.3rem !important;
+}
