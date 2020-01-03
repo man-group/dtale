@@ -42,23 +42,24 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   renderRollingWindow() {
-    const updateWindow = window => {
-      this.setState({ window }, () => {
-        if (window && parseInt(window)) {
-          this.props.buildTs(this.props.selectedCols, this.props.selectedDate, parseInt(window));
+    const updateWindow = e => {
+      if (e.key === "Enter") {
+        if (this.state.window && parseInt(this.state.window)) {
+          this.props.buildTs(this.props.selectedCols, this.props.selectedDate, parseInt(this.state.window));
         }
-      });
+      }
     };
     return [
       <label key="rolling-label" className="col-form-label text-right pl-5">
         Rolling Window
       </label>,
-      <div key="rolling-input" style={{ width: "3em" }}>
+      <div key="rolling-input" style={{ width: "3em" }} data-tip="Press ENTER to submit">
         <input
           type="text"
-          className="form-control"
+          className="form-control text-center"
           value={this.state.window}
-          onChange={event => updateWindow(event.target.value)}
+          onChange={e => this.setState({ window: e.target.value })}
+          onKeyPress={updateWindow}
         />
       </div>,
     ];

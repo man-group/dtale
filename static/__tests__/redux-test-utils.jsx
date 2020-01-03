@@ -137,17 +137,23 @@ function urlFetcher(url) {
   } else if (url.startsWith("/dtale/correlations/")) {
     return correlationsData;
   } else if (url.startsWith("/dtale/scatter")) {
+    if (urlParams.rolling) {
+      const dates = _.fill(Array(_.size(scatterData.data.all.x)), 1525106204000);
+      return _.assign({}, scatterData, {
+        data: { all: _.assign({}, scatterData.data.all, { date: dates }) },
+      });
+    }
     return scatterData;
   } else if (url.startsWith("/dtale/chart-data")) {
     if (urlParams.group) {
-      if (_.includes(urlParams.y, ",")) {
+      if (_.size(JSON.parse(urlParams.y)) > 1) {
         return _.assignIn({}, groupedChartsData, {
           data: _.mapValues(groupedChartsData.data, d => _.assignIn(d, { col2: d.col1 })),
         });
       }
       return groupedChartsData;
     }
-    if (_.includes(urlParams.y, ",")) {
+    if (_.size(JSON.parse(urlParams.y)) > 1) {
       return _.assignIn({}, chartsData, {
         data: _.mapValues(chartsData.data, d => _.assignIn(d, { col2: d.col1 })),
       });

@@ -173,7 +173,6 @@ def test_update_settings(unittest):
     with app.test_client() as c:
         response = c.get('/dtale/update-settings/1', query_string=dict(settings=settings))
         assert response.status_code == 200, 'should return 200 response'
-
         response_data = json.loads(response.data)
         assert 'error' in response_data
 
@@ -474,7 +473,11 @@ def test_get_correlations_ts(unittest, rolling_data):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=dict(dateCol='date', cols='foo,bar'))
+            params = dict(
+                dateCol='date',
+                cols=json.dumps(['foo', 'bar'])
+            )
+            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {
                 'data': {'all': {
@@ -492,14 +495,17 @@ def test_get_correlations_ts(unittest, rolling_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            params = dict(dateCol='date', cols='0,1', rollingWindow='4')
+            params = dict(dateCol='date', cols=json.dumps(['0', '1']), rollingWindow='4')
             response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data['success'], True, 'should return rolling correlation')
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
+            response = c.get(
+                '/dtale/correlations-ts/{}'.format(c.port),
+                query_string=dict(query="missing_col == 'blah'")
+            )
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -507,7 +513,7 @@ def test_get_correlations_ts(unittest, rolling_data):
 
 
 @pytest.mark.unit
-def test_get_scatter(unittest):
+def test_get_scatter(unittest, rolling_data):
     import dtale.views as views
 
     test_data = pd.DataFrame(build_ts_data(), columns=['date', 'security_id', 'foo', 'bar'])
@@ -516,10 +522,13 @@ def test_get_scatter(unittest):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get(
-                '/dtale/scatter/{}'.format(c.port),
-                query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="date == '20000101'")
+            params = dict(
+                dateCol='date',
+                cols=json.dumps(['foo', 'bar']),
+                date='20000101',
+                query="date == '20000101'"
             )
+            response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 y='bar',
@@ -543,16 +552,36 @@ def test_get_scatter(unittest):
             )
             unittest.assertEqual(response_data, expected, 'should return scatter')
 
+    df, _ = views.format_data(rolling_data)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            params = dict(
+                dateCol='date',
+                cols=json.dumps(['0', '1']),
+                date='20191201',
+                rolling=True,
+                window='4'
+            )
+            response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            assert len(response_data['data']['all']['1']) == 4
+            assert sorted(response_data['data']['all']) == ['1', 'date', 'index', 'x']
+            unittest.assertEqual(
+                sorted(response_data['data']['all']['date']),
+                [1574917200000, 1575003600000, 1575090000000, 1575176400000],
+                'should return scatter'
+            )
+
     test_data = pd.DataFrame(build_ts_data(size=15001, days=1), columns=['date', 'security_id', 'foo', 'bar'])
 
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get(
-                '/dtale/scatter/{}'.format(c.port),
-                query_string=dict(dateCol='date', cols='foo,bar', date='20000101')
-            )
+            params = dict(dateCol='date', cols=json.dumps(['foo', 'bar']), date='20000101')
+            response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = dict(
                 stats={
@@ -570,10 +599,13 @@ def test_get_scatter(unittest):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get(
-                '/dtale/scatter/{}'.format(c.port),
-                query_string=dict(dateCol='date', cols='foo,bar', date='20000101', query="missing_col == 'blah'")
+            params = dict(
+                dateCol='date',
+                cols=json.dumps(['foo', 'bar']),
+                date='20000101',
+                query="missing_col == 'blah'"
             )
+            response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -587,7 +619,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(x='date', y='security_id', agg='count')
+            params = dict(x='date', y=json.dumps(['security_id']), agg='count')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {
@@ -605,7 +637,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(x='date', y='security_id', group='baz', agg='mean')
+            params = dict(x='date', y=json.dumps(['security_id']), group=json.dumps(['baz']), agg='mean')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['min']['security_id'] == 24.5
@@ -619,21 +651,21 @@ def test_get_chart_data(unittest, test_data, rolling_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            params = dict(x='date', y='0', agg='rolling', rollingWin=10, rollingComp='count')
+            params = dict(x='date', y=json.dumps(['0']), agg='rolling', rollingWin=10, rollingComp='count')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['success']
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(x='baz', y='foo')
+            params = dict(x='baz', y=json.dumps(['foo']))
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['error'] == 'baz contains duplicates, please specify group or additional filtering'
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            params = dict(x='date', y='foo', group='security_id')
+            params = dict(x='date', y=json.dumps(['foo']), group=json.dumps(['security_id']))
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['error'] == (
@@ -663,7 +695,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            params = dict(x='a', y='b', allowDupes=True)
+            params = dict(x='a', y=json.dumps(['b']), allowDupes=True)
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(

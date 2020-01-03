@@ -15,9 +15,9 @@ function generateChartState(state, { dataId }) {
   if (_.isNull(x) || _.isNull(y)) {
     return { url: null };
   }
-  const params = { x: x.value, y: _.join(_.map(y, "value"), ","), query };
+  const params = { x: x.value, y: JSON.stringify(_.map(y, "value")), query };
   if (!_.isNull(group)) {
-    params.group = _.join(_.map(group, "value"), ",");
+    params.group = JSON.stringify(_.map(group, "value"));
   }
   if (!_.isNull(aggregation)) {
     params.agg = aggregation;

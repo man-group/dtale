@@ -106,8 +106,13 @@ describe("Histogram tests", () => {
       const xlabel = _.get(chart, "cfg.options.scales.xAxes[0].scaleLabel.labelString");
       t.equal(xlabel, "Bin", "should display correct x-axis label");
 
-      const event = { target: { value: 50 } };
-      result.find("input").simulate("change", event);
+      result.find("input").simulate("change", { target: { value: "" } });
+      result.find("input").simulate("keyPress", { key: "Shift" });
+      result.find("input").simulate("keyPress", { key: "Enter" });
+      result.find("input").simulate("change", { target: { value: "a" } });
+      result.find("input").simulate("keyPress", { key: "Enter" });
+      result.find("input").simulate("change", { target: { value: 50 } });
+      result.find("input").simulate("keyPress", { key: "Enter" });
 
       setTimeout(() => {
         result.update();

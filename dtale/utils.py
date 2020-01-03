@@ -111,6 +111,23 @@ def get_str_arg(r, name, default=None):
             return default
 
 
+def get_json_arg(r, name, default=None):
+    """
+    Retrieve argument from :attr:`flask:flask.request` and parse JSON to python data structure
+
+    :param r: :attr:`flask:flask.request`
+    :param name: argument name
+    :type: str
+    :param default: default value if parameter is non-existent, defaults to None
+    :return: parsed JSON
+    """
+    val = r.args.get(name)
+    if val is None or val == '':
+        return default
+    else:
+        return json.loads(val)
+
+
 def get_int_arg(r, name, default=None):
     """
     Retrieve argument from :attr:`flask:flask.request` and convert to integer

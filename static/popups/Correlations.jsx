@@ -80,7 +80,6 @@ class ReactCorrelations extends React.Component {
           if (state.hasDate) {
             if (rolling) {
               this.buildTs([col1, col2], state.selectedDate, 4);
-              this.buildScatter([col1, col2]);
             } else {
               this.buildTs([col1, col2], state.selectedDate);
             }
@@ -130,8 +129,12 @@ class ReactCorrelations extends React.Component {
       params.dateCol = this.state.selectedDate;
       params.date = date;
     }
+    if (this.state.rolling) {
+      params.rolling = this.state.rolling;
+      params.window = this.state.window;
+    }
     const path = `${BASE_SCATTER_URL}/${this.props.dataId}`;
-    const scatterUrl = buildURL(path, params, ["selectedCols", "query", "date", "dateCol"]);
+    const scatterUrl = buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
     if (this.state.scatterUrl === scatterUrl) {
       return;
     }
@@ -213,9 +216,7 @@ class ReactCorrelations extends React.Component {
                   id: "y-corr",
                 },
               ];
-              if (!this.state.rolling) {
-                config.options.onClick = this.viewScatter;
-              }
+              config.options.onClick = this.viewScatter;
               config.options.legend = { display: false };
               config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1)];
               return config;

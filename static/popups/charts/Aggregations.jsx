@@ -70,7 +70,7 @@ class Aggregations extends React.Component {
         <div key={3} className="col-auto">
           <input
             style={{ width: "3em" }}
-            className="form-control input-sm"
+            className="form-control text-center"
             type="text"
             value={rollingWindow || ""}
             onChange={e =>

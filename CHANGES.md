@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.6.7 (2020-1-3)
+
+ * [#50](https://github.com/man-group/dtale/issues/50): updates to rolling correlation functionality
+
 ### 1.6.6 (2020-1-2)
 
  * [#47](https://github.com/man-group/dtale/issues/47): selection of multiple columns for y-axis

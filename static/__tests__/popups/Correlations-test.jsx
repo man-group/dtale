@@ -199,7 +199,7 @@ describe("Correlations tests", () => {
           [{ datasetIndex: 0, index: 0 }],
           scatterChart.data
         );
-        t.deepEqual(title, [["Index: 0"]], "should render title");
+        t.deepEqual(title, ["index: 0"], "should render title");
         const label = scatterChart.cfg.options.tooltips.callbacks.label(
           { datasetIndex: 0, index: 0 },
           scatterChart.data
@@ -219,6 +219,7 @@ describe("Correlations tests", () => {
   test("Correlations rendering rolling data", done => {
     const Correlations = require("../../popups/Correlations").ReactCorrelations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
+    const CorrelationScatterStats = require("../../popups/correlations/CorrelationScatterStats").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "rolling" })} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -234,26 +235,44 @@ describe("Correlations tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-        t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
-        t.deepEqual(
-          result
-            .find("select.custom-select")
-            .first()
-            .find("option")
-            .map(o => o.text()),
-          ["col4", "col5"],
-          "should render date options for timeseries"
-        );
-        t.ok((result.state().selectedDate = "col4"), "should select timeseries date");
         result
-          .find(CorrelationsTsOptions)
-          .find("input")
-          .findWhere(i => i.prop("type") === "text")
-          .simulate("change", { target: { value: "5" } });
+          .find(ChartsBody)
+          .instance()
+          .state.charts[0].cfg.options.onClick({ foo: 1 });
         setTimeout(() => {
           result.update();
-          done();
-        }, 200);
+          t.ok(result.find(Correlations).instance().state.chart, "should show scatter chart");
+          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 20181215-20181219"));
+          t.deepEqual(
+            result
+              .find(Correlations)
+              .instance()
+              .state.chart.cfg.options.tooltips.callbacks.title(
+                [{ datasetIndex: 0, index: 0 }],
+                result.find(Correlations).instance().state.chart.data
+              ),
+            ["index: 0", "date: 2018-04-30 12:36:44 pm"]
+          );
+          t.deepEqual(
+            result
+              .find("select.custom-select")
+              .first()
+              .find("option")
+              .map(o => o.text()),
+            ["col4", "col5"],
+            "should render date options for timeseries"
+          );
+          t.ok((result.state().selectedDate = "col4"), "should select timeseries date");
+          result
+            .find(CorrelationsTsOptions)
+            .find("input")
+            .findWhere(i => i.prop("type") === "text")
+            .simulate("change", { target: { value: "5" } });
+          setTimeout(() => {
+            result.update();
+            done();
+          }, 200);
+        }, 400);
       }, 200);
     }, 200);
   });
