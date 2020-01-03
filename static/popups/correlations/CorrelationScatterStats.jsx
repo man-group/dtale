@@ -1,10 +1,28 @@
 import _ from "lodash";
+import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 
 import corrUtils from "./correlationsUtils";
 
 class CorrelationScatterStats extends React.Component {
+  constructor(props) {
+    super(props);
+    this.renderDescription = this.renderDescription.bind(this);
+  }
+
+  renderDescription() {
+    const [col0, col1] = this.props.selectedCols;
+    let dateStr = this.props.date ? ` for ${this.props.date}` : "";
+    if (this.props.rolling) {
+      const startDate = moment(this.props.date)
+        .subtract(this.props.window, "days")
+        .format("YYYYMMDD");
+      dateStr = ` for ${startDate}-${this.props.date}`;
+    }
+    return <b style={{ color: "black" }}>{`${col0} vs. ${col1}${dateStr}`}</b>;
+  }
+
   render() {
     const [col0, col1] = this.props.selectedCols;
     const stats = this.props.stats || {};
@@ -18,9 +36,7 @@ class CorrelationScatterStats extends React.Component {
     return [
       <div key={0} className="pt-5">
         <dl className="property-pair inline">
-          <dt>
-            <b style={{ color: "black" }}>{`${col0} vs. ${col1}${this.props.date ? ` for ${this.props.date}` : ""}`}</b>
-          </dt>
+          <dt>{this.renderDescription()}</dt>
         </dl>
         <dl className="property-pair inline">{pearsonInfo}</dl>
         <dl className="property-pair inline">{spearmanInfo}</dl>
@@ -52,6 +68,8 @@ CorrelationScatterStats.propTypes = {
     only_in_s0: PropTypes.number,
     only_in_s1: PropTypes.number,
   }),
+  rolling: PropTypes.bool,
+  window: PropTypes.number,
 };
 
 export default CorrelationScatterStats;

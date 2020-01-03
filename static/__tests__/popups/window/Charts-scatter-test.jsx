@@ -35,7 +35,7 @@ describe("Charts scatter tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const urlParams = qs.parse(url.split("?")[1]);
-        if (urlParams.x === "error" && urlParams.y === "error2") {
+        if (urlParams.x === "error" && _.includes(JSON.parse(urlParams.y), "error2")) {
           return { data: {} };
         }
         const { urlFetcher } = require("../../redux-test-utils").default;

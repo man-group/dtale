@@ -74,28 +74,28 @@ class ReactHistogram extends React.Component {
     return false;
   }
 
-  componentDidUpdate(_prevProps, prevState) {
-    if (this.state.bins !== prevState.bins) {
-      if (this.state.bins && parseInt(this.state.bins)) {
-        this.buildHistogram();
-      }
-    }
-  }
-
   componentDidMount() {
     this.buildHistogram();
   }
 
   buildHistogramFilters() {
+    const updateBins = e => {
+      if (e.key === "Enter") {
+        if (this.state.bins && parseInt(this.state.bins)) {
+          this.buildHistogram();
+        }
+      }
+    };
     return (
       <div className="form-group row small-gutters">
         <label className="col-form-label text-right">Bins</label>
-        <div style={{ width: "3em" }}>
+        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
           <input
             type="text"
-            className="form-control"
+            className="form-control text-center"
             value={this.state.bins}
             onChange={e => this.setState({ bins: e.target.value })}
+            onKeyPress={updateBins}
           />
         </div>
       </div>

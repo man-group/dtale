@@ -38,7 +38,7 @@ describe("Charts tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const urlParams = qs.parse(url.split("?")[1]);
-        if (urlParams.x === "error" && urlParams.y === "error2") {
+        if (urlParams.x === "error" && _.includes(JSON.parse(urlParams.y), "error2")) {
           return { data: {} };
         }
         const { urlFetcher } = require("../../redux-test-utils").default;
@@ -139,10 +139,14 @@ describe("Charts tests", () => {
       setTimeout(() => {
         result.update();
         t.ok(result.find(ChartsBody).instance().state.charts.length == 1, "should render charts");
-        t.ok(
-          _.endsWith(
-            result.find(Charts).instance().state.url,
-            "x=col4&y=col1%2Ccol2&query=col4%20%3D%3D%20'20181201'&agg=rolling&rollingWin=10&rollingComp=corr"
+        t.equal(
+          _.last(_.split(result.find(Charts).instance().state.url, "?")),
+          _.join(
+            [
+              "x=col4&y=%5B%22col1%22%2C%22col2%22%5D&query=col4%20%3D%3D%20'20181201'",
+              "agg=rolling&rollingWin=10&rollingComp=corr",
+            ],
+            "&"
           ),
           "should update chart URL"
         );

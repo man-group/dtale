@@ -17,7 +17,7 @@ from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
                          filter_df_for_grid, find_dtype_formatter,
                          find_selected_column, get_bool_arg, get_dtypes,
-                         get_int_arg, get_str_arg, grid_columns,
+                         get_int_arg, get_json_arg, get_str_arg, grid_columns,
                          grid_formatter, json_date, json_float, json_int,
                          json_timestamp, jsonify, make_list,
                          retrieve_grid_params, running_with_flask_debug,
@@ -539,7 +539,7 @@ def update_settings(data_id):
         global SETTINGS
 
         curr_settings = SETTINGS.get(data_id, {})
-        updated_settings = dict_merge(curr_settings, json.loads(get_str_arg(request, 'settings', '{}')))
+        updated_settings = dict_merge(curr_settings, get_json_arg(request, 'settings', {}))
         SETTINGS[data_id] = updated_settings
         return jsonify(dict(success=True))
     except BaseException as e:
@@ -718,10 +718,8 @@ def get_data(data_id):
             DTYPES[data_id] = build_dtypes_state(data)
 
         params = retrieve_grid_params(request)
-        ids = get_str_arg(request, 'ids')
-        if ids:
-            ids = json.loads(ids)
-        else:
+        ids = get_json_arg(request, 'ids')
+        if ids is None:
             return jsonify({})
 
         col_types = DTYPES[data_id]
@@ -861,7 +859,7 @@ def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **
     :param x: column to be used as x-axis of chart
     :type x: str
     :param y: column to be used as y-axis of chart
-    :type y: str
+    :type y: list of strings
     :param group: comma-separated string of columns to group chart data by
     :type group: str, optional
     :param aggregation: points to a specific function that can be applied to
@@ -880,7 +878,7 @@ def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **
         return data_f, range_f
 
     x_col = str('x')
-    y_cols = y.split(',')
+    y_cols = make_list(y)
     if group_col is not None:
         data = data[group_col + [x] + y_cols].sort_values(group_col + [x])
         y_cols = [str(y_col) for y_col in y_cols]
@@ -973,10 +971,8 @@ def get_chart_data(data_id):
             if not len(data):
                 return jsonify(dict(error='query "{}" found no data, please alter'.format(query)))
         x = get_str_arg(request, 'x')
-        y = get_str_arg(request, 'y')
-        group_col = get_str_arg(request, 'group')
-        if group_col is not None:
-            group_col = group_col.split(',')
+        y = get_json_arg(request, 'y')
+        group_col = get_json_arg(request, 'group')
         agg = get_str_arg(request, 'agg')
         allow_duplicates = get_bool_arg(request, 'allowDupes')
         window = get_int_arg(request, 'rollingWin')
@@ -1009,13 +1005,15 @@ def get_correlations_ts(data_id):
         data = DATA[data_id]
         data = data.query(query) if query is not None else data
         cols = get_str_arg(request, 'cols')
-        cols = cols.split(',')
+        cols = json.loads(cols)
         date_col = get_str_arg(request, 'dateCol')
         rolling_window = get_int_arg(request, 'rollingWindow')
         if rolling_window:
             [col1, col2] = list(set(cols))
-            data = data[['date', col1, col2]].set_index('date')
-            data = data[col1].rolling(rolling_window).corr(data[col2]).reset_index()
+            data = data[[date_col, col1, col2]].set_index(date_col)
+            data = data[[col1, col2]].rolling(rolling_window).corr().reset_index()
+            data = data.dropna()
+            data = data[data['level_1'] == col1][[date_col, col2]]
         else:
             data = data.groupby(date_col)[list(set(cols))].corr(method='pearson')
             data.index.names = ['date', 'column']
@@ -1054,19 +1052,29 @@ def get_scatter(data_id):
         y: col2
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
-    cols = get_str_arg(request, 'cols')
-    cols = cols.split(',')
+    cols = get_json_arg(request, 'cols')
     query = get_str_arg(request, 'query')
     date = get_str_arg(request, 'date')
     date_col = get_str_arg(request, 'dateCol')
+    rolling = get_bool_arg(request, 'rolling')
     try:
         data = DATA[data_id]
-        data = data[data[date_col] == date] if date else data
         if query:
             data = data.query(query)
 
-        data = data[list(set(cols))].dropna(how='any')
-        data[str('index')] = data.index
+        idx_col = str('index')
+        y_cols = [cols[1], idx_col]
+        if rolling:
+            window = get_int_arg(request, 'window')
+            idx = min(data[data[date_col] == date].index) + 1
+            data = data.iloc[(idx - window):idx]
+            data = data[list(set(cols)) + [date_col]].dropna(how='any')
+            y_cols.append(date_col)
+        else:
+            data = data[data[date_col] == date] if date else data
+            data = data[list(set(cols))].dropna(how='any')
+
+        data[idx_col] = data.index
         s0 = data[cols[0]]
         s1 = data[cols[1]]
         pearson = s0.corr(s1, method='pearson')
@@ -1084,7 +1092,7 @@ def get_scatter(data_id):
                 stats=stats,
                 error='Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...'
             )
-        data = build_chart(data, cols[0], str('{},index'.format(cols[1])), allow_duplicates=True)
+        data = build_chart(data, cols[0], y_cols, allow_duplicates=True)
         data['x'] = cols[0]
         data['y'] = cols[1]
         data['stats'] = stats

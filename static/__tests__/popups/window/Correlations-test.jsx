@@ -195,11 +195,17 @@ describe("Correlations tests", () => {
         setTimeout(() => {
           result.update();
           t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
-          result
+          const windowInput = result
             .find(CorrelationsTsOptions)
             .find("input")
-            .findWhere(i => i.prop("type") === "text")
-            .simulate("change", { target: { value: "5" } });
+            .findWhere(i => i.prop("type") === "text");
+          windowInput.simulate("change", { target: { value: "" } });
+          windowInput.simulate("keyPress", { key: "Shift" });
+          windowInput.simulate("keyPress", { key: "Enter" });
+          windowInput.simulate("change", { target: { value: "a" } });
+          windowInput.simulate("keyPress", { key: "Enter" });
+          windowInput.simulate("change", { target: { value: "5" } });
+          windowInput.simulate("keyPress", { key: "Enter" });
           setTimeout(() => {
             result.update();
             done();

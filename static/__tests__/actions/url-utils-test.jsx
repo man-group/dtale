@@ -14,7 +14,7 @@ describe("url-utils tests", () => {
     t.deepEqual(
       urlParams,
       {
-        cols: "col1,col2",
+        cols: '["col1","col2"]',
         query: "col == 3",
         sort: '[["col1","ASC"]]',
         ids: "[0,5]",

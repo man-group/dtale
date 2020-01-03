@@ -13,7 +13,7 @@ const URL_KEYS = {
   ids: v => ({ ids: _.isEmpty(v) ? null : JSON.stringify(v) }),
   sortInfo: v => ({ sort: _.isEmpty(v) ? null : JSON.stringify(v) }),
   query: v => ({ query: v }),
-  selectedCols: v => ({ cols: _.isEmpty(v) ? null : _.join(v, ",") }),
+  selectedCols: v => ({ cols: _.isEmpty(v) ? null : JSON.stringify(v) }),
   tsColumns: v => ({ ts_columns: _.isEmpty(v) ? null : JSON.stringify(v) }),
 };
 

@@ -302,7 +302,7 @@ Shows a pearson correlation matrix of all numeric columns against all other nume
 
 When the data being viewed in D-Tale has date or timestamp columns but for each date/timestamp vlaue there is only one row of data the behavior of the Correlations popup is a little different
   - Instead of a timeseries correlation chart the user is given a rolling correlation chart which can have the window (default: 10) altered
-  - The scatter chart is automatically brought up since there aren't multiple data points available for each date in the line chart
+  - The scatter chart will be created when a user clicks on a point in the rollign correlation chart.  The data displayed in the scatter will be for the ranges of dates involved in the rolling correlation for that date.
 
 |Data|Correlations|
 |:------:|:------:|
