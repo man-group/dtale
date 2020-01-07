@@ -84,12 +84,20 @@ class ReactHistogram extends React.Component {
         if (this.state.bins && parseInt(this.state.bins)) {
           this.buildHistogram();
         }
+        e.preventDefault();
       }
     };
     return (
-      <div className="form-group row small-gutters">
-        <label className="col-form-label text-right">Bins</label>
-        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+      <div className="form-group row small-gutters mb-0">
+        <div className="col-auto text-center">
+          <div>
+            <b>Bins</b>
+          </div>
+          <div style={{ marginTop: "-.5em" }}>
+            <small>(Please edit)</small>
+          </div>
+        </div>
+        <div style={{ width: "3em" }} data-tip="Press ENTER to submit" className="mb-auto mt-auto">
           <input
             type="text"
             className="form-control text-center"
@@ -109,7 +117,7 @@ class ReactHistogram extends React.Component {
     const url = `${BASE_HISTOGRAM_URL}/${this.props.dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
     fetchJson(url, fetchedChartData => {
       const newState = { error: null };
-      if (fetchedChartData.error) {
+      if (_.get(fetchedChartData, "error")) {
         newState.error = <RemovableError {...fetchedChartData} />;
       }
       const builder = ctx => {
@@ -135,10 +143,13 @@ class ReactHistogram extends React.Component {
     let description = null;
     if (actions.isPopup()) {
       description = (
-        <div key="description">
-          {" Histogram for "}
-          <strong>{_.get(this.props, "chartData.col")}</strong>
-          <div id="describe" />
+        <div key="description" className="modal-header">
+          <h4 className="modal-title">
+            <i className="ico-equalizer" />
+            {" Histogram for "}
+            <strong>{_.get(this.props, "chartData.col")}</strong>
+            <div id="describe" />
+          </h4>
         </div>
       );
     }

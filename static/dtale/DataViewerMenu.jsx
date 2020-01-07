@@ -47,7 +47,7 @@ class ReactDataViewerMenu extends React.Component {
         className="column-toggle__dropdown"
         hidden={!this.props.menuOpen}
         style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
-        <header className="menu-font">D-TALE</header>
+        <header className="title-font">D-TALE</header>
         <ul>
           <li>
             <span className="toggler-action">

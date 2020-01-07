@@ -251,13 +251,10 @@ describe("DataViewer tests", () => {
             .find(".main-grid div.headerCell div")
             .last()
             .simulate("click");
-          result.update();
           clickMainMenuButton(result, "Histogram");
           setTimeout(() => {
-            result.update();
             t.equal(result.find(Histogram).length, 1, "should show histogram");
             setTimeout(() => {
-              result.update();
               result
                 .find(ModalClose)
                 .first()

@@ -123,14 +123,15 @@ One thing of note is that alot of the modal popups you see in the standard brows
 |Column Menus|Correlations|Describe|Histogram|Charts|Instances|
 |:------:|:------:|:------:|:------:|:------:|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
+
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
 
-|Prop|Description|
-|:--------|------|
-|`--host`|the name of the host you would like to use (most likely not needed since `socket.gethostname()` should figure this out)|
-|`--port`|the port you would like to assign to your D-Tale instance|
-|`--name`|an optional name you can assign to your D-Tale instance (this will be displayed in the `<title>` & Instances popup)|
+|Prop     |Description|
+|:--------|:-----------|
+|`--host` |the name of the host you would like to use (most likely not needed since `socket.gethostname()` should figure this out)|
+|`--port` |the port you would like to assign to your D-Tale instance|
+|`--name` |an optional name you can assign to your D-Tale instance (this will be displayed in the `<title>` & Instances popup)|
 |`--debug`|turn on Flask's "debug" mode for your D-Tale instance|
 |`--no-reaper`|flag to turn off auto-reaping subprocess (kill D-Tale instances after an hour of inactivity), good for long-running displays |
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|

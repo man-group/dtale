@@ -23,7 +23,8 @@ from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import (build_shutdown_url, build_url, dict_merge, get_host,
                          running_with_flask_debug, swag_from)
-from dtale.views import DATA, DtaleData, cleanup, is_up, kill, startup
+from dtale.views import (DATA, DtaleData, cleanup, head_data_id, is_up, kill,
+                         startup)
 
 if PY3:
     import _thread
@@ -217,7 +218,7 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
 
         :return: 302 - flask.redirect('/dtale/main')
         """
-        return redirect('/dtale/main/1')
+        return redirect('/dtale/main/{}'.format(head_data_id()))
 
     @app.route('/favicon.ico')
     def favicon():
@@ -469,7 +470,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                 instance.open_browser()
     else:
         def _start():
-            app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST)
+            app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST, github_fork=True)
             if debug:
                 app.jinja_env.auto_reload = True
                 app.config['TEMPLATES_AUTO_RELOAD'] = True

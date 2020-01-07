@@ -53,7 +53,9 @@ class CorrelationScatterStats extends React.Component {
           <dd>{stats.only_in_s1}</dd>
         </dl>
       </div>,
-      <small key={1}>(Click on any point in the scatter to filter the grid down to that record)</small>,
+      <div key={1} style={{ marginTop: "-.5em" }}>
+        <small>(Click on any point in the scatter to filter the grid down to that record)</small>
+      </div>,
     ];
   }
 }

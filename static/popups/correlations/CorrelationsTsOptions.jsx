@@ -23,20 +23,18 @@ class CorrelationsTsOptions extends React.Component {
     if (rolling) {
       description = `Rolling Pearson Correlation (window: ${window}) for ${selectedCols[0]} vs. ${selectedCols[1]}`;
     }
-    let clicker = (
-      <div>
-        <small>(Click on any point in the chart to view the scatter plot of that correlation)</small>
-      </div>
-    );
+    let clicker = "Click on any point in the chart to view a scatter plot of the data in that correlation";
     if (rolling) {
-      clicker = null;
+      clicker = "Click on any point in the chart to view a scatter plot of the data in that rolling correlation";
     }
     return (
       <div className="col">
         <div>
           <b>{description}</b>
         </div>
-        {clicker}
+        <div style={{ marginTop: "-.5em" }}>
+          <small>{`(${clicker})`}</small>
+        </div>
       </div>
     );
   }
@@ -50,9 +48,14 @@ class CorrelationsTsOptions extends React.Component {
       }
     };
     return [
-      <label key="rolling-label" className="col-form-label text-right pl-5">
-        Rolling Window
-      </label>,
+      <div key="rolling-label" className="col text-right">
+        <div>
+          <b>Rolling Window</b>
+        </div>
+        <div style={{ marginTop: "-.5em" }}>
+          <small>(Please edit)</small>
+        </div>
+      </div>,
       <div key="rolling-input" style={{ width: "3em" }} data-tip="Press ENTER to submit">
         <input
           type="text"

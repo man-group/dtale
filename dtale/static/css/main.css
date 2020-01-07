@@ -44,7 +44,7 @@
   src: url("../fonts/Road_Rage.woff?v1") format("woff"), url("../fonts/Road_Rage.ttf?v1") format("truetype"), url("../fonts/Road_Rage.svg?v1#road_rage") format("svg");
 }
 
-.menu-font {
+.title-font {
   font-family: "road_rage", Fallback, sans-serif;
   font-size: 20px;
   text-align: center;
@@ -8125,10 +8125,6 @@ div#content.admin {
   padding-top: 0;
 }
 
-div#popup-content {
-  padding-top: .5em;
-}
-
 div.debug {
   padding-top: 4em;
 }
@@ -9948,17 +9944,20 @@ select.form-control:focus,
 .modal-body .chart-wrapper {
   margin: 1em -1em 0;
   border: 0;
-  border-top: solid 1px #ebedee;
 }
 
 .modal-body.scatter-body .chart-wrapper {
   margin: 0 -1em 0;
   border: 0;
-  border-top: solid 1px #ebedee;
 }
 
 .modal-body.scatter-body .chart-wrapper {
   border-top: none;
+}
+
+.modal-body.scatter-body .row {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 
@@ -10170,6 +10169,7 @@ div.hoverable.label > div.hoverable__content {
   padding: 1em;
   height: 25em;
   border-radius: 0.25rem;
+  position: relative;
 }
 
 .menu-scrollable {

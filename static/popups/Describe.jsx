@@ -32,12 +32,14 @@ class ReactDescribe extends React.Component {
     fetchJson(`${DTYPES_URL}/${this.props.dataId}`, dtypesData => {
       const newState = {
         error: null,
+        detailError: null,
         loadingDtypes: false,
         loadingDetails: false,
         details: null,
       };
       if (dtypesData.error) {
-        newState.error = <RemovableError {...dtypesData} />;
+        this.setState({ error: <RemovableError {...dtypesData} /> });
+        return;
       }
       newState.dtypes = dtypesData.dtypes;
       let callback = _.noop;
@@ -62,7 +64,13 @@ class ReactDescribe extends React.Component {
         details: null,
       };
       if (detailData.error) {
-        newState.detailError = <RemovableError {...detailData} />;
+        newState.detailError = (
+          <div className="col-md-12">
+            <RemovableError {...detailData} />
+          </div>
+        );
+        this.setState(newState);
+        return;
       }
       newState.details = _.pick(detailData, ["describe", "uniques"]);
       newState.details.name = rowData.name;
@@ -93,16 +101,19 @@ class ReactDescribe extends React.Component {
       const { details } = this.state;
       const { describe, name } = details || {};
       const chartData = _(describe || {})
-        .pickBy((v, k) => _.includes(["25%", "50%", "75%", "min", "max"], k) && v !== "N/A")
+        .pickBy((v, k) => _.includes(["25%", "50%", "75%", "min", "max"], k) && !_.includes(["nan", "inf"], v))
         .mapKeys((_v, k) => _.get({ "25%": "q1", "50%": "median", "75%": "q3" }, k, k))
         .mapValues(v => parseFloat(_.replace(v, /,/g, "")))
         .value();
       if (_.size(chartData) == 0) {
         return null;
       }
-      chartData.whiskerMax = chartData.max;
-      chartData.whiskerMin = chartData.min;
-      if (_.has(describe, "mean")) {
+      _.forEach(["min", "max"], p => {
+        if (!_.isUndefined(chartData[p])) {
+          chartData[`whisker${p}`] = chartData[p];
+        }
+      });
+      if (!_.isUndefined(describe.mean) && !_.includes(["nan", "inf"], describe.mean)) {
         chartData.outliers = [parseFloat(_.replace(describe.mean, /,/g, ""))];
       }
       return chartUtils.createChart(ctx, {
@@ -135,6 +146,13 @@ class ReactDescribe extends React.Component {
   }
 
   renderDetails() {
+    if (this.state.detailError) {
+      return (
+        <div key={1} className="row">
+          <div className="col-sm-12">{this.state.detailError}</div>
+        </div>
+      );
+    }
     const { details } = this.state;
     if (_.isEmpty(details)) {
       return null;
@@ -149,7 +167,7 @@ class ReactDescribe extends React.Component {
       <div key={2} className="row">
         <div className="col-md-6">
           <ul>
-            {_.map(details.describe, (v, k) => (
+            {_.map(_.get(details, "describe", {}), (v, k) => (
               <li key={k}>
                 <div>
                   <h4 className="d-inline pr-5">{`${k}:`}</h4>
@@ -170,6 +188,13 @@ class ReactDescribe extends React.Component {
   }
 
   render() {
+    if (this.state.error) {
+      return (
+        <div key="body" className="modal-body">
+          {this.state.error}
+        </div>
+      );
+    }
     return (
       <div key="body" className="modal-body">
         <div className="row">

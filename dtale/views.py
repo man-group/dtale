@@ -6,7 +6,7 @@ import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
 
-from flask import json, render_template, request
+from flask import json, redirect, render_template, request
 
 import numpy as np
 import pandas as pd
@@ -30,6 +30,12 @@ DTYPES = {}
 SETTINGS = {}
 METADATA = {}
 IDX_COL = str('dtale_index')
+
+
+def head_data_id():
+    if not len(DATA):
+        raise Exception('No data associated with this D-Tale session')
+    return sorted(DATA)[0]
 
 
 def in_ipython_frontend():
@@ -295,15 +301,15 @@ def build_dtypes_state(data):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     dtypes = get_dtypes(data)
-    mins = data.min().to_dict()
-    maxs = data.max().to_dict()
+    ranges = data.agg([min, max]).to_dict()
 
     def _format_dtype(col_index, col):
         dtype = dtypes[col]
         dtype_data = dict(name=col, dtype=dtype, index=col_index)
         if classify_type(dtype) == 'F' and not data[col].isnull().all():  # floats
-            dtype_data['min'] = mins[col]
-            dtype_data['max'] = maxs[col]
+            col_ranges = ranges[col]
+            if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
+                dtype_data = dict_merge(ranges[col], dtype_data)
         return dtype_data
 
     return [_format_dtype(i, c) for i, c in enumerate(data.columns)]
@@ -431,9 +437,10 @@ def _view_main(data_id, iframe=False):
     return base_render_template('dtale/main.html', data_id, title=title, iframe=iframe)
 
 
+@dtale.route('/main')
 @dtale.route('/main/<data_id>')
 @swag_from('swagger/dtale/views/main.yml')
-def view_main(data_id):
+def view_main(data_id=None):
     """
     :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
 
@@ -441,12 +448,15 @@ def view_main(data_id):
     :type data_id: str
     :return: HTML
     """
+    if data_id is None:
+        return redirect('/dtale/main/{}'.format(head_data_id()))
     return _view_main(data_id)
 
 
+@dtale.route('/iframe')
 @dtale.route('/iframe/<data_id>')
 @swag_from('swagger/dtale/views/main.yml')
-def view_iframe(data_id):
+def view_iframe(data_id=None):
     """
     :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
 
@@ -454,11 +464,14 @@ def view_iframe(data_id):
     :type data_id: str
     :return: HTML
     """
+    if data_id is None:
+        return redirect('/dtale/iframe/{}'.format(head_data_id()))
     return _view_main(data_id, iframe=True)
 
 
+@dtale.route('/popup/<popup_type>')
 @dtale.route('/popup/<popup_type>/<data_id>')
-def view_popup(popup_type, data_id):
+def view_popup(popup_type, data_id=None):
     """
     :class:`flask:flask.Flask` route which serves up base jinja template for any popup, additionally forwards any
     request parameters as input to template.
@@ -469,6 +482,8 @@ def view_popup(popup_type, data_id):
     :type data_id: str
     :return: HTML
     """
+    if data_id is None:
+        return redirect('/dtale/popup/{}/{}'.format(popup_type, head_data_id()))
     curr_metadata = METADATA.get(data_id, {})
     title = 'D-Tale'
     if curr_metadata.get('name'):
@@ -625,7 +640,7 @@ def load_describe(column_series, additional_aggs=None):
         'I': lambda f, i, c: f.add_int(i, c, as_string=True),
         'F': lambda f, i, c: f.add_float(i, c, precision=4, as_string=True),
     }
-    desc_f = grid_formatter(grid_columns(desc), nan_display='N/A', overrides=desc_f_overrides)
+    desc_f = grid_formatter(grid_columns(desc), nan_display='nan', overrides=desc_f_overrides)
     desc = desc_f.format_dict(next(desc.itertuples(), None))
     if 'count' in desc:
         # pandas always returns 'count' as a float and it adds useless decimal points
@@ -652,7 +667,7 @@ def describe(data_id, column):
 
     """
     try:
-        data = DATA[data_id]
+        data = DATA[data_id][[column]]
         additional_aggs = None
         dtype = next((dtype_info['dtype'] for dtype_info in DTYPES[data_id] if dtype_info['name'] == column), None)
         if classify_type(dtype) in ['I', 'F']:
@@ -662,17 +677,16 @@ def describe(data_id, column):
         uniq_vals = data[column].unique()
         if 'unique' not in return_data['describe']:
             return_data['describe']['unique'] = json_int(len(uniq_vals), as_string=True)
+        uniq_f = find_dtype_formatter(get_dtypes(data)[column])
         if len(uniq_vals) <= 100:
-            uniq_f = find_dtype_formatter(get_dtypes(data)[column])
             return_data['uniques'] = dict(
-                data=[uniq_f(u, nan_display='N/A') for u in uniq_vals],
+                data=[uniq_f(u) for u in uniq_vals],
                 top=False
             )
         else:  # get top 100 most common values
             uniq_vals = data[column].value_counts().sort_values(ascending=False).head(100).index.values
-            uniq_f = find_dtype_formatter(get_dtypes(data)[column])
             return_data['uniques'] = dict(
-                data=[uniq_f(u, nan_display='N/A') for u in uniq_vals],
+                data=[uniq_f(u) for u in uniq_vals],
                 top=True
             )
 
@@ -877,10 +891,16 @@ def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **
         range_f = grid_formatter(cols, overrides=overrides, nan_display=None)
         return data_f, range_f
 
+    def check_all_nan(df, cols):
+        for col in cols:
+            if df[col].isnull().all():
+                raise Exception('All data for column "b" is NaN!'.format(col))
+
     x_col = str('x')
     y_cols = make_list(y)
     if group_col is not None:
         data = data[group_col + [x] + y_cols].sort_values(group_col + [x])
+        check_all_nan(data, [x] + y_cols)
         y_cols = [str(y_col) for y_col in y_cols]
         data.columns = group_col + [x_col] + y_cols
         if agg is not None:
@@ -909,6 +929,7 @@ def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **
             ret_data['data'][group_val] = data_f.format_lists(grp)
         return ret_data
     data = data[[x] + y_cols].sort_values(x)
+    check_all_nan(data, [x] + y_cols)
     y_cols = [str(y_col) for y_col in y_cols]
     data.columns = [x_col] + y_cols
     if agg is not None:

@@ -67,15 +67,26 @@ class ReactCorrelations extends React.Component {
         return;
       }
       const { data, dates, rolling } = gridData;
+      const columns = _.map(data, "column");
       const state = {
         correlations: data,
+        columns,
         dates,
         hasDate: _.size(dates) > 0,
         selectedDate: _.get(dates, 0, null),
         rolling,
       };
       this.setState(state, () => {
-        const { col1, col2 } = this.props.chartData || {};
+        let { col1, col2 } = this.props.chartData || {};
+        if (_.isUndefined(col1)) {
+          if (_.isUndefined(col2)) {
+            [col1, col2] = _.take(columns, 2);
+          } else {
+            col1 = _.find(columns, c => c !== col2);
+          }
+        } else if (_.isUndefined(col2)) {
+          col2 = _.find(columns, c => c !== col1);
+        }
         if (col1 && col2) {
           if (state.hasDate) {
             if (rolling) {
@@ -110,16 +121,18 @@ class ReactCorrelations extends React.Component {
   viewScatterRow(evt) {
     const point = this.state.chart.getElementAtEvent(evt);
     if (point) {
-      const data = point[0]._chart.config.data.datasets[point[0]._datasetIndex].data;
-      const index = data[point[0]._index].index;
-      this.props.onClose();
-      let updatedQuery = this.props.chartData.query;
-      if (updatedQuery) {
-        updatedQuery = [updatedQuery, `index == ${index}`];
-      } else {
-        updatedQuery = [`index == ${index}`];
+      const data = _.get(point, ["0", "_chart", "config", "data", "datasets", point[0]._datasetIndex, "data"]);
+      if (data) {
+        const index = data[point[0]._index].index;
+        this.props.onClose();
+        let updatedQuery = this.props.chartData.query;
+        if (updatedQuery) {
+          updatedQuery = [updatedQuery, `index == ${index}`];
+        } else {
+          updatedQuery = [`index == ${index}`];
+        }
+        this.props.propagateState({ query: _.join(updatedQuery, " and ") });
       }
-      this.props.propagateState({ query: _.join(updatedQuery, " and ") });
     }
   }
 
@@ -189,8 +202,7 @@ class ReactCorrelations extends React.Component {
         <CorrelationsGrid
           buildTs={this.buildTs}
           buildScatter={this.buildScatter}
-          col1={_.get(this.props, "chartData.col1")}
-          col2={_.get(this.props, "chartData.col2")}
+          selectedCols={selectedCols}
           {...this.state}
         />
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>

@@ -250,6 +250,7 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
     options: _.assignIn(
       {
         responsive: true,
+        maintainAspectRatio: false,
         pan: { enabled: true, mode: "x" },
         zoom: { enabled: true, mode: "x", speed: 0.5 },
         tooltips: {
@@ -394,8 +395,8 @@ function createScatterCfg(
         legend: { display: false },
         pan: { enabled: true, mode: "x" },
         zoom: { enabled: true, mode: "x" },
-        maintainAspectRatio: false,
-        responsive: false,
+        maintainAspectRatio: true,
+        responsive: true,
         showLines: false,
       },
       additionalOptions

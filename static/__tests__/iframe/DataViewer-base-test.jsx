@@ -10,7 +10,7 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton, clickColMenuSortButton } from "./iframe-utils";
+import { clickColMenuButton, clickColMenuSortButton, findColMenuButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -156,7 +156,7 @@ describe("DataViewer iframe tests", () => {
           .find("header")
           .first()
           .text(),
-        "col4 Options",
+        'Column "col4"',
         "should show col4 menu"
       );
       t.deepEqual(
@@ -185,7 +185,7 @@ describe("DataViewer iframe tests", () => {
             .find("header")
             .first()
             .text(),
-          "col3 Options",
+          'Column "col3"',
           "should show col3 menu"
         );
         result
@@ -251,13 +251,17 @@ describe("DataViewer iframe tests", () => {
             .find(".main-grid div.headerCell div")
             .last()
             .simulate("click");
-          result.update();
+          t.equal(findColMenuButton(result, "Histogram").length, 0, "string col shouldn't have histogram button");
+          result
+            .find(".main-grid div.headerCell div")
+            .at(2)
+            .simulate("click");
           clickColMenuButton(result, "Histogram");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-            "/dtale/popup/histogram/1?col=col3"
+            "/dtale/popup/histogram/1?col=col2"
           );
           clickColMenuButton(result, "Describe");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1?col=col3");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1?col=col2");
           clickMainMenuButton(result, "Describe");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
           clickMainMenuButton(result, "Correlations");

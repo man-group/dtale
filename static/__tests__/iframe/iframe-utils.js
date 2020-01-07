@@ -2,11 +2,15 @@ import _ from "lodash";
 
 import { ReactColumnMenu as ColumnMenu } from "../../dtale/iframe/ColumnMenu";
 
-function clickColMenuButton(result, name, btnTag = "button") {
-  result
+function findColMenuButton(result, name, btnTag = "button") {
+  return result
     .find(ColumnMenu)
     .find(`ul li ${btnTag}`)
-    .findWhere(b => _.includes(b.text(), name))
+    .findWhere(b => _.includes(b.text(), name));
+}
+
+function clickColMenuButton(result, name, btnTag = "button") {
+  findColMenuButton(result, name, btnTag)
     .first()
     .simulate("click");
 }
@@ -22,4 +26,4 @@ function clickColMenuSortButton(result, dir) {
     .simulate("click");
 }
 
-export { clickColMenuButton, clickColMenuSortButton };
+export { findColMenuButton, clickColMenuButton, clickColMenuSortButton };

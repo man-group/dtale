@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import ConditionalRender from "../../ConditionalRender";
 import { buildURLString } from "../../actions/url-utils";
 import { lockCols, moveToFront, unlockCols, updateSort } from "../dataViewerMenuUtils";
-import { SORT_PROPS } from "../gridUtils";
+import { isStringCol, SORT_PROPS } from "../gridUtils";
 
 require("./ColumnMenu.css");
 
@@ -25,7 +25,8 @@ class ReactColumnMenu extends React.Component {
     if (!iframe || !selectedCol) {
       return null;
     }
-    const unlocked = _.isUndefined(_.find(this.props.columns, { name: selectedCol, locked: true }));
+    const colCfg = _.find(this.props.columns, { name: selectedCol }) || {};
+    const unlocked = _.get(colCfg, "locked", false) == false;
     let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
     currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
     const describeUrl = buildURLString(`/dtale/popup/describe/${dataId}`, {
@@ -38,7 +39,7 @@ class ReactColumnMenu extends React.Component {
       col: selectedCol,
     });
     const openHistogram = () => {
-      window.open(histogramUrl, "_blank", "titlebar=1,location=1,status=1,width=400,height=350");
+      window.open(histogramUrl, "_blank", "titlebar=1,location=1,status=1,width=400,height=425");
     };
 
     const openFormatting = () =>
@@ -56,7 +57,7 @@ class ReactColumnMenu extends React.Component {
           top: this.props.noInfo ? "1.25em" : "2.75em",
         }}
         ref={cm => (this._div = cm)}>
-        <header>{selectedCol} Options</header>
+        <header>{`Column "${selectedCol}"`}</header>
         <ul>
           <li>
             <span className="toggler-action">
@@ -114,14 +115,16 @@ class ReactColumnMenu extends React.Component {
               </button>
             </span>
           </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openHistogram}>
-                <i className="ico-equalizer" />
-                <span className="font-weight-bold">Histogram</span>
-              </button>
-            </span>
-          </li>
+          <ConditionalRender display={!isStringCol(_.get(colCfg, "dtype", ""))}>
+            <li>
+              <span className="toggler-action">
+                <button className="btn btn-plain" onClick={openHistogram}>
+                  <i className="ico-equalizer" />
+                  <span className="font-weight-bold">Histogram</span>
+                </button>
+              </span>
+            </li>
+          </ConditionalRender>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openFormatting}>
