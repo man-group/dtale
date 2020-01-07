@@ -140,4 +140,13 @@ const COLORS = [
   ["white", "#FFFFFF"],
 ];
 
-export { COLORS };
+function buildRGBA(colorScale) {
+  return val =>
+    "rgba(" +
+    colorScale(val)
+      .rgba()
+      .join(",") +
+    ")";
+}
+
+export { COLORS, buildRGBA };

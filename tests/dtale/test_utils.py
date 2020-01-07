@@ -218,3 +218,21 @@ def test_json_string():
         mock_logger = stack.enter_context(mock.patch('dtale.utils.logger', mock.Mock()))
         assert utils.json_string('blah', 'nan') == 'nan'
         mock_logger.exception.assert_called_once()
+
+    class MockStr(object):
+        def __init__(self, string=''):
+            if PY3:
+                raise UnicodeEncodeError('', '', 0, 0, '')
+            else:
+                raise UnicodeEncodeError('', u'', 0, 0, '')
+
+    class TestStr(object):
+        def encode(self, encoding=None, errors=None):
+            return 'blah'
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr))
+        )
+        stack.enter_context(mock.patch('dtale.utils.logger', mock.Mock()))
+        assert utils.json_string(TestStr(), 'nan') == 'blah'

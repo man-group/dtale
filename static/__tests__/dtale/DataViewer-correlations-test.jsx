@@ -34,6 +34,9 @@ describe("DataViewer tests", () => {
       chartCfg.destroy = () => (chartCfg.destroyed = true);
       chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
       chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
+      chartCfg.getDatasetMeta = _idx => ({
+        controller: { _config: { selectedPoint: 0 } },
+      });
       return chartCfg;
     });
 

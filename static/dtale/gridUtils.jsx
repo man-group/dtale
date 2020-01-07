@@ -236,6 +236,7 @@ export {
   getRanges,
   calcColWidth,
   isDateCol,
+  isStringCol,
   IDX,
   buildGridStyles,
   ROW_HEIGHT,

@@ -225,19 +225,22 @@ DECIMAL_CTX = decimal.Context()
 DECIMAL_CTX.prec = 20
 
 
-def json_float(x, precision=2, nan_display='nan', as_string=False):
+def json_float(x, precision=2, nan_display='nan', inf_display='inf', as_string=False):
     """
     Convert value to float to be used within JSON output
 
     :param x: value to be converted to integer
     :param precision: precision of float to be returned
     :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
+    :param inf_display: if `x` is :attr:`numpy:numpy.inf` then return this value
     :param as_string: return float as a formatted string (EX: 1,234.5643)
     :return: float value
     :rtype: float
     """
     try:
-        if not np.isnan(x) and not np.isinf(x):
+        if np.isinf(x):
+            return inf_display
+        if not np.isnan(x):
             output = float(round(x, precision))
             if as_string:
                 str_output = format(DECIMAL_CTX.create_decimal(repr(x)), ',.{}f'.format(str(precision)))

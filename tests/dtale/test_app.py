@@ -221,6 +221,22 @@ def test_show(unittest, builtin_pkg):
     with mock.patch('dtale.app._thread.start_new_thread', mock.Mock()) as mock_thread:
         show(data=test_data, subprocess=True)
         mock_thread.assert_called()
+
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+
+    with ExitStack() as stack:
+        mock_build_app = stack.enter_context(mock.patch('dtale.app.build_app', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
+        stack.enter_context(mock.patch('requests.get', mock.Mock()))
+        show(data=test_data, subprocess=False, name='foo')
+
+        _, kwargs = mock_build_app.call_args
+        unittest.assertEqual(
+            {'host': 'localhost', 'reaper_on': True}, kwargs, 'build_app should be called with defaults'
+        )
+
     # cleanup
     views.DATA = {}
     views.DTYPES = {}

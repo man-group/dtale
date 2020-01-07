@@ -110,7 +110,7 @@ describe("Correlations tests", () => {
 
   test("Correlations rendering data and filtering it", done => {
     const Correlations = require("../../../popups/Correlations").ReactCorrelations;
-    const CorrelationsGrid = require("../../../popups/correlations/CorrelationsGrid").default;
+    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -118,12 +118,7 @@ describe("Correlations tests", () => {
     result.update();
     setTimeout(() => {
       result.update();
-      const corrGrid = result.find(CorrelationsGrid).first();
-      t.deepEqual(
-        [{ column: "col1", col3: -0.098802 }],
-        corrGrid.instance().state.correlations,
-        "should filter on col2"
-      );
+      t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
       done();
     }, 200);
   });
@@ -212,6 +207,32 @@ describe("Correlations tests", () => {
           }, 200);
         }, 200);
       }, 200);
+    }, 200);
+  });
+
+  test("Correlations w/ col1 pre-selected", done => {
+    const Correlations = require("../../../popups/Correlations").ReactCorrelations;
+    buildInnerHTML({ settings: "" });
+    const result = mount(<Correlations chartData={_.omit(chartData, "col2")} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+    setTimeout(() => {
+      result.update();
+      t.deepEqual(result.find(Correlations).instance().state.selectedCols, ["col1", "col2"], "should select cols");
+      done();
+    }, 200);
+  });
+
+  test("Correlations w/ col2 pre-selected", done => {
+    const Correlations = require("../../../popups/Correlations").ReactCorrelations;
+    buildInnerHTML({ settings: "" });
+    const result = mount(<Correlations chartData={_.omit(chartData, "col1")} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+    setTimeout(() => {
+      result.update();
+      t.deepEqual(result.find(Correlations).instance().state.selectedCols, ["col1", "col3"], "should select cols");
+      done();
     }, 200);
   });
 });

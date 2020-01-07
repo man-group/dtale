@@ -17,8 +17,8 @@ class CorrelationScatterStats extends React.Component {
     if (this.props.rolling) {
       const startDate = moment(this.props.date)
         .subtract(this.props.window, "days")
-        .format("YYYYMMDD");
-      dateStr = ` for ${startDate}-${this.props.date}`;
+        .format("YYYY-MM-DD");
+      dateStr = ` for ${startDate} - ${this.props.date}`;
     }
     return <b style={{ color: "black" }}>{`${col0} vs. ${col1}${dateStr}`}</b>;
   }
@@ -53,7 +53,9 @@ class CorrelationScatterStats extends React.Component {
           <dd>{stats.only_in_s1}</dd>
         </dl>
       </div>,
-      <small key={1}>(Click on any point in the scatter to filter the grid down to that record)</small>,
+      <div key={1} style={{ marginTop: "-.5em" }}>
+        <small>(Click on any point in the scatter to filter the grid down to that record)</small>
+      </div>,
     ];
   }
 }

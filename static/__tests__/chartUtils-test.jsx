@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import _ from "lodash";
 
 import * as t from "./jest-assertions";
@@ -87,6 +88,47 @@ describe("chartUtils tests", () => {
     };
     plugin.afterLayout(chartInstance);
     _.forEach(GRADIENT_FUNCS, f => t.ok(_.isFunction(dataset[f].addColorStop), "should set gradients"));
+    done();
+  });
+
+  test("chartUtils: testing lineHoverPlugin", done => {
+    const { colorScale } = require("../popups/correlations/correlationsUtils").default;
+    const { lineHoverPlugin } = require("../chartUtils").default;
+
+    const plugin = lineHoverPlugin(colorScale);
+    const dataset = { data: [{ x: 0, y: 0 }] };
+    const point = {
+      _model: { x: 0 },
+      _yScale: { top: 0, bottom: 10 },
+      _datasetIndex: 0,
+      _index: 0,
+    };
+    const chartInstance = {
+      data: { datasets: [dataset] },
+      scales: {
+        "y-corr": {
+          getPixelForValue: px => px,
+        },
+      },
+      tooltip: { _active: [point] },
+      getDatasetMeta: _idx => ({
+        controller: { _config: { selectedPoint: 0 } },
+        data: [point],
+      }),
+      ctx: {
+        save: _.noop,
+        beginPath: _.noop,
+        moveTo: _.noop,
+        lineTo: _.noop,
+        lineWidth: 0,
+        strokeStyle: null,
+        stroke: _.noop,
+        restore: _.noop,
+      },
+    };
+    plugin.afterDraw(chartInstance);
+    t.equal(chartInstance.ctx.lineWidth, 2, "should update lineWidth");
+    t.equal(chartInstance.ctx.strokeStyle, "rgb(42, 145, 209)", "should set strokeStyle");
     done();
   });
 

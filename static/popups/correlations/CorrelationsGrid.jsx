@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-unused-vars
+import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
@@ -22,21 +24,23 @@ function filterData({ col1, col2 }, data) {
   return updatedData;
 }
 
-function buildState({ correlations, col1, col2 }) {
+function buildState({ correlations, columns, col1, col2 }, filter = true) {
   const state = {
     correlations: _.clone(correlations),
-    columns: _.map(correlations, ({ column }) => ({ value: column })),
+    columns: _.map(columns, column => ({ value: column })),
     col1: col1 ? { value: col1 } : null,
     col2: col2 ? { value: col2 } : null,
   };
-  state.correlations = filterData(state, correlations);
+  if (filter) {
+    state.correlations = filterData(state, correlations);
+  }
   return state;
 }
 
 class CorrelationsGrid extends React.Component {
   constructor(props) {
     super(props);
-    this.state = buildState(props);
+    this.state = buildState(props, false);
     this._cellRenderer = this._cellRenderer.bind(this);
   }
 
@@ -47,8 +51,16 @@ class CorrelationsGrid extends React.Component {
   }
 
   _cellRenderer(cellProps) {
-    const { hasDate, selectedDate, rolling, window, buildTs, buildScatter } = this.props;
-    const props = _.assignIn({ buildTs, buildScatter, hasDate, selectedDate, rolling, window }, this.state, cellProps);
+    const mainProps = _.pick(this.props, [
+      "hasDate",
+      "selectedDate",
+      "rolling",
+      "window",
+      "buildTs",
+      "buildScatter",
+      "selectedCols",
+    ]);
+    const props = _.assignIn(mainProps, this.state, cellProps);
     return <CorrelationsCell {...props} />;
   }
 
@@ -122,8 +134,10 @@ class CorrelationsGrid extends React.Component {
 CorrelationsGrid.displayName = "CorrelationsGrid";
 CorrelationsGrid.propTypes = {
   correlations: PropTypes.array,
+  columns: PropTypes.arrayOf(PropTypes.string),
   hasDate: PropTypes.bool,
   selectedDate: PropTypes.string,
+  selectedCols: PropTypes.arrayOf(PropTypes.string),
   buildTs: PropTypes.func,
   buildScatter: PropTypes.func,
   rolling: PropTypes.bool,

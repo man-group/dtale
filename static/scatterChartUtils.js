@@ -11,13 +11,13 @@ function formatScatterPoints(chartData, formatter = p => p, highlight = () => fa
 
   const highlighted = [];
   _.forEach(chartData, p => {
-    let bg; // set to undefined so Chart.js default color will be applied
+    let bg = "rgb(42, 145, 209)";
     let rad = 3,
       hoverRad = 4,
       hitRad = 1; // Chart.js default values
     const isHighlighted = highlight(p);
     if (isHighlighted) {
-      bg = "#337ab7";
+      bg = "#b73333";
       rad = 5;
       hoverRad = 6;
       hitRad = 6;

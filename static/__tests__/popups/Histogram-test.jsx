@@ -4,6 +4,7 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
@@ -58,8 +59,11 @@ describe("Histogram tests", () => {
       mockPopsicle.mock(url => {
         if (url.startsWith("/dtale/histogram")) {
           const query = qs.parse(url.split("?")[1]).query;
-          if (query == "null") {
+          if (query === "null") {
             return null;
+          }
+          if (query === "error") {
+            return { error: "histogram error" };
           }
         }
         if (url.startsWith("/dtale/histogram/1?" + urlParams)) {
@@ -136,11 +140,24 @@ describe("Histogram tests", () => {
 
   test("Histogram missing data", done => {
     const Histogram = require("../../popups/Histogram").ReactHistogram;
-
-    const result = mount(<Histogram {..._.assign({}, props, { query: "null" })} />);
+    const currProps = _.clone(props);
+    currProps.chartData.query = "null";
+    const result = mount(<Histogram {...currProps} />);
     setTimeout(() => {
       result.update();
       t.notOk(result.state("chart"), "should not create chart");
+      done();
+    }, 200);
+  });
+
+  test("Histogram error", done => {
+    const Histogram = require("../../popups/Histogram").ReactHistogram;
+    const currProps = _.clone(props);
+    currProps.chartData.query = "error";
+    const result = mount(<Histogram {...currProps} />);
+    setTimeout(() => {
+      result.update();
+      t.equal(result.find(RemovableError).text(), "histogram error", "should render error");
       done();
     }, 200);
   });

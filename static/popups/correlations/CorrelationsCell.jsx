@@ -5,31 +5,35 @@ import React from "react";
 
 import corrUtils from "./correlationsUtils";
 
-const MAX_LABEL_LEN = 20;
+const MAX_LABEL_LEN = 18;
 
 class CorrelationsCell extends React.Component {
+  constructor(props) {
+    super(props);
+    this.renderHeader = this.renderHeader.bind(this);
+  }
+
+  renderHeader(title) {
+    const { style } = this.props;
+    const props = _.size(title) >= MAX_LABEL_LEN ? { title } : {};
+    return (
+      <div className="headerCell" style={_.assignIn(style, { fontSize: "10px" })} {...props}>
+        <div>{_.truncate(title, { length: MAX_LABEL_LEN })}</div>
+      </div>
+    );
+  }
+
   render() {
     const { columnIndex, rowIndex, style, correlations, columns, col2, hasDate, selectedDate } = this.props;
     if (rowIndex == 0) {
       if (columnIndex == 0) {
         return null;
       }
-      const header = _.isNull(col2) ? columns[columnIndex - 1].value : col2.value;
-      const props = _.size(header) >= MAX_LABEL_LEN ? { title: header } : {};
-      return (
-        <div className="headerCell" style={_.assignIn(style, { fontSize: "10px" })} {...props}>
-          <div>{_.truncate(header, { length: MAX_LABEL_LEN })}</div>
-        </div>
-      );
+      return this.renderHeader(_.isNull(col2) ? columns[columnIndex - 1].value : col2.value);
     }
     const row = correlations[rowIndex - 1];
     if (columnIndex == 0) {
-      const props = _.size(row.column) >= MAX_LABEL_LEN ? { title: row.column } : {};
-      return (
-        <div className="headerCell" style={_.assignIn(style, { fontSize: "10px" })} {...props}>
-          {_.truncate(row.column, { length: MAX_LABEL_LEN })}
-        </div>
-      );
+      return this.renderHeader(row.column);
     }
     const prop = _.isNull(col2) ? columns[columnIndex - 1].value : col2.value;
     const corrOnItself = row.column === prop || _.isNull(row[prop]);
@@ -49,6 +53,15 @@ class CorrelationsCell extends React.Component {
         props.onClick = () => this.props.buildScatter([row.column, prop]);
       }
       valueStyle.cursor = "pointer";
+    }
+    if (_.get(this.props.selectedCols, "0") === row.column && _.get(this.props.selectedCols, "1") === prop) {
+      valueStyle.paddingTop = ".2em";
+      return (
+        <div className="cell d-inline" style={_.assignIn({}, style, valueStyle)} {...props}>
+          <i className="ico-show-chart float-left" />
+          <span style={{ marginLeft: "-1em" }}>{corrOnItself ? "N/A" : numeral(row[prop]).format("0.00")}</span>
+        </div>
+      );
     }
     return (
       <div className="cell" style={_.assignIn({}, style, valueStyle)} {...props}>
@@ -71,6 +84,7 @@ CorrelationsCell.propTypes = {
   col2: PropTypes.object,
   rolling: PropTypes.bool,
   window: PropTypes.number,
+  selectedCols: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default CorrelationsCell;

@@ -197,11 +197,14 @@ class ChartsBody extends React.Component {
           });
           return;
         }
-        this.setState({
-          error: null,
-          data: fetchedChartData,
-          charts: createCharts(fetchedChartData, this.props, this.state, _.pick(this, ["viewTimeDetails"])),
-        });
+        this.setState(
+          {
+            error: null,
+            data: fetchedChartData,
+            charts: createCharts(fetchedChartData, this.props, this.state, _.pick(this, ["viewTimeDetails"])),
+          },
+          this.props.dataLoadCallback(fetchedChartData)
+        );
       }
     });
   }
@@ -379,6 +382,7 @@ ChartsBody.propTypes = {
   additionalOptions: PropTypes.object, // eslint-disable-line react/no-unused-prop-types
   configHandler: PropTypes.func,
   showControls: PropTypes.bool,
+  dataLoadCallback: PropTypes.func,
 };
 ChartsBody.defaultProps = {
   height: 400,
@@ -386,6 +390,7 @@ ChartsBody.defaultProps = {
   chartType: "line",
   configHandler: config => config,
   showControls: true,
+  dataLoadCallback: _.noop,
 };
 
 export default ChartsBody;

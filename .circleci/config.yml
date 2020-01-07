@@ -5,6 +5,8 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
+      VERSION: 1.6.8
+      PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
     - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
@@ -52,7 +54,17 @@ defaults: &defaults
         name: Build JS
         command: |
           yarn run build
-    - run: sudo apt-get install pandoc
+    - run:
+        name: Install Latest pandoc
+        command: |
+          # the 'latest' URL redirects to the name of the latest tag.
+          export PANDOCVERSION=$(curl -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+          echo $PANDOCVERSION # Show pandoc version in logs
+          export PANDOC_FILE=pandoc-$PANDOCVERSION-1-amd64.deb
+          echo $PANDOC_FILE
+          wget $PANDOC_RELEASES_URL/download/$PANDOCVERSION/$PANDOC_FILE
+          sudo dpkg -i $PANDOC_FILE
+          rm $PANDOC_FILE
     - run:
        name: Create and activate virtualenv
        command: |
@@ -91,6 +103,35 @@ defaults: &defaults
          cp -r ./htmlcov /tmp/circleci-test-results
          python setup.py build_sphinx
          cp -r ./build /tmp/circleci-artifacts
+    # Build egg
+    - run:
+        name: Build egg
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            set -e
+            . ci/bin/activate
+            pip install pypandoc
+            pip install docutils
+            pip install Pygments
+            grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
+            grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
+            grep -q $VERSION docker/2_7/Dockerfile || (echo "ERROR: Version number not found in docker/2_7/Dockerfile: $VERSION"; exit 1)
+            grep -q $VERSION docker/3_6/Dockerfile || (echo "ERROR: Version number not found in docker/3_6/Dockerfile: $VERSION"; exit 1)
+            grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
+            grep -q $VERSION package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
+            python setup.py --long-description > ../README.rst
+            # pandoc --from=markdown --to=rst --output=../README.rst README.md
+            cat ../README.rst | rst2html.py 1> ../README.html 2> ../log
+            cp ../README.rst /tmp/circleci-artifacts
+            cp ../log /tmp/circleci-artifacts
+            if [ -s ../log ] ; then
+              exit 1
+            fi # rst2html.py alwaysexits with 0, check log size
+            python setup.py bdist_wheel --universal
+            python setup.py bdist_egg
+            python setup.py sdist
+            cp -r ./dist /tmp/circleci-artifacts
+          fi
     # Save test results
     - store_test_results:
         path: /tmp/circleci-test-results
@@ -99,9 +140,6 @@ defaults: &defaults
         path: /tmp/circleci-artifacts
     - store_artifacts:
         path: /tmp/circleci-test-results
-
-
-
 version: 2
 jobs:
   build_2_7:

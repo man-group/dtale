@@ -1,5 +1,19 @@
 ## Changelog
 
+### 1.6.8 (2020-1-9)
+ * additional information about how to use Correlations popup
+ * handling of all-nan data in charts popup
+ * styling issues on popups (especially Histogram)
+ * removed auto-filtering on correlation popup
+ * scatter point color change
+ * added chart icon to cell that has been selected in correlation popup
+ * responsiveness to scatter charts
+ * handling of links to 'main','iframe' & 'popup' missing data_id
+ * handling of 'inf' values when getting min/max & describe data
+ * added header to window popups (correlations, charts, ...) and a link back to the grid
+ * added egg building to cirleci script
+ * correlation timeseries chart hover line
+ 
 ### 1.6.7 (2020-1-3)
 
  * [#50](https://github.com/man-group/dtale/issues/50): updates to rolling correlation functionality

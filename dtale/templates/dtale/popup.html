@@ -4,12 +4,29 @@
 
 {% block full_content %}
 <div class="container-fluid {{js_prefix}}">
-    <div id="popup-content">
+    <div class="row" style="margin: 0">
+        <div class="col-auto">
+            <header>
+                <span class="title-font">D-TALE</span>
+                <span style="font-size: 16px" class="pl-4">{{'- ' + js_prefix.capitalize()}}</span>
+            </header>
+        </div>
+        <div class="col"></div>
+        <div class="col-auto mt-4" style="{{'padding-right: 125px' if config.GITHUB_FORK else ''}}">
+            <a href="#" onclick="window.open('/dtale/main/{{data_id}}'); return false;">
+                <i class="fas fa-th mr-4"></i>
+                <span>Back To Data</span>
+            </a>
+        </div>
     </div>
+    <div id="popup-content" />
 </div>
 {% endblock %}
 
 {% set js_file = 'dist/' + js_prefix + '_popup_bundle.js' %}
 {% block js %}
+<script type="text/javascript">
+    const backToData = () => window.open('/dtale/main/{{data_id}}');
+</script>
 <script type="text/javascript" src="{{ url_for('static', filename=js_file) }}"></script>
 {% endblock %}

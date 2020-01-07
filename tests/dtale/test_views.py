@@ -21,6 +21,21 @@ app = build_app(url=URL)
 
 
 @pytest.mark.unit
+def test_head_data_id():
+    import dtale.views as views
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.views.DATA', {'1': None, '2': None}))
+        assert views.head_data_id() == '1'
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.views.DATA', {}))
+        with pytest.raises(Exception) as error:
+            views.head_data_id()
+            assert error.startswith('No data associated with this D-Tale session')
+
+
+@pytest.mark.unit
 def test_startup(unittest):
     import dtale.views as views
 
@@ -60,6 +75,16 @@ def test_startup(unittest):
     instance = views.startup(URL, data_loader=lambda: test_data)
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
+
+    test_data = pd.DataFrame([
+        dict(date=pd.Timestamp('now'), security_id=1, foo=1.0, bar=2.0),
+        dict(date=pd.Timestamp('now'), security_id=1, foo=2.0, bar=np.inf)
+    ], columns=['date', 'security_id', 'foo', 'bar'])
+    instance = views.startup(URL, data_loader=lambda: test_data)
+    unittest.assertEqual(
+        {'name': 'bar', 'dtype': 'float64', 'index': 3},
+        next((dt for dt in views.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
+    )
 
 
 @pytest.mark.unit
@@ -179,7 +204,7 @@ def test_update_settings(unittest):
 
 @pytest.mark.unit
 def test_dtypes(test_data):
-    from dtale.views import build_dtypes_state
+    from dtale.views import build_dtypes_state, format_data
 
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -218,6 +243,20 @@ def test_dtypes(test_data):
             response = c.get('/dtale/describe/{}/foo'.format(c.port))
             response_data = json.loads(response.data)
             assert 'error' in response_data
+
+    df = pd.DataFrame([
+        dict(date=pd.Timestamp('now'), security_id=1, foo=1.0, bar=2.0),
+        dict(date=pd.Timestamp('now'), security_id=1, foo=2.0, bar=np.inf)
+    ], columns=['date', 'security_id', 'foo', 'bar'])
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(df)}))
+            response = c.get('/dtale/describe/{}/{}'.format(c.port, 'bar'))
+            response_data = json.loads(response.data)
+            assert response_data['describe']['min'] == '2'
+            assert response_data['describe']['max'] == 'inf'
 
 
 @pytest.mark.unit
@@ -689,6 +728,17 @@ def test_get_chart_data(unittest, test_data, rolling_data):
                 response_data['error'], 'query "security_id == 51" found no data, please alter'
             )
 
+    df = pd.DataFrame([dict(a=i, b=np.nan) for i in range(100)])
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            params = dict(x='a', y=json.dumps(['b']), allowDupes=True)
+            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data['error'], 'All data for column "b" is NaN!')
+
     df = pd.DataFrame([dict(a=i, b=i) for i in range(15500)])
     df, _ = views.format_data(df)
     with app.test_client() as c:
@@ -756,10 +806,17 @@ def test_200():
 
 @pytest.mark.unit
 def test_302():
+    import dtale.views as views
+
+    df = pd.DataFrame([1, 2, 3])
+    df, _ = views.format_data(df)
     with app.test_client() as c:
-        for path in ['/', '/dtale', '/favicon.ico']:
-            response = c.get(path)
-            assert response.status_code == 302, '{} should return 302 response'.format(path)
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            for path in ['/', '/dtale', '/dtale/main', '/dtale/iframe', '/dtale/popup/test', '/favicon.ico']:
+                response = c.get(path)
+                assert response.status_code == 302, '{} should return 302 response'.format(path)
 
 
 @pytest.mark.unit
@@ -774,6 +831,28 @@ def test_404():
 def test_500():
     with app.test_client() as c:
         with mock.patch('dtale.views.render_template', mock.Mock(side_effect=Exception("Test"))):
+            for path in ['/dtale/main/1', '/dtale/main', '/dtale/iframe', '/dtale/popup/test']:
+                response = c.get(path)
+                assert response.status_code == 500
+                assert '<h1>Internal Server Error</h1>' in str(response.data)
+
+
+@pytest.mark.unit
+def test_jinja_output():
+    import dtale.views as views
+
+    df = pd.DataFrame([1, 2, 3])
+    df, _ = views.format_data(df)
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
             response = c.get('/dtale/main/1')
-            assert response.status_code == 500
-            assert '<h1>Internal Server Error</h1>' in str(response.data)
+            assert 'span id="forkongithub"' not in str(response.data)
+
+    with build_app(url=URL, github_fork=True).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            response = c.get('/dtale/main/1')
+            assert 'span id="forkongithub"' in str(response.data)

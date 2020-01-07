@@ -59,6 +59,9 @@ describe("Correlations tests", () => {
       chartCfg.destroy = () => (chartCfg.destroyed = true);
       chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
       chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
+      chartCfg.getDatasetMeta = _idx => ({
+        controller: { _config: { selectedPoint: 0 } },
+      });
       return chartCfg;
     });
 
@@ -242,7 +245,7 @@ describe("Correlations tests", () => {
         setTimeout(() => {
           result.update();
           t.ok(result.find(Correlations).instance().state.chart, "should show scatter chart");
-          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 20181215-20181219"));
+          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 2018-12-15 - 2018-12-19"));
           t.deepEqual(
             result
               .find(Correlations)

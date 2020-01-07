@@ -47,7 +47,7 @@ class ReactDataViewerMenu extends React.Component {
         className="column-toggle__dropdown"
         hidden={!this.props.menuOpen}
         style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
-        <header className="menu-font">D-TALE</header>
+        <header className="title-font">D-TALE</header>
         <ul>
           <li>
             <span className="toggler-action">
@@ -127,7 +127,7 @@ class ReactDataViewerMenu extends React.Component {
           </ConditionalRender>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("correlations", 500, 1000)}>
+              <button className="btn btn-plain" onClick={openPopup("correlations", 1235, 1000)}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>

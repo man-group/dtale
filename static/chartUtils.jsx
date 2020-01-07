@@ -6,6 +6,7 @@ import chroma from "chroma-js";
 import _ from "lodash";
 import moment from "moment";
 
+import { buildRGBA } from "./colors";
 import { isDateCol } from "./dtale/gridUtils";
 import { formatScatterPoints, getScatterMax, getScatterMin } from "./scatterChartUtils";
 
@@ -59,15 +60,6 @@ const COLOR_PROPS = [
   "pointHoverBorderColor",
 ];
 
-function buildRGBA(colorScale) {
-  return val =>
-    "rgba(" +
-    colorScale(val)
-      .rgba()
-      .join(",") +
-    ")";
-}
-
 const gradientLinePlugin = (colorScale, yAxisID, minY = null, maxY = null) => ({
   afterLayout: chartInstance => {
     const rgbaBuilder = buildRGBA(colorScale);
@@ -102,6 +94,37 @@ const gradientLinePlugin = (colorScale, yAxisID, minY = null, maxY = null) => ({
     dataset.pointHoverBorderColor = gradient;
     // Uncomment this for some effects, especially together with commenting the `fill: false` option below.
     // dataset.backgroundColor = gradient;
+  },
+});
+
+function drawLine(chart, point, colorBuilder) {
+  const ctx = chart.ctx,
+    x = point._model.x,
+    topY = point._yScale.top,
+    bottomY = point._yScale.bottom,
+    value = chart.data.datasets[point._datasetIndex].data[point._index];
+
+  // draw line
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x, topY);
+  ctx.lineTo(x, bottomY);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = colorBuilder(value);
+  ctx.stroke();
+  ctx.restore();
+}
+
+const lineHoverPlugin = colorScale => ({
+  afterDraw: chartInstance => {
+    if (chartInstance.tooltip._active && chartInstance.tooltip._active.length) {
+      drawLine(chartInstance, chartInstance.tooltip._active[0], buildRGBA(colorScale));
+    }
+    const dataset = chartInstance.getDatasetMeta(0),
+      selectedPoint = dataset.controller._config.selectedPoint;
+    if (!_.isNull(selectedPoint)) {
+      drawLine(chartInstance, dataset.data[selectedPoint], () => "rgb(42, 145, 209)");
+    }
   },
 });
 
@@ -250,6 +273,7 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
     options: _.assignIn(
       {
         responsive: true,
+        maintainAspectRatio: false,
         pan: { enabled: true, mode: "x" },
         zoom: { enabled: true, mode: "x", speed: 0.5 },
         tooltips: {
@@ -394,8 +418,8 @@ function createScatterCfg(
         legend: { display: false },
         pan: { enabled: true, mode: "x" },
         zoom: { enabled: true, mode: "x" },
-        maintainAspectRatio: false,
-        responsive: false,
+        maintainAspectRatio: true,
+        responsive: true,
         showLines: false,
       },
       additionalOptions
@@ -411,6 +435,7 @@ export default {
   fitToContainer,
   TS_COLORS,
   gradientLinePlugin,
+  lineHoverPlugin,
   createLineCfg,
   createBarCfg,
   createStackedCfg,

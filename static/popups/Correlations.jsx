@@ -1,5 +1,4 @@
 import _ from "lodash";
-import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
@@ -67,15 +66,26 @@ class ReactCorrelations extends React.Component {
         return;
       }
       const { data, dates, rolling } = gridData;
+      const columns = _.map(data, "column");
       const state = {
         correlations: data,
+        columns,
         dates,
         hasDate: _.size(dates) > 0,
         selectedDate: _.get(dates, 0, null),
         rolling,
       };
       this.setState(state, () => {
-        const { col1, col2 } = this.props.chartData || {};
+        let { col1, col2 } = this.props.chartData || {};
+        if (_.isUndefined(col1)) {
+          if (_.isUndefined(col2)) {
+            [col1, col2] = _.take(columns, 2);
+          } else {
+            col1 = _.find(columns, c => c !== col2);
+          }
+        } else if (_.isUndefined(col2)) {
+          col2 = _.find(columns, c => c !== col1);
+        }
         if (col1 && col2) {
           if (state.hasDate) {
             if (rolling) {
@@ -110,16 +120,18 @@ class ReactCorrelations extends React.Component {
   viewScatterRow(evt) {
     const point = this.state.chart.getElementAtEvent(evt);
     if (point) {
-      const data = point[0]._chart.config.data.datasets[point[0]._datasetIndex].data;
-      const index = data[point[0]._index].index;
-      this.props.onClose();
-      let updatedQuery = this.props.chartData.query;
-      if (updatedQuery) {
-        updatedQuery = [updatedQuery, `index == ${index}`];
-      } else {
-        updatedQuery = [`index == ${index}`];
+      const data = _.get(point, ["0", "_chart", "config", "data", "datasets", point[0]._datasetIndex, "data"]);
+      if (data) {
+        const index = data[point[0]._index].index;
+        this.props.onClose();
+        let updatedQuery = this.props.chartData.query;
+        if (updatedQuery) {
+          updatedQuery = [updatedQuery, `index == ${index}`];
+        } else {
+          updatedQuery = [`index == ${index}`];
+        }
+        this.props.propagateState({ query: _.join(updatedQuery, " and ") });
       }
-      this.props.propagateState({ query: _.join(updatedQuery, " and ") });
     }
   }
 
@@ -168,7 +180,8 @@ class ReactCorrelations extends React.Component {
     if (chart) {
       const selectedPoint = _.head(chart.getElementsAtXAxis(evt));
       if (selectedPoint) {
-        const date = moment(new Date(chart.data.labels[selectedPoint._index])).format("YYYYMMDD");
+        chart.getDatasetMeta(0).controller._config.selectedPoint = selectedPoint._index;
+        const date = chartUtils.timestampLabel(chart.data.labels[selectedPoint._index]);
         const { selectedCols } = this.state;
         this.buildScatter(selectedCols, date);
       }
@@ -189,8 +202,7 @@ class ReactCorrelations extends React.Component {
         <CorrelationsGrid
           buildTs={this.buildTs}
           buildScatter={this.buildScatter}
-          col1={_.get(this.props, "chartData.col1")}
-          col2={_.get(this.props, "chartData.col2")}
+          selectedCols={selectedCols}
           {...this.state}
         />
         <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
@@ -218,11 +230,22 @@ class ReactCorrelations extends React.Component {
               ];
               config.options.onClick = this.viewScatter;
               config.options.legend = { display: false };
-              config.plugins = [chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1)];
+              config.plugins = [
+                chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
+                chartUtils.lineHoverPlugin(corrUtils.colorScale),
+              ];
+              //config.type = "LineWithLine";
+              config.data.datasets[0].selectedPoint = 0;
               return config;
             }}
             height={300}
             showControls={false}
+            dataLoadCallback={data => {
+              const selectedDate = _.get(data || {}, "data.all.x.0");
+              if (selectedDate) {
+                this.buildScatter(this.state.selectedCols, chartUtils.timestampLabel(selectedDate));
+              }
+            }}
           />
         </ConditionalRender>
         <CorrelationScatterStats {...this.state} />
