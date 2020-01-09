@@ -245,7 +245,7 @@ describe("Correlations tests", () => {
         setTimeout(() => {
           result.update();
           t.ok(result.find(Correlations).instance().state.chart, "should show scatter chart");
-          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 2018-12-15 - 2018-12-19"));
+          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 20181215-20181219"));
           t.deepEqual(
             result
               .find(Correlations)

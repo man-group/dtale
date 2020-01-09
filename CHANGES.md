@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.6.9 (2020-1-9)
+ * bugfix for timezone issue around passing date filters to server for scatter charts in correlations popup
+
 ### 1.6.8 (2020-1-9)
  * additional information about how to use Correlations popup
  * handling of all-nan data in charts popup

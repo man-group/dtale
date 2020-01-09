@@ -1,4 +1,5 @@
 import _ from "lodash";
+import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
@@ -181,8 +182,8 @@ class ReactCorrelations extends React.Component {
       const selectedPoint = _.head(chart.getElementsAtXAxis(evt));
       if (selectedPoint) {
         chart.getDatasetMeta(0).controller._config.selectedPoint = selectedPoint._index;
-        const date = chartUtils.timestampLabel(chart.data.labels[selectedPoint._index]);
         const { selectedCols } = this.state;
+        const date = moment(new Date(chart.data.labels[selectedPoint._index])).format("YYYYMMDD");
         this.buildScatter(selectedCols, date);
       }
     }
@@ -234,7 +235,6 @@ class ReactCorrelations extends React.Component {
                 chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
                 chartUtils.lineHoverPlugin(corrUtils.colorScale),
               ];
-              //config.type = "LineWithLine";
               config.data.datasets[0].selectedPoint = 0;
               return config;
             }}
@@ -243,7 +243,7 @@ class ReactCorrelations extends React.Component {
             dataLoadCallback={data => {
               const selectedDate = _.get(data || {}, "data.all.x.0");
               if (selectedDate) {
-                this.buildScatter(this.state.selectedCols, chartUtils.timestampLabel(selectedDate));
+                this.buildScatter(this.state.selectedCols, moment(new Date(selectedDate)).format("YYYYMMDD"));
               }
             }}
           />
