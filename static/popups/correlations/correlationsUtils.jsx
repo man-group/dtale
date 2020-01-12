@@ -23,10 +23,7 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
   const scatterCfg = chartUtils.createScatterCfg(data, { x: xProp, y: [yProp] }, builder);
   scatterCfg.options.tooltips.callbacks.title = (tooltipItems, data) =>
     _.map(additionalProps, p => {
-      let val = data.datasets[tooltipItems[0].datasetIndex].data[tooltipItems[0].index][p];
-      if (p !== "index") {
-        val = chartUtils.timestampLabel(val);
-      }
+      const val = data.datasets[tooltipItems[0].datasetIndex].data[tooltipItems[0].index][p];
       return `${p}: ${val}`;
     });
   delete scatterCfg.options.scales.xAxes[0].ticks;

@@ -16,9 +16,9 @@ class CorrelationScatterStats extends React.Component {
     let dateStr = this.props.date ? ` for ${this.props.date}` : "";
     if (this.props.rolling) {
       const startDate = moment(this.props.date)
-        .subtract(this.props.window, "days")
-        .format("YYYYMMDD");
-      dateStr = ` for ${startDate}-${this.props.date}`;
+        .subtract(this.props.window - 1, "days")
+        .format("YYYY-MM-DD");
+      dateStr = ` for ${startDate} thru ${this.props.date}`;
     }
     return <b style={{ color: "black" }}>{`${col0} vs. ${col1}${dateStr}`}</b>;
   }

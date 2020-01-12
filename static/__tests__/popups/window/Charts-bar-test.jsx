@@ -46,7 +46,7 @@ describe("Charts bar tests", () => {
     );
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
+      const chartCfg = { ctx, data: cfg.data, destroyed: false, config: cfg };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
       chartCfg.getElementAtEvent = _evt => [{ _index: 0 }];
       chartCfg.update = _.noop;
@@ -116,12 +116,13 @@ describe("Charts bar tests", () => {
       setTimeout(() => {
         result.update();
         t.ok(result.find(ChartsBody).instance().state.charts.length == 1, "should render charts");
-        const sortBtn = result
+        result
           .find(ChartsBody)
-          .find("button")
-          .findWhere(b => b.text() === "Sort Bars")
-          .first();
-        sortBtn.simulate("click");
+          .find(Select)
+          .at(1)
+          .instance()
+          .onChange({ value: "col1" });
+        result.update();
         let axisEditor = result.find(AxisEditor).first();
         axisEditor.find("span.axis-select").simulate("click");
         axisEditor
@@ -134,7 +135,7 @@ describe("Charts bar tests", () => {
           .simulate("change", { target: { value: "42" } });
         axisEditor.instance().closeMenu();
         const chartObj = result.find(ChartsBody).instance().state.charts[0];
-        t.deepEqual(chartObj.cfg.options.scales.yAxes[0].ticks, {
+        t.deepEqual(chartObj.config.options.scales.yAxes[0].ticks, {
           min: 40,
           max: 42,
         });

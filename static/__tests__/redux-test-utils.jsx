@@ -138,7 +138,7 @@ function urlFetcher(url) {
     return correlationsData;
   } else if (url.startsWith("/dtale/scatter")) {
     if (urlParams.rolling) {
-      const dates = _.fill(Array(_.size(scatterData.data.all.x)), 1525106204000);
+      const dates = _.fill(Array(_.size(scatterData.data.all.x)), "2018-04-30");
       return _.assign({}, scatterData, {
         data: { all: _.assign({}, scatterData.data.all, { date: dates }) },
       });

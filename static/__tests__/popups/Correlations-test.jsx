@@ -227,7 +227,6 @@ describe("Correlations tests", () => {
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "rolling" })} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
-    result.update();
     setTimeout(() => {
       result.update();
       const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
@@ -245,7 +244,9 @@ describe("Correlations tests", () => {
         setTimeout(() => {
           result.update();
           t.ok(result.find(Correlations).instance().state.chart, "should show scatter chart");
-          t.ok(_.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 20181215-20181219"));
+          t.ok(
+            _.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 2018-12-16 thru 2018-12-19")
+          );
           t.deepEqual(
             result
               .find(Correlations)
@@ -254,7 +255,7 @@ describe("Correlations tests", () => {
                 [{ datasetIndex: 0, index: 0 }],
                 result.find(Correlations).instance().state.chart.data
               ),
-            ["index: 0", "date: 2018-04-30 12:36:44 pm"]
+            ["index: 0", "date: 2018-04-30"]
           );
           t.deepEqual(
             result
@@ -288,5 +289,11 @@ describe("Correlations tests", () => {
       t.notOk(result.find("div.ReactVirtualized__Grid__innerScrollContainer").length, "should not create grid");
       done();
     }, 200);
+  });
+
+  test("Correlations - percent formatting", done => {
+    const { percent } = require("../../popups/correlations/correlationsUtils").default;
+    t.equal(percent("N/A"), "N/A", "should return N/A");
+    done();
   });
 });

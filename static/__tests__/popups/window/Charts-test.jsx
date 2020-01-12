@@ -153,14 +153,6 @@ describe("Charts tests", () => {
           .instance()
           .state.charts[0].cfg.options.onClick();
         result.update();
-        t.deepEqual(
-          result.find(ChartsBody).instance().state.charts[0].options.scales.xAxes[0],
-          { ticks: { max: 1545800400000, min: 1545109200000 } },
-          "should limit x-axis"
-        );
-        const chartObj = result.find(ChartsBody).instance().state.charts[0];
-        const tsTitle = chartObj.cfg.options.tooltips.callbacks.title([{ index: 0 }], chartObj.data);
-        t.ok(tsTitle === "2018-12-18", "should return timestamp in tooltip");
         result
           .find(ChartsBody)
           .instance()
@@ -208,11 +200,11 @@ describe("Charts tests", () => {
           updateChartType(result, ChartsBody, "wordcloud");
           updateChartType(result, ChartsBody, "line");
           result
-            .find(Charts)
-            .find("input")
-            .findWhere(i => i.prop("type") === "checkbox")
-            .first()
-            .simulate("change", { target: { checked: true } });
+            .find(ChartsBody)
+            .find(Select)
+            .at(1)
+            .instance()
+            .onChange({ value: "On" });
           result.update();
           t.ok(result.find(ChartsBody).instance().state.charts.length == 2, "should render multiple charts");
           chartObj = result.find(ChartsBody).instance().state.charts[0];

@@ -92,12 +92,18 @@ function createCharts(data, props, state, funcs = {}) {
   return [chartUtils.chartWrapper("chartCanvas", null, builder)];
 }
 
-function sortBars(data, props, state) {
+function sortBars(data, sort, props, state) {
   _.forEach(_.get(data, "data", {}), series => {
-    const yProp = _.head(props.y).value;
-    const [sortedX, sortedY] = _.unzip(_.sortBy(_.zip(series.x, series[yProp]), "1"));
-    series.x = sortedX;
-    series[yProp] = sortedY;
+    const xProp = props.x.value;
+    const propNames = _.map(_.concat([], props.x, props.y), "value");
+    const sortIdx = _.indexOf(propNames, sort.value);
+    const sortedArrays = _.unzip(
+      _.sortBy(_.zip(..._.map(propNames, p => series[p === xProp ? "x" : p])), sortIdx + "")
+    );
+    _.forEach(_.zip(propNames, sortedArrays), ([p, arr]) => {
+      const currKey = p === xProp ? "x" : p;
+      series[currKey] = arr;
+    });
   });
   return createCharts(data, props, state);
 }
@@ -109,6 +115,7 @@ class ChartsBody extends React.Component {
     this.state = {
       chartType: { value: props.chartType || "line" },
       chartPerGroup: props.chartPerGroup === "true",
+      chartSort: _.clone(this.props.x),
       charts: null,
       error: null,
       zoomed: null,
@@ -128,7 +135,7 @@ class ChartsBody extends React.Component {
       return true;
     }
 
-    const selectedState = ["chartType", "chartPerGroup", "data", "zoomed"];
+    const selectedState = ["chartType", "chartPerGroup", "data", "zoomed", "chartSort"];
     if (!_.isEqual(_.pick(this.state, selectedState), _.pick(newState, selectedState))) {
       return true;
     }
@@ -153,13 +160,15 @@ class ChartsBody extends React.Component {
     if (!_.isEqual(_.pick(this.state, selectedState), _.pick(prevState, selectedState))) {
       if (chartType(this.state) !== chartType({ state: prevState }) && chartType({ state: prevState }) === "scatter") {
         this.buildChart(); //need to reload chart data because scatter charts allow duplicates
-      } else {
+      } else if (_.get(this.state, "chartSort.value") === this.props.x.value) {
         _.forEach(this.state.charts || [], c => c.destroy());
         const funcs = _.pick(this, ["viewTimeDetails"]);
         this.setState({
           error: null,
           charts: createCharts(_.get(this.state, "data", {}), this.props, this.state, funcs),
         });
+      } else {
+        this.sortBars(this.props.x);
       }
     }
   }
@@ -185,6 +194,7 @@ class ChartsBody extends React.Component {
         if (fetchedChartData.error) {
           this.setState({
             error: <RemovableError {...fetchedChartData} />,
+            chartSort: _.clone(this.props.x),
             charts: null,
             data: null,
           });
@@ -193,6 +203,7 @@ class ChartsBody extends React.Component {
         if (_.isEmpty(_.get(fetchedChartData, "data", {}))) {
           this.setState({
             error: <RemovableError error="No data found." />,
+            chartSort: _.clone(this.props.x),
             chart: null,
           });
           return;
@@ -200,6 +211,7 @@ class ChartsBody extends React.Component {
         this.setState(
           {
             error: null,
+            chartSort: _.clone(this.props.x),
             data: fetchedChartData,
             charts: createCharts(fetchedChartData, this.props, this.state, _.pick(this, ["viewTimeDetails"])),
           },
@@ -261,10 +273,12 @@ class ChartsBody extends React.Component {
     );
   }
 
-  sortBars() {
+  sortBars(chartSort) {
     _.forEach(this.state.charts || [], c => c.destroy());
     this.setState({
-      charts: sortBars(_.get(this.state, "data", {}), this.props, this.state),
+      error: null,
+      charts: sortBars(_.get(this.state, "data", {}), chartSort, this.props, this.state),
+      chartSort,
     });
   }
 
@@ -282,16 +296,12 @@ class ChartsBody extends React.Component {
 
   renderControls() {
     if (this.props.showControls) {
-      const showBarSort =
-        chartType(this.state) === "bar" &&
-        _.isNull(this.props.group) &&
-        !_.isEmpty(this.state.data) &&
-        _.size(this.props.y) < 2;
+      const showBarSort = chartType(this.state) === "bar" && _.isNull(this.props.group) && !_.isEmpty(this.state.data);
       return [
-        <div key={0} className="row pl-5 pt-3 pb-3 charts-filters">
-          <span className="mb-auto mt-auto">Chart:</span>
+        <div key={0} className="row pt-3 pb-3 charts-filters">
           <div className="col-auto">
             <div className="input-group mr-3">
+              <span className="input-group-addon">Chart</span>
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
@@ -305,22 +315,38 @@ class ChartsBody extends React.Component {
             </div>
           </div>
           <ConditionalRender display={_.size(this.props.group || []) > 0}>
-            <span className="mb-auto mt-auto">Chart per Group:</span>
             <div className="col-auto">
-              <input
-                type="checkbox"
-                checked={this.state.chartPerGroup}
-                onChange={e => this.setState({ chartPerGroup: e.target.checked })}
-              />
+              <div className="input-group mr-3">
+                <span className="input-group-addon">Chart per Group</span>
+                <Select
+                  className="Select is-clearable is-searchable Select--single"
+                  classNamePrefix="Select"
+                  options={[{ value: "On" }, { value: "Off" }]}
+                  getOptionLabel={_.property("value")}
+                  getOptionValue={_.property("value")}
+                  value={this.state.chartPerGroup ? { value: "On" } : { value: "Off" }}
+                  onChange={({ value }) => this.setState({ chartPerGroup: value === "On" })}
+                  filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+                />
+              </div>
             </div>
           </ConditionalRender>
           <ConditionalRender display={showBarSort}>
-            <button
-              style={{ whiteSpace: "pre-wrap" }}
-              className="btn-sm btn-primary pl-3 pr-3 mr-5"
-              onClick={this.sortBars}>
-              {"Sort Bars"}
-            </button>
+            <div className="col-auto">
+              <div className="input-group mr-3">
+                <span className="input-group-addon">Sort</span>
+                <Select
+                  className="Select is-clearable is-searchable Select--single"
+                  classNamePrefix="Select"
+                  options={_.concat([], this.props.x, this.props.y)}
+                  getOptionLabel={_.property("value")}
+                  getOptionValue={_.property("value")}
+                  value={this.state.chartSort}
+                  onChange={this.sortBars}
+                  filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+                />
+              </div>
+            </div>
           </ConditionalRender>
           <AxisEditor {..._.assignIn({}, this.state, this.props)} data={this.state.data} updateAxis={this.updateAxis} />
         </div>,

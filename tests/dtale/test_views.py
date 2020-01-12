@@ -520,11 +520,11 @@ def test_get_correlations_ts(unittest, rolling_data):
             response_data = json.loads(response.data)
             expected = {
                 'data': {'all': {
-                    'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
+                    'x': ['2000-01-01', '2000-01-02', '2000-01-03', '2000-01-04', '2000-01-05'],
                     'corr': [1.0, 1.0, 1.0, 1.0, 1.0]
                 }},
-                'max': {'corr': 1.0, 'x': 947048400000},
-                'min': {'corr': 1.0, 'x': 946702800000},
+                'max': {'corr': 1.0, 'x': '2000-01-05'},
+                'min': {'corr': 1.0, 'x': '2000-01-01'},
                 'success': True,
             }
             unittest.assertEqual(response_data, expected, 'should return timeseries correlation')
@@ -609,7 +609,7 @@ def test_get_scatter(unittest, rolling_data):
             assert sorted(response_data['data']['all']) == ['1', 'date', 'index', 'x']
             unittest.assertEqual(
                 sorted(response_data['data']['all']['date']),
-                [1574917200000, 1575003600000, 1575090000000, 1575176400000],
+                ['2019-11-28', '2019-11-29', '2019-11-30', '2019-12-01'],
                 'should return scatter'
             )
 
@@ -663,11 +663,11 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             response_data = json.loads(response.data)
             expected = {
                 u'data': {u'all': {
-                    u'x': [946702800000, 946789200000, 946875600000, 946962000000, 947048400000],
+                    u'x': ['2000-01-01', '2000-01-02', '2000-01-03', '2000-01-04', '2000-01-05'],
                     u'security_id': [50, 50, 50, 50, 50]
                 }},
-                u'max': {'security_id': 50, 'x': 947048400000},
-                u'min': {'security_id': 50, 'x': 946702800000},
+                u'max': {'security_id': 50, 'x': '2000-01-05'},
+                u'min': {'security_id': 50, 'x': '2000-01-01'},
                 u'success': True,
             }
             unittest.assertEqual(response_data, expected, 'should return chart data')
@@ -681,7 +681,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             response_data = json.loads(response.data)
             assert response_data['min']['security_id'] == 24.5
             assert response_data['max']['security_id'] == 24.5
-            assert response_data['data']['baz']['x'][-1] == 947048400000
+            assert response_data['data']['baz']['x'][-1] == '2000-01-05'
             assert len(response_data['data']['baz']['security_id']) == 5
             assert sum(response_data['data']['baz']['security_id']) == 122.5
 

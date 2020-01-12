@@ -1,5 +1,4 @@
 import _ from "lodash";
-import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
@@ -163,6 +162,8 @@ class ReactCorrelations extends React.Component {
       };
       if (fetchedChartData.error) {
         newState.scatterError = <RemovableError {...fetchedChartData} />;
+        this.setState(newState);
+        return;
       }
       const builder = ctx => {
         if (!_.get(fetchedChartData, "data.all.x", []).length) {
@@ -183,8 +184,7 @@ class ReactCorrelations extends React.Component {
       if (selectedPoint) {
         chart.getDatasetMeta(0).controller._config.selectedPoint = selectedPoint._index;
         const { selectedCols } = this.state;
-        const date = moment(new Date(chart.data.labels[selectedPoint._index])).format("YYYYMMDD");
-        this.buildScatter(selectedCols, date);
+        this.buildScatter(selectedCols, chart.data.labels[selectedPoint._index]);
       }
     }
   }
@@ -243,7 +243,7 @@ class ReactCorrelations extends React.Component {
             dataLoadCallback={data => {
               const selectedDate = _.get(data || {}, "data.all.x.0");
               if (selectedDate) {
-                this.buildScatter(this.state.selectedCols, moment(new Date(selectedDate)).format("YYYYMMDD"));
+                this.buildScatter(this.state.selectedCols, selectedDate);
               }
             }}
           />

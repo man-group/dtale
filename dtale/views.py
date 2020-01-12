@@ -885,16 +885,15 @@ def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **
 
     def build_formatters(df):
         cols = grid_columns(df)
-        overrides = {'D': lambda f, i, c: f.add_timestamp(i, c)}
-        data_f = grid_formatter(cols, overrides=overrides, nan_display=None)
-        overrides['F'] = lambda f, i, c: f.add_float(i, c, precision=2)
+        data_f = grid_formatter(cols, nan_display=None)
+        overrides = {'F': lambda f, i, c: f.add_float(i, c, precision=2)}
         range_f = grid_formatter(cols, overrides=overrides, nan_display=None)
         return data_f, range_f
 
     def check_all_nan(df, cols):
         for col in cols:
             if df[col].isnull().all():
-                raise Exception('All data for column "b" is NaN!'.format(col))
+                raise Exception('All data for column "{}" is NaN!'.format(col))
 
     x_col = str('x')
     y_cols = make_list(y)
@@ -1063,6 +1062,7 @@ def get_scatter(data_id):
     :returns: JSON {
         data: [{col1: 0.123, col2: 0.123, index: 1},...,{col1: 0.123, col2: 0.123, index: N}],
         stats: {
+        stats: {
             correlated: 50,
             only_in_s0: 1,
             only_in_s1: 2,
@@ -1088,7 +1088,7 @@ def get_scatter(data_id):
         if rolling:
             window = get_int_arg(request, 'window')
             idx = min(data[data[date_col] == date].index) + 1
-            data = data.iloc[(idx - window):idx]
+            data = data.iloc[max(idx - window, 0):idx]
             data = data[list(set(cols)) + [date_col]].dropna(how='any')
             y_cols.append(date_col)
         else:

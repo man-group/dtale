@@ -72,7 +72,7 @@ class ReactCharts extends React.Component {
     });
   }
 
-  renderSelect(prop, otherProps, isMulti = false) {
+  renderSelect(label, prop, otherProps, isMulti = false) {
     const { columns } = this.state;
     let finalOptions = _.map(columns, "name");
     const otherValues = _(this.state)
@@ -85,6 +85,7 @@ class ReactCharts extends React.Component {
     finalOptions = _.reject(finalOptions, otherValues);
     return (
       <div className="input-group mr-3">
+        <span className="input-group-addon">{label}</span>
         <Select
           isMulti={isMulti}
           className="Select is-clearable is-searchable Select--single"
@@ -111,26 +112,25 @@ class ReactCharts extends React.Component {
     }
     return (
       <div className="charts-body">
-        <div className="row pl-5 pt-3 pb-3 charts-filters">
-          <span className="mb-auto mt-auto">Query:</span>
+        <div className="row pt-3 pb-3 charts-filters">
           <div className="col">
-            <input
-              className="form-control input-sm"
-              type="text"
-              value={query || ""}
-              onChange={e => this.setState({ query: e.target.value })}
-            />
+            <div className="input-group">
+              <span className="input-group-addon">Query</span>
+              <input
+                className="form-control input-sm"
+                type="text"
+                value={query || ""}
+                onChange={e => this.setState({ query: e.target.value })}
+              />
+            </div>
           </div>
         </div>
-        <div className="row pl-5 pt-3 pb-3 charts-filters">
-          <span className="mb-auto mt-auto">X:</span>
-          <div className="col-auto">{this.renderSelect("x", ["y", "group"])}</div>
-          <span className="mb-auto mt-auto">Y:</span>
-          <div className="col">{this.renderSelect("y", ["x", "group"], true)}</div>
-          <span className="mb-auto mt-auto">Group:</span>
-          <div className="col">{this.renderSelect("group", ["x", "y"], true)}</div>
+        <div className="row pt-3 pb-3 charts-filters">
+          <div className="col-auto">{this.renderSelect("X", "x", ["y", "group"])}</div>
+          <div className="col">{this.renderSelect("Y", "y", ["x", "group"], true)}</div>
+          <div className="col">{this.renderSelect("Group", "group", ["x", "y"], true)}</div>
         </div>
-        <div className="row pl-5 pt-3 pb-3 charts-filters">
+        <div className="row pt-3 pb-3 charts-filters">
           <Aggregations propagateState={state => this.setState(state)} {...this.state} />
           <div className="col-auto">
             <button

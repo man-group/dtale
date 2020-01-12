@@ -130,100 +130,6 @@ const lineHoverPlugin = colorScale => ({
 
 const COLOR_SCALE = chroma.scale(["orange", "yellow", "green", "lightblue", "darkblue"]);
 
-function timestampLabel(ts) {
-  const startOfDay = moment(new Date(ts))
-    .startOf("day")
-    .valueOf();
-  if (startOfDay == ts) {
-    return moment(new Date(ts)).format("YYYY-MM-DD");
-  }
-  return moment(new Date(ts)).format("YYYY-MM-DD h:mm:ss a");
-}
-
-function getTimeCfg(data, minTS, maxTS) {
-  const diffInDays = (maxTS - minTS) / (1000 * 3600 * 24);
-  let units = "year";
-  let stepSize = 1;
-  let unitsFmt = "YYYYMMDD";
-  if (diffInDays < 10 && diffInDays < _.size(data) - 2) {
-    units = "hour";
-    stepSize = 4;
-    unitsFmt += " hA";
-  } else if (diffInDays < 50) {
-    units = "day";
-  } else if (diffInDays < 365 / 2) {
-    units = "week";
-  } else if (diffInDays < 365 * 4) {
-    units = "month";
-  } else if (diffInDays < 365 * 10) {
-    units = "quarter";
-  }
-  return { units, stepSize, unitsFmt };
-}
-
-function updateCfgForDates(cfg, { columns, x, y }, { min, max }) {
-  if (isDateCol(_.get(_.find(columns || {}, { name: x }), "dtype", ""))) {
-    const minTS = min[x];
-    const maxTS = max[x];
-    const { units, stepSize, unitsFmt } = getTimeCfg(cfg.data.labels || _.map(cfg.data.datasets[0], "x"), minTS, maxTS);
-    cfg.options.scales.xAxes = [
-      {
-        type: "time",
-        distribution: "series",
-        time: {
-          unit: units,
-          stepSize,
-          displayFormats: {
-            [units]: unitsFmt,
-          },
-        },
-        ticks: {
-          min: minTS,
-          max: maxTS,
-        },
-      },
-    ];
-    cfg.options.tooltips.callbacks.title = (tooltipItems, data) =>
-      timestampLabel(_.get(data, ["labels", tooltipItems[0].index]));
-  }
-  _.forEach(y, (yProp, idx) => {
-    if (isDateCol(_.get(_.find(columns || [], { name: yProp }), "dtype", ""))) {
-      let series = _.get(cfg, ["data", "datasets", idx, "data"], []);
-      if (_.isObject(_.head(series))) {
-        series = _.map(series, "y");
-      }
-      const minTS = min[yProp];
-      const maxTS = max[yProp];
-      const { units, stepSize, unitsFmt } = getTimeCfg(series, minTS, maxTS);
-      cfg.options.scales.yAxes[idx] = _.assignIn(cfg.options.scales.yAxes[idx], {
-        type: "time",
-        distribution: "series",
-        time: {
-          unit: units,
-          stepSize,
-          displayFormats: {
-            [units]: unitsFmt,
-          },
-        },
-        ticks: {
-          min: minTS,
-          max: maxTS,
-        },
-      });
-      /*cfg.options.tooltips.callbacks.label = (tooltipItem, data) => {
-        const value = timestampLabel(tooltipItem.yLabel);
-        if (_.size(data.datasets) * _.size(y) > 1) {
-          const label = data.datasets[tooltipItem.datasetIndex].label || "";
-          if (label) {
-            return `${label}: ${value}`;
-          }
-        }
-        return value;
-      }*/
-    }
-  });
-}
-
 function updateLegend(cfg) {
   if (_.size(cfg.data.datasets) < 2) {
     cfg.options.legend = { display: false };
@@ -333,7 +239,6 @@ function createLineCfg({ data, min, max }, { columns, x, y, additionalOptions, c
   };
   const cfg = createBaseCfg({ data, min, max }, { columns, x, y, additionalOptions }, seriesFormatter);
   cfg.type = "line";
-  updateCfgForDates(cfg, { columns, x, y }, { min, max });
   return configHandler(cfg);
 }
 
@@ -356,7 +261,7 @@ function createPieCfg({ data, min, max }, { columns, x, y, additionalOptions, co
   const colors = COLOR_SCALE.domain([0, seriesCt]);
   const seriesFormatter = (k, v, i, yProp) => {
     const ptCfg = buildSeries(k, v, i, yProp);
-    ptCfg.backgroundColor = _.map(v.y, (_p, i) => (seriesCt == 1 ? "rgb(42, 145, 209)" : colors(i).hex()));
+    ptCfg.backgroundColor = _.map(v[yProp], (_p, i) => (seriesCt == 1 ? "rgb(42, 145, 209)" : colors(i).hex()));
     return ptCfg;
   };
   const cfg = createBaseCfg({ data, min, max }, { columns, x, y, additionalOptions, configHandler }, seriesFormatter);
@@ -375,11 +280,7 @@ const SCATTER_BUILDER = (data, prop) =>
     y: yVal,
   }));
 
-function createScatterCfg(
-  { data, min, max },
-  { columns, x, y, additionalOptions, configHandler },
-  builder = SCATTER_BUILDER
-) {
+function createScatterCfg({ data, min, max }, { x, y, additionalOptions, configHandler }, builder = SCATTER_BUILDER) {
   const yProp = _.head(y);
   const chartData = builder(data, yProp);
   const scatterData = formatScatterPoints(chartData);
@@ -425,7 +326,6 @@ function createScatterCfg(
       additionalOptions
     ),
   };
-  updateCfgForDates(cfg, { columns, x, y }, { min, max });
   return _.isUndefined(configHandler) ? cfg : configHandler(cfg);
 }
 
@@ -441,7 +341,6 @@ export default {
   createStackedCfg,
   createScatterCfg,
   createPieCfg,
-  timestampLabel,
   formatScatterPoints,
   getScatterMax,
   getScatterMin,

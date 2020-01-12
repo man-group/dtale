@@ -3,16 +3,13 @@ import PropTypes from "prop-types";
 import React from "react";
 import ReactWordcloud from "react-wordcloud";
 
-import chartUtils from "../../chartUtils";
-import { isDateCol } from "../../dtale/gridUtils";
-
 class WordcloudBody extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    const { chartType, x, y, columns } = this.props;
+    const { chartType, y } = this.props;
     if (chartType.value !== "wordcloud") {
       return null;
     }
@@ -52,10 +49,7 @@ class WordcloudBody extends React.Component {
                       }}
                       words={_.sortBy(
                         _.map(series.x, (l, i) => {
-                          let labelText = l + "";
-                          if (isDateCol(_.find(columns, { name: x.value }).dtype)) {
-                            labelText = chartUtils.timestampLabel(l);
-                          }
+                          const labelText = l + "";
                           return {
                             text: _.truncate(labelText, { length: 24 }),
                             fullText: labelText,
@@ -82,8 +76,6 @@ class WordcloudBody extends React.Component {
 WordcloudBody.displayName = "WordcloudBody";
 WordcloudBody.propTypes = {
   data: PropTypes.object, // eslint-disable-line react/no-unused-prop-types
-  columns: PropTypes.arrayOf(PropTypes.object),
-  x: PropTypes.object,
   y: PropTypes.arrayOf(PropTypes.object),
   group: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
   chartType: PropTypes.object,

@@ -64,28 +64,26 @@ class Aggregations extends React.Component {
     if (_.get(this.state, "aggregation.value") === "rolling") {
       const { rollingWindow, rollingComputation } = this.state;
       return [
-        <span key={2} className="mb-auto mt-auto">
-          Window:
-        </span>,
         <div key={3} className="col-auto">
-          <input
-            style={{ width: "3em" }}
-            className="form-control text-center"
-            type="text"
-            value={rollingWindow || ""}
-            onChange={e =>
-              this.update(
-                { rollingWindow: _.get(e, "target.value", "") },
-                { rollingWindow: _.get(e, "target.value", "") }
-              )
-            }
-          />
+          <div className="input-group">
+            <span className="input-group-addon">Window</span>
+            <input
+              style={{ width: "3em" }}
+              className="form-control text-center"
+              type="text"
+              value={rollingWindow || ""}
+              onChange={e =>
+                this.update(
+                  { rollingWindow: _.get(e, "target.value", "") },
+                  { rollingWindow: _.get(e, "target.value", "") }
+                )
+              }
+            />
+          </div>
         </div>,
-        <span key={4} className="mb-auto mt-auto">
-          Computation:
-        </span>,
         <div key={5} className="col-auto">
           <div className="input-group mr-3">
+            <span className="input-group-addon">Computation</span>
             <Select
               className="Select is-clearable is-searchable Select--single"
               classNamePrefix="Select"
@@ -109,11 +107,9 @@ class Aggregations extends React.Component {
 
   render() {
     return [
-      <span key={0} className="mb-auto mt-auto">
-        Aggregation:
-      </span>,
       <div key={1} className="col-auto">
         <div className="input-group mr-3">
+          <span className="input-group-addon">Aggregation</span>
           <Select
             className="Select is-clearable is-searchable Select--single"
             classNamePrefix="Select"

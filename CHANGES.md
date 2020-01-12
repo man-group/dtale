@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.6.10 (2020-1-12)
+ * better front-end handling of dates for charting as to avoid timezone issues
+ * the ability to switch between sorting any axis in bar charts
+
 ### 1.6.9 (2020-1-9)
  * bugfix for timezone issue around passing date filters to server for scatter charts in correlations popup
 
