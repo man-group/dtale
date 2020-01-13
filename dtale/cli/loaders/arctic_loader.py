@@ -1,11 +1,11 @@
-from arctic import Arctic  # isort:skip
-
 from builtins import map
+from logging import getLogger
 
 import pandas as pd
-from arctic.store.versioned_item import VersionedItem
 
 from dtale.cli.clickutils import get_loader_options
+
+logger = getLogger(__name__)
 
 '''
   IMPORTANT!!! This global variable is required for building any customized CLI loader.
@@ -26,6 +26,12 @@ def find_loader(kwargs):
     """
     arctic_opts = get_loader_options(LOADER_KEY, kwargs)
     if len([f for f in arctic_opts.values() if f]):
+        try:
+            from arctic import Arctic
+            from arctic.store.versioned_item import VersionedItem
+        except ImportError:
+            raise ImportError('In order to use the --arctic loader you must install arctic!')
+
         def _arctic_loader():
             host = Arctic(arctic_opts['host'])
             lib = host.get_library(arctic_opts['library'])

@@ -108,8 +108,11 @@ def setup_loader_options():
         for cli_loader in LOADERS.values():
             if len(cli_loader.LOADER_PROPS):
                 for p in cli_loader.LOADER_PROPS:
+                    prop_name = '--{}'.format(cli_loader.LOADER_KEY)
+                    if len(p):
+                        prop_name = '{}-{}'.format(prop_name, p)
                     f = click.option(
-                        '--' + cli_loader.LOADER_KEY + '-' + p, help='Override {} {}'.format(cli_loader.LOADER_KEY, p)
+                        prop_name, help='Override {}'.format(prop_name)
                     )(f)
             else:
                 f = click.option(

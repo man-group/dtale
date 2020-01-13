@@ -4,24 +4,21 @@ import mockPopsicle from "./MockPopsicle";
 import * as t from "./jest-assertions";
 import { buildInnerHTML, withGlobalJquery } from "./test-utils";
 
-function testMain(mainName, isDev = false) {
-  if (isDev) {
-    process.env.NODE_ENV = "dev";
-  }
+function testMain(mainName, search = "") {
+  window.location = { pathname: `/dtale/${mainName}/1`, search };
   buildInnerHTML();
   const mockReactDOM = { renderStatus: false };
   mockReactDOM.render = () => {
     mockReactDOM.renderStatus = true;
   };
   withGlobalJquery(() => jest.mock("react-dom", () => mockReactDOM));
-  require(`../${mainName}`);
+  require(`../main`);
   t.ok(mockReactDOM.renderStatus, `${mainName} compiled`);
-  if (isDev) {
-    process.env.NODE_ENV = "test";
-  }
 }
 
 describe("main tests", () => {
+  const { location, open, top, self } = window;
+
   beforeEach(() => {
     jest.resetModules();
     const mockBuildLibs = withGlobalJquery(() =>
@@ -34,13 +31,26 @@ describe("main tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  test("dtale_main rendering", done => {
-    testMain("dtale/dtale_main");
-    done();
+  beforeAll(() => {
+    delete window.location;
+    delete window.open;
+    delete window.top;
+    delete window.self;
+    window.location = { reload: jest.fn(), pathname: "/dtale/iframe/1" };
+    window.open = jest.fn();
+    window.top = { location: { href: "http://test.com" } };
+    window.self = { location: { href: "http://test/dtale/iframe" } };
   });
 
-  test("dtalemain dev rendering", done => {
-    testMain("dtale/dtale_main", true);
+  afterAll(() => {
+    window.location = location;
+    window.open = open;
+    window.top = top;
+    window.self = self;
+  });
+
+  test("main rendering", done => {
+    testMain("main");
     done();
   });
 
@@ -58,13 +68,14 @@ describe("main tests", () => {
   });
 
   test("correlations_popup_main rendering", done => {
-    testMain("popups/window/correlations_popup_main");
+    window.location = { pathname: "/dtale/popup/correlations/1" };
+    testMain("popup/correlations");
     done();
   });
 
   _.forEach(["correlations", "charts", "describe", "histogram", "instances"], popup => {
-    test(`${popup}_popup_main rendering`, done => {
-      testMain(`popups/window/${popup}_popup_main`);
+    test(`${popup} popup rendering`, done => {
+      testMain(`popup/${popup}`);
       done();
     });
   });

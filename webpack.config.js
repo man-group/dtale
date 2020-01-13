@@ -9,12 +9,7 @@ const path = require("path");
 const entries = [
   ["base_styles", "./static/base_styles.js"],
   ["polyfills", "./static/polyfills.js"],
-  ["dtale", "./static/dtale/dtale_main.jsx"],
-  ["charts_popup", "./static/popups/window/charts_popup_main.jsx"],
-  ["correlations_popup", "./static/popups/window/correlations_popup_main.jsx"],
-  ["describe_popup", "./static/popups/window/describe_popup_main.jsx"],
-  ["histogram_popup", "./static/popups/window/histogram_popup_main.jsx"],
-  ["instances_popup", "./static/popups/window/instances_popup_main.jsx"],
+  ["dtale", "./static/main.jsx"],
 ];
 
 function createConfig(entry) {
@@ -132,4 +127,50 @@ function createConfig(entry) {
   };
 }
 
-module.exports = _.map(entries, createConfig);
+function createDashConfig(entryName, entryPath) {
+  return {
+    mode: "development",
+    entry: path.resolve(__dirname, entryPath),
+    output: {
+      path: path.resolve(__dirname, "./dtale/static/dash"),
+      filename: entryName + "_bundle.js",
+      publicPath: "/dash/",
+      library: "components",
+      libraryTarget: "window",
+    },
+    devtool: "source-map",
+    externals: {
+      react: "React",
+      "react-dom": "ReactDOM",
+      "plotly.js": "Plotly",
+      "prop-types": "PropTypes",
+    },
+    module: {
+      rules: [
+        {
+          test: /\.jsx?$/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+          },
+        },
+        {
+          test: /\.css$/,
+          use: [
+            {
+              loader: "style-loader",
+              options: {
+                insertAt: "top",
+              },
+            },
+            {
+              loader: "css-loader",
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+module.exports = _.concat(_.map(entries, createConfig), createDashConfig("components", "./static/dash/lib/index.js"));

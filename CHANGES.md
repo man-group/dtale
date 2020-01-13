@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.7.0 (2020-1-28)
+ * redesign of charts popup to use plotly/dash
+ * [#55](https://github.com/man-group/dtale/issues/55): raise exception when data contains duplicate column names
+ * heatmap integration
+ * combination of "_main.jsx" files into one for spacial optimization
+ * [#15](https://github.com/man-group/dtale/issues/15): made arctic an "extra" dependency
+ 
 ### 1.6.10 (2020-1-12)
  * better front-end handling of dates for charting as to avoid timezone issues
  * the ability to switch between sorting any axis in bar charts

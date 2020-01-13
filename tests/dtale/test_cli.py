@@ -1,5 +1,4 @@
 import os
-from collections import namedtuple
 from imp import reload
 
 import mock
@@ -18,7 +17,7 @@ else:
 
 
 @pytest.mark.unit
-def test_main():
+def test_main(builtin_pkg):
 
     props = ['host', 'port', 'debug', 'subprocess', 'data_loader', 'reaper_on']
     with mock.patch('dtale.cli.script.show', mock.Mock()) as mock_show:
@@ -56,13 +55,29 @@ def test_main():
         df = data_loader()
         pdt.assert_frame_equal(df, pd.DataFrame([dict(a=1, b=2, c=3)]), 'loader should load csv')
 
+    orig_import = __import__
+    mock_arctic = mock.Mock()
+    mock_versioned_item = mock.Mock()
+
+    class VersionedItem(object):
+        __name__ = 'VersionedItem'
+
+        def __init__(self):
+            pass
+
+    mock_versioned_item.VersionedItem = VersionedItem
+
+    def import_mock(name, *args, **kwargs):
+        print(name)
+        if name == 'arctic':
+            return mock_arctic
+        if name == 'arctic.store.versioned_item':
+            return mock_versioned_item
+        return orig_import(name, *args, **kwargs)
+
     with ExitStack() as stack:
         mock_show = stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
-        mock_arctic = stack.enter_context(mock.patch('dtale.cli.loaders.arctic_loader.Arctic', mock.Mock()))
-        stack.enter_context(mock.patch(
-            'dtale.cli.loaders.arctic_loader.VersionedItem',
-            namedtuple('versioned_item', 'VersionedItem')
-        ))
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         args = [
             '--port', '9999',
             '--arctic-host', 'arctic_host',
@@ -76,8 +91,8 @@ def test_main():
         _, kwargs = mock_show.call_args
         assert kwargs['data_loader'] is not None
         kwargs['data_loader']()
-        assert mock_arctic.call_args[0][0] == 'arctic_host'
-        mock_arctic_instance = mock_arctic.return_value
+        assert mock_arctic.Arctic.call_args[0][0] == 'arctic_host'
+        mock_arctic_instance = mock_arctic.Arctic.return_value
         assert mock_arctic_instance.get_library.call_args[0][0] == 'arctic_lib'
         mock_arctic_lib_instance = mock_arctic_instance.get_library.return_value
         args, kwargs = mock_arctic_lib_instance.read.call_args
@@ -87,11 +102,7 @@ def test_main():
 
     with ExitStack() as stack:
         mock_show = stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
-        mock_arctic = stack.enter_context(mock.patch('dtale.cli.loaders.arctic_loader.Arctic', mock.Mock()))
-        stack.enter_context(mock.patch(
-            'dtale.cli.loaders.arctic_loader.VersionedItem',
-            namedtuple('versioned_item', 'VersionedItem')
-        ))
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         args = [
             '--port', '9999',
             '--arctic-host', 'arctic_host',
@@ -103,7 +114,7 @@ def test_main():
         _, kwargs = mock_show.call_args
         assert kwargs['data_loader'] is not None
         kwargs['data_loader']()
-        mock_arctic_instance = mock_arctic.return_value
+        mock_arctic_instance = mock_arctic.Arctic.return_value
         mock_arctic_lib_instance = mock_arctic_instance.get_library.return_value
         args, kwargs = mock_arctic_lib_instance.read.call_args
         assert 'chunk_range' not in kwargs

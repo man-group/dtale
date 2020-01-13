@@ -86,9 +86,13 @@ def get_loader_options(key, options):
     :return: dictionary of click options with start with key
     :rtype: dict
     """
-    prefix = key + '_'
-    len_prefix = len(prefix)
-    return dict(((k[len_prefix:], v) for k, v in options.items() if k.startswith(prefix)))
+
+    def _build_key(option):
+        segs = option.split('_')
+        if len(segs) == 1:
+            return ''
+        return '_'.join(segs[1:])
+    return dict(((_build_key(k), v) for k, v in options.items() if k.startswith(key)))
 
 
 def get_log_options(options):

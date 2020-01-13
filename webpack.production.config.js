@@ -30,4 +30,16 @@ function createConfig(subConfig) {
   });
 }
 
-module.exports = _.map(baseConfig, createConfig);
+function createDashConfig(subConfig) {
+  return assign({}, subConfig, {
+    mode: "production",
+  });
+}
+
+module.exports = _.concat(
+  _.map(
+    _.filter(baseConfig, c => !_.endsWith(c.output.path, "dtale/static/dash")),
+    createConfig
+  ),
+  createDashConfig(_.find(baseConfig, c => _.endsWith(c.output.path, "dtale/static/dash")))
+);

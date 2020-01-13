@@ -237,6 +237,17 @@ def test_show(unittest, builtin_pkg):
             {'host': 'localhost', 'reaper_on': True}, kwargs, 'build_app should be called with defaults'
         )
 
+    # test adding duplicate column
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
+        stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
+        stack.enter_context(mock.patch('requests.get', mock.Mock()))
+        instance = show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo')
+        with pytest.raises(Exception):
+            instance.data = instance.data.rename(columns={'b': 'a'})
+
     # cleanup
     views.DATA = {}
     views.DTYPES = {}
