@@ -135,7 +135,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => open("/dtale/popup/charts", dataId, 600, 1300)}>
+              <button className="btn btn-plain" onClick={() => open("/charts", dataId, 600, 1300)}>
                 <i className="ico-show-chart" />
                 <span className="font-weight-bold">Charts</span>
               </button>

@@ -42,6 +42,7 @@ class PyTest(TestCommand):
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
+                     '-p', 'no:warnings',
                      '-v'
                      ])
         errno = pytest.main(args)
@@ -50,7 +51,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.6.10",
+    version="1.7.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -61,9 +62,10 @@ setup(
     install_requires=[
         "lz4<=2.2.1; python_version < '3.0'",
         "lz4; python_version > '3.0'",
-        "arctic",
-        "Flask",
+        "dash",
+        "dash_daq",
         "Flask-Compress",
+        "Flask",
         "future",
         "itsdangerous",
         "pandas",
@@ -72,7 +74,8 @@ setup(
         "six"
     ],
     extras_require={
-        'flasgger': ["jsonschema<3.0.0", "flasgger==0.9.3"]
+        'flasgger': ["jsonschema<3.0.0", "flasgger==0.9.3"],
+        'arctic': ["arctic"],
     },
     tests_require=[
         "ipython",
@@ -94,7 +97,9 @@ setup(
         "test": PyTest,
     },
     packages=find_packages(exclude=["tests*", "script*"]),
-    package_data={"dtale": ["static/dist/*",
+    package_data={"dtale": ["dash_application/components/*",
+                            "static/dist/*",
+                            "static/dash/*",
                             "static/css/*",
                             "static/fonts/*",
                             "static/images/*",

@@ -23,10 +23,9 @@
 </div>
 {% endblock %}
 
-{% set js_file = 'dist/' + js_prefix + '_popup_bundle.js' %}
 {% block js %}
 <script type="text/javascript">
     const backToData = () => window.open('/dtale/main/{{data_id}}');
 </script>
-<script type="text/javascript" src="{{ url_for('static', filename=js_file) }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='dist/dtale_bundle.js') }}"></script>
 {% endblock %}

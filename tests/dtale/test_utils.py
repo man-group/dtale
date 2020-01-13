@@ -205,13 +205,9 @@ def test_get_host():
 
 
 @pytest.mark.unit
-def test_json_string():
+def test_json_string(builtin_pkg):
     assert utils.json_string(None, 'nan') == 'nan'
     assert utils.json_string(u"\u25B2") is not None
-
-    builtin_pkg = '__builtin__'
-    if PY3:
-        builtin_pkg = 'builtins'
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=Exception)))

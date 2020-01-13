@@ -176,7 +176,7 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
     :rtype: :class:`dtale.app.DtaleFlask`
     """
 
-    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='', url=url)
+    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='', url=url, instance_relative_config=False)
     app.config['SECRET_KEY'] = 'Dtale'
     app.config['HIDE_SHUTDOWN'] = hide_shutdown
     app.config['GITHUB_FORK'] = github_fork
@@ -337,7 +337,11 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         """
         return 'ok'
 
-    return app
+    with app.app_context():
+
+        from .dash_application import views as dash_views
+        app = dash_views.add_dash(app)
+        return app
 
 
 def initialize_process_props(host=None, port=None, force=False):

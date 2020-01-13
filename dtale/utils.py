@@ -670,7 +670,7 @@ def make_list(vals):
         return [vals]
 
 
-def dict_merge(d1, d2):
+def dict_merge(d1, d2, *args):
     """
     Merges two dictionaries.  Items of the second dictionary will
     replace items of the first dictionary if there are any overlaps.
@@ -684,11 +684,26 @@ def dict_merge(d1, d2):
     :return: new dictionary with the contents of d2 overlaying the contents of d1
     :rtype: dict
     """
-    if not d1:
-        return d2 or {}
-    elif not d2:
-        return d1 or {}
-    return dict(list(d1.items()) + list(d2.items()))
+    def _dict_merge(d11, d12):
+        if not d11:
+            return d12 or {}
+        elif not d12:
+            return d11 or {}
+        return dict(list(d11.items()) + list(d12.items()))
+    ret = _dict_merge(d1, d2)
+    for d in args:
+        ret = _dict_merge(ret, d)
+    return ret
+
+
+def flatten_lists(lists):
+    return [item for sublist in lists for item in sublist]
+
+
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 
 def swag_from(path):

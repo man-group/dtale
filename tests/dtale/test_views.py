@@ -86,6 +86,12 @@ def test_startup(unittest):
         next((dt for dt in views.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
     )
 
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+    test_data = test_data.rename(columns={'b': 'a'})
+    with pytest.raises(Exception) as error:
+        views.startup(URL, data_loader=lambda: test_data)
+    assert str(error).endswith('Exception: data contains duplicated column names: a')
+
 
 @pytest.mark.unit
 def test_in_ipython_frontend(builtin_pkg):
@@ -749,7 +755,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(
-                response_data['error'], 'Dataset exceeds 15,000 records, cannot render. Please apply filter...'
+                response_data['error'], 'Dataset exceeds 15000 records, cannot render. Please apply filter...'
             )
 
 
@@ -791,7 +797,8 @@ def test_main():
 
 @pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main/1', '/dtale/iframe/1', '/dtale/popup/test/1', 'site-map', 'version-info', 'health']
+    paths = ['/dtale/main/1', '/dtale/iframe/1', '/dtale/popup/test/1', 'site-map', 'version-info', 'health',
+             '/charts/1', '/charts/popup/1']
     try:
         # flake8: NOQA
         from flasgger import Swagger
@@ -847,12 +854,18 @@ def test_jinja_output():
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            response = c.get('/dtale/main/1')
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            response = c.get('/dtale/main/{}'.format(c.port))
+            assert 'span id="forkongithub"' not in str(response.data)
+            response = c.get('/charts/{}'.format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
 
     with build_app(url=URL, github_fork=True).test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
             response = c.get('/dtale/main/1')
+            assert 'span id="forkongithub"' in str(response.data)
+            response = c.get('/charts/{}'.format(c.port))
             assert 'span id="forkongithub"' in str(response.data)

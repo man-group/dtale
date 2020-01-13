@@ -1,0 +1,54 @@
+{
+  "static/dash/lib/components/Wordcloud.react.js": {
+    "description": "Wordcloud is a wrapper component for react-wordcloud usage by dash.\nIt takes a property, `data`, containing a series of words and a series of weights and displays a wordcloud\nor group of wordclouds depending on whether a `group` value has been specified.", 
+    "displayName": "Wordcloud", 
+    "methods": [], 
+    "props": {
+      "id": {
+        "type": {
+          "name": "string"
+        }, 
+        "required": true, 
+        "description": "The ID used to identify this component in Dash callbacks."
+      }, 
+      "data": {
+        "type": {
+          "name": "object"
+        }, 
+        "required": false, 
+        "description": "Server-side data containing words \"data[group].x\" and weights \"data[group][y-prop]\"."
+      }, 
+      "y": {
+        "type": {
+          "name": "arrayOf", 
+          "value": {
+            "name": "string"
+          }
+        }, 
+        "required": false, 
+        "description": "List of properties to use as weights."
+      }, 
+      "group": {
+        "type": {
+          "name": "arrayOf", 
+          "value": {
+            "name": "string"
+          }
+        }, 
+        "required": false, 
+        "description": "List of properties to use as groups."
+      }, 
+      "height": {
+        "type": {
+          "name": "number"
+        }, 
+        "required": false, 
+        "description": "Height of wordcloud in pixels (default: 400).", 
+        "defaultValue": {
+          "value": "400", 
+          "computed": false
+        }
+      }
+    }
+  }
+}
