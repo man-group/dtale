@@ -42,7 +42,6 @@ class PyTest(TestCommand):
                      '--cov-report', 'xml',
                      '--cov-report', 'html',
                      '--junitxml', 'junit.xml',
-                     '-p', 'no:warnings',
                      '-v'
                      ])
         errno = pytest.main(args)
@@ -51,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.7.0",
+    version="1.7.1",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -74,7 +73,6 @@ setup(
         "six"
     ],
     extras_require={
-        'flasgger': ["jsonschema<3.0.0", "flasgger==0.9.3"],
         'arctic': ["arctic"],
     },
     tests_require=[
@@ -103,8 +101,6 @@ setup(
                             "static/css/*",
                             "static/fonts/*",
                             "static/images/*",
-                            "swagger/**/*",
-                            "swagger/**/**/*",
                             "templates/**/*",
                             "templates/**/**/*"]},
     entry_points={"console_scripts": ["dtale = dtale.cli.script:main"]},

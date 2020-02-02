@@ -44,7 +44,7 @@ const COL_PROPS = [
 ];
 
 describe("DataViewer iframe tests", () => {
-  const { location, open } = window;
+  const { location, open, top, self } = window;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -58,8 +58,12 @@ describe("DataViewer iframe tests", () => {
 
     delete window.location;
     delete window.open;
+    delete window.top;
+    delete window.self;
     window.location = { reload: jest.fn() };
     window.open = jest.fn();
+    window.top = { location: { href: "http://test.com" } };
+    window.self = { location: { href: "http://test/dtale/iframe" } };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -86,6 +90,8 @@ describe("DataViewer iframe tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     window.location = location;
     window.open = open;
+    window.top = top;
+    window.self = self;
   });
 
   test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
@@ -129,7 +135,7 @@ describe("DataViewer iframe tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
-          ["Refresh", "Full-Mode", "Shutdown"]
+          ["Refresh", "Open Popup", "Shutdown"]
         ),
         "Should render default menu options"
       );
@@ -167,8 +173,8 @@ describe("DataViewer iframe tests", () => {
       clickColMenuSortButton(result, "Asc");
       t.equal(
         result
-          .find("div.row div.col-md-4")
-          .at(1)
+          .find("div.row div.col-md-6")
+          .first()
           .text(),
         "Sort:col4 (ASC)",
         "should display column sort"
@@ -273,7 +279,6 @@ describe("DataViewer iframe tests", () => {
           clickMainMenuButton(result, "Resize");
           clickMainMenuButton(result, "Refresh");
           expect(window.location.reload).toHaveBeenCalled();
-          clickMainMenuButton(result, "Full-Mode", "a");
           clickMainMenuButton(result, "Shutdown", "a");
           clickColMenuButton(result, "Formats");
           t.equal(result.find(Formatting).length, 1, "should show Formats");

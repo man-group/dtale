@@ -86,4 +86,20 @@ function buildStyling(val, colType, styleProps) {
   return style;
 }
 
-export { updateSort, moveToFront, lockCols, unlockCols, buildStyling };
+function fullPath(path, dataId = null) {
+  return dataId ? `${path}/${dataId}` : path;
+}
+
+function open(path, dataId, height = 450, width = 500) {
+  window.open(fullPath(path, dataId), "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+}
+
+function shouldOpenPopup(height, width) {
+  if (global.top === global.self) {
+    // not within iframe
+    return window.innerWidth < width || window.innerHeight < height;
+  }
+  return true;
+}
+
+export { updateSort, moveToFront, lockCols, unlockCols, buildStyling, fullPath, open, shouldOpenPopup };

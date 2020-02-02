@@ -1,27 +1,31 @@
 import json
-import traceback
 import urllib
 from logging import getLogger
 
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import pandas as pd
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from six import PY3
 
-from dtale.dash_application.charts import YAXIS_CHARTS, build_chart
-from dtale.dash_application.layout import (base_layout, build_option,
+from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
+from dtale.dash_application.charts import build_chart
+from dtale.dash_application.layout import (CHART_INPUT_SETTINGS, FREQ_LABELS,
+                                           FREQS, base_layout, build_option,
                                            charts_layout)
-from dtale.utils import dict_merge, flatten_lists, json_timestamp, make_list
+from dtale.utils import (classify_type, dict_merge, flatten_lists, get_dtypes,
+                         make_list)
 from dtale.views import DATA, _test_filter
-from dtale.views import build_chart as build_chart_data
 
 logger = getLogger(__name__)
 
 
 class DtaleDash(dash.Dash):
+    """
+    Wrapper class to dash.Dash to allow for abstraction of global state used for building the default layout.
+    Additional state include stylesheets, JS files and styling for github demos.
+    """
 
     def __init__(self, *args, **kwargs):
         server = kwargs.get('server')
@@ -37,7 +41,14 @@ class DtaleDash(dash.Dash):
 
 
 def add_dash(server):
-    """Create Dash app."""
+    """
+    Adds dash support to main D-Tale Flask process.
+
+    :param server: main D-Tale Flask process
+    :type server: :class:`flask:flask.Flask`
+    :return: server with dash added
+    :rtype: :class:`flask:flask.Flask`
+    """
 
     dash_app = DtaleDash(server=server, routes_pathname_prefix='/charts/', eager_loading=True)
 
@@ -56,6 +67,9 @@ def add_dash(server):
 
 
 def get_url_parser():
+    """
+     Returns URL parser based on whether Python 2 or 3 is being used.
+    """
     if PY3:
         return urllib.parse.parse_qsl
     else:
@@ -67,6 +81,14 @@ def get_url_parser():
 
 
 def chart_url_params(search):
+    """
+    Builds chart parameters by parsing the query string from main URL
+
+    :param search: URL querystring
+    :param search: str
+    :return: dictionary of parsed querystring key/values
+    :rtype: dict
+    """
     params = dict(get_url_parser()(search.lstrip('?')))
     for gp in ['y', 'group', 'yaxis']:
         if gp in params:
@@ -78,41 +100,21 @@ def chart_url_params(search):
 
 
 def get_data_id(pathname):
+    """
+    Parses data ID from query path (ex: 'foo/bar/1' => '1')
+    """
     return pathname.split('/')[-1]
 
 
-def build_error(error, tb):
-    logger.error(error)
-    logger.error(tb)
-    return html.Div([
-        html.I(className='ico-error'), html.Span(str(error)), html.Div(html.Pre(tb), className='traceback')
-    ], className='dtale-alert alert alert-danger')
-
-
-def build_figure_data(pathname, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
-                      rolling_comp=None, **kwargs):
-    try:
-        if x is None or not len(y or []):
-            return None
-
-        if chart_type == 'heatmap' and z is None:
-            return None
-
-        data_id = get_data_id(pathname)
-        data = DATA[data_id] if (query or '') == '' else DATA[data_id].query(query)
-        chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
-                            rolling_comp=rolling_comp)
-        if chart_type == 'heatmap':
-            chart_kwargs['z'] = z
-            del chart_kwargs['group_col']
-        data = build_chart_data(data, x, y, **chart_kwargs)
-        data['load_time'] = json_timestamp(pd.Timestamp('now'))
-        return data
-    except BaseException as e:
-        return dict(error=str(e), traceback=str(traceback.format_exc()))
-
-
 def init_callbacks(dash_app):
+    """
+    Dynamically adds dash callbacks to dash-wrapped flask server
+
+    :param dash_app: flask server with dash support enabled
+    :type dash_app: :class:`flask:flask.Flask`
+    :return: flask server with dash callbacks added
+    :rtype: :class:`flask:flask.Flask`
+    """
 
     @dash_app.callback(
         [Output('query-data', 'data'), Output('query-input', 'style'), Output('query-input', 'title')],
@@ -120,6 +122,19 @@ def init_callbacks(dash_app):
         [State('url', 'pathname'), State('query-data', 'data')]
     )
     def query_input(query, pathname, curr_query):
+        """
+        dash callback for storing valid pandas dataframe queries.  This acts as an intermediary between values typed
+        by the user and values that are applied to pandas dataframes.  Most of the time what the user has typed is not
+        complete and thus not a valid pandas dataframe query.
+
+        :param query: query input
+        :type query: str
+        :param pathname: URL path
+        :param curr_query: current valid pandas dataframe query
+        :return: tuple of (query (if valid), styling for query input (if invalid input), query input title (containing
+        invalid query exception information)
+        :rtype: tuple of (str, str, str)
+        """
         try:
             if query is not None and query != '':
                 _test_filter(DATA[get_data_id(pathname)], query)
@@ -131,8 +146,8 @@ def init_callbacks(dash_app):
         [
             Output('input-data', 'data'),
             Output('x-dropdown', 'options'),
-            Output('y-dropdown', 'options'),
-            Output('y-heatmap-dropdown', 'options'),
+            Output('y-single-dropdown', 'options'),
+            Output('y-multi-dropdown', 'options'),
             Output('z-dropdown', 'options'),
             Output('group-dropdown', 'options'),
         ],
@@ -140,8 +155,8 @@ def init_callbacks(dash_app):
             Input('query-data', 'modified_timestamp'),
             Input('chart-tabs', 'value'),
             Input('x-dropdown', 'value'),
-            Input('y-dropdown', 'value'),
-            Input('y-heatmap-dropdown', 'value'),
+            Input('y-multi-dropdown', 'value'),
+            Input('y-single-dropdown', 'value'),
             Input('z-dropdown', 'value'),
             Input('group-dropdown', 'value'),
             Input('agg-dropdown', 'value'),
@@ -150,27 +165,46 @@ def init_callbacks(dash_app):
         ],
         [State('url', 'pathname'), State('query-data', 'data')]
     )
-    def input_data(_ts, chart_type, x, y, y_heatmap, z, group, agg, window, rolling_comp, pathname, query):
-        selected_y = make_list(y_heatmap if chart_type == 'heatmap' else y)
-        inputs = dict(query=query, chart_type=chart_type, x=x, y=selected_y, z=z, group=group, agg=agg, window=window,
+    def input_data(_ts, chart_type, x, y_multi, y_single, z, group, agg, window, rolling_comp, pathname, query):
+        """
+        dash callback for maintaining chart input state and column-based dropdown options.  This will guard against
+        users selecting the same column for multiple axes.
+        """
+        y_val = make_list(y_single if chart_type in ZAXIS_CHARTS else y_multi)
+        inputs = dict(query=query, chart_type=chart_type, x=x, y=y_val, z=z, group=group, agg=agg, window=window,
                       rolling_comp=rolling_comp)
-        cols = DATA[get_data_id(pathname)].columns
+        data_id = get_data_id(pathname)
+        cols = DATA[data_id].columns
+        dtypes = get_dtypes(DATA[data_id])
 
         def build_selections(*args):
             return flatten_lists([[] if a is None else make_list(a) for a in args])
 
-        x_filter = build_selections(y_heatmap, z) if chart_type == 'heatmap' else build_selections(y, group)
-        x_options = [build_option(c) for c in cols if c not in x_filter]
-        y_options = [build_option(c) for c in cols if c not in build_selections(x, group)]
-        y_heatmap_options = [build_option(c) for c in cols if c not in build_selections(x, group)]
-        z_options = [build_option(c) for c in cols if c not in build_selections(x, y_heatmap)]
-        group_options = [build_option(c) for c in cols if c not in build_selections(x, y)]
-        return inputs, x_options, y_options, y_heatmap_options, z_options, group_options
+        def build_cols():
+            for c in cols:
+                if classify_type(dtypes[c]) == 'D':
+                    for freq in FREQS:
+                        if freq in FREQ_LABELS:
+                            yield '{}|{}'.format(c, freq), '{} ({})'.format(c, FREQ_LABELS[freq])
+                        else:
+                            yield c, c
+                else:
+                    yield c, c
+
+        col_opts = list(build_cols())
+        group_val, z_val = (None, z) if chart_type in ZAXIS_CHARTS else (group, None)
+        x_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(y_val, z_val, group_val)]
+        y_filter = build_selections(x, group_val, z_val)
+        y_multi_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
+        y_single_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
+        z_options = [build_option(c) for c in cols if c not in build_selections(x, y_val, group_val)]
+        group_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(x, y_val, z_val)]
+        return inputs, x_options, y_single_options, y_multi_options, z_options, group_options
 
     @dash_app.callback(
         [
-            Output('y-input', 'style'),
-            Output('y-heatmap-input', 'style'),
+            Output('y-multi-input', 'style'),
+            Output('y-single-input', 'style'),
             Output('z-input', 'style'),
             Output('group-input', 'style'),
             Output('rolling-inputs', 'style'),
@@ -179,21 +213,31 @@ def init_callbacks(dash_app):
             Output('barsort-input', 'style'),
             Output('barsort-dropdown', 'options'),
             Output('yaxis-input', 'style'),
-            Output('yaxis-dropdown', 'options')
+            Output('yaxis-dropdown', 'options'),
         ],
         [Input('input-data', 'modified_timestamp')],
         [State('input-data', 'data')]
     )
     def input_toggles(_ts, inputs):
+        """
+        dash callback controlling showing/hiding of chart-specific inputs (for example z-axis) as well as chart
+        formatting inputs (sorting for bars in bar chart, bar chart style (stacked) or y-axis ranges.
+        """
         [chart_type, x, y, group, agg] = [inputs.get(p) for p in ['chart_type', 'x', 'y', 'group', 'agg']]
-        y_style = {'display': 'none' if chart_type == 'heatmap' else 'block'}
-        y_heatmap_style = {'display': 'block' if chart_type == 'heatmap' else 'none'}
-        z_style = {'display': 'block' if chart_type == 'heatmap' else 'none'}
-        group_style = {'display': 'none' if chart_type == 'heatmap' else 'block'}
+        settings = CHART_INPUT_SETTINGS[chart_type]
+        x_settings, y_settings, z_settings, group_settings = (settings.get(p) for p in ['x', 'y', 'z', 'group'])
+
+        def show(cfg, input_type='single'):
+            return cfg.get('display', True) and cfg.get('type', 'single') == input_type
+
+        y_multi_style = {'display': 'block' if show(y_settings, 'multi') else 'none'}
+        y_single_style = {'display': 'block' if show(y_settings) else 'none'}
+        z_style = {'display': 'block' if show(z_settings) else 'none'}
+        group_style = {'display': 'block' if show(group_settings) else 'none'}
         rolling_style = {'display': 'inherit' if agg == 'rolling' else 'none'}
-        cpg_style = {'display': 'block' if chart_type != 'heatmap' and len(group or []) else 'none'}
-        barmode_style = {'display': 'block' if chart_type == 'bar' else 'none'}
-        barsort_style = {'display': 'block' if chart_type == 'bar' else 'none'}
+        show_cpg = show(group_settings) and len(group or []) and chart_type not in ['pie', 'wordcloud']
+        cpg_style = {'display': 'block' if show_cpg else 'none'}
+        bar_style = {'display': 'block' if chart_type == 'bar' else 'none'}
         barsort_options = make_list(x) if x is not None else []
         barsort_options += make_list(y) if y is not None else []
         barsort_options = [build_option(o) for o in barsort_options]
@@ -203,8 +247,8 @@ def init_callbacks(dash_app):
             yaxis_style, yaxis_options = {'display': 'block'}, [build_option(y2) for y2 in y]
 
         return (
-            y_style, y_heatmap_style, z_style, group_style, rolling_style, cpg_style, barmode_style, barsort_style,
-            barsort_options, yaxis_style, yaxis_options
+            y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style,
+            bar_style, barsort_options, yaxis_style, yaxis_options
         )
 
     @dash_app.callback(
@@ -216,6 +260,12 @@ def init_callbacks(dash_app):
         ]
     )
     def chart_input_data(cpg, barmode, barsort):
+        """
+        dash callback for maintaining selections in chart-formatting inputs
+            - chart per group flag
+            - bar chart mode
+            - bar chart sorting
+        """
         return dict(cpg=cpg, barmode=barmode, barsort=barsort)
 
     @dash_app.callback(
@@ -240,25 +290,14 @@ def init_callbacks(dash_app):
         ]
     )
     def on_data(_ts1, _ts2, _ts3, pathname, inputs, chart_inputs, yaxis_data, last_chart_inputs):
+        """
+        dash callback controlling the building of dash charts
+        """
         all_inputs = dict_merge(inputs, chart_inputs, dict(yaxis=yaxis_data or {}))
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
-        charts, range_data = load_chart(pathname, **all_inputs)
+        charts, range_data = build_chart(get_data_id(pathname), **all_inputs)
         return charts, all_inputs, range_data
-
-    def load_chart(pathname, **kwargs):
-        try:
-            data = build_figure_data(pathname, **kwargs)
-            if data is None:
-                return None, None
-
-            if 'error' in data:
-                return build_error(data['error'], data['traceback']), None
-
-            data_id = get_data_id(pathname)
-            return build_chart(data, data_id, **kwargs), dict(min=data['min'], max=data['max'])
-        except BaseException as e:
-            return build_error(str(e), str(traceback.format_exc())), None
 
     @dash_app.callback(
         [Output('yaxis-min-input', 'value'), Output('yaxis-max-input', 'value')],
@@ -266,6 +305,9 @@ def init_callbacks(dash_app):
         [State('input-data', 'data'), State('yaxis-data', 'data'), State('range-data', 'data')]
     )
     def yaxis_min_max_values(yaxis, inputs, yaxis_inputs, range_data):
+        """
+        dash callback controlling values for selected y-axis in y-axis range editor
+        """
         chart_type, y = [(inputs or {}).get(p) for p in ['chart_type', 'y']]
         if chart_type not in YAXIS_CHARTS:
             return None, None
@@ -285,6 +327,9 @@ def init_callbacks(dash_app):
         [State('yaxis-dropdown', 'value'), State('yaxis-data', 'data'), State('range-data', 'data')]
     )
     def update_yaxis_data(yaxis_min, yaxis_max, yaxis, yaxis_data, range_data):
+        """
+        dash callback controlling updates to y-axis range state
+        """
         if yaxis is None:
             raise PreventUpdate
         yaxis_data = yaxis_data or {}
@@ -301,15 +346,20 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(Output('popup-chart-content', 'children'), [Input('url', 'pathname'), Input('url', 'search')])
     def popup_figure_content(pathname, search):
+        """
+        dash callback for building chart for popup
+        """
         params = chart_url_params(search)
-        charts, _ = load_chart(pathname, **params)
-        return charts
+        return build_chart(get_data_id(pathname), **params)[0]
 
     @dash_app.callback(
         Output('popup-content', 'children'),
         [Input('url', 'modified_timestamp')],
         [State('url', 'pathname')])
     def display_page(_ts, pathname):
+        """
+        dash callback which gets called on initial load of each dash page (main & popup)
+        """
         dash_app.config.suppress_callback_exceptions = False
         if pathname.startswith('/charts/popup/'):
             return html.Div(dcc.Loading(html.Div(id='popup-chart-content'), type='circle'), className='charts-body')

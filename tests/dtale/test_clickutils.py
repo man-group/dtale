@@ -5,7 +5,9 @@ import mock
 import pytest
 from six import PY3
 
-from dtale.cli.clickutils import loader_options, setup_logging
+from dtale.cli.clickutils import (get_loader_options, loader_options,
+                                  retrieve_meta_info_and_version,
+                                  setup_logging)
 
 if PY3:
     from contextlib import ExitStack
@@ -66,3 +68,24 @@ def test_loader_options():
         return prop1 + prop2
     decorated_f = opts(_options_test)
     assert ['test_prop1', 'test_prop2'] == [o.name for o in decorated_f.__click_params__]
+
+
+@pytest.mark.unit
+def test_get_loader_options():
+    ret = get_loader_options('foo', dict(foo_bar=1, baz_bar=2, biz=3))
+    assert ret['bar'] == 1
+
+
+@pytest.mark.unit
+def test_retrieve_meta_info_and_version():
+    class MockDist(object):
+        def __init__(self):
+            self.version = '1.0.0'
+
+        def _get_metadata(self, pkg_info):
+            raise Exception()
+
+    with mock.patch('pkg_resources.get_distribution', mock.Mock(return_value=MockDist())):
+        meta_info, version = retrieve_meta_info_and_version('foo')
+        assert meta_info is None
+        assert version == '1.0.0'

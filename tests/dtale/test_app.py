@@ -128,6 +128,8 @@ def test_show(unittest, builtin_pkg):
         assert instance2._url == instance._url
         assert instances()[instance._data_id]._url == instance._url
 
+        assert get_instance(20) is None  # should return None for invalid data ids
+
         instance.kill()
         mock_requests.assert_called_once()
         mock_requests.call_args[0][0] == 'http://localhost:9999/shutdown'
@@ -173,17 +175,7 @@ def test_show(unittest, builtin_pkg):
         instance = show(data=test_data, subprocess=False, name='foo')
         assert np.array_equal(instance.data['0'].values, test_data[0].values)
 
-    orig_import = __import__
-
-    mock_swaggu = mock.Mock()
-
-    def import_mock(name, *args, **kwargs):
-        if name == 'flasgger':
-            return mock_swaggu
-        return orig_import(name, *args, **kwargs)
-
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
         stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))

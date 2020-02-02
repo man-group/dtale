@@ -11,8 +11,15 @@ logger = getLogger(__name__)
   IMPORTANT!!! This global variable is required for building any customized CLI loader.
   When find loaders on startup it will search for any modules containing the global variable LOADER_KEY.
 '''
+NOW = pd.Timestamp('now').strftime('%Y%m%d')
 LOADER_KEY = 'arctic'
-LOADER_PROPS = ['host', 'library', 'node', 'start', 'end']
+LOADER_PROPS = [
+    dict(name='host', help='arctic hostname'),
+    dict(name='library', help='library within --arctic-host'),
+    dict(name='node', help='node within --arctic-library'),
+    dict(name='start', help='start-date of range to load if reading from ChunkStore (EX: {})'.format(NOW)),
+    dict(name='end', help='end-date of range to load if reading from ChunkStore (EX: {})'.format(NOW)),
+]
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.

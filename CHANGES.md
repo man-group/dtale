@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.7.1 (2020-2-7)
+ * added pie, 3D scatter & surface charts
+ * updated popups to be displayed when the browser dimensions are too small to host a modal
+ * removed Swagger due to its lack up support for updated dependencies
+
 ### 1.7.0 (2020-1-28)
  * redesign of charts popup to use plotly/dash
  * [#55](https://github.com/man-group/dtale/issues/55): raise exception when data contains duplicate column names

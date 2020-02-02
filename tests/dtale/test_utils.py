@@ -206,14 +206,28 @@ def test_get_host():
 
 @pytest.mark.unit
 def test_json_string(builtin_pkg):
-    assert utils.json_string(None, 'nan') == 'nan'
+    assert utils.json_string(None, nan_display='nan') == 'nan'
     assert utils.json_string(u"\u25B2") is not None
 
+    class MockStr(object):
+        def __init__(self, string=''):
+            raise Exception('test')
+
+    class MockLogger(object):
+        def exception(self, v):
+            pass
+
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=Exception)))
-        mock_logger = stack.enter_context(mock.patch('dtale.utils.logger', mock.Mock()))
-        assert utils.json_string('blah', 'nan') == 'nan'
-        mock_logger.exception.assert_called_once()
+        stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr)))
+        stack.enter_context(mock.patch('dtale.utils.logger', MockLogger()))
+        assert utils.json_string('blah', nan_display='nan') == 'nan'
+
+
+@pytest.mark.unit
+def test_json_string2(builtin_pkg):
+    class MockLogger(object):
+        def exception(self, v):
+            pass
 
     class MockStr(object):
         def __init__(self, string=''):
@@ -224,11 +238,9 @@ def test_json_string(builtin_pkg):
 
     class TestStr(object):
         def encode(self, encoding=None, errors=None):
-            return 'blah'
+            pass
 
     with ExitStack() as stack:
-        stack.enter_context(
-            mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr))
-        )
-        stack.enter_context(mock.patch('dtale.utils.logger', mock.Mock()))
-        assert utils.json_string(TestStr(), 'nan') == 'blah'
+        stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr)))
+        stack.enter_context(mock.patch('dtale.utils.logger', MockLogger()))
+        utils.json_string(TestStr(), nan_display='nan')

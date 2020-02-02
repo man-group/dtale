@@ -16,7 +16,6 @@ class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
     this.renderMenu = this.renderMenu.bind(this);
-    this.renderIframe = this.renderIframe.bind(this);
   }
 
   shouldComponentUpdate(newProps) {
@@ -46,8 +45,11 @@ class ReactHeader extends React.Component {
     );
   }
 
-  renderIframe() {
+  render() {
     const { columnIndex, style, sortInfo } = this.props;
+    if (columnIndex == 0) {
+      return this.renderMenu();
+    }
     const colName = _.get(gu.getCol(columnIndex, this.props), "name");
     const toggleId = gu.buildToggleId(colName);
     const menuHandler = menuUtils.openMenu(
@@ -66,33 +68,6 @@ class ReactHeader extends React.Component {
       </div>
     );
   }
-
-  render() {
-    const { columnIndex, style, sortInfo, propagateState, selectedCols } = this.props;
-    if (columnIndex == 0) {
-      return this.renderMenu();
-    }
-    if (this.props.iframe) {
-      return this.renderIframe();
-    }
-    const colName = _.get(gu.getCol(columnIndex, this.props), "name");
-    const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
-    const toggleCol = () => {
-      if (_.includes(selectedCols, colName)) {
-        propagateState({ selectedCols: _.without(selectedCols, colName) });
-      } else {
-        propagateState({ selectedCols: _.concat(selectedCols, [colName]) });
-      }
-    };
-    return (
-      <div className={`headerCell ${_.includes(selectedCols, colName) ? "selected" : ""}`} style={style}>
-        <div style={{ cursor: "pointer" }} onClick={toggleCol}>
-          {_.get(SORT_CHARS, sortDir, "")}
-          {colName}
-        </div>
-      </div>
-    );
-  }
 }
 ReactHeader.displayName = "ReactHeader";
 ReactHeader.propTypes = {
@@ -102,15 +77,13 @@ ReactHeader.propTypes = {
   sortInfo: PropTypes.arrayOf(PropTypes.array),
   propagateState: PropTypes.func,
   menuOpen: PropTypes.bool,
-  selectedCols: PropTypes.arrayOf(PropTypes.string),
   rowCount: PropTypes.number,
-  iframe: PropTypes.bool,
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
 };
 
 const ReduxHeader = connect(
-  ({ iframe }) => ({ iframe }),
+  () => ({}),
   dispatch => ({
     toggleColumnMenu: (colName, toggleId) => dispatch(actions.toggleColumnMenu(colName, toggleId)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
