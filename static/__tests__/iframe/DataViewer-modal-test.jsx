@@ -1,19 +1,21 @@
 import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
+import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { RemovableError } from "../../RemovableError";
+import { ReactColumnMenu as ColumnMenu } from "../../dtale/iframe/ColumnMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { clickColMenuButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
-describe("DataViewer tests", () => {
+describe("DataViewer iframe tests", () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -35,12 +37,6 @@ describe("DataViewer tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
-        if (url.startsWith("/dtale/scatter")) {
-          return {
-            error: "scatter errror",
-            traceback: "scatter error traceback",
-          };
-        }
         return urlFetcher(url);
       })
     );
@@ -49,10 +45,6 @@ describe("DataViewer tests", () => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
       chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      chartCfg.getDatasetMeta = _idx => ({
-        controller: { _config: { selectedPoint: 0 } },
-      });
       return chartCfg;
     });
 
@@ -69,44 +61,53 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  test("DataViewer: correlations scatter error", done => {
+  test("DataViewer: histogram display in a modal", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
-    const ChartsBody = require("../../popups/charts/ChartsBody").default;
+    const Histogram = require("../../popups/Histogram").ReactHistogram;
+
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
+    buildInnerHTML({ settings: "", iframe: "True" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
-      { attachTo: document.getElementById("content") }
+      {
+        attachTo: document.getElementById("content"),
+      }
     );
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Correlations");
+      result
+        .find(MultiGrid)
+        .first()
+        .instance();
+      t.deepEqual(
+        result.find(".main-grid div.headerCell").map(hc => hc.text()),
+        ["col1", "col2", "col3", "col4"],
+        "should render column headers"
+      );
+      result
+        .find(".main-grid div.headerCell div")
+        .at(1)
+        .simulate("click");
+      t.equal(result.find("#column-menu-div").length, 1, "should show column menu");
+      t.equal(
+        result
+          .find(ColumnMenu)
+          .first()
+          .find("header")
+          .first()
+          .text(),
+        'Column "col2"',
+        "should show col2 menu"
+      );
+      clickColMenuButton(result, "Histogram");
       setTimeout(() => {
         result.update();
-        const corrGrid = result
-          .find(Correlations)
-          .first()
-          .find("div.ReactVirtualized__Grid__innerScrollContainer");
-        corrGrid
-          .find("div.cell")
-          .at(1)
-          .simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-          const tsChart = result.find(ChartsBody).instance().state.charts[0];
-          tsChart.cfg.options.onClick({});
-          setTimeout(() => {
-            result.update();
-            t.ok(result.find(RemovableError).length == 1, "should render scatter error");
-            done();
-          }, 400);
-        }, 400);
+        t.equal(result.find(Histogram).length, 1, "should show histogram");
+        done();
       }, 400);
-    }, 400);
+    }, 600);
   });
 });

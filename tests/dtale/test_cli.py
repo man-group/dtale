@@ -68,7 +68,6 @@ def test_main(builtin_pkg):
     mock_versioned_item.VersionedItem = VersionedItem
 
     def import_mock(name, *args, **kwargs):
-        print(name)
         if name == 'arctic':
             return mock_arctic
         if name == 'arctic.store.versioned_item':
@@ -118,6 +117,86 @@ def test_main(builtin_pkg):
         mock_arctic_lib_instance = mock_arctic_instance.get_library.return_value
         args, kwargs = mock_arctic_lib_instance.read.call_args
         assert 'chunk_range' not in kwargs
+
+
+@pytest.mark.unit
+def test_arctic_import_error(builtin_pkg):
+    orig_import = __import__
+
+    def import_mock(name, *args, **kwargs):
+        if name.startswith('arctic'):
+            raise ImportError()
+        return orig_import(name, *args, **kwargs)
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        args = [
+            '--port', '9999',
+            '--arctic-host', 'arctic_host',
+            '--arctic-library', 'arctic_lib',
+            '--arctic-node', 'arctic_node',
+            '--arctic-start', '20000101',
+            '--arctic-end', '20000102'
+        ]
+        with pytest.raises(ImportError) as error:
+            script.main(args, standalone_mode=False)
+        assert 'ImportError: In order to use the --arctic loader you must install arctic!' in str(error)
+
+
+@pytest.mark.unit
+def test_arctic_version_data(builtin_pkg):
+    orig_import = __import__
+    mock_arctic = mock.Mock()
+
+    class MockVersionedItem(object):
+        __name__ = 'VersionedItem'
+
+        def __init__(self):
+            self.data = 'versioned_data'
+            pass
+
+    class MockArcticLibrary(object):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def read(self, *args, **kwargs):
+            return MockVersionedItem()
+
+    class MockArctic(object):
+        __name__ = 'Arctic'
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def get_library(self, *args, **kwargs):
+            return MockArcticLibrary()
+
+    mock_arctic.Arctic = MockArctic
+    mock_versioned_item = mock.Mock()
+    mock_versioned_item.VersionedItem = MockVersionedItem
+
+    def import_mock(name, *args, **kwargs):
+        if name == 'arctic':
+            return mock_arctic
+        if name == 'arctic.store.versioned_item':
+            return mock_versioned_item
+        return orig_import(name, *args, **kwargs)
+
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        args = [
+            '--port', '9999',
+            '--arctic-host', 'arctic_host',
+            '--arctic-library', 'arctic_lib',
+            '--arctic-node', 'arctic_node',
+        ]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        assert kwargs['data_loader'] is not None
+        assert kwargs['data_loader']() == 'versioned_data'
 
 
 @pytest.mark.unit

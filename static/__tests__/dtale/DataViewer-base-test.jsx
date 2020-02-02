@@ -1,7 +1,6 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
@@ -80,7 +79,6 @@ describe("DataViewer tests", () => {
 
   test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const Histogram = require("../../popups/Histogram").ReactHistogram;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -116,157 +114,23 @@ describe("DataViewer tests", () => {
           .find(DataViewerMenu)
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
-        _.concat(
-          ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
-          ["Iframe-Mode", "Shutdown"]
-        ),
+        _.concat([
+          "Describe",
+          "Filter",
+          "Correlations",
+          "Charts",
+          "Resize",
+          "Heat Map",
+          "Instances 1",
+          "About",
+          "Shutdown",
+        ]),
         "Should render default menu options"
       );
-
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
-      result.update();
-      t.equal(result.find(".main-grid div.headerCell.selected").length, 1, "should select col4");
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
-      result.update();
-      t.equal(result.find(".main-grid div.headerCell.selected").length, 0, "should clear selection");
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
-      result.update();
-
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Move To Front", "Lock", "Sort Ascending", "Sort Descending", "Clear Sort", "Filter", "Formats"],
-          ["Histogram", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About", "Iframe-Mode"],
-          ["Shutdown"]
-        ),
-        "Should render menu options associated with selected column"
-      );
-
-      clickMainMenuButton(result, "Sort Descending");
-      t.equal(
-        result
-          .find("div.row div.col-md-4")
-          .first()
-          .text(),
-        "Selected:col4",
-        "should display selected column"
-      );
-      t.equal(
-        result
-          .find("div.row div.col-md-4")
-          .at(1)
-          .text(),
-        "Sort:col4 (DESC)",
-        "should display column sort"
-      );
       setTimeout(() => {
-        result.update();
-        result
-          .find(".main-grid div.headerCell div")
-          .at(2)
-          .simulate("click");
-        result.update();
-        t.equal(
-          result
-            .find("div.row div.col-md-4")
-            .first()
-            .text(),
-          "Selected:col4, col3",
-          "should display selected columns"
-        );
-
-        // deselect
-        result
-          .find("div.row i.ico-cancel")
-          .first()
-          .simulate("click");
-        result.update();
-        result
-          .find(".main-grid div.headerCell div")
-          .last()
-          .simulate("click");
-        result.update();
-
-        // move to front
-        clickMainMenuButton(result, "Move To Front");
-        result.update();
-        t.deepEqual(
-          result.find(".main-grid div.headerCell").map(hc => hc.text()),
-          ["▼col4", "col1", "col2", "col3"],
-          "should move col4 to front of main grid"
-        );
-
-        // lock
-        clickMainMenuButton(result, "Lock");
-        result.update();
-        t.deepEqual(
-          result
-            .find("div.TopRightGrid_ScrollWrapper")
-            .first()
-            .find("div.headerCell")
-            .map(hc => hc.text()),
-          ["col1", "col2", "col3"],
-          "should move col4 out of main grid"
-        );
-
-        //unlock
-        result
-          .find(".main-grid div.headerCell div")
-          .first()
-          .simulate("click");
-        result.update();
-        clickMainMenuButton(result, "Unlock");
-        result.update();
-        t.deepEqual(
-          result
-            .find("div.TopRightGrid_ScrollWrapper")
-            .first()
-            .find("div.headerCell")
-            .map(hc => hc.text()),
-          ["▼col4", "col1", "col2", "col3"],
-          "should move col4 back into main grid"
-        );
-
-        //clear sorts
-        result
-          .find("div.row i.ico-cancel")
-          .first()
-          .simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.equal(result.find("div.row").length, 0, "should remove information row");
-          result
-            .find(".main-grid div.headerCell div")
-            .last()
-            .simulate("click");
-          clickMainMenuButton(result, "Histogram");
-          setTimeout(() => {
-            t.equal(result.find(Histogram).length, 1, "should show histogram");
-            setTimeout(() => {
-              result
-                .find(ModalClose)
-                .first()
-                .simulate("click");
-              t.equal(result.find(Histogram).length, 0, "should hide histogram");
-              clickMainMenuButton(result, "Resize");
-              clickMainMenuButton(result, "Iframe-Mode", "a");
-              clickMainMenuButton(result, "Shutdown", "a");
-              done();
-            }, 400);
-          }, 400);
-        }, 400);
+        clickMainMenuButton(result, "Resize");
+        clickMainMenuButton(result, "Shutdown", "a");
+        done();
       }, 400);
     }, 600);
   });

@@ -6,9 +6,10 @@ import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import mockPopsicle from "../MockPopsicle";
+import { clickColMenuButton } from "../iframe/iframe-utils";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -91,7 +92,7 @@ describe("DataViewer tests", () => {
         .at(1)
         .simulate("click");
       result.update();
-      clickMainMenuButton(result, "Formats");
+      clickColMenuButton(result, "Formats");
       result.update();
       t.equal(result.find(Formatting).length, 1, "should open formatting");
       result
@@ -102,7 +103,7 @@ describe("DataViewer tests", () => {
       result.update();
       t.notOk(result.find(Formatting).instance().props.visible, "should close formatting");
       result.update();
-      clickMainMenuButton(result, "Formats");
+      clickColMenuButton(result, "Formats");
       result.update();
 
       result

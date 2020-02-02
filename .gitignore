@@ -4,8 +4,10 @@
 # test output files
 .cache
 .coverage
+.eggs
 .nyc_output
 js_junit.xml
+junit.xml
 duplicates.xml
 tap-output
 results.tap

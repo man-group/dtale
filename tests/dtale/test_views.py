@@ -53,7 +53,8 @@ def test_startup(unittest):
     instance = views.startup(URL, data_loader=lambda: test_data)
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['date', 'security_id']), 'should lock index columns')
+    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['date', 'security_id']),
+                         'should lock index columns')
 
     test_data = test_data.reset_index()
     instance = views.startup(URL, data=test_data)
@@ -357,7 +358,8 @@ def test_get_data(unittest, test_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
+            response = c.get('/dtale/data/{}'.format(c.port),
+                             query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle data exception'
@@ -418,7 +420,8 @@ def test_get_histogram(unittest, test_data):
             )
             unittest.assertEqual(response_data, expected, 'should return 5-bin histogram for foo')
 
-            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo', bins=5, query='security_id > 10'))
+            response = c.get('/dtale/histogram/{}'.format(c.port),
+                             query_string=dict(col='foo', bins=5, query='security_id > 10'))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
@@ -720,11 +723,11 @@ def test_get_chart_data(unittest, test_data, rolling_data):
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
-            response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
+            response = c.get('/dtale/chart-data/{}'.format(c.port),
+                             query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
-            unittest.assertEqual(
-                response_data['error'], "Invalid query: name 'missing_col' is not defined", 'should handle data exception'
-            )
+            unittest.assertEqual(response_data['error'], "Invalid query: name 'missing_col' is not defined",
+                                 'should handle data exception')
 
     with app.test_client() as c:
         with mock.patch('dtale.views.DATA', {c.port: test_data}):
@@ -799,12 +802,6 @@ def test_main():
 def test_200():
     paths = ['/dtale/main/1', '/dtale/iframe/1', '/dtale/popup/test/1', 'site-map', 'version-info', 'health',
              '/charts/1', '/charts/popup/1']
-    try:
-        # flake8: NOQA
-        from flasgger import Swagger
-        paths.append('apidocs/')
-    except ImportError:
-        pass
     with app.test_client() as c:
         for path in paths:
             response = c.get(path)

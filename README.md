@@ -12,7 +12,11 @@
 
 ## What is it?
 
-D-Tale was born out a conversion from SAS to Python.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.  D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.  It integrates seamlessly with ipython notebooks & python/ipython terminals.
+D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures.  It integrates seamlessly with ipython notebooks & python/ipython terminals.  Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.
+
+## Origins
+
+D-Tale was the product of a SAS to Python conversion.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.
 
 ## Contents
 
@@ -23,11 +27,11 @@ D-Tale was born out a conversion from SAS to Python.  What was originally a perl
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
-  - [Menu functions w/ no columns selected](#menu-functions-w-no-columns-selected)
-    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Iframe-Mode/Full-Mode](#iframe-modefull-mode), [Shutdown](#shutdown)
-  - [Menu functions w/ column(s) selected](#menu-functions-w-columns-selected)
+  - [Main Menu Functions](#main-menu-functions)
+    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+  - [Column Menu Functions](#column-menu-functions)
     - [Move To Front](#move-to-front), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
-  - [Menu functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
+  - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
   - [Running Tests](#running-tests)
@@ -46,23 +50,9 @@ D-Tale was born out a conversion from SAS to Python.  What was originally a perl
 |:------:|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_ipython.gif)|
 
-Setup/Activate your environment and install the egg
+Installing the egg
 
-**Python 3**
 ```bash
-# create a virtualenv, if you haven't already created one
-$ python3 -m venv ~/pyenvs/dtale
-$ source ~/pyenvs/dtale/bin/activate
-
-# install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
-$ pip install --upgrade dtale
-```
-**Python 2**
-```bash
-# create a virtualenv, if you haven't already created one
-$ python -m virtualenv ~/pyenvs/dtale
-$ source ~/pyenvs/dtale/bin/activate
-
 # install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
 $ pip install --upgrade dtale
 ```
@@ -118,11 +108,11 @@ If you are running ipython<=5.0 then you also have the ability to adjust the siz
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython_adjust.png)
 
-One thing of note is that alot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
+One thing of note is that a lot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
 
-|Column Menus|Correlations|Describe|Histogram|Charts|Instances|
-|:------:|:------:|:------:|:------:|:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
+|Column Menus|Correlations|Describe|Histogram|Instances|
+|:------:|:------:|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
@@ -137,7 +127,7 @@ Base CLI options (run `dtale --help` to see all options available)
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
 |`--force`|flag to force D-Tale to try an kill any pre-existing process at the port you've specified so it can use it|
 
-Loading data from **arctic**
+Loading data from [**arctic**(high performance datastore for pandas dataframes)](https://github.com/man-group/arctic)
 ```bash
 dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arctic-node my_node --arctic-start 20130101 --arctic-end 20161231
 ```
@@ -221,14 +211,7 @@ The information in the upper right-hand corner gives grid dimensions ![](https:/
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu_small.png)
 
-### Selecting/Deselecting Columns
-- to select a column, simply click on the column header (to deselect, click the column header again)
-  - You'll notice that the columns you've selected will display in the top of your browser
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_select.png)
-
-### Menu functions w/ no columns selected
-
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu.png)
+### Main Menu Functions
 
 #### Describe
 View all the columns & their data types as well as individual details of each column
@@ -250,41 +233,50 @@ Apply a simple pandas `query` to your data (link to pandas documentation include
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
 
 #### Charts
-Build custom charts based off your data.
-
+Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
+ 
+ - The Charts will open in a tab because of the fact there is so much functionality offered there you'll probably want to be able to reference the main grid data in the original tab
  - To build a chart you must pick a value for X & Y inputs which effectively drive what data is along the X & Y axes
- - If your data along the x-axis has duplicates you have three options:
-   - specify a group, which will create series for each group
-   - specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum, Rolling
+   - If you are working with a 3-Dimensional chart (heatmap, 3D Scatter, Surface) you'll need to enter a value for the Z axis as well
+ - Once you have entered all the required axes a chart will be built
+ - If your data along the x-axis (or combination of x & y in the case of 3D charts) has duplicates you have three options:
+   - Specify a group, which will create series for each group
+   - Specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum, Rolling
      - Specifying a "Rolling" aggregation will also require a Window & a Computation (Correlation, Coiunt, Covariance, Kurtosis, Maximum, Mean, Median, Minimum, Skew, Standard Deviation, Sum or Variance)
-   - specify both a group & an aggregation
- - Click the "Load" button which will load the data and display the default cahrt type "line"
- - You now have the ability to toggle between different chart types: line, bar, stacked bar, pie & wordcloud
+     - For heatmaps you will also have access to the "Correlation" aggregation since viewing correlation matrices in heatmaps is very useful.  This aggregation is not supported elsewhere
+   - Specify both a group & an aggregation
+ - You now have the ability to toggle between different chart types: line, bar, pie, wordcloud, heatmap, 3D scatter & surface
  - If you have specified a group then you have the ability between showing all series in one chart and breaking each series out into its own chart "Chart per Group"
 
-Here are some examples with the following inputs: X: date, Y: Col0, Group: security_id, Aggregation: Mean, Query: `security_id in (100000, 100001) and date >= '20181220' and date <= '20181231'`
+Here are some examples:
 
 |Chart Type|Chart|Chart per Group|
 |:------:|:------:|:------:|
-|line|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_line.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_line_pg.png)|
-|bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_pg.png)|
-|stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_stacked_pg.png)|
-|pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_pie_pg.png)|
-|wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_wordcloud_pg.png)|
+|line|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/line.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/line_pg.png)|
+|bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_pg.png)|
+|stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/stacked_pg.png)|
+|pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/pie.png)||
+|wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/wordcloud_pg.png)|
+|heatmap|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/heatmap.png)||
+|3D scatter|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/3d_scatter.png)||
+|surface|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/surface.png)||
 
 Selecting multiple columns for the Y-Axis will produce similar results to grouping in the sense that the chart will contain multiple series, but the difference is that for each column there will be a different Y-Axis associated with it in case the values contained within each column are on different scales.
 
 |Multi Y-Axis|Editing Axis Ranges|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_multi_col.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_editing_axis.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/multi_col.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/editing_axis.png)|
 
 With a bar chart that only has a single Y-Axis you have the ability to sort the bars based on the values for the Y-Axis
 
 |Pre-sort|Post-sort|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_presort.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts_bar_postsort.png)|
+|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_presort.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_postsort.png)|
 
-This is a very powerful feature with many more features that could be offered (heatmaps, different statistical aggregations, etc...) so please submit issues :)
+This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
+
+If you miss the legacy (non-plotly/dash) charts, not to worry!  They are still available from the link in the upper-right corner, but on for a limited time...
+Here is the documentation for those: [Legacy Charts](https://raw.githubusercontent.com/man-group/dtale/master/docs/LEGACY_CHARTS.md)
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
@@ -362,17 +354,12 @@ This will give you information about what version of D-Tale you're running as we
 #### Resize
 Mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
 
-#### Iframe-mode/Full-mode
-This is only available if you are not viewing D-Tale from an jupyter notebook output cell.  This will toggle between the two types of functionality:
-- **Full-mode**: column selection, column-specific options in in the main menu & all tools are displayed in modal windows
-- **Iframe-mode**: no column selection, column-specific menus on head click & some tools will now open separate browser windows (Correlations, Describe, Histogram & Instances)
-
 #### Shutdown
 Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
 
-### Menu functions w/ column(s) selected
+### Column Menu Functions
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Menu_one_col.png)
+![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_menu.png)
 
 #### Move To Front
 Moves your column to the front of the "unlocked" columns
@@ -393,17 +380,14 @@ Applies/removes sorting (Ascending/Descending/Clear) to the column selected
 
 | Action        | Sort           |
 | ------------- |:--------------:|
-| select "a"    |                |
+| click "a"     |                |
 | sort asc      | a (asc)        |
-| deselect "a"  | a (asc)        |
-| select "b"    | a (asc)        |
+| click "b"     | a (asc)        |
 | sort desc     | a (asc), b(desc)|
-| select "a"    | a (asc), b(desc)|
-| clear sort    | b(desc)|
-| sort desc    | b(desc), a(desc)|
-| select "b"    | b(desc), a(desc)|
-| clear sort   | |
-| sort asc     | a (asc), b(asc) | 
+| click "a"     | a (asc), b(desc)|
+| sort None     | b(desc)|
+| sort desc     | b(desc), a(desc)|
+| click "X" on sort display | |
 
 #### Formats
 Apply simple formats to numeric values in your grid
@@ -424,15 +408,12 @@ Here's a grid of all the formats available with -123456.789 as input:
 | Red Negatives | <span style="color: red;">-123457</span>|
 
 #### Histogram
-Display histograms in any number of bins (defaul: 20), simply type a new integer value in the bins input
+Display histograms in any number of bins (default: 20), simply type a new integer value in the bins input
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
 
-### Menu functions within a Jupyter Notebook
-These are the same functions as the menu listed earlier, but there is no more column selection (instead theres menus for each column).  Also the following buttons will no longer open modals, but separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)
-
-There are also menus associated with each column header which can be trigger by clicking on a column header.  The functions that are contained within each are: Sorting, Move To Front, Lock/Unlock, Histogram, Describe, Formats (see image from [Jupyter Notebook](#jupyter-notebook))
- - Histogram & Describe open separate browser windows
+### Menu Functions Depending on Browser Dimensions
+Depending on the dimensions of your browser window the following buttons will not open modals, but rather separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)
 
 ## For Developers
 

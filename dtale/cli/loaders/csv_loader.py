@@ -7,7 +7,10 @@ from dtale.cli.clickutils import get_loader_options
   When build_loaders runs startup it will search for any modules containing the global variable LOADER_KEY.
 '''
 LOADER_KEY = 'csv'
-LOADER_PROPS = ['path', 'parse_dates']
+LOADER_PROPS = [
+    dict(name='path', help='path to CSV file'),
+    dict(name='parse_dates', help='comma-separated string of column names which should be parsed as dates')
+]
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.

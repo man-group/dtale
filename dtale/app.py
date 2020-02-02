@@ -22,7 +22,7 @@ from six import PY3
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import (build_shutdown_url, build_url, dict_merge, get_host,
-                         running_with_flask_debug, swag_from)
+                         running_with_flask_debug)
 from dtale.views import (DATA, DtaleData, cleanup, head_data_id, is_up, kill,
                          startup)
 
@@ -188,30 +188,8 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
     compress = Compress()
     compress.init_app(app)
 
-    _, version = retrieve_meta_info_and_version('dtale')
-    template = dict(
-        info={
-            'title': 'D-Tale',
-            'version': version,
-            'description': 'Web Client for Visualizing Pandas Objects',
-            'contact': {
-                'name': 'Man Alpha Technology',
-                'email': 'ManAlphaTech@man.com',
-                'url': 'https://github.com/man-group/dtale'
-            },
-        },
-        host=get_host(host),
-        schemes=['http'],
-    )
-    try:
-        from flasgger import Swagger  # flake8: NOQA
-        Swagger(app, template=template)
-    except ImportError:
-        logger.debug('flasgger dependency not found, please install to enable feature')
-
     @app.route('/')
     @app.route('/dtale')
-    @swag_from('swagger/dtale/root.yml')
     def root():
         """
         :class:`flask:flask.Flask` routes which redirect to dtale/main
@@ -269,7 +247,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         ACTIVE_HOST = None
 
     @app.route('/shutdown')
-    @swag_from('swagger/dtale/shutdown.yml')
     def shutdown():
         """
         :class:`flask:flask.Flask` route for initiating server shutdown
@@ -290,7 +267,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         app.build_reaper()
 
     @app.route('/site-map')
-    @swag_from('swagger/dtale/site-map.yml')
     def site_map():
         """
         :class:`flask:flask.Flask` route listing all available flask endpoints
@@ -317,7 +293,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         return jsonify(links)
 
     @app.route('/version-info')
-    @swag_from('swagger/dtale/version-info.yml')
     def version_info():
         """
         :class:`flask:flask.Flask` route for retrieving version information about D-Tale
@@ -328,7 +303,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         return str(version)
 
     @app.route('/health')
-    @swag_from('swagger/dtale/health.yml')
     def health_check():
         """
         :class:`flask:flask.Flask` route for checking if D-Tale is up and running
@@ -351,9 +325,9 @@ def initialize_process_props(host=None, port=None, force=False):
 
     :param host: hostname to use otherwise it will default to the output of :func:`python:socket.gethostname`
     :type host: str, optional
-    :param port: port to use otherwise default to the output of :func:dtale.app.find_free_port
+    :param port: port to use otherwise default to the output of :meth:`dtale.app.find_free_port`
     :type port: str, optional
-    :param force: boolean flag to determine whether to ignore the :func:dtale.app.find_free_port function
+    :param force: boolean flag to determine whether to ignore the :meth:`dtale.app.find_free_port` function
     :type force: bool
     :return:
     """
@@ -508,7 +482,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
 def instances():
     """
-    Returns a dictionary of data IDs & :class:dtale.views.DtaleData objects pertaining to all the current pieces of
+    Returns a dictionary of data IDs & :class:`dtale.views.DtaleData` objects pertaining to all the current pieces of
     data being viewed
 
     :return: dict
@@ -518,12 +492,12 @@ def instances():
 
 def get_instance(data_id):
     """
-    Returns a :class:dtale.views.DtaleData object for the data_id passed as input, will return None if the data_id
+    Returns a :class:`dtale.views.DtaleData` object for the data_id passed as input, will return None if the data_id
     does not exist
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
-    :return: :class:dtale.views.DtaleData
+    :return: :class:`dtale.views.DtaleData`
     """
     data_id_str = str(data_id)
     if data_id_str in DATA:

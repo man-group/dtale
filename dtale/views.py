@@ -13,6 +13,7 @@ import pandas as pd
 import requests
 
 from dtale import dtale
+from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
                          filter_df_for_grid, find_dtype_formatter,
@@ -21,7 +22,7 @@ from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
                          grid_formatter, json_date, json_float, json_int,
                          json_timestamp, jsonify, make_list,
                          retrieve_grid_params, running_with_flask_debug,
-                         running_with_pytest, sort_df_for_grid, swag_from)
+                         running_with_pytest, sort_df_for_grid)
 
 logger = getLogger(__name__)
 
@@ -133,7 +134,7 @@ class DtaleData(object):
 
     def kill(self):
         """
-        Helper function to pass instance's endpoint to :func:dtale.views.kill
+        Helper function to pass instance's endpoint to :meth:`dtale.views.kill`
 
         """
         kill(self._url)
@@ -147,7 +148,7 @@ class DtaleData(object):
 
     def is_up(self):
         """
-        Helper function to pass instance's endpoint to :func:dtale.views.is_up
+        Helper function to pass instance's endpoint to :meth:`dtale.views.is_up`
         """
         return is_up(self._url)
 
@@ -448,7 +449,6 @@ def _view_main(data_id, iframe=False):
 
 @dtale.route('/main')
 @dtale.route('/main/<data_id>')
-@swag_from('swagger/dtale/views/main.yml')
 def view_main(data_id=None):
     """
     :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
@@ -464,7 +464,6 @@ def view_main(data_id=None):
 
 @dtale.route('/iframe')
 @dtale.route('/iframe/<data_id>')
-@swag_from('swagger/dtale/views/main.yml')
 def view_iframe(data_id=None):
     """
     :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
@@ -507,7 +506,6 @@ def view_popup(popup_type, data_id=None):
 
 
 @dtale.route('/processes')
-@swag_from('swagger/dtale/views/processes.yml')
 def get_processes():
     """
     :class:`flask:flask.Flask` route which returns list of running D-Tale processes within current python process
@@ -549,7 +547,6 @@ def get_processes():
 
 
 @dtale.route('/update-settings/<data_id>')
-@swag_from('swagger/dtale/views/update-settings.yml')
 def update_settings(data_id):
     """
     :class:`flask:flask.Flask` route which updates global SETTINGS for current port
@@ -586,7 +583,6 @@ def _test_filter(data, query):
 
 
 @dtale.route('/test-filter/<data_id>')
-@swag_from('swagger/dtale/views/test-filter.yml')
 def test_filter(data_id):
     """
     :class:`flask:flask.Flask` route which will test out pandas query before it gets applied to DATA and return
@@ -606,7 +602,6 @@ def test_filter(data_id):
 
 
 @dtale.route('/dtypes/<data_id>')
-@swag_from('swagger/dtale/views/dtypes.yml')
 def dtypes(data_id):
     """
     :class:`flask:flask.Flask` route which returns a list of column names and dtypes to the front-end as JSON
@@ -658,7 +653,6 @@ def load_describe(column_series, additional_aggs=None):
 
 
 @dtale.route('/describe/<data_id>/<column>')
-@swag_from('swagger/dtale/views/describe.yml')
 def describe(data_id, column):
     """
     :class:`flask:flask.Flask` route which returns standard details about column data using
@@ -705,7 +699,6 @@ def describe(data_id, column):
 
 
 @dtale.route('/data/<data_id>')
-@swag_from('swagger/dtale/views/data.yml')
 def get_data(data_id):
     """
     :class:`flask:flask.Flask` route which returns current rows from DATA (based on scrollbar specs and saved settings)
@@ -783,7 +776,6 @@ def get_data(data_id):
 
 
 @dtale.route('/histogram/<data_id>')
-@swag_from('swagger/dtale/views/histogram.yml')
 def get_histogram(data_id):
     """
     :class:`flask:flask.Flask` route which returns output from numpy.histogram to front-end as JSON
@@ -814,7 +806,6 @@ def get_histogram(data_id):
 
 
 @dtale.route('/correlations/<data_id>')
-@swag_from('swagger/dtale/views/correlations.yml')
 def get_correlations(data_id):
     """
     :class:`flask:flask.Flask` route which gathers Pearson correlations against all combinations of columns with
@@ -870,109 +861,7 @@ def get_correlations(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-def build_chart(data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
-    """
-    Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
-    dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
-    maximum of all the series for the y-axis.  If there is only one series (no group_col specified) the only key in the
-    dictionary of series data will be 'all' otherwise the keys will be the values of the groups.
-
-    :param data: dataframe to be used for chart
-    :type data: :class:`pandas:pandas.DataFrame`
-    :param x: column to be used as x-axis of chart
-    :type x: str
-    :param y: column to be used as y-axis of chart
-    :type y: list of strings
-    :param group: comma-separated string of columns to group chart data by
-    :type group: str, optional
-    :param aggregation: points to a specific function that can be applied to
-                        :func: pandas.core.groupby.DataFrameGroupBy.  Possible values are: count, first, last mean,
-                        median, min, max, std, var, mad, prod, sum
-    :type aggregation: str, optional
-    :return: dict
-    """
-
-    def build_formatters(df):
-        cols = grid_columns(df)
-        data_f = grid_formatter(cols, nan_display=None)
-        overrides = {'F': lambda f, i, c: f.add_float(i, c, precision=2)}
-        range_f = grid_formatter(cols, overrides=overrides, nan_display=None)
-        return data_f, range_f
-
-    def check_all_nan(df, cols):
-        for col in cols:
-            if df[col].isnull().all():
-                raise Exception('All data for column "{}" is NaN!'.format(col))
-
-    x_col = str('x')
-    y_cols = make_list(y)
-    z_col = kwargs.get('z')
-    z_cols = [] if z_col is None else [z_col]
-    if group_col is not None and len(group_col):
-        data = data[group_col + [x] + y_cols].sort_values(group_col + [x])
-        check_all_nan(data, [x] + y_cols)
-        y_cols = [str(y_col) for y_col in y_cols]
-        data.columns = group_col + [x_col] + y_cols
-        if agg is not None:
-            data = data.groupby(group_col + [x_col])
-            data = getattr(data, agg)().reset_index()
-        max_groups = 15
-        if len(data[group_col].drop_duplicates()) > max_groups:
-            msg = (
-                'Group ({}) contains more than {} unique values, please add additional filter'
-                ' or else chart will be unreadable'
-            ).format(', '.join(group_col), max_groups)
-            raise Exception(msg)
-
-        data_f, range_f = build_formatters(data[[x_col] + y_cols])
-        ret_data = dict(
-            data={},
-            min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
-            max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
-        )
-        dtypes = get_dtypes(data)
-        group_fmts = {c: find_dtype_formatter(dtypes[c]) for c in group_col}
-        for group_val, grp in data.groupby(group_col):
-            group_val = '/'.join([
-                group_fmts[gc](gv, as_string=True) for gv, gc in zip(make_list(group_val), group_col)
-            ])
-            ret_data['data'][group_val] = data_f.format_lists(grp)
-        return ret_data
-    sort_cols = [x] + (y_cols if len(z_cols) else [])
-    data = data[[x] + y_cols + z_cols].sort_values(sort_cols)
-    check_all_nan(data, [x] + y_cols + z_cols)
-    y_cols = [str(y_col) for y_col in y_cols]
-    data.columns = [x_col] + y_cols + z_cols
-    if agg is not None:
-        if agg == 'rolling':
-            window, comp = map(kwargs.get, ['rolling_win', 'rolling_comp'])
-            data = data.set_index(x_col).rolling(window=window)
-            data = pd.DataFrame({c: getattr(data[c], comp)() for c in y_cols})
-            data = data.reset_index()
-        else:
-            if len(z_cols):
-                data = data.groupby([x_col] + y_cols)
-                data = getattr(data[z_cols], agg)().reset_index()
-            else:
-                data = data.groupby(x_col)
-                data = getattr(data[y_cols], agg)().reset_index()
-
-    if not allow_duplicates and any(data[[x_col] + (y_cols if len(z_cols) else [])].duplicated()):
-        raise Exception('{} contains duplicates, please specify group or additional filtering'.format(x))
-    data_limit = 40000 if len(z_cols) else 15000
-    if len(data) > data_limit:
-        raise Exception('Dataset exceeds {} records, cannot render. Please apply filter...'.format(data_limit))
-    data_f, range_f = build_formatters(data)
-    ret_data = dict(
-        data={str('all'): data_f.format_lists(data)},
-        min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
-        max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
-    )
-    return ret_data
-
-
 @dtale.route('/chart-data/<data_id>')
-@swag_from('swagger/dtale/views/chart-data.yml')
 def get_chart_data(data_id):
     """
     :class:`flask:flask.Flask` route which builds data associated with a chart.js chart
@@ -1022,7 +911,6 @@ def get_chart_data(data_id):
 
 
 @dtale.route('/correlations-ts/<data_id>')
-@swag_from('swagger/dtale/views/correlations-ts.yml')
 def get_correlations_ts(data_id):
     """
     :class:`flask:flask.Flask` route which returns timeseries of Pearson correlations of two columns with numeric data
@@ -1065,7 +953,6 @@ def get_correlations_ts(data_id):
 
 
 @dtale.route('/scatter/<data_id>')
-@swag_from('swagger/dtale/views/scatter.yml')
 def get_scatter(data_id):
     """
     :class:`flask:flask.Flask` route which returns data used in correlation of two columns for scatter chart

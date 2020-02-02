@@ -10,6 +10,8 @@ import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-u
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
+const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
   beforeAll(() => {
@@ -20,6 +22,14 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
       configurable: true,
       value: 500,
+    });
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 1005,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 1240,
     });
 
     const mockBuildLibs = withGlobalJquery(() =>
@@ -49,6 +59,8 @@ describe("DataViewer tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    Object.defineProperty(window, "innerWidth", originalInnerWidth);
+    Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
   test("DataViewer: correlations", done => {

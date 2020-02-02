@@ -1,14 +1,15 @@
 import mock
+import numpy as np
 import pandas as pd
 import pytest
 from six import PY3
 
 from dtale.app import build_app
-from dtale.dash_application.charts import (build_axes, build_spaced_ticks,
-                                           chart_wrapper)
+from dtale.dash_application.charts import (build_axes, build_figure_data,
+                                           build_spaced_ticks, chart_wrapper)
 from dtale.dash_application.components import Wordcloud
-from dtale.dash_application.views import (build_figure_data, chart_url_params,
-                                          get_url_parser)
+from dtale.dash_application.layout import update_label_for_freq
+from dtale.dash_application.views import chart_url_params, get_url_parser
 
 if PY3:
     from contextlib import ExitStack
@@ -84,7 +85,7 @@ def test_query_changes(unittest):
 def test_input_changes(unittest):
     import dtale.views as views
 
-    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=pd.date_range('20200101', '20200103')))
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -93,7 +94,7 @@ def test_input_changes(unittest):
             pathname = path_builder(c.port)
             params = {
                 'output': (
-                    '..input-data.data...x-dropdown.options...y-dropdown.options...y-heatmap-dropdown.options.'
+                    '..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options.'
                     '..z-dropdown.options...group-dropdown.options..'
                 ),
                 'changedPropIds': ['chart-tabs.value'],
@@ -101,8 +102,8 @@ def test_input_changes(unittest):
                     ts_builder('query-data'),
                     {'id': 'chart-tabs', 'property': 'value', 'value': 'line'},
                     {'id': 'x-dropdown', 'property': 'value'},
-                    {'id': 'y-dropdown', 'property': 'value'},
-                    {'id': 'y-heatmap-dropdown', 'property': 'value'},
+                    {'id': 'y-multi-dropdown', 'property': 'value'},
+                    {'id': 'y-single-dropdown', 'property': 'value'},
                     {'id': 'z-dropdown', 'property': 'value'},
                     {'id': 'group-dropdown', 'property': 'value'},
                     {'id': 'agg-dropdown', 'property': 'value'},
@@ -117,13 +118,21 @@ def test_input_changes(unittest):
                 'chart_type': 'line', 'x': None, 'y': [], 'z': None, 'group': None, 'agg': None, 'window': None,
                 'rolling_comp': None, 'query': None
             })
+            unittest.assertEqual(
+                resp_data['response']['x-dropdown']['options'],
+                [{'label': 'a', 'value': 'a'}, {'label': 'b', 'value': 'b'}, {'label': 'c', 'value': 'c'},
+                 {'label': 'd (Hourly)', 'value': 'd|H'}, {'label': 'd (Hour)', 'value': 'd|H2'},
+                 {'label': 'd (Weekday)', 'value': 'd|WD'}, {'label': 'd', 'value': 'd'},
+                 {'label': 'd (Weekly)', 'value': 'd|W'}, {'label': 'd (Monthly)', 'value': 'd|M'},
+                 {'label': 'd (Quarterly)', 'value': 'd|Q'}, {'label': 'd (Yearly)', 'value': 'd|Y'}]
+            )
 
 
 @pytest.mark.unit
 def test_chart_type_changes(unittest):
     with app.test_client() as c:
         fig_data_outputs = (
-            '..y-input.style...y-heatmap-input.style...z-input.style...group-input.style...rolling-inputs.style...'
+            '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...rolling-inputs.style...'
             'cpg-input.style...barmode-input.style...barsort-input.style...barsort-dropdown.options...'
             'yaxis-input.style...yaxis-dropdown.options..'
         )
@@ -400,8 +409,9 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'group',
+                 'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickformat': '.0f'},
+                 'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
                  'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
                  'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
                             'tickformat': '.0f'}}
@@ -429,8 +439,9 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['props']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'group',
+                 'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickformat': '.0f'},
+                 'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
                  'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
                  'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
                             'tickformat': '.0f'}}
@@ -443,8 +454,9 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'stack',
+                 'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickformat': '.0f'},
+                 'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
                  'yaxis': {'tickformat': '.0f', 'title': {'text': 'b'}}}
             )
 
@@ -456,8 +468,10 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'group',
+                 'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickmode': 'array', 'ticktext': [1, 2, 3], 'tickvals': [0, 1, 2], 'tickformat': '.0f'},
+                 'xaxis': {'tickmode': 'array', 'ticktext': [1, 2, 3], 'tickvals': [0, 1, 2], 'tickformat': '.0f',
+                           'title': {'text': 'a'}},
                  'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
                  'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
                             'tickformat': '.0f'}}
@@ -502,7 +516,7 @@ def test_chart_building_line(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_heatmap(unittest, test_data):
+def test_chart_building_pie(unittest):
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -513,16 +527,67 @@ def test_chart_building_heatmap(unittest, test_data):
             stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
-                'chart_type': 'heatmap', 'x': 'a', 'y': ['b'], 'z': 'c', 'group': None, 'agg': None,
+                'chart_type': 'pie', 'x': 'a', 'y': ['b'], 'z': None, 'group': ['c'], 'agg': None,
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': True, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert len(resp_data['chart-content']['children']) == 2
+
+            inputs['group'] = None
+            chart_inputs['cpg'] = False
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert resp_data['chart-content']['children'][0]['type'] == 'Div'
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, -6]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'pie', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
                 'window': None, 'rolling_comp': None
             }
             chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
+            error = resp_data['chart-content']['children'][0]['props']['children'][0]['props']['children']
+            assert error['props']['children'][2]['props']['children']['props']['children'] == '3 (-6)'
+
+
+@pytest.mark.unit
+def test_chart_building_heatmap(unittest, test_data, rolling_data):
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'heatmap', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            assert response.get_json()['response']['chart-content']['children'] is None
+            inputs['z'] = 'c'
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children']['props']['children'][1]
             unittest.assertEqual(
-                resp_data['chart-content']['children'][0]['props']['children'][1]['props']['figure']['layout']['title'],
-                {'text': 'a vs b weighted by c'}
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'b by a weighted by c'}
             )
 
     with app.test_client() as c:
@@ -538,10 +603,127 @@ def test_chart_building_heatmap(unittest, test_data):
             chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
-            resp_data = response.get_json()['response']
+            chart_markup = response.get_json()['response']['chart-content']['children']['props']['children'][1]
             unittest.assertEqual(
-                resp_data['chart-content']['children'][0]['props']['children'][1]['props']['figure']['layout']['title'],
-                {'text': 'date vs security_id weighted by bar'}
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'security_id by date weighted by bar (Mean)'}
+            )
+            inputs['agg'] = 'corr'
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            error = resp_data['chart-content']['children']['props']['children'][1]['props']['children']
+            assert error == 'No data returned for this computation!'
+
+    def _data():
+        for sec_id in range(10):
+            for d in pd.date_range('20200101', '20200131'):
+                yield dict(date=d, security_id=sec_id)
+    df = pd.DataFrame(list(_data()))
+    df['val'] = np.random.randn(len(df), 1)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'heatmap', 'x': 'date', 'y': ['security_id'], 'z': 'val', 'group': None, 'agg': 'corr',
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            title = resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout']['title']
+            assert title['text'] == 'security_id1 by security_id0 weighted by val (Correlation)'
+
+
+@pytest.mark.unit
+def test_chart_building_3D_scatter(unittest, test_data):
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': '3d_scatter', 'x': 'a', 'y': ['b'], 'z': 'c', 'group': None, 'agg': None,
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children'][0]['props']['children'][1]
+            unittest.assertEqual(
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'b by a weighted by c'}
+            )
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(test_data)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': '3d_scatter', 'x': 'date', 'y': ['security_id'], 'z': 'bar', 'group': None, 'agg': 'mean',
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children'][0]['props']['children'][1]
+            unittest.assertEqual(
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'security_id by date weighted by bar (Mean)'}
+            )
+
+
+@pytest.mark.unit
+def test_chart_building_surface(unittest, test_data):
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'surface', 'x': 'a', 'y': ['b'], 'z': 'c', 'group': None, 'agg': None,
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children'][0]['props']['children'][1]
+            unittest.assertEqual(
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'b by a weighted by c'}
+            )
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(test_data)
+            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'surface', 'x': 'date', 'y': ['security_id'], 'z': 'bar', 'group': None, 'agg': 'mean',
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': 'b'}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children'][0]['props']['children'][1]
+            unittest.assertEqual(
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'security_id by date weighted by bar (Mean)'}
             )
 
 
@@ -559,7 +741,7 @@ def test_load_chart_error(unittest):
             def build_chart_data_mock(data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
                 raise Exception('error test')
             stack.enter_context(mock.patch(
-                'dtale.dash_application.views.build_chart_data',
+                'dtale.dash_application.charts.build_figure_data',
                 side_effect=build_chart_data_mock
             ))
             pathname = {'id': 'url', 'property': 'pathname', 'value': '/charts/{}'.format(c.port)}
@@ -596,7 +778,7 @@ def test_display_error(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
             stack.enter_context(mock.patch(
                 'dtale.dash_application.components.Wordcloud',
                 mock.Mock(side_effect=Exception('error test'))
@@ -623,7 +805,6 @@ def test_display_error(unittest):
                 ]
             }
             response = c.post('/charts/_dash-update-component', json=params)
-            print(response.get_json())
             resp_data = response.get_json()['response']['chart-content']['children']
             assert resp_data['props']['children'][1]['props']['children'] == 'error test'
 
@@ -659,7 +840,7 @@ def test_build_axes(unittest):
                        'tickformat': '.0f'},
             'yaxis3': {'title': 'd', 'overlaying': 'y', 'side': 'left', 'anchor': 'free', 'position': 0.05,
                        'tickformat': '.0f'},
-            'xaxis': {'domain': [0.1, 1], 'tickformat': '.0f'}
+            'xaxis': {'domain': [0.1, 1], 'tickformat': '.0f', 'title': 'a'}
         })
 
         y.append('e')
@@ -675,7 +856,7 @@ def test_build_axes(unittest):
                        'tickformat': '.0f'},
             'yaxis4': {'title': 'e', 'overlaying': 'y', 'side': 'right', 'anchor': 'free', 'position': 0.95,
                        'tickformat': '.0f'},
-            'xaxis': {'domain': [0.1, 0.8999999999999999], 'tickformat': '.0f'}
+            'xaxis': {'domain': [0.1, 0.8999999999999999], 'tickformat': '.0f', 'title': 'a'}
         })
 
         y.append('f')
@@ -693,7 +874,31 @@ def test_build_axes(unittest):
                        'tickformat': '.0f'},
             'yaxis5': {'title': 'f', 'overlaying': 'y', 'side': 'left', 'anchor': 'free', 'position': 0.1,
                        'tickformat': '.0f'},
-            'xaxis': {'domain': [0.15000000000000002, 0.8999999999999999], 'tickformat': '.0f'}
+            'xaxis': {'domain': [0.15000000000000002, 0.8999999999999999], 'tickformat': '.0f', 'title': 'a'}
+        })
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6]))
+    with mock.patch('dtale.dash_application.charts.DATA', {'1': df}):
+        y = ['b']
+        yaxis_data = dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10))
+        mins = dict(b=2, c=5, d=8)
+        maxs = dict(b=4, c=6, d=10)
+        axes = build_axes('1', 'a', yaxis_data, mins, maxs, z='c')(y)
+        unittest.assertEqual(axes, {
+            'xaxis': {'title': 'a', 'tickformat': '.0f'},
+            'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
+            'zaxis': {'title': 'c', 'tickformat': '.0f'}
+        })
+        axes = build_axes('1', 'a', yaxis_data, mins, maxs, z='c', agg='corr')(y)
+        unittest.assertEqual(axes, {
+            'xaxis': {'title': 'a', 'tickformat': '.0f'},
+            'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
+            'zaxis': {'title': 'c (Correlation)', 'tickformat': '.0f'}
+        })
+        axes = build_axes('1', 'a', yaxis_data, mins, maxs, agg='corr')(y)
+        unittest.assertEqual(axes, {
+            'xaxis': {'title': 'a', 'tickformat': '.0f'},
+            'yaxis': {'title': 'b (Correlation)', 'range': [1, 4], 'tickformat': '.0f'},
         })
 
 
@@ -721,8 +926,7 @@ def test_chart_wrapper(unittest):
 @pytest.mark.unit
 def test_build_spaced_ticks(unittest):
     ticks = range(50)
-    cfg = build_spaced_ticks(ticks, ticks)
-    print(cfg['tickvals'])
+    cfg = build_spaced_ticks(ticks)
     assert len(cfg['tickvals']) == 26
 
 
@@ -749,5 +953,10 @@ def test_build_chart_type():
         with ExitStack() as stack:
             df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9])))
             stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
-            with pytest.raises(NotImplementedError):
-                build_chart(dict(min=None, max=None), c.port, chart_type='unknown')
+            output = build_chart(c.port, chart_type='unknown', x='a', y='b')
+            assert output[0].children[1].children == 'chart type: unknown'
+
+
+@pytest.mark.unit
+def test_update_label_for_freq(unittest):
+    unittest.assertEqual(update_label_for_freq(['date|WD', 'date|D', 'foo']), 'date (Weekday), date, foo')

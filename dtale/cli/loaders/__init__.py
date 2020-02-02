@@ -54,9 +54,9 @@ def unsupported_python_version(version_tuple):
 def custom_module_loader():
     """
     Utility function for using different module loaders based on python version:
-    * :func:dtale.cli.loaders.get_py35_loader
-    * :func:dtale.cli.loaders.get_py33_loader
-    * :func:dtale.cli.loaders.get_py2_loader
+    * :meth:`dtale.cli.loaders.get_py35_loader`
+    * :meth:`dtale.cli.loaders.get_py33_loader`
+    * :meth:`dtale.cli.loaders.get_py2_loader`
 
     """
     major, minor, revision = [int(i) for i in platform.python_version_tuple()]
@@ -109,14 +109,27 @@ def setup_loader_options():
             if len(cli_loader.LOADER_PROPS):
                 for p in cli_loader.LOADER_PROPS:
                     prop_name = '--{}'.format(cli_loader.LOADER_KEY)
-                    if len(p):
-                        prop_name = '{}-{}'.format(prop_name, p)
-                    f = click.option(
-                        prop_name, help='Override {}'.format(prop_name)
-                    )(f)
+                    if isinstance(p, str):
+                        if len(p):
+                            prop_name = '{}-{}'.format(prop_name, p)
+                        f = click.option(
+                            prop_name, help='Override {}'.format(prop_name)
+                        )(f)
+                    elif isinstance(p, dict):
+                        p_name = p.get('name')
+                        if len(p_name):
+                            prop_name = '{}-{}'.format(prop_name, p_name)
+                        opt_kwargs = {k: v for k, v in p.items() if k != 'name'}
+                        f = click.option(prop_name, **opt_kwargs)(f)
+                    else:
+                        raise NotImplementedError(
+                            'You have specified an unknown type for a value in {} LOADER_PROPS: {}'.format(
+                                cli_loader.LOADER_KEY, type(p)
+                            )
+                        )
             else:
                 f = click.option(
-                    '--' + cli_loader.LOADER_KEY, is_flag=True,
+                    '--{}'.format(cli_loader.LOADER_KEY), is_flag=True,
                     help='Use {} loader'.format(cli_loader.LOADER_KEY)
                 )(f)
         return f

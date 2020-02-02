@@ -5,8 +5,11 @@ import React from "react";
 import { connect } from "react-redux";
 
 import ConditionalRender from "../../ConditionalRender";
+import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
-import { lockCols, moveToFront, unlockCols, updateSort } from "../dataViewerMenuUtils";
+
+import { fullPath, lockCols, moveToFront, open, shouldOpenPopup, unlockCols, updateSort } from "../dataViewerMenuUtils";
+
 import { isStringCol, SORT_PROPS } from "../gridUtils";
 
 require("./ColumnMenu.css");
@@ -21,27 +24,28 @@ class ReactColumnMenu extends React.Component {
   }
 
   render() {
-    const { dataId, iframe, selectedCol } = this.props;
-    if (!iframe || !selectedCol) {
+    const { dataId, selectedCol, openChart } = this.props;
+    if (!selectedCol) {
       return null;
     }
     const colCfg = _.find(this.props.columns, { name: selectedCol }) || {};
     const unlocked = _.get(colCfg, "locked", false) == false;
     let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
     currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
-    const describeUrl = buildURLString(`/dtale/popup/describe/${dataId}`, {
-      col: selectedCol,
-    });
-    const openDescribe = () => {
-      window.open(describeUrl, "_blank", "titlebar=1,location=1,status=1,width=1100,height=450");
+    const openPopup = (type, height = 450, width = 500) => () => {
+      if (shouldOpenPopup(height, width)) {
+        open(
+          buildURLString(fullPath(`/dtale/popup/${type}`, dataId), {
+            col: selectedCol,
+          }),
+          null,
+          height,
+          width
+        );
+      } else {
+        openChart(_.assignIn({ type, title: _.capitalize(type) }, { col: selectedCol }));
+      }
     };
-    const histogramUrl = buildURLString(`/dtale/popup/histogram/${dataId}`, {
-      col: selectedCol,
-    });
-    const openHistogram = () => {
-      window.open(histogramUrl, "_blank", "titlebar=1,location=1,status=1,width=400,height=425");
-    };
-
     const openFormatting = () =>
       this.props.propagateState({
         formattingOpen: true,
@@ -109,7 +113,7 @@ class ReactColumnMenu extends React.Component {
           </ConditionalRender>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openDescribe}>
+              <button className="btn btn-plain" onClick={openPopup("describe", 670, 1100)}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>
@@ -118,7 +122,7 @@ class ReactColumnMenu extends React.Component {
           <ConditionalRender display={!isStringCol(_.get(colCfg, "dtype", ""))}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={openHistogram}>
+                <button className="btn btn-plain" onClick={openPopup("histogram", 425, 400)}>
                   <i className="ico-equalizer" />
                   <span className="font-weight-bold">Histogram</span>
                 </button>
@@ -147,12 +151,13 @@ ReactColumnMenu.propTypes = {
   sortInfo: PropTypes.array,
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,
-  iframe: PropTypes.bool,
   noInfo: PropTypes.bool,
+  openChart: PropTypes.func,
 };
 
-const ReduxColumnMenu = connect(state =>
-  _.pick(state, ["dataId", "iframe", "columnMenuOpen", "selectedCol", "selectedToggle"])
+const ReduxColumnMenu = connect(
+  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle"]),
+  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactColumnMenu);
 
 export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu };

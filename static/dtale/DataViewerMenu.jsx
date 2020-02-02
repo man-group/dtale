@@ -5,34 +5,16 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
-import { lockCols, moveToFront, unlockCols, updateSort } from "./dataViewerMenuUtils";
-import { SORT_PROPS, toggleHeatMap } from "./gridUtils";
-
-function open(path, dataId, height = 450, width = 500) {
-  let fullPath = path;
-  if (dataId) {
-    fullPath = `${fullPath}/${dataId}`;
-  }
-  window.open(fullPath, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
-}
+import { fullPath, open, shouldOpenPopup } from "./dataViewerMenuUtils";
+import { toggleHeatMap } from "./gridUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId, iframe, selectedCols } = this.props;
+    const { hideShutdown, dataId } = this.props;
+    const iframe = global.top !== global.self;
     const processCt = document.getElementById("processes").value;
-    const colCount = (this.props.selectedCols || []).length;
-    const lockedColCount = _.filter(this.props.columns, ({ name, locked }) => locked && _.includes(selectedCols, name))
-      .length;
-    const unlockedColCount = _.filter(
-      this.props.columns,
-      ({ name, locked }) => !locked && _.includes(selectedCols, name)
-    ).length;
-    const openHistogram = () => {
-      const col = _.head(this.props.selectedCols);
-      this.props.openChart(_.assignIn({ type: "histogram", col, title: col }, this.props));
-    };
     const openPopup = (type, height = 450, width = 500) => () => {
-      if (iframe) {
+      if (shouldOpenPopup(height, width)) {
         open(`/dtale/popup/${type}`, dataId, height, width);
       } else {
         this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
@@ -51,54 +33,12 @@ class ReactDataViewerMenu extends React.Component {
         <ul>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("describe")}>
+              <button className="btn btn-plain" onClick={openPopup("describe", 670, 1100)}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>
             </span>
           </li>
-          <ConditionalRender display={colCount > 0}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={moveToFront(selectedCols, this.props)}>
-                  <i className="fa fa-caret-left ml-4 mr-4" />
-                  <span className="ml-3 font-weight-bold">Move To Front</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
-          <ConditionalRender display={unlockedColCount > 0}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={lockCols(selectedCols, this.props)}>
-                  <i className="fa fa-lock ml-3 mr-4" />
-                  <span className="font-weight-bold">Lock</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
-          <ConditionalRender display={lockedColCount > 0}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={unlockCols(selectedCols, this.props)}>
-                  <i className="fa fa-lock-open ml-2 mr-4" />
-                  <span className="font-weight-bold">Unlock</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
-          <ConditionalRender display={colCount > 0 && !iframe}>
-            {_.map(SORT_PROPS, ({ dir, full }) => (
-              <li key={`${dir}-action`}>
-                <span className="toggler-action">
-                  <button className="btn btn-plain" onClick={() => updateSort(selectedCols, dir, this.props)}>
-                    <i className={full.icon} />
-                    <span className="font-weight-bold">{full.label}</span>
-                  </button>
-                </span>
-              </li>
-            ))}
-          </ConditionalRender>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={() => this.props.propagateState({ filterOpen: true })}>
@@ -107,24 +47,6 @@ class ReactDataViewerMenu extends React.Component {
               </button>
             </span>
           </li>
-          <ConditionalRender display={colCount > 0}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={() => this.props.propagateState({ formattingOpen: true })}>
-                  <i className="ico-palette" />
-                  <span className="font-weight-bold">Formats</span>
-                </button>
-              </span>
-            </li>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={openHistogram}>
-                  <i className="ico-equalizer" />
-                  <span className="font-weight-bold">Histogram</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("correlations", 1235, 1000)}>
@@ -135,7 +57,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => open("/charts", dataId, 600, 1300)}>
+              <button className="btn btn-plain" onClick={() => window.open(fullPath("/charts", dataId), "_blank")}>
                 <i className="ico-show-chart" />
                 <span className="font-weight-bold">Charts</span>
               </button>
@@ -194,17 +116,7 @@ class ReactDataViewerMenu extends React.Component {
               </span>
             </li>
           </ConditionalRender>
-          <ConditionalRender display={global.top === global.self}>
-            <li>
-              <span className="toggler-action">
-                <a className="btn btn-plain" href={`/dtale${iframe ? "/main" : "/iframe"}/${dataId}`}>
-                  <i className={`far fa-${iframe ? "window-maximize" : "window-restore"} ml-2 mr-4`} />
-                  <span className="font-weight-bold">{`${iframe ? "Full" : "Iframe"}-Mode`}</span>
-                </a>
-              </span>
-            </li>
-          </ConditionalRender>
-          <ConditionalRender display={global.top !== global.self}>
+          <ConditionalRender display={iframe}>
             <li>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={() => open(window.location.pathname, null, 400, 700)}>
@@ -233,17 +145,15 @@ ReactDataViewerMenu.displayName = "ReactDataViewerMenu";
 ReactDataViewerMenu.propTypes = {
   columns: PropTypes.array,
   menuOpen: PropTypes.bool,
-  selectedCols: PropTypes.array,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
   heatMapMode: PropTypes.bool,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
-  iframe: PropTypes.bool,
 };
 
 const ReduxDataViewerMenu = connect(
-  state => _.pick(state, ["dataId", "hideShutdown", "iframe"]),
+  state => _.pick(state, ["dataId", "hideShutdown"]),
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactDataViewerMenu);
 

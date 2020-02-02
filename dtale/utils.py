@@ -7,7 +7,6 @@ import socket
 import sys
 import time
 from builtins import map, object
-from functools import wraps
 from logging import getLogger
 
 from flask import jsonify as _jsonify
@@ -201,7 +200,7 @@ def json_string(x, nan_display='', **kwargs):
     return nan_display
 
 
-def json_int(x, nan_display='', as_string=False):
+def json_int(x, nan_display='', as_string=False, fmt='{:,d}'):
     """
     Convert value to integer to be used within JSON output
 
@@ -213,7 +212,7 @@ def json_int(x, nan_display='', as_string=False):
     """
     try:
         if not np.isnan(x) and not np.isinf(x):
-            return '{:,d}'.format(int(x)) if as_string else int(x)
+            return fmt.format(int(x)) if as_string else int(x)
         return nan_display
     except BaseException:
         return nan_display
@@ -349,6 +348,13 @@ class JSONFormatter(object):
             if name in df.columns
         }
 
+    def format_df(self, df):
+        formatters = {col: f for _idx, col, f in self.fmts}
+        cols = [col for col in df.columns if col in formatters]
+        return pd.concat(
+            [df[col].apply(lambda v: formatters[col](v, nan_display=self.nan_display)) for col in cols], axis=1
+        )
+
 
 def classify_type(type_name):
     """
@@ -363,7 +369,7 @@ def classify_type(type_name):
         TD = timedelta
     :rtype: str
     """
-    lower_type_name = type_name.lower()
+    lower_type_name = (type_name or '').lower()
     if lower_type_name.startswith('str'):
         return 'S'
     if lower_type_name.startswith('bool'):
@@ -565,8 +571,10 @@ DF_MAPPINGS = {
 }
 
 
-def find_dtype_formatter(dtype):
+def find_dtype_formatter(dtype, overrides=None):
     type_classification = classify_type(dtype)
+    if type_classification in (overrides or {}):
+        return overrides[type_classification]
     if type_classification == 'I':
         return json_int
     if type_classification == 'D':
@@ -697,6 +705,10 @@ def dict_merge(d1, d2, *args):
 
 
 def flatten_lists(lists):
+    """
+    Take an iterable containing iterables and flatten them into one list.
+        - [[1], [2], [3, 4]] => [1, 2, 3, 4]
+    """
     return [item for sublist in lists for item in sublist]
 
 
@@ -704,16 +716,3 @@ def divide_chunks(l, n):
     # looping till length l
     for i in range(0, len(l), n):
         yield l[i:i + n]
-
-
-def swag_from(path):
-    try:
-        from flasgger.utils import swag_from as flasgger_swag_from
-        return flasgger_swag_from(path)
-    except ImportError:
-        def _swag_from(f):
-            @wraps(f)
-            def decorated(*args, **kwargs):
-                return f(*args, **kwargs)
-            return decorated
-        return _swag_from
