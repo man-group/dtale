@@ -2,7 +2,8 @@ import dash_core_components as dcc
 import dash_daq as daq
 import dash_html_components as html
 
-from dtale.utils import make_list
+from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
+from dtale.utils import classify_type, flatten_lists, get_dtypes, make_list
 
 
 def base_layout(github_fork, **kwargs):
@@ -145,7 +146,7 @@ CHART_INPUT_SETTINGS = {
                  group=dict(display=True, type='single')),
     'bar': dict(x=dict(type='single'), y=dict(type='multi'), z=dict(display=False),
                 group=dict(display=True, type='single')),
-    'scatter': dict(x=dict(type='single'), y=dict(type='multi'), z=dict(display=True),
+    'scatter': dict(x=dict(type='single'), y=dict(type='multi'), z=dict(display=False),
                     group=dict(display=True, type='single')),
     'pie': dict(x=dict(type='single'), y=dict(type='multi'), z=dict(display=False),
                 group=dict(display=True, type='single')),
@@ -165,6 +166,15 @@ AGGS = dict(
 )
 FREQS = ['H', 'H2', 'WD', 'D', 'W', 'M', 'Q', 'Y']
 FREQ_LABELS = dict(H='Hourly', H2='Hour', WD='Weekday', W='Weekly', M='Monthly', Q='Quarterly', Y='Yearly')
+
+
+def show_input_handler(chart_type):
+    settings = CHART_INPUT_SETTINGS.get(chart_type) or {}
+
+    def _show_input(input_id, input_type='single'):
+        cfg = settings.get(input_id, {})
+        return cfg.get('display', True) and cfg.get('type', 'single') == input_type
+    return _show_input
 
 
 def update_label_for_freq(val):
@@ -201,7 +211,79 @@ def build_error(error, tb):
     ], className='dtale-alert alert alert-danger')
 
 
-def charts_layout(df):
+def build_cols(cols, dtypes):
+    """
+    Helper function to add additional column entries for columns of type datetime so that users can make use of
+    different frequencies of dates.  For example, hour, weekday, month, quarter, year
+
+    :param cols: columns in dataframe
+    :type cols: list of strings
+    :param dtypes: datatypes of columns in dataframe
+    :type dtypes: dict
+    :return: generator or columns + any additional (datetime column + frequency) options
+    """
+    for c in cols:
+        if classify_type(dtypes[c]) == 'D':
+            for freq in FREQS:
+                if freq in FREQ_LABELS:
+                    yield '{}|{}'.format(c, freq), '{} ({})'.format(c, FREQ_LABELS[freq])
+                else:
+                    yield c, c
+        else:
+            yield c, c
+
+
+def build_selections(*args):
+    """
+    simple helper function to build a single level list of values based on variable number of inputs which could be
+    equal to None.
+    """
+    return flatten_lists([[] if a is None else make_list(a) for a in args])
+
+
+def build_input_options(df, **inputs):
+    """
+    Builds dropdown options for (X, Y, Z, Group, Barsort & Y-Axis Ranges) with filtering based on currently selected
+    values for the following inputs: x, y, z, group.
+    """
+    [chart_type, x, y, z, group] = [inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'group']]
+    col_opts = list(build_cols(df.columns, get_dtypes(df)))
+    group_val, z_val = (None, z) if chart_type in ZAXIS_CHARTS else (group, None)
+    x_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(y, z_val, group_val)]
+    y_filter = build_selections(x, group_val, z_val)
+    y_multi_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
+    y_single_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
+    z_options = [build_option(c) for c in df.columns if c not in build_selections(x, y, group_val)]
+    group_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(x, y, z_val)]
+    barsort_options = [build_option(o) for o in build_selections(x, y)]
+    yaxis_options = [build_option(y2) for y2 in y or []]
+    return x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options
+
+
+def bar_input_style(**inputs):
+    """
+    Sets display CSS property for bar chart inputs
+    """
+    return dict(display='block' if inputs.get('chart_type') == 'bar' else 'none')
+
+
+def show_chart_per_group(**inputs):
+    """
+    Boolean function to determine whether "Chart Per Group" toggle should be displayed or not
+    """
+    [chart_type, group] = [inputs.get(p) for p in ['chart_type', 'group']]
+    return show_input_handler(chart_type)('group') and len(group or []) and chart_type not in ['pie', 'wordcloud']
+
+
+def show_yaxis_ranges(**inputs):
+    """
+    Boolean function to determine whether "Y-Axis Range" inputs should be displayed or not
+    """
+    [chart_type, y] = [inputs.get(p) for p in ['chart_type', 'y']]
+    return chart_type in YAXIS_CHARTS and len(y or [])
+
+
+def charts_layout(df, **inputs):
     """
     Builds main dash inputs with dropdown options populated with the columns of the dataframe associated with the
     page. Inputs included are: chart tabs, query, x, y, z, group, aggregation, rolling window/computation,
@@ -210,7 +292,15 @@ def charts_layout(df):
     :param df: dataframe to drive the charts built on page
     :return: dash markup
     """
-    cols = [build_option(c) for c in df.columns]
+    [chart_type, x, y, z, group, agg] = [inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'group', 'agg']]
+    y = y or []
+    show_input = show_input_handler(chart_type)
+    show_cpg = show_chart_per_group(**inputs)
+    show_yaxis = show_yaxis_ranges(**inputs)
+    bar_style = bar_input_style(**inputs)
+
+    options = build_input_options(df, **inputs)
+    x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
     query_placeholder = (
         "Enter pandas query (ex: col1 == 1)"
     )
@@ -221,15 +311,15 @@ def charts_layout(df):
                target='_blank', style={'color': 'white'})
     ], className='input-group-addon', style={'min-width': '7em'})
     return html.Div([
-        dcc.Store(id='query-data'),
-        dcc.Store(id='input-data'),
-        dcc.Store(id='chart-input-data'),
+        dcc.Store(id='query-data', data=inputs.get('query')),
+        dcc.Store(id='input-data', data={k: v for k, v in inputs.items() if k not in ['cpg', 'barmode', 'barsort']}),
+        dcc.Store(id='chart-input-data', data={k: v for k, v in inputs.items() if k in ['cpg', 'barmode', 'barsort']}),
         dcc.Store(id='range-data'),
-        dcc.Store(id='yaxis-data'),
-        dcc.Store(id='last-chart-input-data'),
+        dcc.Store(id='yaxis-data', data=inputs.get('yaxis')),
+        dcc.Store(id='last-chart-input-data', data=inputs),
         html.Div(html.Div(dcc.Tabs(
             id='chart-tabs',
-            value='line',
+            value=chart_type or 'line',
             children=[build_tab(t.get('label', t['value'].capitalize()), t['value']) for t in CHARTS],
             style=dict(height='36px')
         ), className='col-md-12'), className='row pt-3 pb-3 charts-filters'),
@@ -237,43 +327,48 @@ def charts_layout(df):
             html.Div([
                 query_label, dcc.Input(
                     id='query-input', type='text', placeholder=query_placeholder, className='form-control',
-                    style={'line-height': 'inherit'})
+                    value=inputs.get('query'), style={'line-height': 'inherit'})
             ], className='input-group mr-3')],
             className='col'
         ), className='row pt-3 pb-3 charts-filters'),
         html.Div([
             build_input('X', dcc.Dropdown(
                 id='x-dropdown',
-                options=cols,
+                options=x_options,
                 placeholder='Select a column',
+                value=x,
                 style=dict(width='inherit'),
             )),
             build_input('Y', dcc.Dropdown(
                 id='y-multi-dropdown',
-                options=cols,
+                options=y_multi_options,
                 multi=True,
                 placeholder='Select a column(s)',
                 style=dict(width='inherit'),
-            ), className='col', id='y-multi-input'),
+                value=y if show_input('y', 'multi') else None
+            ), className='col', id='y-multi-input', style={'display': 'block' if show_input('y', 'multi') else 'none'}),
             build_input('Y', dcc.Dropdown(
                 id='y-single-dropdown',
-                options=cols,
+                options=y_single_options,
                 placeholder='Select a column',
                 style=dict(width='inherit'),
-            ), className='col', style=dict(display='none'), id='y-single-input'),
+                value=y[0] if show_input('y') and len(y) else None
+            ), className='col', id='y-single-input', style={'display': 'block' if show_input('y') else 'none'}),
             build_input('Z', dcc.Dropdown(
                 id='z-dropdown',
-                options=cols,
+                options=z_options,
                 placeholder='Select a column',
                 style=dict(width='inherit'),
-            ), className='col', style=dict(display='none'), id='z-input'),
+                value=z
+            ), className='col', id='z-input', style={'display': 'block' if show_input('z') else 'none'}),
             build_input('Group', dcc.Dropdown(
                 id='group-dropdown',
-                options=cols,
+                options=group_options,
                 multi=True,
                 placeholder='Select a group(s)',
+                value=group,
                 style=dict(width='inherit'),
-            ), className='col', id='group-input'),
+            ), className='col', id='group-input', style={'display': 'block' if show_input('group') else 'none'}),
         ], className='row pt-3 pb-3 charts-filters'),
         html.Div([
             build_input('Aggregation', dcc.Dropdown(
@@ -283,11 +378,12 @@ def charts_layout(df):
                                                             'mad', 'prod']],
                 placeholder='Select an aggregation',
                 style=dict(width='inherit'),
+                value=agg,
             )),
             html.Div([
                 build_input('Window', dcc.Input(
                     id='window-input', type='number', placeholder='Enter days', className='form-control text-center',
-                    style={'line-height': 'inherit'}
+                    style={'line-height': 'inherit'}, value=inputs.get('window')
                 )),
                 build_input('Computation', dcc.Dropdown(
                     id='rolling-comp-dropdown',
@@ -306,15 +402,16 @@ def charts_layout(df):
                         build_option('var', 'Variance'),
                     ],
                     placeholder='Select an computation',
-                    style=dict(width='inherit'),
+                    style=dict(width='inherit'), value=inputs.get('rolling_comp')
                 ))
-            ], id='rolling-inputs', style=dict(display='none'))
+            ], id='rolling-inputs', style=dict(display='block' if agg == 'rolling' else 'none'))
         ], className='row pt-3 pb-3 charts-filters'),
         html.Div(
             [
                 build_input('Chart Per\nGroup',
-                            html.Div(daq.BooleanSwitch(id='cpg-toggle', on=False), className='toggle-wrapper'),
-                            id='cpg-input', style={'display': 'none'}, className='col-auto'),
+                            html.Div(daq.BooleanSwitch(id='cpg-toggle', on=inputs.get('cpg') or False),
+                                     className='toggle-wrapper'),
+                            id='cpg-input', style={'display': 'block' if show_cpg else 'none'}, className='col-auto'),
                 build_input('Barmode', dcc.Dropdown(
                     id='barmode-dropdown',
                     options=[
@@ -322,17 +419,17 @@ def charts_layout(df):
                         build_option('stack', 'Stack'),
                         build_option('relative', 'Relative'),
                     ],
-                    value='group',
+                    value=inputs.get('barmode') or 'group',
                     placeholder='Select a mode',
-                ), className='col-auto addon-min-width', style=dict(display='none'), id='barmode-input'),
+                ), className='col-auto addon-min-width', style=bar_style, id='barmode-input'),
                 build_input('Barsort', dcc.Dropdown(
-                    id='barsort-dropdown',
-                ), className='col-auto addon-min-width', style=dict(display='none'), id='barsort-input'),
+                    id='barsort-dropdown', options=barsort_options, value=inputs.get('barsort')
+                ), className='col-auto addon-min-width', style=bar_style, id='barsort-input'),
                 html.Div(
                     html.Div(
                         [
                             html.Span('Y-Axis', className='input-group-addon'),
-                            dcc.Dropdown(id='yaxis-dropdown'),
+                            dcc.Dropdown(id='yaxis-dropdown', options=yaxis_options),
                             html.Span('Min:', className='input-group-addon col-auto'),
                             dcc.Input(
                                 id='yaxis-min-input', type='number', className='form-control col-auto',
@@ -346,7 +443,8 @@ def charts_layout(df):
                         ],
                         className='input-group',
                     ),
-                    className='col-auto addon-min-width', style=dict(display='none'), id='yaxis-input'
+                    className='col-auto addon-min-width', id='yaxis-input',
+                    style=dict(display='block' if show_yaxis else 'none')
                 ),
             ],
             className='row pt-3 pb-5 charts-filters'

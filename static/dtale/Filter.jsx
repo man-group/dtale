@@ -1,3 +1,4 @@
+import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import { Modal, ModalBody, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
@@ -51,11 +52,48 @@ class Filter extends React.Component {
         </ModalHeader>
         <ModalBody>
           <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />
-          <textarea
-            style={{ width: "100%" }}
-            value={this.state.query || ""}
-            onChange={event => this.setState({ query: event.target.value })}
-          />
+          <div className="row">
+            <div className="col-md-6">
+              <textarea
+                style={{ width: "100%", height: "100%" }}
+                value={this.state.query || ""}
+                onChange={event => this.setState({ query: event.target.value })}
+              />
+            </div>
+            <div className="col-md-6">
+              <p className="font-weight-bold">Example queries</p>
+              <ul>
+                <li>
+                  {"drop NaN values: "}
+                  <span className="font-weight-bold">{"Col == Col"}</span>
+                </li>
+                <li>
+                  {"show only NaN values: "}
+                  <span className="font-weight-bold">{"Col != Col"}</span>
+                </li>
+                <li>
+                  {"date filtering: "}
+                  <span className="font-weight-bold">{`Col == '${moment().format("YYYYMMDD")}'`}</span>
+                </li>
+                <li>
+                  {"in-clause on string column: "}
+                  <span className="font-weight-bold">{"Col in ('foo','bar')"}</span>
+                </li>
+                <li>
+                  {"and-clause on numeric column: "}
+                  <span className="font-weight-bold">{"Col1 > 1 and Col2 <= 1"}</span>
+                </li>
+                <li>
+                  {"or-clause on numeric columns: "}
+                  <span className="font-weight-bold">{"Col1 > 1 or Col2 < 1"}</span>
+                </li>
+                <li>
+                  {"parenthesis usage: "}
+                  <span className="font-weight-bold">{"(Col1 > 1 or Col2 < 1) and (Col3 == 3)"}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </ModalBody>
         <ModalFooter>
           <button

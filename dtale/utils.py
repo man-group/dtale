@@ -8,6 +8,7 @@ import sys
 import time
 from builtins import map, object
 from logging import getLogger
+from multiprocessing import Manager, Process
 
 from flask import jsonify as _jsonify
 
@@ -713,6 +714,38 @@ def flatten_lists(lists):
 
 
 def divide_chunks(l, n):
+    """
+    Break list input 'l' up into smaller lists of size 'n'
+    """
     # looping till length l
     for i in range(0, len(l), n):
         yield l[i:i + n]
+
+
+def make_timeout_request(target, args=None, kwargs=None, timeout=60):
+    """
+    Helper function to wrap 'target' method in a timeout.  This will guard against long requests making the app
+    unusable.
+
+    :param target: function to be wrapped in timeout
+    :type target: func
+    :param kwargs: positional arguments to the function
+    :type kwargs: iterable, optional
+    :param kwargs: keyword arguments to the function
+    :type kwargs: dict, optional
+    :param timeout: seconds before a timeout exception is thrown, default is 60
+    :type timeout: int, optional
+    :return: output from target function otherwise throw a timeout exception
+    """
+    manager = Manager()
+    results = manager.list()
+    worker = Process(target=target, args=args or (), kwargs=dict_merge(kwargs or {}, dict(result_store=results)))
+    worker.start()
+    worker.join(timeout)
+    if worker.is_alive():
+        worker.terminate()
+        worker.join()
+        raise Exception(
+            'Request took longer than {} seconds. Please try adding additional filtering...'.format(timeout)
+        )
+    return results

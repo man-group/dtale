@@ -29,6 +29,9 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
 
     if chart_type in ZAXIS_CHARTS and z is None:
         return False
+
+    if inputs.get('agg') == 'rolling' and (inputs.get('window') is None or inputs.get('rolling_comp') is None):
+        return False
     return True
 
 

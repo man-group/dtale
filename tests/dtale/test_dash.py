@@ -43,7 +43,7 @@ def test_display_page(unittest):
                 'output': 'popup-content.children',
                 'changedPropIds': ['url.modified_timestamp'],
                 'inputs': [{'id': 'url', 'property': 'modified_timestamp'}],
-                'state': [pathname]
+                'state': [pathname, {'id': 'url', 'property': 'search', 'value': None}]
             }
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -95,7 +95,8 @@ def test_input_changes(unittest):
             params = {
                 'output': (
                     '..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options.'
-                    '..z-dropdown.options...group-dropdown.options..'
+                    '..z-dropdown.options...group-dropdown.options...barsort-dropdown.options.'
+                    '..yaxis-dropdown.options..'
                 ),
                 'changedPropIds': ['chart-tabs.value'],
                 'inputs': [
@@ -126,6 +127,12 @@ def test_input_changes(unittest):
                  {'label': 'd (Weekly)', 'value': 'd|W'}, {'label': 'd (Monthly)', 'value': 'd|M'},
                  {'label': 'd (Quarterly)', 'value': 'd|Q'}, {'label': 'd (Yearly)', 'value': 'd|Y'}]
             )
+            params['inputs'][2]['value'] = 'a'
+            params['inputs'][3]['value'] = ['b', 'c']
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            unittest.assertEqual([o['value'] for o in resp_data['barsort-dropdown']['options']], ['a', 'b', 'c'])
+            unittest.assertEqual([o['value'] for o in resp_data['yaxis-dropdown']['options']], ['b', 'c'])
 
 
 @pytest.mark.unit
@@ -133,8 +140,7 @@ def test_chart_type_changes(unittest):
     with app.test_client() as c:
         fig_data_outputs = (
             '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...rolling-inputs.style...'
-            'cpg-input.style...barmode-input.style...barsort-input.style...barsort-dropdown.options...'
-            'yaxis-input.style...yaxis-dropdown.options..'
+            'cpg-input.style...barmode-input.style...barsort-input.style...yaxis-input.style..'
         )
         inputs = {'id': 'input-data', 'property': 'data', 'value': {
             'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -151,8 +157,6 @@ def test_chart_type_changes(unittest):
             assert resp_data[id]['style']['display'] == 'none'
         for id in ['group-input', 'yaxis-input']:
             assert resp_data[id]['style']['display'] == 'block'
-        unittest.assertEqual([o['value'] for o in resp_data['barsort-dropdown']['options']], ['a', 'b'])
-        unittest.assertEqual([o['value'] for o in resp_data['yaxis-dropdown']['options']], ['b'])
 
         inputs['value']['chart_type'] = 'bar'
         inputs['value']['y'] = ['b', 'c']
@@ -400,7 +404,7 @@ def test_chart_building_bar_and_popup(unittest):
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             url = resp_data['chart-content']['children']['props']['children'][0]['props']['href']
-            assert url.startswith('/charts/popup/{}?'.format(c.port))
+            assert url.startswith('/charts/{}?'.format(c.port))
             url_params = dict(get_url_parser()(url.split('?')[-1]))
             unittest.assertEqual(
                 url_params,
@@ -424,28 +428,12 @@ def test_chart_building_bar_and_popup(unittest):
                 'output': 'popup-content.children',
                 'changedPropIds': ['url.modified_timestamp'],
                 'inputs': [{'id': 'url', 'property': 'modified_timestamp'}],
-                'state': [{'id': 'url', 'property': 'pathname', 'value': pathname_val}]
-            })
-            assert response.status_code == 200
-            response = c.post('/charts/_dash-update-component', json={
-                'output': 'popup-chart-content.children',
-                'changedPropIds': [],
-                'inputs': [
+                'state': [
                     {'id': 'url', 'property': 'pathname', 'value': pathname_val},
                     {'id': 'url', 'property': 'search', 'value': '?{}'.format(search_val)}
                 ]
             })
-            resp_data = response.get_json()['response']
-            unittest.assertEqual(
-                resp_data['props']['children']['props']['children'][1]['props']['figure']['layout'],
-                {'barmode': 'group',
-                 'legend': {'orientation': 'h', 'y': 1.2},
-                 'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
-                 'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
-                 'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
-                            'tickformat': '.0f'}}
-            )
+            assert response.status_code == 200
 
             chart_inputs['barmode'] = 'stack'
             params = build_chart_params(pathname, inputs, chart_inputs)
@@ -738,10 +726,10 @@ def test_load_chart_error(unittest):
             stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
 
-            def build_chart_data_mock(data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
+            def build_chart_data_mock(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
                 raise Exception('error test')
             stack.enter_context(mock.patch(
-                'dtale.dash_application.charts.build_figure_data',
+                'dtale.dash_application.charts.build_chart_data',
                 side_effect=build_chart_data_mock
             ))
             pathname = {'id': 'url', 'property': 'pathname', 'value': '/charts/{}'.format(c.port)}
@@ -767,6 +755,7 @@ def test_load_chart_error(unittest):
             }
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']['chart-content']['children']
+            print(response.get_json()['response'])
             assert resp_data['props']['children'][1]['props']['children'] == 'error test'
 
 
