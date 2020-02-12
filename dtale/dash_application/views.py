@@ -11,11 +11,12 @@ from six import PY3
 
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart
-from dtale.dash_application.layout import (CHART_INPUT_SETTINGS, FREQ_LABELS,
-                                           FREQS, base_layout, build_option,
-                                           charts_layout)
-from dtale.utils import (classify_type, dict_merge, flatten_lists, get_dtypes,
-                         make_list)
+from dtale.dash_application.layout import (bar_input_style, base_layout,
+                                           build_input_options, charts_layout,
+                                           show_chart_per_group,
+                                           show_input_handler,
+                                           show_yaxis_ranges)
+from dtale.utils import dict_merge, make_list
 from dtale.views import DATA, _test_filter
 
 logger = getLogger(__name__)
@@ -89,11 +90,13 @@ def chart_url_params(search):
     :return: dictionary of parsed querystring key/values
     :rtype: dict
     """
+    if not search:
+        return {}
     params = dict(get_url_parser()(search.lstrip('?')))
     for gp in ['y', 'group', 'yaxis']:
         if gp in params:
             params[gp] = json.loads(params[gp])
-    params['cpg'] = 'true' == params['cpg']
+    params['cpg'] = 'true' == params.get('cpg')
     if 'window' in params:
         params['window'] = int(params['window'])
     return params
@@ -150,6 +153,8 @@ def init_callbacks(dash_app):
             Output('y-multi-dropdown', 'options'),
             Output('z-dropdown', 'options'),
             Output('group-dropdown', 'options'),
+            Output('barsort-dropdown', 'options'),
+            Output('yaxis-dropdown', 'options'),
         ],
         [
             Input('query-data', 'modified_timestamp'),
@@ -174,32 +179,12 @@ def init_callbacks(dash_app):
         inputs = dict(query=query, chart_type=chart_type, x=x, y=y_val, z=z, group=group, agg=agg, window=window,
                       rolling_comp=rolling_comp)
         data_id = get_data_id(pathname)
-        cols = DATA[data_id].columns
-        dtypes = get_dtypes(DATA[data_id])
-
-        def build_selections(*args):
-            return flatten_lists([[] if a is None else make_list(a) for a in args])
-
-        def build_cols():
-            for c in cols:
-                if classify_type(dtypes[c]) == 'D':
-                    for freq in FREQS:
-                        if freq in FREQ_LABELS:
-                            yield '{}|{}'.format(c, freq), '{} ({})'.format(c, FREQ_LABELS[freq])
-                        else:
-                            yield c, c
-                else:
-                    yield c, c
-
-        col_opts = list(build_cols())
-        group_val, z_val = (None, z) if chart_type in ZAXIS_CHARTS else (group, None)
-        x_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(y_val, z_val, group_val)]
-        y_filter = build_selections(x, group_val, z_val)
-        y_multi_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
-        y_single_options = [build_option(c, l) for c, l in col_opts if c not in y_filter]
-        z_options = [build_option(c) for c in cols if c not in build_selections(x, y_val, group_val)]
-        group_options = [build_option(c, l) for c, l in col_opts if c not in build_selections(x, y_val, z_val)]
-        return inputs, x_options, y_single_options, y_multi_options, z_options, group_options
+        options = build_input_options(DATA[data_id], **inputs)
+        x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
+        return (
+            inputs, x_options, y_single_options, y_multi_options, z_options, group_options, barsort_options,
+            yaxis_options
+        )
 
     @dash_app.callback(
         [
@@ -211,9 +196,7 @@ def init_callbacks(dash_app):
             Output('cpg-input', 'style'),
             Output('barmode-input', 'style'),
             Output('barsort-input', 'style'),
-            Output('barsort-dropdown', 'options'),
             Output('yaxis-input', 'style'),
-            Output('yaxis-dropdown', 'options'),
         ],
         [Input('input-data', 'modified_timestamp')],
         [State('input-data', 'data')]
@@ -223,32 +206,21 @@ def init_callbacks(dash_app):
         dash callback controlling showing/hiding of chart-specific inputs (for example z-axis) as well as chart
         formatting inputs (sorting for bars in bar chart, bar chart style (stacked) or y-axis ranges.
         """
-        [chart_type, x, y, group, agg] = [inputs.get(p) for p in ['chart_type', 'x', 'y', 'group', 'agg']]
-        settings = CHART_INPUT_SETTINGS[chart_type]
-        x_settings, y_settings, z_settings, group_settings = (settings.get(p) for p in ['x', 'y', 'z', 'group'])
+        [chart_type, agg] = [inputs.get(p) for p in ['chart_type', 'agg']]
+        show_input = show_input_handler(chart_type)
 
-        def show(cfg, input_type='single'):
-            return cfg.get('display', True) and cfg.get('type', 'single') == input_type
-
-        y_multi_style = {'display': 'block' if show(y_settings, 'multi') else 'none'}
-        y_single_style = {'display': 'block' if show(y_settings) else 'none'}
-        z_style = {'display': 'block' if show(z_settings) else 'none'}
-        group_style = {'display': 'block' if show(group_settings) else 'none'}
+        y_multi_style = {'display': 'block' if show_input('y', 'multi') else 'none'}
+        y_single_style = {'display': 'block' if show_input('y') else 'none'}
+        z_style = {'display': 'block' if show_input('z') else 'none'}
+        group_style = {'display': 'block' if show_input('group') else 'none'}
         rolling_style = {'display': 'inherit' if agg == 'rolling' else 'none'}
-        show_cpg = show(group_settings) and len(group or []) and chart_type not in ['pie', 'wordcloud']
-        cpg_style = {'display': 'block' if show_cpg else 'none'}
-        bar_style = {'display': 'block' if chart_type == 'bar' else 'none'}
-        barsort_options = make_list(x) if x is not None else []
-        barsort_options += make_list(y) if y is not None else []
-        barsort_options = [build_option(o) for o in barsort_options]
-
-        yaxis_style, yaxis_options = {'display': 'none'}, []
-        if chart_type in YAXIS_CHARTS and len(y or []):
-            yaxis_style, yaxis_options = {'display': 'block'}, [build_option(y2) for y2 in y]
+        cpg_style = {'display': 'block' if show_chart_per_group(**inputs) else 'none'}
+        bar_style = bar_input_style(**inputs)
+        yaxis_style = {'display': 'block' if show_yaxis_ranges(**inputs) else 'none'}
 
         return (
-            y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style,
-            bar_style, barsort_options, yaxis_style, yaxis_options
+            y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
+            yaxis_style
         )
 
     @dash_app.callback(
@@ -344,24 +316,15 @@ def init_callbacks(dash_app):
                 yaxis_data[yaxis] = dict(min=yaxis_min, max=yaxis_max)
         return yaxis_data
 
-    @dash_app.callback(Output('popup-chart-content', 'children'), [Input('url', 'pathname'), Input('url', 'search')])
-    def popup_figure_content(pathname, search):
-        """
-        dash callback for building chart for popup
-        """
-        params = chart_url_params(search)
-        return build_chart(get_data_id(pathname), **params)[0]
-
     @dash_app.callback(
         Output('popup-content', 'children'),
         [Input('url', 'modified_timestamp')],
-        [State('url', 'pathname')])
-    def display_page(_ts, pathname):
+        [State('url', 'pathname'), State('url', 'search')])
+    def display_page(_ts, pathname, search):
         """
         dash callback which gets called on initial load of each dash page (main & popup)
         """
         dash_app.config.suppress_callback_exceptions = False
-        if pathname.startswith('/charts/popup/'):
-            return html.Div(dcc.Loading(html.Div(id='popup-chart-content'), type='circle'), className='charts-body')
+        params = chart_url_params(search)
         df = DATA[get_data_id(pathname)]
-        return charts_layout(df)
+        return charts_layout(df, **params)

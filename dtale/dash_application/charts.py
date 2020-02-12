@@ -19,7 +19,8 @@ from dtale.charts.utils import (check_all_nan, check_exceptions,
 from dtale.dash_application.layout import (AGGS, build_error,
                                            update_label_for_freq)
 from dtale.utils import (classify_type, dict_merge, divide_chunks,
-                         flatten_lists, get_dtypes, make_list)
+                         flatten_lists, get_dtypes, make_list,
+                         make_timeout_request)
 from dtale.views import DATA
 from dtale.views import build_chart as build_chart_data
 
@@ -134,7 +135,7 @@ def chart_wrapper(data_id, data, url_params=None):
         return lambda chart: chart
 
     url_params_func = urllib.parse.urlencode if PY3 else urllib.urlencode
-    base_props = ['chart_type', 'x', 'z', 'agg', 'window', 'rolling_comp', 'barmode', 'barsort']
+    base_props = ['chart_type', 'query', 'x', 'z', 'agg', 'window', 'rolling_comp', 'barmode', 'barsort']
     params = {k: url_params[k] for k in base_props if url_params.get(k) is not None}
     params['cpg'] = 'true' if url_params.get('cpg') is True else 'false'
     for gp in ['y', 'group']:
@@ -153,7 +154,7 @@ def chart_wrapper(data_id, data, url_params=None):
 
     popup_link = html.A(
         [html.I(className='far fa-window-restore mr-4'), html.Span('Popup Chart')],
-        href='/charts/popup/{}?{}'.format(data_id, url_params_func(params)),
+        href='/charts/{}?{}'.format(data_id, url_params_func(params)),
         target='_blank',
         style={'position': 'absolute', 'zIndex': 5}
     )
@@ -715,7 +716,8 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
     :rtype: dict
     """
     try:
-        if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type)):
+        if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window,
+                                  rolling_comp=rolling_comp)):
             return None
 
         data = DATA[data_id] if (query or '') == '' else DATA[data_id].query(query)
@@ -730,7 +732,15 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
         return dict(error=str(e), traceback=str(traceback.format_exc()))
 
 
-def build_chart(data_id, **inputs):
+def threaded_build_figure_data(data_id=None, result_store=None, **inputs):
+    result_store.append(build_figure_data(data_id, **inputs))
+
+
+def threaded_heatmap_builder(data_id=None, result_store=None, **inputs):
+    result_store.append(heatmap_builder(data_id, **inputs))
+
+
+def build_chart(data_id=None, **inputs):
     """
     Factory method that forks off into the different chart building methods (heatmaps are handled separately)
         - line
@@ -753,9 +763,12 @@ def build_chart(data_id, **inputs):
     """
     try:
         if inputs.get('chart_type') == 'heatmap':
-            return heatmap_builder(data_id, **inputs), None
+            data = make_timeout_request(threaded_heatmap_builder, kwargs=dict_merge(dict(data_id=data_id), inputs))
+            data = data.pop()
+            return data, None
 
-        data = build_figure_data(data_id, **inputs)
+        data = make_timeout_request(threaded_build_figure_data, kwargs=dict_merge(dict(data_id=data_id), inputs))
+        data = data.pop()
         if data is None:
             return None, None
 

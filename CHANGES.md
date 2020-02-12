@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.7.2 (2020-2-12)
+ * 60 timeout handling around chart requests
+ * pre-loaded charts through URL search strings
+ * pandas query examples in Filter popup
+
 ### 1.7.1 (2020-2-7)
  * added pie, 3D scatter & surface charts
  * updated popups to be displayed when the browser dimensions are too small to host a modal

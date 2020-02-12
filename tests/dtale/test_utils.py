@@ -244,3 +244,28 @@ def test_json_string2(builtin_pkg):
         stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr)))
         stack.enter_context(mock.patch('dtale.utils.logger', MockLogger()))
         utils.json_string(TestStr(), nan_display='nan')
+
+
+@pytest.mark.unit
+def test_make_timeout_request():
+    class MockProcess(object):
+        def __init__(self, target=None, args=None, kwargs=None):
+            pass
+
+        def start(self):
+            pass
+
+        def join(self, timeout=None):
+            pass
+
+        def is_alive(self):
+            return True
+
+        def terminate(self):
+            pass
+
+    with mock.patch('dtale.utils.Process', mock.Mock(side_effect=MockProcess)):
+        with pytest.raises(Exception) as error:
+            utils.make_timeout_request(utils.dict_merge, args=({}, {}))
+    print(str(error.value))
+    assert str(error.value).endswith('Request took longer than 60 seconds. Please try adding additional filtering...')
