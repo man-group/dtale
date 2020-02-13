@@ -19,6 +19,17 @@ defaults: &defaults
         - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
+    - run:
+        name: Download & Install latest pandoc
+        command: |
+          # the 'latest' URL redirects to the name of the latest tag.
+          export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+          echo $PANDOC_VERSION
+          export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
+          echo $PANDOC_FILE
+          wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
+          sudo dpkg -i $PANDOC_FILE
+          rm $PANDOC_FILE
     - restore_cache:
         name: Restore Yarn Package Cache
         keys:
@@ -54,17 +65,6 @@ defaults: &defaults
         name: Build JS
         command: |
           yarn run build
-    - run:
-        name: Install Latest pandoc
-        command: |
-          # the 'latest' URL redirects to the name of the latest tag.
-          export PANDOCVERSION=$(curl -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
-          echo $PANDOCVERSION # Show pandoc version in logs
-          export PANDOC_FILE=pandoc-$PANDOCVERSION-1-amd64.deb
-          echo $PANDOC_FILE
-          wget $PANDOC_RELEASES_URL/download/$PANDOCVERSION/$PANDOC_FILE
-          sudo dpkg -i $PANDOC_FILE
-          rm $PANDOC_FILE
     - run:
        name: Create and activate virtualenv
        command: |

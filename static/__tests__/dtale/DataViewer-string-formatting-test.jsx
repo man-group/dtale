@@ -1,17 +1,21 @@
 import { mount } from "enzyme";
 import React from "react";
+import { ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
+import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import mockPopsicle from "../MockPopsicle";
+import { clickColMenuButton } from "../iframe/iframe-utils";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-import { clickColMenuSubButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer iframe tests", () => {
+describe("DataViewer tests", () => {
+  const { open } = window;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -21,6 +25,8 @@ describe("DataViewer iframe tests", () => {
       configurable: true,
       value: 500,
     });
+    delete window.open;
+    window.open = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -30,9 +36,15 @@ describe("DataViewer iframe tests", () => {
     );
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      const chartCfg = {
+        ctx,
+        cfg,
+        data: cfg.data,
+        destroyed: false,
+      };
+      chartCfg.destroy = function destroy() {
+        chartCfg.destroyed = true;
+      };
       return chartCfg;
     });
 
@@ -45,13 +57,16 @@ describe("DataViewer iframe tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    window.open = open;
   });
 
-  test("DataViewer: sorting operations", done => {
+  test("DataViewer: string formatting", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const Formatting = require("../../popups/formats/Formatting").default;
+    const StringFormatting = require("../../popups/formats/StringFormatting").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", iframe: "True" }, store);
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -63,39 +78,49 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
+      // select column
       result
         .find(".main-grid div.headerCell div")
-        .last()
+        .at(2)
         .simulate("click");
+      result.update();
+      clickColMenuButton(result, "Formats");
+      result.update();
+      t.equal(result.find(StringFormatting).length, 1, "should open string formatting");
+
+      const input = result
+        .find(StringFormatting)
+        .find("div.form-group")
+        .at(0)
+        .find("input");
+
+      input.simulate("change", { target: { value: "2" } });
+      t.equal(
+        result
+          .find(StringFormatting)
+          .find("div.row")
+          .last()
+          .text(),
+        "Raw:I am a long piece of text, please truncate me.Truncated:...",
+        "should truncate text"
+      );
+
       result
-        .find(".main-grid div.headerCell div")
-        .last()
+        .find(Formatting)
+        .find(ModalFooter)
+        .first()
+        .find("button")
+        .first()
         .simulate("click");
-      clickColMenuSubButton(result, "Asc");
-      t.equal(
-        result
-          .find("div.row div.col-md-6")
+      setTimeout(() => {
+        result.update();
+        const grid = result
+          .find(MultiGrid)
           .first()
-          .text(),
-        "Sort:col4 (ASC)",
-        "should display column sort"
-      );
-      clickColMenuSubButton(result, "Desc");
-      t.equal(
-        result
-          .find("div.row div.col-md-6")
-          .first()
-          .text(),
-        "Sort:col4 (DESC)",
-        "should display column sort"
-      );
-      clickColMenuSubButton(result, "None");
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should clear col4 sort"
-      );
-      done();
-    }, 600);
+          .instance();
+        t.equal(grid.props.data["0"].col3.view, "...", "should update grid formatting");
+        done();
+      }, 400);
+    }, 400);
   });
 });
