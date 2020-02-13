@@ -1,3 +1,5 @@
+/* eslint max-lines: "off" */
+/* eslint max-statements: "off" */
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -10,7 +12,7 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton, clickColMenuSortButton, findColMenuButton } from "./iframe-utils";
+import { clickColMenuButton, clickColMenuSubButton, findColMenuButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -97,7 +99,7 @@ describe("DataViewer iframe tests", () => {
   test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const Header = require("../../dtale/Header").ReactHeader;
-    const Formatting = require("../../dtale/Formatting").default;
+    const Formatting = require("../../popups/formats/Formatting").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -167,10 +169,10 @@ describe("DataViewer iframe tests", () => {
       );
       t.deepEqual(
         colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-        ["Move To Front", "Lock", "Describe", "Histogram", "Formats"],
+        ["Lock", "Describe", "Histogram", "Formats"],
         "Should render column menu options"
       );
-      clickColMenuSortButton(result, "Asc");
+      clickColMenuSubButton(result, "Asc");
       t.equal(
         result
           .find("div.row div.col-md-6")
@@ -204,12 +206,35 @@ describe("DataViewer iframe tests", () => {
           .last()
           .simulate("click");
         result.update();
-        clickColMenuButton(result, "Move To Front");
+        clickColMenuSubButton(result, "Front", 1);
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
           ["▲col4", "col1", "col2", "col3"],
           "should move col4 to front of main grid"
         );
+        result
+          .find(".main-grid div.headerCell div")
+          .last()
+          .simulate("click");
+        result.update();
+        clickColMenuSubButton(result, "Left", 1);
+        t.deepEqual(
+          result.find(".main-grid div.headerCell").map(hc => hc.text()),
+          ["▲col4", "col1", "col3", "col2"],
+          "should move col4 to front of main grid"
+        );
+        result
+          .find(".main-grid div.headerCell div")
+          .at(2)
+          .simulate("click");
+        result.update();
+        clickColMenuSubButton(result, "Right", 1);
+        t.deepEqual(
+          result.find(".main-grid div.headerCell").map(hc => hc.text()),
+          ["▲col4", "col1", "col2", "col3"],
+          "should move col4 to front of main grid"
+        );
+
         result
           .find(".main-grid div.headerCell div")
           .first()

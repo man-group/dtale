@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
-import { fullPath, open, shouldOpenPopup } from "./dataViewerMenuUtils";
+import menuFuncs from "./dataViewerMenuUtils";
 import { toggleHeatMap } from "./gridUtils";
 
 class ReactDataViewerMenu extends React.Component {
@@ -14,8 +14,8 @@ class ReactDataViewerMenu extends React.Component {
     const iframe = global.top !== global.self;
     const processCt = document.getElementById("processes").value;
     const openPopup = (type, height = 450, width = 500) => () => {
-      if (shouldOpenPopup(height, width)) {
-        open(`/dtale/popup/${type}`, dataId, height, width);
+      if (menuFuncs.shouldOpenPopup(height, width)) {
+        menuFuncs.open(`/dtale/popup/${type}`, dataId, height, width);
       } else {
         this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
       }
@@ -57,7 +57,9 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => window.open(fullPath("/charts", dataId), "_blank")}>
+              <button
+                className="btn btn-plain"
+                onClick={() => window.open(menuFuncs.fullPath("/charts", dataId), "_blank")}>
                 <i className="ico-show-chart" />
                 <span className="font-weight-bold">Charts</span>
               </button>
@@ -119,7 +121,9 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={iframe}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={() => open(window.location.pathname, null, 400, 700)}>
+                <button
+                  className="btn btn-plain"
+                  onClick={() => menuFuncs.open(window.location.pathname, null, 400, 700)}>
                   <i className="ico-open-in-new" />
                   <span className="font-weight-bold">Open Popup</span>
                 </button>

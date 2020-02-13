@@ -53,14 +53,14 @@ class Filter extends React.Component {
         <ModalBody>
           <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-7">
               <textarea
                 style={{ width: "100%", height: "100%" }}
                 value={this.state.query || ""}
                 onChange={event => this.setState({ query: event.target.value })}
               />
             </div>
-            <div className="col-md-6">
+            <div className="col-md-5">
               <p className="font-weight-bold">Example queries</p>
               <ul>
                 <li>
@@ -88,8 +88,17 @@ class Filter extends React.Component {
                   <span className="font-weight-bold">{"Col1 > 1 or Col2 < 1"}</span>
                 </li>
                 <li>
+                  {"negative-clause: "}
+                  <span className="font-weight-bold">{"~(Col > 1)"}</span>
+                </li>
+                <li>
                   {"parenthesis usage: "}
                   <span className="font-weight-bold">{"(Col1 > 1 or Col2 < 1) and (Col3 == 3)"}</span>
+                </li>
+                <li>
+                  {"regex usage (search for substrings 'foo' or 'bar'):"}
+                  <br />
+                  <span className="font-weight-bold">{"Col.str.contains('(foo|bar)', case=False)"}</span>
                 </li>
               </ul>
             </div>

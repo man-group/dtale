@@ -60,8 +60,8 @@ class ReactHeader extends React.Component {
     );
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     return (
-      <div className={`headerCell ${toggleId}`} style={style}>
-        <div onClick={menuHandler}>
+      <div className={`headerCell ${toggleId}`} style={style} onClick={menuHandler}>
+        <div>
           {_.get(SORT_CHARS, sortDir, "")}
           {colName}
         </div>

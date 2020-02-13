@@ -69,9 +69,10 @@ describe("DataViewer tests", () => {
     window.open = open;
   });
 
-  test("DataViewer: formatting", done => {
+  test("DataViewer: numeric formatting", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const Formatting = require("../../dtale/Formatting").default;
+    const Formatting = require("../../popups/formats/Formatting").default;
+    const NumericFormatting = require("../../popups/formats/NumericFormatting").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -94,27 +95,27 @@ describe("DataViewer tests", () => {
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
-      t.equal(result.find(Formatting).length, 1, "should open formatting");
+      t.equal(result.find(NumericFormatting).length, 1, "should open numeric formatting");
       result
         .find(Formatting)
         .find(ModalClose)
         .first()
         .simulate("click");
       result.update();
-      t.notOk(result.find(Formatting).instance().props.visible, "should close formatting");
+      t.notOk(result.find(Formatting).instance().props.visible, "should close numeric formatting");
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
 
       result
-        .find(Formatting)
+        .find(NumericFormatting)
         .find("i.ico-info-outline")
         .first()
         .simulate("click");
       expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("http://numeraljs.com/#format");
       _.forEach(TEXT_TESTS, ([expected, msg], i) => {
         let clicker = result
-          .find(Formatting)
+          .find(NumericFormatting)
           .find("div.form-group")
           .at(i)
           .find("button");
@@ -126,7 +127,7 @@ describe("DataViewer tests", () => {
         clicker.simulate("click");
         t.equal(
           result
-            .find(Formatting)
+            .find(NumericFormatting)
             .find("small")
             .first()
             .text(),
@@ -135,7 +136,7 @@ describe("DataViewer tests", () => {
         );
       });
       result
-        .find(Formatting)
+        .find(NumericFormatting)
         .find("div.form-group")
         .at(5)
         .find("button")
@@ -144,7 +145,7 @@ describe("DataViewer tests", () => {
       t.ok(
         _.includes(
           result
-            .find(Formatting)
+            .find(NumericFormatting)
             .find("small")
             .first()
             .html(),
@@ -154,7 +155,7 @@ describe("DataViewer tests", () => {
       );
       _.forEach(_.range(1, 6), i => {
         result
-          .find(Formatting)
+          .find(NumericFormatting)
           .find("div.form-group")
           .at(i)
           .find("button")

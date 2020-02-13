@@ -1,9 +1,10 @@
 import chroma from "chroma-js";
 import _ from "lodash";
+import moment from "moment";
 import numeral from "numeral";
 
 import { measureText } from "./MeasureText";
-import { buildStyling } from "./dataViewerMenuUtils";
+import menuFuncs from "./dataViewerMenuUtils";
 
 const IDX = "dtale_index";
 const DEFAULT_COL_WIDTH = 70;
@@ -46,26 +47,33 @@ function buildNumeral(val, fmt) {
   return numeral(val).format(fmt);
 }
 
-function buildValue({ name, dtype }, rawValue, { numberFormats }) {
+function buildValue({ name, dtype }, rawValue, { columnFormats }) {
   if (!_.isUndefined(rawValue)) {
-    const fmt = _.get(numberFormats, [name, "fmt"]);
+    const fmt = _.get(columnFormats, [name, "fmt"]);
     switch (findColType((dtype || "").toLowerCase())) {
       case "float":
         return buildNumeral(rawValue, fmt || "0.00");
       case "int":
         return buildNumeral(rawValue, fmt || "0");
+      case "date":
+        return fmt ? moment(new Date(rawValue)).format(fmt) : rawValue;
+      case "string":
       default:
-        return rawValue;
+        return fmt ? _.truncate(rawValue, { length: fmt }) : rawValue;
     }
   }
   return "";
 }
 
-function buildDataProps({ name, dtype }, rawValue, { numberFormats }) {
+function buildDataProps({ name, dtype }, rawValue, { columnFormats }) {
   return {
     raw: rawValue,
-    view: buildValue({ name, dtype }, rawValue, { numberFormats }),
-    style: buildStyling(rawValue, findColType((dtype || "").toLowerCase()), _.get(numberFormats, [name, "style"], {})),
+    view: buildValue({ name, dtype }, rawValue, { columnFormats }),
+    style: menuFuncs.buildStyling(
+      rawValue,
+      findColType((dtype || "").toLowerCase()),
+      _.get(columnFormats, [name, "style"], {})
+    ),
   };
 }
 
@@ -82,10 +90,9 @@ function getColWidth(index, { columns }) {
 }
 
 function getRanges(array) {
-  var ranges = [],
-    rstart,
-    rend;
-  for (var i = 0; i < array.length; i++) {
+  const ranges = [];
+  let rstart, rend;
+  for (let i = 0; i < array.length; i++) {
     rstart = array[i];
     rend = rstart;
     while (array[i + 1] - array[i] == 1) {
@@ -113,12 +120,12 @@ function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
       case "float":
         w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);
         break;
-      case "string": {
+      case "string":
+      default: {
         const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
         w = _.max(_.map(upperWords, measureText));
         break;
       }
-      default:
     }
     w = headerWidth > w ? headerWidth : w;
   }
@@ -205,7 +212,7 @@ function buildToggleId(colName) {
 function buildState(props) {
   return {
     ...buildGridStyles(),
-    numberFormats: _.get(props, "settings.formats", {}),
+    columnFormats: _.get(props, "settings.formats", {}),
     overscanColumnCount: 0,
     overscanRowCount: 5,
     rowHeight: ({ index }) => (index == 0 ? HEADER_HEIGHT : ROW_HEIGHT),
@@ -235,6 +242,7 @@ export {
   getColWidth,
   getRanges,
   calcColWidth,
+  findColType,
   isDateCol,
   isStringCol,
   IDX,

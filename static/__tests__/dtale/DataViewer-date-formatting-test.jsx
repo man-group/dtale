@@ -1,17 +1,21 @@
 import { mount } from "enzyme";
 import React from "react";
+import { ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
+import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import mockPopsicle from "../MockPopsicle";
+import { clickColMenuButton } from "../iframe/iframe-utils";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-import { clickColMenuSubButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer iframe tests", () => {
+describe("DataViewer tests", () => {
+  const { open } = window;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -21,6 +25,8 @@ describe("DataViewer iframe tests", () => {
       configurable: true,
       value: 500,
     });
+    delete window.open;
+    window.open = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -30,9 +36,15 @@ describe("DataViewer iframe tests", () => {
     );
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      const chartCfg = {
+        ctx,
+        cfg,
+        data: cfg.data,
+        destroyed: false,
+      };
+      chartCfg.destroy = function destroy() {
+        chartCfg.destroyed = true;
+      };
       return chartCfg;
     });
 
@@ -45,13 +57,16 @@ describe("DataViewer iframe tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    window.open = open;
   });
 
-  test("DataViewer: sorting operations", done => {
+  test("DataViewer: date formatting", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const Formatting = require("../../popups/formats/Formatting").default;
+    const DateFormatting = require("../../popups/formats/DateFormatting").default;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", iframe: "True" }, store);
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -63,39 +78,56 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
+      // select column
       result
         .find(".main-grid div.headerCell div")
         .last()
         .simulate("click");
+      result.update();
+      clickColMenuButton(result, "Formats");
+      result.update();
+      t.equal(result.find(DateFormatting).length, 1, "should open numeric formatting");
+
       result
-        .find(".main-grid div.headerCell div")
-        .last()
+        .find(Formatting)
+        .find("i.ico-info-outline")
+        .first()
         .simulate("click");
-      clickColMenuSubButton(result, "Asc");
+      const momentUrl = "https://momentjs.com/docs/#/displaying/format/";
+      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(momentUrl);
+      const input = result
+        .find(DateFormatting)
+        .find("div.form-group")
+        .at(0)
+        .find("input");
+
+      input.simulate("change", { target: { value: "YYYYMMDD" } });
       t.equal(
         result
-          .find("div.row div.col-md-6")
-          .first()
+          .find(DateFormatting)
+          .find("div.row")
+          .last()
           .text(),
-        "Sort:col4 (ASC)",
-        "should display column sort"
+        "Raw:December 31st 1999, 7:00:00 pmFormatted:19991231",
+        "should update formatting hint"
       );
-      clickColMenuSubButton(result, "Desc");
-      t.equal(
-        result
-          .find("div.row div.col-md-6")
+
+      result
+        .find(Formatting)
+        .find(ModalFooter)
+        .first()
+        .find("button")
+        .first()
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        const grid = result
+          .find(MultiGrid)
           .first()
-          .text(),
-        "Sort:col4 (DESC)",
-        "should display column sort"
-      );
-      clickColMenuSubButton(result, "None");
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should clear col4 sort"
-      );
-      done();
-    }, 600);
+          .instance();
+        t.equal(grid.props.data["0"].col4.view.length, 8, "should update grid formatting");
+        done();
+      }, 400);
+    }, 400);
   });
 });

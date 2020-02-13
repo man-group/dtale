@@ -17,11 +17,33 @@ function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
   propagateState({ sortInfo: updatedSortInfo, triggerResize: true });
 }
 
-function moveToFront(selectedCols, { columns, propagateState }) {
+function moveOnePosition(selectedCol, { columns, propagateState }, dir) {
   return () => {
     const locked = _.filter(columns, "locked");
-    const colsToFront = _.filter(columns, ({ name, locked }) => _.includes(selectedCols, name) && !locked);
-    let finalCols = _.filter(columns, ({ name }) => !_.includes(selectedCols, name));
+    const nonLocked = _.filter(columns, ({ locked }) => !locked);
+    const selectedIdx = _.findIndex(nonLocked, { name: selectedCol });
+    if (dir === "right" && selectedIdx === nonLocked.length - 1) {
+      return;
+    }
+    if (dir === "left" && selectedIdx === 0) {
+      return;
+    }
+    const moveToRightIdx = dir === "right" ? selectedIdx : selectedIdx - 1;
+    const moveToRight = _.clone(nonLocked[moveToRightIdx]);
+    const moveToLeftIdx = dir === "right" ? selectedIdx + 1 : selectedIdx;
+    const moveToLeft = _.clone(nonLocked[moveToLeftIdx]);
+    nonLocked[moveToRightIdx] = moveToLeft;
+    nonLocked[moveToLeftIdx] = moveToRight;
+    const finalCols = _.concat(locked, nonLocked);
+    propagateState({ columns: finalCols, triggerResize: true });
+  };
+}
+
+function moveToFront(selectedCol, { columns, propagateState }) {
+  return () => {
+    const locked = _.filter(columns, "locked");
+    const colsToFront = _.filter(columns, ({ name, locked }) => selectedCol === name && !locked);
+    let finalCols = _.filter(columns, ({ name }) => selectedCol !== name);
     finalCols = _.filter(finalCols, ({ name }) => !_.find(locked, { name }));
     finalCols = _.concat(locked, colsToFront, finalCols);
     propagateState({ columns: finalCols, triggerResize: true });
@@ -102,4 +124,15 @@ function shouldOpenPopup(height, width) {
   return true;
 }
 
-export { updateSort, moveToFront, lockCols, unlockCols, buildStyling, fullPath, open, shouldOpenPopup };
+export default {
+  updateSort,
+  moveToFront,
+  moveRight: (selectedCol, props) => moveOnePosition(selectedCol, props, "right"),
+  moveLeft: (selectedCol, props) => moveOnePosition(selectedCol, props, "left"),
+  lockCols,
+  unlockCols,
+  buildStyling,
+  fullPath,
+  open,
+  shouldOpenPopup,
+};

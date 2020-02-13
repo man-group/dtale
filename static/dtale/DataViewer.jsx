@@ -12,10 +12,10 @@ import actions from "../actions/dtale";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
+import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo, hasNoInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
-import Formatting from "./Formatting";
 import { Header } from "./Header";
 import { MeasureText } from "./MeasureText";
 import * as gu from "./gridUtils";
@@ -35,10 +35,10 @@ class ReactDataViewer extends React.Component {
   }
 
   propagateState(state, callback = _.noop) {
-    if (_.has(state, "columns")) {
+    if (_.has(state, "columns") && !_.get(state, "formattingUpdate", false)) {
       state.columns = _.map(state.columns, c => _.assignIn(c, { width: gu.calcColWidth(c, this.state) }));
     }
-    this.setState(state, callback);
+    this.setState(_.omit(state, "formattingUpdate"), callback);
   }
 
   componentDidMount() {
@@ -179,6 +179,7 @@ class ReactDataViewer extends React.Component {
     const colCfg = gu.getCol(columnIndex, this.state);
     let value = "-";
     let valueStyle = {};
+    const divProps = {};
     if (colCfg.name) {
       const rec = _.get(this.state, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
@@ -186,9 +187,12 @@ class ReactDataViewer extends React.Component {
       if (this.state.heatMapMode) {
         valueStyle = _.assignIn({ background: gu.heatMapBackground(rec, colCfg) }, valueStyle);
       }
+      if (gu.findColType(colCfg.dtype) === "string" && rec.raw !== rec.view) {
+        divProps.title = rec.raw;
+      }
     }
     return (
-      <div className="cell" key={key} style={_.assignIn({}, style, valueStyle)}>
+      <div className="cell" key={key} style={_.assignIn({}, style, valueStyle)} {...divProps}>
         {value}
       </div>
     );
@@ -245,7 +249,8 @@ class ReactDataViewer extends React.Component {
         <Popup propagateState={this.propagateState} />
         <Filter visible={filterOpen} propagateState={this.propagateState} query={query} dataId={this.props.dataId} />
         <Formatting
-          {..._.pick(this.state, ["data", "columns", "numberFormats", "selectedCols"])}
+          {..._.pick(this.state, ["data", "columns", "columnFormats"])}
+          selectedCol={_.get(this.state.selectedCols, "0")}
           dataId={this.props.dataId}
           visible={formattingOpen}
           propagateState={this.propagateState}

@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.7.3 (2020-2-13)
+ * added the ability to move columns left or right as well as to the front
+ * added formatting capabilities for strings & dates
+ * persist formatting settings to popup on reopening
+ * bugfix for width-calculation on formatting change
+
 ### 1.7.2 (2020-2-12)
  * 60 timeout handling around chart requests
  * pre-loaded charts through URL search strings

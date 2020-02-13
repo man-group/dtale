@@ -7,12 +7,16 @@ import { connect } from "react-redux";
 import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
-
-import { fullPath, lockCols, moveToFront, open, shouldOpenPopup, unlockCols, updateSort } from "../dataViewerMenuUtils";
-
+import menuFuncs from "../dataViewerMenuUtils";
 import { isStringCol, SORT_PROPS } from "../gridUtils";
 
 require("./ColumnMenu.css");
+
+const MOVE_COLS = [
+  ["Front", menuFuncs.moveToFront],
+  ["Left", menuFuncs.moveLeft],
+  ["Right", menuFuncs.moveRight],
+];
 
 class ReactColumnMenu extends React.Component {
   componentDidUpdate(prevProps) {
@@ -33,9 +37,9 @@ class ReactColumnMenu extends React.Component {
     let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
     currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
     const openPopup = (type, height = 450, width = 500) => () => {
-      if (shouldOpenPopup(height, width)) {
-        open(
-          buildURLString(fullPath(`/dtale/popup/${type}`, dataId), {
+      if (menuFuncs.shouldOpenPopup(height, width)) {
+        menuFuncs.open(
+          buildURLString(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), {
             col: selectedCol,
           }),
           null,
@@ -75,7 +79,7 @@ class ReactColumnMenu extends React.Component {
                     key={dir}
                     style={active ? {} : { color: "#565b68" }}
                     className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
-                    onClick={active ? _.noop : () => updateSort([selectedCol], dir, this.props)}
+                    onClick={active ? _.noop : () => menuFuncs.updateSort([selectedCol], dir, this.props)}
                     disabled={active}>
                     {col.label}
                   </button>
@@ -85,16 +89,24 @@ class ReactColumnMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={moveToFront([selectedCol], this.props)}>
-                <i className="fa fa-caret-left ml-4 mr-4" />
-                <span className="ml-3 font-weight-bold">Move To Front</span>
-              </button>
+              <i className="ico-swap-horiz" />
             </span>
+            <div className="btn-group compact pl-3 font-weight-bold column-sorting">
+              {_.map(MOVE_COLS, ([label, func]) => (
+                <button
+                  key={label}
+                  style={{ color: "#565b68" }}
+                  className={`btn btn-primary font-weight-bold`}
+                  onClick={func(selectedCol, this.props)}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </li>
           <ConditionalRender display={unlocked}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={lockCols([selectedCol], this.props)}>
+                <button className="btn btn-plain" onClick={menuFuncs.lockCols([selectedCol], this.props)}>
                   <i className="fa fa-lock ml-3 mr-4" />
                   <span className="font-weight-bold">Lock</span>
                 </button>
@@ -104,7 +116,7 @@ class ReactColumnMenu extends React.Component {
           <ConditionalRender display={!unlocked}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={unlockCols([selectedCol], this.props)}>
+                <button className="btn btn-plain" onClick={menuFuncs.unlockCols([selectedCol], this.props)}>
                   <i className="fa fa-lock-open ml-2 mr-4" />
                   <span className="font-weight-bold">Unlock</span>
                 </button>

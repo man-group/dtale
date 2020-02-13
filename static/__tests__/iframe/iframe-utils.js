@@ -15,15 +15,15 @@ function clickColMenuButton(result, name, btnTag = "button") {
     .simulate("click");
 }
 
-function clickColMenuSortButton(result, dir) {
+function clickColMenuSubButton(result, label, row = 0) {
   result
     .find(ColumnMenu)
     .find("ul li div.column-sorting")
-    .first()
+    .at(row)
     .find("button")
-    .findWhere(b => _.includes(b.text(), dir))
+    .findWhere(b => _.includes(b.text(), label))
     .first()
     .simulate("click");
 }
 
-export { findColMenuButton, clickColMenuButton, clickColMenuSortButton };
+export { findColMenuButton, clickColMenuButton, clickColMenuSubButton };
