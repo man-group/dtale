@@ -14,6 +14,7 @@ const URL_KEYS = {
   sortInfo: v => ({ sort: _.isEmpty(v) ? null : JSON.stringify(v) }),
   query: v => ({ query: v }),
   selectedCols: v => ({ cols: _.isEmpty(v) ? null : JSON.stringify(v) }),
+  selectedCol: v => ({ col: v }),
   tsColumns: v => ({ ts_columns: _.isEmpty(v) ? null : JSON.stringify(v) }),
 };
 
@@ -37,4 +38,8 @@ function buildURL(base, state, props) {
   return buildURLString(base, params);
 }
 
-export { buildURLParams, buildURLString, buildURL };
+function dtypesUrl(dataId) {
+  return `/dtale/dtypes/${dataId}`;
+}
+
+export { buildURLParams, buildURLString, buildURL, dtypesUrl };

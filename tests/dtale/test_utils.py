@@ -267,5 +267,4 @@ def test_make_timeout_request():
     with mock.patch('dtale.utils.Process', mock.Mock(side_effect=MockProcess)):
         with pytest.raises(Exception) as error:
             utils.make_timeout_request(utils.dict_merge, args=({}, {}))
-    print(str(error.value))
     assert str(error.value).endswith('Request took longer than 60 seconds. Please try adding additional filtering...')

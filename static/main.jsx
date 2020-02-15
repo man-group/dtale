@@ -11,6 +11,7 @@ import { ReactDescribe as Describe } from "./popups/Describe";
 import { ReactHistogram as Histogram } from "./popups/Histogram";
 import Instances from "./popups/Instances";
 import { ReactCharts as Charts } from "./popups/charts/Charts";
+import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
 import app from "./reducers/dtale";
 import { createStore } from "./reducers/store";
 
@@ -29,7 +30,10 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
       rootNode = <Correlations {...{ dataId, chartData }} />;
       break;
     case "describe":
-      rootNode = <Describe {...{ dataId, chartData }} height={400} />;
+      rootNode = <Describe {...{ dataId, chartData }} />;
+      break;
+    case "build":
+      rootNode = <CreateColumn {...{ dataId, chartData }} />;
       break;
     case "histogram":
       rootNode = <Histogram {...{ dataId, chartData }} height={250} />;

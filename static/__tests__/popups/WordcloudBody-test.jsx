@@ -10,10 +10,10 @@ describe("WordcloudBody tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (url.startsWith("chart-data-error-test1")) {
+        if (_.startsWith(url, "chart-data-error-test1")) {
           return { data: {} };
         }
-        if (url.startsWith("chart-data-error-test2")) {
+        if (_.startsWith(url, "chart-data-error-test2")) {
           return { error: "Error test." };
         }
         const { urlFetcher } = require("../redux-test-utils").default;

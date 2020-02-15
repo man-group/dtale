@@ -117,6 +117,7 @@ describe("DataViewer tests", () => {
         _.concat([
           "Describe",
           "Filter",
+          "Build Column",
           "Correlations",
           "Charts",
           "Resize",

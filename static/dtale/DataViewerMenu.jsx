@@ -6,7 +6,6 @@ import { connect } from "react-redux";
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
 import menuFuncs from "./dataViewerMenuUtils";
-import { toggleHeatMap } from "./gridUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
@@ -24,6 +23,7 @@ class ReactDataViewerMenu extends React.Component {
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
       });
+    const toggleHeatMap = () => this.props.propagateState({ heatMapMode: !this.props.heatMapMode });
     return (
       <div
         className="column-toggle__dropdown"
@@ -44,6 +44,14 @@ class ReactDataViewerMenu extends React.Component {
               <button className="btn btn-plain" onClick={() => this.props.propagateState({ filterOpen: true })}>
                 <i className="fa fa-filter ml-2 mr-4" />
                 <span className="font-weight-bold">Filter</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openPopup("build", 400, 770)}>
+                <i className="ico-build" />
+                <span className="font-weight-bold">Build Column</span>
               </button>
             </span>
           </li>
@@ -75,7 +83,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => this.props.propagateState(toggleHeatMap(this.props))}>
+              <button className="btn btn-plain" onClick={toggleHeatMap}>
                 <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
                 <span className={`font-weight-bold${this.props.heatMapMode ? " flames" : ""}`}>Heat Map</span>
               </button>

@@ -13,7 +13,7 @@ import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
 import Formatting from "../popups/formats/Formatting";
-import { DataViewerInfo, hasNoInfo } from "./DataViewerInfo";
+import { DataViewerInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import Filter from "./Filter";
 import { Header } from "./Header";
@@ -37,6 +37,11 @@ class ReactDataViewer extends React.Component {
   propagateState(state, callback = _.noop) {
     if (_.has(state, "columns") && !_.get(state, "formattingUpdate", false)) {
       state.columns = _.map(state.columns, c => _.assignIn(c, { width: gu.calcColWidth(c, this.state) }));
+    }
+    if (_.get(state, "refresh", false)) {
+      this.getData(this.state.ids, true);
+      callback();
+      return;
     }
     this.setState(_.omit(state, "formattingUpdate"), callback);
   }
@@ -125,6 +130,7 @@ class ReactDataViewer extends React.Component {
           rowCount: data.total + 1,
           data: _.assignIn(savedData, formattedData),
           loading: false,
+          heatMapMode,
         };
         const { columns } = this.state;
         if (_.isEmpty(columns)) {
@@ -133,7 +139,6 @@ class ReactDataViewer extends React.Component {
             _.assignIn(
               {
                 locked: _.includes(preLocked, c.name),
-                visible: true,
                 width: gu.calcColWidth(c, newState),
               },
               c
@@ -142,10 +147,7 @@ class ReactDataViewer extends React.Component {
         } else {
           const newCols = _.map(
             _.filter(data.columns, ({ name }) => !_.find(columns, { name })),
-            c => {
-              const visible = heatMapMode ? _.has(c, "min") : true;
-              return _.assignIn({ locked: false, visible, width: gu.calcColWidth(c, newState) }, c);
-            }
+            c => _.assignIn({ locked: false, width: gu.calcColWidth(c, newState) }, c)
           );
           newState.columns = _.concat(columns, newCols);
         }
@@ -187,7 +189,7 @@ class ReactDataViewer extends React.Component {
       if (this.state.heatMapMode) {
         valueStyle = _.assignIn({ background: gu.heatMapBackground(rec, colCfg) }, valueStyle);
       }
-      if (gu.findColType(colCfg.dtype) === "string" && rec.raw !== rec.view) {
+      if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
         divProps.title = rec.raw;
       }
     }
@@ -224,7 +226,7 @@ class ReactDataViewer extends React.Component {
             return (
               <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
                 {({ width, height }) => {
-                  const gridHeight = height - (hasNoInfo(this.state) ? 3 : 23);
+                  const gridHeight = height - (gu.hasNoInfo(this.state) ? 3 : 23);
                   return [
                     <DataViewerInfo key={0} width={width} {...this.state} propagateState={this.propagateState} />,
                     <MultiGrid
@@ -259,7 +261,7 @@ class ReactDataViewer extends React.Component {
         <ColumnMenu
           {..._.pick(this.state, ["columns", "sortInfo"])}
           propagateState={this.propagateState}
-          noInfo={hasNoInfo(this.state)}
+          noInfo={gu.hasNoInfo(this.state)}
         />
       </div>
     );

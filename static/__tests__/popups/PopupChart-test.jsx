@@ -56,7 +56,12 @@ describe("Popup tests", () => {
 
     const props = {
       dataId: "1",
-      chartData: { visible: true, type: "histogram", title: "Histogram Test" },
+      chartData: {
+        visible: true,
+        type: "histogram",
+        title: "Histogram Test",
+        selectedCol: "foo",
+      },
     };
 
     const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
@@ -67,7 +72,7 @@ describe("Popup tests", () => {
         .map(n => n.text()),
       ""
     ).trim();
-    t.equal(title, "Histogram for Histogram Test", "Should render correct title");
+    t.equal(title, "Histogram for foo", "Should render correct title");
     t.ok(result.find("Histogram").length, "should render histogram canvas");
   });
 

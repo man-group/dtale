@@ -83,7 +83,7 @@ def test_startup(unittest):
     ], columns=['date', 'security_id', 'foo', 'bar'])
     instance = views.startup(URL, data_loader=lambda: test_data)
     unittest.assertEqual(
-        {'name': 'bar', 'dtype': 'float64', 'index': 3},
+        {'name': 'bar', 'dtype': 'float64', 'index': 3, 'visible': True},
         next((dt for dt in views.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
     )
 
@@ -210,6 +210,244 @@ def test_update_settings(unittest):
 
 
 @pytest.mark.unit
+def test_update_column_position():
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    tests = [
+        ('front', 0),
+        ('front', 0),
+        ('left', 0),
+        ('back', -1),
+        ('back', -1),
+        ('left', -2),
+        ('right', -1),
+        ('right', -1),
+    ]
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', data))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            for action, col_idx in tests:
+                c.get('/dtale/update-column-position/{}'.format(c.port), query_string=dict(action=action, col='c'))
+                assert data[c.port].columns[col_idx] == 'c'
+                assert dtypes[c.port][col_idx]['name'] == 'c'
+
+            resp = c.get('/dtale/update-column-position/-1')
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_update_locked(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        settings = {c.port: dict(locked=[])}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', data))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.views.SETTINGS', settings))
+
+            c.get('/dtale/update-locked/{}'.format(c.port), query_string=dict(action='lock', col='c'))
+            unittest.assertEqual(['c'], settings[c.port]['locked'])
+            assert data[c.port].columns[0] == 'c'
+            assert dtypes[c.port][0]['name'] == 'c'
+
+            c.get('/dtale/update-locked/{}'.format(c.port), query_string=dict(action='lock', col='c'))
+            unittest.assertEqual(['c'], settings[c.port]['locked'])
+            assert data[c.port].columns[0] == 'c'
+            assert dtypes[c.port][0]['name'] == 'c'
+
+            c.get('/dtale/update-locked/{}'.format(c.port), query_string=dict(action='unlock', col='c'))
+            unittest.assertEqual([], settings[c.port]['locked'])
+            assert data[c.port].columns[0] == 'c'
+            assert dtypes[c.port][0]['name'] == 'c'
+
+            resp = c.get('/dtale/update-locked/-1')
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_update_visibility(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    with app.test_client() as c:
+        dtypes = {c.port: build_dtypes_state(df)}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            c.post(
+                '/dtale/update-visibility/{}'.format(c.port),
+                data=dict(visibility=json.dumps({'a': True, 'b': True, 'c': False})),
+            )
+            unittest.assertEqual([True, True, False], [col['visible'] for col in dtypes[c.port]])
+            c.post('/dtale/update-visibility/{}'.format(c.port), data=dict(toggle='c'))
+            unittest.assertEqual([True, True, True], [col['visible'] for col in dtypes[c.port]])
+
+            resp = c.post('/dtale/update-visibility/-1', data=dict(toggle='foo'))
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_build_column(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3, d=pd.Timestamp('20200101'))])
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', data))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            resp = c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', cfg=json.dumps({}))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['error'] == "'name' is required for new column!"
+
+            cfg = dict(left=dict(col='a'), right=dict(col='b'), operation='sum')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='sum', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['sum'].values[0] == 3
+            assert dtypes[c.port][-1]['name'] == 'sum'
+            assert dtypes[c.port][-1]['dtype'] == 'int64'
+
+            resp = c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='sum', cfg=json.dumps(cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['error'] == "A column named 'sum' already exists!"
+
+            cfg = dict(left=dict(col='a'), right=dict(col='b'), operation='difference')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='diff', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['diff'].values[0] == -1
+            assert dtypes[c.port][-1]['name'] == 'diff'
+            assert dtypes[c.port][-1]['dtype'] == 'int64'
+            cfg = dict(left=dict(col='a'), right=dict(col='b'), operation='multiply')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='mult', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['mult'].values[0] == 2
+            assert dtypes[c.port][-1]['name'] == 'mult'
+            assert dtypes[c.port][-1]['dtype'] == 'int64'
+            cfg = dict(left=dict(col='a'), right=dict(col='b'), operation='divide')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='div', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['div'].values[0] == 0.5
+            assert dtypes[c.port][-1]['name'] == 'div'
+            assert dtypes[c.port][-1]['dtype'] == 'float64'
+            cfg = dict(left=dict(col='a'), right=dict(val=100), operation='divide')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='div2', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['div2'].values[0] == 0.01
+            assert dtypes[c.port][-1]['name'] == 'div2'
+            assert dtypes[c.port][-1]['dtype'] == 'float64'
+            cfg = dict(left=dict(val=100), right=dict(col='b'), operation='divide')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='numeric', name='div3', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['div3'].values[0] == 50
+            assert dtypes[c.port][-1]['name'] == 'div3'
+            assert dtypes[c.port][-1]['dtype'] == 'float64'
+
+            cfg = dict(col='d', property='weekday')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='datetime', name='datep', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['datep'].values[0] == 2
+            assert dtypes[c.port][-1]['name'] == 'datep'
+            assert dtypes[c.port][-1]['dtype'] == 'int64'
+
+            for p in ['minute', 'hour', 'time', 'date', 'month', 'quarter', 'year']:
+                c.get(
+                    '/dtale/build-column/{}'.format(c.port),
+                    query_string=dict(type='datetime', name=p, cfg=json.dumps(dict(col='d', property=p)))
+                )
+
+            cfg = dict(col='d', conversion='month_end')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='datetime', name='month_end', cfg=json.dumps(cfg))
+            )
+            assert pd.Timestamp(data[c.port]['month_end'].values[0]).strftime('%Y%m%d') == '20200131'
+            assert dtypes[c.port][-1]['name'] == 'month_end'
+            assert dtypes[c.port][-1]['dtype'] == 'datetime64[ns]'
+
+            for conv in ['month_start', 'quarter_start', 'quarter_end', 'year_start', 'year_end']:
+                c.get(
+                    '/dtale/build-column/{}'.format(c.port),
+                    query_string=dict(type='datetime', name=conv, cfg=json.dumps(dict(col='d', conversion=conv)))
+                )
+
+
+@pytest.mark.unit
+def test_build_column_bins(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame(np.random.randn(100, 3), columns=['a', 'b', 'c'])
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.DATA', data))
+            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            cfg = dict(col='a', operation='cut', bins=4)
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='bins', name='cut', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['cut'].values[0] is not None
+            assert dtypes[c.port][-1]['name'] == 'cut'
+            assert dtypes[c.port][-1]['dtype'] == ('string' if PY3 else 'unicode')
+
+            cfg = dict(col='a', operation='cut', bins=4, labels='foo,bar,biz,baz')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='bins', name='cut2', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['cut2'].values[0] in ['foo', 'bar', 'biz', 'baz']
+            assert dtypes[c.port][-1]['name'] == 'cut2'
+            assert dtypes[c.port][-1]['dtype'] == ('string' if PY3 else 'unicode')
+
+            cfg = dict(col='a', operation='qcut', bins=4)
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='bins', name='qcut', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['qcut'].values[0] is not None
+            assert dtypes[c.port][-1]['name'] == 'qcut'
+            assert dtypes[c.port][-1]['dtype'] == ('string' if PY3 else 'unicode')
+
+            cfg = dict(col='a', operation='qcut', bins=4, labels='foo,bar,biz,baz')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='bins', name='qcut2', cfg=json.dumps(cfg))
+            )
+            assert data[c.port]['qcut2'].values[0] in ['foo', 'bar', 'biz', 'baz']
+            assert dtypes[c.port][-1]['name'] == 'qcut2'
+            assert dtypes[c.port][-1]['dtype'] == ('string' if PY3 else 'unicode')
+
+
+@pytest.mark.unit
 def test_dtypes(test_data):
     from dtale.views import build_dtypes_state, format_data
 
@@ -289,11 +527,19 @@ def test_test_filter(test_data):
             response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query="bar > 1.5"))
             response_data = json.loads(response.data)
             assert not response_data['success']
-            assert response_data['error'] == 'Filter (bar > 1.5) returns no data'
+            assert response_data['error'] == 'query "bar > 1.5" found no data, please alter'
 
             response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='foo2 == 1'))
             response_data = json.loads(response.data)
             assert 'error' in response_data
+    if PY3:
+        df = pd.DataFrame([dict(a=1)])
+        df['a.b'] = 2
+        with app.test_client() as c:
+            with mock.patch('dtale.views.DATA', {c.port: df}):
+                response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='a.b == 2'))
+                response_data = json.loads(response.data)
+                assert response_data['success']
 
 
 @pytest.mark.unit
@@ -315,12 +561,12 @@ def test_get_data(unittest, test_data):
                 total=50,
                 results={'1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz')},
                 columns=[
-                    dict(dtype='int64', name='dtale_index'),
-                    dict(dtype='datetime64[ns]', name='date', index=0),
-                    dict(dtype='int64', name='security_id', index=1),
-                    dict(dtype='int64', name='foo', index=2),
-                    dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3),
-                    dict(dtype='string', name='baz', index=4)
+                    dict(dtype='int64', name='dtale_index', visible=True),
+                    dict(dtype='datetime64[ns]', name='date', index=0, visible=True),
+                    dict(dtype='int64', name='security_id', index=1, visible=True),
+                    dict(dtype='int64', name='foo', index=2, visible=True),
+                    dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3, visible=True),
+                    dict(dtype='string', name='baz', index=4, visible=True),
                 ]
             )
             unittest.assertEqual(response_data, expected, 'should return data at index 1')
@@ -386,7 +632,7 @@ def test_get_data(unittest, test_data):
             )
             unittest.assertEqual(
                 mocked_dtypes[c.port][-1],
-                dict(index=5, name='biz', dtype='float64', min=2.5, max=2.5),
+                dict(index=5, name='biz', dtype='float64', min=2.5, max=2.5, visible=True),
                 'should update dtypes on data structure change'
             )
 
@@ -726,7 +972,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             response = c.get('/dtale/chart-data/{}'.format(c.port),
                              query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
-            unittest.assertEqual(response_data['error'], "Invalid query: name 'missing_col' is not defined",
+            unittest.assertEqual(response_data['error'], "name 'missing_col' is not defined",
                                  'should handle data exception')
 
     with app.test_client() as c:

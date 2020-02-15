@@ -15,6 +15,7 @@ from flask import jsonify as _jsonify
 import numpy as np
 import pandas as pd
 from past.utils import old_div
+from six import PY3
 
 logger = getLogger(__name__)
 
@@ -538,9 +539,18 @@ def filter_df_for_grid(df, params):
                 df = df[stringified_col.astype(str) == filter_val[1:]]
             else:
                 df = df[stringified_col.astype(str).str.lower().str.contains(filter_val.lower(), na=False)]
-    if params.get('query'):
-        df = df.query(params['query'])
+    df = run_query(df, params.get('query'))
     return df
+
+
+def find_dtype(s):
+    """
+    Helper function to determine the dtype of a :class:`pandas:pandas.Series`
+    """
+    if s.dtype.name == 'object':
+        return pd.api.types.infer_dtype(s, skipna=True)
+    else:
+        return s.dtype.name
 
 
 def get_dtypes(df):
@@ -548,11 +558,9 @@ def get_dtypes(df):
     Build dictionary of column/dtype name pairs from :class:`pandas:pandas.DataFrame`
     """
     def _load():
-        for col, dtype in df.dtypes.to_dict().items():
-            if dtype.name == 'object':
-                yield col, pd.api.types.infer_dtype(df[col], skipna=True)
-            else:
-                yield col, dtype.name
+        for col in df.columns:
+            yield col, find_dtype(df[col])
+
     return dict(list(_load()))
 
 
@@ -749,3 +757,46 @@ def make_timeout_request(target, args=None, kwargs=None, timeout=60):
             'Request took longer than {} seconds. Please try adding additional filtering...'.format(timeout)
         )
     return results
+
+
+def run_query(df, query):
+    """
+    Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
+    handle when column names contain special characters.  Looks like pandas will be handling this in a future
+    version: https://github.com/pandas-dev/pandas/issues/27017
+
+    The logic to handle these special characters in the meantime is only available in Python 3+
+
+    :param df: input dataframe
+    :type df: :class:`pandas:pandas.DataFrame`
+    :param query: query string
+    :type query: string
+    :return: filtered dataframe
+    """
+    if (query or '') == '':
+        return df
+
+    # https://stackoverflow.com/a/40083013/12616360 only supporting filter cleanup for python 3+
+    if PY3:
+        invalid_column_names = [x for x in df.columns.values if not x.isidentifier()]
+
+        # Make replacements in the query and keep track
+        # NOTE: This method fails if the frame has columns called REPL_0 etc.
+        replacements = dict()
+        final_query = str(query)
+        for cn in invalid_column_names:
+            r = 'REPL_{}'.format(str(invalid_column_names.index(cn)))
+            final_query = final_query.replace(cn, r)
+            replacements[cn] = r
+
+        inv_replacements = {replacements[k]: k for k in replacements.keys()}
+        df = df.rename(columns=replacements)  # Rename the columns
+
+        df = df.query(final_query)  # Carry out query
+        df = df.rename(columns=inv_replacements)
+    else:
+        df = df.query(query)
+
+    if not len(df):
+        raise Exception('query "{}" found no data, please alter'.format(query))
+    return df

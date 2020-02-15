@@ -5,7 +5,7 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.7.3
+      VERSION: 1.7.4
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
@@ -19,17 +19,6 @@ defaults: &defaults
         - v1-dep-master-
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
-    - run:
-        name: Download & Install latest pandoc
-        command: |
-          # the 'latest' URL redirects to the name of the latest tag.
-          export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
-          echo $PANDOC_VERSION
-          export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
-          echo $PANDOC_FILE
-          wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
-          sudo dpkg -i $PANDOC_FILE
-          rm $PANDOC_FILE
     - restore_cache:
         name: Restore Yarn Package Cache
         keys:
@@ -101,8 +90,28 @@ defaults: &defaults
          python setup.py test
          bash <(curl -s https://codecov.io/bash) -c -F python
          cp -r ./htmlcov /tmp/circleci-test-results
-         python setup.py build_sphinx
-         cp -r ./build /tmp/circleci-artifacts
+    - run:
+        name: Download & Install latest pandoc
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            # the 'latest' URL redirects to the name of the latest tag.
+            export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+            echo $PANDOC_VERSION
+            export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
+            echo $PANDOC_FILE
+            wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
+            sudo dpkg -i $PANDOC_FILE
+            rm $PANDOC_FILE
+          fi
+    - run:
+        name: Build Sphinx Documentation
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            set -e
+            . ci/bin/activate
+            python setup.py build_sphinx
+            cp -r ./build /tmp/circleci-artifacts
+          fi
     # Build egg
     - run:
         name: Build egg

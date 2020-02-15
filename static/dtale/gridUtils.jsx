@@ -12,19 +12,19 @@ const DEFAULT_COL_WIDTH = 70;
 numeral.nullFormat("");
 
 function isStringCol(dtype) {
-  return _.some(["string", "object", "unicode"], s => dtype.startsWith(s));
+  return _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
 }
 
 function isIntCol(dtype) {
-  return dtype.startsWith("int");
+  return _.startsWith(dtype, "int");
 }
 
 function isFloatCol(dtype) {
-  return dtype.startsWith("float");
+  return _.startsWith(dtype, "float");
 }
 
 function isDateCol(dtype) {
-  return _.some(["timestamp", "datetime"], s => dtype.startsWith(s));
+  return _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
 }
 
 function findColType(dtype) {
@@ -77,16 +77,20 @@ function buildDataProps({ name, dtype }, rawValue, { columnFormats }) {
   };
 }
 
-function getActiveCols({ columns }) {
-  return _.filter(columns || [], { visible: true });
+function getHeatActive(column) {
+  return (_.has(column, "min") || column.name === IDX) && column.visible;
 }
 
-function getCol(index, { columns }) {
-  return _.get(getActiveCols({ columns }), index, {});
+function getActiveCols({ columns, heatMapMode }) {
+  return _.filter(columns || [], c => (heatMapMode ? getHeatActive(c) : c.visible));
 }
 
-function getColWidth(index, { columns }) {
-  return _.get(getCol(index, { columns }), "width", DEFAULT_COL_WIDTH);
+function getCol(index, { columns, heatMapMode }) {
+  return _.get(getActiveCols({ columns, heatMapMode }), index, {});
+}
+
+function getColWidth(index, { columns, heatMapMode }) {
+  return _.get(getCol(index, { columns, heatMapMode }), "width", DEFAULT_COL_WIDTH);
 }
 
 function getRanges(array) {
@@ -115,11 +119,11 @@ function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
     switch (findColType((dtype || "").toLowerCase())) {
       case "date":
       case "int":
-        w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);
+      case "float": {
+        const maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
+        w = measureText(_.get(maxText, [name, "view"]));
         break;
-      case "float":
-        w = measureText(_.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)))[name].view);
-        break;
+      }
       case "string":
       default: {
         const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
@@ -159,21 +163,6 @@ function buildGridStyles(headerHeight = HEADER_HEIGHT) {
     enableFixedRowScroll: true,
     hideTopRightGridScrollbar: true,
     hideBottomLeftGridScrollbar: true,
-  };
-}
-
-function toggleHeatMap({ columns, heatMapMode }) {
-  const toggledHeatMapMode = !heatMapMode;
-  if (toggledHeatMapMode) {
-    const isHeated = c => c.locked || _.has(c, "min");
-    return {
-      heatMapMode: toggledHeatMapMode,
-      columns: _.map(columns, c => _.assignIn({}, c, { visible: isHeated(c) })),
-    };
-  }
-  return {
-    heatMapMode: toggledHeatMapMode,
-    columns: _.map(columns, c => _.assignIn({}, c, { visible: true })),
   };
 }
 
@@ -235,6 +224,14 @@ function buildState(props) {
   };
 }
 
+function noHidden(columns) {
+  return !_.some(columns, { visible: false });
+}
+
+function hasNoInfo({ sortInfo, query, columns }) {
+  return _.isEmpty(sortInfo) && _.isEmpty(query) && noHidden(columns);
+}
+
 export {
   buildDataProps,
   getActiveCols,
@@ -249,9 +246,10 @@ export {
   buildGridStyles,
   ROW_HEIGHT,
   HEADER_HEIGHT,
-  toggleHeatMap,
   heatMapBackground,
   SORT_PROPS,
   buildToggleId,
   buildState,
+  noHidden,
+  hasNoInfo,
 };

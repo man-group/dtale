@@ -20,7 +20,7 @@ from dtale.dash_application.layout import (AGGS, build_error,
                                            update_label_for_freq)
 from dtale.utils import (classify_type, dict_merge, divide_chunks,
                          flatten_lists, get_dtypes, make_list,
-                         make_timeout_request)
+                         make_timeout_request, run_query)
 from dtale.views import DATA
 from dtale.views import build_chart as build_chart_data
 
@@ -720,7 +720,7 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
                                   rolling_comp=rolling_comp)):
             return None
 
-        data = DATA[data_id] if (query or '') == '' else DATA[data_id].query(query)
+        data = run_query(DATA[data_id], query)
         chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
                             rolling_comp=rolling_comp)
         if chart_type in ZAXIS_CHARTS:

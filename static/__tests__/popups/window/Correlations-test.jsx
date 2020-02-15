@@ -35,7 +35,7 @@ describe("Correlations tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (url.startsWith("/dtale/correlations/")) {
+        if (_.startsWith(url, "/dtale/correlations/")) {
           const query = qs.parse(url.split("?")[1]).query;
           if (query == "null") {
             return { error: "No data found." };

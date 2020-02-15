@@ -50,4 +50,11 @@ function getParams() {
   return params;
 }
 
-export default { init, toggleColumnMenu, hideColumnMenu, closeColumnMenu, isPopup, getParams };
+export default {
+  init,
+  toggleColumnMenu,
+  hideColumnMenu,
+  closeColumnMenu,
+  isPopup,
+  getParams,
+};

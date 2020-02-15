@@ -4551,9 +4551,19 @@ button.close {
   }
 }
 
+div.build-modal > div.modal-lg {
+  min-width: 720px;
+}
+
 @media (min-width: 992px) {
   .modal-lg {
     max-width: 800px;
+  }
+  div.build-modal > div.modal-lg {
+    max-width: 720px;
+  }
+  div.histogram-modal > div.modal-lg {
+    max-width: 700px;
   }
 }
 
@@ -10429,3 +10439,34 @@ table tbody tr.highlight-row {
 [data-tip]:hover:after {
 	display:block;
 }
+
+div#popup-content > div.modal-body > div.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+div.container-fluid.build > div#popup-content > div.modal-body {
+  height: 260px;
+}
+
+div.container-fluid.describe > div#popup-content > div.modal-body {
+  height: 450px;
+}
+
+@media (min-height: 330px) {
+  div.container-fluid.build > div#popup-content > div.modal-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+}
+
+@media (min-height: 510px) {
+  div.container-fluid.describe > div#popup-content > div.modal-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+}
+
+

@@ -16,8 +16,8 @@ from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            show_chart_per_group,
                                            show_input_handler,
                                            show_yaxis_ranges)
-from dtale.utils import dict_merge, make_list
-from dtale.views import DATA, _test_filter
+from dtale.utils import dict_merge, make_list, run_query
+from dtale.views import DATA
 
 logger = getLogger(__name__)
 
@@ -139,8 +139,7 @@ def init_callbacks(dash_app):
         :rtype: tuple of (str, str, str)
         """
         try:
-            if query is not None and query != '':
-                _test_filter(DATA[get_data_id(pathname)], query)
+            run_query(DATA[get_data_id(pathname)], query)
             return query, {'line-height': 'inherit'}, ''
         except BaseException as ex:
             return curr_query, {'line-height': 'inherit', 'background-color': 'pink'}, str(ex)

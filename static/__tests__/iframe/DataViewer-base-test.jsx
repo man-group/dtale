@@ -7,7 +7,6 @@ import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { DataViewerMenu } from "../../dtale/DataViewerMenu";
-import { ReactColumnMenu as ColumnMenu } from "../../dtale/iframe/ColumnMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
@@ -98,6 +97,7 @@ describe("DataViewer iframe tests", () => {
 
   test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
     const Header = require("../../dtale/Header").ReactHeader;
     const Formatting = require("../../popups/formats/Formatting").default;
 
@@ -136,8 +136,8 @@ describe("DataViewer iframe tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1", "About"],
-          ["Refresh", "Open Popup", "Shutdown"]
+          ["Describe", "Filter", "Build Column", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1"],
+          ["About", "Refresh", "Open Popup", "Shutdown"]
         ),
         "Should render default menu options"
       );
@@ -169,13 +169,13 @@ describe("DataViewer iframe tests", () => {
       );
       t.deepEqual(
         colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-        ["Lock", "Describe", "Histogram", "Formats"],
+        ["Lock", "Hide", "Describe", "Histogram", "Formats"],
         "Should render column menu options"
       );
       clickColMenuSubButton(result, "Asc");
       t.equal(
         result
-          .find("div.row div.col-md-6")
+          .find("div.row div.col-md-4")
           .first()
           .text(),
         "Sort:col4 (ASC)",
@@ -206,7 +206,7 @@ describe("DataViewer iframe tests", () => {
           .last()
           .simulate("click");
         result.update();
-        clickColMenuSubButton(result, "Front", 1);
+        clickColMenuSubButton(result, "fa-step-backward", 1);
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
           ["▲col4", "col1", "col2", "col3"],
@@ -217,7 +217,7 @@ describe("DataViewer iframe tests", () => {
           .last()
           .simulate("click");
         result.update();
-        clickColMenuSubButton(result, "Left", 1);
+        clickColMenuSubButton(result, "fa-caret-left", 1);
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
           ["▲col4", "col1", "col3", "col2"],
@@ -228,7 +228,7 @@ describe("DataViewer iframe tests", () => {
           .at(2)
           .simulate("click");
         result.update();
-        clickColMenuSubButton(result, "Right", 1);
+        clickColMenuSubButton(result, "fa-caret-right", 1);
         t.deepEqual(
           result.find(".main-grid div.headerCell").map(hc => hc.text()),
           ["▲col4", "col1", "col2", "col3"],
@@ -289,10 +289,12 @@ describe("DataViewer iframe tests", () => {
             .simulate("click");
           clickColMenuButton(result, "Histogram");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-            "/dtale/popup/histogram/1?col=col2"
+            "/dtale/popup/histogram/1?selectedCol=col2"
           );
           clickColMenuButton(result, "Describe");
-          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1?col=col2");
+          expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
+            "/dtale/popup/describe/1?selectedCol=col2"
+          );
           clickMainMenuButton(result, "Describe");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
           clickMainMenuButton(result, "Correlations");

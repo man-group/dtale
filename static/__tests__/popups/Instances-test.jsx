@@ -23,7 +23,7 @@ describe("Instances tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
-        if (url.startsWith("/dtale/data")) {
+        if (_.startsWith(url, "/dtale/data")) {
           const dataId = _.last(url.split("?")[0].split("/"));
           if (dataId == "8081") {
             return {
