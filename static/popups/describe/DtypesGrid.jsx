@@ -79,12 +79,28 @@ class DtypesGrid extends React.Component {
       sortBy: null,
       sortDirection: "NONE",
       scrollToIndex: undefined,
+      allVisible: gu.noHidden(props.dtypes),
     };
     this._headerRenderer = this._headerRenderer.bind(this);
     this._rowClass = this._rowClass.bind(this);
   }
 
   _headerRenderer({ dataKey, label, sortBy, sortDirection }) {
+    if (dataKey === "visible") {
+      const { allVisible } = this.state;
+      const onClick = () => {
+        this.setState({
+          dtypes: _.map(this.props.dtypes, d => _.assign(d, { visible: !allVisible })),
+          allVisible: !allVisible,
+        });
+      };
+      return (
+        <div className="headerCell pointer" onClick={onClick}>
+          {label}
+          <i className={`ico-check-box${allVisible ? "" : "-outline-blank"}`} />
+        </div>
+      );
+    }
     let filterMarkup = null;
     if (dataKey === "name") {
       const filter = e => this.setState(filterDtypes(this.props.dtypes, e.target.value, this.state));
@@ -127,12 +143,23 @@ class DtypesGrid extends React.Component {
       return this.state.error;
     }
     const { sortBy, sortDirection, dtypes } = this.state;
+    const toggleVisibility = ({ name, visible }) => e => {
+      this.setState({
+        dtypes: _.map(this.props.dtypes, d => {
+          if (d.name == name) {
+            return _.assign(d, { visible: !visible });
+          }
+          return d;
+        }),
+      });
+      e.stopPropagation();
+    };
     return (
-      <AutoSizer disableHeight>
-        {({ width }) => (
+      <AutoSizer>
+        {({ height, width }) => (
           <Table
             headerHeight={40}
-            height={400}
+            height={height}
             overscanRowCount={10}
             rowStyle={{ display: "flex" }}
             rowHeight={gu.ROW_HEIGHT}
@@ -145,6 +172,27 @@ class DtypesGrid extends React.Component {
             width={width}
             onRowClick={this.props.rowClick}
             className="dtypes">
+            <Column
+              dataKey="index"
+              label="#"
+              headerRenderer={this._headerRenderer}
+              width={35}
+              style={{ textAlign: "center" }}
+              className="cell"
+            />
+            <Column
+              dataKey="visible"
+              label="Visible"
+              headerRenderer={this._headerRenderer}
+              width={60}
+              style={{ textAlign: "left", paddingLeft: ".5em" }}
+              className="cell"
+              cellRenderer={({ rowData }) => (
+                <div onClick={toggleVisibility(rowData)} className="text-center pointer">
+                  <i className={`ico-check-box${rowData.visible ? "" : "-outline-blank"}`} />
+                </div>
+              )}
+            />
             <Column
               dataKey="name"
               label="Column Name"
@@ -178,6 +226,7 @@ DtypesGrid.propTypes = {
   dtypes: PropTypes.array,
   rowClick: PropTypes.func,
   selected: PropTypes.string,
+  propagateState: PropTypes.func,
 };
 
 export { DtypesGrid };

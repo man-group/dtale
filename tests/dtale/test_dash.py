@@ -755,7 +755,6 @@ def test_load_chart_error(unittest):
             }
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']['chart-content']['children']
-            print(response.get_json()['response'])
             assert resp_data['props']['children'][1]['props']['children'] == 'error test'
 
 

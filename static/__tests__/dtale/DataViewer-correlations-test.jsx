@@ -25,11 +25,11 @@ describe("DataViewer tests", () => {
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 1005,
+      value: 1105,
     });
     Object.defineProperty(window, "innerHeight", {
       configurable: true,
-      value: 1240,
+      value: 1340,
     });
 
     const mockBuildLibs = withGlobalJquery(() =>

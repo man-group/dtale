@@ -4,7 +4,7 @@ from logging import getLogger
 
 import click
 
-from dtale.cli.loaders import arctic_loader, csv_loader
+from dtale.cli.loaders import arctic_loader, csv_loader, json_loader
 
 logger = getLogger(__name__)
 
@@ -72,7 +72,8 @@ def custom_module_loader():
 
 LOADERS = {
     arctic_loader.LOADER_KEY: arctic_loader,
-    csv_loader.LOADER_KEY: csv_loader
+    csv_loader.LOADER_KEY: csv_loader,
+    json_loader.LOADER_KEY: json_loader,
 }
 
 

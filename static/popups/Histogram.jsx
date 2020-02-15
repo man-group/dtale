@@ -111,8 +111,8 @@ class ReactHistogram extends React.Component {
   }
 
   buildHistogram() {
-    const { col } = this.props.chartData;
-    const paramProps = ["col", "query", "bins"];
+    const { selectedCol } = this.props.chartData;
+    const paramProps = ["selectedCol", "query", "bins"];
     const params = _.assignIn({ bins: this.state.bins }, this.props.chartData);
     const url = `${BASE_HISTOGRAM_URL}/${this.props.dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
     fetchJson(url, fetchedChartData => {
@@ -125,7 +125,7 @@ class ReactHistogram extends React.Component {
           return null;
         }
 
-        return createHistogram(ctx, fetchedChartData, col);
+        return createHistogram(ctx, fetchedChartData, selectedCol);
       };
       newState.chart = chartUtils.chartWrapper("universeHistogram", this.state.chart, builder);
       this.setState(newState);
@@ -147,7 +147,7 @@ class ReactHistogram extends React.Component {
           <h4 className="modal-title">
             <i className="ico-equalizer" />
             {" Histogram for "}
-            <strong>{_.get(this.props, "chartData.col")}</strong>
+            <strong>{_.get(this.props, "chartData.selectedCol")}</strong>
             <div id="describe" />
           </h4>
         </div>
@@ -169,7 +169,7 @@ ReactHistogram.propTypes = {
   dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
-    col: PropTypes.string,
+    selectedCol: PropTypes.string,
     query: PropTypes.string,
   }),
   height: PropTypes.number,

@@ -16,13 +16,14 @@ from dtale import dtale
 from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
-                         filter_df_for_grid, find_dtype_formatter,
+                         filter_df_for_grid, find_dtype, find_dtype_formatter,
                          find_selected_column, get_bool_arg, get_dtypes,
                          get_int_arg, get_json_arg, get_str_arg, grid_columns,
                          grid_formatter, json_date, json_float, json_int,
                          json_timestamp, jsonify, make_list,
-                         retrieve_grid_params, running_with_flask_debug,
-                         running_with_pytest, sort_df_for_grid)
+                         retrieve_grid_params, run_query,
+                         running_with_flask_debug, running_with_pytest,
+                         sort_df_for_grid)
 
 logger = getLogger(__name__)
 
@@ -293,7 +294,39 @@ class DtaleData(object):
             logger.debug('You must ipython>=5.0 installed to use this functionality')
 
 
-def build_dtypes_state(data):
+def format_dtype(data, col_index, col, dtype, data_range, prev_dtype=None):
+    """
+    Helper function to build the descriptive information about each column in the dataframe you are viewing
+    in D-Tale.  This data is later returned to the browser to help with controlling inputs to functions which
+    are heavily tied to specific data types.
+
+    :param data: dataframe
+    :type data: :class:`pandas:pandas.DataFrame`
+    :param col_index: zero-based index of colummn in dataframe
+    :type col_index: int
+    :param col: column name
+    :type col: string
+    :param dtype: column data type
+    :type dtype: string
+    :param data_range: dictionary containing minimum and maximum value for column (if applicable)
+    :type data_range: dict
+    :param prev_dtype: previous column information for syncing updates to pre-existing columns
+    :type prev_dtype: dict, optional
+    :return: final information state for column
+    :rtype: dict
+    """
+    visible = True
+    if prev_dtype:
+        visible = prev_dtype.get('visible', True)
+    dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible)
+    if classify_type(dtype) == 'F' and not data[col].isnull().all():  # floats
+        col_ranges = data_range
+        if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
+            dtype_data = dict_merge(data_range, dtype_data)
+    return dtype_data
+
+
+def build_dtypes_state(data, prev_state=None):
     """
     Helper function to build globally managed state pertaining to a D-Tale instances columns & data types
 
@@ -302,18 +335,9 @@ def build_dtypes_state(data):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     dtypes = get_dtypes(data)
+    prev_dtypes = {c['name']: c for c in prev_state or []}
     ranges = data.agg([min, max]).to_dict()
-
-    def _format_dtype(col_index, col):
-        dtype = dtypes[col]
-        dtype_data = dict(name=col, dtype=dtype, index=col_index)
-        if classify_type(dtype) == 'F' and not data[col].isnull().all():  # floats
-            col_ranges = ranges[col]
-            if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
-                dtype_data = dict_merge(ranges[col], dtype_data)
-        return dtype_data
-
-    return [_format_dtype(i, c) for i, c in enumerate(data.columns)]
+    return [format_dtype(data, i, c, dtypes[c], ranges[c], prev_dtypes.get(c)) for i, c in enumerate(data.columns)]
 
 
 def format_data(data):
@@ -322,6 +346,7 @@ def format_data(data):
      - convert all column names to strings
      - drop any indexes back into the dataframe so what we are left is a natural index [0,1,2,...,n]
      - convert inputs that are indexes into dataframes
+     - replace any periods in column names with underscores
 
     :param data: dataframe to build data type information for
     :type data: :class:`pandas:pandas.DataFrame`
@@ -389,7 +414,7 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None):
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         SETTINGS[data_id] = dict(locked=curr_locked)
         DATA[data_id] = data
-        DTYPES[data_id] = build_dtypes_state(data)
+        DTYPES[data_id] = build_dtypes_state(data, DTYPES.get(data_id, []))
         return DtaleData(data_id, url)
     else:
         raise Exception('data loaded is None!')
@@ -567,19 +592,204 @@ def update_settings(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-def _test_filter(data, query):
+def refresh_col_indexes(data_id):
     """
-    Helper function for boolean expression as a query against a :class:`pandas:pandas.DataFrame`
+    Helper function to sync column indexes to current state of dataframe for data_id.
+    """
+    global DTYPES
 
-    :param data: dataframe to be queried
-    :type data: :class:`pandas:pandas.DataFrame`
-    :param query: boolean expression
-    :return: str
+    curr_dtypes = {c['name']: c for c in DTYPES[data_id]}
+    DTYPES[data_id] = [dict_merge(curr_dtypes[c], dict(index=idx)) for idx, c in enumerate(DATA[data_id].columns)]
+
+
+@dtale.route('/update-column-position/<data_id>')
+def update_column_position(data_id):
     """
-    if query is not None and len(query):
-        filtered_data = data.query(query)
-        if not len(filtered_data):
-            raise Exception('Filter ({}) returns no data'.format(query))
+    :class:`flask:flask.Flask` route to handle moving of columns within a :class:`pandas:pandas.DataFrame`. Columns can
+    be moved in one of these 4 directions: front, back, left, right
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param action: string from flask.request.args['action'] of direction to move column
+    :param col: string from flask.request.args['col'] of column name to move
+    :return: JSON {success: True/False}
+    """
+    global DATA
+
+    try:
+        action = get_str_arg(request, 'action')
+        col = get_str_arg(request, 'col')
+
+        curr_cols = DATA[data_id].columns.tolist()
+        if action == 'front':
+            curr_cols = [col] + [c for c in curr_cols if c != col]
+        elif action == 'back':
+            curr_cols = [c for c in curr_cols if c != col] + [col]
+        elif action == 'left':
+            if curr_cols[0] != col:
+                col_idx = next((idx for idx, c in enumerate(curr_cols) if c == col), None)
+                col_to_shift = curr_cols[col_idx - 1]
+                curr_cols[col_idx - 1] = col
+                curr_cols[col_idx] = col_to_shift
+        elif action == 'right':
+            if curr_cols[-1] != col:
+                col_idx = next((idx for idx, c in enumerate(curr_cols) if c == col), None)
+                col_to_shift = curr_cols[col_idx + 1]
+                curr_cols[col_idx + 1] = col
+                curr_cols[col_idx] = col_to_shift
+
+        DATA[data_id] = DATA[data_id][curr_cols]
+        refresh_col_indexes(data_id)
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+@dtale.route('/update-locked/<data_id>')
+def update_locked(data_id):
+    """
+    :class:`flask:flask.Flask` route to handle saving state associated with locking and unlocking columns
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param action: string from flask.request.args['action'] of action to perform (lock or unlock)
+    :param col: string from flask.request.args['col'] of column name to lock/unlock
+    :return: JSON {success: True/False}
+    """
+    global SETTINGS
+
+    try:
+        action = get_str_arg(request, 'action')
+        col = get_str_arg(request, 'col')
+        if action == 'lock' and col not in SETTINGS[data_id]['locked']:
+            SETTINGS[data_id]['locked'].append(col)
+        elif action == 'unlock':
+            SETTINGS[data_id]['locked'] = [c for c in SETTINGS[data_id]['locked'] if c != col]
+
+        final_cols = SETTINGS[data_id]['locked'] + [
+            c for c in DATA[data_id].columns if c not in SETTINGS[data_id]['locked']
+        ]
+        DATA[data_id] = DATA[data_id][final_cols]
+        refresh_col_indexes(data_id)
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+@dtale.route('/update-visibility/<data_id>', methods=['POST'])
+def update_visibility(data_id):
+    """
+    :class:`flask:flask.Flask` route to handle saving state associated visiblity of columns on the front-end
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param visibility: string from flask.request.args['action'] of dictionary of visibility of all columns in a
+                       dataframe
+    :type visibility: dict, optional
+    :param toggle: string from flask.request.args['col'] of column name whose visibility should be toggled
+    :type toggle: string, optional
+    :return: JSON {success: True/False}
+    """
+    global DTYPES
+
+    try:
+        if request.form.get('visibility'):
+            visibility = json.loads(request.form.get('visibility', '{}'))
+            DTYPES[data_id] = [dict_merge(d, dict(visible=visibility[d['name']])) for d in DTYPES[data_id]]
+        elif request.form.get('toggle'):
+            toggle_col = request.form.get('toggle')
+            toggle_idx = next((idx for idx, d in enumerate(DTYPES[data_id]) if d['name'] == toggle_col), None)
+            toggle_cfg = DTYPES[data_id][toggle_idx]
+            DTYPES[data_id][toggle_idx] = dict_merge(toggle_cfg, dict(visible=not toggle_cfg['visible']))
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+@dtale.route('/build-column/<data_id>')
+def build_column(data_id):
+    """
+    :class:`flask:flask.Flask` route to handle the building of new columns in a dataframe. Some of the operations the
+    are available are:
+     - numeric: sum/difference/multiply/divide any combination of two columns or static values
+     - datetime: retrieving date properties (hour, minute, month, year...) or conversions of dates (month start, month
+                 end, quarter start...)
+     - bins: bucketing numeric data into bins using :meth:`pandas:pandas.cut` & :meth:`pandas:pandas.qcut`
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param name: string from flask.request.args['name'] of new column to create
+    :param type: string from flask.request.args['type'] of the type of column to build (numeric/datetime/bins)
+    :param cfg: dict from flask.request.args['cfg'] of how to calculate the new column
+    :return: JSON {success: True/False}
+    """
+    global DATA, DTYPES
+
+    try:
+        name = get_str_arg(request, 'name')
+        if not name:
+            raise Exception("'name' is required for new column!")
+        data = DATA[data_id]
+        if name in data.columns:
+            raise Exception("A column named '{}' already exists!".format(name))
+        col_type = get_str_arg(request, 'type')
+        cfg = json.loads(get_str_arg(request, 'cfg'))
+
+        def _build_numeric(cfg):
+            left, right, operation = (cfg.get(p) for p in ['left', 'right', 'operation'])
+            left = data[left['col']] if 'col' in left else float(left['val'])
+            right = data[right['col']] if 'col' in right else float(right['val'])
+            if operation == 'sum':
+                return left + right
+            if operation == 'difference':
+                return left - right
+            if operation == 'multiply':
+                return left * right
+            if operation == 'divide':
+                return left / right
+            return np.nan
+
+        def _build_datetime(cfg):
+            col = cfg['col']
+            if 'property' in cfg:
+                return getattr(data[col].dt, cfg['property'])
+            conversion_key = cfg['conversion']
+            [freq, how] = conversion_key.split('_')
+            freq = dict(month='M', quarter='Q', year='Y')[freq]
+            conversion_data = data[[col]].set_index(col).index.to_period(freq).to_timestamp(how=how).normalize()
+            return pd.Series(conversion_data, index=data.index, name=name)
+
+        def _build_bins(cfg):
+            col, operation, bins, labels = (cfg.get(p) for p in ['col', 'operation', 'bins', 'labels'])
+            bins = int(bins)
+            if operation == 'cut':
+                bin_data = pd.cut(data[col], bins=bins)
+            else:
+                bin_data = pd.qcut(data[col], q=bins)
+            if labels:
+                cats = {idx: str(cat) for idx, cat in enumerate(labels.split(','))}
+            else:
+                cats = {idx: str(cat) for idx, cat in enumerate(bin_data.cat.categories)}
+            bin_data = pd.Series(bin_data.cat.codes.map(cats))
+            return bin_data
+
+        output = np.nan
+        if col_type == 'numeric':
+            output = _build_numeric(cfg)
+        elif col_type == 'datetime':
+            output = _build_datetime(cfg)
+        elif col_type == 'bins':
+            output = _build_bins(cfg)
+
+        DATA[data_id].loc[:, name] = output
+        dtype = find_dtype(DATA[data_id][name])
+        data_range = {}
+        if classify_type(dtype) == 'F' and not DATA[data_id][name].isnull().all():
+            data_range = data[[name]].agg([min, max]).to_dict()[name]
+        DTYPES[data_id].append(format_dtype(DATA[data_id], len(DTYPES[data_id]), name, dtype, data_range))
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
 @dtale.route('/test-filter/<data_id>')
@@ -594,8 +804,7 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     try:
-        query = get_str_arg(request, 'query')
-        _test_filter(DATA[data_id], query)
+        run_query(DATA[data_id], get_str_arg(request, 'query'))
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -731,7 +940,7 @@ def get_data(data_id):
         if any(c not in curr_dtypes for c in data.columns):
             data, _ = format_data(data)
             DATA[data_id] = data
-            DTYPES[data_id] = build_dtypes_state(data)
+            DTYPES[data_id] = build_dtypes_state(data, DTYPES.get(data_id, []))
 
         params = retrieve_grid_params(request)
         ids = get_json_arg(request, 'ids')
@@ -769,7 +978,8 @@ def get_data(data_id):
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
                     results[i] = dict_merge({IDX_COL: i}, d)
-        return_data = dict(results=results, columns=[dict(name=IDX_COL, dtype='int64')] + DTYPES[data_id], total=total)
+        columns = [dict(name=IDX_COL, dtype='int64', visible=True)] + DTYPES[data_id]
+        return_data = dict(results=results, columns=columns, total=total)
         return jsonify(return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -788,13 +998,9 @@ def get_histogram(data_id):
     :returns: JSON {results: DATA, desc: output from pd.DataFrame[col].describe(), success: True/False}
     """
     col = get_str_arg(request, 'col', 'values')
-    query = get_str_arg(request, 'query')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = DATA[data_id]
-        if query:
-            data = data.query(query)
-
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
         selected_col = find_selected_column(data, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
         hist = np.histogram(data, bins=bins)
@@ -822,10 +1028,7 @@ def get_correlations(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        query = get_str_arg(request, 'query')
-        data = DATA[data_id]
-        data = data.query(query) if query is not None else data
-
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
         valid_corr_cols = []
         valid_date_cols = []
         rolling = False
@@ -887,15 +1090,7 @@ def get_chart_data(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        query = get_str_arg(request, 'query')
-        data = DATA[data_id]
-        if query:
-            try:
-                data = data.query(query)
-            except BaseException as e:
-                return jsonify(dict(error='Invalid query: {}'.format(str(e))))
-            if not len(data):
-                return jsonify(dict(error='query "{}" found no data, please alter'.format(query)))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
         x = get_str_arg(request, 'x')
         y = get_json_arg(request, 'y')
         group_col = get_json_arg(request, 'group')
@@ -926,9 +1121,7 @@ def get_correlations_ts(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        query = get_str_arg(request, 'query')
-        data = DATA[data_id]
-        data = data.query(query) if query is not None else data
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
         cols = get_str_arg(request, 'cols')
         cols = json.loads(cols)
         date_col = get_str_arg(request, 'dateCol')
@@ -978,15 +1171,11 @@ def get_scatter(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     cols = get_json_arg(request, 'cols')
-    query = get_str_arg(request, 'query')
     date = get_str_arg(request, 'date')
     date_col = get_str_arg(request, 'dateCol')
     rolling = get_bool_arg(request, 'rolling')
     try:
-        data = DATA[data_id]
-        if query:
-            data = data.query(query)
-
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
         idx_col = str('index')
         y_cols = [cols[1], idx_col]
         if rolling:

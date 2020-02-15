@@ -9,13 +9,15 @@ import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
 import menuFuncs from "../dataViewerMenuUtils";
 import { isStringCol, SORT_PROPS } from "../gridUtils";
+import serverState from "../serverStateManagement";
 
 require("./ColumnMenu.css");
 
 const MOVE_COLS = [
-  ["Front", menuFuncs.moveToFront],
-  ["Left", menuFuncs.moveLeft],
-  ["Right", menuFuncs.moveRight],
+  ["step-backward", serverState.moveToFront, "Move Column To Front", {}],
+  ["caret-left", serverState.moveLeft, "Move Column Left", { fontSize: "1.2em", padding: 0, width: "1.3em" }],
+  ["caret-right", serverState.moveRight, "Move Column Right", { fontSize: "1.2em", padding: 0, width: "1.3em" }],
+  ["step-forward", serverState.moveToBack, "Move Column To Back", {}],
 ];
 
 class ReactColumnMenu extends React.Component {
@@ -40,14 +42,19 @@ class ReactColumnMenu extends React.Component {
       if (menuFuncs.shouldOpenPopup(height, width)) {
         menuFuncs.open(
           buildURLString(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), {
-            col: selectedCol,
+            selectedCol,
           }),
           null,
           height,
           width
         );
       } else {
-        openChart(_.assignIn({ type, title: _.capitalize(type) }, { col: selectedCol }));
+        openChart(
+          _.assignIn(
+            { type, title: _.capitalize(type) },
+            _.pick(this.props, ["selectedCol", "propagateState", "columns"])
+          )
+        );
       }
     };
     const openFormatting = () =>
@@ -55,6 +62,15 @@ class ReactColumnMenu extends React.Component {
         formattingOpen: true,
         selectedCols: [selectedCol],
       });
+    const hideCol = () => {
+      const hideCallback = () => {
+        const updatedColumns = _.map(this.props.columns, c =>
+          _.assignIn({}, c, c.name === selectedCol ? { visible: !c.visible } : {})
+        );
+        this.props.propagateState({ columns: updatedColumns });
+      };
+      serverState.toggleVisibility(dataId, selectedCol, hideCallback);
+    };
     return (
       <div
         id="column-menu-div"
@@ -71,7 +87,7 @@ class ReactColumnMenu extends React.Component {
             <span className="toggler-action">
               <i className="fa fa-sort ml-4 mr-4" />
             </span>
-            <div className="btn-group compact pl-3 font-weight-bold column-sorting">
+            <div className="btn-group compact m-auto font-weight-bold column-sorting">
               {_.map(SORT_PROPS, ({ dir, col }) => {
                 const active = dir === currDir;
                 return (
@@ -91,14 +107,15 @@ class ReactColumnMenu extends React.Component {
             <span className="toggler-action">
               <i className="ico-swap-horiz" />
             </span>
-            <div className="btn-group compact pl-3 font-weight-bold column-sorting">
-              {_.map(MOVE_COLS, ([label, func]) => (
+            <div className="btn-group compact m-auto font-weight-bold column-sorting">
+              {_.map(MOVE_COLS, ([icon, func, hint, icnStyle]) => (
                 <button
-                  key={label}
-                  style={{ color: "#565b68" }}
+                  key={icon}
+                  style={_.assign({ color: "#565b68", width: "2em" }, icnStyle)}
                   className={`btn btn-primary font-weight-bold`}
-                  onClick={func(selectedCol, this.props)}>
-                  {label}
+                  onClick={func(selectedCol, this.props)}
+                  title={hint}>
+                  <i className={`fas fa-${icon}`} />
                 </button>
               ))}
             </div>
@@ -106,7 +123,7 @@ class ReactColumnMenu extends React.Component {
           <ConditionalRender display={unlocked}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={menuFuncs.lockCols([selectedCol], this.props)}>
+                <button className="btn btn-plain" onClick={serverState.lockCols([selectedCol], this.props)}>
                   <i className="fa fa-lock ml-3 mr-4" />
                   <span className="font-weight-bold">Lock</span>
                 </button>
@@ -116,13 +133,21 @@ class ReactColumnMenu extends React.Component {
           <ConditionalRender display={!unlocked}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={menuFuncs.unlockCols([selectedCol], this.props)}>
+                <button className="btn btn-plain" onClick={serverState.unlockCols([selectedCol], this.props)}>
                   <i className="fa fa-lock-open ml-2 mr-4" />
                   <span className="font-weight-bold">Unlock</span>
                 </button>
               </span>
             </li>
           </ConditionalRender>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={hideCol}>
+                <i className="ico-visibility-off" />
+                <span className="font-weight-bold">Hide</span>
+              </button>
+            </span>
+          </li>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("describe", 670, 1100)}>
@@ -134,7 +159,7 @@ class ReactColumnMenu extends React.Component {
           <ConditionalRender display={!isStringCol(_.get(colCfg, "dtype", ""))}>
             <li>
               <span className="toggler-action">
-                <button className="btn btn-plain" onClick={openPopup("histogram", 425, 400)}>
+                <button className="btn btn-plain" onClick={openPopup("histogram", 450, 400)}>
                   <i className="ico-equalizer" />
                   <span className="font-weight-bold">Histogram</span>
                 </button>

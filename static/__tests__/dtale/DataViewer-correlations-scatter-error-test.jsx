@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 
@@ -25,17 +26,17 @@ describe("DataViewer tests", () => {
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 1005,
+      value: 1105,
     });
     Object.defineProperty(window, "innerHeight", {
       configurable: true,
-      value: 1240,
+      value: 1340,
     });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
-        if (url.startsWith("/dtale/scatter")) {
+        if (_.startsWith(url, "/dtale/scatter")) {
           return {
             error: "scatter errror",
             traceback: "scatter error traceback",

@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import $ from "jquery";
 import React from "react";
 import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
@@ -14,6 +15,8 @@ const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
+  const { post } = $;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -25,11 +28,11 @@ describe("DataViewer tests", () => {
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 1105,
+      value: 1205,
     });
     Object.defineProperty(window, "innerHeight", {
       configurable: true,
-      value: 675,
+      value: 775,
     });
 
     const mockBuildLibs = withGlobalJquery(() =>
@@ -47,6 +50,8 @@ describe("DataViewer tests", () => {
       return chartCfg;
     });
 
+    $.post = jest.fn();
+
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
@@ -58,6 +63,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
+    $.post = post;
   });
 
   test("DataViewer: describe", done => {
@@ -132,7 +138,7 @@ describe("DataViewer tests", () => {
           );
           dtypesGrid
             .find("div.headerCell")
-            .first()
+            .at(2)
             .find("input")
             .first()
             .simulate("change", { target: { value: "1" } });
@@ -155,6 +161,32 @@ describe("DataViewer tests", () => {
               "col1",
               "should describe col1"
             );
+
+            dtypesGrid = result.find(DtypesGrid).first();
+            dtypesGrid
+              .find("div.headerCell")
+              .at(1)
+              .find("i.ico-check-box")
+              .simulate("click");
+            dtypesGrid
+              .find("div.headerCell")
+              .at(1)
+              .find("i.ico-check-box")
+              .simulate("click");
+            dtypesGrid
+              .find("i.ico-check-box")
+              .last()
+              .simulate("click");
+            result
+              .find("div.modal-footer")
+              .first()
+              .find("button")
+              .first()
+              .simulate("click");
+            expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
+            $.post.mock.calls[0][2](); // execute callback
+            result.update();
+            expect($.post.mock.calls[0][1].visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');
             done();
           }, 400);
         }, 400);

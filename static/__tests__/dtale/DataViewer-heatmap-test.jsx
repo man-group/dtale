@@ -63,9 +63,12 @@ describe("DataViewer heatmap tests", () => {
         "should turn on background css attribute on for all cells"
       );
       t.deepEqual(
-        _.map(_.filter(dv.columns, { visible: true }), "name"),
-        ["dtale_index", "col2"],
-        "should hide non-float columns"
+        result
+          .find(ReactDataViewer)
+          .find("div.headerCell")
+          .map(hc => hc.text()),
+        ["col2"],
+        "should render float column headers"
       );
       clickMainMenuButton(result, "Heat Map");
       dv = result.find(ReactDataViewer).instance().state;

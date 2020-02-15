@@ -117,15 +117,15 @@ describe("DataViewer tests", () => {
         result.update();
         t.equal(
           result
-            .find("div.row div.col-md-6")
-            .last()
+            .find("div.row div.col-md-4")
+            .at(1)
             .text(),
           "Filter:test",
           "should display filter"
         );
         result
-          .find("div.row div.col-md-6")
-          .last()
+          .find("div.row div.col-md-4")
+          .at(1)
           .find("i")
           .first()
           .simulate("click");

@@ -30,7 +30,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Main Menu Functions](#main-menu-functions)
     - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Move To Front](#move-to-front), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
+    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Building Columns](#building-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
   - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -62,6 +62,11 @@ Now you will have to ability to use D-Tale from the command-line or within a pyt
 This comes courtesy of PyCharm
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
+
+#### Issues With Windows Firewall
+
+If you run into issues with viewing D-Tale in your browser on Windows please try making Python public under "Allowed Apps" in your Firewall configuration.  Here is a nice article:
+[How to Allow Apps to Communicate Through the Windows Firewall](https://www.howtogeek.com/howto/uncategorized/how-to-create-exceptions-in-windows-vista-firewall/)
 
 #### Additional functions available programatically
 ```python
@@ -232,6 +237,8 @@ Apply a simple pandas `query` to your data (link to pandas documentation include
 |--------|:------:|
 |![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
 
+FYI: For python 3 users, there is now support for filtering on column names with special characters in them (EX: 'a.b') :metal:
+
 #### Charts
 Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
  
@@ -241,8 +248,8 @@ Build custom charts based off your data(powered by [plotly/dash](https://github.
  - Once you have entered all the required axes a chart will be built
  - If your data along the x-axis (or combination of x & y in the case of 3D charts) has duplicates you have three options:
    - Specify a group, which will create series for each group
-   - Specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, MAximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum, Rolling
-     - Specifying a "Rolling" aggregation will also require a Window & a Computation (Correlation, Coiunt, Covariance, Kurtosis, Maximum, Mean, Median, Minimum, Skew, Standard Deviation, Sum or Variance)
+   - Specify an aggregation, you can choose from one of the following: Count, First, Last, Mean, Median, Minimum, Maximum, Standard Deviation, Variance, Mean Absolute Deviation, Product of All Items, Sum, Rolling
+     - Specifying a "Rolling" aggregation will also require a Window & a Computation (Correlation, Count, Covariance, Kurtosis, Maximum, Mean, Median, Minimum, Skew, Standard Deviation, Sum or Variance)
      - For heatmaps you will also have access to the "Correlation" aggregation since viewing correlation matrices in heatmaps is very useful.  This aggregation is not supported elsewhere
    - Specify both a group & an aggregation
  - You now have the ability to toggle between different chart types: line, bar, pie, wordcloud, heatmap, 3D scatter & surface
@@ -276,11 +283,11 @@ With a bar chart that only has a single Y-Axis you have the ability to sort the 
 This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
 
 If you miss the legacy (non-plotly/dash) charts, not to worry!  They are still available from the link in the upper-right corner, but on for a limited time...
-Here is the documentation for those: [Legacy Charts](https://raw.githubusercontent.com/man-group/dtale/master/docs/LEGACY_CHARTS.md)
+Here is the documentation for those: [Legacy Charts](https://github.com/man-group/dtale/blob/master/docs/LEGACY_CHARTS.md)
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
-  - By deafult, it will show a grid of pearson correlations (filtering available by using drop-down see 2nd table of screenshots)
+  - By default, it will show a grid of pearson correlations (filtering available by using drop-down see 2nd table of screenshots)
   - If you have a date-type column, you can click an individual cell and see a timeseries of pearson correlations for that column combination
     - Currently if you have multiple date-type columns you will have the ability to toggle between them by way of a drop-down
   - Furthermore, you can click on individual points in the timeseries to view the scatter plot of the points going into that correlation
@@ -361,8 +368,27 @@ Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill p
 
 ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_menu.png)
 
-#### Move To Front
-Moves your column to the front of the "unlocked" columns
+#### Moving Columns
+
+[![](http://img.youtube.com/vi/We4TH477rRs/0.jpg)](http://www.youtube.com/watch?v=We4TH477rRs "Moving Columns in D-Tale")
+
+All column movements are saved on the server so refreshing your browser won't lose them :ok_hand:
+
+#### Hiding Columns
+
+[![](http://img.youtube.com/vi/ryZT2Lk_YaA/0.jpg)](http://www.youtube.com/watch?v=ryZT2Lk_YaA "Hide/Unhide Columns in D-Tale")
+
+All column movements are saved on the server so refreshing your browser won't lose them :ok_hand:
+
+#### Building Columns
+
+[![](http://img.youtube.com/vi/G6wNS9-lG04/0.jpg)](http://www.youtube.com/watch?v=G6wNS9-lG04 "Build Columns in D-Tale")
+
+This video shows you how to build the following:
+ - Numeric: adding/subtracting two columns or columns with static values
+ - Bins: bucketing values using pandas cut & qcut as well as assigning custom labels
+ - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
+
 
 #### Lock
 Adds your column to "locked" columns
@@ -392,9 +418,11 @@ Applies/removes sorting (Ascending/Descending/Clear) to the column selected
 #### Formats
 Apply simple formats to numeric values in your grid
 
-|Editing|Result|
-|--------|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_formatting.png)|
+|Type|Editing|Result|
+|--------|:------:|:------:|
+|Numeric|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_formatting.png)|
+|Date|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_date_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_date_formatting.png)|
+|String|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_string_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_string_formatting.png)|
 
 Here's a grid of all the formats available with -123456.789 as input:
   

@@ -21,11 +21,11 @@ const DATA = {
     { dtale_index: 3, col1: 4, col2: 5.5, col3: "foo" },
   ],
   columns: [
-    { name: "dtale_index", dtype: "int64" },
-    { name: "col1", dtype: "int64" },
-    { name: "col2", dtype: "float64", min: 2.5, max: 5.5 },
-    { name: "col3", dtype: "object" },
-    { name: "col4", dtype: "datetime64[ns]" },
+    { name: "dtale_index", dtype: "int64", visible: true },
+    { name: "col1", dtype: "int64", visible: true },
+    { name: "col2", dtype: "float64", min: 2.5, max: 5.5, visible: true },
+    { name: "col3", dtype: "object", visible: true },
+    { name: "col4", dtype: "datetime64[ns]", visible: true },
   ],
   total: 4,
   success: true,
@@ -33,10 +33,10 @@ const DATA = {
 
 const DTYPES = {
   dtypes: [
-    { index: 0, name: "col1", dtype: "int64" },
-    { index: 1, name: "col2", dtype: "float64" },
-    { index: 2, name: "col3", dtype: "string" },
-    { index: 3, name: "col4", dtype: "datetime[ns]" },
+    { index: 0, name: "col1", dtype: "int64", visible: true },
+    { index: 1, name: "col2", dtype: "float64", visible: true },
+    { index: 2, name: "col3", dtype: "string", visible: true },
+    { index: 3, name: "col4", dtype: "datetime[ns]", visible: true },
   ],
   success: true,
 };
@@ -121,22 +121,22 @@ const PROCESSES = [
     columns: 3,
   },
 ];
-// eslint-disable-next-line max-statements
+// eslint-disable-next-line max-statements, complexity
 function urlFetcher(url) {
   const urlParams = qs.parse(url.split("?")[1]);
   const query = urlParams.query;
-  if (url.startsWith("/dtale/data")) {
+  if (_.startsWith(url, "/dtale/data")) {
     if (query === "error") {
       return { error: "No data found" };
     }
     return DATA;
-  } else if (url.startsWith("/dtale/histogram")) {
+  } else if (_.startsWith(url, "/dtale/histogram")) {
     return histogramData;
-  } else if (url.startsWith("/dtale/correlations-ts")) {
+  } else if (_.startsWith(url, "/dtale/correlations-ts")) {
     return correlationsTsData;
-  } else if (url.startsWith("/dtale/correlations/")) {
+  } else if (_.startsWith(url, "/dtale/correlations/")) {
     return correlationsData;
-  } else if (url.startsWith("/dtale/scatter")) {
+  } else if (_.startsWith(url, "/dtale/scatter")) {
     if (urlParams.rolling) {
       const dates = _.fill(Array(_.size(scatterData.data.all.x)), "2018-04-30");
       return _.assign({}, scatterData, {
@@ -144,7 +144,7 @@ function urlFetcher(url) {
       });
     }
     return scatterData;
-  } else if (url.startsWith("/dtale/chart-data")) {
+  } else if (_.startsWith(url, "/dtale/chart-data")) {
     if (urlParams.group) {
       if (_.size(JSON.parse(urlParams.y)) > 1) {
         return _.assignIn({}, groupedChartsData, {
@@ -159,16 +159,21 @@ function urlFetcher(url) {
       });
     }
     return chartsData;
-  } else if (url.startsWith("/dtale/update-settings")) {
+  } else if (
+    _.find(
+      ["/dtale/update-visibility", "/dtale/update-settings", "/dtale/update-locked", "/dtale/update-column-position"],
+      prefix => _.startsWith(url, prefix)
+    )
+  ) {
     return { success: true };
-  } else if (url.startsWith("/dtale/test-filter")) {
+  } else if (_.startsWith(url, "/dtale/test-filter")) {
     if (query === "error") {
       return { error: "No data found" };
     }
     return { success: true };
-  } else if (url.startsWith("/dtale/dtypes")) {
+  } else if (_.startsWith(url, "/dtale/dtypes")) {
     return DTYPES;
-  } else if (url.startsWith("/dtale/describe")) {
+  } else if (_.startsWith(url, "/dtale/describe")) {
     const column = _.last(url.split("/"));
     if (_.has(DESCRIBE, column)) {
       return _.assignIn({ success: true }, DESCRIBE[column]);
@@ -176,8 +181,13 @@ function urlFetcher(url) {
     return { error: "Column not found!" };
   } else if (_.includes(url, "pypi.org")) {
     return { info: { version: pjson.version } };
-  } else if (url.startsWith("/dtale/processes")) {
+  } else if (_.startsWith(url, "/dtale/processes")) {
     return { data: PROCESSES, success: true };
+  } else if (_.startsWith(url, "/dtale/build-column")) {
+    if (urlParams.name === "error") {
+      return { error: "error test" };
+    }
+    return { success: true };
   }
   return {};
 }

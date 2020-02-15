@@ -43,7 +43,7 @@ const props = {
     visible: true,
     type: "histogram",
     title: "Histogram Test",
-    col: "bar",
+    selectedCol: "bar",
     query: "col == 3",
   },
 };
@@ -53,11 +53,11 @@ describe("Histogram tests", () => {
     const urlParams = qs.stringify({
       bins: 20,
       query: props.chartData.query,
-      col: props.chartData.col,
+      col: props.chartData.selectedCol,
     });
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (url.startsWith("/dtale/histogram")) {
+        if (_.startsWith(url, "/dtale/histogram")) {
           const query = qs.parse(url.split("?")[1]).query;
           if (query === "null") {
             return null;
@@ -66,7 +66,7 @@ describe("Histogram tests", () => {
             return { error: "histogram error" };
           }
         }
-        if (url.startsWith("/dtale/histogram/1?" + urlParams)) {
+        if (_.startsWith(url, "/dtale/histogram/1?" + urlParams)) {
           return HISTOGRAM_DATA;
         }
         return {};

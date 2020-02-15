@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.7.4 (2020-2-20)
+ * [#63](https://github.com/man-group/dtale/issues/63): filtering columns with special characters in name
+ * added json_loader CLI options
+ * updated moving/locking of columns to be persisted to back-end as well as front-end
+ * added the ability to show/hide columns
+ * [#61](https://github.com/man-group/dtale/issues/61): added column builder popup
+
 ### 1.7.3 (2020-2-13)
  * added the ability to move columns left or right as well as to the front
  * added formatting capabilities for strings & dates

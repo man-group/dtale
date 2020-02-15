@@ -55,6 +55,22 @@ def test_main(builtin_pkg):
         df = data_loader()
         pdt.assert_frame_equal(df, pd.DataFrame([dict(a=1, b=2, c=3)]), 'loader should load csv')
 
+    with mock.patch('dtale.cli.script.show', mock.Mock()) as mock_show:
+        json_path = "/../".join([os.path.dirname(__file__), 'data/test_df.json'])
+        args = ['--host', 'test', '--port', '9999', '--json-path', json_path]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        assert host == 'test'
+        assert not subprocess
+        assert not debug
+        assert port == 9999
+        assert reaper_on
+        assert data_loader is not None
+        df = data_loader()
+        pdt.assert_frame_equal(df, pd.DataFrame([dict(a=1, b=2, c=3)]), 'loader should load json')
+
     orig_import = __import__
     mock_arctic = mock.Mock()
     mock_versioned_item = mock.Mock()

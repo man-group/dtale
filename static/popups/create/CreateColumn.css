@@ -1,0 +1,15 @@
+input.numeric-input::-webkit-outer-spin-button,
+input.numeric-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'].numeric-input {
+  -moz-appearance: textfield;
+}
+
+.btn-group .btn.btn-primary.datetime-conversions {
+  white-space: normal;
+  padding: 0.35rem 0.3rem;
+}

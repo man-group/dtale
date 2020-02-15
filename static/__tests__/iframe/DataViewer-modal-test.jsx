@@ -3,7 +3,6 @@ import React from "react";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { ReactColumnMenu as ColumnMenu } from "../../dtale/iframe/ColumnMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
@@ -63,6 +62,7 @@ describe("DataViewer iframe tests", () => {
 
   test("DataViewer: histogram display in a modal", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
     const Histogram = require("../../popups/Histogram").ReactHistogram;
 
     const store = reduxUtils.createDtaleStore();
