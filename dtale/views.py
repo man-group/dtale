@@ -294,36 +294,35 @@ class DtaleData(object):
             logger.debug('You must ipython>=5.0 installed to use this functionality')
 
 
-def format_dtype(data, col_index, col, dtype, data_range, prev_dtype=None):
+def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     """
-    Helper function to build the descriptive information about each column in the dataframe you are viewing
-    in D-Tale.  This data is later returned to the browser to help with controlling inputs to functions which
-    are heavily tied to specific data types.
+    Helper function to build formatter for the descriptive information about each column in the dataframe you
+    are viewing in D-Tale.  This data is later returned to the browser to help with controlling inputs to functions
+    which are heavily tied to specific data types.
 
     :param data: dataframe
     :type data: :class:`pandas:pandas.DataFrame`
-    :param col_index: zero-based index of colummn in dataframe
-    :type col_index: int
-    :param col: column name
-    :type col: string
-    :param dtype: column data type
-    :type dtype: string
-    :param data_range: dictionary containing minimum and maximum value for column (if applicable)
-    :type data_range: dict
-    :param prev_dtype: previous column information for syncing updates to pre-existing columns
-    :type prev_dtype: dict, optional
-    :return: final information state for column
-    :rtype: dict
+    :param dtypes: column data type
+    :type dtypes: dict
+    :param data_ranges: dictionary containing minimum and maximum value for column (if applicable)
+    :type data_ranges: dict, optional
+    :param prev_dtypes: previous column information for syncing updates to pre-existing columns
+    :type prev_dtypes: dict, optional
+    :return: formatter function which takes column indexes and names
+    :rtype: func
     """
-    visible = True
-    if prev_dtype:
-        visible = prev_dtype.get('visible', True)
-    dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible)
-    if classify_type(dtype) == 'F' and not data[col].isnull().all():  # floats
-        col_ranges = data_range
-        if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
-            dtype_data = dict_merge(data_range, dtype_data)
-    return dtype_data
+    def _formatter(col_index, col):
+        visible = True
+        dtype = dtypes.get(col)
+        if prev_dtypes and col in prev_dtypes:
+            visible = prev_dtypes[col].get('visible', True)
+        dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible)
+        if classify_type(dtype) == 'F' and not data[col].isnull().all() and col in data_ranges:  # floats
+            col_ranges = data_ranges[col]
+            if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
+                dtype_data = dict_merge(col_ranges, dtype_data)
+        return dtype_data
+    return _formatter
 
 
 def build_dtypes_state(data, prev_state=None):
@@ -334,10 +333,10 @@ def build_dtypes_state(data, prev_state=None):
     :type data: :class:`pandas:pandas.DataFrame`
     :return: a list of dictionaries containing column names, indexes and data types
     """
-    dtypes = get_dtypes(data)
     prev_dtypes = {c['name']: c for c in prev_state or []}
     ranges = data.agg([min, max]).to_dict()
-    return [format_dtype(data, i, c, dtypes[c], ranges[c], prev_dtypes.get(c)) for i, c in enumerate(data.columns)]
+    dtype_f = dtype_formatter(data, get_dtypes(data), ranges, prev_dtypes)
+    return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
 
 def format_data(data):
@@ -783,10 +782,11 @@ def build_column(data_id):
 
         DATA[data_id].loc[:, name] = output
         dtype = find_dtype(DATA[data_id][name])
-        data_range = {}
+        data_ranges = {}
         if classify_type(dtype) == 'F' and not DATA[data_id][name].isnull().all():
-            data_range = data[[name]].agg([min, max]).to_dict()[name]
-        DTYPES[data_id].append(format_dtype(DATA[data_id], len(DTYPES[data_id]), name, dtype, data_range))
+            data_ranges[name] = data[[name]].agg([min, max]).to_dict()[name]
+        dtype_f = dtype_formatter(DATA[data_id], {name: dtype}, data_ranges)
+        DTYPES[data_id].append(dtype_f(len(DTYPES[data_id]), name))
         return jsonify(success=True)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))

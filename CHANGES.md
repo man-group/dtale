@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.7.5 (2020-2-20)
+ * hotfix for KeyError loading metadata for columns with min/max information
+
 ### 1.7.4 (2020-2-20)
  * [#63](https://github.com/man-group/dtale/issues/63): filtering columns with special characters in name
  * added json_loader CLI options
