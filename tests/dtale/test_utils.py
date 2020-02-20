@@ -108,7 +108,7 @@ def test_filter_df_for_grid(test_data):
             'baz': {'type': 'StringFilter', 'value': 'baz'}
         })
     })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req))
+    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
     pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
 
     req = build_req_tuple({
@@ -118,7 +118,7 @@ def test_filter_df_for_grid(test_data):
             'baz': {'type': 'StringFilter', 'value': '=baz'}
         })
     })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req))
+    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
     pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
 
     req = build_req_tuple({
@@ -128,11 +128,11 @@ def test_filter_df_for_grid(test_data):
             'date': {'type': 'StringFilter', 'value': '2000-01-01'}
         })
     })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req))
+    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
     pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
 
     req = build_req_tuple({'query': 'security_id == 1'})
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req))
+    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
     pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
 
     req = build_req_tuple({'page': 1, 'page_size': 50})

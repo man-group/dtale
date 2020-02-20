@@ -394,7 +394,7 @@ def find_free_port():
 
 
 def show(data=None, host=None, port=None, name=None, debug=False, subprocess=True, data_loader=None,
-         reaper_on=True, open_browser=False, notebook=False, force=False, **kwargs):
+         reaper_on=True, open_browser=False, notebook=False, force=False, context_vars=None, **kwargs):
     """
     Entry point for kicking off D-Tale :class:`flask:flask.Flask` process from python process
 
@@ -423,6 +423,9 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
     :param force: if true, this will force the D-Tale instance to run on the specified host/port by killing any
                   other process running at that location
     :type force: bool, optional
+    :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions,
+                         such as filters
+    :type context_vars: dict, optional
 
     :Example:
 
@@ -440,7 +443,7 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
     initialize_process_props(host, port, force)
     url = build_url(ACTIVE_PORT, ACTIVE_HOST)
-    instance = startup(url, data=data, data_loader=data_loader, name=name)
+    instance = startup(url, data=data, data_loader=data_loader, name=name, context_vars=context_vars)
     is_active = not running_with_flask_debug() and is_up(url)
     if is_active:
         def _start():

@@ -121,6 +121,22 @@ const PROCESSES = [
     columns: 3,
   },
 ];
+
+const CONTEXT_VARIABLES = {
+  context_variables: {
+    foo: "bar",
+    cat: "dog",
+  },
+  success: true,
+};
+
+function getDataId(url) {
+  if (_.startsWith(url, "/dtale/context-variables")) {
+    return url.split("?")[0].split("/")[3];
+  }
+  return null;
+}
+
 // eslint-disable-next-line max-statements, complexity
 function urlFetcher(url) {
   const urlParams = qs.parse(url.split("?")[1]);
@@ -188,6 +204,8 @@ function urlFetcher(url) {
       return { error: "error test" };
     }
     return { success: true };
+  } else if (_.startsWith(url, "/dtale/context-variables")) {
+    return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
   }
   return {};
 }

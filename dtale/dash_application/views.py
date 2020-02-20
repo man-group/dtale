@@ -17,7 +17,7 @@ from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            show_input_handler,
                                            show_yaxis_ranges)
 from dtale.utils import dict_merge, make_list, run_query
-from dtale.views import DATA
+from dtale.views import DATA, CONTEXT_VARIABLES
 
 logger = getLogger(__name__)
 
@@ -139,7 +139,7 @@ def init_callbacks(dash_app):
         :rtype: tuple of (str, str, str)
         """
         try:
-            run_query(DATA[get_data_id(pathname)], query)
+            run_query(DATA[get_data_id(pathname)], query, CONTEXT_VARIABLES[get_data_id(pathname)])
             return query, {'line-height': 'inherit'}, ''
         except BaseException as ex:
             return curr_query, {'line-height': 'inherit', 'background-color': 'pink'}, str(ex)

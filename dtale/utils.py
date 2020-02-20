@@ -450,7 +450,7 @@ def sort_df_for_grid(df, params):
     return df.sort_index()
 
 
-def filter_df_for_grid(df, params):
+def filter_df_for_grid(df, params, context_vars):
     """
     Filter dataframe based on 'filters' property in parameter dictionary. Filter
     configuration is of the following shape:
@@ -505,6 +505,8 @@ def filter_df_for_grid(df, params):
     :type df: :class:`pandas:pandas.DataFrame`
     :param params: arguments from :attr:`flask:flask.request`
     :type params: dict
+    :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions
+    :type context_vars: dict
     :return: filtering dataframe
     :rtype: :class:`pandas:pandas.DataFrame`
     """
@@ -539,7 +541,7 @@ def filter_df_for_grid(df, params):
                 df = df[stringified_col.astype(str) == filter_val[1:]]
             else:
                 df = df[stringified_col.astype(str).str.lower().str.contains(filter_val.lower(), na=False)]
-    df = run_query(df, params.get('query'))
+    df = run_query(df, params.get('query'), context_vars)
     return df
 
 
@@ -759,7 +761,7 @@ def make_timeout_request(target, args=None, kwargs=None, timeout=60):
     return results
 
 
-def run_query(df, query):
+def run_query(df, query, context_vars):
     """
     Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
     handle when column names contain special characters.  Looks like pandas will be handling this in a future
@@ -771,6 +773,8 @@ def run_query(df, query):
     :type df: :class:`pandas:pandas.DataFrame`
     :param query: query string
     :type query: string
+    :param context_vars: dictionary of user-defined variables which can be referenced by name in query strings
+    :type context_vars: dict
     :return: filtered dataframe
     """
     if (query or '') == '':
@@ -792,10 +796,10 @@ def run_query(df, query):
         inv_replacements = {replacements[k]: k for k in replacements.keys()}
         df = df.rename(columns=replacements)  # Rename the columns
 
-        df = df.query(final_query)  # Carry out query
+        df = df.query(final_query, local_dict=context_vars)  # Carry out query
         df = df.rename(columns=inv_replacements)
     else:
-        df = df.query(query)
+        df = df.query(query, local_dict=context_vars)
 
     if not len(df):
         raise Exception('query "{}" found no data, please alter'.format(query))

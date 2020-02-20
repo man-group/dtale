@@ -239,7 +239,25 @@ View all the columns & their data types as well as individual details of each co
 |float|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_float.png)||
 
 #### Filter
-Apply a simple pandas `query` to your data (link to pandas documentation included in popup)
+Apply a simple pandas `query` to your data (link to pandas documentation included in popup)  
+
+Context Variables are user-defined values passed in via the `context_variables` argument to dtale.show(); they can be referenced in filters by prefixing the variable name with '@'.
+
+For example, here is how you can use context variables in a pandas query:
+```python
+import pandas as pd
+
+df = pd.DataFrame([
+  dict(name='Joe', age=7),
+  dict(name='Bob', age=23),
+  dict(name='Ann', age=45),
+  dict(name='Cat', age=88),
+])
+two_oldest_ages = df['age'].nlargest(2)
+df.query('age in @two_oldest_ages')
+```
+And here is how you would pass that context variable to D-Tale: `dtale.show(df, context_variables=dict(two_oldest_ages=two_oldest_ages))`
+
 
 |Editing|Result|
 |--------|:------:|

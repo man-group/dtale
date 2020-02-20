@@ -6,6 +6,7 @@ import { Modal, ModalBody, ModalClose, ModalFooter, ModalHeader, ModalTitle } fr
 import { RemovableError } from "../RemovableError";
 import { buildURLString } from "../actions/url-utils";
 import { fetchJson } from "../fetcher";
+import ContextVariables from "./ContextVariables";
 
 class Filter extends React.Component {
   constructor(props) {
@@ -102,6 +103,9 @@ class Filter extends React.Component {
                 </li>
               </ul>
             </div>
+          </div>
+          <div className="row">
+            <ContextVariables dataId={this.props.dataId} />
           </div>
         </ModalBody>
         <ModalFooter>
