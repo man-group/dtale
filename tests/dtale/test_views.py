@@ -1112,3 +1112,62 @@ def test_jinja_output():
             assert 'span id="forkongithub"' in str(response.data)
             response = c.get('/charts/{}'.format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
+
+
+@pytest.mark.unit
+def test_build_context_variables():
+    import dtale.views as views
+
+    data_id = '1'
+
+    with pytest.raises(SyntaxError) as error:
+        views.build_context_variables(data_id, {1: 'foo'})
+    assert 'context variables must be a valid string' in str(error.value)
+
+    with pytest.raises(SyntaxError) as error:
+        views.build_context_variables(data_id, {'#!f_o#o': 'bar'})
+    assert 'context variables can only contain letters, digits, or underscores' in str(error.value)
+
+    with pytest.raises(SyntaxError) as error:
+        views.build_context_variables(data_id, {'_foo': 'bar'})
+    assert 'context variables can not start with an underscore' in str(error.value)
+
+    # verify that pre-existing variables are not dropped when new ones are added
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: {}}))
+        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
+        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'2': 'dog'})
+        assert ((views.CONTEXT_VARIABLES[data_id]['1'] == 'cat') & (views.CONTEXT_VARIABLES[data_id]['2'] == 'dog'))
+
+    # verify that new values will replace old ones if they share the same name
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: {}}))
+        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
+        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'dog'})
+        assert (views.CONTEXT_VARIABLES[data_id]['1'] == 'dog')
+
+
+@pytest.mark.unit
+def test_get_context_variables(unittest):
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data_id = '1'
+            context_vars = {
+                '1': ['cat', 'dog'],
+                '2': 420346,
+                '3': pd.Series(range(1000)),
+                '4': 'A' * 2000,
+            }
+            expected_return_value = {k: str(v)[:1000] for k, v in context_vars.items()}
+            stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: context_vars}))
+            response = c.get('/dtale/context-variables/{}'.format(data_id))
+            response_data = json.loads(response.data)
+            assert response_data['success']
+            unittest.assertEqual(response_data['context_variables'], expected_return_value, 'should match expected')
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', None))
+            response = c.get('dtale/context-variables/1')
+            response_data = json.loads(response.data)
+            assert response_data['error'], 'An error should be returned since CONTEXT_VARIABLES is None'

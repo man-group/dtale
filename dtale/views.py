@@ -5,6 +5,7 @@ import traceback
 import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
+from collections import defaultdict
 
 from flask import json, redirect, render_template, request
 
@@ -32,6 +33,7 @@ DTYPES = {}
 SETTINGS = {}
 METADATA = {}
 IDX_COL = str('dtale_index')
+CONTEXT_VARIABLES = defaultdict(dict)
 
 
 def head_data_id():
@@ -361,7 +363,7 @@ def format_data(data):
     return data, index
 
 
-def startup(url, data=None, data_loader=None, name=None, data_id=None):
+def startup(url, data=None, data_loader=None, name=None, data_id=None, context_vars=None):
     """
     Loads and stores data globally
      - If data has indexes then it will lock save those columns as locked on the front-end
@@ -373,8 +375,11 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None):
     :param name: string label to apply to your session
     :param data_id: integer id assigned to a piece of data viewable in D-Tale, if this is populated then it will
                     override the data at that id
+    :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions,
+                         such as filters
+    :type context_vars: dict, optional
     """
-    global DATA, DTYPES, SETTINGS, METADATA
+    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES
 
     if data_loader is not None:
         data = data_loader()
@@ -414,6 +419,7 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None):
         SETTINGS[data_id] = dict(locked=curr_locked)
         DATA[data_id] = data
         DTYPES[data_id] = build_dtypes_state(data, DTYPES.get(data_id, []))
+        CONTEXT_VARIABLES[data_id] = build_context_variables(data_id, context_vars)
         return DtaleData(data_id, url)
     else:
         raise Exception('data loaded is None!')
@@ -426,13 +432,14 @@ def cleanup():
     :param port: integer string for a D-Tale process's port
     :type port: str
     """
-    global DATA, DTYPES, SETTINGS, METADATA
+    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES
 
     # use pop() because in some pytests port is not available
     DATA = {}
     SETTINGS = {}
     DTYPES = {}
     METADATA = {}
+    CONTEXT_VARIABLES = defaultdict(dict)
 
 
 def base_render_template(template, data_id, **kwargs):
@@ -804,7 +811,7 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     try:
-        run_query(DATA[data_id], get_str_arg(request, 'query'))
+        run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -931,7 +938,7 @@ def get_data(data_id):
     }
     """
     try:
-        global SETTINGS, DATA, DTYPES
+        global SETTINGS, DATA, DTYPES, CONTEXT_VARIABLES
         data = DATA[data_id]
 
         # this will check for when someone instantiates D-Tale programatically and directly alters the internal
@@ -957,7 +964,7 @@ def get_data(data_id):
             curr_settings = dict_merge(curr_settings, dict(sort=params['sort']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'sort'}
-        data = filter_df_for_grid(data, params)
+        data = filter_df_for_grid(data, params, CONTEXT_VARIABLES[data_id])
         if params.get('query') is not None:
             curr_settings = dict_merge(curr_settings, dict(query=params['query']))
         else:
@@ -1000,7 +1007,7 @@ def get_histogram(data_id):
     col = get_str_arg(request, 'col', 'values')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         selected_col = find_selected_column(data, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
         hist = np.histogram(data, bins=bins)
@@ -1028,7 +1035,7 @@ def get_correlations(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         valid_corr_cols = []
         valid_date_cols = []
         rolling = False
@@ -1090,7 +1097,7 @@ def get_chart_data(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         x = get_str_arg(request, 'x')
         y = get_json_arg(request, 'y')
         group_col = get_json_arg(request, 'group')
@@ -1121,7 +1128,7 @@ def get_correlations_ts(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         cols = get_str_arg(request, 'cols')
         cols = json.loads(cols)
         date_col = get_str_arg(request, 'dateCol')
@@ -1175,7 +1182,7 @@ def get_scatter(data_id):
     date_col = get_str_arg(request, 'dateCol')
     rolling = get_bool_arg(request, 'rolling')
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'))
+        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
         idx_col = str('index')
         y_cols = [cols[1], idx_col]
         if rolling:
@@ -1213,3 +1220,52 @@ def get_scatter(data_id):
         return jsonify(data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+def build_context_variables(data_id, new_context_vars=None):
+    """
+    Build and return the dictionary of context variables associated with a process.
+    If the names of any new variables are not formatted properly, an exception will be raised.
+    New variables will overwrite the values of existing variables if they share the same name.
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param new_context_vars: dictionary of name, value pairs for new context variables
+    :type new_context_vars: dict, optional
+    :returns: dict of the context variables for this process
+    :rtype: dict
+    """
+    global CONTEXT_VARIABLES
+
+    if new_context_vars:
+        for name, value in new_context_vars.items():
+            if not isinstance(name, str):
+                raise SyntaxError('{}, context variables must be a valid string'.format(name))
+            elif not name.replace('_', '').isalnum():
+                raise SyntaxError('{}, context variables can only contain letters, digits, or underscores'.format(name))
+            elif name.startswith('_'):
+                raise SyntaxError('{}, context variables can not start with an underscore'.format(name))
+
+    return dict_merge(CONTEXT_VARIABLES[data_id], new_context_vars)
+
+
+@dtale.route('/context-variables/<data_id>')
+def get_context_variables(data_id):
+    """
+    :class:`flask:flask.Flask` route which returns a view-only version of the context variables to the front end.
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :return: JSON
+    """
+    global CONTEXT_VARIABLES
+
+    def value_as_str(value):
+        """Convert values into a string representation that can be shown to the user in the front-end."""
+        return str(value)[:1000]
+
+    try:
+        return jsonify(context_variables={k: value_as_str(v) for k, v in CONTEXT_VARIABLES[data_id].items()},
+                       success=True)
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))

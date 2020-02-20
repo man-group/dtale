@@ -201,4 +201,43 @@ describe("DataViewer tests", () => {
       }, 400);
     }, 400);
   });
+
+  test("DataViewer: filtering, context variables error", done => {
+    const { DataViewer } = require("../../dtale/DataViewer");
+    const Filter = require("../../dtale/Filter").default;
+    const ContextVariables = require("../../dtale/ContextVariables").default;
+
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "", dataId: "error" }, store);
+    const result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
+
+    setTimeout(() => {
+      result.update();
+
+      //open filter
+      clickMainMenuButton(result, "Filter");
+      result.update();
+      setTimeout(() => {
+        result.update();
+        t.equal(
+          result
+            .find(Filter)
+            .find(ContextVariables)
+            .find(RemovableError)
+            .find("div.dtale-alert")
+            .text(),
+          "Error loading context variables",
+          "should display error"
+        );
+        done();
+      }, 400);
+    }, 400);
+  });
 });
