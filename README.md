@@ -1,4 +1,4 @@
-[![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Title.png)](https://github.com/man-group/dtale)
+[![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Title.png)](https://github.com/man-group/dtale)
 
 [Live Demo](http://andrewschonfeld.pythonanywhere.com)
 
@@ -48,7 +48,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 
 |PyCharm|jupyter|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/blog/dtale_ipython.gif)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_ipython.gif)|
 
 Installing the egg
 
@@ -60,7 +60,7 @@ Now you will have to ability to use D-Tale from the command-line or within a pyt
 
 ### Python Terminal
 This comes courtesy of PyCharm
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Python_Terminal.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
 
 #### Issues With Windows Firewall
@@ -107,17 +107,17 @@ Within any jupyter (ipython) notebook executing a cell like this will display a 
 
 |`dtale.show`|assignment|instance|
 |:------:|:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython3.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ipython1.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ipython2.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ipython3.png)|
 
 If you are running ipython<=5.0 then you also have the ability to adjust the size of your output cell for the most recent instance displayed:
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/ipython_adjust.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ipython_adjust.png)
 
 One thing of note is that a lot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
 
 |Column Menus|Correlations|Describe|Histogram|Instances|
 |:------:|:------:|:------:|:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Column_menu.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/correlations_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/describe_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/histogram_popup.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/instances_popup.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Column_menu.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/correlations_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/describe_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/histogram_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/instances_popup.png)|
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
@@ -139,6 +139,14 @@ dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arc
 Loading data from **CSV**
 ```bash
 dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
+```
+Loading data from **JSON**
+```bash
+dtale --json-path /home/jdoe/my_json.json --json-parse_dates date
+```
+or
+```bash
+dtale --json-path http://json-endpoint --json-parse_dates date
 ```
 Loading data from a **Custom** loader
 - Using the DTALE_CLI_LOADERS environment variable, specify a path to a location containing some python modules
@@ -207,35 +215,35 @@ DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Browser1.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Browser1.png)
 
 ### Dimensions/Main Menu
-The information in the upper right-hand corner gives grid dimensions ![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_cell.png)
+The information in the upper right-hand corner gives grid dimensions ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_cell.png)
 - lower-left => row count
 - upper-right => column count
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Info_menu_small.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_menu_small.png)
 
 ### Main Menu Functions
 
 #### Describe
 View all the columns & their data types as well as individual details of each column
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe.png)
 
 |Data Type|Display|Notes|
 |--------|:------:|:------:|
-|date|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_date.png)||
-|string|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_string.png)|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
-|int|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
-|float|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Describe_float.png)||
+|date|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_date.png)||
+|string|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_string.png)|If you have less than or equal to 100 unique values they will be displayed at the bottom of your popup|
+|int|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
+|float|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_float.png)||
 
 #### Filter
 Apply a simple pandas `query` to your data (link to pandas documentation included in popup)
 
 |Editing|Result|
 |--------|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Filter_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_filter.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Filter_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_filter.png)|
 
 FYI: For python 3 users, there is now support for filtering on column names with special characters in them (EX: 'a.b') :metal:
 
@@ -259,26 +267,26 @@ Here are some examples:
 
 |Chart Type|Chart|Chart per Group|
 |:------:|:------:|:------:|
-|line|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/line.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/line_pg.png)|
-|bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_pg.png)|
-|stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/stacked_pg.png)|
-|pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/pie.png)||
-|wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/wordcloud_pg.png)|
-|heatmap|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/heatmap.png)||
-|3D scatter|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/3d_scatter.png)||
-|surface|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/surface.png)||
+|line|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/line.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/line_pg.png)|
+|bar|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_pg.png)|
+|stacked|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/stacked.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/stacked_pg.png)|
+|pie|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/pie.png)||
+|wordcloud|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/wordcloud.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/wordcloud_pg.png)|
+|heatmap|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/heatmap.png)||
+|3D scatter|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/3d_scatter.png)||
+|surface|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/surface.png)||
 
 Selecting multiple columns for the Y-Axis will produce similar results to grouping in the sense that the chart will contain multiple series, but the difference is that for each column there will be a different Y-Axis associated with it in case the values contained within each column are on different scales.
 
 |Multi Y-Axis|Editing Axis Ranges|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/multi_col.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/editing_axis.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/multi_col.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/editing_axis.png)|
 
 With a bar chart that only has a single Y-Axis you have the ability to sort the bars based on the values for the Y-Axis
 
 |Pre-sort|Post-sort|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_presort.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/charts/bar_postsort.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_presort.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_postsort.png)|
 
 This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
 
@@ -294,11 +302,11 @@ Shows a pearson correlation matrix of all numeric columns against all other nume
 
 |Matrix|Timeseries|Scatter|
 |------|----------|-------|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_scatter.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_scatter.png)|
 
 |Col1 Filtered|Col2 Filtered|Col1 & Col2 Filtered|
 |------|----------|-------|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Correlations_both.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_col1.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_col2.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_both.png)|
 
 When the data being viewed in D-Tale has date or timestamp columns but for each date/timestamp vlaue there is only one row of data the behavior of the Correlations popup is a little different
   - Instead of a timeseries correlation chart the user is given a rolling correlation chart which can have the window (default: 10) altered
@@ -306,16 +314,16 @@ When the data being viewed in D-Tale has date or timestamp columns but for each 
 
 |Data|Correlations|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/rolling_corr.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr.png)|
 
 #### Heat Map
 This will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
   - Each float is renormalized to be a value between 0 and 1.0
   - Each renormalized value is passed to a color scale of red(0) - yellow(0.5) - green(1.0)
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap.png)
 
 Turn off Heat Map by clicking menu option again
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Heatmap_toggle.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap_toggle.png)
 
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
@@ -336,7 +344,7 @@ dtale.show(pd.DataFrame([range(6), range(6), range(6), range(6), range(6), range
 ```
 This will make the **Instances** button available in all 3 of these D-Tale instances. Clicking that button while in the first instance invoked above will give you this popup:
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Instances.png)
 
 The grid above contains the following information:
   - Process: timestamp when the process was started along with the name (if specified in `dtale.show()`)
@@ -349,14 +357,14 @@ The grid above contains the following information:
 
 Here is an example of clicking the "Preview" button:
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Instances_preview.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Instances_preview.png)
 
 #### About
 This will give you information about what version of D-Tale you're running as well as if its out of date to whats on PyPi.
 
 |Up To Date|Out Of Date|
 |--------|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/About-out-of-date.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/About-out-of-date.png)|
 
 #### Resize
 Mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
@@ -366,7 +374,7 @@ Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill p
 
 ### Column Menu Functions
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Col_menu.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Col_menu.png)
 
 #### Moving Columns
 
@@ -420,9 +428,9 @@ Apply simple formats to numeric values in your grid
 
 |Type|Editing|Result|
 |--------|:------:|:------:|
-|Numeric|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_formatting.png)|
-|Date|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_date_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_date_formatting.png)|
-|String|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Formatting_string_apply.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Post_string_formatting.png)|
+|Numeric|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Formatting_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_formatting.png)|
+|Date|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Formatting_date_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_date_formatting.png)|
+|String|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Formatting_string_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_string_formatting.png)|
 
 Here's a grid of all the formats available with -123456.789 as input:
   
@@ -438,7 +446,7 @@ Here's a grid of all the formats available with -123456.789 as input:
 #### Histogram
 Display histograms in any number of bins (default: 20), simply type a new integer value in the bins input
 
-![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/Histogram.png)
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Histogram.png)
 
 ### Menu Functions Depending on Browser Dimensions
 Depending on the dimensions of your browser window the following buttons will not open modals, but rather separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)
@@ -617,11 +625,11 @@ Have a look at the [detailed documentation](https://dtale.readthedocs.io).
 D-Tale works with:
   
   * Back-end
-    * arctic
+    * arctic [extra]
+    * dash
+    * dash_daq
     * Flask
-    * Flask-Caching
     * Flask-Compress
-    * flasgger
     * Pandas
     * scipy
     * six
