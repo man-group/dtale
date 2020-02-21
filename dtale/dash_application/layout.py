@@ -283,13 +283,16 @@ def show_yaxis_ranges(**inputs):
     return chart_type in YAXIS_CHARTS and len(y or [])
 
 
-def charts_layout(df, **inputs):
+def charts_layout(df, settings, **inputs):
     """
     Builds main dash inputs with dropdown options populated with the columns of the dataframe associated with the
     page. Inputs included are: chart tabs, query, x, y, z, group, aggregation, rolling window/computation,
     chart per group toggle, bar sort, bar mode, y-axis range editors
 
     :param df: dataframe to drive the charts built on page
+    :type df: :class:`pandas:pandas.DataFrame`
+    :param settings: global settings associated with this dataframe (contains properties like "query")
+    :type param: dict
     :return: dash markup
     """
     [chart_type, x, y, z, group, agg] = [inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'group', 'agg']]
@@ -327,7 +330,7 @@ def charts_layout(df, **inputs):
             html.Div([
                 query_label, dcc.Input(
                     id='query-input', type='text', placeholder=query_placeholder, className='form-control',
-                    value=inputs.get('query'), style={'line-height': 'inherit'})
+                    value=inputs.get('query') or settings.get('query'), style={'line-height': 'inherit'})
             ], className='input-group mr-3')],
             className='col'
         ), className='row pt-3 pb-3 charts-filters'),

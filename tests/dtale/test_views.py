@@ -10,6 +10,7 @@ from pandas.tseries.offsets import Day
 from six import PY3
 
 from dtale.app import build_app
+from dtale.utils import DuplicateDataError
 
 if PY3:
     from contextlib import ExitStack
@@ -57,7 +58,10 @@ def test_startup(unittest):
                          'should lock index columns')
 
     test_data = test_data.reset_index()
-    instance = views.startup(URL, data=test_data)
+    with pytest.raises(DuplicateDataError):
+        views.startup(URL, data=test_data)
+
+    instance = views.startup(URL, data=test_data, ignore_duplicate=True)
     pdt.assert_frame_equal(instance.data, test_data)
     unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'no index = nothing locked')
 

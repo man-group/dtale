@@ -55,7 +55,7 @@ def test_ipython_import_error(builtin_pkg):
         assert str(instance) == ''
         instance.notebook.assert_called_once()
         instance.notebook.reset_mock()
-        assert instance.__repr__() == 'http://localhost:9999/dtale/main/9999'
+        assert instance.__repr__() is None
         instance.notebook.assert_called_once()
 
 

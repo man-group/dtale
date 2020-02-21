@@ -18,6 +18,10 @@ D-Tale is the combination of a Flask back-end and a React front-end to bring you
 
 D-Tale was the product of a SAS to Python conversion.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.
 
+## In The News
+ - [Man Institute](https://www.man.com/maninstitute/d-tale)
+ - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
+
 ## Contents
 
 - [Getting Started](#getting-started)
@@ -101,6 +105,15 @@ d2 = dtale.get_instance(d._data_id)  # returns a new reference to the instance r
 dtale.instances()  # returns a dictionary of all instances available, this would be { 1: ... }
 
 ```
+
+#### Duplicate data check
+To help guard against users loading the same data to D-Tale multiple times and thus eating up precious memory, we have a loose check for duplicate input data.  The check runs the following:
+ * Are row & column count the same as a previously loaded piece of data?
+ * Are the names and order of columns the same as a previously loaded piece of data?
+
+If both these conditions are true then you will be presented with an error and a link to the previously loaded data.  Here is an example of how the interaction looks:
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Duplicate_data.png)
+
 
 ### Jupyter Notebook
 Within any jupyter (ipython) notebook executing a cell like this will display a small instance of D-Tale in the output cell.  Here are some examples:

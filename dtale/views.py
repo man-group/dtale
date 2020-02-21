@@ -4,25 +4,26 @@ import time
 import traceback
 import webbrowser
 from builtins import map, range, str, zip
-from logging import getLogger
 from collections import defaultdict
+from logging import getLogger
 
 from flask import json, redirect, render_template, request
 
 import numpy as np
 import pandas as pd
 import requests
+from six import string_types
 
 from dtale import dtale
 from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.utils import (build_shutdown_url, classify_type, dict_merge,
-                         filter_df_for_grid, find_dtype, find_dtype_formatter,
-                         find_selected_column, get_bool_arg, get_dtypes,
-                         get_int_arg, get_json_arg, get_str_arg, grid_columns,
-                         grid_formatter, json_date, json_float, json_int,
-                         json_timestamp, jsonify, make_list,
-                         retrieve_grid_params, run_query,
+from dtale.utils import (DuplicateDataError, build_shutdown_url, classify_type,
+                         dict_merge, filter_df_for_grid, find_dtype,
+                         find_dtype_formatter, find_selected_column,
+                         get_bool_arg, get_dtypes, get_int_arg, get_json_arg,
+                         get_str_arg, grid_columns, grid_formatter, json_date,
+                         json_float, json_int, json_timestamp, jsonify,
+                         make_list, retrieve_grid_params, run_query,
                          running_with_flask_debug, running_with_pytest,
                          sort_df_for_grid)
 
@@ -110,6 +111,7 @@ class DtaleData(object):
     def __init__(self, data_id, url):
         self._data_id = data_id
         self._url = url
+        self._main_url = '{}/dtale/main/{}'.format(self._url, self._data_id)
         self._notebook_handle = None
 
     @property
@@ -133,7 +135,10 @@ class DtaleData(object):
         Helper function creating main :class:`flask:flask.Flask` route using instance's url & data_id
         :return: str
         """
-        return '{}/dtale/main/{}'.format(self._url, self._data_id)
+        if in_ipython_frontend():
+            print(self._main_url)
+            return None
+        return self._main_url
 
     def kill(self):
         """
@@ -147,7 +152,7 @@ class DtaleData(object):
         This function uses the :mod:`python:webbrowser` library to try and automatically open server's default browser
         to this D-Tale instance
         """
-        webbrowser.get().open(self.main_url())
+        webbrowser.get().open(self._main_url)
 
     def is_up(self):
         """
@@ -363,7 +368,26 @@ def format_data(data):
     return data, index
 
 
-def startup(url, data=None, data_loader=None, name=None, data_id=None, context_vars=None):
+def check_duplicate_data(data):
+    """
+    This function will do a rough check to see if a user has already loaded this piece of data to D-Tale to avoid
+    duplicated state.  The checks that take place are:
+     - shape (# of rows & # of columns
+     - column names and ordering of columns (eventually might add dtype checking as well...)
+
+    :param data: dataframe to validate
+    :type data: :class:`pandas:pandas.DataFrame`
+    :raises :class:`dtale.utils.DuplicateDataError`: if duplicate data exists
+    """
+    cols = [str(col) for col in data.columns]
+
+    for d_id, d_df in DATA.items():
+        d_cols = [str(col) for col in d_df.columns]
+        if d_df.shape == data.shape and cols == d_cols:
+            raise DuplicateDataError(d_id)
+
+
+def startup(url, data=None, data_loader=None, name=None, data_id=None, context_vars=None, ignore_duplicate=False):
     """
     Loads and stores data globally
      - If data has indexes then it will lock save those columns as locked on the front-end
@@ -378,6 +402,7 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None, context_v
     :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions,
                          such as filters
     :type context_vars: dict, optional
+    :param ignore_duplicate: if set to True this will not test whether this data matches any previously loaded to D-Tale
     """
     global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES
 
@@ -390,8 +415,12 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None, context_v
                 'data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex'
             )
 
-        logger.debug('pytest: {}, flask-debug: {}'.format(running_with_pytest(), running_with_flask_debug()))
         data, curr_index = format_data(data)
+        # check to see if this dataframe has already been loaded to D-Tale
+        if data_id is None and not ignore_duplicate:
+            check_duplicate_data(data)
+
+        logger.debug('pytest: {}, flask-debug: {}'.format(running_with_pytest(), running_with_flask_debug()))
         if len(data.columns) > len(set(data.columns)):
             distinct_cols = set()
             dupes = set()
@@ -693,7 +722,7 @@ def update_visibility(data_id):
                        dataframe
     :type visibility: dict, optional
     :param toggle: string from flask.request.args['col'] of column name whose visibility should be toggled
-    :type toggle: string, optional
+    :type toggle: str, optional
     :return: JSON {success: True/False}
     """
     global DTYPES
@@ -1239,7 +1268,7 @@ def build_context_variables(data_id, new_context_vars=None):
 
     if new_context_vars:
         for name, value in new_context_vars.items():
-            if not isinstance(name, str):
+            if not isinstance(name, string_types):
                 raise SyntaxError('{}, context variables must be a valid string'.format(name))
             elif not name.replace('_', '').isalnum():
                 raise SyntaxError('{}, context variables can only contain letters, digits, or underscores'.format(name))

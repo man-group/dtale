@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.7.6 (2020-2-21)
+ * allowing the usage of context variables within filters
+ * #64, handling for loading duplicate data to dtale.show
+ * updated dtale.instances() to print urls rather than show all instances
+ * removal of Dash "Export to png" function
+ * passing data grid queries to chart page as default
+ * added sys.exit() to the thread that manages the reaper 
+
 ### 1.7.5 (2020-2-20)
  * hotfix for KeyError loading metadata for columns with min/max information
 

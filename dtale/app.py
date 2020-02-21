@@ -21,8 +21,8 @@ from six import PY3
 
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import (build_shutdown_url, build_url, dict_merge, get_host,
-                         running_with_flask_debug)
+from dtale.utils import (DuplicateDataError, build_shutdown_url, build_url,
+                         dict_merge, get_host, running_with_flask_debug)
 from dtale.views import (DATA, DtaleData, cleanup, head_data_id, is_up, kill,
                          startup)
 
@@ -93,6 +93,7 @@ class DtaleFlask(Flask):
         """
         self.reaper_on = reaper_on
         self.reaper = None
+        self.base_url = url
         self.shutdown_url = build_shutdown_url(url)
         self.port = None
         super(DtaleFlask, self).__init__(import_name, *args, **kwargs)
@@ -146,7 +147,9 @@ class DtaleFlask(Flask):
 
         def _func():
             logger.info('Executing shutdown due to inactivity...')
-            requests.get(self.shutdown_url)
+            if is_up(self.base_url):  # make sure the Flask process is still running
+                requests.get(self.shutdown_url)
+            sys.exit()  # kill off the reaper thread
 
         self.reaper = Timer(timeout, _func)
         self.reaper.start()
@@ -394,7 +397,8 @@ def find_free_port():
 
 
 def show(data=None, host=None, port=None, name=None, debug=False, subprocess=True, data_loader=None,
-         reaper_on=True, open_browser=False, notebook=False, force=False, context_vars=None, **kwargs):
+         reaper_on=True, open_browser=False, notebook=False, force=False, context_vars=None, ignore_duplicate=False,
+         **kwargs):
     """
     Entry point for kicking off D-Tale :class:`flask:flask.Flask` process from python process
 
@@ -426,6 +430,9 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
     :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions,
                          such as filters
     :type context_vars: dict, optional
+    :param ignore_duplicate: if true, this will not check if this data matches any other data previously loaded to
+                             D-Tale
+    :type ignore_duplicate: bool, optional
 
     :Example:
 
@@ -438,59 +445,67 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
         ..link displayed in logging can be copied and pasted into any browser
     """
 
-    logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
-    setup_logging(logfile, log_level or 'info', verbose)
+    try:
+        logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
+        setup_logging(logfile, log_level or 'info', verbose)
 
-    initialize_process_props(host, port, force)
-    url = build_url(ACTIVE_PORT, ACTIVE_HOST)
-    instance = startup(url, data=data, data_loader=data_loader, name=name, context_vars=context_vars)
-    is_active = not running_with_flask_debug() and is_up(url)
-    if is_active:
-        def _start():
-            if open_browser:
-                instance.open_browser()
-    else:
-        def _start():
-            app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST)
-            if debug:
-                app.jinja_env.auto_reload = True
-                app.config['TEMPLATES_AUTO_RELOAD'] = True
-            else:
-                getLogger("werkzeug").setLevel(LOG_ERROR)
-
-            if open_browser:
-                instance.open_browser()
-
-            # hide banner message in production environments
-            cli = sys.modules.get('flask.cli')
-            if cli is not None:
-                cli.show_server_banner = lambda *x: None
-
-            app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
-
-    if subprocess:
+        initialize_process_props(host, port, force)
+        url = build_url(ACTIVE_PORT, ACTIVE_HOST)
+        instance = startup(url, data=data, data_loader=data_loader, name=name, context_vars=context_vars,
+                           ignore_duplicate=ignore_duplicate)
+        is_active = not running_with_flask_debug() and is_up(url)
         if is_active:
-            _start()
+            def _start():
+                if open_browser:
+                    instance.open_browser()
         else:
-            _thread.start_new_thread(_start, ())
+            def _start():
+                app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST)
+                if debug:
+                    app.jinja_env.auto_reload = True
+                    app.config['TEMPLATES_AUTO_RELOAD'] = True
+                else:
+                    getLogger("werkzeug").setLevel(LOG_ERROR)
 
-        if notebook:
-            instance.notebook()
-    else:
-        logger.info('D-Tale started at: {}'.format(url))
-        _start()
+                if open_browser:
+                    instance.open_browser()
 
-    return instance
+                # hide banner message in production environments
+                cli = sys.modules.get('flask.cli')
+                if cli is not None:
+                    cli.show_server_banner = lambda *x: None
+
+                app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
+
+        if subprocess:
+            if is_active:
+                _start()
+            else:
+                _thread.start_new_thread(_start, ())
+
+            if notebook:
+                instance.notebook()
+        else:
+            logger.info('D-Tale started at: {}'.format(url))
+            _start()
+
+        return instance
+    except DuplicateDataError as ex:
+        print(
+            'It looks like this data may have already been loaded to D-Tale based on shape and column names. Here is '
+            'URL of the data that seems to match it:\n\n{}\n\nIf you still want to load this data please use the '
+            'following command:\n\ndtale.show(df, ignore_duplicate=True)'.format(
+                DtaleData(ex.data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url()
+            )
+        )
+    return None
 
 
 def instances():
     """
-    Returns a dictionary of data IDs & :class:`dtale.views.DtaleData` objects pertaining to all the current pieces of
-    data being viewed
-
-    :return: dict
+    Prints all urls to the current pieces of data being viewed
     """
-    return {data_id: DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)) for data_id in DATA}
+    print('\n'.join([DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url() for data_id in DATA]))
 
 
 def get_instance(data_id):
