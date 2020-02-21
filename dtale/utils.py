@@ -772,7 +772,7 @@ def run_query(df, query, context_vars):
     :param df: input dataframe
     :type df: :class:`pandas:pandas.DataFrame`
     :param query: query string
-    :type query: string
+    :type query: str
     :param context_vars: dictionary of user-defined variables which can be referenced by name in query strings
     :type context_vars: dict
     :return: filtered dataframe
@@ -804,3 +804,9 @@ def run_query(df, query, context_vars):
     if not len(df):
         raise Exception('query "{}" found no data, please alter'.format(query))
     return df
+
+
+class DuplicateDataError(Exception):
+    def __init__(self, data_id):
+        super(DuplicateDataError, self).__init__("Duplicate Data")
+        self.data_id = data_id

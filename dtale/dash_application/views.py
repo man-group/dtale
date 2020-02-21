@@ -17,7 +17,7 @@ from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            show_input_handler,
                                            show_yaxis_ranges)
 from dtale.utils import dict_merge, make_list, run_query
-from dtale.views import DATA, CONTEXT_VARIABLES
+from dtale.views import CONTEXT_VARIABLES, DATA, SETTINGS
 
 logger = getLogger(__name__)
 
@@ -325,5 +325,7 @@ def init_callbacks(dash_app):
         """
         dash_app.config.suppress_callback_exceptions = False
         params = chart_url_params(search)
-        df = DATA[get_data_id(pathname)]
-        return charts_layout(df, **params)
+        data_id = get_data_id(pathname)
+        df = DATA[data_id]
+        settings = SETTINGS.get(data_id) or {}
+        return charts_layout(df, settings, **params)

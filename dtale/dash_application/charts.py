@@ -21,7 +21,7 @@ from dtale.dash_application.layout import (AGGS, build_error,
 from dtale.utils import (classify_type, dict_merge, divide_chunks,
                          flatten_lists, get_dtypes, make_list,
                          make_timeout_request, run_query)
-from dtale.views import DATA, CONTEXT_VARIABLES
+from dtale.views import CONTEXT_VARIABLES, DATA
 from dtale.views import build_chart as build_chart_data
 
 

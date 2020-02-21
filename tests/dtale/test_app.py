@@ -109,7 +109,7 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
-        instance = show(data=test_data, subprocess=False, name='foo')
+        instance = show(data=test_data, subprocess=False, name='foo', ignore_duplicate=True)
         assert 'http://localhost:9999' == instance._url
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
@@ -126,7 +126,7 @@ def test_show(unittest, builtin_pkg):
 
         instance2 = get_instance(instance._data_id)
         assert instance2._url == instance._url
-        assert instances()[instance._data_id]._url == instance._url
+        instances()
 
         assert get_instance(20) is None  # should return None for invalid data ids
 
@@ -141,7 +141,8 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         mock_data_loader = mock.Mock(return_value=test_data)
-        instance = show(data_loader=mock_data_loader, subprocess=False, port=9999, force=True, debug=True)
+        instance = show(data_loader=mock_data_loader, subprocess=False, port=9999, force=True, debug=True,
+                        ignore_duplicate=True)
         assert 'http://localhost:9999' == instance._url
         mock_run.assert_called_once()
         mock_find_free_port.assert_not_called()
@@ -157,7 +158,8 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=True)))
         mock_data_loader = mock.Mock(return_value=test_data)
         mock_webbrowser = stack.enter_context(mock.patch('webbrowser.get'))
-        instance = show(data_loader=mock_data_loader, subprocess=False, port=9999, open_browser=True)
+        instance = show(data_loader=mock_data_loader, subprocess=False, port=9999, open_browser=True,
+                        ignore_duplicate=True)
         mock_run.assert_not_called()
         webbrowser_instance = mock_webbrowser.return_value
         assert 'http://localhost:9999/dtale/main/3' == webbrowser_instance.open.call_args[0][0]
@@ -172,7 +174,7 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         stack.enter_context(mock.patch('dtale.app.logger', mock.Mock()))
-        instance = show(data=test_data, subprocess=False, name='foo')
+        instance = show(data=test_data, subprocess=False, name='foo', ignore_duplicate=True)
         assert np.array_equal(instance.data['0'].values, test_data[0].values)
 
     with ExitStack() as stack:
@@ -195,7 +197,7 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('requests.get', mock_requests_get))
         mock_display = stack.enter_context(mock.patch('IPython.display.display', mock.Mock()))
         mock_iframe = stack.enter_context(mock.patch('IPython.display.IFrame', mock.Mock()))
-        instance = show(data=test_data, subprocess=True, name='foo', notebook=True)
+        instance = show(data=test_data, subprocess=True, name='foo', notebook=True, ignore_duplicate=True)
         mock_display.assert_called_once()
         mock_iframe.assert_called_once()
         assert mock_iframe.call_args[0][0] == 'http://localhost:9999/dtale/iframe/5'
@@ -208,10 +210,10 @@ def test_show(unittest, builtin_pkg):
         assert self.config['TEMPLATES_AUTO_RELOAD']
 
     with mock.patch('dtale.app.DtaleFlask.run', mock_run):
-        show(data=test_data, subprocess=False, port=9999, debug=True)
+        show(data=test_data, subprocess=False, port=9999, debug=True, ignore_duplicate=True)
 
     with mock.patch('dtale.app._thread.start_new_thread', mock.Mock()) as mock_thread:
-        show(data=test_data, subprocess=True)
+        show(data=test_data, subprocess=True, ignore_duplicate=True)
         mock_thread.assert_called()
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
@@ -222,7 +224,7 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         stack.enter_context(mock.patch('requests.get', mock.Mock()))
-        show(data=test_data, subprocess=False, name='foo')
+        show(data=test_data, subprocess=False, name='foo', ignore_duplicate=True)
 
         _, kwargs = mock_build_app.call_args
         unittest.assertEqual(
@@ -236,9 +238,14 @@ def test_show(unittest, builtin_pkg):
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
         stack.enter_context(mock.patch('requests.get', mock.Mock()))
-        instance = show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo')
+        instance = show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo',
+                        ignore_duplicate=True)
         with pytest.raises(Exception):
             instance.data = instance.data.rename(columns={'b': 'a'})
+
+        curr_instance_ct = len(views.DATA)
+        instance = show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo')
+        assert curr_instance_ct == len(views.DATA)
 
     # cleanup
     views.DATA = {}

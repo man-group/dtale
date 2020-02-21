@@ -472,7 +472,9 @@ div.tab-container > div.tab:last-child {
     border: 1px solid #a7b3b7;
     border-radius: 0 .25rem .25rem 0;
 }
-div.modebar > div.modebar-group:last-child {
-    display: none;  /* hide plotly logo */
+div.modebar > div.modebar-group:last-child, /* hide plotly logo */
+div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
+{
+    display: none;
 }
 
