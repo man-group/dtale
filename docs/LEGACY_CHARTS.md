@@ -15,20 +15,20 @@ Here are some examples with the following inputs: X: date, Y: Col0, Group: secur
 
 |Chart Type|Chart|Chart per Group|
 |:------:|:------:|:------:|
-|line|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/line.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/line_pg.png)|
-|bar|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/bar.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/bar_pg.png)|
-|stacked|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/stacked.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/stacked_pg.png)|
-|pie|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/pie.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/pie_pg.png)|
-|wordcloud|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/wordcloud.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/wordcloud_pg.png)|
+|line|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/line.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/line_pg.png)|
+|bar|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/bar.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/bar_pg.png)|
+|stacked|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/stacked.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/stacked_pg.png)|
+|pie|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/pie.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/pie_pg.png)|
+|wordcloud|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/wordcloud.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/wordcloud_pg.png)|
 
 Selecting multiple columns for the Y-Axis will produce similar results to grouping in the sense that the chart will contain multiple series, but the difference is that for each column there will be a different Y-Axis associated with it in case the values contained within each column are on different scales.
 
 |Multi Y-Axis|Editing Axis Ranges|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/multi_col.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/editing_axis.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/multi_col.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/editing_axis.png)|
 
 With a bar chart that only has a single Y-Axis you have the ability to sort the bars based on the values for the Y-Axis
 
 |Pre-sort|Post-sort|
 |:------:|:------:|
-|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/bar_presort.png)|![](https://raw.githubusercontent.com/man-group/dtale/master/docs/images/legacy_charts/bar_postsort.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/bar_presort.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/legacy_charts/bar_postsort.png)|
