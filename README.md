@@ -56,7 +56,7 @@ Installing the egg
 # install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
 $ pip install --upgrade dtale
 ```
-Now you will have to ability to use D-Tale from the command-line or within a python-enabled terminal
+Now you will have the ability to use D-Tale from the command-line or within a python-enabled terminal
 
 ### Python Terminal
 This comes courtesy of PyCharm
