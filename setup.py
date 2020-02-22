@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.7.6",
+    version="1.7.7",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -61,7 +61,7 @@ setup(
     install_requires=[
         "lz4<=2.2.1; python_version < '3.0'",
         "lz4; python_version > '3.0'",
-        "dash",
+        "dash>=1.5.0",
         "dash_daq",
         "Flask-Compress",
         "Flask",
@@ -74,6 +74,11 @@ setup(
     ],
     extras_require={
         'arctic': ["arctic"],
+        'r': [
+            "rpy2<=2.8.6; python_version < '3.0'",
+            "rpy2; python_version > '3.0'",
+        ],
+        'ngrok': ["flask-ngrok; python_version > '3.0'"]
     },
     tests_require=[
         "ipython",

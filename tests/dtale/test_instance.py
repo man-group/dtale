@@ -28,7 +28,7 @@ def test_ipython_import_error(builtin_pkg):
     with ExitStack() as stack:
         stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         stack.enter_context(mock.patch('dtale.views.in_ipython_frontend', return_value=False))
-        stack.enter_context(mock.patch('dtale.views.DATA', {9999: df}))
+        stack.enter_context(mock.patch('dtale.global_state.DATA', {9999: df}))
         instance = DtaleData(9999, 'http://localhost:9999')
 
         assert not instance.is_up()
@@ -48,7 +48,7 @@ def test_ipython_import_error(builtin_pkg):
     with ExitStack() as stack:
         stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         stack.enter_context(mock.patch('dtale.views.in_ipython_frontend', return_value=True))
-        stack.enter_context(mock.patch('dtale.views.DATA', return_value={9999: df}))
+        stack.enter_context(mock.patch('dtale.global_state.DATA', return_value={9999: df}))
         instance = DtaleData(9999, 'http://localhost:9999')
 
         instance.notebook = mock.Mock()
@@ -73,7 +73,7 @@ def test_ipython_notebook_funcs():
         mock_iframe = stack.enter_context(mock.patch('IPython.display.IFrame', mock.Mock()))
         stack.enter_context(mock.patch('requests.get', mock_requests_get))
         stack.enter_context(mock.patch('dtale.views.in_ipython_frontend', return_value=True))
-        stack.enter_context(mock.patch('dtale.views.DATA', return_value={9999: df}))
+        stack.enter_context(mock.patch('dtale.global_state.DATA', return_value={9999: df}))
         instance = DtaleData(9999, 'http://localhost:9999')
         instance.notebook_correlations(col1='col1', col2='col2')
         mock_iframe.assert_called_once()

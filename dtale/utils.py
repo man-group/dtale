@@ -76,8 +76,8 @@ def build_url(port, host):
     :type host: str, optional
     :return: str
     """
-    if host.startswith('http'):
-        return '{}:{}'.format(host, port)
+    if (host or '').startswith('http'):
+        return '{}{}'.format(host, ':{}'.format(port) if port is not None else '')
     return 'http://{}:{}'.format(host, port)
 
 
