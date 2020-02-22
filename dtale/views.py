@@ -4,7 +4,6 @@ import time
 import traceback
 import webbrowser
 from builtins import map, range, str, zip
-from collections import defaultdict
 from logging import getLogger
 
 from flask import json, redirect, render_template, request
@@ -14,6 +13,7 @@ import pandas as pd
 import requests
 from six import string_types
 
+import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
@@ -29,18 +29,18 @@ from dtale.utils import (DuplicateDataError, build_shutdown_url, classify_type,
 
 logger = getLogger(__name__)
 
-DATA = {}
-DTYPES = {}
-SETTINGS = {}
-METADATA = {}
 IDX_COL = str('dtale_index')
-CONTEXT_VARIABLES = defaultdict(dict)
+
+
+def get_globals(key):
+    return globals().get(key)
 
 
 def head_data_id():
-    if not len(DATA):
+    data_keys = global_state.get_data().keys()
+    if not len(data_keys):
         raise Exception('No data associated with this D-Tale session')
-    return sorted(DATA)[0]
+    return sorted(data_keys)[0]
 
 
 def in_ipython_frontend():
@@ -120,7 +120,7 @@ class DtaleData(object):
         Property which is a reference to the globally stored data associated with this instance
 
         """
-        return DATA[self._data_id]
+        return global_state.get_data(self._data_id)
 
     @data.setter
     def data(self, data):
@@ -381,7 +381,7 @@ def check_duplicate_data(data):
     """
     cols = [str(col) for col in data.columns]
 
-    for d_id, d_df in DATA.items():
+    for d_id, d_df in global_state.get_data().items():
         d_cols = [str(col) for col in d_df.columns]
         if d_df.shape == data.shape and cols == d_cols:
             raise DuplicateDataError(d_id)
@@ -404,7 +404,6 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None, context_v
     :type context_vars: dict, optional
     :param ignore_duplicate: if set to True this will not test whether this data matches any previously loaded to D-Tale
     """
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES
 
     if data_loader is not None:
         data = data_loader()
@@ -431,9 +430,9 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None, context_v
             raise Exception('data contains duplicated column names: {}'.format(', '.join(sorted(dupes))))
 
         if data_id is None:
-            data_id = str(int(max(DATA.keys())) + 1 if len(DATA) else 1)
-        if data_id in SETTINGS:
-            curr_settings = SETTINGS[data_id]
+            data_id = str(int(max(global_state.get_data().keys())) + 1 if len(global_state.get_data()) else 1)
+        if data_id in global_state.get_settings():
+            curr_settings = global_state.get_settings(data_id)
             curr_locked = curr_settings.get('locked', [])
             # filter out previous locked columns that don't exist
             curr_locked = [c for c in curr_locked if c in data.columns]
@@ -442,33 +441,16 @@ def startup(url, data=None, data_loader=None, name=None, data_id=None, context_v
         else:
             logger.debug('pre-locking index columns ({}) to settings[{}]'.format(curr_index, data_id))
             curr_locked = curr_index
-            METADATA[data_id] = dict(start=pd.Timestamp('now'), name=name)
+            global_state.set_metadata(data_id, dict(start=pd.Timestamp('now'), name=name))
 
         # in the case that data has been updated we will drop any sorts or filter for ease of use
-        SETTINGS[data_id] = dict(locked=curr_locked)
-        DATA[data_id] = data
-        DTYPES[data_id] = build_dtypes_state(data, DTYPES.get(data_id, []))
-        CONTEXT_VARIABLES[data_id] = build_context_variables(data_id, context_vars)
+        global_state.set_settings(data_id, dict(locked=curr_locked))
+        global_state.set_data(data_id, data)
+        global_state.set_dtypes(data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or []))
+        global_state.set_context_variables(data_id, build_context_variables(data_id, context_vars))
         return DtaleData(data_id, url)
     else:
         raise Exception('data loaded is None!')
-
-
-def cleanup():
-    """
-    Helper function for cleanup up state related to a D-Tale process with a specific port
-
-    :param port: integer string for a D-Tale process's port
-    :type port: str
-    """
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES
-
-    # use pop() because in some pytests port is not available
-    DATA = {}
-    SETTINGS = {}
-    DTYPES = {}
-    METADATA = {}
-    CONTEXT_VARIABLES = defaultdict(dict)
 
 
 def base_render_template(template, data_id, **kwargs):
@@ -478,14 +460,14 @@ def base_render_template(template, data_id, **kwargs):
      - version
      - processes
     """
-    curr_settings = SETTINGS.get(data_id, {})
+    curr_settings = global_state.get_settings(data_id) or {}
     _, version = retrieve_meta_info_and_version('dtale')
     return render_template(
         template,
         data_id=data_id,
         settings=json.dumps(curr_settings),
         version=str(version),
-        processes=len(DATA),
+        processes=len(global_state.get_data()),
         **kwargs
     )
 
@@ -500,7 +482,7 @@ def _view_main(data_id, iframe=False):
     :type iframe: bool, optional
     :return: HTML
     """
-    curr_metadata = METADATA.get(data_id, {})
+    curr_metadata = global_state.get_metadata(data_id) or {}
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
@@ -552,7 +534,7 @@ def view_popup(popup_type, data_id=None):
     """
     if data_id is None:
         return redirect('/dtale/popup/{}/{}'.format(popup_type, head_data_id()))
-    curr_metadata = METADATA.get(data_id, {})
+    curr_metadata = global_state.get_metadata(data_id) or {}
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
@@ -586,9 +568,9 @@ def get_processes():
     }
     """
     def _load_process(data_id):
-        data = DATA[data_id]
-        dtypes = DTYPES[data_id]
-        mdata = METADATA[data_id]
+        data = global_state.get_data(data_id)
+        dtypes = global_state.get_dtypes(data_id)
+        mdata = global_state.get_metadata(data_id)
         return dict(
             data_id=data_id,
             rows=len(data),
@@ -600,7 +582,7 @@ def get_processes():
         )
 
     try:
-        processes = sorted([_load_process(data_id) for data_id in DATA], key=lambda p: p['ts'])
+        processes = sorted([_load_process(data_id) for data_id in global_state.get_data()], key=lambda p: p['ts'])
         return jsonify(dict(data=processes, success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -617,11 +599,9 @@ def update_settings(data_id):
     :return: JSON
     """
     try:
-        global SETTINGS
-
-        curr_settings = SETTINGS.get(data_id, {})
+        curr_settings = global_state.get_settings(data_id) or {}
         updated_settings = dict_merge(curr_settings, get_json_arg(request, 'settings', {}))
-        SETTINGS[data_id] = updated_settings
+        global_state.set_settings(data_id, updated_settings)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -631,10 +611,11 @@ def refresh_col_indexes(data_id):
     """
     Helper function to sync column indexes to current state of dataframe for data_id.
     """
-    global DTYPES
-
-    curr_dtypes = {c['name']: c for c in DTYPES[data_id]}
-    DTYPES[data_id] = [dict_merge(curr_dtypes[c], dict(index=idx)) for idx, c in enumerate(DATA[data_id].columns)]
+    curr_dtypes = {c['name']: c for c in global_state.get_dtypes(data_id)}
+    curr_data = global_state.get_data(data_id)
+    global_state.set_dtypes(data_id, [
+        dict_merge(curr_dtypes[c], dict(index=idx)) for idx, c in enumerate(curr_data.columns)
+    ])
 
 
 @dtale.route('/update-column-position/<data_id>')
@@ -649,13 +630,11 @@ def update_column_position(data_id):
     :param col: string from flask.request.args['col'] of column name to move
     :return: JSON {success: True/False}
     """
-    global DATA
-
     try:
         action = get_str_arg(request, 'action')
         col = get_str_arg(request, 'col')
 
-        curr_cols = DATA[data_id].columns.tolist()
+        curr_cols = global_state.get_data(data_id).columns.tolist()
         if action == 'front':
             curr_cols = [col] + [c for c in curr_cols if c != col]
         elif action == 'back':
@@ -673,7 +652,7 @@ def update_column_position(data_id):
                 curr_cols[col_idx + 1] = col
                 curr_cols[col_idx] = col_to_shift
 
-        DATA[data_id] = DATA[data_id][curr_cols]
+        global_state.set_data(data_id, global_state.get_data(data_id)[curr_cols])
         refresh_col_indexes(data_id)
         return jsonify(success=True)
     except BaseException as e:
@@ -691,20 +670,21 @@ def update_locked(data_id):
     :param col: string from flask.request.args['col'] of column name to lock/unlock
     :return: JSON {success: True/False}
     """
-    global SETTINGS
-
     try:
         action = get_str_arg(request, 'action')
         col = get_str_arg(request, 'col')
-        if action == 'lock' and col not in SETTINGS[data_id]['locked']:
-            SETTINGS[data_id]['locked'].append(col)
+        curr_settings = global_state.get_settings(data_id)
+        curr_data = global_state.get_data(data_id)
+        if action == 'lock' and col not in curr_settings['locked']:
+            curr_settings['locked'].append(col)
         elif action == 'unlock':
-            SETTINGS[data_id]['locked'] = [c for c in SETTINGS[data_id]['locked'] if c != col]
+            curr_settings['locked'] = [c for c in curr_settings['locked'] if c != col]
 
-        final_cols = SETTINGS[data_id]['locked'] + [
-            c for c in DATA[data_id].columns if c not in SETTINGS[data_id]['locked']
+        final_cols = curr_settings['locked'] + [
+            c for c in curr_data.columns if c not in curr_settings['locked']
         ]
-        DATA[data_id] = DATA[data_id][final_cols]
+        global_state.set_data(data_id, curr_data[final_cols])
+        global_state.set_settings(data_id, curr_settings)
         refresh_col_indexes(data_id)
         return jsonify(success=True)
     except BaseException as e:
@@ -725,17 +705,17 @@ def update_visibility(data_id):
     :type toggle: str, optional
     :return: JSON {success: True/False}
     """
-    global DTYPES
-
     try:
+        curr_dtypes = global_state.get_dtypes(data_id)
         if request.form.get('visibility'):
             visibility = json.loads(request.form.get('visibility', '{}'))
-            DTYPES[data_id] = [dict_merge(d, dict(visible=visibility[d['name']])) for d in DTYPES[data_id]]
+            global_state.set_dtypes(data_id, [dict_merge(d, dict(visible=visibility[d['name']])) for d in curr_dtypes])
         elif request.form.get('toggle'):
             toggle_col = request.form.get('toggle')
-            toggle_idx = next((idx for idx, d in enumerate(DTYPES[data_id]) if d['name'] == toggle_col), None)
-            toggle_cfg = DTYPES[data_id][toggle_idx]
-            DTYPES[data_id][toggle_idx] = dict_merge(toggle_cfg, dict(visible=not toggle_cfg['visible']))
+            toggle_idx = next((idx for idx, d in enumerate(curr_dtypes) if d['name'] == toggle_col), None)
+            toggle_cfg = curr_dtypes[toggle_idx]
+            curr_dtypes[toggle_idx] = dict_merge(toggle_cfg, dict(visible=not toggle_cfg['visible']))
+            global_state.set_dtypes(data_id, curr_dtypes)
         return jsonify(success=True)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -758,13 +738,11 @@ def build_column(data_id):
     :param cfg: dict from flask.request.args['cfg'] of how to calculate the new column
     :return: JSON {success: True/False}
     """
-    global DATA, DTYPES
-
     try:
         name = get_str_arg(request, 'name')
         if not name:
             raise Exception("'name' is required for new column!")
-        data = DATA[data_id]
+        data = global_state.get_data(data_id)
         if name in data.columns:
             raise Exception("A column named '{}' already exists!".format(name))
         col_type = get_str_arg(request, 'type')
@@ -816,13 +794,16 @@ def build_column(data_id):
         elif col_type == 'bins':
             output = _build_bins(cfg)
 
-        DATA[data_id].loc[:, name] = output
-        dtype = find_dtype(DATA[data_id][name])
+        data.loc[:, name] = output
+        dtype = find_dtype(data[name])
         data_ranges = {}
-        if classify_type(dtype) == 'F' and not DATA[data_id][name].isnull().all():
+        if classify_type(dtype) == 'F' and not data[name].isnull().all():
             data_ranges[name] = data[[name]].agg([min, max]).to_dict()[name]
-        dtype_f = dtype_formatter(DATA[data_id], {name: dtype}, data_ranges)
-        DTYPES[data_id].append(dtype_f(len(DTYPES[data_id]), name))
+        dtype_f = dtype_formatter(data, {name: dtype}, data_ranges)
+        global_state.set_data(data_id, data)
+        curr_dtypes = global_state.get_dtypes(data_id)
+        curr_dtypes.append(dtype_f(len(curr_dtypes), name))
+        global_state.set_dtypes(curr_dtypes)
         return jsonify(success=True)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -840,7 +821,11 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     try:
-        run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -864,7 +849,7 @@ def dtypes(data_id):
     }
     """
     try:
-        return jsonify(dtypes=DTYPES[data_id], success=True)
+        return jsonify(dtypes=global_state.get_dtypes(data_id), success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -915,9 +900,10 @@ def describe(data_id, column):
 
     """
     try:
-        data = DATA[data_id][[column]]
+        data = global_state.get_data(data_id)[[column]]
         additional_aggs = None
-        dtype = next((dtype_info['dtype'] for dtype_info in DTYPES[data_id] if dtype_info['name'] == column), None)
+        curr_dtypes = global_state.get_dtypes(data_id)
+        dtype = next((dtype_info['dtype'] for dtype_info in curr_dtypes if dtype_info['name'] == column), None)
         if classify_type(dtype) in ['I', 'F']:
             additional_aggs = ['sum', 'median', 'mode', 'var', 'sem', 'skew', 'kurt']
         desc = load_describe(data[column], additional_aggs=additional_aggs)
@@ -967,38 +953,37 @@ def get_data(data_id):
     }
     """
     try:
-        global SETTINGS, DATA, DTYPES, CONTEXT_VARIABLES
-        data = DATA[data_id]
+        data = global_state.get_data(data_id)
 
         # this will check for when someone instantiates D-Tale programatically and directly alters the internal
         # state of the dataframe (EX: d.data['new_col'] = 'foo')
-        curr_dtypes = [c['name'] for c in DTYPES[data_id]]
+        curr_dtypes = [c['name'] for c in global_state.get_dtypes(data_id)]
         if any(c not in curr_dtypes for c in data.columns):
             data, _ = format_data(data)
-            DATA[data_id] = data
-            DTYPES[data_id] = build_dtypes_state(data, DTYPES.get(data_id, []))
+            global_state.set_data(data_id, data)
+            global_state.set_dtypes(data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or []))
 
         params = retrieve_grid_params(request)
         ids = get_json_arg(request, 'ids')
         if ids is None:
             return jsonify({})
 
-        col_types = DTYPES[data_id]
+        col_types = global_state.get_dtypes(data_id)
         f = grid_formatter(col_types)
-        curr_settings = SETTINGS.get(data_id, {})
+        curr_settings = global_state.get_settings(data_id) or {}
         if curr_settings.get('sort') != params.get('sort'):
             data = sort_df_for_grid(data, params)
-            DATA[data_id] = data
+            global_state.set_data(data_id, data)
         if params.get('sort') is not None:
             curr_settings = dict_merge(curr_settings, dict(sort=params['sort']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'sort'}
-        data = filter_df_for_grid(data, params, CONTEXT_VARIABLES[data_id])
+        data = filter_df_for_grid(data, params, global_state.get_context_variables(data_id))
         if params.get('query') is not None:
             curr_settings = dict_merge(curr_settings, dict(query=params['query']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'query'}
-        SETTINGS[data_id] = curr_settings
+        global_state.set_settings(data_id, curr_settings)
 
         total = len(data)
         results = {}
@@ -1014,7 +999,7 @@ def get_data(data_id):
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
                     results[i] = dict_merge({IDX_COL: i}, d)
-        columns = [dict(name=IDX_COL, dtype='int64', visible=True)] + DTYPES[data_id]
+        columns = [dict(name=IDX_COL, dtype='int64', visible=True)] + global_state.get_dtypes(data_id)
         return_data = dict(results=results, columns=columns, total=total)
         return jsonify(return_data)
     except BaseException as e:
@@ -1036,7 +1021,11 @@ def get_histogram(data_id):
     col = get_str_arg(request, 'col', 'values')
     bins = get_int_arg(request, 'bins', 20)
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         selected_col = find_selected_column(data, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
         hist = np.histogram(data, bins=bins)
@@ -1064,11 +1053,15 @@ def get_correlations(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         valid_corr_cols = []
         valid_date_cols = []
         rolling = False
-        for col_info in DTYPES[data_id]:
+        for col_info in global_state.get_dtypes(data_id):
             name, dtype = map(col_info.get, ['name', 'dtype'])
             dtype = classify_type(dtype)
             if dtype in ['I', 'F']:
@@ -1126,7 +1119,11 @@ def get_chart_data(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         x = get_str_arg(request, 'x')
         y = get_json_arg(request, 'y')
         group_col = get_json_arg(request, 'group')
@@ -1157,7 +1154,11 @@ def get_correlations_ts(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         cols = get_str_arg(request, 'cols')
         cols = json.loads(cols)
         date_col = get_str_arg(request, 'dateCol')
@@ -1211,7 +1212,11 @@ def get_scatter(data_id):
     date_col = get_str_arg(request, 'dateCol')
     rolling = get_bool_arg(request, 'rolling')
     try:
-        data = run_query(DATA[data_id], get_str_arg(request, 'query'), CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            get_str_arg(request, 'query'),
+            global_state.get_context_variables(data_id)
+        )
         idx_col = str('index')
         y_cols = [cols[1], idx_col]
         if rolling:
@@ -1264,8 +1269,6 @@ def build_context_variables(data_id, new_context_vars=None):
     :returns: dict of the context variables for this process
     :rtype: dict
     """
-    global CONTEXT_VARIABLES
-
     if new_context_vars:
         for name, value in new_context_vars.items():
             if not isinstance(name, string_types):
@@ -1275,7 +1278,7 @@ def build_context_variables(data_id, new_context_vars=None):
             elif name.startswith('_'):
                 raise SyntaxError('{}, context variables can not start with an underscore'.format(name))
 
-    return dict_merge(CONTEXT_VARIABLES[data_id], new_context_vars)
+    return dict_merge(global_state.get_context_variables(data_id), new_context_vars)
 
 
 @dtale.route('/context-variables/<data_id>')
@@ -1287,14 +1290,14 @@ def get_context_variables(data_id):
     :type data_id: str
     :return: JSON
     """
-    global CONTEXT_VARIABLES
 
     def value_as_str(value):
         """Convert values into a string representation that can be shown to the user in the front-end."""
         return str(value)[:1000]
 
     try:
-        return jsonify(context_variables={k: value_as_str(v) for k, v in CONTEXT_VARIABLES[data_id].items()},
+        ctxt_vars = global_state.get_context_variables(data_id)
+        return jsonify(context_variables={k: value_as_str(v) for k, v in ctxt_vars.items()},
                        success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))

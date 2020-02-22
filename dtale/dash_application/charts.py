@@ -11,6 +11,7 @@ import plotly.graph_objs as go
 from six import PY3
 
 import dtale.dash_application.components as dash_components
+import dtale.global_state as global_state
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, build_agg_data
 from dtale.charts.utils import build_formatters as chart_formatters
 from dtale.charts.utils import (check_all_nan, check_exceptions,
@@ -21,7 +22,6 @@ from dtale.dash_application.layout import (AGGS, build_error,
 from dtale.utils import (classify_type, dict_merge, divide_chunks,
                          flatten_lists, get_dtypes, make_list,
                          make_timeout_request, run_query)
-from dtale.views import CONTEXT_VARIABLES, DATA
 from dtale.views import build_chart as build_chart_data
 
 
@@ -47,7 +47,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
     :return: handler function to be applied against each y-axis used in chart
     :rtype: func
     """
-    data = DATA[data_id]
+    data = global_state.get_data(data_id)
     dtypes = get_dtypes(data)
 
     def _build_axes(y):
@@ -612,7 +612,7 @@ def heatmap_builder(data_id, **inputs):
     try:
         if not valid_chart(**inputs):
             return None
-        raw_data = DATA[data_id]
+        raw_data = global_state.get_data(data_id)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
         hm_kwargs = dict(hoverongaps=False, colorscale='Greens', showscale=True, hoverinfo='x+y+z')
         x, y, z, agg = (inputs.get(p) for p in ['x', 'y', 'z', 'agg'])
@@ -720,7 +720,11 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
                                   rolling_comp=rolling_comp)):
             return None
 
-        data = run_query(DATA[data_id], query, CONTEXT_VARIABLES[data_id])
+        data = run_query(
+            global_state.get_data(data_id),
+            query,
+            global_state.get_context_variables(data_id)
+        )
         chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
                             rolling_comp=rolling_comp)
         if chart_type in ZAXIS_CHARTS:

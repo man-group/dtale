@@ -19,12 +19,12 @@ import requests
 from flask_compress import Compress
 from six import PY3
 
+import dtale.global_state as global_state
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import (DuplicateDataError, build_shutdown_url, build_url,
                          dict_merge, get_host, running_with_flask_debug)
-from dtale.views import (DATA, DtaleData, cleanup, head_data_id, is_up, kill,
-                         startup)
+from dtale.views import DtaleData, head_data_id, is_up, kill, startup
 
 if PY3:
     import _thread
@@ -33,6 +33,7 @@ else:
 
 logger = getLogger(__name__)
 
+USE_NGROK = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
 
@@ -245,7 +246,7 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         if func is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         func()
-        cleanup()
+        global_state.cleanup()
         ACTIVE_PORT = None
         ACTIVE_HOST = None
 
@@ -444,13 +445,27 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
         ..link displayed in logging can be copied and pasted into any browser
     """
+    global ACTIVE_HOST, ACTIVE_PORT
 
     try:
         logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
         setup_logging(logfile, log_level or 'info', verbose)
 
         initialize_process_props(host, port, force)
-        url = build_url(ACTIVE_PORT, ACTIVE_HOST)
+        if USE_NGROK:
+            try:
+                from flask_ngrok import _run_ngrok
+            except ImportError:
+                raise ImportError((
+                    'In order to use this functionality please install flask-ngrok!\n'
+                    'You can try running "pip install dtale[ngrok]" if you are using pip.'
+                ))
+
+            ACTIVE_HOST = _run_ngrok()
+            ACTIVE_PORT = None
+            url = ACTIVE_HOST
+        else:
+            url = build_url(ACTIVE_PORT, ACTIVE_HOST)
         instance = startup(url, data=data, data_loader=data_loader, name=name, context_vars=context_vars,
                            ignore_duplicate=ignore_duplicate)
         is_active = not running_with_flask_debug() and is_up(url)
@@ -475,7 +490,19 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                 if cli is not None:
                     cli.show_server_banner = lambda *x: None
 
-                app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
+                if USE_NGROK:
+                    try:
+                        from flask_ngrok import run_with_ngrok
+                    except ImportError:
+                        raise ImportError((
+                            'In order to use this functionality please install flask-ngrok!\n'
+                            'You can try running "pip install dtale[ngrok]" if you are using pip.'
+                        ))
+
+                    run_with_ngrok(app)
+                    app.run(threaded=True)
+                else:
+                    app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
 
         if subprocess:
             if is_active:
@@ -505,7 +532,11 @@ def instances():
     """
     Prints all urls to the current pieces of data being viewed
     """
-    print('\n'.join([DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url() for data_id in DATA]))
+    curr_data = global_state.get_data()
+    if len(curr_data):
+        print('\n'.join([DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url() for data_id in curr_data]))
+    else:
+        print('currently no running instances...')
 
 
 def get_instance(data_id):
@@ -518,6 +549,6 @@ def get_instance(data_id):
     :return: :class:`dtale.views.DtaleData`
     """
     data_id_str = str(data_id)
-    if data_id_str in DATA:
+    if global_state.get_data(data_id_str) is not None:
         return DtaleData(data_id_str, build_url(ACTIVE_PORT, ACTIVE_HOST))
     return None

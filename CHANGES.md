@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.7.7 (2020-2-22)
+ * centralized global state, #77
+
 ### 1.7.6 (2020-2-21)
  * allowing the usage of context variables within filters
  * #64, handling for loading duplicate data to dtale.show

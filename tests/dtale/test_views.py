@@ -26,11 +26,11 @@ def test_head_data_id():
     import dtale.views as views
 
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.views.DATA', {'1': None, '2': None}))
+        stack.enter_context(mock.patch('dtale.global_state.DATA', {'1': None, '2': None}))
         assert views.head_data_id() == '1'
 
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.views.DATA', {}))
+        stack.enter_context(mock.patch('dtale.global_state.DATA', {}))
         with pytest.raises(Exception) as error:
             views.head_data_id()
             assert error.startswith('No data associated with this D-Tale session')
@@ -39,6 +39,7 @@ def test_head_data_id():
 @pytest.mark.unit
 def test_startup(unittest):
     import dtale.views as views
+    import dtale.global_state as global_state
 
     with pytest.raises(BaseException) as error:
         views.startup(URL)
@@ -54,7 +55,7 @@ def test_startup(unittest):
     instance = views.startup(URL, data_loader=lambda: test_data)
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['date', 'security_id']),
+    unittest.assertEqual(global_state.SETTINGS[instance._data_id], dict(locked=['date', 'security_id']),
                          'should lock index columns')
 
     test_data = test_data.reset_index()
@@ -63,23 +64,24 @@ def test_startup(unittest):
 
     instance = views.startup(URL, data=test_data, ignore_duplicate=True)
     pdt.assert_frame_equal(instance.data, test_data)
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'no index = nothing locked')
+    unittest.assertEqual(global_state.SETTINGS[instance._data_id], dict(locked=[]), 'no index = nothing locked')
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp('now'), security_id=1)])
     test_data = test_data.set_index('security_id').date
     instance = views.startup(URL, data_loader=lambda: test_data)
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=['security_id']), 'should lock index columns')
+    unittest.assertEqual(global_state.SETTINGS[instance._data_id], dict(locked=['security_id']),
+                         'should lock index columns')
 
     test_data = pd.DatetimeIndex([pd.Timestamp('now')], name='date')
     instance = views.startup(URL, data_loader=lambda: test_data)
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
+    unittest.assertEqual(global_state.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
 
     test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=('a', 'b'))
     instance = views.startup(URL, data_loader=lambda: test_data)
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
-    unittest.assertEqual(views.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
+    unittest.assertEqual(global_state.SETTINGS[instance._data_id], dict(locked=[]), 'should lock index columns')
 
     test_data = pd.DataFrame([
         dict(date=pd.Timestamp('now'), security_id=1, foo=1.0, bar=2.0),
@@ -88,7 +90,7 @@ def test_startup(unittest):
     instance = views.startup(URL, data_loader=lambda: test_data)
     unittest.assertEqual(
         {'name': 'bar', 'dtype': 'float64', 'index': 3, 'visible': True},
-        next((dt for dt in views.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
+        next((dt for dt in global_state.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
     )
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
@@ -162,9 +164,9 @@ def test_processes(test_data, unittest):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
-            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict(start=now, name='foo')}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.METADATA', {c.port: dict(start=now, name='foo')}))
             response = c.get('/dtale/processes')
             response_data = json.loads(response.data)
             unittest.assertEqual(
@@ -182,9 +184,9 @@ def test_processes(test_data, unittest):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
-            stack.enter_context(mock.patch('dtale.views.METADATA', {}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.METADATA', {}))
             response = c.get('/dtale/processes')
             response_data = json.loads(response.data)
             assert 'error' in response_data
@@ -232,8 +234,8 @@ def test_update_column_position():
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', data))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             for action, col_idx in tests:
                 c.get('/dtale/update-column-position/{}'.format(c.port), query_string=dict(action=action, col='c'))
                 assert data[c.port].columns[col_idx] == 'c'
@@ -253,9 +255,9 @@ def test_update_locked(unittest):
         dtypes = {c.port: build_dtypes_state(df)}
         settings = {c.port: dict(locked=[])}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', data))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
-            stack.enter_context(mock.patch('dtale.views.SETTINGS', settings))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
 
             c.get('/dtale/update-locked/{}'.format(c.port), query_string=dict(action='lock', col='c'))
             unittest.assertEqual(['c'], settings[c.port]['locked'])
@@ -284,7 +286,7 @@ def test_update_visibility(unittest):
     with app.test_client() as c:
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             c.post(
                 '/dtale/update-visibility/{}'.format(c.port),
                 data=dict(visibility=json.dumps({'a': True, 'b': True, 'c': False})),
@@ -306,8 +308,8 @@ def test_build_column(unittest):
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', data))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             resp = c.get(
                 '/dtale/build-column/{}'.format(c.port),
                 query_string=dict(type='numeric', cfg=json.dumps({}))
@@ -412,8 +414,8 @@ def test_build_column_bins(unittest):
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', data))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             cfg = dict(col='a', operation='cut', bins=4)
             c.get(
                 '/dtale/build-column/{}'.format(c.port),
@@ -457,8 +459,8 @@ def test_dtypes(test_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: build_dtypes_state(test_data)}))
             response = c.get('/dtale/dtypes/{}'.format(c.port))
             response_data = json.loads(response.data)
             assert response_data['success']
@@ -471,8 +473,8 @@ def test_dtypes(test_data):
     lots_of_groups = pd.DataFrame([dict(a=i, b=1) for i in range(150)])
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: lots_of_groups}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(lots_of_groups)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: lots_of_groups}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: build_dtypes_state(lots_of_groups)}))
             response = c.get('/dtale/dtypes/{}'.format(c.port))
             response_data = json.loads(response.data)
             assert response_data['success']
@@ -484,7 +486,7 @@ def test_dtypes(test_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {}))
+            stack.enter_context(mock.patch('dtale.global_state.get_dtypes', side_effect=Exception))
             response = c.get('/dtale/dtypes/{}'.format(c.port))
             response_data = json.loads(response.data)
             assert 'error' in response_data
@@ -500,8 +502,8 @@ def test_dtypes(test_data):
     df, _ = format_data(df)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: build_dtypes_state(df)}))
             response = c.get('/dtale/describe/{}/{}'.format(c.port, 'bar'))
             response_data = json.loads(response.data)
             assert response_data['describe']['min'] == '2'
@@ -511,7 +513,7 @@ def test_dtypes(test_data):
 @pytest.mark.unit
 def test_test_filter(test_data):
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='date == date'))
             response_data = json.loads(response.data)
             assert response_data['success']
@@ -540,7 +542,7 @@ def test_test_filter(test_data):
         df = pd.DataFrame([dict(a=1)])
         df['a.b'] = 2
         with app.test_client() as c:
-            with mock.patch('dtale.views.DATA', {c.port: df}):
+            with mock.patch('dtale.global_state.DATA', {c.port: df}):
                 response = c.get('/dtale/test-filter/{}'.format(c.port), query_string=dict(query='a.b == 2'))
                 response_data = json.loads(response.data)
                 assert response_data['success']
@@ -549,12 +551,13 @@ def test_test_filter(test_data):
 @pytest.mark.unit
 def test_get_data(unittest, test_data):
     import dtale.views as views
+    import dtale.global_state as global_state
 
     with app.test_client() as c:
         with ExitStack() as stack:
             test_data, _ = views.format_data(test_data)
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/data/{}'.format(c.port))
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data, {}, 'if no "ids" parameter an empty dict should be returned')
@@ -588,26 +591,28 @@ def test_get_data(unittest, test_data):
             response_data = json.loads(response.data)
             expected = {'1': dict(date='2000-01-01', security_id=48, dtale_index=1, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
-            unittest.assertEqual(views.SETTINGS[c.port], {'sort': [['security_id', 'DESC']]}, 'should update settings')
+            unittest.assertEqual(global_state.SETTINGS[c.port], {'sort': [['security_id', 'DESC']]},
+                                 'should update settings')
 
             params = dict(ids=json.dumps(['1']), sort=json.dumps([['security_id', 'ASC']]))
             response = c.get('/dtale/data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {'1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
-            unittest.assertEqual(views.SETTINGS[c.port], {'sort': [['security_id', 'ASC']]}, 'should update settings')
+            unittest.assertEqual(global_state.SETTINGS[c.port], {'sort': [['security_id', 'ASC']]},
+                                 'should update settings')
 
             params = dict(ids=json.dumps(['0']), query='security_id == 1')
             response = c.get('/dtale/data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             expected = {'0': dict(date='2000-01-01', security_id=1, dtale_index=0, foo=1, bar=1.5, baz='baz')}
             unittest.assertEqual(response_data['results'], expected, 'should return data at index 1 w/ sort')
-            unittest.assertEqual(views.SETTINGS[c.port], {'query': 'security_id == 1'}, 'should update settings')
+            unittest.assertEqual(global_state.SETTINGS[c.port], {'query': 'security_id == 1'}, 'should update settings')
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/data/{}'.format(c.port),
                              query_string=dict(ids=json.dumps(['0']), query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
@@ -617,9 +622,9 @@ def test_get_data(unittest, test_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            mocked_data = stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            mocked_data = stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             mocked_dtypes = stack.enter_context(
-                mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)})
+                mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)})
             )
             response = c.get('/dtale/data/{}'.format(c.port), query_string=dict(ids=json.dumps(['1'])))
             assert response.status_code == 200
@@ -644,7 +649,7 @@ def test_get_data(unittest, test_data):
 @pytest.mark.unit
 def test_get_histogram(unittest, test_data):
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             expected = dict(
@@ -684,7 +689,7 @@ def test_get_histogram(unittest, test_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('numpy.histogram', mock.Mock(side_effect=Exception('histogram failure'))))
 
             response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
@@ -699,8 +704,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             test_data, _ = views.format_data(test_data)
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             expected = dict(
@@ -716,8 +721,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
@@ -730,8 +735,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
             test_data2 = test_data.copy()
             test_data2.loc[:, 'date'] = pd.Timestamp('20000102')
             test_data = pd.concat([test_data, test_data2], ignore_index=True)
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             expected = expected = dict(
@@ -748,8 +753,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data['dates'], ['date'], 'should return correlation date columns')
@@ -770,7 +775,7 @@ def test_get_correlations_ts(unittest, rolling_data):
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             params = dict(
                 dateCol='date',
                 cols=json.dumps(['foo', 'bar'])
@@ -791,15 +796,15 @@ def test_get_correlations_ts(unittest, rolling_data):
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             params = dict(dateCol='date', cols=json.dumps(['0', '1']), rollingWindow='4')
             response = c.get('/dtale/correlations-ts/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data['success'], True, 'should return rolling correlation')
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             response = c.get(
                 '/dtale/correlations-ts/{}'.format(c.port),
                 query_string=dict(query="missing_col == 'blah'")
@@ -818,8 +823,8 @@ def test_get_scatter(unittest, rolling_data):
     test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             params = dict(
                 dateCol='date',
                 cols=json.dumps(['foo', 'bar']),
@@ -853,8 +858,8 @@ def test_get_scatter(unittest, rolling_data):
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             params = dict(
                 dateCol='date',
                 cols=json.dumps(['0', '1']),
@@ -876,8 +881,8 @@ def test_get_scatter(unittest, rolling_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             params = dict(dateCol='date', cols=json.dumps(['foo', 'bar']), date='20000101')
             response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -895,8 +900,8 @@ def test_get_scatter(unittest, rolling_data):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: test_data}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
             params = dict(
                 dateCol='date',
                 cols=json.dumps(['foo', 'bar']),
@@ -916,7 +921,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
 
     test_data = pd.DataFrame(build_ts_data(size=50), columns=['date', 'security_id', 'foo', 'bar'])
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             params = dict(x='date', y=json.dumps(['security_id']), agg='count')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -934,7 +939,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
     test_data.loc[:, 'baz'] = 'baz'
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             params = dict(x='date', y=json.dumps(['security_id']), group=json.dumps(['baz']), agg='mean')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -947,22 +952,22 @@ def test_get_chart_data(unittest, test_data, rolling_data):
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             params = dict(x='date', y=json.dumps(['0']), agg='rolling', rollingWin=10, rollingComp='count')
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['success']
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             params = dict(x='baz', y=json.dumps(['foo']))
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data['error'] == 'baz contains duplicates, please specify group or additional filtering'
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             params = dict(x='date', y=json.dumps(['foo']), group=json.dumps(['security_id']))
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -972,7 +977,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             )
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             response = c.get('/dtale/chart-data/{}'.format(c.port),
                              query_string=dict(query="missing_col == 'blah'"))
             response_data = json.loads(response.data)
@@ -980,7 +985,7 @@ def test_get_chart_data(unittest, test_data, rolling_data):
                                  'should handle data exception')
 
     with app.test_client() as c:
-        with mock.patch('dtale.views.DATA', {c.port: test_data}):
+        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=dict(query="security_id == 51"))
             response_data = json.loads(response.data)
             unittest.assertEqual(
@@ -991,8 +996,8 @@ def test_get_chart_data(unittest, test_data, rolling_data):
     df, _ = views.format_data(df)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             params = dict(x='a', y=json.dumps(['b']), allowDupes=True)
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -1002,8 +1007,8 @@ def test_get_chart_data(unittest, test_data, rolling_data):
     df, _ = views.format_data(df)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             params = dict(x='a', y=json.dumps(['b']), allowDupes=True)
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -1031,8 +1036,8 @@ def test_main():
     test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict(name='test_name')}))
-            stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
+            stack.enter_context(mock.patch('dtale.global_state.METADATA', {c.port: dict(name='test_name')}))
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', {c.port: dict(locked=[])}))
             response = c.get('/dtale/main/{}'.format(c.port))
             assert '<title>D-Tale (test_name)</title>' in str(response.data)
             response = c.get('/dtale/iframe/{}'.format(c.port))
@@ -1042,8 +1047,8 @@ def test_main():
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.METADATA', {c.port: dict()}))
-            stack.enter_context(mock.patch('dtale.views.SETTINGS', {c.port: dict(locked=[])}))
+            stack.enter_context(mock.patch('dtale.global_state.METADATA', {c.port: dict()}))
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', {c.port: dict(locked=[])}))
             response = c.get('/dtale/main/{}'.format(c.port))
             assert '<title>D-Tale</title>' in str(response.data)
 
@@ -1066,8 +1071,8 @@ def test_302():
     df, _ = views.format_data(df)
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             for path in ['/', '/dtale', '/dtale/main', '/dtale/iframe', '/dtale/popup/test', '/favicon.ico']:
                 response = c.get(path)
                 assert response.status_code == 302, '{} should return 302 response'.format(path)
@@ -1099,9 +1104,9 @@ def test_jinja_output():
     df, _ = views.format_data(df)
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             response = c.get('/dtale/main/{}'.format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
             response = c.get('/charts/{}'.format(c.port))
@@ -1109,9 +1114,9 @@ def test_jinja_output():
 
     with build_app(url=URL, github_fork=True).test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.views.DTYPES', {c.port: views.build_dtypes_state(df)}))
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             response = c.get('/dtale/main/1')
             assert 'span id="forkongithub"' in str(response.data)
             response = c.get('/charts/{}'.format(c.port))
@@ -1121,6 +1126,7 @@ def test_jinja_output():
 @pytest.mark.unit
 def test_build_context_variables():
     import dtale.views as views
+    import dtale.global_state as global_state
 
     data_id = '1'
 
@@ -1138,17 +1144,17 @@ def test_build_context_variables():
 
     # verify that pre-existing variables are not dropped when new ones are added
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: {}}))
-        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
-        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'2': 'dog'})
-        assert ((views.CONTEXT_VARIABLES[data_id]['1'] == 'cat') & (views.CONTEXT_VARIABLES[data_id]['2'] == 'dog'))
-
+        stack.enter_context(mock.patch('dtale.global_state.CONTEXT_VARIABLES', {data_id: {}}))
+        global_state.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
+        global_state.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'2': 'dog'})
+        assert ((global_state.CONTEXT_VARIABLES[data_id]['1'] == 'cat')
+                & (global_state.CONTEXT_VARIABLES[data_id]['2'] == 'dog'))
     # verify that new values will replace old ones if they share the same name
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: {}}))
-        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
-        views.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'dog'})
-        assert (views.CONTEXT_VARIABLES[data_id]['1'] == 'dog')
+        stack.enter_context(mock.patch('dtale.global_state.CONTEXT_VARIABLES', {data_id: {}}))
+        global_state.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'cat'})
+        global_state.CONTEXT_VARIABLES[data_id] = views.build_context_variables(data_id, {'1': 'dog'})
+        assert (global_state.CONTEXT_VARIABLES[data_id]['1'] == 'dog')
 
 
 @pytest.mark.unit
@@ -1163,7 +1169,7 @@ def test_get_context_variables(unittest):
                 '4': 'A' * 2000,
             }
             expected_return_value = {k: str(v)[:1000] for k, v in context_vars.items()}
-            stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', {data_id: context_vars}))
+            stack.enter_context(mock.patch('dtale.global_state.CONTEXT_VARIABLES', {data_id: context_vars}))
             response = c.get('/dtale/context-variables/{}'.format(data_id))
             response_data = json.loads(response.data)
             assert response_data['success']
@@ -1171,7 +1177,7 @@ def test_get_context_variables(unittest):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch('dtale.views.CONTEXT_VARIABLES', None))
+            stack.enter_context(mock.patch('dtale.global_state.CONTEXT_VARIABLES', None))
             response = c.get('dtale/context-variables/1')
             response_data = json.loads(response.data)
             assert response_data['error'], 'An error should be returned since CONTEXT_VARIABLES is None'

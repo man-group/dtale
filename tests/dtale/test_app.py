@@ -101,6 +101,7 @@ def test_find_free_port():
 def test_show(unittest, builtin_pkg):
     from dtale.app import show, get_instance, instances
     import dtale.views as views
+    import dtale.global_state as global_state
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
@@ -119,7 +120,7 @@ def test_show(unittest, builtin_pkg):
         tmp['biz'] = 2.5
         instance.data = tmp
         unittest.assertEqual(
-            views.DTYPES[instance._data_id],
+            global_state.DTYPES[instance._data_id],
             views.build_dtypes_state(tmp),
             'should update app data/dtypes'
         )
@@ -133,7 +134,7 @@ def test_show(unittest, builtin_pkg):
         instance.kill()
         mock_requests.assert_called_once()
         mock_requests.call_args[0][0] == 'http://localhost:9999/shutdown'
-        assert views.METADATA['1']['name'] == 'foo'
+        assert global_state.METADATA['1']['name'] == 'foo'
 
     with ExitStack() as stack:
         mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
@@ -243,15 +244,12 @@ def test_show(unittest, builtin_pkg):
         with pytest.raises(Exception):
             instance.data = instance.data.rename(columns={'b': 'a'})
 
-        curr_instance_ct = len(views.DATA)
-        instance = show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo')
-        assert curr_instance_ct == len(views.DATA)
+        curr_instance_ct = len(global_state.DATA)
+        show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name='foo')
+        assert curr_instance_ct == len(global_state.DATA)
 
     # cleanup
-    views.DATA = {}
-    views.DTYPES = {}
-    views.SETTINGS = {}
-    views.METADATA = {}
+    global_state.cleanup()
 
 
 @pytest.mark.unit

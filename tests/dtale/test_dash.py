@@ -36,8 +36,7 @@ def test_display_page(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             params = {
                 'output': 'popup-content.children',
@@ -61,8 +60,7 @@ def test_query_changes(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             params = {
                 'output': '..query-data.data...query-input.style...query-input.title..',
@@ -89,8 +87,7 @@ def test_input_changes(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             params = {
                 'output': (
@@ -340,8 +337,7 @@ def test_chart_building_wordcloud(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'wordcloud', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -362,8 +358,7 @@ def test_chart_building_scatter(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'scatter', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -392,8 +387,7 @@ def test_chart_building_bar_and_popup(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'bar', 'x': 'a', 'y': ['b', 'c'], 'z': None, 'group': None, 'agg': None,
@@ -482,8 +476,7 @@ def test_chart_building_line(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': ['c'], 'agg': None,
@@ -511,8 +504,7 @@ def test_chart_building_pie(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'pie', 'x': 'a', 'y': ['b'], 'z': None, 'group': ['c'], 'agg': None,
@@ -535,8 +527,7 @@ def test_chart_building_pie(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'pie', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -558,8 +549,7 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'heatmap', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -581,8 +571,7 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(test_data)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'heatmap', 'x': 'date', 'y': ['security_id'], 'z': 'bar', 'group': None, 'agg': 'mean',
@@ -612,8 +601,7 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'heatmap', 'x': 'date', 'y': ['security_id'], 'z': 'val', 'group': None, 'agg': 'corr',
@@ -635,8 +623,7 @@ def test_chart_building_3D_scatter(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': '3d_scatter', 'x': 'a', 'y': ['b'], 'z': 'c', 'group': None, 'agg': None,
@@ -654,8 +641,7 @@ def test_chart_building_3D_scatter(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(test_data)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': '3d_scatter', 'x': 'date', 'y': ['security_id'], 'z': 'bar', 'group': None, 'agg': 'mean',
@@ -679,8 +665,7 @@ def test_chart_building_surface(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'surface', 'x': 'a', 'y': ['b'], 'z': 'c', 'group': None, 'agg': None,
@@ -698,8 +683,7 @@ def test_chart_building_surface(unittest, test_data):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(test_data)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
                 'chart_type': 'surface', 'x': 'date', 'y': ['security_id'], 'z': 'bar', 'group': None, 'agg': 'mean',
@@ -723,8 +707,7 @@ def test_load_chart_error(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.views.DATA', {c.port: df}))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
 
             def build_chart_data_mock(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
                 raise Exception('error test')
@@ -766,7 +749,7 @@ def test_display_error(unittest):
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             stack.enter_context(mock.patch(
                 'dtale.dash_application.components.Wordcloud',
                 mock.Mock(side_effect=Exception('error test'))
@@ -816,7 +799,7 @@ def test_display_error(unittest):
 @pytest.mark.unit
 def test_build_axes(unittest):
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6], d=[8, 9, 10], e=[11, 12, 13], f=[14, 15, 16]))
-    with mock.patch('dtale.dash_application.charts.DATA', {'1': df}):
+    with mock.patch('dtale.global_state.DATA', {'1': df}):
         y = ['b', 'c', 'd']
         yaxis_data = dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10))
         mins = dict(b=2, c=5, d=8)
@@ -866,7 +849,7 @@ def test_build_axes(unittest):
         })
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6]))
-    with mock.patch('dtale.dash_application.charts.DATA', {'1': df}):
+    with mock.patch('dtale.global_state.DATA', {'1': df}):
         y = ['b']
         yaxis_data = dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10))
         mins = dict(b=2, c=5, d=8)
@@ -894,7 +877,7 @@ def test_build_axes(unittest):
 def test_build_figure_data(unittest):
     assert build_figure_data('/charts/1', x=None) is None
     assert build_figure_data('/charts/1', x='a', y=['b'], chart_type='heatmap') is None
-    with mock.patch('dtale.dash_application.views.DATA', {}):
+    with mock.patch('dtale.global_state.DATA', {}):
         fig_data = build_figure_data('/charts/1', x='a', y=['b'], chart_type='line')
         assert 'error' in fig_data and 'traceback' in fig_data
 
@@ -940,7 +923,7 @@ def test_build_chart_type():
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9])))
-            stack.enter_context(mock.patch('dtale.dash_application.charts.DATA', {c.port: df}))
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             output = build_chart(c.port, chart_type='unknown', x='a', y='b')
             assert output[0].children[1].children == 'chart type: unknown'
 

@@ -15,7 +15,7 @@ else:
 @pytest.mark.unit
 def test_show(unittest):
     from dtale.app import show
-    import dtale.views as views
+    import dtale.global_state as global_state
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
@@ -41,7 +41,4 @@ def test_show(unittest):
         instance.adjust_cell_dimensions(height=600)
 
     # cleanup
-    views.DATA = {}
-    views.DTYPES = {}
-    views.SETTINGS = {}
-    views.METADATA = {}
+    global_state.cleanup()

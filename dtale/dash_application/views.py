@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from six import PY3
 
+import dtale.global_state as global_state
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart
 from dtale.dash_application.layout import (bar_input_style, base_layout,
@@ -17,7 +18,6 @@ from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            show_input_handler,
                                            show_yaxis_ranges)
 from dtale.utils import dict_merge, make_list, run_query
-from dtale.views import CONTEXT_VARIABLES, DATA, SETTINGS
 
 logger = getLogger(__name__)
 
@@ -139,7 +139,10 @@ def init_callbacks(dash_app):
         :rtype: tuple of (str, str, str)
         """
         try:
-            run_query(DATA[get_data_id(pathname)], query, CONTEXT_VARIABLES[get_data_id(pathname)])
+            data_id = get_data_id(pathname)
+            data = global_state.get_data(data_id)
+            ctxt_vars = global_state.get_context_variables(data_id)
+            run_query(data, query, ctxt_vars)
             return query, {'line-height': 'inherit'}, ''
         except BaseException as ex:
             return curr_query, {'line-height': 'inherit', 'background-color': 'pink'}, str(ex)
@@ -178,7 +181,7 @@ def init_callbacks(dash_app):
         inputs = dict(query=query, chart_type=chart_type, x=x, y=y_val, z=z, group=group, agg=agg, window=window,
                       rolling_comp=rolling_comp)
         data_id = get_data_id(pathname)
-        options = build_input_options(DATA[data_id], **inputs)
+        options = build_input_options(global_state.get_data(data_id), **inputs)
         x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
         return (
             inputs, x_options, y_single_options, y_multi_options, z_options, group_options, barsort_options,
@@ -326,6 +329,6 @@ def init_callbacks(dash_app):
         dash_app.config.suppress_callback_exceptions = False
         params = chart_url_params(search)
         data_id = get_data_id(pathname)
-        df = DATA[data_id]
-        settings = SETTINGS.get(data_id) or {}
+        df = global_state.get_data(data_id)
+        settings = global_state.get_settings(data_id) or {}
         return charts_layout(df, settings, **params)
