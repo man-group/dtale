@@ -533,8 +533,12 @@ def instances():
     Prints all urls to the current pieces of data being viewed
     """
     curr_data = global_state.get_data()
+
     if len(curr_data):
-        print('\n'.join([DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url() for data_id in curr_data]))
+        def _instance_msg(data_id):
+            url = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url()
+            return '{}:\t{}'.format(data_id, url)
+        print('\n'.join(['ID\tURL'] + [_instance_msg(data_id) for data_id in curr_data]))
     else:
         print('currently no running instances...')
 

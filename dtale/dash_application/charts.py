@@ -20,8 +20,7 @@ from dtale.charts.utils import (check_all_nan, check_exceptions,
 from dtale.dash_application.layout import (AGGS, build_error,
                                            update_label_for_freq)
 from dtale.utils import (classify_type, dict_merge, divide_chunks,
-                         flatten_lists, get_dtypes, make_list,
-                         make_timeout_request, run_query)
+                         flatten_lists, get_dtypes, make_list, run_query)
 from dtale.views import build_chart as build_chart_data
 
 
@@ -736,14 +735,6 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
         return dict(error=str(e), traceback=str(traceback.format_exc()))
 
 
-def threaded_build_figure_data(data_id=None, result_store=None, **inputs):
-    result_store.append(build_figure_data(data_id, **inputs))
-
-
-def threaded_heatmap_builder(data_id=None, result_store=None, **inputs):
-    result_store.append(heatmap_builder(data_id, **inputs))
-
-
 def build_chart(data_id=None, **inputs):
     """
     Factory method that forks off into the different chart building methods (heatmaps are handled separately)
@@ -767,12 +758,10 @@ def build_chart(data_id=None, **inputs):
     """
     try:
         if inputs.get('chart_type') == 'heatmap':
-            data = make_timeout_request(threaded_heatmap_builder, kwargs=dict_merge(dict(data_id=data_id), inputs))
-            data = data.pop()
+            data = heatmap_builder(data_id, **inputs)
             return data, None
 
-        data = make_timeout_request(threaded_build_figure_data, kwargs=dict_merge(dict(data_id=data_id), inputs))
-        data = data.pop()
+        data = build_figure_data(data_id, **inputs)
         if data is None:
             return None, None
 

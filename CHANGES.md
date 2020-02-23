@@ -1,11 +1,14 @@
 ## Changelog
 
+### 1.7.8 (2020-2-22)
+ * [#77](https://github.com/man-group/dtale/issues/77), removal of multiprocessed timeouts
+
 ### 1.7.7 (2020-2-22)
- * centralized global state, #77
+ * centralized global state
 
 ### 1.7.6 (2020-2-21)
  * allowing the usage of context variables within filters
- * #64, handling for loading duplicate data to dtale.show
+ * [#64](https://github.com/man-group/dtale/issues/64), handling for loading duplicate data to dtale.show
  * updated dtale.instances() to print urls rather than show all instances
  * removal of Dash "Export to png" function
  * passing data grid queries to chart page as default

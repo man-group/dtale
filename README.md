@@ -19,7 +19,7 @@ D-Tale is the combination of a Flask back-end and a React front-end to bring you
 D-Tale was the product of a SAS to Python conversion.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.
 
 ## In The News
- - [Man Institute](https://www.man.com/maninstitute/d-tale)
+ - [Man Institute](https://www.man.com/maninstitute/d-tale) (warning: contains deprecated functionality)
  - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
 
 ## Contents
@@ -102,7 +102,7 @@ d._url  # the url to access the process
 
 d2 = dtale.get_instance(d._data_id)  # returns a new reference to the instance running at that data_id
 
-dtale.instances()  # returns a dictionary of all instances available, this would be { 1: ... }
+dtale.instances()  # prints a list of all ids & urls of running D-Tale sessions
 
 ```
 
@@ -320,6 +320,13 @@ With a bar chart that only has a single Y-Axis you have the ability to sort the 
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_presort.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_postsort.png)|
 
 This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
+
+**Disclaimer: Long Running Chart Requests**
+
+If you choose to build a chart that requires a lot of computational resources then it will take some time to run.  Based on the way Flask & plotly/dash interact this will block you from performing any other request until it completes.  There are two courses of action in this situation:
+
+1) Restart your jupyter notebook kernel or python console
+2) Open a new D-Tale session on a different port than the current session.  You can do that with the following command: `dtale.show(df, port=[any open port], force=True)`
 
 If you miss the legacy (non-plotly/dash) charts, not to worry!  They are still available from the link in the upper-right corner, but on for a limited time...
 Here is the documentation for those: [Legacy Charts](https://github.com/man-group/dtale/blob/master/docs/LEGACY_CHARTS.md)
@@ -676,14 +683,15 @@ Original concept and implementation: [Andrew Schonfeld](https://github.com/ascho
 
 Contributors:
 
- * [Wilfred Hughes](https://github.com/Wilfred)
+ * [Phillip Dupuis](https://github.com/phillipdupuis)
  * [Dominik Christ](https://github.com/DominikMChrist)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
  * [Tom Taylor](https://github.com/TomTaylorLondon)
- * [Vincent Riemer](https://github.com/vincentriemer)
  * [Fernando Saravia Rajal](https://github.com/fersarr)
+ * [Wilfred Hughes](https://github.com/Wilfred)
  * Mike Kelly
+ * [Vincent Riemer](https://github.com/vincentriemer)
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
  * ... and many others ...
 
