@@ -104,7 +104,7 @@ class DtaleFlask(Flask):
         :param args: Optional arguments to be passed to :meth:`flask:flask.run`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
-        self.port = str(kwargs.get('port'))
+        self.port = str(kwargs.get('port') or '')
         if kwargs.get('debug', False):
             self.reaper_on = False
         self.build_reaper()
@@ -445,27 +445,24 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT
+    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK
 
     try:
         logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
         setup_logging(logfile, log_level or 'info', verbose)
 
-        initialize_process_props(host, port, force)
         if USE_NGROK:
-            try:
-                from flask_ngrok import _run_ngrok
-            except ImportError:
-                raise ImportError((
-                    'In order to use this functionality please install flask-ngrok!\n'
-                    'You can try running "pip install dtale[ngrok]" if you are using pip.'
-                ))
+            if not PY3:
+                raise Exception('In order to use ngrok you must be using Python 3 or higher!')
+
+            from flask_ngrok import _run_ngrok
 
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
-            url = ACTIVE_HOST
         else:
-            url = build_url(ACTIVE_PORT, ACTIVE_HOST)
+            initialize_process_props(host, port, force)
+
+        url = build_url(ACTIVE_PORT, ACTIVE_HOST)
         instance = startup(url, data=data, data_loader=data_loader, name=name, context_vars=context_vars,
                            ignore_duplicate=ignore_duplicate)
         is_active = not running_with_flask_debug() and is_up(url)
@@ -474,9 +471,14 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                 if open_browser:
                     instance.open_browser()
         else:
+            if USE_NGROK:
+                thread = Timer(1, _run_ngrok)
+                thread.setDaemon(True)
+                thread.start()
+
             def _start():
                 app = build_app(url, reaper_on=reaper_on, host=ACTIVE_HOST)
-                if debug:
+                if debug and not USE_NGROK:
                     app.jinja_env.auto_reload = True
                     app.config['TEMPLATES_AUTO_RELOAD'] = True
                 else:
@@ -491,15 +493,6 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                     cli.show_server_banner = lambda *x: None
 
                 if USE_NGROK:
-                    try:
-                        from flask_ngrok import run_with_ngrok
-                    except ImportError:
-                        raise ImportError((
-                            'In order to use this functionality please install flask-ngrok!\n'
-                            'You can try running "pip install dtale[ngrok]" if you are using pip.'
-                        ))
-
-                    run_with_ngrok(app)
                     app.run(threaded=True)
                 else:
                     app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)

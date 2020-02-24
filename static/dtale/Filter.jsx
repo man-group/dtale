@@ -13,6 +13,7 @@ class Filter extends React.Component {
     super(props);
     this.state = { query: "", error: null };
     this.save = this.save.bind(this);
+    this.renderBody = this.renderBody.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -37,10 +38,70 @@ class Filter extends React.Component {
     });
   }
 
-  render() {
+  renderBody() {
     if (!this.props.visible) {
       return null;
     }
+    return [
+      <RemovableError key={0} {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />,
+      <div key={1} className="row">
+        <div className="col-md-7">
+          <textarea
+            style={{ width: "100%", height: "100%" }}
+            value={this.state.query || ""}
+            onChange={event => this.setState({ query: event.target.value })}
+          />
+        </div>
+        <div className="col-md-5">
+          <p className="font-weight-bold">Example queries</p>
+          <ul>
+            <li>
+              {"drop NaN values: "}
+              <span className="font-weight-bold">{"Col == Col"}</span>
+            </li>
+            <li>
+              {"show only NaN values: "}
+              <span className="font-weight-bold">{"Col != Col"}</span>
+            </li>
+            <li>
+              {"date filtering: "}
+              <span className="font-weight-bold">{`Col == '${moment().format("YYYYMMDD")}'`}</span>
+            </li>
+            <li>
+              {"in-clause on string column: "}
+              <span className="font-weight-bold">{"Col in ('foo','bar')"}</span>
+            </li>
+            <li>
+              {"and-clause on numeric column: "}
+              <span className="font-weight-bold">{"Col1 > 1 and Col2 <= 1"}</span>
+            </li>
+            <li>
+              {"or-clause on numeric columns: "}
+              <span className="font-weight-bold">{"Col1 > 1 or Col2 < 1"}</span>
+            </li>
+            <li>
+              {"negative-clause: "}
+              <span className="font-weight-bold">{"~(Col > 1)"}</span>
+            </li>
+            <li>
+              {"parenthesis usage: "}
+              <span className="font-weight-bold">{"(Col1 > 1 or Col2 < 1) and (Col3 == 3)"}</span>
+            </li>
+            <li>
+              {"regex usage (search for substrings 'foo' or 'bar'):"}
+              <br />
+              <span className="font-weight-bold">{"Col.str.contains('(foo|bar)', case=False)"}</span>
+            </li>
+          </ul>
+        </div>
+      </div>,
+      <div key={2} className="row">
+        <ContextVariables dataId={this.props.dataId} />
+      </div>,
+    ];
+  }
+
+  render() {
     const hide = () => this.props.propagateState({ filterOpen: false });
     return (
       <Modal isOpen={this.props.visible} onRequestHide={hide} size="modal-lg" backdrop={false}>
@@ -51,63 +112,7 @@ class Filter extends React.Component {
           </ModalTitle>
           <ModalClose onClick={hide} />
         </ModalHeader>
-        <ModalBody>
-          <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />
-          <div className="row">
-            <div className="col-md-7">
-              <textarea
-                style={{ width: "100%", height: "100%" }}
-                value={this.state.query || ""}
-                onChange={event => this.setState({ query: event.target.value })}
-              />
-            </div>
-            <div className="col-md-5">
-              <p className="font-weight-bold">Example queries</p>
-              <ul>
-                <li>
-                  {"drop NaN values: "}
-                  <span className="font-weight-bold">{"Col == Col"}</span>
-                </li>
-                <li>
-                  {"show only NaN values: "}
-                  <span className="font-weight-bold">{"Col != Col"}</span>
-                </li>
-                <li>
-                  {"date filtering: "}
-                  <span className="font-weight-bold">{`Col == '${moment().format("YYYYMMDD")}'`}</span>
-                </li>
-                <li>
-                  {"in-clause on string column: "}
-                  <span className="font-weight-bold">{"Col in ('foo','bar')"}</span>
-                </li>
-                <li>
-                  {"and-clause on numeric column: "}
-                  <span className="font-weight-bold">{"Col1 > 1 and Col2 <= 1"}</span>
-                </li>
-                <li>
-                  {"or-clause on numeric columns: "}
-                  <span className="font-weight-bold">{"Col1 > 1 or Col2 < 1"}</span>
-                </li>
-                <li>
-                  {"negative-clause: "}
-                  <span className="font-weight-bold">{"~(Col > 1)"}</span>
-                </li>
-                <li>
-                  {"parenthesis usage: "}
-                  <span className="font-weight-bold">{"(Col1 > 1 or Col2 < 1) and (Col3 == 3)"}</span>
-                </li>
-                <li>
-                  {"regex usage (search for substrings 'foo' or 'bar'):"}
-                  <br />
-                  <span className="font-weight-bold">{"Col.str.contains('(foo|bar)', case=False)"}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="row">
-            <ContextVariables dataId={this.props.dataId} />
-          </div>
-        </ModalBody>
+        <ModalBody>{this.renderBody()}</ModalBody>
         <ModalFooter>
           <button
             className="btn btn-secondary"

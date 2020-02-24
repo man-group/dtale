@@ -75,9 +75,10 @@ def build_url(port, host):
     :type host: str, optional
     :return: str
     """
+    final_port = ':{}'.format(port) if port is not None else ''
     if (host or '').startswith('http'):
-        return '{}{}'.format(host, ':{}'.format(port) if port is not None else '')
-    return 'http://{}:{}'.format(host, port)
+        return '{}{}'.format(host, final_port)
+    return 'http://{}{}'.format(host, final_port)
 
 
 def build_shutdown_url(base):

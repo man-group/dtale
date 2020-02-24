@@ -8638,7 +8638,7 @@ caption {
 .column-toggle__dropdown::before {
   position: absolute;
   bottom: 100%;
-  left: 0.6em;
+  /*left: 0.6em;*/
   content: ' ';
   z-index: 2;
   width: 0;
@@ -8649,15 +8649,10 @@ caption {
   border-left: 0.5em solid transparent;
 }
 
-.column-toggle__dropdown.right::before {
-  left: auto;
-  right: 1.6em;
-}
-
 .column-toggle__dropdown::after {
   position: absolute;
   bottom: calc(100% - .1em);
-  left: 0.6em;
+  /*left: 0.6em;*/
   content: ' ';
   z-index: 2;
   width: 0;
@@ -8666,11 +8661,6 @@ caption {
   margin-right: -0.5em;
   border-right: 0.5em solid transparent;
   border-left: 0.5em solid transparent;
-}
-
-.column-toggle__dropdown.right::after {
-  left: auto;
-  right: 1.6em;
 }
 
 .column-toggle__dropdown header {

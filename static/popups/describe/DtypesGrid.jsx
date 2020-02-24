@@ -58,16 +58,13 @@ function buildSortDtypesState(state, { sortDirection, sortBy }) {
   };
 }
 
-function filterDtypes(dtypes, dtypesFilter, { sortDirection, sortBy }) {
+function filterDtypes({ dtypes, dtypesFilter, sortDirection, sortBy }) {
   let filteredDtypes = dtypes;
   if (dtypesFilter) {
     const substrLower = dtypesFilter.toLowerCase();
     filteredDtypes = _.filter(dtypes, ({ name }) => _.includes(name.toLowerCase(), substrLower));
   }
-  return {
-    dtypes: sortDtypes(filteredDtypes, sortBy, sortDirection),
-    dtypesFilter,
-  };
+  return sortDtypes(filteredDtypes, sortBy, sortDirection);
 }
 
 class DtypesGrid extends React.Component {
@@ -78,32 +75,36 @@ class DtypesGrid extends React.Component {
       dtypesFilter: null,
       sortBy: null,
       sortDirection: "NONE",
-      scrollToIndex: undefined,
       allVisible: gu.noHidden(props.dtypes),
     };
     this._headerRenderer = this._headerRenderer.bind(this);
     this._rowClass = this._rowClass.bind(this);
   }
 
+  shouldComponentUpdate(_newProps, newState) {
+    return !_.isEqual(this.state, newState);
+  }
+
   _headerRenderer({ dataKey, label, sortBy, sortDirection }) {
     if (dataKey === "visible") {
       const { allVisible } = this.state;
-      const onClick = () => {
+      const onClick = e => {
         this.setState({
-          dtypes: _.map(this.props.dtypes, d => _.assign(d, { visible: !allVisible })),
+          dtypes: _.map(this.state.dtypes, d => _.assign({}, d, { visible: !allVisible })),
           allVisible: !allVisible,
         });
+        e.stopPropagation();
       };
       return (
         <div className="headerCell pointer" onClick={onClick}>
           {label}
-          <i className={`ico-check-box${allVisible ? "" : "-outline-blank"}`} />
+          <i className={`ico-check-box${allVisible ? "" : "-outline-blank"}`} onClick={onClick} />
         </div>
       );
     }
     let filterMarkup = null;
     if (dataKey === "name") {
-      const filter = e => this.setState(filterDtypes(this.props.dtypes, e.target.value, this.state));
+      const filter = e => this.setState({ dtypesFilter: e.target.value });
       const onClick = e => e.stopPropagation();
       filterMarkup = (
         <div className="col" onClick={onClick}>
@@ -131,8 +132,7 @@ class DtypesGrid extends React.Component {
   }
 
   _rowClass({ index }) {
-    const { selected } = this.props;
-    if (selected && selected === _.get(this.state.dtypes, [index, "name"])) {
+    if (_.get(this.state.dtypes, [index, "selected"], false)) {
       return "dtype-row-selected";
     }
     return "dtype-row";
@@ -142,35 +142,43 @@ class DtypesGrid extends React.Component {
     if (!_.isEmpty(this.state.error)) {
       return this.state.error;
     }
-    const { sortBy, sortDirection, dtypes } = this.state;
+    const { sortBy, sortDirection } = this.state;
     const toggleVisibility = ({ name, visible }) => e => {
       this.setState({
-        dtypes: _.map(this.props.dtypes, d => {
-          if (d.name == name) {
-            return _.assign(d, { visible: !visible });
+        dtypes: _.map(this.state.dtypes, d => {
+          if (d.name === name) {
+            return _.assign({}, d, { visible: !visible });
           }
           return d;
         }),
       });
       e.stopPropagation();
     };
+    const currDtypes = filterDtypes(this.state);
+    const rowClick = ({ rowData }) =>
+      this.setState(
+        {
+          dtypes: _.map(this.state.dtypes, d => _.assign({}, d, { selected: d.name === rowData.name })),
+        },
+        () => this.props.propagateState({ selected: rowData.name })
+      );
     return (
       <AutoSizer>
         {({ height, width }) => (
           <Table
             headerHeight={40}
-            height={height}
+            height={height < 400 ? 400 : height}
             overscanRowCount={10}
             rowStyle={{ display: "flex" }}
             rowHeight={gu.ROW_HEIGHT}
-            rowGetter={({ index }) => dtypes[index]}
-            rowCount={_.size(dtypes)}
+            rowGetter={({ index }) => currDtypes[index]}
+            rowCount={_.size(currDtypes)}
             rowClassName={this._rowClass}
             sort={state => this.setState(buildSortDtypesState(this.state, state))}
             sortBy={sortBy}
             sortDirection={sortDirection === "NONE" ? null : sortDirection}
             width={width}
-            onRowClick={this.props.rowClick}
+            onRowClick={rowClick}
             className="dtypes">
             <Column
               dataKey="index"
@@ -224,8 +232,6 @@ class DtypesGrid extends React.Component {
 DtypesGrid.displayName = "DtypesGrid";
 DtypesGrid.propTypes = {
   dtypes: PropTypes.array,
-  rowClick: PropTypes.func,
-  selected: PropTypes.string,
   propagateState: PropTypes.func,
 };
 
