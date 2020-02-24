@@ -67,9 +67,12 @@ class Formatting extends React.Component {
   }
 
   renderBody() {
+    if (!this.props.visible) {
+      return null;
+    }
     const { columns, selectedCol } = this.props;
     const updateState = state => this.setState(state);
-    switch (gu.findColType(_.find(columns, { name: selectedCol }).dtype)) {
+    switch (gu.findColType(_.get(_.find(columns, { name: selectedCol }), "dtype"))) {
       case "int":
       case "float":
         return <NumericFormatting {...this.props} updateState={updateState} />;
@@ -83,9 +86,6 @@ class Formatting extends React.Component {
   }
 
   render() {
-    if (!this.props.visible) {
-      return null;
-    }
     const hide = () => this.props.propagateState({ formattingOpen: false });
     return (
       <Modal isOpen={this.props.visible} onRequestHide={hide} backdrop={false}>

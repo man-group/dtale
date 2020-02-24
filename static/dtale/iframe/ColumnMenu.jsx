@@ -20,12 +20,38 @@ const MOVE_COLS = [
   ["step-forward", serverState.moveToBack, "Move Column To Back", {}],
 ];
 
+function buildCaretClass(caretPct = 90) {
+  const lastCaretStyle = _.get($("head").find("style:last-child"), "0.innerHTML");
+  if (_.endsWith(lastCaretStyle || "", ".column-toggle__dropdown::after {right: " + caretPct + "%}")) {
+    return; // don't continually add styling if its already set
+  }
+  const finalCaretPct = _.isUndefined(caretPct) ? 90 : caretPct;
+  let caretStyle = "<style>";
+  caretStyle += ".column-toggle__dropdown::before {right: " + finalCaretPct + "%}";
+  caretStyle += ".column-toggle__dropdown::after {right: " + finalCaretPct + "%}";
+  caretStyle += "</style>";
+  $("head").append(caretStyle);
+}
+
+function positionMenu(selectedToggle, menuDiv) {
+  const currLeft = selectedToggle.offset().left;
+  const divWidth = menuDiv.width();
+  if (currLeft + divWidth > window.innerWidth) {
+    const finalLeft = currLeft - (currLeft + divWidth + 20 - window.innerWidth);
+    menuDiv.css({ left: finalLeft });
+    const overlapPct = (currLeft - (finalLeft - 20)) / divWidth;
+    const caretPct = Math.floor(100 - overlapPct * 100);
+    buildCaretClass(caretPct);
+  } else {
+    menuDiv.css({ left: currLeft });
+    buildCaretClass();
+  }
+}
+
 class ReactColumnMenu extends React.Component {
   componentDidUpdate(prevProps) {
     if (!_.isNull(this.props.selectedCol) && this.props.selectedCol !== prevProps.selectedCol) {
-      $(this._div).css({
-        left: $(`div.${this.props.selectedToggle}`).offset().left,
-      });
+      positionMenu($(`div.${this.props.selectedToggle}`), $(this._div));
     }
   }
 
@@ -197,4 +223,4 @@ const ReduxColumnMenu = connect(
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactColumnMenu);
 
-export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu };
+export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu, positionMenu };

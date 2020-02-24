@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.7.9 (2020-2-24)
+ * support for google colab
+ * bugfixes: [#71](https://github.com/man-group/dtale/issues/71), [#72](https://github.com/man-group/dtale/issues/72), [#73](https://github.com/man-group/dtale/issues/73)
+
 ### 1.7.8 (2020-2-22)
  * [#77](https://github.com/man-group/dtale/issues/77), removal of multiprocessed timeouts
 

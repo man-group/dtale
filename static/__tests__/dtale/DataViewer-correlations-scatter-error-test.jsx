@@ -103,7 +103,7 @@ describe("DataViewer tests", () => {
           tsChart.cfg.options.onClick({});
           setTimeout(() => {
             result.update();
-            t.ok(result.find(RemovableError).length == 1, "should render scatter error");
+            t.equal(result.find(RemovableError).length, 1, "should render scatter error");
             done();
           }, 400);
         }, 400);

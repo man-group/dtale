@@ -103,6 +103,7 @@ def test_show(unittest, builtin_pkg):
     import dtale.views as views
     import dtale.global_state as global_state
 
+    instances()
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
         mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
@@ -133,7 +134,7 @@ def test_show(unittest, builtin_pkg):
 
         instance.kill()
         mock_requests.assert_called_once()
-        mock_requests.call_args[0][0] == 'http://localhost:9999/shutdown'
+        assert mock_requests.call_args[0][0] == 'http://localhost:9999/shutdown'
         assert global_state.METADATA['1']['name'] == 'foo'
 
     with ExitStack() as stack:
@@ -250,6 +251,61 @@ def test_show(unittest, builtin_pkg):
 
     # cleanup
     global_state.cleanup()
+
+
+@pytest.mark.unit
+def test_show_ngrok(unittest, builtin_pkg):
+    from dtale.app import show, get_instance, instances
+    import dtale.views as views
+    import dtale.global_state as global_state
+
+    orig_import = __import__
+    mock_flask_ngrok = mock.Mock()
+    mock_flask_ngrok._run_ngrok = lambda: 'ngrok_host'
+
+    def import_mock(name, *args, **kwargs):
+        if name == 'flask_ngrok':
+            return mock_flask_ngrok
+        return orig_import(name, *args, **kwargs)
+
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        stack.enter_context(mock.patch('dtale.app.USE_NGROK', True))
+        stack.enter_context(mock.patch('dtale.app.PY3', True))
+        mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
+        mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
+        instance = show(data=test_data, subprocess=False, name='foo', ignore_duplicate=True)
+        assert 'http://ngrok_host' == instance._url
+        mock_run.assert_called_once()
+
+        pdt.assert_frame_equal(instance.data, test_data)
+        tmp = test_data.copy()
+        tmp['biz'] = 2.5
+        instance.data = tmp
+        unittest.assertEqual(
+            global_state.DTYPES[instance._data_id],
+            views.build_dtypes_state(tmp),
+            'should update app data/dtypes'
+        )
+
+        instance2 = get_instance(instance._data_id)
+        assert instance2._url == instance._url
+        instances()
+
+        assert get_instance(20) is None  # should return None for invalid data ids
+
+        instance.kill()
+        mock_requests.assert_called_once()
+        assert mock_requests.call_args[0][0] == 'http://ngrok_host/shutdown'
+        assert global_state.METADATA['1']['name'] == 'foo'
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.USE_NGROK', True))
+        stack.enter_context(mock.patch('dtale.app.PY3', False))
+        with pytest.raises(Exception):
+            show(data=test_data)
 
 
 @pytest.mark.unit
