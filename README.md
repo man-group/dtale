@@ -26,6 +26,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
+  - [Google Colab & Kaggle](#google-colab--kaggle)
   - [Jupyter Notebook](#jupyter-notebook)
   - [Command-line](#command-line)
 - [UI](#ui)
@@ -66,6 +67,15 @@ Now you will have the ability to use D-Tale from the command-line or within a py
 This comes courtesy of PyCharm
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
+
+### Google Colab & Kaggle
+
+These are hosted notebook sites and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.  Here are some video tutorials of each:
+
+|Service|Tutorial|Addtl Notes|
+|:------:|:------:|:------:|
+|Google Colab|[![](http://img.youtube.com/vi/pOYl2M1clIw/0.jpg)](http://www.youtube.com/watch?v=pOYl2M1clIw "Google Colab")||
+|Kaggle|[![](http://img.youtube.com/vi/8Il-2HHs2Mg/0.jpg)](http://www.youtube.com/watch?v=8Il-2HHs2Mg "Kaggle")|make sure you switch the "Internet" toggle to "On" under settings of your notebook so you can install the egg from pip|
 
 #### Issues With Windows Firewall
 
