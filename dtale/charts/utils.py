@@ -75,14 +75,19 @@ def date_freq_handler(df):
         if len(col_def_segs) > 1 and classify_type(dtypes[col_def_segs[0]]) == 'D':
             col, freq = col_def_segs
             if freq == 'WD':
+                code = "df.set_index('{col}').index.dayofweek.values"
                 freq_grp = df.set_index(col).index.dayofweek.values
             elif freq == 'H2':
+                code = "df.set_index('{col}').index.hour.values"
                 freq_grp = df.set_index(col).index.hour.values
             else:
+                code = "df.set_index('{col}').index.to_period('{freq}').to_timestamp(how='end').values"
                 freq_grp = df.set_index(col).index.to_period(freq).to_timestamp(how='end').values
+            code = "\tpd.Series(" + code + ", index=df.index, name='{col_def}'),"
             freq_grp = pd.Series(freq_grp, index=orig_idx, name=col_def)
-            return freq_grp
-        return df[col_def]
+            return freq_grp, code.format(col=col, freq=freq, col_def=col_def)
+        else:
+            return df[col_def], "\tdf['{col_def}'],".format(col_def=col_def)
     return _handler
 
 
@@ -101,12 +106,21 @@ def retrieve_chart_data(df, x, y, z, group=None):
     :type z: str
     :param group: column(s) to use for grouping
     :type group: list of str or str
-    :return: dataframe of data required for chart constructiuon
+    :return: dataframe of data required for chart construction
     :rtype: :class:`pandas:pandas.DataFrame`
     """
     freq_handler = date_freq_handler(df)
     cols = [x] + make_list(y) + [z] + make_list(group)
-    return pd.concat([freq_handler(c) for c in cols if c is not None], axis=1)
+    all_code = []
+    all_data = []
+    for col in cols:
+        if col is not None:
+            s, code = freq_handler(col)
+            all_data.append(s)
+            if code is not None:
+                all_code.append(code)
+    all_code = ["chart_data = pd.concat(["] + all_code + ["], axis=1)"]
+    return pd.concat(all_data, axis=1), all_code
 
 
 def check_all_nan(df, cols=None):
@@ -183,13 +197,29 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
         window, comp = map(inputs.get, ['rolling_win', 'rolling_comp'])
         agg_df = df.set_index(x).rolling(window=window)
         agg_df = pd.DataFrame({c: getattr(agg_df[c], comp)() for c in y})
-        return agg_df.reset_index()
+        agg_df = agg_df.reset_index()
+        code = [
+            "chart_data = chart_data.set_index('{x}').rolling(window={window})".format(x=x, window=window),
+            "chart_data = pd.DataFrame({'" + ', '.join(
+                ["'{c}': chart_data['{c}'].{comp}()".format(c=c, comp=comp) for c in y]
+            ) + '})',
+            "chart_data = chart_data.reset_index()"
+        ]
+        return agg_df, code
 
     if z_exists:
         groups = df.groupby([x] + make_list(y))
-        return getattr(groups[make_list(z)], agg)().reset_index()
+        return getattr(groups[make_list(z)], agg)().reset_index(), [
+            "chart_data = chart_data.groupby(['{cols}'])[['{z}']].{agg}().reset_index()".format(
+                cols="', '".join([x] + make_list(y)), z=z, agg=agg
+            )
+        ]
     groups = df.groupby(x)
-    return getattr(groups[y], agg)().reset_index()
+    return getattr(groups[y], agg)().reset_index(), [
+        "chart_data = chart_data.groupby('{x}')[['{y}']].{agg}().reset_index()".format(
+            x=x, y=y, agg=agg
+        )
+    ]
 
 
 def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
@@ -216,7 +246,7 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
     :return: dict
     """
 
-    data = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col)
+    data, code = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col)
     x_col = str('x')
     y_cols = make_list(y)
     z_col = kwargs.get('z')
@@ -225,11 +255,16 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
         z_cols = [z_col]
     if group_col is not None and len(group_col):
         data = data.sort_values(group_col + [x])
+        code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(group_col + [x])))
         check_all_nan(data, [x] + y_cols)
         data = data.rename(columns={x: x_col})
+        code.append("chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})")
         if agg is not None:
             data = data.groupby(group_col + [x_col])
             data = getattr(data, agg)().reset_index()
+            code.append("chart_data = chart_data.groupby(['{cols}']).{agg}().reset_index()".format(
+                cols="', '".join(group_col + [x]), agg=agg
+            ))
         max_groups = 15
         if len(data[group_col].drop_duplicates()) > max_groups:
             msg = (
@@ -239,6 +274,7 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
             raise Exception(msg)
 
         data = data.dropna()
+        code.append("chart_data = chart_data.dropna()")
         data_f, range_f = build_formatters(data)
         ret_data = dict(
             data={},
@@ -255,15 +291,19 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
             ])
             ret_data['data'][group_val] = data_f.format_lists(grp)
         ret_data['dtypes'] = {c: classify_type(dtype) for c, dtype in dtypes.items()}
-        return ret_data
+        return ret_data, code
     sort_cols = [x] + (y_cols if len(z_cols) else [])
     data = data.sort_values(sort_cols)
+    code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(sort_cols)))
     check_all_nan(data, [x] + y_cols + z_cols)
     y_cols = [str(y_col) for y_col in y_cols]
     data.columns = [x_col] + y_cols + z_cols
+    code.append("chart_data.columns = ['{cols}']".format(cols="', '".join([x_col] + y_cols + z_cols)))
     if agg is not None:
-        data = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col)
+        data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col)
+        code += agg_code
     data = data.dropna()
+    code.append("chart_data = chart_data.dropna()")
 
     dupe_cols = [x_col] + (y_cols if len(z_cols) else [])
     check_exceptions(data[dupe_cols].rename(columns={'x': x}), allow_duplicates,
@@ -274,7 +314,7 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
         min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
         max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols}
     )
-    return ret_data
+    return ret_data, code
 
 
 WEEKDAY_MAP = {idx: day for idx, day in enumerate(['Mon', 'Tues', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'])}

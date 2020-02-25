@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.7.10 (2020-2-27)
+ * [#75](https://github.com/man-group/dtale/issues/75), added code snippet functionality to the following:
+   * main grid, histogram, correlations, column building & charts
+ * exposed CLI loaders through the following functions dtale.show_csv, dtale.show_json, dtale.show_arctic
+   * build in such a way that it is easy for custom loaders to be exposed as well
+ * [#82](https://github.com/man-group/dtale/issues/82), pinned `future` package to be >= 0.14.0
+
 ### 1.7.9 (2020-2-24)
  * support for google colab
  * bugfixes: [#71](https://github.com/man-group/dtale/issues/71), [#72](https://github.com/man-group/dtale/issues/72), [#73](https://github.com/man-group/dtale/issues/73)

@@ -168,9 +168,20 @@ function createDashConfig(entryName, entryPath) {
             },
           ],
         },
+        {
+          test: require.resolve("jquery"),
+          use: [
+            { loader: "expose-loader", options: "jQuery" },
+            { loader: "expose-loader", options: "$" },
+          ],
+        },
       ],
     },
   };
 }
 
-module.exports = _.concat(_.map(entries, createConfig), createDashConfig("components", "./static/dash/lib/index.js"));
+module.exports = _.concat(
+  _.map(entries, createConfig),
+  createDashConfig("components", "./static/dash/lib/index.js"),
+  createDashConfig("custom", "./static/dash/lib/custom.js")
+);

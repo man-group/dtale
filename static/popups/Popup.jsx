@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
 import About from "./About";
+import { CodeExport } from "./CodeExport";
 import { Correlations } from "./Correlations";
 import { Describe } from "./Describe";
 import { Histogram } from "./Histogram";
@@ -99,6 +100,15 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <Charts />;
+        break;
+      case "code":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-code" />
+            <strong>Code Export</strong>
+          </ModalTitle>
+        );
+        body = <CodeExport {...this.props} />;
         break;
       default:
         break;

@@ -147,15 +147,15 @@ function urlFetcher(url) {
     }
     return DATA;
   } else if (_.startsWith(url, "/dtale/histogram")) {
-    return histogramData;
+    return _.assignIn({ code: "historgram code test" }, histogramData);
   } else if (_.startsWith(url, "/dtale/correlations-ts")) {
-    return correlationsTsData;
+    return _.assignIn({ code: "correlations ts code test" }, correlationsTsData);
   } else if (_.startsWith(url, "/dtale/correlations/")) {
-    return correlationsData;
+    return _.assignIn({ code: "correlations code test" }, correlationsData);
   } else if (_.startsWith(url, "/dtale/scatter")) {
     if (urlParams.rolling) {
       const dates = _.fill(Array(_.size(scatterData.data.all.x)), "2018-04-30");
-      return _.assign({}, scatterData, {
+      return _.assign({ code: "scatter code test" }, scatterData, {
         data: { all: _.assign({}, scatterData.data.all, { date: dates }) },
       });
     }
@@ -192,7 +192,7 @@ function urlFetcher(url) {
   } else if (_.startsWith(url, "/dtale/describe")) {
     const column = _.last(url.split("/"));
     if (_.has(DESCRIBE, column)) {
-      return _.assignIn({ success: true }, DESCRIBE[column]);
+      return _.assignIn({ success: true, code: "describe code test" }, DESCRIBE[column]);
     }
     return { error: "Column not found!" };
   } else if (_.includes(url, "pypi.org")) {
@@ -206,6 +206,8 @@ function urlFetcher(url) {
     return { success: true };
   } else if (_.startsWith(url, "/dtale/context-variables")) {
     return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
+  } else if (_.startsWith(url, "/dtale/code-export")) {
+    return { code: "test code" };
   }
   return {};
 }

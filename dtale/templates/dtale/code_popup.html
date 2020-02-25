@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+    <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <title>D-Tale Code Snippet</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
+    {#
+        Despite the fact we reload these again later on, in order for the header to rendered correctly
+        before the rest of the page is built we need to load them here as well.
+    #}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </head>
+    <body>
+        {% if config.GITHUB_FORK %}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/github_fork.css') }}" />
+        <span id="forkongithub">
+            <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
+        </span>
+        {% endif %}
+        <div class="container-fluid code-popup">
+            <div class="row" style="margin: 0">
+                <div class="col-auto">
+                    <header>
+                        <span class="title-font">D-TALE</span>
+                        <span style="font-size: 16px" class="pl-4">-</span>
+                        <span id="code-title" style="font-size: 16px" class="pl-4"></span>
+                    </header>
+                </div>
+                <div class="col"></div>
+            </div>
+            <div id="popup-content" />
+        </div>
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/dtale_bundle.js') }}"></script>
+        {#
+          In order to get styles to load correctly, we need to reload these files.
+          In CSS, the last style declared takes precedence.
+        #}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </body>
+</html>

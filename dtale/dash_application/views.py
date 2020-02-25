@@ -33,7 +33,9 @@ class DtaleDash(dash.Dash):
         kwargs['external_stylesheets'] = ['/css/main.css', '/css/dash.css']
         if server.config['GITHUB_FORK']:
             kwargs['external_stylesheets'].append('/css/github_fork.css')
-        kwargs['external_scripts'] = ['/dash/components_bundle.js', '/dist/base_styles_bundle.js']
+        kwargs['external_scripts'] = [
+            '/dash/components_bundle.js', '/dash/custom_bundle.js', '/dist/base_styles_bundle.js'
+        ]
 
         super(DtaleDash, self).__init__(*args, **kwargs)
 
@@ -243,7 +245,12 @@ def init_callbacks(dash_app):
         return dict(cpg=cpg, barmode=barmode, barsort=barsort)
 
     @dash_app.callback(
-        [Output('chart-content', 'children'), Output('last-chart-input-data', 'data'), Output('range-data', 'data')],
+        [
+            Output('chart-content', 'children'),
+            Output('last-chart-input-data', 'data'),
+            Output('range-data', 'data'),
+            Output('chart-code', 'value'),
+        ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
         # To counter this, you can use the modified_timestamp
@@ -270,8 +277,8 @@ def init_callbacks(dash_app):
         all_inputs = dict_merge(inputs, chart_inputs, dict(yaxis=yaxis_data or {}))
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
-        charts, range_data = build_chart(get_data_id(pathname), **all_inputs)
-        return charts, all_inputs, range_data
+        charts, range_data, code = build_chart(get_data_id(pathname), **all_inputs)
+        return charts, all_inputs, range_data, code
 
     @dash_app.callback(
         [Output('yaxis-min-input', 'value'), Output('yaxis-max-input', 'value')],

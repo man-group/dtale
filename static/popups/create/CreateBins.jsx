@@ -19,6 +19,25 @@ function validateBinsCfg(cfg) {
   return null;
 }
 
+function buildCode({ col, operation, bins, labels }) {
+  if (_.isNull(col)) {
+    return null;
+  }
+  let code = `pd.${operation}(df['${col.value}'], `;
+  if (_.isNull(bins) || bins === "") {
+    return null;
+  }
+  code += `${operation === "cut" ? "bins" : "q"}=${bins}`;
+  if (!_.isNull(labels)) {
+    if (_.size(_.split(labels, ",")) != parseInt(bins)) {
+      return null;
+    }
+    code += `, labels=['${_.join(_.split(labels, ","), "', '")}']`;
+  }
+  code += ")";
+  return code;
+}
+
 const BASE_STATE = { col: null, operation: "cut", bins: null, labels: null };
 
 class CreateBins extends React.Component {
@@ -32,7 +51,8 @@ class CreateBins extends React.Component {
     const currState = _.assignIn(this.state, state);
     const cfg = _.pick(currState, ["operation", "bins", "labels"]);
     cfg.col = _.get(currState, "col.value") || null;
-    this.setState(currState, () => this.props.updateState({ cfg }));
+    const code = buildCode(currState);
+    this.setState(currState, () => this.props.updateState({ cfg, code }));
   }
 
   render() {

@@ -19,8 +19,9 @@ from dtale.charts.utils import (check_all_nan, check_exceptions,
                                 weekday_tick_handler)
 from dtale.dash_application.layout import (AGGS, build_error,
                                            update_label_for_freq)
-from dtale.utils import (classify_type, dict_merge, divide_chunks,
-                         flatten_lists, get_dtypes, make_list, run_query)
+from dtale.utils import (build_code_export, classify_type, dict_merge,
+                         divide_chunks, flatten_lists, get_dtypes, make_list,
+                         run_query)
 from dtale.views import build_chart as build_chart_data
 
 
@@ -155,11 +156,27 @@ def chart_wrapper(data_id, data, url_params=None):
         [html.I(className='far fa-window-restore mr-4'), html.Span('Popup Chart')],
         href='/charts/{}?{}'.format(data_id, url_params_func(params)),
         target='_blank',
-        style={'position': 'absolute', 'zIndex': 5}
+        className='mr-5'
     )
+    copy_link = html.Div(
+        [html.A(
+            [html.I(className='ico-link mr-4'), html.Span('Copy Link')],
+            href='/charts/{}?{}'.format(data_id, url_params_func(params)),
+            target='_blank',
+            className='mr-5 copy-link-btn'
+        ), html.Div('Copied to clipboard', className="hoverable__content copy-tt-bottom")
+        ],
+        className='hoverable-click'
+    )
+    code_snippet = html.A(
+        [html.I(className='ico-code mr-4'), html.Span('Code Snippet')],
+        href='#',
+        className='code-snippet-btn',
+    )
+    links = html.Div([popup_link, copy_link, code_snippet], style={'position': 'absolute', 'zIndex': 5})
 
     def _chart_wrapper(chart):
-        return html.Div([popup_link, chart], style={'position': 'relative'})
+        return html.Div([links, chart], style={'position': 'relative'})
     return _chart_wrapper
 
 
@@ -607,20 +624,21 @@ def heatmap_builder(data_id, **inputs):
     :return: heatmap
     :rtype: :plotly:`plotly.graph_objects.Heatmap <plotly.graph_objects.Heatmap>`
     """
-
+    code = None
     try:
         if not valid_chart(**inputs):
-            return None
+            return None, None
         raw_data = global_state.get_data(data_id)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
         hm_kwargs = dict(hoverongaps=False, colorscale='Greens', showscale=True, hoverinfo='x+y+z')
         x, y, z, agg = (inputs.get(p) for p in ['x', 'y', 'z', 'agg'])
         y = y[0]
-        data = retrieve_chart_data(raw_data, x, y, z)
+        data, code = retrieve_chart_data(raw_data, x, y, z)
         x_title = update_label_for_freq(x)
         y_title = update_label_for_freq(y)
         z_title = z
         data = data.sort_values([x, y])
+        code.append("chart_data = chart_data.sort_values(['{x}, '{y}'])".format(x=x, y=y))
         check_all_nan(data)
         dupe_cols = [x, y]
         if agg is not None:
@@ -629,17 +647,29 @@ def heatmap_builder(data_id, **inputs):
                 data = data.dropna()
                 data = data.set_index([x, y]).unstack().corr()
                 data = data.stack().reset_index(0, drop=True)
+                code.append((
+                    "chart_data = chart_data.dropna()\n"
+                    "chart_data = chart_data.set_index(['{x}', '{y}']).unstack().corr()\n"
+                    "chart_data = chart_data.stack().reset_index(0, drop=True)"
+                ).format(x=x, y=y))
                 y_title = x_title
                 dupe_cols = ['{}{}'.format(col, i) for i, col in enumerate(data.index.names)]
                 [x, y] = dupe_cols
                 data.index.names = dupe_cols
                 data = data.reset_index()
                 data.loc[data[x] == data[y], z] = np.nan
+                code.append((
+                    "chart_data.index.names = ['{x}', '{y}']\n"
+                    "chart_data = chart_data.reset_index()\n"
+                    "chart_data.loc[chart_data['{x}'] == chart_data['{y}'], '{z}'] = np.nan"
+                ).format(x=x, y=y, z=z))
+
                 hm_kwargs = dict_merge(
                     hm_kwargs, dict(colorscale=[[0, 'red'], [0.5, 'yellow'], [1.0, 'green']], zmin=-1, zmax=1)
                 )
             else:
-                data = build_agg_data(data, x, y, inputs, agg, z=z)
+                data, agg_code = build_agg_data(data, x, y, inputs, agg, z=z)
+                code += agg_code
         if not len(data):
             raise Exception('No data returned for this computation!')
         check_exceptions(data[dupe_cols], agg != 'corr', data_limit=40000,
@@ -650,6 +680,11 @@ def heatmap_builder(data_id, **inputs):
         data = data.sort_values([x, y])
         data = data.set_index([x, y])
         data = data.unstack(0)[z]
+        code.append((
+            "chart_data = data.sort_values(['{x}', '{y}'])\n"
+            "chart_data = chart_data.set_index(['{x}', '{y}'])\n"
+            "chart_data == unstack(0)['{z}']"
+        ).format(x=x, y=y, z=z))
 
         x_data = weekday_tick_handler(data.columns, x)
         y_data = weekday_tick_handler(data.index.values, y)
@@ -678,9 +713,9 @@ def heatmap_builder(data_id, **inputs):
                     build_title(x, y, z=z, agg=agg)
                 ))
             )
-        ))
+        )), code
     except BaseException as e:
-        return build_error(str(e), str(traceback.format_exc()))
+        return build_error(str(e), str(traceback.format_exc())), code
 
 
 def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
@@ -714,25 +749,27 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
     :return: dictionary of series data, min/max ranges of columns used in chart
     :rtype: dict
     """
+    code = None
     try:
         if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window,
                                   rolling_comp=rolling_comp)):
-            return None
+            return None, None
 
         data = run_query(
             global_state.get_data(data_id),
             query,
             global_state.get_context_variables(data_id)
         )
+        code = build_code_export(data_id, query=query)
         chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
                             rolling_comp=rolling_comp)
         if chart_type in ZAXIS_CHARTS:
             chart_kwargs['z'] = z
             del chart_kwargs['group_col']
-        data = build_chart_data(data, x, y, **chart_kwargs)
-        return data
+        data, chart_code = build_chart_data(data, x, y, **chart_kwargs)
+        return data, code + chart_code
     except BaseException as e:
-        return dict(error=str(e), traceback=str(traceback.format_exc()))
+        return dict(error=str(e), traceback=str(traceback.format_exc())), code
 
 
 def build_chart(data_id=None, **inputs):
@@ -756,17 +793,19 @@ def build_chart(data_id=None, **inputs):
     :return: plotly chart object(s)
     :rtype: type of (:dash:`dash_core_components.Graph <dash-core-components/graph>`, dict)
     """
+    code = None
     try:
         if inputs.get('chart_type') == 'heatmap':
-            data = heatmap_builder(data_id, **inputs)
-            return data, None
+            data, code = heatmap_builder(data_id, **inputs)
+            return data, None, code
 
-        data = build_figure_data(data_id, **inputs)
+        data, code = build_figure_data(data_id, **inputs)
         if data is None:
-            return None, None
+            return None, None, None
 
+        code = '\n'.join(code or [])
         if 'error' in data:
-            return build_error(data['error'], data['traceback']), None
+            return build_error(data['error'], data['traceback']), None, code
 
         range_data = dict(min=data['min'], max=data['max'])
         axis_inputs = inputs.get('yaxis', {})
@@ -778,7 +817,8 @@ def build_chart(data_id=None, **inputs):
         if chart_type == 'wordcloud':
             return (
                 chart_builder(dash_components.Wordcloud(id='wc', data=data, y=y, group=inputs.get('group'))),
-                range_data
+                range_data,
+                code
             )
 
         axes_builder = build_axes(data_id, x, axis_inputs, data['min'], data['max'], z=z, agg=agg)
@@ -790,22 +830,22 @@ def build_chart(data_id=None, **inputs):
                 ])
             else:
                 scatter_charts = scatter_builder(data, x, y, axes_builder, chart_builder, agg=agg)
-            return cpg_chunker(scatter_charts), range_data
+            return cpg_chunker(scatter_charts), range_data, code
 
         if chart_type == '3d_scatter':
-            return scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg), range_data
+            return scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg), range_data, code
 
         if chart_type == 'surface':
-            return surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg), range_data
+            return surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg), range_data, code
 
         if chart_type == 'bar':
-            return bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs), range_data
+            return bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs), range_data, code
 
         if chart_type == 'line':
-            return line_builder(data, x, y, axes_builder, chart_builder, **chart_inputs), range_data
+            return line_builder(data, x, y, axes_builder, chart_builder, **chart_inputs), range_data, code
 
         if chart_type == 'pie':
-            return pie_builder(data, x, y, chart_builder, **chart_inputs), range_data
+            return pie_builder(data, x, y, chart_builder, **chart_inputs), range_data, code
         raise NotImplementedError('chart type: {}'.format(chart_type))
     except BaseException as e:
-        return build_error(str(e), str(traceback.format_exc())), None
+        return build_error(str(e), str(traceback.format_exc())), None, code

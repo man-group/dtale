@@ -9,6 +9,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import * as gu from "../../dtale/gridUtils";
+import { renderCodePopupAnchor } from "../CodePopup";
 import CorrelationsCell from "./CorrelationsCell";
 
 require("./CorrelationsGrid.css");
@@ -109,6 +110,7 @@ class CorrelationsGrid extends React.Component {
               <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
               <span className="mb-auto mt-auto">vs.</span>
               <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
+              <div className="col text-right">{renderCodePopupAnchor(this.props.gridCode, "Correlations")}</div>
             </div>,
             <MultiGrid
               key={1}
@@ -142,6 +144,7 @@ CorrelationsGrid.propTypes = {
   buildScatter: PropTypes.func,
   rolling: PropTypes.bool,
   window: PropTypes.number,
+  gridCode: PropTypes.string,
 };
 
 export default CorrelationsGrid;

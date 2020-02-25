@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.7.9",
+    version="1.7.10",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -66,7 +66,7 @@ setup(
         "Flask-Compress",
         "Flask",
         "flask-ngrok; python_version > '3.0'",
-        "future",
+        "future >= 0.14.0",
         "itsdangerous",
         "pandas",
         "requests",

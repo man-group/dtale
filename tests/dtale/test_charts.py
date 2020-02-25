@@ -9,13 +9,13 @@ def test_date_freq_handler():
     df = pd.DataFrame(dict(date=pd.date_range('20200101', '20200131')))
     handler = chart_utils.date_freq_handler(df)
     s = handler('date|WD')
-    assert s.values[0] == 2
+    assert s[0].values[0] == 2
     s = handler('date|H2')
-    assert s.values[0] == 0
+    assert s[0].values[0] == 0
     s = handler('date|D')
-    assert s.dt.strftime('%Y%m%d').values[0] == '20200101'
+    assert s[0].dt.strftime('%Y%m%d').values[0] == '20200101'
     s = handler('date|M')
-    assert s.dt.strftime('%Y%m%d').values[0] == '20200131'
+    assert s[0].dt.strftime('%Y%m%d').values[0] == '20200131'
 
 
 @pytest.mark.unit
