@@ -17,7 +17,7 @@ function testMain(mainName, search = "") {
 }
 
 describe("main tests", () => {
-  const { location, open, top, self } = window;
+  const { location, open, top, self, opener } = window;
 
   beforeEach(() => {
     jest.resetModules();
@@ -36,10 +36,12 @@ describe("main tests", () => {
     delete window.open;
     delete window.top;
     delete window.self;
+    delete window.opener;
     window.location = { reload: jest.fn(), pathname: "/dtale/iframe/1" };
     window.open = jest.fn();
     window.top = { location: { href: "http://test.com" } };
     window.self = { location: { href: "http://test/dtale/iframe" } };
+    window.opener = { code_popup: { code: "test code", title: "Test" } };
   });
 
   afterAll(() => {
@@ -47,6 +49,7 @@ describe("main tests", () => {
     window.open = open;
     window.top = top;
     window.self = self;
+    window.opener = opener;
   });
 
   test("main rendering", done => {
@@ -73,10 +76,15 @@ describe("main tests", () => {
     done();
   });
 
-  _.forEach(["correlations", "charts", "describe", "histogram", "instances"], popup => {
+  _.forEach(["correlations", "charts", "describe", "histogram", "instances", "code"], popup => {
     test(`${popup} popup rendering`, done => {
       testMain(`popup/${popup}`);
       done();
     });
+  });
+
+  test("code snippet rendering", done => {
+    testMain("code-popup");
+    done();
   });
 });

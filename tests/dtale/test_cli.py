@@ -145,7 +145,7 @@ def test_arctic_import_error(builtin_pkg):
         return orig_import(name, *args, **kwargs)
 
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.build_app', mock.Mock()))
         stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         args = [
             '--port', '9999',
@@ -157,7 +157,7 @@ def test_arctic_import_error(builtin_pkg):
         ]
         with pytest.raises(ImportError) as error:
             script.main(args, standalone_mode=False)
-        assert 'ImportError: In order to use the --arctic loader you must install arctic!' in str(error)
+        assert 'ImportError: In order to use the arctic loader you must install arctic!' in str(error)
 
 
 @pytest.mark.unit
@@ -213,6 +213,14 @@ def test_arctic_version_data(builtin_pkg):
         _, kwargs = mock_show.call_args
         assert kwargs['data_loader'] is not None
         assert kwargs['data_loader']() == 'versioned_data'
+
+    with ExitStack() as stack:
+        import dtale
+
+        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
+        stack.enter_context(mock.patch('dtale.cli.loaders.arctic_loader.show', mock.Mock()))
+
+        dtale.show_arctic(host='arctic_host', library='arctic_lib', node='arctic_node')
 
 
 @pytest.mark.unit

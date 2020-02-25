@@ -320,6 +320,7 @@ def charts_layout(df, settings, **inputs):
         dcc.Store(id='range-data'),
         dcc.Store(id='yaxis-data', data=inputs.get('yaxis')),
         dcc.Store(id='last-chart-input-data', data=inputs),
+        dcc.Input(id='chart-code', type='hidden'),
         html.Div(html.Div(dcc.Tabs(
             id='chart-tabs',
             value=chart_type or 'line',
@@ -453,4 +454,5 @@ def charts_layout(df, settings, **inputs):
             className='row pt-3 pb-5 charts-filters'
         ),
         dcc.Loading(html.Div(id='chart-content'), type='circle'),
+        dcc.Textarea(id="copy-text", style=dict(position='absolute', left='-110%'))
     ], className='charts-body')

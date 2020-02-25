@@ -13,6 +13,28 @@ function validateDatetimeCfg(cfg) {
   return null;
 }
 
+const FREQ_MAPPING = { month: "'M'", quarter: "'Q'", year: "'Y'" };
+
+function buildCode({ col, operation, property, conversion }) {
+  if (_.isNull(col)) {
+    return null;
+  }
+  let code = "";
+  if (operation === "property") {
+    if (_.isNull(property)) {
+      return null;
+    }
+    code = `df['${col.value}'].dt.${property}`;
+  } else {
+    if (_.isNull(conversion)) {
+      return null;
+    }
+    const [freq, how] = _.split(conversion, "_");
+    code = `df['${col.value}'].dt.to_period(${FREQ_MAPPING[freq]}).dt.to_timestamp(how='${how}')`;
+  }
+  return code;
+}
+
 const BASE_STATE = {
   col: null,
   operation: "property",
@@ -32,7 +54,8 @@ class CreateDatetime extends React.Component {
     const currState = _.assignIn(this.state, state);
     const cfg = _.pick(currState, ["operation", currState.operation]);
     cfg.col = _.get(currState, "col.value") || null;
-    this.setState(currState, () => this.props.updateState({ cfg }));
+    const code = buildCode(currState);
+    this.setState(currState, () => this.props.updateState({ cfg, code }));
   }
 
   renderOperationOptions() {

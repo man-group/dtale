@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
@@ -69,6 +70,10 @@ describe("DataViewer tests", () => {
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
+    Object.defineProperty(global.document, "queryCommandSupported", {
+      value: () => true,
+    });
+    Object.defineProperty(global.document, "execCommand", { value: _.noop });
     const result = mount(
       <Provider store={store}>
         <DataViewer />

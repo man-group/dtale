@@ -18,6 +18,7 @@ const BASE_STATE = {
   type: "numeric",
   name: "",
   cfg: null,
+  code: {},
   loadingColumns: true,
 };
 
@@ -83,7 +84,14 @@ class ReactCreateColumn extends React.Component {
   }
 
   renderBody() {
-    const updateState = state => this.setState(state);
+    const updateState = state => {
+      if (_.has(state, "code")) {
+        state.code = _.assign({}, this.state.code, {
+          [this.state.type]: state.code,
+        });
+      }
+      this.setState(state);
+    };
     let body = null;
     switch (this.state.type) {
       case "numeric":
@@ -144,12 +152,22 @@ class ReactCreateColumn extends React.Component {
         </div>
       );
     }
+    let codeMarkup = null;
+    if (_.get(this.state, ["code", this.state.type])) {
+      codeMarkup = (
+        <div className="col" style={{ paddingRight: 0 }}>
+          <span className="pr-3">Code:</span>
+          <span className="font-weight-bold">{_.get(this.state, ["code", this.state.type])}</span>
+        </div>
+      );
+    }
     return [
       error,
       <BouncerWrapper key={0} showBouncer={this.state.loadingColumns}>
         {this.renderBody()}
       </BouncerWrapper>,
       <div key={1} className="modal-footer">
+        {codeMarkup}
         <button className="btn btn-primary" onClick={this.save}>
           <span>Create</span>
         </button>

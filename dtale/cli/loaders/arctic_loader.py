@@ -1,8 +1,8 @@
-from builtins import map
 from logging import getLogger
 
 import pandas as pd
 
+from dtale.app import show
 from dtale.cli.clickutils import get_loader_options
 
 logger = getLogger(__name__)
@@ -22,6 +22,29 @@ LOADER_PROPS = [
 ]
 
 
+# IMPORTANT!!! This function is required if you would like to be able to use this loader from the back-end.
+def show_loader(**kwargs):
+    return show(data_loader=lambda: loader_func(**kwargs), **kwargs)
+
+
+def loader_func(**kwargs):
+    try:
+        from arctic import Arctic
+        from arctic.store.versioned_item import VersionedItem
+    except ImportError:
+        raise ImportError('In order to use the arctic loader you must install arctic!')
+    host = Arctic(kwargs.get('host'))
+    lib = host.get_library(kwargs.get('library'))
+    read_kwargs = {}
+    start, end = (kwargs.get(p) for p in ['start', 'end'])
+    if start and end:
+        read_kwargs['chunk_range'] = pd.date_range(start, end)
+    data = lib.read(kwargs.get('node'), **read_kwargs)
+    if isinstance(data, VersionedItem):
+        data = data.data
+    return data
+
+
 # IMPORTANT!!! This function is required for building any customized CLI loader.
 def find_loader(kwargs):
     """
@@ -33,23 +56,9 @@ def find_loader(kwargs):
     """
     arctic_opts = get_loader_options(LOADER_KEY, kwargs)
     if len([f for f in arctic_opts.values() if f]):
-        try:
-            from arctic import Arctic
-            from arctic.store.versioned_item import VersionedItem
-        except ImportError:
-            raise ImportError('In order to use the --arctic loader you must install arctic!')
 
         def _arctic_loader():
-            host = Arctic(arctic_opts['host'])
-            lib = host.get_library(arctic_opts['library'])
-            read_kwargs = {}
-            start, end = map(arctic_opts.get, ['start', 'end'])
-            if start and end:
-                read_kwargs['chunk_range'] = pd.date_range(start, end)
-            data = lib.read(arctic_opts['node'], **read_kwargs)
-            if isinstance(data, VersionedItem):
-                data = data.data
-            return data
+            return loader_func(**arctic_opts)
 
         return _arctic_loader
     return None

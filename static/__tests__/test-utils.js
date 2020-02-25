@@ -55,6 +55,7 @@ function buildInnerHTML(props = {}, store = null) {
   innerHTML += `<input type="hidden" id="iframe" value="${iframe || IFRAME}" />`;
   innerHTML += `<input type="hidden" id="data_id" value="${dataId || DATA_ID}" />`;
   innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
+  innerHTML += `<span id="code-title" />`;
   body.innerHTML = innerHTML;
 
   if (store) {

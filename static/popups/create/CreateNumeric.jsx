@@ -25,6 +25,43 @@ function validateNumericCfg(cfg) {
   return null;
 }
 
+const OPERATION_MAPPING = {
+  sum: " + ",
+  difference: " - ",
+  multiply: " * ",
+  divide: " \\ ",
+};
+
+function buildCode({ left, operation, right }) {
+  let code = "";
+  if (left.type === "col") {
+    const col = _.get(left, "col.value");
+    if (!col) {
+      return null;
+    }
+    code += `df['${col}'] `;
+  } else {
+    if (_.isNull(left.val) || left.val === "") {
+      return null;
+    }
+    code += left.val;
+  }
+  code += OPERATION_MAPPING[operation];
+  if (right.type === "col") {
+    const col = _.get(right, "col.value");
+    if (!col) {
+      return null;
+    }
+    code += `df['${col}'] `;
+  } else {
+    if (_.isNull(right.val) || right.val === "") {
+      return null;
+    }
+    code += right.val;
+  }
+  return code;
+}
+
 const BASE_STATE = {
   left: { type: "col", col: null, val: null },
   operation: null,
@@ -54,7 +91,8 @@ class CreateNumeric extends React.Component {
     } else {
       right.val = currState.right.val;
     }
-    this.setState(currState, () => this.props.updateState({ cfg: { left, operation, right } }));
+    const code = buildCode(currState);
+    this.setState(currState, () => this.props.updateState({ cfg: { left, operation, right }, code }));
   }
 
   renderOperand(prop, otherProp) {

@@ -102,6 +102,14 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openPopup("code")}>
+                <i className="ico-code" />
+                <span className="font-weight-bold">Code Export</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
               <button
                 className="btn btn-plain"
                 onClick={() =>

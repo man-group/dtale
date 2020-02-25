@@ -37,7 +37,7 @@ USE_NGROK = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
 
-SHORT_LIFE_PATHS = ['dist']
+SHORT_LIFE_PATHS = ['dist', 'dash']
 SHORT_LIFE_TIMEOUT = 60
 
 REAPER_TIMEOUT = 60.0 * 60.0  # one-hour

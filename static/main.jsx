@@ -6,6 +6,8 @@ import { Provider } from "react-redux";
 import actions from "./actions/dtale";
 import "./adapter-for-react-16";
 import { DataViewer } from "./dtale/DataViewer";
+import { CodeExport } from "./popups/CodeExport";
+import { CodePopup } from "./popups/CodePopup";
 import { ReactCorrelations as Correlations } from "./popups/Correlations";
 import { ReactDescribe as Describe } from "./popups/Describe";
 import { ReactHistogram as Histogram } from "./popups/Histogram";
@@ -24,7 +26,9 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
   let rootNode = null;
   const dataId = app.getHiddenValue("data_id");
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
-  const popupType = _.split(window.location.pathname, "/")[3];
+  const pathSegs = _.split(window.location.pathname, "/");
+  const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];
+
   switch (popupType) {
     case "correlations":
       rootNode = <Correlations {...{ dataId, chartData }} />;
@@ -41,12 +45,19 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
     case "instances":
       rootNode = <Instances dataId={dataId} iframe={true} />;
       break;
+    case "code":
+      rootNode = <CodeExport dataId={dataId} />;
+      break;
     case "charts":
     default:
       rootNode = <Charts {...{ dataId, chartData }} />;
       break;
   }
   ReactDOM.render(rootNode, document.getElementById("popup-content"));
+} else if (_.startsWith(window.location.pathname, "/dtale/code-popup")) {
+  require("./dtale/DataViewer.css");
+  document.getElementById("code-title").innerHTML = `${window.opener.code_popup.title} Code Snippet`;
+  ReactDOM.render(<CodePopup code={window.opener.code_popup.code} />, document.getElementById("popup-content"));
 } else {
   const store = createStore(app.store);
   store.dispatch(actions.init());

@@ -47,7 +47,7 @@ def test_display_page(unittest):
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             component_defs = resp_data['props']['children']['props']['children']
-            x_dd = component_defs[8]['props']['children'][0]
+            x_dd = component_defs[9]['props']['children'][0]
             x_dd_options = x_dd['props']['children'][0]['props']['children'][1]['props']['options']
             unittest.assertEqual([dict(label=v, value=v) for v in ['a', 'b', 'c']], x_dd_options)
 
@@ -210,14 +210,14 @@ def test_yaxis_changes(unittest):
         )
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEquals(resp_data['response'], {
+        unittest.assertEqual(resp_data['response'], {
             'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
         })
 
         params['state'][0]['value']['y'] = None
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEquals(resp_data['response'], {
+        unittest.assertEqual(resp_data['response'], {
             'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
         })
 
@@ -225,14 +225,14 @@ def test_yaxis_changes(unittest):
         params['inputs'][0]['value'] = 'b'
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEquals(resp_data['response'], {
+        unittest.assertEqual(resp_data['response'], {
             'yaxis-min-input': {'value': 4}, 'yaxis-max-input': {'value': 6}
         })
 
         params['state'][0]['value']['chart_type'] = 'heatmap'
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEquals(resp_data['response'], {
+        unittest.assertEqual(resp_data['response'], {
             'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
         })
 
@@ -299,7 +299,7 @@ def test_yaxis_data(unittest):
 
 def build_chart_params(pathname, inputs={}, chart_inputs={}, yaxis={}, last_inputs={}):
     return {
-        'output': '..chart-content.children...last-chart-input-data.data...range-data.data..',
+        'output': '..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..',
         'changedPropIds': ['input-data.modified_timestamp'],
         'inputs': [ts_builder('input-data'), ts_builder('chart-input-data'), ts_builder('yaxis-data')],
         'state': [
@@ -397,7 +397,8 @@ def test_chart_building_bar_and_popup(unittest):
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
-            url = resp_data['chart-content']['children']['props']['children'][0]['props']['href']
+            links_div = resp_data['chart-content']['children']['props']['children'][0]['props']['children']
+            url = links_div[0]['props']['href']
             assert url.startswith('/charts/{}?'.format(c.port))
             url_params = dict(get_url_parser()(url.split('?')[-1]))
             unittest.assertEqual(
@@ -716,26 +717,10 @@ def test_load_chart_error(unittest):
                 side_effect=build_chart_data_mock
             ))
             pathname = {'id': 'url', 'property': 'pathname', 'value': '/charts/{}'.format(c.port)}
-            inputs = {'id': 'input-data', 'property': 'data', 'value': {
-                'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
-                'window': None, 'rolling_comp': None}}
-            chart_inputs = {
-                'id': 'chart-input-data', 'property': 'data', 'value': {
-                    'cpg': False, 'barmode': 'group', 'barsort': None
-                }
-            }
-            params = {
-                'output': '..chart-content.children...last-chart-input-data.data...range-data.data..',
-                'changedPropIds': ['input-data.modified_timestamp'],
-                'inputs': [ts_builder('input-data'), ts_builder('chart-input-data'), ts_builder('yaxis-data')],
-                'state': [
-                    pathname,
-                    inputs,
-                    chart_inputs,
-                    {'id': 'yaxis-data', 'property': 'data', 'value': {}},
-                    {'id': 'last-chart-input-data', 'property': 'data', 'value': {}}
-                ]
-            }
+            inputs = {'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
+                      'window': None, 'rolling_comp': None}
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': None}
+            params = build_chart_params(pathname, inputs=inputs, chart_inputs=chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']['chart-content']['children']
             assert resp_data['props']['children'][1]['props']['children'] == 'error test'
@@ -755,42 +740,10 @@ def test_display_error(unittest):
                 mock.Mock(side_effect=Exception('error test'))
             ))
             pathname = {'id': 'url', 'property': 'pathname', 'value': '/charts/{}'.format(c.port)}
-            inputs = {'id': 'input-data', 'property': 'data', 'value': {
-                'chart_type': 'wordcloud', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
-                'window': None, 'rolling_comp': None}}
-            chart_inputs = {
-                'id': 'chart-input-data', 'property': 'data', 'value': {
-                    'cpg': False, 'barmode': 'group', 'barsort': None
-                }
-            }
-            params = {
-                'output': '..chart-content.children...last-chart-input-data.data...range-data.data..',
-                'changedPropIds': ['input-data.modified_timestamp'],
-                'inputs': [ts_builder('input-data'), ts_builder('chart-input-data'), ts_builder('yaxis-data')],
-                'state': [
-                    pathname,
-                    inputs,
-                    chart_inputs,
-                    {'id': 'yaxis-data', 'property': 'data', 'value': {}},
-                    {'id': 'last-chart-input-data', 'property': 'data', 'value': {}}
-                ]
-            }
-            response = c.post('/charts/_dash-update-component', json=params)
-            resp_data = response.get_json()['response']['chart-content']['children']
-            assert resp_data['props']['children'][1]['props']['children'] == 'error test'
-
-            params = {
-                'output': '..chart-content.children...last-chart-input-data.data...range-data.data..',
-                'changedPropIds': ['input-data.modified_timestamp'],
-                'inputs': [ts_builder('input-data'), ts_builder('chart-input-data'), ts_builder('yaxis-data')],
-                'state': [
-                    pathname,
-                    inputs,
-                    chart_inputs,
-                    {'id': 'yaxis-data', 'property': 'data', 'value': {}},
-                    {'id': 'last-chart-input-data', 'property': 'data', 'value': {}}
-                ]
-            }
+            inputs = {'chart_type': 'wordcloud', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
+                      'window': None, 'rolling_comp': None}
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': None}
+            params = build_chart_params(pathname, inputs=inputs, chart_inputs=chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']['chart-content']['children']
             assert resp_data['props']['children'][1]['props']['children'] == 'error test'
@@ -875,10 +828,10 @@ def test_build_axes(unittest):
 
 @pytest.mark.unit
 def test_build_figure_data(unittest):
-    assert build_figure_data('/charts/1', x=None) is None
-    assert build_figure_data('/charts/1', x='a', y=['b'], chart_type='heatmap') is None
+    assert build_figure_data('/charts/1', x=None)[0] is None
+    assert build_figure_data('/charts/1', x='a', y=['b'], chart_type='heatmap')[0] is None
     with mock.patch('dtale.global_state.DATA', {}):
-        fig_data = build_figure_data('/charts/1', x='a', y=['b'], chart_type='line')
+        fig_data, _code = build_figure_data('/charts/1', x='a', y=['b'], chart_type='line')
         assert 'error' in fig_data and 'traceback' in fig_data
 
 
@@ -889,7 +842,7 @@ def test_chart_wrapper(unittest):
                       agg='rolling', window=10, rolling_calc='corr')
     cw = chart_wrapper('1', dict(min={'b': 4}, max={'b': 6}), url_params)
     output = cw('foo')
-    url_params = chart_url_params('?{}'.format(output.children[0].href.split('?')[-1]))
+    url_params = chart_url_params('?{}'.format(output.children[0].children[0].href.split('?')[-1]))
     unittest.assertEqual(url_params, {'chart_type': 'line', 'agg': 'rolling', 'window': 10, 'cpg': False,
                                       'y': ['b', 'c'], 'yaxis': {'b': {'min': 3, 'max': 6}}})
 

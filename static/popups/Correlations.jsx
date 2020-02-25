@@ -65,7 +65,7 @@ class ReactCorrelations extends React.Component {
         this.setState({ error: <RemovableError {...gridData} /> });
         return;
       }
-      const { data, dates, rolling } = gridData;
+      const { data, dates, rolling, code } = gridData;
       const columns = _.map(data, "column");
       const state = {
         correlations: data,
@@ -74,6 +74,7 @@ class ReactCorrelations extends React.Component {
         hasDate: _.size(dates) > 0,
         selectedDate: _.get(dates, 0, null),
         rolling,
+        gridCode: code,
       };
       this.setState(state, () => {
         let { col1, col2 } = this.props.chartData || {};
@@ -135,7 +136,7 @@ class ReactCorrelations extends React.Component {
     }
   }
 
-  buildScatter(selectedCols, date = null) {
+  buildScatter(selectedCols, date = null, tsCode = null) {
     const params = { selectedCols, query: this.props.chartData.query };
     if (date) {
       params.dateCol = this.state.selectedDate;
@@ -159,7 +160,11 @@ class ReactCorrelations extends React.Component {
         date,
         scatterError: null,
         scatterUrl,
+        scatterCode: fetchedChartData.code,
       };
+      if (tsCode) {
+        newState.tsCode = tsCode;
+      }
       if (fetchedChartData.error) {
         newState.scatterError = <RemovableError {...fetchedChartData} />;
         this.setState(newState);
@@ -242,8 +247,11 @@ class ReactCorrelations extends React.Component {
             showControls={false}
             dataLoadCallback={data => {
               const selectedDate = _.get(data || {}, "data.all.x.0");
+              const tsCode = _.get(data, "code", "");
               if (selectedDate) {
-                this.buildScatter(this.state.selectedCols, selectedDate);
+                this.buildScatter(this.state.selectedCols, selectedDate, tsCode);
+              } else {
+                this.setState({ tsCode: _.get(data, "code", "") });
               }
             }}
           />

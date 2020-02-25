@@ -10104,6 +10104,10 @@ select.form-control:focus,
   position: relative;
   border-bottom: dashed 1px #004c93;
 }
+.hoverable-click {
+  display: inline;
+  position: relative;
+}
 
 .hoverable:visited {
   color: #044c8f;
@@ -10126,7 +10130,8 @@ select.form-control:focus,
   display: block;
 }
 
-.hoverable .hoverable__content {
+.hoverable .hoverable__content,
+.hoverable-click .hoverable__content{
   display: none;
 }
 
@@ -10140,6 +10145,18 @@ select.form-control:focus,
   width: 20em;
   text-align: left;
   color: #404040;
+}
+.hoverable__content.copy-tt-bottom {
+  padding: .5em .5em;
+  width: 10em;
+  text-align: center;
+}
+.hoverable__content.copy-tt-top {
+  padding: .5em .5em;
+  width: 10em;
+  text-align: center;
+  top: unset;
+  bottom: 110%;
 }
 
 div.hoverable.label {
@@ -10163,6 +10180,15 @@ div.hoverable.label > div.hoverable__content {
   border-right: 0.5em solid transparent;
   border-left: 0.5em solid transparent;
 }
+.hoverable__content.copy-tt-top::before {
+    bottom: unset;
+    top: 95%;
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
 
 .hoverable__content::after {
   position: absolute;
@@ -10176,6 +10202,15 @@ div.hoverable.label > div.hoverable__content {
   margin-right: -0.5em;
   border-right: 0.5em solid transparent;
   border-left: 0.5em solid transparent;
+}
+.hoverable__content.copy-tt-top::after {
+    bottom: unset;
+    top: calc(92% + .1em);
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
 }
 
 .tooltip-wrapper {
@@ -10441,6 +10476,12 @@ div.container-fluid.build > div#popup-content > div.modal-body {
 
 div.container-fluid.describe > div#popup-content > div.modal-body {
   height: 450px;
+}
+
+div.container-fluid.code-popup > div#popup-content > div.modal-footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }
 
 @media (min-height: 330px) {

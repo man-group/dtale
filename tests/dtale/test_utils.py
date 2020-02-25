@@ -244,3 +244,25 @@ def test_json_string2(builtin_pkg):
         stack.enter_context(mock.patch('{}.str'.format(builtin_pkg), mock.Mock(side_effect=MockStr)))
         stack.enter_context(mock.patch('dtale.utils.logger', MockLogger()))
         utils.json_string(TestStr(), nan_display='nan')
+
+
+@pytest.mark.unit
+def test_run_query():
+    df = pd.DataFrame([
+        dict(a=1, b=2, c=3),
+        dict(a=2, b=3, c=4),
+        dict(a=3, b=4, c=5)
+    ])
+
+    with pytest.raises(Exception):
+        utils.run_query(df, 'a == 4')
+
+    assert len(utils.run_query(df, 'a in @a', {'a': [1, 2, 3]})) == 3
+
+    if PY3:
+        df = pd.DataFrame([
+            {'a.b': 1, 'b': 2, 'c': 3},
+            {'a.b': 2, 'b': 3, 'c': 4},
+            {'a.b': 3, 'b': 4, 'c': 5}
+        ])
+        assert len(utils.run_query(df, 'a.b == 1')) == 1
