@@ -26,8 +26,9 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
-  - [Google Colab & Kaggle](#google-colab--kaggle)
   - [Jupyter Notebook](#jupyter-notebook)
+  - [Google Colab & Kaggle](#google-colab--kaggle)
+  - [R with Reticulate](#r-with-reticulate)
   - [Command-line](#command-line)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
@@ -67,15 +68,6 @@ Now you will have the ability to use D-Tale from the command-line or within a py
 This comes courtesy of PyCharm
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Python_Terminal.png)
 Feel free to invoke `python` or `ipython` directly and use the commands in the screenshot above and it should work
-
-### Google Colab & Kaggle
-
-These are hosted notebook sites and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.  Here are some video tutorials of each:
-
-|Service|Tutorial|Addtl Notes|
-|:------:|:------:|:------:|
-|Google Colab|[![](http://img.youtube.com/vi/pOYl2M1clIw/0.jpg)](http://www.youtube.com/watch?v=pOYl2M1clIw "Google Colab")||
-|Kaggle|[![](http://img.youtube.com/vi/8Il-2HHs2Mg/0.jpg)](http://www.youtube.com/watch?v=8Il-2HHs2Mg "Kaggle")|make sure you switch the "Internet" toggle to "On" under settings of your notebook so you can install the egg from pip|
 
 #### Issues With Windows Firewall
 
@@ -141,6 +133,55 @@ One thing of note is that a lot of the modal popups you see in the standard brow
 |Column Menus|Correlations|Describe|Histogram|Instances|
 |:------:|:------:|:------:|:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Column_menu.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/correlations_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/describe_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/histogram_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/instances_popup.png)|
+
+### Google Colab & Kaggle
+
+These are hosted notebook sites and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.
+
+**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within these two services.  Here is an example:
+
+```
+import pandas as pd
+
+import dtale
+import dtale.app as dtale_app
+
+dtale_app.USE_NGROK = True
+
+dtale.show(pd.DataFrame([1,2,3]))
+```
+
+Here are some video tutorials of each:
+
+|Service|Tutorial|Addtl Notes|
+|:------:|:------:|:------:|
+|Google Colab|[![](http://img.youtube.com/vi/pOYl2M1clIw/0.jpg)](http://www.youtube.com/watch?v=pOYl2M1clIw "Google Colab")||
+|Kaggle|[![](http://img.youtube.com/vi/8Il-2HHs2Mg/0.jpg)](http://www.youtube.com/watch?v=8Il-2HHs2Mg "Kaggle")|make sure you switch the "Internet" toggle to "On" under settings of your notebook so you can install the egg from pip|
+
+### R with Reticulate
+
+I was able to get D-Tale running in R using reticulate. Here is an example:
+
+```
+library('reticulate')
+dtale <- import('dtale')
+df <- read.csv('https://vincentarelbundock.github.io/Rdatasets/csv/boot/acme.csv')
+dtale$show(df, subprocess=FALSE, open_browser=TRUE)
+```
+
+Now the problem with doing this is that D-Tale is not running as a subprocess so it will block your R console and you'll lose out the following functions:
+ - manipulating the state of your data from your R console
+ - adding more data to D-Tale
+
+`open_browser=TRUE` isn't required and won't work if you don't have a default browser installed on your machine. If you don't use that parameter simply copy & paste the URL that gets printed to your console in the browser of your choice.
+
+I'm going to do some more digging on why R doesn't seem to like using python subprocesses (not sure if it something with how reticulate manages the state of python) and post any findings to this thread.
+
+Here's some helpful links for getting setup:
+
+reticulate
+
+installing python packages
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
