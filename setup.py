@@ -78,16 +78,16 @@ setup(
         'r': [
             "rpy2<=2.8.6; python_version < '3.0'",
             "rpy2; python_version > '3.0'",
+        ],
+        'redis': ["redislite"],
+        'tests': [
+            "ipython",
+            "mock",
+            "pytest==4.6.4",
+            "pytest-cov",
+            "pytest-server-fixtures",
         ]
     },
-    tests_require=[
-        "ipython",
-        "mock",
-        "pytest==4.6.4",
-        "pytest-cov",
-        "pytest-server-fixtures",
-        "arctic",
-    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",

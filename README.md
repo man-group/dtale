@@ -661,6 +661,12 @@ $ python
 ```
 Then view your D-Tale instance in your browser using the link that gets printed
 
+
+### Global State/Data Storage
+
+If D-Tale is running in an environment with multiple python processes (ex: on a web server running [gunicorn](https://github.com/benoitc/gunicorn)) it will most likely encounter issues with inconsistent state.  Developers can fix this by configuring the system D-Tale uses for storing data.  Detailed documentation is available here: [Data Storage and managing Global State](https://github.com/man-group/dtale/blob/master/docs/GLOBAL_STATE.md)
+
+
 ## Startup Behavior
 
 Here's a little background on how the `dtale.show()` function works:
