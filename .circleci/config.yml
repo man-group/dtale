@@ -96,6 +96,9 @@ defaults: &defaults
          set -e
          . ci/bin/activate
          export TZ=America/New_York
+         pip install -e ".[arctic]"
+         pip install -e ".[redis]"
+         pip install -e ".[tests]"
          python setup.py test
          bash <(curl -s https://codecov.io/bash) -c -F python
          cp -r ./htmlcov /tmp/circleci-test-results
