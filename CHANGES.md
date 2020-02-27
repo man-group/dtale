@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.7.11 (2020-2-27)
+ * hotfix for dash custom.js file missing from production webpack build script
+
 ### 1.7.10 (2020-2-27)
  * [#75](https://github.com/man-group/dtale/issues/75), added code snippet functionality to the following:
    * main grid, histogram, correlations, column building & charts

@@ -127,7 +127,14 @@ function createConfig(entry) {
   };
 }
 
-function createDashConfig(entryName, entryPath) {
+const dashEntries = [
+  ["components", "./static/dash/lib/index.js"],
+  ["custom", "./static/dash/lib/custom.js"],
+];
+
+function createDashConfig(entry) {
+  const entryName = entry[0];
+  const entryPath = entry[1];
   return {
     mode: "development",
     entry: path.resolve(__dirname, entryPath),
@@ -135,7 +142,7 @@ function createDashConfig(entryName, entryPath) {
       path: path.resolve(__dirname, "./dtale/static/dash"),
       filename: entryName + "_bundle.js",
       publicPath: "/dash/",
-      library: "components",
+      library: entryName,
       libraryTarget: "window",
     },
     devtool: "source-map",
@@ -180,8 +187,4 @@ function createDashConfig(entryName, entryPath) {
   };
 }
 
-module.exports = _.concat(
-  _.map(entries, createConfig),
-  createDashConfig("components", "./static/dash/lib/index.js"),
-  createDashConfig("custom", "./static/dash/lib/custom.js")
-);
+module.exports = _.concat(_.map(entries, createConfig), _.map(dashEntries, createDashConfig));

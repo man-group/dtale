@@ -41,5 +41,8 @@ module.exports = _.concat(
     _.filter(baseConfig, c => !_.endsWith(c.output.path, "dtale/static/dash")),
     createConfig
   ),
-  createDashConfig(_.find(baseConfig, c => _.endsWith(c.output.path, "dtale/static/dash")))
+  _.map(
+    _.filter(baseConfig, c => _.endsWith(c.output.path, "dtale/static/dash")),
+    createDashConfig
+  )
 );
