@@ -53,5 +53,7 @@
     "2.4",
     "2.7",
     "3.0"
-  ]
+  ],
+  "type": "histogram",
+  "dtype": "float64"
 }

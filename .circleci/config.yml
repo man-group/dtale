@@ -5,7 +5,7 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.7.11
+      VERSION: 1.7.12
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
@@ -32,6 +32,15 @@ defaults: &defaults
         key: yarn-packages-{{ checksum "yarn.lock" }}
         paths:
           - ~/.cache/yarn
+    - run:
+        name: Install MongoDB
+        command: |
+          # run "cat /etc/os-release" to view information about the OS
+          # this article really helped with this madness: https://linuxize.com/post/how-to-install-mongodb-on-debian-9/
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+          echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-org
     - run:
         name: Lint & Format JS Code
         command: |
@@ -95,7 +104,8 @@ defaults: &defaults
         command: |
           if [ "${CIRCLE_BRANCH}" == "master" ]; then
             # the 'latest' URL redirects to the name of the latest tag.
-            export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+            # export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+            export PANDOC_VERSION=2.9.2
             echo $PANDOC_VERSION
             export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
             echo $PANDOC_FILE

@@ -8,7 +8,7 @@ import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
 import menuFuncs from "../dataViewerMenuUtils";
-import { isStringCol, SORT_PROPS } from "../gridUtils";
+import { SORT_PROPS } from "../gridUtils";
 import serverState from "../serverStateManagement";
 
 require("./ColumnMenu.css");
@@ -182,16 +182,14 @@ class ReactColumnMenu extends React.Component {
               </button>
             </span>
           </li>
-          <ConditionalRender display={!isStringCol(_.get(colCfg, "dtype", ""))}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={openPopup("histogram", 450, 400)}>
-                  <i className="ico-equalizer" />
-                  <span className="font-weight-bold">Histogram</span>
-                </button>
-              </span>
-            </li>
-          </ConditionalRender>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openPopup("column-analysis", 425, 810)}>
+                <i className="ico-equalizer" />
+                <span className="font-weight-bold">Column Analysis</span>
+              </button>
+            </span>
+          </li>
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openFormatting}>

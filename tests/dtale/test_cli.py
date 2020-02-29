@@ -71,33 +71,23 @@ def test_main(builtin_pkg):
         df = data_loader()
         pdt.assert_frame_equal(df, pd.DataFrame([dict(a=1, b=2, c=3)]), 'loader should load json')
 
-    orig_import = __import__
-    mock_arctic = mock.Mock()
-    mock_versioned_item = mock.Mock()
 
-    class VersionedItem(object):
-        __name__ = 'VersionedItem'
+@pytest.mark.unit
+def test_arctic_loader(mongo_host, library_name, library, chunkstore_name, chunkstore_lib):
 
-        def __init__(self):
-            pass
-
-    mock_versioned_item.VersionedItem = VersionedItem
-
-    def import_mock(name, *args, **kwargs):
-        if name == 'arctic':
-            return mock_arctic
-        if name == 'arctic.store.versioned_item':
-            return mock_versioned_item
-        return orig_import(name, *args, **kwargs)
+    node = pd.DataFrame([
+        {'date': pd.Timestamp('20000101'), 'a': 1, 'b': 1.0},
+        {'date': pd.Timestamp('20000102'), 'a': 2, 'b': 2.0},
+    ]).set_index(['date', 'a'])
+    chunkstore_lib.write('test_node', node)
 
     with ExitStack() as stack:
         mock_show = stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
-        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         args = [
             '--port', '9999',
-            '--arctic-host', 'arctic_host',
-            '--arctic-library', 'arctic_lib',
-            '--arctic-node', 'arctic_node',
+            '--arctic-host', mongo_host,
+            '--arctic-library', chunkstore_name,
+            '--arctic-node', 'test_node',
             '--arctic-start', '20000101',
             '--arctic-end', '20000102'
         ]
@@ -105,34 +95,26 @@ def test_main(builtin_pkg):
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs['data_loader'] is not None
-        kwargs['data_loader']()
-        assert mock_arctic.Arctic.call_args[0][0] == 'arctic_host'
-        mock_arctic_instance = mock_arctic.Arctic.return_value
-        assert mock_arctic_instance.get_library.call_args[0][0] == 'arctic_lib'
-        mock_arctic_lib_instance = mock_arctic_instance.get_library.return_value
-        args, kwargs = mock_arctic_lib_instance.read.call_args
-        assert args[0] == 'arctic_node'
-        assert kwargs['chunk_range'].min() == pd.Timestamp('20000101')
-        assert kwargs['chunk_range'].max() == pd.Timestamp('20000102')
+        pdt.assert_frame_equal(kwargs['data_loader'](), node)
 
+    node2 = pd.DataFrame([
+        {'date': pd.Timestamp('20000101'), 'a': 1, 'b': 1.0},
+        {'date': pd.Timestamp('20000102'), 'a': 2, 'b': 2.0},
+    ]).set_index(['date', 'a'])
+    library.write('test_node2', node2)
     with ExitStack() as stack:
         mock_show = stack.enter_context(mock.patch('dtale.cli.script.show', mock.Mock()))
-        stack.enter_context(mock.patch('{}.__import__'.format(builtin_pkg), side_effect=import_mock))
         args = [
             '--port', '9999',
-            '--arctic-host', 'arctic_host',
-            '--arctic-library', 'arctic_lib',
-            '--arctic-node', 'arctic_node',
+            '--arctic-host', mongo_host,
+            '--arctic-library', library_name,
+            '--arctic-node', 'test_node2',
         ]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs['data_loader'] is not None
-        kwargs['data_loader']()
-        mock_arctic_instance = mock_arctic.Arctic.return_value
-        mock_arctic_lib_instance = mock_arctic_instance.get_library.return_value
-        args, kwargs = mock_arctic_lib_instance.read.call_args
-        assert 'chunk_range' not in kwargs
+        pdt.assert_frame_equal(kwargs['data_loader'](), node2)
 
 
 @pytest.mark.unit

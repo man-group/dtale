@@ -984,14 +984,15 @@ def get_data(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
-@dtale.route('/histogram/<data_id>')
-def get_histogram(data_id):
+@dtale.route('/column-analysis/<data_id>')
+def get_column_analysis(data_id):
     """
-    :class:`flask:flask.Flask` route which returns output from numpy.histogram to front-end as JSON
+    :class:`flask:flask.Flask` route which returns output from numpy.histogram/pd.value_counts to front-end as JSON
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
     :param col: string from flask.request.args['col'] containing name of a column in your dataframe
+    :param type: string from flask.request.args['type'] to signify either a histogram or value counts
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param bins: the number of bins to display in your histogram, options on the front-end are 5, 10, 20, 50
     :returns: JSON {results: DATA, desc: output from pd.DataFrame[col].describe(), success: True/False}
@@ -999,6 +1000,7 @@ def get_histogram(data_id):
     try:
         col = get_str_arg(request, 'col', 'values')
         bins = get_int_arg(request, 'bins', 20)
+        data_type = get_str_arg(request, 'type') or 'histogram'
         data = run_query(
             global_state.get_data(data_id),
             get_str_arg(request, 'query'),
@@ -1006,15 +1008,29 @@ def get_histogram(data_id):
         )
         selected_col = find_selected_column(data, col)
         data = data[~pd.isnull(data[selected_col])][[selected_col]]
-        hist = np.histogram(data, bins=bins)
 
-        desc, desc_code = load_describe(data[selected_col])
         code = build_code_export(data_id, imports='import numpy as np\nimport pandas as pd\n\n')
-        code.append("hist = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
-            col=selected_col, bins=bins))
-        code += desc_code
-        return jsonify(data=[json_float(h) for h in hist[0]], labels=['{0:.1f}'.format(l) for l in hist[1]],
-                       desc=desc, code='\n'.join(code))
+        dtype = get_dtypes(data)[selected_col]
+        classifier = classify_type(dtype)
+        if classifier in ['S', 'D'] or data_type != 'histogram':
+            hist = pd.value_counts(data[selected_col]).reset_index()
+            hist.columns = ['labels', 'data']
+            col_types = grid_columns(hist)
+            f = grid_formatter(col_types, nan_display=None)
+            return_data = f.format_lists(hist)
+            return_data['dtype'] = dtype
+            return_data['chart_type'] = 'value_counts'
+            code.append("hist = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(col=selected_col))
+        else:
+            hist_data, hist_labels = np.histogram(data, bins=bins)
+            hist_data = [json_float(h) for h in hist_data]
+            hist_labels = ['{0:.1f}'.format(l) for l in hist_labels]
+            code.append("hist = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
+                col=selected_col, bins=bins))
+            desc, desc_code = load_describe(data[selected_col])
+            code += desc_code
+            return_data = dict(labels=hist_labels, data=hist_data, desc=desc, dtype=dtype, chart_type='histogram')
+        return jsonify(code='\n'.join(code), **return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 

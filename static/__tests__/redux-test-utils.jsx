@@ -6,9 +6,9 @@ import dtaleApp from "../reducers/dtale";
 import { createStore } from "../reducers/store";
 import chartsData from "./data/charts";
 import groupedChartsData from "./data/charts-grouped";
+import columnAnalysisData from "./data/column-analysis";
 import correlationsData from "./data/correlations";
 import correlationsTsData from "./data/correlations-ts";
-import histogramData from "./data/histogram";
 import scatterData from "./data/scatter";
 
 const pjson = require("../../package.json");
@@ -146,8 +146,8 @@ function urlFetcher(url) {
       return { error: "No data found" };
     }
     return DATA;
-  } else if (_.startsWith(url, "/dtale/histogram")) {
-    return _.assignIn({ code: "historgram code test" }, histogramData);
+  } else if (_.startsWith(url, "/dtale/column-analysis")) {
+    return _.assignIn({ code: "column analysis code test" }, columnAnalysisData);
   } else if (_.startsWith(url, "/dtale/correlations-ts")) {
     return _.assignIn({ code: "correlations ts code test" }, correlationsTsData);
   } else if (_.startsWith(url, "/dtale/correlations/")) {

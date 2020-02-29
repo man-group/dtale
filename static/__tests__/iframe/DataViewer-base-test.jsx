@@ -11,7 +11,7 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton, clickColMenuSubButton, findColMenuButton } from "./iframe-utils";
+import { clickColMenuButton, clickColMenuSubButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -95,7 +95,7 @@ describe("DataViewer iframe tests", () => {
     window.self = self;
   });
 
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
+  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
     const Header = require("../../dtale/Header").ReactHeader;
@@ -169,7 +169,7 @@ describe("DataViewer iframe tests", () => {
       );
       t.deepEqual(
         colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-        ["Lock", "Hide", "Describe", "Histogram", "Formats"],
+        ["Lock", "Hide", "Describe", "Column Analysis", "Formats"],
         "Should render column menu options"
       );
       clickColMenuSubButton(result, "Asc");
@@ -282,14 +282,13 @@ describe("DataViewer iframe tests", () => {
             .find(".main-grid div.headerCell div")
             .last()
             .simulate("click");
-          t.equal(findColMenuButton(result, "Histogram").length, 0, "string col shouldn't have histogram button");
           result
             .find(".main-grid div.headerCell div")
             .at(2)
             .simulate("click");
-          clickColMenuButton(result, "Histogram");
+          clickColMenuButton(result, "Column Analysis");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-            "/dtale/popup/histogram/1?selectedCol=col2"
+            "/dtale/popup/column-analysis/1?selectedCol=col2"
           );
           clickColMenuButton(result, "Describe");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(

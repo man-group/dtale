@@ -1,9 +1,13 @@
 import PropTypes from "prop-types";
 import React from "react";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 import { canCopy, CopyToClipboard } from "../CopyToClipboard";
 import { JSAnchor } from "../JSAnchor";
 import menuFuncs from "../dtale/dataViewerMenuUtils";
+
+require("./CodePopup.css");
 
 function renderCodePopupAnchor(code, title) {
   const onClick = () => {
@@ -13,7 +17,7 @@ function renderCodePopupAnchor(code, title) {
   return (
     <JSAnchor onClick={onClick}>
       <i className="ico-code pr-3" />
-      <span>Code Snippet</span>
+      <span>Code Export</span>
     </JSAnchor>
   );
 }
@@ -43,8 +47,10 @@ class CodePopup extends React.Component {
 
   render() {
     return [
-      <div key="body" className="modal-body">
-        <pre style={{ height: 350 }}>{this.props.code}</pre>
+      <div key="body" className="modal-body code-popup-modal">
+        <SyntaxHighlighter language="python" style={docco}>
+          {this.props.code || ""}
+        </SyntaxHighlighter>
       </div>,
       this.renderCopyToClipboard(),
     ];

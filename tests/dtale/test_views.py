@@ -676,10 +676,10 @@ stats = df['foo'].describe().to_frame().T'''
 
 
 @pytest.mark.unit
-def test_get_histogram(unittest, test_data):
+def test_get_column_analysis(unittest, test_data):
     with app.test_client() as c:
         with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
-            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
+            response = c.get('/dtale/column-analysis/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=[
@@ -689,7 +689,9 @@ def test_get_histogram(unittest, test_data):
                 data=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 desc={
                     'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
-                }
+                },
+                chart_type='histogram',
+                dtype='int64'
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -698,14 +700,16 @@ def test_get_histogram(unittest, test_data):
             )
             unittest.assertEqual(response_data['code'], HISTOGRAM_CODE)
 
-            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo', bins=5))
+            response = c.get('/dtale/column-analysis/{}'.format(c.port), query_string=dict(col='foo', bins=5))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
                 data=[0, 0, 50, 0, 0],
                 desc={
                     'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
-                }
+                },
+                chart_type='histogram',
+                dtype='int64'
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -713,7 +717,7 @@ def test_get_histogram(unittest, test_data):
                 'should return 5-bin histogram for foo'
             )
 
-            response = c.get('/dtale/histogram/{}'.format(c.port),
+            response = c.get('/dtale/column-analysis/{}'.format(c.port),
                              query_string=dict(col='foo', bins=5, query='security_id > 10'))
             response_data = json.loads(response.data)
             expected = dict(
@@ -721,7 +725,9 @@ def test_get_histogram(unittest, test_data):
                 data=[0, 0, 39, 0, 0],
                 desc={
                     'count': '39', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
-                }
+                },
+                chart_type='histogram',
+                dtype='int64'
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -729,12 +735,19 @@ def test_get_histogram(unittest, test_data):
                 'should return a filtered 5-bin histogram for foo'
             )
 
+            response = c.get(
+                '/dtale/column-analysis/{}'.format(c.port),
+                query_string=dict(col='foo', type='value_counts')
+            )
+            response_data = json.loads(response.data)
+            assert response_data['chart_type'] == 'value_counts'
+
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('numpy.histogram', mock.Mock(side_effect=Exception('histogram failure'))))
 
-            response = c.get('/dtale/histogram/{}'.format(c.port), query_string=dict(col='foo'))
+            response = c.get('/dtale/column-analysis/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data['error'], 'histogram failure', 'should handle histogram exception')
 

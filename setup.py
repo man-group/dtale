@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.7.11",
+    version="1.7.12",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -85,6 +85,8 @@ setup(
         "mock",
         "pytest==4.6.4",
         "pytest-cov",
+        "pytest-server-fixtures",
+        "arctic",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

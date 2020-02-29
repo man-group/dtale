@@ -152,4 +152,4 @@ CreateDatetime.propTypes = {
   columns: PropTypes.array,
 };
 
-export { CreateDatetime, validateDatetimeCfg };
+export { CreateDatetime, validateDatetimeCfg, buildCode };
