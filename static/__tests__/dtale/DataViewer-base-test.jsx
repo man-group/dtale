@@ -77,7 +77,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, histograms,...", done => {
+  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();

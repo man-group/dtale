@@ -138,4 +138,4 @@ CreateBins.propTypes = {
   columns: PropTypes.array,
 };
 
-export { CreateBins, validateBinsCfg };
+export { CreateBins, validateBinsCfg, buildCode };

@@ -1,5 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 import { canCopy, CopyToClipboard } from "../CopyToClipboard";
 import { RemovableError } from "../RemovableError";
@@ -54,7 +56,9 @@ class CodeExport extends React.Component {
     }
     return [
       <div key="body" className="modal-body">
-        <pre>{this.state.code}</pre>
+        <SyntaxHighlighter language="python" style={docco}>
+          {this.state.code || ""}
+        </SyntaxHighlighter>
       </div>,
       this.renderCopyToClipboard(),
     ];

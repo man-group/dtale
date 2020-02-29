@@ -9,8 +9,10 @@ import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
-const HISTOGRAM_DATA = {
+const ANALYSIS_DATA = {
   desc: { count: 20 },
+  chart_type: "histogram",
+  dtype: "float64",
   data: [6, 13, 13, 30, 34, 57, 84, 135, 141, 159, 170, 158, 126, 94, 70, 49, 19, 7, 9, 4],
   labels: [
     "-3.0",
@@ -41,14 +43,14 @@ const props = {
   dataId: "1",
   chartData: {
     visible: true,
-    type: "histogram",
-    title: "Histogram Test",
+    type: "column-analysis",
+    title: "ColumnAnalysis Test",
     selectedCol: "bar",
     query: "col == 3",
   },
 };
 
-describe("Histogram tests", () => {
+describe("ColumnAnalysis tests", () => {
   beforeAll(() => {
     const urlParams = qs.stringify({
       bins: 20,
@@ -57,17 +59,26 @@ describe("Histogram tests", () => {
     });
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (_.startsWith(url, "/dtale/histogram")) {
-          const query = qs.parse(url.split("?")[1]).query;
-          if (query === "null") {
+        if (_.startsWith(url, "/dtale/column-analysis")) {
+          const params = qs.parse(url.split("?")[1]);
+          if (params.query === "null") {
             return null;
           }
-          if (query === "error") {
-            return { error: "histogram error" };
+          if (params.query === "error") {
+            return { error: "column analysis error" };
+          }
+          if (params.col === "intCol") {
+            return _.assignIn({}, ANALYSIS_DATA, { dtype: "int64" });
+          }
+          if (params.col === "dateCol") {
+            return _.assignIn({}, ANALYSIS_DATA, { dtype: "datetime" });
+          }
+          if (params.col === "strCol") {
+            return _.assignIn({}, ANALYSIS_DATA, { dtype: "string" });
           }
         }
-        if (_.startsWith(url, "/dtale/histogram/1?" + urlParams)) {
-          return HISTOGRAM_DATA;
+        if (_.startsWith(url, "/dtale/column-analysis/1?" + urlParams)) {
+          return ANALYSIS_DATA;
         }
         return {};
       })
@@ -92,21 +103,22 @@ describe("Histogram tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
-  test("Histogram rendering data", done => {
-    const Histogram = require("../../popups/Histogram").ReactHistogram;
+  test("ColumnAnalysis rendering float data", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
     buildInnerHTML();
-    const result = mount(<Histogram {...props} />, {
+    const result = mount(<ColumnAnalysis {...props} />, {
       attachTo: document.getElementById("content"),
     });
-    t.deepEqual(result.find("input").prop("value"), "20", "Should render default bins");
 
     let chart = null;
     setTimeout(() => {
       result.update();
+      t.deepEqual(result.find("input").prop("value"), "20", "Should render default bins");
+
       chart = result.state("chart");
       t.equal(chart.cfg.type, "bar", "should create bar chart");
-      t.deepEqual(_.get(chart, "cfg.data.datasets[0].data"), HISTOGRAM_DATA.data, "should load data");
-      t.deepEqual(_.get(chart, "cfg.data.labels"), HISTOGRAM_DATA.labels, "should load labels");
+      t.deepEqual(_.get(chart, "cfg.data.datasets[0].data"), ANALYSIS_DATA.data, "should load data");
+      t.deepEqual(_.get(chart, "cfg.data.labels"), ANALYSIS_DATA.labels, "should load labels");
       const xlabel = _.get(chart, "cfg.options.scales.xAxes[0].scaleLabel.labelString");
       t.equal(xlabel, "Bin", "should display correct x-axis label");
 
@@ -138,11 +150,56 @@ describe("Histogram tests", () => {
     }, 200);
   });
 
-  test("Histogram missing data", done => {
-    const Histogram = require("../../popups/Histogram").ReactHistogram;
+  test("ColumnAnalysis rendering int data", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
+    buildInnerHTML();
+    const currProps = _.assignIn({}, props);
+    currProps.chartData.selectedCol = "intCol";
+    const result = mount(<ColumnAnalysis {...currProps} />, {
+      attachTo: document.getElementById("content"),
+    });
+
+    setTimeout(() => {
+      result.update();
+      done();
+    }, 200);
+  });
+
+  test("ColumnAnalysis rendering string data", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
+    buildInnerHTML();
+    const currProps = _.assignIn({}, props);
+    currProps.chartData.selectedCol = "strCol";
+    const result = mount(<ColumnAnalysis {...currProps} />, {
+      attachTo: document.getElementById("content"),
+    });
+
+    setTimeout(() => {
+      result.update();
+      done();
+    }, 200);
+  });
+
+  test("ColumnAnalysis rendering date data", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
+    buildInnerHTML();
+    const currProps = _.assignIn({}, props);
+    currProps.chartData.selectedCol = "dateCol";
+    const result = mount(<ColumnAnalysis {...currProps} />, {
+      attachTo: document.getElementById("content"),
+    });
+
+    setTimeout(() => {
+      result.update();
+      done();
+    }, 200);
+  });
+
+  test("ColumnAnalysis missing data", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
     const currProps = _.clone(props);
     currProps.chartData.query = "null";
-    const result = mount(<Histogram {...currProps} />);
+    const result = mount(<ColumnAnalysis {...currProps} />);
     setTimeout(() => {
       result.update();
       t.notOk(result.state("chart"), "should not create chart");
@@ -150,14 +207,14 @@ describe("Histogram tests", () => {
     }, 200);
   });
 
-  test("Histogram error", done => {
-    const Histogram = require("../../popups/Histogram").ReactHistogram;
+  test("ColumnAnalysis error", done => {
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
     const currProps = _.clone(props);
     currProps.chartData.query = "error";
-    const result = mount(<Histogram {...currProps} />);
+    const result = mount(<ColumnAnalysis {...currProps} />);
     setTimeout(() => {
       result.update();
-      t.equal(result.find(RemovableError).text(), "histogram error", "should render error");
+      t.equal(result.find(RemovableError).text(), "column analysis error", "should render error");
       done();
     }, 200);
   });

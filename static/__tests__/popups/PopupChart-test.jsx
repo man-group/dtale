@@ -2,8 +2,8 @@ import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { ReactColumnAnalysis } from "../../popups/ColumnAnalysis";
 import { ReactCorrelations } from "../../popups/Correlations";
-import { ReactHistogram } from "../../popups/Histogram";
 import { ReactCharts } from "../../popups/charts/Charts";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
@@ -16,12 +16,12 @@ class MockReactCorrelations extends React.Component {
 }
 MockReactCorrelations.displayName = "Correlations";
 
-class MockReactHistogram extends React.Component {
+class MockReactColumnAnalysis extends React.Component {
   render() {
-    return <ReactHistogram dataId="1" />;
+    return <ReactColumnAnalysis dataId="1" />;
   }
 }
-MockReactHistogram.displayName = "Histogram";
+MockReactColumnAnalysis.displayName = "ColumnAnalysis";
 
 class MockReactCharts extends React.Component {
   render() {
@@ -40,8 +40,8 @@ describe("Popup tests", () => {
     );
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("../../popups/Histogram", () => ({
-      Histogram: MockReactHistogram,
+    jest.mock("../../popups/ColumnAnalysis", () => ({
+      ColumnAnalysis: MockReactColumnAnalysis,
     }));
     jest.mock("../../popups/Correlations", () => ({
       Correlations: MockReactCorrelations,
@@ -51,15 +51,15 @@ describe("Popup tests", () => {
     }));
   });
 
-  test("Popup w/ Histogram initial rendering", () => {
+  test("Popup w/ ColumnAnalysis initial rendering", () => {
     const ReactPopup = require("../../popups/Popup").ReactPopup;
 
     const props = {
       dataId: "1",
       chartData: {
         visible: true,
-        type: "histogram",
-        title: "Histogram Test",
+        type: "column-analysis",
+        title: "ColumnAnalysis Test",
         selectedCol: "foo",
       },
     };
@@ -72,8 +72,8 @@ describe("Popup tests", () => {
         .map(n => n.text()),
       ""
     ).trim();
-    t.equal(title, "Histogram for foo", "Should render correct title");
-    t.ok(result.find("Histogram").length, "should render histogram canvas");
+    t.equal(title, "Column Analysis for foo", "Should render correct title");
+    t.ok(result.find("ColumnAnalysis").length, "should render column analysis canvas");
   });
 
   test("Popup w/ Correlations initial rendering", () => {

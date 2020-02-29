@@ -39,7 +39,7 @@ function buildCode({ left, operation, right }) {
     if (!col) {
       return null;
     }
-    code += `df['${col}'] `;
+    code += `df['${col}']`;
   } else {
     if (_.isNull(left.val) || left.val === "") {
       return null;
@@ -52,7 +52,7 @@ function buildCode({ left, operation, right }) {
     if (!col) {
       return null;
     }
-    code += `df['${col}'] `;
+    code += `df['${col}']`;
   } else {
     if (_.isNull(right.val) || right.val === "") {
       return null;
@@ -199,4 +199,4 @@ CreateNumeric.propTypes = {
   columns: PropTypes.array,
 };
 
-export { CreateNumeric, validateNumericCfg };
+export { CreateNumeric, validateNumericCfg, buildCode };

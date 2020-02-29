@@ -20,7 +20,7 @@ describe("Popup redux tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  test("Popup redux rendering", () => {
+  test("Popup redux rendering", done => {
     const chartActions = require("../../actions/charts");
     const Popup = require("../../popups/Popup").Popup;
 
@@ -35,15 +35,18 @@ describe("Popup redux tests", () => {
 
     store.dispatch(
       chartActions.openChart({
-        type: "histogram",
+        type: "column-analysis",
         node: "foo",
         col: "bar",
         query: "baz",
-        title: "Histogram Test",
+        title: "ColumnAnalysis Test",
       })
     );
-    result.update();
+    setTimeout(() => {
+      result.update();
 
-    t.ok(result.find("#universeHistogram").length, "should render histogram canvas");
+      t.ok(result.find("#columnAnalysisChart").length, "should render column analysis canvas");
+      done();
+    }, 400);
   });
 });

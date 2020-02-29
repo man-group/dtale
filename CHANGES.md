@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.7.12 (2020-3-1)
+ * added syntax highlighting to code exports with react-syntax-highlighting
+ * added arctic integration test
+ * updated Histogram popup to "Column Analysis" which allows for the following
+   * Histograms -> integers and floats
+   * Value Counts -> integers, strings & dates
+
 ### 1.7.11 (2020-2-27)
  * hotfix for dash custom.js file missing from production webpack build script
 

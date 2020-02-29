@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+from pkg_resources import parse_version
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options
@@ -20,6 +21,10 @@ def show_loader(**kwargs):
     return show(data_loader=lambda: loader_func(**kwargs), **kwargs)
 
 
+def is_pandas1():
+    return parse_version(pd.__version__) >= parse_version('1.0.0')
+
+
 def loader_func(**kwargs):
     path = kwargs.pop('path')
     normalize = kwargs.pop('normalize', False)
@@ -31,7 +36,8 @@ def loader_func(**kwargs):
         resp = requests.get(path, **req_kwargs)
         path = resp.json() if normalize else resp.text
     if normalize:
-        return pd.io.json.json_normalize(path, **kwargs)
+        normalize_func = pd.json_normalize if is_pandas1() else pd.io.json.json_normalize
+        return normalize_func(path, **kwargs)
     return pd.read_json(path, **{k: v for k, v in kwargs.items() if k in LOADER_PROPS})
 
 

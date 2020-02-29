@@ -4562,7 +4562,8 @@ div.build-modal > div.modal-lg {
   div.build-modal > div.modal-lg {
     max-width: 720px;
   }
-  div.histogram-modal > div.modal-lg {
+  div.histogram-modal > div.modal-lg,
+  div.code-modal > div.modal-lg {
     max-width: 700px;
   }
 }

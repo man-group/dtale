@@ -8,9 +8,9 @@ import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
 import About from "./About";
 import { CodeExport } from "./CodeExport";
+import { ColumnAnalysis } from "./ColumnAnalysis";
 import { Correlations } from "./Correlations";
 import { Describe } from "./Describe";
-import { Histogram } from "./Histogram";
 import Instances from "./Instances";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
@@ -36,16 +36,16 @@ class ReactPopup extends React.Component {
     const { chartData } = this.props;
     const { type, title, visible, size, backdrop } = chartData;
     switch (type) {
-      case "histogram":
+      case "column-analysis":
         modalTitle = (
           <ModalTitle>
             <i className="ico-equalizer" />
-            {" Histogram for "}
+            {" Column Analysis for "}
             <strong>{chartData.selectedCol}</strong>
             <div id="describe" />
           </ModalTitle>
         );
-        body = <Histogram />;
+        body = <ColumnAnalysis />;
         break;
       case "correlations":
         modalTitle = (

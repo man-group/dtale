@@ -60,10 +60,10 @@ describe("DataViewer iframe tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  test("DataViewer: histogram display in a modal", done => {
+  test("DataViewer: column analysis display in a modal", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
-    const Histogram = require("../../popups/Histogram").ReactHistogram;
+    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -102,10 +102,10 @@ describe("DataViewer iframe tests", () => {
         'Column "col2"',
         "should show col2 menu"
       );
-      clickColMenuButton(result, "Histogram");
+      clickColMenuButton(result, "Column Analysis");
       setTimeout(() => {
         result.update();
-        t.equal(result.find(Histogram).length, 1, "should show histogram");
+        t.equal(result.find(ColumnAnalysis).length, 1, "should show column analysis");
         done();
       }, 400);
     }, 600);

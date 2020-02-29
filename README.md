@@ -35,9 +35,9 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Building Columns](#building-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Histogram](#histogram)
+    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Building Columns](#building-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -131,7 +131,7 @@ If you are running ipython<=5.0 then you also have the ability to adjust the siz
 
 One thing of note is that a lot of the modal popups you see in the standard browser version will now open separate browser windows for spacial convienence:
 
-|Column Menus|Correlations|Describe|Histogram|Instances|
+|Column Menus|Correlations|Describe|Column Analysis|Instances|
 |:------:|:------:|:------:|:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Column_menu.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/correlations_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/describe_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/histogram_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/instances_popup.png)|
 
@@ -415,6 +415,19 @@ This will hide any non-float columns (with the exception of the index on the rig
 Turn off Heat Map by clicking menu option again
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap_toggle.png)
 
+#### Code Exports
+
+*Code Exports* are small snippets of code representing the current state of the grid you're viewing including things like:
+ - columns built
+ - filtering
+ - sorting
+
+Other code exports available are:
+ - Column Analysis
+ - Correlations (grid, timeseries chart & scatter chart)
+ - Describe
+ - Charts built using the Chart Builder
+
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
 
@@ -533,10 +546,21 @@ Here's a grid of all the formats available with -123456.789 as input:
 | BPS           | -1234567890BPS |
 | Red Negatives | <span style="color: red;">-123457</span>|
 
-#### Histogram
-Display histograms in any number of bins (default: 20), simply type a new integer value in the bins input
+#### Column Analysis
+Based on the data type of a column different charts will be shown.
+
+| Data Type     | Chart          |
+|---------------|----------------|
+| Integer       | Histogram, Value Counts|
+| Float         | Value Counts   |
+| Date          | Value Counts   |
+| String        | Value Counts   |
+
+*Histograms* can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Histogram.png)
+
+*Value Counts* are a bar chart containing the counts of each unique value in a column.
 
 ### Menu Functions Depending on Browser Dimensions
 Depending on the dimensions of your browser window the following buttons will not open modals, but rather separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)
