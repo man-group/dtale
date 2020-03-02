@@ -169,7 +169,7 @@ def chart_wrapper(data_id, data, url_params=None):
         className='hoverable-click'
     )
     code_snippet = html.A(
-        [html.I(className='ico-code mr-4'), html.Span('Code Snippet')],
+        [html.I(className='ico-code mr-4'), html.Span('Code Export')],
         href='#',
         className='code-snippet-btn',
     )

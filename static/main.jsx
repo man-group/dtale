@@ -45,7 +45,7 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
     case "instances":
       rootNode = <Instances dataId={dataId} iframe={true} />;
       break;
-    case "code":
+    case "code-export":
       rootNode = <CodeExport dataId={dataId} />;
       break;
     case "charts":

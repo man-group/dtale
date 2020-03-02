@@ -1208,7 +1208,7 @@ def test_main():
             response = c.get('/dtale/iframe/{}'.format(c.port))
             assert '<title>D-Tale (test_name)</title>' in str(response.data)
             response = c.get('/dtale/popup/test/{}'.format(c.port), query_string=dict(col='foo'))
-            assert '<title>D-Tale (test_name) - test (col: foo)</title>' in str(response.data)
+            assert '<title>D-Tale (test_name) - Test (col: foo)</title>' in str(response.data)
 
     with app.test_client() as c:
         with ExitStack() as stack:

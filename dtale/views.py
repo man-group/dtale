@@ -536,13 +536,14 @@ def view_popup(popup_type, data_id=None):
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
-    title = '{} - {}'.format(title, popup_type)
+    popup_title = ' '.join([pt.capitalize() for pt in popup_type.split('-')])
+    title = '{} - {}'.format(title, popup_title)
     params = request.args.to_dict()
     if len(params):
         def pretty_print(obj):
             return ', '.join(['{}: {}'.format(k, str(v)) for k, v in obj.items()])
         title = '{} ({})'.format(title, pretty_print(params))
-    return base_render_template('dtale/popup.html', data_id, title=title, js_prefix=popup_type)
+    return base_render_template('dtale/popup.html', data_id, title=title, popup_title=popup_title, js_prefix=popup_type)
 
 
 @dtale.route('/code-popup')

@@ -1,12 +1,10 @@
 import PropTypes from "prop-types";
 import React from "react";
-import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
-import { canCopy, CopyToClipboard } from "../CopyToClipboard";
 import { RemovableError } from "../RemovableError";
 import { buildURL } from "../actions/url-utils";
 import { fetchJson } from "../fetcher";
+import { CodePopup } from "./CodePopup";
 
 const BASE_CODE_URL = "/dtale/code-export";
 
@@ -14,7 +12,6 @@ class CodeExport extends React.Component {
   constructor(props) {
     super(props);
     this.state = { error: null, code: null };
-    this.renderCopyToClipboard = this.renderCopyToClipboard.bind(this);
   }
 
   componentDidMount() {
@@ -29,23 +26,6 @@ class CodeExport extends React.Component {
     });
   }
 
-  renderCopyToClipboard() {
-    if (canCopy()) {
-      const buttonBuilder = props => (
-        <button className="btn btn-primary" {...props}>
-          <i className="far fa-copy pr-3" />
-          <span>Copy</span>
-        </button>
-      );
-      return (
-        <div key="footer" className="modal-footer">
-          <CopyToClipboard key={1} text={this.state.code} buttonBuilder={buttonBuilder} />
-        </div>
-      );
-    }
-    return null;
-  }
-
   render() {
     if (this.state.error) {
       return (
@@ -54,14 +34,7 @@ class CodeExport extends React.Component {
         </div>
       );
     }
-    return [
-      <div key="body" className="modal-body">
-        <SyntaxHighlighter language="python" style={docco}>
-          {this.state.code || ""}
-        </SyntaxHighlighter>
-      </div>,
-      this.renderCopyToClipboard(),
-    ];
+    return <CodePopup code={this.state.code} />;
   }
 }
 CodeExport.displayName = "CodeExport";

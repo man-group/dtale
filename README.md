@@ -28,6 +28,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
   - [Jupyter Notebook](#jupyter-notebook)
+  - [Jupyterhub w/ Kubernetes](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
   - [Google Colab & Kaggle](#google-colab--kaggle)
   - [R with Reticulate](#r-with-reticulate)
   - [Command-line](#command-line)
@@ -134,6 +135,10 @@ One thing of note is that a lot of the modal popups you see in the standard brow
 |Column Menus|Correlations|Describe|Column Analysis|Instances|
 |:------:|:------:|:------:|:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Column_menu.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/correlations_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/describe_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/histogram_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/instances_popup.png)|
+
+### JupyterHub w/ Kubernetes
+
+Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
 
 ### Google Colab & Kaggle
 

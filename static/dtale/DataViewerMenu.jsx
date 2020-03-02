@@ -19,6 +19,7 @@ class ReactDataViewerMenu extends React.Component {
         this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
       }
     };
+    const openCodeExport = () => menuFuncs.open("/dtale/popup/code-export", dataId, 450, 700);
     const resize = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
@@ -102,7 +103,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("code")}>
+              <button className="btn btn-plain" onClick={openCodeExport}>
                 <i className="ico-code" />
                 <span className="font-weight-bold">Code Export</span>
               </button>
