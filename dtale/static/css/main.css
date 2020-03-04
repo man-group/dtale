@@ -4551,7 +4551,8 @@ button.close {
   }
 }
 
-div.build-modal > div.modal-lg {
+div.build-modal > div.modal-lg,
+div.reshape-modal > div.modal-lg {
   min-width: 720px;
 }
 
@@ -4559,7 +4560,8 @@ div.build-modal > div.modal-lg {
   .modal-lg {
     max-width: 800px;
   }
-  div.build-modal > div.modal-lg {
+  div.build-modal > div.modal-lg,
+  div.reshape-modal > div.modal-lg {
     max-width: 720px;
   }
   div.histogram-modal > div.modal-lg,
@@ -10028,6 +10030,11 @@ select.form-control:focus,
   min-width: 8em;
 }
 
+.modal-footer .bouncer {
+    height: 20px;
+    width: 20px;
+}
+
 @media (min-width: 1200px) {
   .modal-lg {
     max-width: 85em;
@@ -10471,7 +10478,8 @@ div#popup-content > div.modal-body > div.row {
     margin-right: 0;
 }
 
-div.container-fluid.build > div#popup-content > div.modal-body {
+div.container-fluid.build > div#popup-content > div.modal-body,
+div.container-fluid.reshape > div#popup-content > div.modal-body{
   height: 260px;
 }
 
@@ -10479,14 +10487,16 @@ div.container-fluid.describe > div#popup-content > div.modal-body {
   height: 450px;
 }
 
-div.container-fluid.code-popup > div#popup-content > div.modal-footer {
+div.container-fluid.code-popup > div#popup-content > div.modal-footer,
+div.container-fluid.code-export > div#popup-content > div.modal-footer {
   position: absolute;
   bottom: 0;
   width: 100%;
 }
 
 @media (min-height: 330px) {
-  div.container-fluid.build > div#popup-content > div.modal-footer {
+  div.container-fluid.build > div#popup-content > div.modal-footer,
+  div.container-fluid.reshape > div#popup-content > div.modal-footer{
     position: absolute;
     bottom: 0;
     width: 100%;

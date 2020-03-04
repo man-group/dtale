@@ -11,6 +11,18 @@ StatefulSet, whatever)
   - for `k8s Ingress` take a look at when they list [here](https://kubernetes.io/docs/concepts/services-networking/ingress/)
   - you must configure it ahead of time for which port you D-Tale to run on
   - FYI: we went with traefik.io (think of it as a cluster-wide Nginx reverse proxy)
+- make sure when setting up the multiple target ports use different values for the notebook and D-Tale `port`. Here's an example (this was supported by k8s as `multi-port services`)
+```
+ports:
+  - name: http-notebook
+    port: 80
+    protocol: TCP
+    targetPort: 8888
+  - name: http-notebook-dtale
+    port: 40000
+    protocol: TCP
+    targetPort: 40000
+```
 
 *DISCLAIMER: the Service and Ingress here are created by our own code-tweaked version of JupyterHub*
 
@@ -35,3 +47,5 @@ these environment variables:
 this will kill the previous instance running at 40000 (`DTALE_MIN_PORT`) and replace it with this instance
 *hopefully this scenario won't get hit very often, it hasn't for us*
 
+**Sample Issue Threads**
+- [Failed to connect D-Tale process in hosted notebook](https://github.com/man-group/dtale/issues/95)

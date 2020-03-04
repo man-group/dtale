@@ -25,6 +25,11 @@ function copy(e) {
     .fadeOut(400);
 }
 
+function exportChart(e, href) {
+  e.preventDefault();
+  window.open(href + "&_id=" + new Date().getTime(), "_blank");
+}
+
 window.onload = function() {
   $("body").click(function(e) {
     const target = $(e.target);
@@ -32,6 +37,10 @@ window.onload = function() {
       openCodeSnippet(e);
     } else if (target.parent().is("a.copy-link-btn")) {
       copy(e);
+    } else if (target.is("a.export-chart-btn")) {
+      exportChart(e, target.attr("href"));
+    } else if (target.parent().is("a.export-chart-btn")) {
+      exportChart(e, target.parent().attr("href"));
     }
   });
 };

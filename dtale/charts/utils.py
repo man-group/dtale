@@ -91,6 +91,45 @@ def date_freq_handler(df):
     return _handler
 
 
+def group_filter_handler(col_def, group_val, group_classifier):
+    col_def_segs = col_def.split('|')
+    if len(col_def_segs) > 1:
+        col, freq = col_def_segs
+        if freq == 'WD':
+            return '{}.dt.dayofweek == {}'.format(col, group_val)
+        elif freq == 'H2':
+            return '{}.dt.hour == {}'.format(col, group_val)
+        elif freq == 'H':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.date == '{day}' and {col}.dt.hour == {hour}".format(
+                col=col, day=ts_val.strftime('%Y%m%d'), hour=ts_val.hour
+            )
+        elif freq == 'D':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.date == '{day}'".format(col=col, day=ts_val.strftime('%Y%m%d'))
+        elif freq == 'W':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.year == {year} and {col}.dt.week == {week}".format(
+                col=col, year=ts_val.year, week=ts_val.week
+            )
+        elif freq == 'M':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.year == {year} and {col}.dt.month == {month}".format(
+                col=col, year=ts_val.year, month=ts_val.month
+            )
+        elif freq == 'Q':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.year == {year} and {col}.dt.quarter == {quarter}".format(
+                col=col, year=ts_val.year, quarter=ts_val.quarter
+            )
+        elif freq == 'Y':
+            ts_val = pd.Timestamp(group_val)
+            return "{col}.dt.year == {year}".format(col=col, year=ts_val.year)
+    if group_classifier in ['I', 'F']:
+        return '{col} == {val}'.format(col=col_def, val=group_val)
+    return "{col} == '{val}'".format(col=col_def, val=group_val)
+
+
 def retrieve_chart_data(df, x, y, z, group=None):
     """
     Retrieves data from a dataframe for x, y, z & group inputs complete with date frequency
@@ -110,7 +149,7 @@ def retrieve_chart_data(df, x, y, z, group=None):
     :rtype: :class:`pandas:pandas.DataFrame`
     """
     freq_handler = date_freq_handler(df)
-    cols = [x] + make_list(y) + [z] + make_list(group)
+    cols = [x] + make_list(y) + make_list(z) + make_list(group)
     all_code = []
     all_data = []
     for col in cols:
@@ -141,7 +180,7 @@ def check_all_nan(df, cols=None):
 LIMIT_MSG = 'Dataset exceeds {} records, cannot render. Please apply filter...'
 
 
-def check_exceptions(df, allow_duplicates, data_limit=15000, limit_msg=LIMIT_MSG):
+def check_exceptions(df, allow_duplicates, unlimited_data=False, data_limit=15000, limit_msg=LIMIT_MSG):
     """
     Checker function to test the output of any chart aggregations to see if it is one of the following:
         - too large to be rendered by web client
@@ -161,7 +200,7 @@ def check_exceptions(df, allow_duplicates, data_limit=15000, limit_msg=LIMIT_MSG
     if not allow_duplicates and any(df.duplicated()):
         raise Exception(
             '{} contains duplicates, please specify group or additional filtering'.format(', '.join(df.columns)))
-    if len(df) > data_limit:
+    if not unlimited_data and len(df) > data_limit:
         raise Exception(limit_msg.format(data_limit))
 
 
@@ -222,7 +261,8 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
     ]
 
 
-def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, **kwargs):
+def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, return_raw=False,
+                unlimited_data=False, **kwargs):
     """
     Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
     dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
@@ -250,9 +290,7 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
     x_col = str('x')
     y_cols = make_list(y)
     z_col = kwargs.get('z')
-    z_cols = []
-    if z_col is not None:
-        z_cols = [z_col]
+    z_cols = make_list(z_col)
     if group_col is not None and len(group_col):
         data = data.sort_values(group_col + [x])
         code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(group_col + [x])))
@@ -274,6 +312,8 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
             raise Exception(msg)
 
         data = data.dropna()
+        if return_raw:
+            return data.rename(columns={x_col: x})
         code.append("chart_data = chart_data.dropna()")
         data_f, range_f = build_formatters(data)
         ret_data = dict(
@@ -286,11 +326,13 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
         group_fmt_overrides = {'I': lambda v, as_string: json_int(v, as_string=as_string, fmt='{}')}
         group_fmts = {c: find_dtype_formatter(dtypes[c], overrides=group_fmt_overrides) for c in group_col}
         for group_val, grp in data.groupby(group_col):
-            group_val = '/'.join([
-                group_fmts[gc](gv, as_string=True) for gv, gc in zip(make_list(group_val), group_col)
-            ])
-            ret_data['data'][group_val] = data_f.format_lists(grp)
-        ret_data['dtypes'] = {c: classify_type(dtype) for c, dtype in dtypes.items()}
+
+            def _group_filter():
+                for gv, gc in zip(make_list(group_val), group_col):
+                    classifier = classify_type(dtypes[gc])
+                    yield group_filter_handler(gc, group_fmts[gc](gv, as_string=True), classifier)
+            group_filter = ' and '.join(list(_group_filter()))
+            ret_data['data'][group_filter] = data_f.format_lists(grp)
         return ret_data, code
     sort_cols = [x] + (y_cols if len(z_cols) else [])
     data = data.sort_values(sort_cols)
@@ -303,10 +345,12 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
         data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col)
         code += agg_code
     data = data.dropna()
+    if return_raw:
+        return data.rename(columns={x_col: x})
     code.append("chart_data = chart_data.dropna()")
 
     dupe_cols = [x_col] + (y_cols if len(z_cols) else [])
-    check_exceptions(data[dupe_cols].rename(columns={'x': x}), allow_duplicates,
+    check_exceptions(data[dupe_cols].rename(columns={'x': x}), allow_duplicates, unlimited_data=unlimited_data,
                      data_limit=40000 if len(z_cols) else 15000)
     data_f, range_f = build_formatters(data)
     ret_data = dict(

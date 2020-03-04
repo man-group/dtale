@@ -19,6 +19,30 @@ def test_date_freq_handler():
 
 
 @pytest.mark.unit
+def test_group_filter_handler():
+    s = chart_utils.group_filter_handler('date|WD', 1, 'I')
+    assert s == 'date.dt.dayofweek == 1'
+    s = chart_utils.group_filter_handler('date|H2', 1, 'I')
+    assert s == 'date.dt.hour == 1'
+    s = chart_utils.group_filter_handler('date|H', '20190101', 'D')
+    assert s == "date.dt.date == '20190101' and date.dt.hour == 0"
+    s = chart_utils.group_filter_handler('date|D', '20190101', 'D')
+    assert s == "date.dt.date == '20190101'"
+    s = chart_utils.group_filter_handler('date|W', '20190101', 'D')
+    assert s == 'date.dt.year == 2019 and date.dt.week == 1'
+    s = chart_utils.group_filter_handler('date|M', '20191231', 'D')
+    assert s == "date.dt.year == 2019 and date.dt.month == 12"
+    s = chart_utils.group_filter_handler('date|Q', '20191231', 'D')
+    assert s == "date.dt.year == 2019 and date.dt.quarter == 4"
+    s = chart_utils.group_filter_handler('date|Y', '20191231', 'D')
+    assert s == "date.dt.year == 2019"
+    s = chart_utils.group_filter_handler('foo', 1, 'I')
+    assert s == "foo == 1"
+    s = chart_utils.group_filter_handler('foo', 'bar', 'S')
+    assert s == "foo == 'bar'"
+
+
+@pytest.mark.unit
 def test_build_agg_data():
     with pytest.raises(NotImplementedError):
         chart_utils.build_agg_data(None, None, None, None, 'rolling', z='z')

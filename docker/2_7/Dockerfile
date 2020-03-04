@@ -44,4 +44,4 @@ WORKDIR /app
 
 RUN set -eux \
   ; . /root/.bashrc \
-  ; easy_install dtale-1.7.12-py2.7.egg
+  ; easy_install dtale-1.7.13-py2.7.egg

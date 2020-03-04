@@ -11,8 +11,6 @@ import { RemovableError } from "../RemovableError";
 import * as gu from "../dtale/gridUtils";
 import { fetchJson } from "../fetcher";
 
-const INSTANCES_URL = "/dtale/processes";
-
 require("./Instances.css");
 
 function renderProcessLabel({ start, name }) {
@@ -39,11 +37,21 @@ class Instances extends React.Component {
 
   componentDidMount() {
     this.setState({ loadingProcesses: true });
-    fetchJson(INSTANCES_URL, processes =>
+    fetchJson("/dtale/processes", processes =>
       this.setState({ processes, loadingProcesses: false }, () =>
         $("input#processes").val(_.get(processes, "data.length", 1))
       )
     );
+  }
+
+  cleanup(instance) {
+    fetchJson(`/dtale/cleanup/${instance.data_id}`, data => {
+      if (data.success) {
+        const currProcesses = _.get(this.state, "processes.data") || [];
+        const processes = _.map(_.reject(currProcesses, { data_id: instance.data_id }), p => _.assignIn({}, p));
+        this.setState({ processes: { data: processes } });
+      }
+    });
   }
 
   viewPreview(instance) {
@@ -134,7 +142,6 @@ class Instances extends React.Component {
       return <RemovableError {...this.state.processes} />;
     }
     const processes = this.state.processes.data;
-
     const _rowClass = ({ index }) => {
       if (index < 0) {
         return "";
@@ -146,13 +153,64 @@ class Instances extends React.Component {
         return;
       }
       const currentHost = window.location.origin;
-      const path = this.props.iframe ? "/dtale/iframe/" : "/dtale/main/";
-      window.location.assign(`${currentHost}${path}${rowData.data_id}`);
+      const newLoc = `${currentHost}${this.props.iframe ? "/dtale/iframe/" : "/dtale/main/"}${rowData.data_id}`;
+      if (_.startsWith(window.location.pathname, "/dtale/popup/instances")) {
+        window.opener.location.assign(newLoc);
+        window.close();
+        return;
+      }
+      window.location.assign(newLoc);
     };
-    const viewPreview = rowData => e => {
-      this.viewPreview(rowData);
-      e.stopPropagation();
-    };
+    let previewCol = null,
+      cleanupCol = null;
+    if (_.size(processes) > 1) {
+      const viewPreview = rowData => e => {
+        this.viewPreview(rowData);
+        e.stopPropagation();
+      };
+      previewCol = (
+        <Column
+          width={75}
+          dataKey="data_id"
+          label=""
+          style={{
+            textAlign: "center",
+            paddingRight: ".5em",
+            fontSize: "80%",
+          }}
+          cellRenderer={({ rowData }) => {
+            if (rowData.data_id === this.props.dataId) {
+              return null;
+            }
+            return (
+              <button className="preview-btn" onClick={viewPreview(rowData)}>
+                Preview
+              </button>
+            );
+          }}
+          className="cell"
+        />
+      );
+      const cleanup = rowData => e => {
+        this.cleanup(rowData);
+        e.stopPropagation();
+      };
+      cleanupCol = (
+        <Column
+          width={50}
+          dataKey="data_id"
+          label=""
+          style={{ textAlign: "center" }}
+          cellRenderer={({ rowData }) => {
+            if (rowData.data_id === this.props.dataId) {
+              return null;
+            }
+            return <i className="ico-remove-circle" onClick={cleanup(rowData)} />;
+          }}
+          className="cell"
+        />
+      );
+    }
     return (
       <div key="body" className="modal-body">
         <div className="row">
@@ -172,6 +230,7 @@ class Instances extends React.Component {
                   onRowClick={_rowClick}
                   className="instances"
                   headerClassName="headerCell">
+                  {cleanupCol}
                   <Column
                     dataKey="start"
                     label="Process"
@@ -220,27 +279,7 @@ class Instances extends React.Component {
                     )}
                     className="cell"
                   />
-                  <Column
-                    width={75}
-                    dataKey="data_id"
-                    label=""
-                    style={{
-                      textAlign: "center",
-                      paddingRight: ".5em",
-                      fontSize: "80%",
-                    }}
-                    cellRenderer={({ rowData }) => {
-                      if (rowData.data_id === this.props.dataId) {
-                        return null;
-                      }
-                      return (
-                        <button className="preview-btn" onClick={viewPreview(rowData)}>
-                          Preview
-                        </button>
-                      );
-                    }}
-                    className="cell"
-                  />
+                  {previewCol}
                 </Table>
               )}
             </AutoSizer>

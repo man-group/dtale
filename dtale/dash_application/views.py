@@ -1,5 +1,3 @@
-import json
-import urllib
 from logging import getLogger
 
 import dash
@@ -7,11 +5,10 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from six import PY3
 
 import dtale.global_state as global_state
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
-from dtale.dash_application.charts import build_chart
+from dtale.dash_application.charts import build_chart, chart_url_params
 from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            build_input_options, charts_layout,
                                            show_chart_per_group,
@@ -67,41 +64,6 @@ def add_dash(server):
     init_callbacks(dash_app)
 
     return dash_app.server
-
-
-def get_url_parser():
-    """
-     Returns URL parser based on whether Python 2 or 3 is being used.
-    """
-    if PY3:
-        return urllib.parse.parse_qsl
-    else:
-        try:
-            return urllib.parse_qsl
-        except BaseException:
-            from urlparse import parse_qsl
-            return parse_qsl
-
-
-def chart_url_params(search):
-    """
-    Builds chart parameters by parsing the query string from main URL
-
-    :param search: URL querystring
-    :param search: str
-    :return: dictionary of parsed querystring key/values
-    :rtype: dict
-    """
-    if not search:
-        return {}
-    params = dict(get_url_parser()(search.lstrip('?')))
-    for gp in ['y', 'group', 'yaxis']:
-        if gp in params:
-            params[gp] = json.loads(params[gp])
-    params['cpg'] = 'true' == params.get('cpg')
-    if 'window' in params:
-        params['window'] = int(params['window'])
-    return params
 
 
 def get_data_id(pathname):

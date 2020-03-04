@@ -62,16 +62,14 @@ function buildCode({ left, operation, right }) {
   return code;
 }
 
-const BASE_STATE = {
-  left: { type: "col", col: null, val: null },
-  operation: null,
-  right: { type: "col", col: null, val: null },
-};
-
 class CreateNumeric extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, BASE_STATE);
+    this.state = {
+      left: { type: "col", col: null, val: null },
+      operation: null,
+      right: { type: "col", col: null, val: null },
+    };
     this.updateState = this.updateState.bind(this);
     this.renderOperand = this.renderOperand.bind(this);
   }

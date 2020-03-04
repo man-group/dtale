@@ -85,8 +85,8 @@ describe("DataViewer within iframe tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Build Column", "Correlations", "Charts", "Resize", "Heat Map", "Instances 1"],
-          ["Code Export", "About", "Refresh", "Open Popup", "Shutdown"]
+          ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Resize", "Heat Map"],
+          ["Instances 1", "Code Export", "About", "Refresh", "Open Popup", "Shutdown"]
         ),
         "Should render default iframe menu options"
       );

@@ -38,12 +38,10 @@ function buildCode({ col, operation, bins, labels }) {
   return code;
 }
 
-const BASE_STATE = { col: null, operation: "cut", bins: null, labels: null };
-
 class CreateBins extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assignIn({}, BASE_STATE);
+    this.state = { col: null, operation: "cut", bins: null, labels: null };
     this.updateState = this.updateState.bind(this);
   }
 
@@ -51,8 +49,7 @@ class CreateBins extends React.Component {
     const currState = _.assignIn(this.state, state);
     const cfg = _.pick(currState, ["operation", "bins", "labels"]);
     cfg.col = _.get(currState, "col.value") || null;
-    const code = buildCode(currState);
-    this.setState(currState, () => this.props.updateState({ cfg, code }));
+    this.setState(currState, () => this.props.updateState({ cfg, code: buildCode(currState) }));
   }
 
   render() {

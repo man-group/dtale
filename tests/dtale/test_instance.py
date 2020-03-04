@@ -5,6 +5,8 @@ import pandas as pd
 import pytest
 from six import PY3
 
+from dtale.dash_application.charts import get_url_parser
+
 if PY3:
     from contextlib import ExitStack
 else:
@@ -77,16 +79,23 @@ def test_ipython_notebook_funcs():
         instance = DtaleData(9999, 'http://localhost:9999')
         instance.notebook_correlations(col1='col1', col2='col2')
         mock_iframe.assert_called_once()
-        assert mock_iframe.call_args[0][0] == 'http://localhost:9999/dtale/popup/correlations/9999?col1=col1&col2=col2'
 
-        instance.notebook_charts('col1', 'col2', group=['col3', 'col4'], aggregation='count')
-        charts_url = 'http://localhost:9999/dtale/popup/charts/9999?aggregation=count&group=col3,col4&x=col1&y=col2'
-        assert mock_iframe.call_args[0][0] == charts_url
+        url_parser = get_url_parser()
+        [path, query] = mock_iframe.call_args[0][0].split('?')
+        assert path == 'http://localhost:9999/dtale/popup/correlations/9999'
+        assert dict(url_parser(query)) == dict(col1='col1', col2='col2')
 
-        instance.notebook_charts('col1', 'col2', aggregation='count')
-        charts_url = 'http://localhost:9999/dtale/popup/charts/9999?aggregation=count&x=col1&y=col2'
-        assert mock_iframe.call_args[0][0] == charts_url
+        instance.notebook_charts(x='col1', y='col2', group=['col3', 'col4'], agg='count')
+        [path, query] = mock_iframe.call_args[0][0].split('?')
+        assert path == 'http://localhost:9999/charts/9999'
+        assert dict(url_parser(query)) == dict(chart_type='line', agg='count', group='["col3", "col4"]', x='col1',
+                                               y='["col2"]', cpg='false')
 
-        instance.notebook_charts('col1', 'col2', group=['col3', 'col4'])
-        charts_url = 'http://localhost:9999/dtale/popup/charts/9999?group=col3,col4&x=col1&y=col2'
-        assert mock_iframe.call_args[0][0] == charts_url
+        instance.notebook_charts(x='col1', y='col2', agg='count')
+        [_path, query] = mock_iframe.call_args[0][0].split('?')
+        assert dict(url_parser(query)) == dict(chart_type='line', agg='count', x='col1', y='["col2"]', cpg='false')
+
+        instance.notebook_charts(x='col1', y='col2', group=['col3', 'col4'])
+        [_path, query] = mock_iframe.call_args[0][0].split('?')
+        assert dict(url_parser(query)) == dict(chart_type='line', x='col1', y='["col2"]', group='["col3", "col4"]',
+                                               cpg='false')

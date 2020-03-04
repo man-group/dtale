@@ -6,10 +6,11 @@ from six import PY3
 
 from dtale.app import build_app
 from dtale.dash_application.charts import (build_axes, build_figure_data,
-                                           build_spaced_ticks, chart_wrapper)
+                                           build_spaced_ticks,
+                                           chart_url_params, chart_wrapper,
+                                           get_url_parser)
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout import update_label_for_freq
-from dtale.dash_application.views import chart_url_params, get_url_parser
 
 if PY3:
     from contextlib import ExitStack
@@ -453,8 +454,7 @@ def test_chart_building_bar_and_popup(unittest):
                 {'barmode': 'group',
                  'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickmode': 'array', 'ticktext': [1, 2, 3], 'tickvals': [0, 1, 2], 'tickformat': '.0f',
-                           'title': {'text': 'a'}},
+                 'xaxis': {'tickmode': 'auto', 'nticks': 3, 'tickformat': '.0f', 'title': {'text': 'a'}},
                  'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
                  'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
                             'tickformat': '.0f'}}
@@ -495,6 +495,22 @@ def test_chart_building_line(unittest):
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             assert resp_data['chart-content']['children']['type'] == 'Div'
+
+    df = pd.DataFrame([dict(sec_id=i, y=1) for i in range(15500)])
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                'chart_type': 'line', 'x': 'sec_id', 'y': ['y'], 'z': None, 'group': None, 'agg': None,
+                'window': None, 'rolling_comp': None
+            }
+            chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': None}
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert 'chart-content' in resp_data
 
 
 @pytest.mark.unit
@@ -564,6 +580,7 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             chart_markup = response.get_json()['response']['chart-content']['children']['props']['children'][1]
+            print(chart_markup)
             unittest.assertEqual(
                 chart_markup['props']['figure']['layout']['title'],
                 {'text': 'b by a weighted by c'}
@@ -851,7 +868,7 @@ def test_chart_wrapper(unittest):
 def test_build_spaced_ticks(unittest):
     ticks = range(50)
     cfg = build_spaced_ticks(ticks)
-    assert len(cfg['tickvals']) == 26
+    assert cfg['nticks'] == 26
 
 
 @pytest.mark.unit
@@ -884,3 +901,24 @@ def test_build_chart_type():
 @pytest.mark.unit
 def test_update_label_for_freq(unittest):
     unittest.assertEqual(update_label_for_freq(['date|WD', 'date|D', 'foo']), 'date (Weekday), date, foo')
+
+
+@pytest.mark.unit
+def test_chart_url_params_w_group_filter(unittest):
+    from dtale.dash_application.charts import chart_url_params, chart_url_querystring
+
+    querystring = chart_url_querystring(dict(chart_type='bar', x='foo', y=['bar'], group=['baz']),
+                                        group_filter=dict(group="baz == 'bizzle'"))
+    parsed_params = chart_url_params(querystring)
+    unittest.assertEqual(
+        parsed_params,
+        {'chart_type': 'bar', 'x': 'foo', 'cpg': False, 'y': ['bar'], 'group': ['baz'], 'query': "baz == 'bizzle'"}
+    )
+
+
+@pytest.mark.unit
+def test_build_series_name():
+    from dtale.dash_application.charts import build_series_name
+
+    handler = build_series_name(['foo', 'bar'], chart_per_group=False)
+    assert handler('foo', 'bizz')['name'] == 'bizz/foo'

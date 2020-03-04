@@ -203,11 +203,18 @@ function urlFetcher(url) {
     if (urlParams.name === "error") {
       return { error: "error test" };
     }
+    return { success: true, url: "http://localhost:40000/dtale/main/1" };
+  } else if (_.startsWith(url, "/dtale/reshape")) {
+    if (urlParams.index === "error") {
+      return { error: "error test" };
+    }
     return { success: true };
   } else if (_.startsWith(url, "/dtale/context-variables")) {
     return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
   } else if (_.startsWith(url, "/dtale/code-export")) {
     return { code: "test code" };
+  } else if (_.startsWith(url, "/dtale/cleanup")) {
+    return { success: true };
   }
   return {};
 }

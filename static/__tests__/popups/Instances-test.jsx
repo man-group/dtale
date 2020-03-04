@@ -198,7 +198,14 @@ describe("Instances tests", () => {
             expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
             assignSpy.mockRestore();
             global.window = origWindow;
-            done();
+            result
+              .find(".ico-remove-circle")
+              .first()
+              .simulate("click");
+            setTimeout(() => {
+              result.update();
+              done();
+            }, 400);
           }, 200);
         }, 200);
       }, 200);

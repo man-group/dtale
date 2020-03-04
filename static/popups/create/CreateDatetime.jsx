@@ -35,17 +35,15 @@ function buildCode({ col, operation, property, conversion }) {
   return code;
 }
 
-const BASE_STATE = {
-  col: null,
-  operation: "property",
-  property: null,
-  conversion: null,
-};
-
 class CreateDatetime extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assignIn({}, BASE_STATE);
+    this.state = {
+      col: null,
+      operation: "property",
+      property: null,
+      conversion: null,
+    };
     this.updateState = this.updateState.bind(this);
     this.renderOperationOptions = this.renderOperationOptions.bind(this);
   }

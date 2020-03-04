@@ -46,13 +46,6 @@ def base_layout(github_fork, **kwargs):
                         </div>
                         <div class="col"></div>
                         <div class="col-auto mt-4" style="{back_to_data_padding}">
-                            <a href="#" onclick="javascript:goToLegacy()">
-                                <i class="ico-show-chart mr-4"></i>
-                                <span>Legacy Charts</span>
-                            </a>
-                        </div>
-                        <div class="mt-4">|</div>
-                        <div class="col-auto mt-4" style="{back_to_data_padding}">
                             <a href="#" onclick="javascript:backToData()">
                                 <i class="fas fa-th mr-4"></i>
                                 <span>Back To Data</span>
@@ -453,6 +446,6 @@ def charts_layout(df, settings, **inputs):
             ],
             className='row pt-3 pb-5 charts-filters'
         ),
-        dcc.Loading(html.Div(id='chart-content'), type='circle'),
+        dcc.Loading(html.Div(id='chart-content', style={'height': '70vh'}), type='circle'),
         dcc.Textarea(id="copy-text", style=dict(position='absolute', left='-110%'))
     ], className='charts-body')
