@@ -58,6 +58,14 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openPopup("reshape", 400, 770)}>
+                <i className="fas fa-tools ml-2 mr-4" />
+                <span className="font-weight-bold">Reshape</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("correlations", 1235, 1000)}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>

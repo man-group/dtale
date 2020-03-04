@@ -8,22 +8,22 @@ import { RemovableError } from "../../RemovableError";
 import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
-import { CreateBins, validateBinsCfg } from "./CreateBins";
-import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
-import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
+import { Aggregate, validateAggregateCfg } from "./Aggregate";
+import { Pivot, validatePivotCfg } from "./Pivot";
+import { Transpose, validateTransposeCfg } from "./Transpose";
 
-require("./CreateColumn.css");
+require("./Reshape.css");
 
 const BASE_STATE = {
-  type: "numeric",
-  name: "",
-  cfg: null,
+  type: "pivot",
+  output: "override",
+  cfg: {},
   code: {},
   loadingColumns: true,
-  loadingColumn: false,
+  loadingReshape: false,
 };
 
-class ReactCreateColumn extends React.Component {
+class ReactReshape extends React.Component {
   constructor(props) {
     super(props);
     this.state = _.assign({}, BASE_STATE);
@@ -44,51 +44,46 @@ class ReactCreateColumn extends React.Component {
   }
 
   save() {
-    const { name, type, cfg } = this.state;
-    if (name === "") {
-      this.setState({ error: <RemovableError error="Name is required!" /> });
-      return;
-    }
-    if (_.find(this.state.columns, { name })) {
-      this.setState({
-        error: <RemovableError error={`The column '${name}' already exists!`} />,
-      });
-      return;
-    }
+    const { type, cfg, output } = this.state;
     let error = null;
     switch (type) {
-      case "datetime":
-        error = validateDatetimeCfg(cfg);
+      case "transpose":
+        error = validateTransposeCfg(cfg);
         break;
-      case "bins":
-        error = validateBinsCfg(cfg);
+      case "aggregate":
+        error = validateAggregateCfg(cfg);
         break;
-      case "numeric":
+      case "pivot":
       default:
-        error = validateNumericCfg(cfg);
+        error = validatePivotCfg(cfg);
         break;
     }
     if (!_.isNull(error)) {
       this.setState({ error: <RemovableError error={error} /> });
       return;
     }
-    this.setState({ loadingColumn: true });
-    const createParams = { name, type, cfg: JSON.stringify(cfg) };
-    fetchJson(buildURLString(`/dtale/build-column/${this.props.dataId}?`, createParams), data => {
+    this.setState({ loadingReshape: true });
+    const createParams = { type, cfg: JSON.stringify(cfg), output };
+    fetchJson(buildURLString(`/dtale/reshape/${this.props.dataId}?`, createParams), data => {
       if (data.error) {
         this.setState({
           error: <RemovableError {...data} />,
-          loadingColumn: false,
+          loadingReshape: false,
         });
         return;
       }
-      this.setState({ loadingColumn: false }, () => {
-        if (_.startsWith(window.location.pathname, "/dtale/popup/build")) {
-          window.opener.location.reload();
+      this.setState({ loadingReshape: false }, () => {
+        if (_.startsWith(window.location.pathname, "/dtale/popup/reshape")) {
+          window.opener.location.assign(data.url);
           window.close();
-        } else {
-          this.props.chartData.propagateState({ refresh: true }, this.props.onClose);
+          return;
         }
+        if (output === "new") {
+          this.props.onClose();
+          window.open(data.url, "_blank");
+          return;
+        }
+        window.location.assign(data.url);
       });
     });
   }
@@ -104,34 +99,24 @@ class ReactCreateColumn extends React.Component {
     };
     let body = null;
     switch (this.state.type) {
-      case "numeric":
-        body = <CreateNumeric columns={this.state.columns} updateState={updateState} />;
+      case "transpose":
+        body = <Transpose columns={this.state.columns} updateState={updateState} />;
         break;
-      case "datetime":
-        body = <CreateDatetime columns={this.state.columns} updateState={updateState} />;
+      case "aggregate":
+        body = <Aggregate columns={this.state.columns} updateState={updateState} />;
         break;
-      case "bins":
-        body = <CreateBins columns={this.state.columns} updateState={updateState} />;
+      case "pivot":
+      default:
+        body = <Pivot columns={this.state.columns} updateState={updateState} />;
         break;
     }
     return (
       <div key="body" className="modal-body">
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Name</label>
-          <div className="col-md-8">
-            <input
-              type="text"
-              className="form-control"
-              value={this.state.name || ""}
-              onChange={e => this.setState({ name: e.target.value })}
-            />
-          </div>
-        </div>
-        <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Column Type</label>
+          <label className="col-md-3 col-form-label text-right">Operation</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(["numeric", "bins", "datetime"], (type, i) => {
+              {_.map(["aggregate", "pivot", "transpose"], (type, i) => {
                 const buttonProps = { className: "btn" };
                 if (type === this.state.type) {
                   buttonProps.className += " btn-primary active";
@@ -149,6 +134,33 @@ class ReactCreateColumn extends React.Component {
           </div>
         </div>
         {body}
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">Output</label>
+          <div className="col-md-8">
+            <div className="btn-group">
+              {_.map(
+                [
+                  ["override", "Override Current"],
+                  ["new", "New Instance"],
+                ],
+                ([output, label], i) => {
+                  const buttonProps = { className: "btn" };
+                  if (output === this.state.output) {
+                    buttonProps.className += " btn-primary active";
+                  } else {
+                    buttonProps.className += " btn-primary inactive";
+                    buttonProps.onClick = () => this.setState({ output });
+                  }
+                  return (
+                    <button key={i} {...buttonProps}>
+                      {label}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -178,17 +190,17 @@ class ReactCreateColumn extends React.Component {
       </BouncerWrapper>,
       <div key={1} className="modal-footer">
         {codeMarkup}
-        <button className="btn btn-primary" onClick={this.state.loadingColumn ? _.noop : this.save}>
-          <BouncerWrapper showBouncer={this.state.loadingColumn}>
-            <span>Create</span>
+        <button className="btn btn-primary" onClick={this.state.loadingReshape ? _.noop : this.save}>
+          <BouncerWrapper showBouncer={this.state.loadingReshape}>
+            <span>Execute</span>
           </BouncerWrapper>
         </button>
       </div>,
     ];
   }
 }
-ReactCreateColumn.displayName = "CreateColumn";
-ReactCreateColumn.propTypes = {
+ReactReshape.displayName = "Reshape";
+ReactReshape.propTypes = {
   dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     propagateState: PropTypes.func,
@@ -196,8 +208,8 @@ ReactCreateColumn.propTypes = {
   onClose: PropTypes.func,
 };
 
-const ReduxCreateColumn = connect(
+const ReduxReshape = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactCreateColumn);
-export { ReactCreateColumn, ReduxCreateColumn as CreateColumn };
+)(ReactReshape);
+export { ReactReshape, ReduxReshape as Reshape };

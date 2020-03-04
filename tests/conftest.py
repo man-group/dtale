@@ -1,10 +1,14 @@
 import getpass
+import random
+import string
 import unittest as ut
 
 import numpy as np
 import pandas as pd
 import pytest
 from arctic import CHUNK_STORE, Arctic
+from pandas.tseries.offsets import Day
+from past.utils import old_div
 from six import PY3
 
 
@@ -74,6 +78,32 @@ def rolling_data():
     c = 5
     data = np.random.random((n, c))
     return pd.DataFrame(data, index=ii)
+
+
+@pytest.fixture(scope="module")
+def custom_data(request):
+    rows = request.param.get('rows', 100)
+    columns = request.param.get('cols', 10)
+    no_of_dates = request.param.get('dates', 364)
+
+    now = pd.Timestamp(pd.Timestamp('now').date())
+    dates = pd.date_range(now - Day(no_of_dates), now)
+    num_of_securities = max(old_div(rows, len(dates)), 1)  # always have at least one security
+
+    def _add_date(date, security_data):
+        return {k: date if k == 'date' else security_data[k] for k in list(security_data.keys()) + ['date']}
+    securities = [
+        dict(security_id=100000 + sec_id, int_val=random.randint(1, 100000000000),
+             str_val=random.choice(string.ascii_letters) * 5)
+        for sec_id in range(num_of_securities)
+    ]
+    data = pd.concat([
+        pd.DataFrame([_add_date(date, sd) for sd in securities])
+        for date in dates
+    ], ignore_index=True)[['date', 'security_id', 'int_val', 'str_val']]
+    col_names = ['Col{}'.format(c) for c in range(columns)]
+    data = pd.concat([data, pd.DataFrame(np.random.randn(len(data), columns), columns=col_names)], axis=1)
+    return data
 
 
 @pytest.fixture(scope="module")

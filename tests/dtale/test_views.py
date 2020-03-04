@@ -197,22 +197,26 @@ def test_update_settings(unittest):
     settings = json.dumps(dict(locked=['a', 'b']))
 
     with app.test_client() as c:
-        with mock.patch(
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
+            mock_render_template = stack.enter_context(mock.patch(
                 'dtale.views.render_template', mock.Mock(return_value=json.dumps(dict(success=True)))
-        ) as mock_render_template:
-            response = c.get('/dtale/update-settings/1', query_string=dict(settings=settings))
+            ))
+            response = c.get('/dtale/update-settings/{}'.format(c.port), query_string=dict(settings=settings))
             assert response.status_code == 200, 'should return 200 response'
 
-            c.get('/dtale/main/1')
+            c.get('/dtale/main/{}'.format(c.port))
             _, kwargs = mock_render_template.call_args
             unittest.assertEqual(kwargs['settings'], settings, 'settings should be retrieved')
 
     settings = 'a'
     with app.test_client() as c:
-        response = c.get('/dtale/update-settings/1', query_string=dict(settings=settings))
-        assert response.status_code == 200, 'should return 200 response'
-        response_data = json.loads(response.data)
-        assert 'error' in response_data
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
+            response = c.get('/dtale/update-settings/{}'.format(c.port), query_string=dict(settings=settings))
+            assert response.status_code == 200, 'should return 200 response'
+            response_data = json.loads(response.data)
+            assert 'error' in response_data
 
 
 @pytest.mark.unit
@@ -455,6 +459,152 @@ def test_build_column_bins(unittest):
             assert data[c.port]['qcut2'].values[0] in ['foo', 'bar', 'biz', 'baz']
             assert dtypes[c.port][-1]['name'] == 'qcut2'
             assert dtypes[c.port][-1]['dtype'] == 'string'
+
+
+@pytest.mark.unit
+def test_cleanup_error(unittest):
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.cleanup', mock.Mock(side_effect=Exception)))
+            resp = c.get('/dtale/cleanup/1')
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('custom_data', [dict(rows=1000, cols=3)], indirect=True)
+def test_reshape(custom_data, unittest):
+    from dtale.views import build_dtypes_state
+
+    with app.test_client() as c:
+        data = {c.port: custom_data}
+        dtypes = {c.port: build_dtypes_state(custom_data)}
+        settings = {c.port: {}}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            reshape_cfg = dict(index='date', columns='security_id', values=['Col0'])  # , aggfunc=None
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            new_key = str(int(c.port) + 1)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', '100000', '100001'])
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+
+            resp = c.get('/dtale/cleanup/{}'.format(new_key))
+            assert json.loads(resp.data)['success']
+            assert len(data.keys()) == 1
+
+            reshape_cfg['aggfunc'] = 'sum'
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', '100000', '100001'])
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg['values'] = ['Col0', 'Col1']
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual(
+                [d['name'] for d in dtypes[new_key]],
+                ['date', 'Col0 100000', 'Col0 100001', 'Col1 100000', 'Col1 100001']
+            )
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg = dict(index='date', agg=dict(type='col', cols={'Col0': ['sum', 'mean'], 'Col1': ['count']}))
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', 'Col0 sum', 'Col0 mean', 'Col1 count'])
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg = dict(index='date', agg=dict(type='func', func='mean', cols=['Col0', 'Col1']))
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', 'Col0', 'Col1'])
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg = dict(index='date', agg=dict(type='func', func='mean'))
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            unittest.assertEqual(
+                [d['name'] for d in dtypes[new_key]],
+                ['date', 'security_id', 'int_val', 'Col0', 'Col1', 'Col2']
+            )
+            assert len(data[new_key]) == 365
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg = dict(index=['security_id'], columns=['Col0'])
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='transpose', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert 'error' in response_data
+
+            min_date = custom_data['date'].min().strftime('%Y-%m-%d')
+            settings[c.port] = dict(query="date == '{}'".format(min_date))
+            reshape_cfg = dict(index=['date', 'security_id'], columns=['Col0'])
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='new', type='transpose', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert len(data.keys()) == 2
+            print([d['name'] for d in dtypes[new_key]])
+            unittest.assertEqual(
+                [d['name'] for d in dtypes[new_key]],
+                ['{} 00:00:00 100000'.format(min_date), '{} 00:00:00 100001'.format(min_date)]
+            )
+            assert len(data[new_key]) == 1
+            assert settings[new_key].get('startup_code') is not None
+            c.get('/dtale/cleanup/{}'.format(new_key))
+
+            reshape_cfg = dict(index=['date', 'security_id'])
+            resp = c.get(
+                '/dtale/reshape/{}'.format(c.port),
+                query_string=dict(output='override', type='transpose', cfg=json.dumps(reshape_cfg))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(c.port)
 
 
 @pytest.mark.unit
@@ -1088,9 +1238,10 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             response_data = json.loads(response.data)
             assert response_data['min']['security_id'] == 24.5
             assert response_data['max']['security_id'] == 24.5
-            assert response_data['data']['baz']['x'][-1] == '2000-01-05'
-            assert len(response_data['data']['baz']['security_id']) == 5
-            assert sum(response_data['data']['baz']['security_id']) == 122.5
+            series_key = "baz == 'baz'"
+            assert response_data['data'][series_key]['x'][-1] == '2000-01-05'
+            assert len(response_data['data'][series_key]['security_id']) == 5
+            assert sum(response_data['data'][series_key]['security_id']) == 122.5
 
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
@@ -1194,6 +1345,80 @@ def test_version_info():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize('custom_data', [dict(rows=1000, cols=3)], indirect=True)
+def test_chart_exports(custom_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: custom_data}))
+            stack.enter_context(
+                mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(custom_data)})
+            )
+            params = dict(chart_type='invalid')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'application/json'
+
+            params = dict(chart_type='line', x='date', y=json.dumps(['Col0']), agg='sum', query='Col5 == 50')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'application/json'
+
+            params = dict(chart_type='bar', x='date', y=json.dumps(['Col0']), agg='sum')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='line', x='date', y=json.dumps(['Col0']), agg='sum')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='scatter', x='Col0', y=json.dumps(['Col1']))
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='3d_scatter', x='date', y=json.dumps(['security_id']), z='Col0')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='surface', x='date', y=json.dumps(['security_id']), z='Col0')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='pie', x='security_id', y=json.dumps(['Col0']), agg='sum',
+                          query='security_id >= 100000 and security_id <= 100010')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            params = dict(chart_type='heatmap', x='date', y=json.dumps(['security_id']), z='Col0')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html; charset=utf-8'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv; charset=utf-8'
+
+            del params['x']
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'application/json'
+
+
+@pytest.mark.unit
 def test_main():
     import dtale.views as views
 
@@ -1201,6 +1426,7 @@ def test_main():
     test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
         with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.global_state.METADATA', {c.port: dict(name='test_name')}))
             stack.enter_context(mock.patch('dtale.global_state.SETTINGS', {c.port: dict(locked=[])}))
             response = c.get('/dtale/main/{}'.format(c.port))
@@ -1212,6 +1438,7 @@ def test_main():
 
     with app.test_client() as c:
         with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.global_state.METADATA', {c.port: dict()}))
             stack.enter_context(mock.patch('dtale.global_state.SETTINGS', {c.port: dict(locked=[])}))
             response = c.get('/dtale/main/{}'.format(c.port))
@@ -1220,12 +1447,14 @@ def test_main():
 
 @pytest.mark.unit
 def test_200():
-    paths = ['/dtale/main/1', '/dtale/iframe/1', '/dtale/popup/test/1', 'site-map', 'version-info', 'health',
-             '/charts/1', '/charts/popup/1', '/dtale/code-popup']
+    paths = ['/dtale/main/{port}', '/dtale/iframe/{port}', '/dtale/popup/test/{port}', 'site-map', 'version-info',
+             'health', '/charts/{port}', '/charts/popup/{port}', '/dtale/code-popup']
     with app.test_client() as c:
-        for path in paths:
-            response = c.get(path)
-            assert response.status_code == 200, '{} should return 200 response'.format(path)
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
+            for path in paths:
+                response = c.get(path.format(port=c.port))
+                assert response.status_code == 200, '{} should return 200 response'.format(path)
 
 
 @pytest.mark.unit
@@ -1282,7 +1511,7 @@ def test_jinja_output():
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
-            response = c.get('/dtale/main/1')
+            response = c.get('/dtale/main/{}'.format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
             response = c.get('/charts/{}'.format(c.port))
             assert 'span id="forkongithub"' in str(response.data)

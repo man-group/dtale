@@ -1,5 +1,16 @@
 ## Changelog
 
+### 1.7.13 (2020-3-7)
+ * New data storage mechanisms available: Redis, Shelve
+ * [#100](https://github.com/man-group/dtale/issues/100), turned off data limits on charts by using WebGL
+ * [#99](https://github.com/man-group/dtale/issues/99), graceful handling of issue calculating min/max information for Describe popup
+ * [#91](https://github.com/man-group/dtale/issues/91), reshaping of data through usage of aggregations, pivots or transposes
+ * Export chart to HTML
+ * Export chart dat to CSV
+ * Offline chart display for use within notebooks
+ * Removal of data from the Instances popup
+ * Updated styling of charts to fit full window dimensions
+
 ### 1.7.12 (2020-3-1)
  * added syntax highlighting to code exports with react-syntax-highlighting
  * added arctic integration test

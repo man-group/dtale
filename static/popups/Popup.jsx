@@ -14,6 +14,7 @@ import { Describe } from "./Describe";
 import Instances from "./Instances";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
+import { Reshape } from "./reshape/Reshape";
 
 class ReactPopup extends React.Component {
   constructor(props) {
@@ -73,6 +74,15 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <CreateColumn />;
+        break;
+      case "reshape":
+        modalTitle = (
+          <ModalTitle>
+            <i className="fas fa-tools" />
+            <strong>{"Reshape Data"}</strong>
+          </ModalTitle>
+        );
+        body = <Reshape />;
         break;
       case "about":
         modalTitle = (

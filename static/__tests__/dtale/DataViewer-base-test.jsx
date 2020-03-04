@@ -118,6 +118,7 @@ describe("DataViewer tests", () => {
           "Describe",
           "Filter",
           "Build Column",
+          "Reshape",
           "Correlations",
           "Charts",
           "Resize",

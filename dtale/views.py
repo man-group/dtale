@@ -6,7 +6,7 @@ import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
 
-from flask import json, redirect, render_template, request
+from flask import json, redirect, render_template, request, send_file
 
 import numpy as np
 import pandas as pd
@@ -18,6 +18,10 @@ from dtale import dtale
 from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_builders import ColumnBuilder
+from dtale.dash_application.charts import (build_raw_chart, chart_url_params,
+                                           chart_url_querystring, export_chart,
+                                           export_chart_data, url_encode_func)
+from dtale.data_reshapers import DataReshaper
 from dtale.utils import (DuplicateDataError, build_code_export,
                          build_shutdown_url, classify_type, dict_merge,
                          divide_chunks, filter_df_for_grid, find_dtype,
@@ -183,7 +187,7 @@ class DtaleData(object):
                 return ''
         return self.main_url()
 
-    def _build_iframe(self, route='/dtale/iframe/', params=None, width='100%', height=350):
+    def _build_iframe(self, route='/dtale/iframe/', params=None, width='100%', height=475):
         """
         Helper function to build an :class:`ipython:IPython.display.IFrame` if that module exists within
         your environment
@@ -205,11 +209,13 @@ class DtaleData(object):
             return None
         iframe_url = '{}{}{}'.format(self._url, route, self._data_id)
         if params is not None:
-            formatted_params = ['{}={}'.format(k, ','.join(make_list(params[k]))) for k in sorted(params)]
-            iframe_url = '{}?{}'.format(iframe_url, '&'.join(formatted_params))
+            if isinstance(params, string_types):  # has this already been encoded?
+                iframe_url = '{}?{}'.format(iframe_url, params)
+            else:
+                iframe_url = '{}?{}'.format(iframe_url, url_encode_func()(params))
         return IFrame(iframe_url, width=width, height=height)
 
-    def notebook(self, route='/dtale/iframe/', params=None, width='100%', height=350):
+    def notebook(self, route='/dtale/iframe/', params=None, width='100%', height=475):
         """
         Helper function which checks to see if :mod:`flask:flask.Flask` process is up and running and then tries to
         build an :class:`ipython:IPython.display.IFrame` and run :meth:`ipython:IPython.display.display` on it so
@@ -242,7 +248,7 @@ class DtaleData(object):
         if self._notebook_handle is None:
             self._notebook_handle = True
 
-    def notebook_correlations(self, col1, col2, width='100%', height=350):
+    def notebook_correlations(self, col1, col2, width='100%', height=475):
         """
         Helper function to build an `ipython:IPython.display.IFrame` pointing at the correlations popup
 
@@ -258,32 +264,106 @@ class DtaleData(object):
         """
         self.notebook('/dtale/popup/correlations/', params=dict(col1=col1, col2=col2), width=width, height=height)
 
-    def notebook_charts(self, x, y, group=None, aggregation=None, width='100%', height=350):
+    def notebook_charts(self, chart_type='line', query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
+                        rolling_comp=None, barmode=None, barsort=None, width='100%', height=800):
         """
         Helper function to build an `ipython:IPython.display.IFrame` pointing at the charts popup
 
-        :param x: column to be used as x-axis of chart
+        :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
+        :type chart_type: str
+        :param query: pandas dataframe query string
+        :type query: str, optional
+        :param x: column to use for the X-Axis
         :type x: str
-        :param y: column to be used as y-axis of chart
-        :type y: str
-        :param group: comma-separated string of columns to group chart data by
-        :type group: str, optional
-        :param aggregation: points to a specific function that can be applied to
-                            :func: pandas.core.groupby.DataFrameGroupBy.  Possible values are: count, first, last mean,
-                            median, min, max, std, var, mad, prod, sum
-        :type aggregation: str, optional
+        :param y: columns to use for the Y-Axes
+        :type y: list of str
+        :param z: column to use for the Z-Axis
+        :type z: str, optional
+        :param group: column(s) to use for grouping
+        :type group: list of str or str, optional
+        :param agg: specific aggregation that can be applied to y or z axes.  Possible values are: count, first, last,
+                    mean, median, min, max, std, var, mad, prod, sum.  This is included in label of axis it is being
+                    applied to.
+        :type agg: str, optional
+        :param window: number of days to include in rolling aggregations
+        :type window: int, optional
+        :param rolling_comp: computation to use in rolling aggregations
+        :type rolling_comp: str, optional
+        :param barmode: mode to use for bar chart display. possible values are stack|group(default)|overlay|relative
+        :type barmode: str, optional
+        :param barsort: axis name to sort the bars in a bar chart by (default is the 'x', but other options are any of
+                        columns names used in the 'y' parameter
+        :type barsort: str, optional
         :param width: width of the ipython cell
         :type width: str or int, optional
         :param height: height of the ipython cell
         :type height: str or int, optional
         :return: :class:`ipython:IPython.display.IFrame`
         """
-        params = dict(x=x, y=y)
-        if group:
-            params['group'] = ','.join(make_list(group))
-        if aggregation:
-            params['aggregation'] = aggregation
-        self.notebook('/dtale/popup/charts/', params=params, width=width, height=height)
+        params = dict(chart_type=chart_type, query=query, x=x, y=make_list(y), z=z, group=make_list(group), agg=agg,
+                      window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort)
+        self.notebook(route='/charts/', params=chart_url_querystring(params), width=width, height=height)
+
+    def offline_chart(self, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
+                      rolling_comp=None, barmode=None, barsort=None, filepath=None, **kwargs):
+        """
+        Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
+
+        :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
+        :type chart_type: str
+        :param query: pandas dataframe query string
+        :type query: str, optional
+        :param x: column to use for the X-Axis
+        :type x: str
+        :param y: columns to use for the Y-Axes
+        :type y: list of str
+        :param z: column to use for the Z-Axis
+        :type z: str, optional
+        :param group: column(s) to use for grouping
+        :type group: list of str or str, optional
+        :param agg: specific aggregation that can be applied to y or z axes.  Possible values are: count, first, last,
+                    mean, median, min, max, std, var, mad, prod, sum.  This is included in label of axis it is being
+                    applied to.
+        :type agg: str, optional
+        :param window: number of days to include in rolling aggregations
+        :type window: int, optional
+        :param rolling_comp: computation to use in rolling aggregations
+        :type rolling_comp: str, optional
+        :param barmode: mode to use for bar chart display. possible values are stack|group(default)|overlay|relative
+        :type barmode: str, optional
+        :param barsort: axis name to sort the bars in a bar chart by (default is the 'x', but other options are any of
+                        columns names used in the 'y' parameter
+        :type barsort: str, optional
+        :param filepath: location to save HTML output
+        :type filepath: str, optional
+        :param kwargs: optional keyword arguments, here in case invalid arguments are passed to this function
+        :type kwargs: dict
+        :return: possible outcomes are:
+                 - if run within a jupyter notebook and no 'filepath' is specified it will print the resulting HTML
+                   within a cell in your notebook
+                 - if 'filepath' is specified it will save the chart to the path specified
+                 - otherwise it will return the HTML output as a string
+        """
+        params = dict(chart_type=chart_type, query=query, x=x, y=make_list(y), z=z, group=make_list(group), agg=agg,
+                      window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort)
+
+        if filepath is None and in_ipython_frontend():
+            from plotly.offline import iplot, init_notebook_mode
+
+            init_notebook_mode(connected=True)
+            chart = build_raw_chart(self._data_id, export=True, **params)
+            iplot(chart)
+            return
+
+        html_buffer = export_chart(self._data_id, params)
+        if filepath is None:
+            return html_buffer.getvalue()
+
+        if not filepath.endswith('.html'):
+            filepath = '{}.html'.format(filepath)
+
+        with open(filepath, 'w') as f:
+            f.write(html_buffer.getvalue())
 
     def adjust_cell_dimensions(self, width='100%', height=350):
         """
@@ -339,7 +419,12 @@ def build_dtypes_state(data, prev_state=None):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     prev_dtypes = {c['name']: c for c in prev_state or []}
-    ranges = data.agg([min, max]).to_dict()
+    try:
+        ranges = data.agg(['min', 'max']).to_dict()
+    except ValueError:
+        # I've seen when transposing data and data types get combined into one column this exception emerges
+        # when calling 'agg' on the new data
+        ranges = {}
     dtype_f = dtype_formatter(data, get_dtypes(data), ranges, prev_dtypes)
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
@@ -497,7 +582,7 @@ def view_main(data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None:
+    if data_id is None or data_id not in global_state.get_data().keys():
         return redirect('/dtale/main/{}'.format(head_data_id()))
     return _view_main(data_id)
 
@@ -772,6 +857,26 @@ def build_column(data_id):
         curr_history += [builder.build_code()]
         global_state.set_history(data_id, curr_history)
         return jsonify(success=True)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+@dtale.route('/reshape/<data_id>')
+def reshape_data(data_id):
+    from flask import current_app
+
+    try:
+        output = get_str_arg(request, 'output')
+        shape_type = get_str_arg(request, 'type')
+        cfg = json.loads(get_str_arg(request, 'cfg'))
+        builder = DataReshaper(data_id, shape_type, cfg)
+        if output == 'new':
+            instance = startup(current_app.base_url, data=builder.reshape(), ignore_duplicate=True)
+        else:
+            instance = startup(current_app.base_url, data=builder.reshape(), data_id=data_id, ignore_duplicate=True)
+        curr_settings = global_state.get_settings(instance._data_id)
+        global_state.set_settings(instance._data_id, dict_merge(curr_settings, dict(startup_code=builder.build_code())))
+        return jsonify(success=True, url=instance._main_url)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
@@ -1363,5 +1468,40 @@ def get_code_export(data_id):
     try:
         code = build_code_export(data_id)
         return jsonify(code='\n'.join(code), success=True)
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))
+
+
+def build_chart_filename(chart_type, ext='html'):
+    return '{}_export_{}.{}'.format(chart_type, json_timestamp(pd.Timestamp('now')), ext)
+
+
+@dtale.route('/chart-export/<data_id>')
+def chart_export(data_id):
+    try:
+        params = chart_url_params(request.args.to_dict())
+        html_buffer = export_chart(data_id, params)
+        filename = build_chart_filename(params['chart_type'])
+        return send_file(html_buffer, attachment_filename=filename, as_attachment=True, add_etags=False)
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))
+
+
+@dtale.route('/chart-csv-export/<data_id>')
+def chart_csv_export(data_id):
+    try:
+        params = chart_url_params(request.args.to_dict())
+        csv_buffer = export_chart_data(data_id, params)
+        filename = build_chart_filename(params['chart_type'], ext='csv')
+        return send_file(csv_buffer, attachment_filename=filename, as_attachment=True, add_etags=False)
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))
+
+
+@dtale.route('/cleanup/<data_id>')
+def run_cleanup(data_id):
+    try:
+        global_state.cleanup(data_id)
+        return jsonify(success=True)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))

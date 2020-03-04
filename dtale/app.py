@@ -549,3 +549,52 @@ def get_instance(data_id):
     if global_state.get_data(data_id_str) is not None:
         return DtaleData(data_id_str, build_url(ACTIVE_PORT, ACTIVE_HOST))
     return None
+
+
+def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
+                  rolling_comp=None, barmode=None, barsort=None, filepath=None, **kwargs):
+    """
+    Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
+
+    :param df: integer string identifier for a D-Tale process's data
+    :type df: :class:`pandas:pandas.DataFrame`
+    :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
+    :type chart_type: str
+    :param query: pandas dataframe query string
+    :type query: str, optional
+    :param x: column to use for the X-Axis
+    :type x: str
+    :param y: columns to use for the Y-Axes
+    :type y: list of str
+    :param z: column to use for the Z-Axis
+    :type z: str, optional
+    :param group: column(s) to use for grouping
+    :type group: list of str or str, optional
+    :param agg: specific aggregation that can be applied to y or z axes.  Possible values are: count, first, last mean,
+                median, min, max, std, var, mad, prod, sum.  This is included in label of axis it is being applied to.
+    :type agg: str, optional
+    :param window: number of days to include in rolling aggregations
+    :type window: int, optional
+    :param rolling_comp: computation to use in rolling aggregations
+    :type rolling_comp: str, optional
+    :param barmode: mode to use for bar chart display. possible values are stack|group(default)|overlay|relative
+    :type barmode: str, optional
+    :param barsort: axis name to sort the bars in a bar chart by (default is the 'x', but other options are any of
+                    columns names used in the 'y' parameter
+    :type barsort: str, optional
+    :param filepath: location to save HTML output
+    :type filepath: str, optional
+    :param kwargs: optional keyword arguments, here in case invalid arguments are passed to this function
+    :type kwargs: dict
+    :return: possible outcomes are:
+             - if run within a jupyter notebook and no 'filepath' is specified it will print the resulting HTML
+               within a cell in your notebook
+             - if 'filepath' is specified it will save the chart to the path specified
+             - otherwise it will return the HTML output as a string
+    """
+    instance = startup(url=None, data=df, data_id=999)
+    output = instance.offline_chart(chart_type=chart_type, query=query, x=x, y=y, z=z, group=group, agg=agg,
+                                    window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort,
+                                    filepath=filepath)
+    global_state.cleanup()
+    return output

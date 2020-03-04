@@ -21,7 +21,11 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 ## In The News
  - [Man Institute](https://www.man.com/maninstitute/d-tale) (warning: contains deprecated functionality)
  - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
+
+
+## Tutorials
  - [Pip Install Python YouTube Channel](https://m.youtube.com/watch?v=0RihZNdQc7k&feature=youtu.be)
+ - [machine_learning_2019](https://www.youtube.com/watch?v=-egtEUVBy9c)
 
 ## Contents
 
@@ -36,9 +40,9 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Filter](#filter), [Charts](#charts), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Filter](#filter), [Building Columns](#building-columns), [Reshape](#reshape), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Building Columns](#building-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -202,7 +206,7 @@ Base CLI options (run `dtale --help` to see all options available)
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
 |`--force`|flag to force D-Tale to try an kill any pre-existing process at the port you've specified so it can use it|
 
-Loading data from [**arctic**(high performance datastore for pandas dataframes)](https://github.com/man-group/arctic)
+Loading data from [**arctic**(high performance datastore for pandas dataframes)](https://github.com/man-group/arctic) (this requires either installing **arctic** or **dtale[arctic]**)
 ```bash
 dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arctic-node my_node --arctic-start 20130101 --arctic-end 20161231
 ```
@@ -283,6 +287,13 @@ Here's how you would use this loader:
 DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
 ```
 
+### Accessing CLI Loaders in Notebook or Console
+I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples:
+- `dtale.show_csv(path='test.csv', parse_dates=['date'])`
+- `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
+- `dtale.show_json(path='test.json', parse_dates=['date'])`
+- `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
+
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Browser1.png)
@@ -335,6 +346,24 @@ And here is how you would pass that context variable to D-Tale: `dtale.show(df, 
 
 FYI: For python 3 users, there is now support for filtering on column names with special characters in them (EX: 'a.b') :metal:
 
+#### Building Columns
+
+[![](http://img.youtube.com/vi/G6wNS9-lG04/0.jpg)](http://www.youtube.com/watch?v=G6wNS9-lG04 "Build Columns in D-Tale")
+
+This video shows you how to build the following:
+ - Numeric: adding/subtracting two columns or columns with static values
+ - Bins: bucketing values using pandas cut & qcut as well as assigning custom labels
+ - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
+
+#### Reshape
+
+This is very powerful functionality which allows users to create a new data from currently loaded data.  The operations currently available are:
+- **Aggregation**: consolidate data by running different aggregations on columns by a specific index
+- **Pivot**: this is simple wrapper around [pandas.Dataframe.pivot](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pivot.html) and [pandas.pivot_table](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.pivot_table.html)
+- **Transpose**: transpose your data on a index (be careful dataframes can get very wide if your index has many unique values)
+
+*Tutorials: coming soon*
+
 #### Charts
 Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
  
@@ -376,7 +405,44 @@ With a bar chart that only has a single Y-Axis you have the ability to sort the 
 |:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_presort.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/bar_postsort.png)|
 
-This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
+**Popup Charts**
+
+Viewing multiple charts at once and want to separate one out into its own window or simply move one off to the side so you can work on building another for comparison?  Well now you can by clicking the "Popup" button :smile:
+
+**Copy Link**
+
+Want to send what you're looking at to someone else?  Simply click the "Copy Link" button and it will save a pre-populated chart URL into your clipboard. As long as your D-Tale process is still running when that link is opened you will see your original chart.
+
+**Exporting Charts**
+
+You can now export your dash charts (with the exception of Wordclouds) to static HTML files which can be emailed to others or saved down to be viewed at a later time.  The best part is that all of the javascript for plotly is embedded in these files so the nice zooming, panning, etc is still available! :boom:
+
+**Exporting CSV**
+
+I've been asked about being able to export the data that is contained within your chart to a CSV for further analysis in tools like Excel.  This button makes that possible.
+
+**OFFLINE CHARTS**
+
+Want to run D-Tale in a jupyter notebook and build a chart that will still be displayed even after your D-Tale process has shutdown?  Now you can!  Here's an example code snippet show how to use it:
+```
+import dtale
+
+def test_data():
+    import random
+    import pandas as pd
+    import numpy as np
+
+    df = pd.DataFrame([
+        dict(x=i, y=i % 2)
+        for i in range(30)
+    ])
+    rand_data = pd.DataFrame(np.random.randn(len(df), 5), columns=['z{}'.format(j) for j in range(5)])
+    return pd.concat([df, rand_data], axis=1)
+
+d = dtale.show(test_data())
+d.offline_chart(chart_type='bar', x='x', y='z3', agg='sum')
+```
+*Tutorial: coming soon*
 
 **Disclaimer: Long Running Chart Requests**
 
@@ -387,6 +453,18 @@ If you choose to build a chart that requires a lot of computational resources th
 
 If you miss the legacy (non-plotly/dash) charts, not to worry!  They are still available from the link in the upper-right corner, but on for a limited time...
 Here is the documentation for those: [Legacy Charts](https://github.com/man-group/dtale/blob/master/docs/LEGACY_CHARTS.md)
+
+**Your Feedback is Valuable**
+
+This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
+
+#### Coverage (Deprecated)
+
+If you have watched the video within the [Man Institute](https://www.man.com/maninstitute/d-tale) blog post you'll notice that there is a "Coverage" popup.  This was deprecated with the creation of the "Charts" page.  You can create the same coverage chart in that video by choosing the following options in the "Charts" page:
+- Type: **Line**
+- X: **date**
+- Y: **security_id**
+- Aggregation: **Count** or **Unique Count**
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
@@ -421,7 +499,6 @@ Turn off Heat Map by clicking menu option again
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap_toggle.png)
 
 #### Code Exports
-
 *Code Exports* are small snippets of code representing the current state of the grid you're viewing including things like:
  - columns built
  - filtering
@@ -495,16 +572,6 @@ All column movements are saved on the server so refreshing your browser won't lo
 [![](http://img.youtube.com/vi/ryZT2Lk_YaA/0.jpg)](http://www.youtube.com/watch?v=ryZT2Lk_YaA "Hide/Unhide Columns in D-Tale")
 
 All column movements are saved on the server so refreshing your browser won't lose them :ok_hand:
-
-#### Building Columns
-
-[![](http://img.youtube.com/vi/G6wNS9-lG04/0.jpg)](http://www.youtube.com/watch?v=G6wNS9-lG04 "Build Columns in D-Tale")
-
-This video shows you how to build the following:
- - Numeric: adding/subtracting two columns or columns with static values
- - Bins: bucketing values using pandas cut & qcut as well as assigning custom labels
- - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
-
 
 #### Lock
 Adds your column to "locked" columns

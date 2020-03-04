@@ -805,15 +805,18 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
     settings = global_state.get_settings(data_id) or {}
     ctxt_vars = global_state.get_context_variables(data_id)
 
+    startup_code = settings.get('startup_code')
+    startup_code = '# Data Re-shaping\n{}\n\n'.format(startup_code) if startup_code else ''
     startup_str = (
         "# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'\n\n"
         '{imports}'
+        '{startup}'
         'if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):\n'
         '\tdf = df.to_frame(index=False)\n\n'
         '# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required\n'
         "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
         'df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers\n'
-    ).format(imports=imports)
+    ).format(imports=imports, startup=startup_code)
     final_history = [startup_str] + history
     final_query = query
     if final_query is None:
@@ -827,7 +830,7 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
                 "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
                 "#             differing results\n"
                 "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
-                "df = df.query('{query}', local_dict=ctx_vars)\n"
+                "df = df.query('{query}', local_dict=ctxt_vars)\n"
             ).format(query=final_query, data_id=data_id))
         else:
             final_history.append("df = df.query('{}')\n".format(final_query))
