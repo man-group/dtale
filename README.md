@@ -413,11 +413,11 @@ Viewing multiple charts at once and want to separate one out into its own window
 
 Want to send what you're looking at to someone else?  Simply click the "Copy Link" button and it will save a pre-populated chart URL into your clipboard. As long as your D-Tale process is still running when that link is opened you will see your original chart.
 
-**Exporting Charts**
+**Exporting Charts (not available in Demo, limitation of [PythonAnywhere](https://www.pythonanywhere.com/forums/topic/8612/))**
 
 You can now export your dash charts (with the exception of Wordclouds) to static HTML files which can be emailed to others or saved down to be viewed at a later time.  The best part is that all of the javascript for plotly is embedded in these files so the nice zooming, panning, etc is still available! :boom:
 
-**Exporting CSV**
+**Exporting CSV (not available in Demo, limitation of [PythonAnywhere](https://www.pythonanywhere.com/forums/topic/8612/))**
 
 I've been asked about being able to export the data that is contained within your chart to a CSV for further analysis in tools like Excel.  This button makes that possible.
 
