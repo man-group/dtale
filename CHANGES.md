@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.7.14 (20202-3-7)
+ * Hotfix for "Reshape" popup when forwarding browser to new data instances
+
 ### 1.7.13 (2020-3-7)
  * New data storage mechanisms available: Redis, Shelve
  * [#100](https://github.com/man-group/dtale/issues/100), turned off data limits on charts by using WebGL

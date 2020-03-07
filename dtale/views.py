@@ -863,20 +863,18 @@ def build_column(data_id):
 
 @dtale.route('/reshape/<data_id>')
 def reshape_data(data_id):
-    from flask import current_app
-
     try:
         output = get_str_arg(request, 'output')
         shape_type = get_str_arg(request, 'type')
         cfg = json.loads(get_str_arg(request, 'cfg'))
         builder = DataReshaper(data_id, shape_type, cfg)
         if output == 'new':
-            instance = startup(current_app.base_url, data=builder.reshape(), ignore_duplicate=True)
+            instance = startup('', data=builder.reshape(), ignore_duplicate=True)
         else:
-            instance = startup(current_app.base_url, data=builder.reshape(), data_id=data_id, ignore_duplicate=True)
+            instance = startup('', data=builder.reshape(), data_id=data_id, ignore_duplicate=True)
         curr_settings = global_state.get_settings(instance._data_id)
         global_state.set_settings(instance._data_id, dict_merge(curr_settings, dict(startup_code=builder.build_code())))
-        return jsonify(success=True, url=instance._main_url)
+        return jsonify(success=True, data_id=instance._data_id)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 

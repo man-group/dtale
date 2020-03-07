@@ -14,6 +14,10 @@ import { Transpose, validateTransposeCfg } from "./Transpose";
 
 require("./Reshape.css");
 
+function buildForwardURL(href, dataId) {
+  return `${_.join(_.initial(_.split(href, "/")), "/")}/${dataId}`;
+}
+
 const BASE_STATE = {
   type: "pivot",
   output: "override",
@@ -74,16 +78,17 @@ class ReactReshape extends React.Component {
       }
       this.setState({ loadingReshape: false }, () => {
         if (_.startsWith(window.location.pathname, "/dtale/popup/reshape")) {
-          window.opener.location.assign(data.url);
+          window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
           window.close();
           return;
         }
+        const newLoc = buildForwardURL(window.location.href, data.data_id);
         if (output === "new") {
           this.props.onClose();
-          window.open(data.url, "_blank");
+          window.open(newLoc, "_blank");
           return;
         }
-        window.location.assign(data.url);
+        window.location.assign(newLoc);
       });
     });
   }

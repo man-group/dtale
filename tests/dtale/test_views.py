@@ -490,7 +490,7 @@ def test_reshape(custom_data, unittest):
             )
             response_data = json.loads(resp.data)
             new_key = str(int(c.port) + 1)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', '100000', '100001'])
             assert len(data[new_key]) == 365
@@ -506,7 +506,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', '100000', '100001'])
             assert len(data[new_key]) == 365
@@ -519,7 +519,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual(
                 [d['name'] for d in dtypes[new_key]],
@@ -535,7 +535,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', 'Col0 sum', 'Col0 mean', 'Col1 count'])
             assert len(data[new_key]) == 365
@@ -548,7 +548,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', 'Col0', 'Col1'])
             assert len(data[new_key]) == 365
@@ -561,7 +561,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='aggregate', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             unittest.assertEqual(
                 [d['name'] for d in dtypes[new_key]],
@@ -587,7 +587,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='new', type='transpose', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(new_key)
+            assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
             print([d['name'] for d in dtypes[new_key]])
             unittest.assertEqual(
@@ -604,7 +604,7 @@ def test_reshape(custom_data, unittest):
                 query_string=dict(output='override', type='transpose', cfg=json.dumps(reshape_cfg))
             )
             response_data = json.loads(resp.data)
-            assert response_data['url'] == 'http://localhost:40000/dtale/main/{}'.format(c.port)
+            assert response_data['data_id'] == c.port
 
 
 @pytest.mark.unit

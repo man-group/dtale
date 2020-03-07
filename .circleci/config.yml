@@ -5,7 +5,7 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.7.13
+      VERSION: 1.7.14
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
