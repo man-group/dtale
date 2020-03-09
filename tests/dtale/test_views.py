@@ -1365,53 +1365,53 @@ def test_chart_exports(custom_data):
 
             params = dict(chart_type='bar', x='date', y=json.dumps(['Col0']), agg='sum')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='line', x='date', y=json.dumps(['Col0']), agg='sum')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='scatter', x='Col0', y=json.dumps(['Col1']))
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='3d_scatter', x='date', y=json.dumps(['security_id']), z='Col0')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='surface', x='date', y=json.dumps(['security_id']), z='Col0')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='pie', x='security_id', y=json.dumps(['Col0']), agg='sum',
                           query='security_id >= 100000 and security_id <= 100010')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             params = dict(chart_type='heatmap', x='date', y=json.dumps(['security_id']), z='Col0')
             response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/html; charset=utf-8'
+            assert response.content_type == 'text/html'
 
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
-            assert response.content_type == 'text/csv; charset=utf-8'
+            assert response.content_type == 'text/csv'
 
             del params['x']
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
@@ -1448,7 +1448,7 @@ def test_main():
 @pytest.mark.unit
 def test_200():
     paths = ['/dtale/main/{port}', '/dtale/iframe/{port}', '/dtale/popup/test/{port}', 'site-map', 'version-info',
-             'health', '/charts/{port}', '/charts/popup/{port}', '/dtale/code-popup']
+             'health', '/charts/{port}', '/charts/popup/{port}', '/dtale/code-popup', '/missing-js']
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
@@ -1470,6 +1470,16 @@ def test_302():
             for path in ['/', '/dtale', '/dtale/main', '/dtale/iframe', '/dtale/popup/test', '/favicon.ico']:
                 response = c.get(path)
                 assert response.status_code == 302, '{} should return 302 response'.format(path)
+
+
+@pytest.mark.unit
+def test_missing_js():
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: pd.DataFrame([1, 2, 3])}))
+            stack.enter_context(mock.patch('os.listdir', mock.Mock(return_value=[])))
+            response = c.get('/')
+            assert response.status_code == 302
 
 
 @pytest.mark.unit
