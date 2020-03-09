@@ -1,12 +1,14 @@
 from __future__ import absolute_import, division
 
+import os
 import time
 import traceback
 import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
 
-from flask import json, redirect, render_template, request, send_file
+from flask import (json, make_response, redirect, render_template, request,
+                   url_for)
 
 import numpy as np
 import pandas as pd
@@ -543,6 +545,8 @@ def base_render_template(template, data_id, **kwargs):
      - version
      - processes
     """
+    if not len(os.listdir('{}/static/dist'.format(os.path.dirname(__file__)))):
+        return redirect(url_for('missing_js'))
     curr_settings = global_state.get_settings(data_id) or {}
     _, version = retrieve_meta_info_and_version('dtale')
     return render_template(
@@ -1474,13 +1478,20 @@ def build_chart_filename(chart_type, ext='html'):
     return '{}_export_{}.{}'.format(chart_type, json_timestamp(pd.Timestamp('now')), ext)
 
 
+def send_file(buffer, filename, content_type):
+    resp = make_response(buffer.getvalue())
+    resp.headers["Content-Disposition"] = ("attachment; filename=%s" % filename)
+    resp.headers["Content-Type"] = content_type
+    return resp
+
+
 @dtale.route('/chart-export/<data_id>')
 def chart_export(data_id):
     try:
         params = chart_url_params(request.args.to_dict())
         html_buffer = export_chart(data_id, params)
         filename = build_chart_filename(params['chart_type'])
-        return send_file(html_buffer, attachment_filename=filename, as_attachment=True, add_etags=False)
+        return send_file(html_buffer, filename, 'text/html')
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -1491,7 +1502,7 @@ def chart_csv_export(data_id):
         params = chart_url_params(request.args.to_dict())
         csv_buffer = export_chart_data(data_id, params)
         filename = build_chart_filename(params['chart_type'], ext='csv')
-        return send_file(csv_buffer, attachment_filename=filename, as_attachment=True, add_etags=False)
+        return send_file(csv_buffer, filename, 'text/csv')
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 

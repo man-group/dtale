@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from flask import Flask
+
 import mock
 import numpy as np
 import pandas as pd
@@ -103,6 +105,16 @@ def test_show(unittest, builtin_pkg):
     import dtale.views as views
     import dtale.global_state as global_state
 
+    class MockDtaleFlask(Flask):
+
+        def __init__(self, import_name, reaper_on=True, url=None, *args, **kwargs):
+            kwargs.pop('instance_relative_config', None)
+            kwargs.pop('static_url_path', None)
+            super(MockDtaleFlask, self).__init__(import_name, *args, **kwargs)
+
+        def run(self, *args, **kwargs):
+            pass
+
     instances()
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
@@ -171,7 +183,7 @@ def test_show(unittest, builtin_pkg):
     # RangeIndex test
     test_data = pd.DataFrame([1, 2, 3])
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask', MockDtaleFlask))
         stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
@@ -180,7 +192,7 @@ def test_show(unittest, builtin_pkg):
         assert np.array_equal(instance.data['0'].values, test_data[0].values)
 
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask', MockDtaleFlask))
         stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
@@ -207,11 +219,18 @@ def test_show(unittest, builtin_pkg):
         assert type(instance.__str__()).__name__ == 'str'
         assert type(instance.__repr__()).__name__ == 'str'
 
-    def mock_run(self, *args, **kwargs):
-        assert self.jinja_env.auto_reload
-        assert self.config['TEMPLATES_AUTO_RELOAD']
+    class MockDtaleFlaskRunTest(Flask):
 
-    with mock.patch('dtale.app.DtaleFlask.run', mock_run):
+        def __init__(self, import_name, reaper_on=True, url=None, *args, **kwargs):
+            kwargs.pop('instance_relative_config', None)
+            kwargs.pop('static_url_path', None)
+            super(MockDtaleFlaskRunTest, self).__init__(import_name, *args, **kwargs)
+
+        def run(self, *args, **kwargs):
+            assert self.jinja_env.auto_reload
+            assert self.config['TEMPLATES_AUTO_RELOAD']
+
+    with mock.patch('dtale.app.DtaleFlask', MockDtaleFlaskRunTest):
         show(data=test_data, subprocess=False, port=9999, debug=True, ignore_duplicate=True)
 
     with mock.patch('dtale.app._thread.start_new_thread', mock.Mock()) as mock_thread:
@@ -235,7 +254,7 @@ def test_show(unittest, builtin_pkg):
 
     # test adding duplicate column
     with ExitStack() as stack:
-        stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.DtaleFlask', MockDtaleFlask))
         stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=9999)))
         stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='localhost')))
         stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))

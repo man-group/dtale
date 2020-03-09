@@ -1,0 +1,20 @@
+{% extends "dtale/base.html" %}
+{% set missing_js = 'true' %}
+
+{% block title %}JS Files Missing{% endblock %}
+
+{% block full_content %}
+<div class="container-fluid">
+    <div class="row" style="margin: 0">
+        <div class="col-auto" style="padding-left: 0;">
+            <header>
+                <span class="title-font">D-TALE</span>
+                <span style="font-size: 24px;" class="pl-4">JS Files Missing</span>
+            </header>
+        </div>
+    </div>
+    <p class="pt-5">It appears that the JS files located within dtale/static/dist are missing. If you are trying to develop locally please go to a terminal and run the following commands:</p>
+    <pre>{{ missing_js_commands }}</pre>
+    <p>Make sure you have <b>yarn, npm & node</b> installed.</p>
+</div>
+{% endblock %}

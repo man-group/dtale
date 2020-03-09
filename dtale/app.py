@@ -211,6 +211,15 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         """
         return redirect(url_for('static', filename='images/favicon.ico'))
 
+    @app.route('/missing-js')
+    def missing_js():
+        missing_js_commands = (
+            '>> cd [location of your local dtale repo]\n'
+            '>> yarn install\n'
+            ">> yarn run build  # or 'yarn run watch' if you're trying to develop"
+        )
+        return render_template('dtale/errors/missing_js.html', missing_js_commands=missing_js_commands)
+
     @app.errorhandler(404)
     def page_not_found(e=None):
         """
@@ -219,7 +228,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         :param e: exception
         :return: text/html with exception information
         """
-        logger.exception(e)
         return render_template('dtale/errors/404.html', page='', error=e,
                                stacktrace=str(traceback.format_exc())), 404
 
@@ -231,7 +239,6 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         :param e: exception
         :return: text/html with exception information
         """
-        logger.exception(e)
         return render_template('dtale/errors/500.html', page='', error=e,
                                stacktrace=str(traceback.format_exc())), 500
 

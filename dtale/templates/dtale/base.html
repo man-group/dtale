@@ -7,7 +7,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <title>{{ title }}</title>
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
+    {% if missing_js is not defined %}
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
+    {% endif %}
     {% block css %}{% endblock %}
     {#
         Despite the fact we reload these again later on, in order for the header to rendered correctly
@@ -28,7 +30,9 @@
         <input type="hidden" id="hide_shutdown" value="{{config.HIDE_SHUTDOWN}}" />
         <input type="hidden" id="processes" value={{processes}} />
         {% block full_content %}{% endblock %}
+        {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>
+        {% endif %}
         {% block js %}{% endblock %}
         {#
           In order to get styles to load correctly, we need to reload these files.
