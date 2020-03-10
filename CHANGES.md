@@ -1,6 +1,11 @@
 ## Changelog
 
-### 1.7.14 (20202-3-7)
+### 1.7.15 (2020-3-9)
+ * [#105](https://github.com/man-group/dtale/issues/105), better error handling for when JS files are missing
+ * [#103](https://github.com/man-group/dtale/issues/103), pinned Flask to be >= 1.0.0
+ * Updated file exporting to no longer use `flask.send_file` since that doesn't play nice with WSGI
+ 
+### 1.7.14 (2020-3-7)
  * Hotfix for "Reshape" popup when forwarding browser to new data instances
 
 ### 1.7.13 (2020-3-7)

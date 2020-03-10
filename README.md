@@ -339,12 +339,13 @@ df.query('age in @two_oldest_ages')
 ```
 And here is how you would pass that context variable to D-Tale: `dtale.show(df, context_variables=dict(two_oldest_ages=two_oldest_ages))`
 
+Here's some nice documentation on the performance of [pandas queries](https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#pandas-eval-performance)
+
 
 |Editing|Result|
 |--------|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Filter_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_filter.png)|
 
-FYI: For python 3 users, there is now support for filtering on column names with special characters in them (EX: 'a.b') :metal:
 
 #### Building Columns
 
@@ -362,7 +363,15 @@ This is very powerful functionality which allows users to create a new data from
 - **Pivot**: this is simple wrapper around [pandas.Dataframe.pivot](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pivot.html) and [pandas.pivot_table](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.pivot_table.html)
 - **Transpose**: transpose your data on a index (be careful dataframes can get very wide if your index has many unique values)
 
-*Tutorials: coming soon*
+|Function|Data|
+|:------:|:------:|
+|No Reshaping|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/original_data.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/agg_col.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/agg_col_data.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/agg_func.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/agg_func_data.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/pivot.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/pivot_data.png)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/transpose.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/reshape/transpose_data.png)|
+
+[![](http://img.youtube.com/vi/fYsxogXKZ2c/0.jpg)](http://www.youtube.com/watch?v=fYsxogXKZ2c "Reshaping Tutorial")
 
 #### Charts
 Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
@@ -413,17 +422,18 @@ Viewing multiple charts at once and want to separate one out into its own window
 
 Want to send what you're looking at to someone else?  Simply click the "Copy Link" button and it will save a pre-populated chart URL into your clipboard. As long as your D-Tale process is still running when that link is opened you will see your original chart.
 
-**Exporting Charts (not available in Demo, limitation of [PythonAnywhere](https://www.pythonanywhere.com/forums/topic/8612/))**
+**Exporting Charts**
 
 You can now export your dash charts (with the exception of Wordclouds) to static HTML files which can be emailed to others or saved down to be viewed at a later time.  The best part is that all of the javascript for plotly is embedded in these files so the nice zooming, panning, etc is still available! :boom:
 
-**Exporting CSV (not available in Demo, limitation of [PythonAnywhere](https://www.pythonanywhere.com/forums/topic/8612/))**
+**Exporting CSV**
 
 I've been asked about being able to export the data that is contained within your chart to a CSV for further analysis in tools like Excel.  This button makes that possible.
 
 **OFFLINE CHARTS**
 
 Want to run D-Tale in a jupyter notebook and build a chart that will still be displayed even after your D-Tale process has shutdown?  Now you can!  Here's an example code snippet show how to use it:
+
 ```
 import dtale
 
@@ -442,7 +452,7 @@ def test_data():
 d = dtale.show(test_data())
 d.offline_chart(chart_type='bar', x='x', y='z3', agg='sum')
 ```
-*Tutorial: coming soon*
+[![](http://img.youtube.com/vi/DseSmc3fZvc/0.jpg)](http://www.youtube.com/watch?v=DseSmc3fZvc "Offline Charts Tutorial")
 
 **Disclaimer: Long Running Chart Requests**
 
@@ -509,6 +519,19 @@ Other code exports available are:
  - Correlations (grid, timeseries chart & scatter chart)
  - Describe
  - Charts built using the Chart Builder
+
+ [![](http://img.youtube.com/vi/6CkKgpv3d6I/0.jpg)](http://www.youtube.com/watch?v=6CkKgpv3d6I "Code Export Tutorial")
+
+|Type|Code Export|
+|:------:|:------:|
+|Main Grid|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/main.png)|
+|Histogram|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/histogram.png)|
+|Describe|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/describe.png)|
+|Correlation Grid|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/main.png)|
+|Correlation Timeseries|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/corr_ts.png)|
+|Correlation Scatter|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/corr_scatter.png)|
+|Charts|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/charts.png)|
+
 
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
