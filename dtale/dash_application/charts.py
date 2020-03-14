@@ -141,32 +141,53 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
     """
     data = global_state.get_data(data_id)
     dtypes = get_dtypes(data)
+    axis_type, axis_data = (axis_inputs.get(p) for p in ['type', 'data'])
+
+    def _add_agg_label(title):
+        if z is None and agg is not None:
+            return '{} ({})'.format(title, AGGS[agg])
+        return title
 
     def _build_axes(y):
         axes = {'xaxis': dict(title=update_label_for_freq(x))}
+        has_multiaxis = False
         positions = []
-        for i, y2 in enumerate(y, 0):
-            right = i % 2 == 1
-            axis_ct = int(i / 2)
-            title = update_label_for_freq(y2)
-            if z is None and agg is not None:
-                title = '{} ({})'.format(title, AGGS[agg])
-            value = dict(title=title)
-            if i == 0:
-                key = 'yaxis'
-            else:
-                key = 'yaxis{}'.format(i + 1)
-                value = dict_merge(value, dict(overlaying='y', side='right' if right else 'left'))
-                value['anchor'] = 'free' if axis_ct > 0 else 'x'
-                if axis_ct > 0:
-                    pos = axis_ct / 20.0
-                    value['position'] = (1 - pos) if right else pos
-                    positions.append(value['position'])
-            if y2 in axis_inputs and not (axis_inputs[y2]['min'], axis_inputs[y2]['max']) == (mins[y2], maxs[y2]):
-                value['range'] = [axis_inputs[y2]['min'], axis_inputs[y2]['max']]
-            if classify_type(dtypes.get(y2)) == 'I':
-                value['tickformat'] = '.0f'
-            axes[key] = value
+        if axis_type == 'multi':  # take the default behavior for plotly
+            for i, y2 in enumerate(y, 0):
+                right = i % 2 == 1
+                axis_ct = int(i / 2)
+                value = dict(title=_add_agg_label(update_label_for_freq(y2)))
+                if i == 0:
+                    key = 'yaxis'
+                else:
+                    has_multiaxis = True
+                    key = 'yaxis{}'.format(i + 1)
+                    value = dict_merge(value, dict(overlaying='y', side='right' if right else 'left'))
+                    value['anchor'] = 'free' if axis_ct > 0 else 'x'
+                    if axis_ct > 0:
+                        pos = axis_ct / 20.0
+                        value['position'] = (1 - pos) if right else pos
+                        positions.append(value['position'])
+                if y2 in axis_data and not (axis_data[y2]['min'], axis_data[y2]['max']) == (mins[y2], maxs[y2]):
+                    value['range'] = [axis_data[y2]['min'], axis_data[y2]['max']]
+                if classify_type(dtypes.get(y2)) == 'I':
+                    value['tickformat'] = '.0f'
+                axes[key] = value
+        elif axis_type == 'single':
+            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)))
+            all_range = axis_data.get('all') or {}
+            all_range = [all_range.get(p) for p in ['min', 'max'] if all_range.get(p) is not None]
+            if len(all_range) and all_range != (min(mins.values()), max(maxs.values())):
+                yaxis_cfg['range'] = [all_range[0], all_range[1]]
+            if classify_type(dtypes.get(y[0])) == 'I':
+                yaxis_cfg['tickformat'] = '.0f'
+            axes['yaxis'] = yaxis_cfg
+        else:
+            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)))
+            if classify_type(dtypes.get(y[0])) == 'I':
+                yaxis_cfg['tickformat'] = '.0f'
+            axes['yaxis'] = yaxis_cfg
+
         if len(positions):
             if len(positions) == 1:
                 domain = [positions[0] + 0.05, 1]
@@ -183,7 +204,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
             axes['zaxis'] = dict(title=z if agg is None else '{} ({})'.format(z, AGGS[agg]))
             if classify_type(dtypes.get(z)) == 'I':
                 axes['zaxis']['tickformat'] = '.0f'
-        return axes
+        return axes, has_multiaxis
     return _build_axes
 
 
@@ -410,7 +431,9 @@ def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=N
                     dict(z=d[z]) if z is not None else dict())
                 )
                 for series_key, d in data['data'].items() if y2 in d and (group is None or group == series_key)
-            ], 'layout': build_layout(dict_merge(build_title(x, y2, group, z=z, agg=agg), layout(axes_builder([y2]))))}
+            ], 'layout': build_layout(
+                dict_merge(build_title(x, y2, group, z=z, agg=agg), layout(axes_builder([y2])[0]))
+            )}
         ), group_filter=dict_merge(dict(y=y2), {} if group is None else dict(group=group)))
         for y2 in y
     ]
@@ -449,7 +472,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
     y_vals = df.index.values
     z_data = df.values
 
-    axes = axes_builder([y[0]])
+    axes, _ = axes_builder([y[0]])
     layout = {'autosize': True, 'margin': {'l': 0, 'r': 0, 'b': 0}, 'scene': dict_merge(axes, scene)}
     return [
         wrapper(graph_wrapper(
@@ -515,8 +538,8 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
     :rtype: :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
     """
     hover_text = dict()
-    multiaxis = barmode is None or barmode == 'group'
-    axes = axes_builder(y) if multiaxis else axes_builder([y[0]])
+    allow_multiaxis = barmode is None or barmode == 'group'
+    axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
     name_builder = build_series_name(y, cpg)
     if barsort is not None:
         for series_key, series in data['data'].items():
@@ -540,7 +563,7 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
                         dict_merge(
                             {'x': series['x'], 'y': series[y2], 'type': 'bar'},
                             name_builder(y2, series_key),
-                            {} if i == 1 or not multiaxis else {'yaxis': 'y{}'.format(i)},
+                            {} if i == 1 or not allow_multiaxis else {'yaxis': 'y{}'.format(i)},
                             hover_text.get(series_key) or {}
                         )
                         for i, y2 in enumerate(y, 1)
@@ -559,14 +582,14 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
             dict_merge(
                 {'x': series['x'], 'y': series[y2], 'type': 'bar'},
                 name_builder(y2, series_key),
-                {} if i == 1 or not multiaxis else {'yaxis': 'y{}'.format(i)},
+                {} if i == 1 or not allow_multiaxis else {'yaxis': 'y{}'.format(i)},
                 hover_text.get(series_key) or {}
             )
             for i, y2 in enumerate(y, 1)
         ]
         for series_key, series in data['data'].items()
     ])
-    if barmode == 'group' and len(y or []) > 1:
+    if barmode == 'group' and allow_multiaxis:
         data_cfgs = list(build_grouped_bars_with_multi_yaxis(data_cfgs, y))
 
     return wrapper(graph_wrapper(
@@ -598,7 +621,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     :rtype: :plotly:`plotly.graph_objects.Scatter(mode='lines') <plotly.graph_objects.Scatter>`
     """
 
-    axes = axes_builder(y)
+    axes, multi_yaxis = axes_builder(y)
     name_builder = build_series_name(y, cpg)
 
     def line_func(s):
@@ -619,7 +642,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                             line_cfg(series),
                             {'x': series['x'], 'y': series[y2]},
                             name_builder(y2, series_key),
-                            {} if i == 1 else {'yaxis': 'y{}'.format(i)}
+                            {} if i == 1 or not multi_yaxis else {'yaxis': 'y{}'.format(i)}
                         ))
                         for i, y2 in enumerate(y, 1)
                     ],
@@ -636,7 +659,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                 line_cfg(series),
                 {'x': series['x'], 'y': series[y2]},
                 name_builder(y2, series_key),
-                {} if i == 1 else {'yaxis': 'y{}'.format(i)}
+                {} if i == 1 or not multi_yaxis else {'yaxis': 'y{}'.format(i)}
             ))
             for i, y2 in enumerate(y, 1)
         ]
@@ -962,7 +985,7 @@ def build_chart(data_id=None, **inputs):
             return build_error(data['error'], data['traceback']), None, code
 
         range_data = dict(min=data['min'], max=data['max'])
-        axis_inputs = inputs.get('yaxis', {})
+        axis_inputs = inputs.get('yaxis') or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
         chart_type, x, y, z, agg, group = (inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg', 'group'])
         z = z if chart_type in ZAXIS_CHARTS else None
@@ -1054,7 +1077,7 @@ def build_raw_chart(data_id=None, **inputs):
         chart_type, x, y, z, agg = (inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg'])
         z = z if chart_type in ZAXIS_CHARTS else None
 
-        axis_inputs = inputs.get('yaxis', {})
+        axis_inputs = inputs.get('yaxis') or {}
         chart_builder = chart_builder_passthru  # we'll ignore wrapper functionality for raw charts
         chart_inputs = {k: v for k, v in inputs.items() if k not in ['chart_type', 'x', 'y', 'z', 'group']}
 

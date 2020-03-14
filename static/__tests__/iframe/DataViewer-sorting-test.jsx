@@ -74,7 +74,7 @@ describe("DataViewer iframe tests", () => {
       clickColMenuSubButton(result, "Asc");
       t.equal(
         result
-          .find("div.row div.col-md-4")
+          .find("div.row div.col")
           .first()
           .text(),
         "Sort:col4 (ASC)",
@@ -83,7 +83,7 @@ describe("DataViewer iframe tests", () => {
       clickColMenuSubButton(result, "Desc");
       t.equal(
         result
-          .find("div.row div.col-md-4")
+          .find("div.row div.col")
           .first()
           .text(),
         "Sort:col4 (DESC)",

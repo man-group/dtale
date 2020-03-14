@@ -123,15 +123,17 @@ const PROCESSES = [
 ];
 
 const CONTEXT_VARIABLES = {
-  context_variables: {
-    foo: "bar",
-    cat: "dog",
-  },
+  contextVars: [
+    { name: "foo", value: "bar" },
+    { name: "cat", value: "dog" },
+  ],
+  columnFilters: { foo: { query: "foo == 1" } },
+  query: "foo == 1",
   success: true,
 };
 
 function getDataId(url) {
-  if (_.startsWith(url, "/dtale/context-variables")) {
+  if (_.startsWith(url, "/dtale/filter-info")) {
     return url.split("?")[0].split("/")[3];
   }
   return null;
@@ -209,12 +211,19 @@ function urlFetcher(url) {
       return { error: "error test" };
     }
     return { success: true };
-  } else if (_.startsWith(url, "/dtale/context-variables")) {
+  } else if (_.startsWith(url, "/dtale/filter-info")) {
     return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
   } else if (_.startsWith(url, "/dtale/code-export")) {
     return { code: "test code" };
   } else if (_.startsWith(url, "/dtale/cleanup")) {
     return { success: true };
+  } else if (_.startsWith(url, "/dtale/column-filter-data")) {
+    return { success: true, hasMissing: false, uniques: [1, 2, 3] };
+  } else if (_.startsWith(url, "/dtale/save-column-filter")) {
+    return {
+      success: true,
+      columnFilters: { foo: { query: "foo == 1", value: [1] } },
+    };
   }
   return {};
 }

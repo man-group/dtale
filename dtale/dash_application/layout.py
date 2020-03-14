@@ -3,7 +3,8 @@ import dash_daq as daq
 import dash_html_components as html
 
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
-from dtale.utils import classify_type, flatten_lists, get_dtypes, make_list
+from dtale.utils import (classify_type, dict_merge, flatten_lists, get_dtypes,
+                         inner_build_query, make_list)
 
 
 def base_layout(github_fork, **kwargs):
@@ -105,21 +106,25 @@ def build_input(label, input, className='col-auto', **kwargs):
     )
 
 
-def build_tab(label, value, **kwargs):
+def build_tab(label, value, additional_style=None, **kwargs):
     """
     Builds a :dash:`dash_core_components.Tab <dash-core-components/tab>` with standard styling settings.
     """
+    base_style = {'borderBottom': '1px solid #d6d6d6', 'padding': '6px'}
     return dcc.Tab(
         label=label,
         value=value,
-        style={'borderBottom': '1px solid #d6d6d6', 'padding': '6px', 'fontWeight': 'bold'},
-        selected_style={
-            'borderTop': '1px solid #d6d6d6',
-            'borderBottom': '1px solid #d6d6d6',
-            'backgroundColor': '#2a91d1',
-            'color': 'white',
-            'padding': '6px'
-        }, **kwargs)
+        style=dict_merge(base_style, {'fontWeight': 'bold'}, additional_style or {}),
+        disabled_style=dict_merge(
+            base_style,
+            {'fontWeight': 'bold', 'backgroundColor': 'LightGray', 'color': 'black', 'cursor': 'not-allowed'},
+            additional_style or {}
+        ),
+        selected_style=dict_merge(
+            base_style,
+            {'borderTop': '1px solid #d6d6d6', 'backgroundColor': '#2a91d1', 'color': 'white'},
+            additional_style or {}
+        ), **kwargs)
 
 
 def build_option(value, label=None):
@@ -272,8 +277,18 @@ def show_yaxis_ranges(**inputs):
     """
     Boolean function to determine whether "Y-Axis Range" inputs should be displayed or not
     """
-    [chart_type, y] = [inputs.get(p) for p in ['chart_type', 'y']]
+    chart_type, y = (inputs.get(p) for p in ['chart_type', 'y'])
     return chart_type in YAXIS_CHARTS and len(y or [])
+
+
+def get_yaxis_type_tabs(y):
+    tabs = [
+        build_tab('Default', 'default', {'padding': '2px', 'minWidth': '4em'}),
+        build_tab('Single', 'single', {'padding': '2px', 'minWidth': '4em'}),
+    ]
+    if len(y) <= 1:
+        return tabs
+    return tabs + [build_tab('Multi', 'multi', {'padding': '2px', 'minWidth': '4em'})]
 
 
 def charts_layout(df, settings, **inputs):
@@ -300,12 +315,15 @@ def charts_layout(df, settings, **inputs):
     query_placeholder = (
         "Enter pandas query (ex: col1 == 1)"
     )
+    query_value = inputs.get('query') or inner_build_query(settings, settings.get('query'))
     query_label = html.Div([
         html.Span('Query'),
         html.A(html.I(className='fa fa-info-circle ml-4'),
                href='https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query',
                target='_blank', style={'color': 'white'})
-    ], className='input-group-addon', style={'min-width': '7em'})
+    ], className='input-group-addon', style={'minWidth': '7em'})
+    yaxis_type = (inputs.get('yaxis') or {}).get('type') or 'default'
+    yaxis_type_style = {'borderRadius': '0 0.25rem 0.25rem 0'} if yaxis_type == 'default' else None
     return html.Div([
         dcc.Store(id='query-data', data=inputs.get('query')),
         dcc.Store(id='input-data', data={k: v for k, v in inputs.items() if k not in ['cpg', 'barmode', 'barsort']}),
@@ -324,7 +342,7 @@ def charts_layout(df, settings, **inputs):
             html.Div([
                 query_label, dcc.Input(
                     id='query-input', type='text', placeholder=query_placeholder, className='form-control',
-                    value=inputs.get('query') or settings.get('query'), style={'line-height': 'inherit'})
+                    value=query_value, style={'lineHeight': 'inherit'})
             ], className='input-group mr-3')],
             className='col'
         ), className='row pt-3 pb-3 charts-filters'),
@@ -380,7 +398,7 @@ def charts_layout(df, settings, **inputs):
             html.Div([
                 build_input('Window', dcc.Input(
                     id='window-input', type='number', placeholder='Enter days', className='form-control text-center',
-                    style={'line-height': 'inherit'}, value=inputs.get('window')
+                    style={'lineHeight': 'inherit'}, value=inputs.get('window')
                 )),
                 build_input('Computation', dcc.Dropdown(
                     id='rolling-comp-dropdown',
@@ -426,19 +444,24 @@ def charts_layout(df, settings, **inputs):
                     html.Div(
                         [
                             html.Span('Y-Axis', className='input-group-addon'),
+                            html.Div(dcc.Tabs(
+                                id='yaxis-type',
+                                value=yaxis_type,
+                                children=get_yaxis_type_tabs(y),
+                            ), id='yaxis-type-div', className='form-control col-auto pt-3', style=yaxis_type_style),
                             dcc.Dropdown(id='yaxis-dropdown', options=yaxis_options),
-                            html.Span('Min:', className='input-group-addon col-auto'),
+                            html.Span('Min:', className='input-group-addon col-auto', id='yaxis-min-label'),
                             dcc.Input(
                                 id='yaxis-min-input', type='number', className='form-control col-auto',
-                                style={'line-height': 'inherit'}
+                                style={'lineHeight': 'inherit'}
                             ),
-                            html.Span('Max:', className='input-group-addon col-auto'),
+                            html.Span('Max:', className='input-group-addon col-auto', id='yaxis-max-label'),
                             dcc.Input(
                                 id='yaxis-max-input', type='number', className='form-control col-auto',
-                                style={'line-height': 'inherit'}
+                                style={'lineHeight': 'inherit'}
                             )
                         ],
-                        className='input-group',
+                        className='input-group', id='yaxis-min-max-options',
                     ),
                     className='col-auto addon-min-width', id='yaxis-input',
                     style=dict(display='block' if show_yaxis else 'none')
@@ -446,6 +469,6 @@ def charts_layout(df, settings, **inputs):
             ],
             className='row pt-3 pb-5 charts-filters'
         ),
-        dcc.Loading(html.Div(id='chart-content', style={'height': '70vh'}), type='circle'),
+        dcc.Loading(html.Div(id='chart-content', style={'height': '69vh'}), type='circle'),
         dcc.Textarea(id="copy-text", style=dict(position='absolute', left='-110%'))
     ], className='charts-body')

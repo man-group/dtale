@@ -7,10 +7,11 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import dtale.global_state as global_state
-from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS
+from dtale.charts.utils import ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
 from dtale.dash_application.layout import (bar_input_style, base_layout,
                                            build_input_options, charts_layout,
+                                           get_yaxis_type_tabs,
                                            show_chart_per_group,
                                            show_input_handler,
                                            show_yaxis_ranges)
@@ -162,7 +163,7 @@ def init_callbacks(dash_app):
             Output('cpg-input', 'style'),
             Output('barmode-input', 'style'),
             Output('barsort-input', 'style'),
-            Output('yaxis-input', 'style'),
+            Output('yaxis-input', 'style')
         ],
         [Input('input-data', 'modified_timestamp')],
         [State('input-data', 'data')]
@@ -212,6 +213,7 @@ def init_callbacks(dash_app):
             Output('last-chart-input-data', 'data'),
             Output('range-data', 'data'),
             Output('chart-code', 'value'),
+            Output('yaxis-type', 'children'),
         ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
@@ -240,51 +242,89 @@ def init_callbacks(dash_app):
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
         charts, range_data, code = build_chart(get_data_id(pathname), **all_inputs)
-        return charts, all_inputs, range_data, code
+        return charts, all_inputs, range_data, code, get_yaxis_type_tabs(make_list(inputs.get('y') or []))
+
+    def get_default_range(range_data, y, max=False):
+        if max:
+            return next(iter(sorted([range_data[y2] for y2 in y if y2 in range_data], reverse=True)), None)
+        return next(iter(sorted([range_data[y2] for y2 in y if y2 in range_data])), None)
 
     @dash_app.callback(
-        [Output('yaxis-min-input', 'value'), Output('yaxis-max-input', 'value')],
-        [Input('yaxis-dropdown', 'value')],
+        [
+            Output('yaxis-min-input', 'value'),
+            Output('yaxis-max-input', 'value'),
+            Output('yaxis-dropdown', 'style'),
+            Output('yaxis-min-label', 'style'),
+            Output('yaxis-min-input', 'style'),
+            Output('yaxis-max-label', 'style'),
+            Output('yaxis-max-input', 'style'),
+            Output('yaxis-type-div', 'style'),
+        ],
+        [Input('yaxis-type', 'value'), Input('yaxis-dropdown', 'value')],
         [State('input-data', 'data'), State('yaxis-data', 'data'), State('range-data', 'data')]
     )
-    def yaxis_min_max_values(yaxis, inputs, yaxis_inputs, range_data):
+    def yaxis_min_max_values(yaxis_type, yaxis, inputs, yaxis_inputs, range_data):
         """
         dash callback controlling values for selected y-axis in y-axis range editor
         """
-        chart_type, y = [(inputs or {}).get(p) for p in ['chart_type', 'y']]
-        if chart_type not in YAXIS_CHARTS:
-            return None, None
-        if not len(y or []):
-            return None, None
-        if yaxis is None:
-            return None, None
-
-        curr_vals = (yaxis_inputs or {}).get(yaxis) or {}
-        curr_min = curr_vals.get('min') or range_data.get('min', {}).get(yaxis)
-        curr_max = curr_vals.get('max') or range_data.get('max', {}).get(yaxis)
-        return curr_min, curr_max
+        y = make_list(inputs.get('y'))
+        dd_style = dict(display='block' if yaxis_type == 'multi' and len(y) > 1 else 'none')
+        type_style = {'borderRadius': '0 0.25rem 0.25rem 0'} if yaxis_type == 'default' else None
+        min_max_style = 'none' if (yaxis_type == 'default') or (yaxis_type == 'multi' and yaxis is None) else 'block'
+        label_style = dict(display=min_max_style)
+        input_style = {'lineHeight': 'inherit', 'display': min_max_style}
+        curr_min, curr_max = (None, None)
+        range_min, range_max = ((range_data or {}).get(p) or {} for p in ['min', 'max'])
+        if yaxis:
+            curr_vals = (yaxis_inputs or {}).get('data', {}).get(yaxis) or {}
+            curr_min = curr_vals.get('min') or range_min.get(yaxis)
+            curr_max = curr_vals.get('max') or range_max.get(yaxis)
+        elif yaxis_type == 'single':
+            curr_vals = (yaxis_inputs or {}).get('data', {}).get('all') or {}
+            curr_min = curr_vals.get('min')
+            if curr_min is None:
+                curr_min = get_default_range(range_min, y)
+            curr_max = curr_vals.get('max')
+            if curr_max is None:
+                curr_max = get_default_range(range_max, y, max=True)
+        return curr_min, curr_max, dd_style, label_style, input_style, label_style, input_style, type_style
 
     @dash_app.callback(
         Output('yaxis-data', 'data'),
-        [Input('yaxis-min-input', 'value'), Input('yaxis-max-input', 'value')],
-        [State('yaxis-dropdown', 'value'), State('yaxis-data', 'data'), State('range-data', 'data')]
+        [Input('yaxis-type', 'value'), Input('yaxis-min-input', 'value'), Input('yaxis-max-input', 'value')],
+        [
+            State('yaxis-dropdown', 'value'),
+            State('yaxis-data', 'data'),
+            State('range-data', 'data'),
+            State('input-data', 'data')
+        ]
     )
-    def update_yaxis_data(yaxis_min, yaxis_max, yaxis, yaxis_data, range_data):
+    def update_yaxis_data(yaxis_type, yaxis_min, yaxis_max, yaxis, yaxis_data, range_data, inputs):
         """
         dash callback controlling updates to y-axis range state
         """
-        if yaxis is None:
+        yaxis_data = yaxis_data or dict(data={})
+        yaxis_data['type'] = yaxis_type
+        yaxis_name = 'all' if yaxis_type == 'single' else yaxis
+        if yaxis_name == 'all':
+            y = make_list(inputs.get('y'))
+            mins = range_data.get('min', {})
+            maxs = range_data.get('max', {})
+            range_min = get_default_range(mins, y)
+            range_max = get_default_range(maxs, y, max=True)
+        elif yaxis is None:
             raise PreventUpdate
-        yaxis_data = yaxis_data or {}
-        range_min, range_max = (range_data[p][yaxis] for p in ['min', 'max'])
-        if yaxis in yaxis_data:
+        else:
+            range_min, range_max = (range_data[p].get(yaxis_name) for p in ['min', 'max'])
+
+        if yaxis_name in yaxis_data['data']:
             if (yaxis_min, yaxis_max) == (range_min, range_max):
-                del yaxis_data[yaxis]
+                del yaxis_data['data'][yaxis_name]
             else:
-                yaxis_data[yaxis] = dict(min=yaxis_min, max=yaxis_max)
+                yaxis_data['data'][yaxis_name] = dict(min=yaxis_min, max=yaxis_max)
         else:
             if (yaxis_min, yaxis_max) != (range_min, range_max):
-                yaxis_data[yaxis] = dict(min=yaxis_min, max=yaxis_max)
+                yaxis_data['data'][yaxis_name] = dict(min=yaxis_min, max=yaxis_max)
         return yaxis_data
 
     @dash_app.callback(

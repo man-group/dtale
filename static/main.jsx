@@ -11,6 +11,7 @@ import { CodePopup } from "./popups/CodePopup";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/ColumnAnalysis";
 import { ReactCorrelations as Correlations } from "./popups/Correlations";
 import { ReactDescribe as Describe } from "./popups/Describe";
+import { ReactFilter as Filter } from "./popups/Filter";
 import Instances from "./popups/Instances";
 import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
@@ -31,6 +32,9 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
   const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];
 
   switch (popupType) {
+    case "filter":
+      rootNode = <Filter {...{ dataId, chartData }} />;
+      break;
     case "correlations":
       rootNode = <Correlations {...{ dataId, chartData }} />;
       break;

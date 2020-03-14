@@ -1,55 +1,23 @@
-import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
 
-import { Bouncer } from "../Bouncer";
-import { RemovableError } from "../RemovableError";
 import { ROW_HEIGHT } from "../dtale/gridUtils";
-import { fetchJson } from "../fetcher";
 
 require("./ContextVariables.css");
 
 const displayName = "Context Variables";
-
 const propTypes = {
-  dataId: PropTypes.string.isRequired,
+  contextVars: PropTypes.array.isRequired,
 };
 
 class ContextVariables extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      error: null,
-      loading: false,
-      contextVars: [],
-    };
     this.renderInfoForUser = this.renderInfoForUser.bind(this);
     this.renderTable = this.renderTable.bind(this);
-  }
-
-  componentDidMount() {
-    this.setState({ loading: true });
-    fetchJson(`/dtale/context-variables/${this.props.dataId}`, contextVarsData => {
-      if (contextVarsData.error) {
-        this.setState({
-          error: <RemovableError {...contextVarsData} />,
-          loading: false,
-          contextVars: [],
-        });
-      } else {
-        this.setState({
-          error: null,
-          loading: false,
-          contextVars: _.map(contextVarsData.context_variables, (v, k) => ({
-            name: k,
-            value: v,
-          })),
-        });
-      }
-    });
   }
 
   renderInfoForUser() {
@@ -68,13 +36,7 @@ class ContextVariables extends React.Component {
   }
 
   renderTable() {
-    if (this.state.loading) {
-      return <Bouncer />;
-    }
-    if (this.state.error) {
-      return <div>{this.state.error}</div>;
-    }
-    if (this.state.contextVars.length === 0) {
+    if (this.props.contextVars.length === 0) {
       return <p>No context variables are defined.</p>;
     }
     return (
@@ -84,12 +46,12 @@ class ContextVariables extends React.Component {
             <Table
               className="contextVariables"
               width={width}
-              height={Math.min(300, (this.state.contextVars.length + 1) * (ROW_HEIGHT + 2))}
+              height={Math.min(300, (this.props.contextVars.length + 1) * (ROW_HEIGHT + 2))}
               headerHeight={ROW_HEIGHT}
               headerClassName="headerCell"
               rowHeight={ROW_HEIGHT}
-              rowCount={this.state.contextVars.length}
-              rowGetter={({ index }) => this.state.contextVars[index]}
+              rowCount={this.props.contextVars.length}
+              rowGetter={({ index }) => this.props.contextVars[index]}
               rowStyle={{ display: "flex" }}>
               <Column label="Name" dataKey="name" width={200} className="cell" />
               <Column label="Value" dataKey="value" width={300} flexGrow={1} className="cell" />

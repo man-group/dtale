@@ -42,7 +42,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={() => this.props.propagateState({ filterOpen: true })}>
+              <button className="btn btn-plain" onClick={openPopup("filter", 500, 1100)}>
                 <i className="fa fa-filter ml-2 mr-4" />
                 <span className="font-weight-bold">Filter</span>
               </button>

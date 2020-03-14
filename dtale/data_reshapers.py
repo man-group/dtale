@@ -124,8 +124,6 @@ class TransposeBuilder(object):
         if len(index) > 1:
             t_data.columns = flatten_columns(t_data)
         t_data = t_data.rename_axis(None, axis=1)
-        if columns is None:
-            print(t_data.head())
         return t_data
 
     def build_code(self):

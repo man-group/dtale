@@ -48,10 +48,13 @@ describe("DataViewer within iframe tests", () => {
       return chartCfg;
     });
 
+    const mockDateInput = withGlobalJquery(() => require("@blueprintjs/datetime"));
+
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    jest.mock("@blueprintjs/datetime", () => mockDateInput);
   });
 
   afterAll(() => {

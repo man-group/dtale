@@ -28,7 +28,9 @@ describe("main tests", () => {
       })
     );
 
+    const mockDateInput = withGlobalJquery(() => require("@blueprintjs/datetime"));
     jest.mock("popsicle", () => mockBuildLibs);
+    jest.mock("@blueprintjs/datetime", () => mockDateInput);
   });
 
   beforeAll(() => {
@@ -76,7 +78,7 @@ describe("main tests", () => {
     done();
   });
 
-  _.forEach(["correlations", "charts", "describe", "column-analysis", "instances", "code-export"], popup => {
+  _.forEach(["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter"], popup => {
     test(`${popup} popup rendering`, done => {
       testMain(`popup/${popup}`);
       done();

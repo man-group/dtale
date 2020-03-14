@@ -1,0 +1,33 @@
+.column-filter .Select {
+  min-width: 11em;
+  max-width: 11em;
+}
+.column-filter .Select__control {
+  height: auto;
+}
+.column-filter .Select__value-container {
+  overflow: visible;
+  display: block;
+  padding: 0;
+}
+.column-filter .Select__indicator {
+  padding: 0 5px 0 0;
+}
+.column-filter .Select__control--is-disabled {
+  background-color: rgba(128, 128, 128, 0.3);
+}
+.column-filter span.bp3-popover-wrapper,
+.column-filter div.bp3-input-group {
+  width: 5.7em;
+  padding: 0;
+}
+
+.column-filter input.bp3-input {
+  height: 20px;
+  line-height: 20px;
+  font-size: 12px;
+}
+
+.column-filter .bp3-icon-double-caret-vertical {
+  margin-top: -5px;
+}

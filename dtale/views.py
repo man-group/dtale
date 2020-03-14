@@ -20,18 +20,19 @@ from dtale import dtale
 from dtale.charts.utils import build_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_builders import ColumnBuilder
+from dtale.column_filters import ColumnFilter
 from dtale.dash_application.charts import (build_raw_chart, chart_url_params,
                                            chart_url_querystring, export_chart,
                                            export_chart_data, url_encode_func)
 from dtale.data_reshapers import DataReshaper
-from dtale.utils import (DuplicateDataError, build_code_export,
+from dtale.utils import (DuplicateDataError, build_code_export, build_query,
                          build_shutdown_url, classify_type, dict_merge,
-                         divide_chunks, filter_df_for_grid, find_dtype,
-                         find_dtype_formatter, find_selected_column,
-                         get_bool_arg, get_dtypes, get_int_arg, get_json_arg,
-                         get_str_arg, grid_columns, grid_formatter, json_date,
-                         json_float, json_int, json_timestamp, jsonify,
-                         make_list, retrieve_grid_params, run_query,
+                         divide_chunks, find_dtype, find_dtype_formatter,
+                         find_selected_column, get_bool_arg, get_dtypes,
+                         get_int_arg, get_json_arg, get_str_arg, grid_columns,
+                         grid_formatter, json_date, json_float, json_int,
+                         json_timestamp, jsonify, make_list,
+                         retrieve_grid_params, run_query,
                          running_with_flask_debug, running_with_pytest,
                          sort_df_for_grid)
 
@@ -307,7 +308,7 @@ class DtaleData(object):
         self.notebook(route='/charts/', params=chart_url_querystring(params), width=width, height=height)
 
     def offline_chart(self, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
-                      rolling_comp=None, barmode=None, barsort=None, filepath=None, **kwargs):
+                      rolling_comp=None, barmode=None, barsort=None, yaxis=None, filepath=None, **kwargs):
         """
         Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
 
@@ -336,6 +337,8 @@ class DtaleData(object):
         :param barsort: axis name to sort the bars in a bar chart by (default is the 'x', but other options are any of
                         columns names used in the 'y' parameter
         :type barsort: str, optional
+        :param yaxis: dictionary specifying the min/max for each y-axis in your chart
+        :type yaxis: dict, optional
         :param filepath: location to save HTML output
         :type filepath: str, optional
         :param kwargs: optional keyword arguments, here in case invalid arguments are passed to this function
@@ -347,7 +350,7 @@ class DtaleData(object):
                  - otherwise it will return the HTML output as a string
         """
         params = dict(chart_type=chart_type, query=query, x=x, y=make_list(y), z=z, group=make_list(group), agg=agg,
-                      window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort)
+                      window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort, yaxis=yaxis)
 
         if filepath is None and in_ipython_frontend():
             from plotly.offline import iplot, init_notebook_mode
@@ -895,11 +898,19 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     try:
+        query = get_str_arg(request, 'query')
         run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, query),
             global_state.get_context_variables(data_id)
         )
+        if get_str_arg(request, 'save'):
+            curr_settings = global_state.get_settings(data_id) or {}
+            if query is not None:
+                curr_settings = dict_merge(curr_settings, dict(query=query))
+            else:
+                curr_settings = {k: v for k, v in curr_settings.items() if k != 'query'}
+            global_state.set_settings(data_id, curr_settings)
         return jsonify(dict(success=True))
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
@@ -1015,6 +1026,36 @@ def describe(data_id, column):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
+@dtale.route('/column-filter-data/<data_id>/<column>')
+def get_column_filter_data(data_id, column):
+    try:
+        s = global_state.get_data(data_id)[column]
+        dtype = find_dtype(s)
+        fmt = find_dtype_formatter(dtype)
+        classification = classify_type(dtype)
+        ret = dict(success=True, hasMissing=bool(s.isnull().any()))
+        if classification not in ['S', 'B']:
+            data_range = s.agg(['min', 'max']).to_dict()
+            data_range = {k: fmt(v) for k, v in data_range.items()}
+            ret = dict_merge(ret, data_range)
+        if classification in ['S', 'I', 'B']:
+            vals = [fmt(v) for v in sorted(s.dropna().unique())]
+            ret['uniques'] = vals
+        return jsonify(ret)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
+@dtale.route('/save-column-filter/<data_id>/<column>')
+def save_column_filter(data_id, column):
+    try:
+        ColumnFilter(data_id, column, get_str_arg(request, 'cfg')).save_filter()
+        curr_filters = (global_state.get_settings(data_id) or {}).get('columnFilters') or {}
+        return jsonify(success=True, currFilters=curr_filters)
+    except BaseException as e:
+        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+
+
 @dtale.route('/data/<data_id>')
 def get_data(data_id):
     """
@@ -1064,27 +1105,29 @@ def get_data(data_id):
             curr_settings = dict_merge(curr_settings, dict(sort=params['sort']))
         else:
             curr_settings = {k: v for k, v in curr_settings.items() if k != 'sort'}
-        data = filter_df_for_grid(data, params, global_state.get_context_variables(data_id))
-        if params.get('query') is not None:
-            curr_settings = dict_merge(curr_settings, dict(query=params['query']))
-        else:
-            curr_settings = {k: v for k, v in curr_settings.items() if k != 'query'}
+        data = run_query(
+            global_state.get_data(data_id),
+            build_query(data_id, curr_settings.get('query')),
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+        )
         global_state.set_settings(data_id, curr_settings)
 
         total = len(data)
         results = {}
-        for sub_range in ids:
-            sub_range = list(map(int, sub_range.split('-')))
-            if len(sub_range) == 1:
-                sub_df = data.iloc[sub_range[0]:sub_range[0] + 1]
-                sub_df = f.format_dicts(sub_df.itertuples())
-                results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
-            else:
-                [start, end] = sub_range
-                sub_df = data.iloc[start:] if end >= len(data) - 1 else data.iloc[start:end + 1]
-                sub_df = f.format_dicts(sub_df.itertuples())
-                for i, d in zip(range(start, end + 1), sub_df):
-                    results[i] = dict_merge({IDX_COL: i}, d)
+        if total:
+            for sub_range in ids:
+                sub_range = list(map(int, sub_range.split('-')))
+                if len(sub_range) == 1:
+                    sub_df = data.iloc[sub_range[0]:sub_range[0] + 1]
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
+                else:
+                    [start, end] = sub_range
+                    sub_df = data.iloc[start:] if end >= len(data) - 1 else data.iloc[start:end + 1]
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    for i, d in zip(range(start, end + 1), sub_df):
+                        results[i] = dict_merge({IDX_COL: i}, d)
         columns = [dict(name=IDX_COL, dtype='int64', visible=True)] + global_state.get_dtypes(data_id)
         return_data = dict(results=results, columns=columns, total=total)
         return jsonify(return_data)
@@ -1111,7 +1154,7 @@ def get_column_analysis(data_id):
         data_type = get_str_arg(request, 'type') or 'histogram'
         data = run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, get_str_arg(request, 'query')),
             global_state.get_context_variables(data_id)
         )
         selected_col = find_selected_column(data, col)
@@ -1162,7 +1205,7 @@ def get_correlations(data_id):
     try:
         data = run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, get_str_arg(request, 'query')),
             global_state.get_context_variables(data_id)
         )
         valid_corr_cols = []
@@ -1240,7 +1283,7 @@ def get_chart_data(data_id):
     try:
         data = run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, get_str_arg(request, 'query')),
             global_state.get_context_variables(data_id)
         )
         x = get_str_arg(request, 'x')
@@ -1275,7 +1318,7 @@ def get_correlations_ts(data_id):
     try:
         data = run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, get_str_arg(request, 'query')),
             global_state.get_context_variables(data_id)
         )
         cols = get_str_arg(request, 'cols')
@@ -1349,7 +1392,7 @@ def get_scatter(data_id):
 
         data = run_query(
             global_state.get_data(data_id),
-            get_str_arg(request, 'query'),
+            build_query(data_id, get_str_arg(request, 'query')),
             global_state.get_context_variables(data_id)
         )
         idx_col = str('index')
@@ -1443,10 +1486,11 @@ def build_context_variables(data_id, new_context_vars=None):
     return dict_merge(global_state.get_context_variables(data_id), new_context_vars)
 
 
-@dtale.route('/context-variables/<data_id>')
-def get_context_variables(data_id):
+@dtale.route('/filter-info/<data_id>')
+def get_filter_info(data_id):
     """
-    :class:`flask:flask.Flask` route which returns a view-only version of the context variables to the front end.
+    :class:`flask:flask.Flask` route which returns a view-only version of the query, column filters & context variables
+    to the front end.
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
@@ -1458,9 +1502,11 @@ def get_context_variables(data_id):
         return str(value)[:1000]
 
     try:
-        ctxt_vars = global_state.get_context_variables(data_id)
-        return jsonify(context_variables={k: value_as_str(v) for k, v in ctxt_vars.items()},
-                       success=True)
+        ctxt_vars = global_state.get_context_variables(data_id) or {}
+        ctxt_vars = [dict(name=k, value=value_as_str(v)) for k, v in ctxt_vars.items()]
+        curr_settings = global_state.get_settings(data_id) or {}
+        curr_settings = {k: v for k, v in curr_settings.items() if k in ['query', 'columnFilters']}
+        return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 

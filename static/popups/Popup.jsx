@@ -11,6 +11,7 @@ import { CodeExport } from "./CodeExport";
 import { ColumnAnalysis } from "./ColumnAnalysis";
 import { Correlations } from "./Correlations";
 import { Describe } from "./Describe";
+import { Filter } from "./Filter";
 import Instances from "./Instances";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
@@ -37,6 +38,15 @@ class ReactPopup extends React.Component {
     const { chartData } = this.props;
     const { type, title, visible, size, backdrop } = chartData;
     switch (type) {
+      case "filter":
+        modalTitle = (
+          <ModalTitle>
+            <i className="fa fa-filter" />
+            <strong>Filter</strong>
+          </ModalTitle>
+        );
+        body = <Filter />;
+        break;
       case "column-analysis":
         modalTitle = (
           <ModalTitle>

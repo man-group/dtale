@@ -40,9 +40,6 @@ class CodeExport extends React.Component {
 CodeExport.displayName = "CodeExport";
 CodeExport.propTypes = {
   dataId: PropTypes.string.isRequired,
-  chartData: PropTypes.shape({
-    visible: PropTypes.bool.isRequired,
-  }),
 };
 
 export { CodeExport };

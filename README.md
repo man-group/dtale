@@ -39,11 +39,11 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Command-line](#command-line)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
-  - [Selecting/Deselecting Columns](#selectingdeselecting-columns)
+  - [Header](#header)
   - [Main Menu Functions](#main-menu-functions)
     - [Describe](#describe), [Filter](#filter), [Building Columns](#building-columns), [Reshape](#reshape), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -306,6 +306,18 @@ The information in the upper right-hand corner gives grid dimensions ![](https:/
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_menu_small.png)
 
+### Header
+
+The header gives users an idea of what operations have taken place on your data (sorts, filters, hidden columns).  These values will be persisted across broswer instances.  So if you perform one of these operations and then send a link to one of your colleagues they will see the same thing :)
+
+Notice the "X" icon on the right of each display.  Clicking this will remove those operations.
+
+When performing multiple of the same operation the description will become too large to display so the display will truncate the description and if users click it they will be presented with a tooltip where you can crop individual operations.  Here are some examples:
+
+|Sorts|Filters|Hidden Columns|
+|-----|-------|--------------|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/sorts.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/filters.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/hidden.PNG)|
+
 ### Main Menu Functions
 
 #### Describe
@@ -403,11 +415,20 @@ Here are some examples:
 |3D scatter|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/3d_scatter.png)||
 |surface|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/surface.png)||
 
-Selecting multiple columns for the Y-Axis will produce similar results to grouping in the sense that the chart will contain multiple series, but the difference is that for each column there will be a different Y-Axis associated with it in case the values contained within each column are on different scales.
+Y-Axis Toggling
 
-|Multi Y-Axis|Editing Axis Ranges|
-|:------:|:------:|
-|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/multi_col.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/editing_axis.png)|
+Users now have the ability to toggle between 3 different behaviors for their y-axis display:
+- *Default*: selecting this option will use the default behavior that comes with plotly for your chart's y-axis
+- *Single*: this allows users to set the range of all series in your chart to be on the same basis as well as making that basis (min/max) editable
+- *Multi*: this allows users to give each series its own y-axis and making that axis' range editable
+
+Here's a quick tutorial: [![](http://img.youtube.com/vi/asblF-rAACY/0.jpg)](http://www.youtube.com/watch?v=asblF-rAACY "Y-Axis Toggling")
+
+And some screenshots:
+
+|Default|Single|Multi|
+|:------:|:------:|:------:|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/axis_toggle/default.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/axis_toggle/single.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/axis_toggle/multi.PNG)|
 
 With a bar chart that only has a single Y-Axis you have the ability to sort the bars based on the values for the Y-Axis
 
@@ -584,6 +605,18 @@ Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill p
 ### Column Menu Functions
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Col_menu.png)
+
+#### Filtering
+
+[![](http://img.youtube.com/vi/8zo5ZiI1Yzo/0.jpg)](http://www.youtube.com/watch?v=8zo5ZiI1Yzo "Column Filtering")
+
+These interactive filters come in 3 different types: String, Numeric & Date.  Note that you will still have the ability to apply custom filters from the "Filter" popup on the main menu, but it will get applied in addition to any column filters.
+
+|Type|Filter|Data Types|Features|
+|----|------|----------|--------|
+|String|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/filters/string.PNG)|strings & booleans|The ability to select multiple values based on what exists in the column. Notice the "Show Missing Only" toggle, this will only show up if your column has nan values|
+|Date|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/filters/dates.PNG)|dates|Specify a range of dates to filter on based on start & end inputs|
+|Numeric|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/filters/numeric.PNG)|ints & floats|For integers the "=" will be similar to strings where you can select multiple values based on what exists in the column.  You also have access to other operands: <,>,<=,>=,() - "Range exclusve", [] - "Range inclusive".|
 
 #### Moving Columns
 
