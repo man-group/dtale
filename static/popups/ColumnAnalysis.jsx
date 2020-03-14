@@ -59,6 +59,8 @@ class ReactColumnAnalysis extends React.Component {
   constructor(props) {
     super(props);
     this.state = { chart: null, bins: "20", type: null, dtype: null };
+    this.buildChartTypeToggle = this.buildChartTypeToggle.bind(this);
+    this.buildBinFilter = this.buildBinFilter.bind(this);
     this.buildAnalysisFilters = this.buildAnalysisFilters.bind(this);
     this.buildAnalysis = this.buildAnalysis.bind(this);
   }
@@ -85,81 +87,114 @@ class ReactColumnAnalysis extends React.Component {
     this.buildAnalysis();
   }
 
-  buildAnalysisFilters() {
-    let chartTypeToggle = null,
-      chartTitle = null;
-    const colType = findColType(this.state.dtype);
-    if (colType === "int") {
-      chartTypeToggle = (
-        <div className="col-auto btn-group">
-          {_.map(
-            [
-              ["Histogram", "histogram"],
-              ["Value Counts", "value_counts"],
-            ],
-            ([label, value]) => {
-              const buttonProps = { className: "btn" };
-              if (value === this.state.type) {
-                buttonProps.className += " btn-primary active";
-              } else {
-                buttonProps.className += " btn-primary inactive";
-                buttonProps.onClick = () => this.setState({ type: value }, this.buildAnalysis);
-              }
-              return (
-                <button key={value} {...buttonProps}>
-                  {label}
-                </button>
-              );
+  buildChartTypeToggle() {
+    return (
+      <div className="col-auto btn-group">
+        {_.map(
+          [
+            ["Histogram", "histogram"],
+            ["Value Counts", "value_counts"],
+          ],
+          ([label, value]) => {
+            const buttonProps = { className: "btn" };
+            if (value === this.state.type) {
+              buttonProps.className += " btn-primary active";
+            } else {
+              buttonProps.className += " btn-primary inactive";
+              buttonProps.onClick = () => this.setState({ type: value }, this.buildAnalysis);
             }
-          )}
+            return (
+              <button key={value} {...buttonProps}>
+                {label}
+              </button>
+            );
+          }
+        )}
+      </div>
+    );
+  }
+
+  buildBinFilter() {
+    const colType = findColType(this.state.dtype);
+    const updateBins = e => {
+      if (e.key === "Enter") {
+        if (this.state.bins && parseInt(this.state.bins)) {
+          this.buildAnalysis();
+        }
+        e.preventDefault();
+      }
+    };
+    return [
+      <div key={0} className={`col-auto text-center ${colType === "int" ? "pl-0" : ""}`}>
+        <div>
+          <b>Bins</b>
+        </div>
+        <div style={{ marginTop: "-.5em" }}>
+          <small>(Please edit)</small>
+        </div>
+      </div>,
+      <div key={1} style={{ width: "3em" }} data-tip="Press ENTER to submit" className="mb-auto mt-auto">
+        <input
+          type="text"
+          className="form-control text-center"
+          value={this.state.bins}
+          onChange={e => this.setState({ bins: e.target.value })}
+          onKeyPress={updateBins}
+        />
+      </div>,
+    ];
+  }
+
+  buildAnalysisFilters() {
+    const colType = findColType(this.state.dtype);
+    const title = this.state.type === "histogram" ? "Histogram" : "Value Counts";
+    if ("int" === colType) {
+      // int -> Value Counts or Histogram
+      if (this.state.type === "histogram") {
+        return (
+          <div className="form-group row small-gutters mb-0">
+            <div className="col row">
+              {this.buildChartTypeToggle()}
+              {this.buildBinFilter()}
+            </div>
+            <div className="col-auto">
+              <div>{renderCodePopupAnchor(this.state.code, title)}</div>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div className="form-group row small-gutters mb-0">
+            <div className="col row">{this.buildChartTypeToggle()}</div>
+            <div className="col-auto">
+              <div>{renderCodePopupAnchor(this.state.code, title)}</div>
+            </div>
+          </div>
+        );
+      }
+    } else if ("float" === colType) {
+      // floats -> Histogram
+      return (
+        <div className="form-group row small-gutters mb-0">
+          <div className="col-md-5 row">{this.buildBinFilter()}</div>
+          <div className="col-md-2 text-center">
+            <h4 className="modal-title font-weight-bold">{title}</h4>
+          </div>
+          <div className="col-md-5 text-right">
+            <div>{renderCodePopupAnchor(this.state.code, title)}</div>
+          </div>
         </div>
       );
-    } else {
-      chartTitle = (
-        <h4 className="modal-title font-weight-bold">
-          {this.state.type === "histogram" ? "Histogram" : "Value Counts"}
-        </h4>
-      );
     }
-    let binFilter = null;
-    if (_.includes(["int", "float"], colType) && this.state.type === "histogram") {
-      const updateBins = e => {
-        if (e.key === "Enter") {
-          if (this.state.bins && parseInt(this.state.bins)) {
-            this.buildAnalysis();
-          }
-          e.preventDefault();
-        }
-      };
-      binFilter = [
-        <div key={0} className="col-auto text-center">
-          <div>
-            <b>Bins</b>
-          </div>
-          <div style={{ marginTop: "-.5em" }}>
-            <small>(Please edit)</small>
-          </div>
-        </div>,
-        <div key={1} style={{ width: "3em" }} data-tip="Press ENTER to submit" className="mb-auto mt-auto">
-          <input
-            type="text"
-            className="form-control text-center"
-            value={this.state.bins}
-            onChange={e => this.setState({ bins: e.target.value })}
-            onKeyPress={updateBins}
-          />
-        </div>,
-      ];
-    }
+    // date, string, bool -> Value Counts
     return (
       <div className="form-group row small-gutters mb-0">
-        <div className="col-md-5 row">
-          {chartTypeToggle}
-          {binFilter}
+        <div className="col-md-5" />
+        <div className="col-md-2 text-center">
+          <h4 className="modal-title font-weight-bold">{title}</h4>
         </div>
-        <div className="col-md-2 text-center">{chartTitle}</div>
         <div className="col-md-5 text-right">
-          <div style={{ marginRight: "-30px" }}>{renderCodePopupAnchor(this.state.code, "Histogram")}</div>
+          <div>{renderCodePopupAnchor(this.state.code, title)}</div>
         </div>
       </div>
     );

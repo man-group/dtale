@@ -85,7 +85,7 @@ describe("DataViewer iframe tests", () => {
       );
       result
         .find(DataViewerInfo)
-        .find("div.col-md-4")
+        .find("div.col")
         .last()
         .find("i")
         .simulate("click");

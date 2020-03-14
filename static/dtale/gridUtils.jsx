@@ -117,7 +117,12 @@ function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
     const headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
     switch (findColType((dtype || "").toLowerCase())) {
-      case "date":
+      case "date": {
+        let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
+        maxText = _.get(maxText, [name, "view"], "").replace(new RegExp("[0-9]", "g"), "0"); // zero is widest number
+        w = measureText(maxText);
+        break;
+      }
       case "int":
       case "float": {
         const maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
@@ -214,10 +219,10 @@ function buildState(props) {
     loadQueue: [],
     columns: [],
     query: _.get(props, "settings.query", ""),
+    columnFilters: _.get(props, "settings.columnFilters", {}),
     sortInfo: _.get(props, "settings.sort", []),
     selectedCols: [],
     menuOpen: false,
-    filterOpen: false,
     formattingOpen: false,
     triggerResize: false,
     heatMapMode: false,
@@ -228,8 +233,8 @@ function noHidden(columns) {
   return !_.some(columns, { visible: false });
 }
 
-function hasNoInfo({ sortInfo, query, columns }) {
-  return _.isEmpty(sortInfo) && _.isEmpty(query) && noHidden(columns);
+function hasNoInfo({ sortInfo, query, columns, columnFilters }) {
+  return _.isEmpty(sortInfo) && _.isEmpty(query) && noHidden(columns) && _.isEmpty(columnFilters);
 }
 
 export {

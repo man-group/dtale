@@ -103,6 +103,8 @@ def custom_data(request):
     ], ignore_index=True)[['date', 'security_id', 'int_val', 'str_val']]
     col_names = ['Col{}'.format(c) for c in range(columns)]
     data = pd.concat([data, pd.DataFrame(np.random.randn(len(data), columns), columns=col_names)], axis=1)
+    data.loc[data['security_id'] == 100001, 'str_val'] = np.nan
+    data.loc[:, 'bool_val'] = data.index % 2 == 0
     return data
 
 

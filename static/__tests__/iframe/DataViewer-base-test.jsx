@@ -6,7 +6,6 @@ import React from "react";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
@@ -43,6 +42,13 @@ const COL_PROPS = [
     visible: true,
   },
 ];
+
+class MockDateInput extends React.Component {
+  render() {
+    return null;
+  }
+}
+MockDateInput.displayName = "DateInput";
 
 describe("DataViewer iframe tests", () => {
   const { location, open, top, self } = window;
@@ -84,6 +90,7 @@ describe("DataViewer iframe tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    jest.mock("@blueprintjs/datetime", () => ({ DateInput: MockDateInput }));
   });
 
   afterAll(() => {
@@ -100,6 +107,7 @@ describe("DataViewer iframe tests", () => {
     const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
     const Header = require("../../dtale/Header").ReactHeader;
     const Formatting = require("../../popups/formats/Formatting").default;
+    const DataViewerMenu = require("../../dtale/DataViewerMenu").DataViewerMenu;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -175,7 +183,7 @@ describe("DataViewer iframe tests", () => {
       clickColMenuSubButton(result, "Asc");
       t.equal(
         result
-          .find("div.row div.col-md-4")
+          .find("div.row div.col")
           .first()
           .text(),
         "Sort:col4 (ASC)",

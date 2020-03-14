@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.8.0 (2020-3-22)
+ * [#102](https://github.com/man-group/dtale/issues/102), interactive column filtering for string, date, int, float & bool
+ * better handling for y-axis management in charts.  Now able to toggle between default, single & multi axis
+ * increased maximum groups to 30 in charts and updated error messaging when it surpasses that for easier filter creation
+ * bugfix for date string width calculation
+ * updated sort/filter/hidden header so that you can now click values which will trigger a tooltip for removing individual values
+ * updated Filter popup to be opened as separate window when needed
+
 ### 1.7.15 (2020-3-9)
  * [#105](https://github.com/man-group/dtale/issues/105), better error handling for when JS files are missing
  * [#103](https://github.com/man-group/dtale/issues/103), pinned Flask to be >= 1.0.0

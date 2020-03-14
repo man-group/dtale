@@ -2,7 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 
 import { buildURLString } from "../actions/url-utils";
-import { fetchJson, logException } from "../fetcher";
+import { fetchJson, fetchJsonPromise, logException } from "../fetcher";
 
 function buildCallback(route, dataId, params) {
   return () => fetchJson(buildURLString(`/dtale/${route}/${dataId}?`, params), _.noop);
@@ -114,6 +114,18 @@ function persistVisibility(dataId, params, callback) {
   }
 }
 
+function updateSettings(settings, dataId, callback = _.noop) {
+  fetchJsonPromise(
+    buildURLString(`/dtale/update-settings/${dataId}?`, {
+      settings: JSON.stringify(settings),
+    })
+  )
+    .then(callback)
+    .catch((e, callstack) => {
+      logException(e, callstack);
+    });
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -124,4 +136,5 @@ export default {
   updateVisibility: (dataId, visibility, callback) =>
     persistVisibility(dataId, { visibility: JSON.stringify(visibility) }, callback),
   toggleVisibility: (dataId, toggle, callback) => persistVisibility(dataId, { toggle }, callback),
+  updateSettings,
 };

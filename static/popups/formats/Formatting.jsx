@@ -3,9 +3,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 
-import { buildURLString } from "../../actions/url-utils";
 import * as gu from "../../dtale/gridUtils";
-import { fetchJsonPromise, logException } from "../../fetcher";
+import serverState from "../../dtale/serverStateManagement";
 import DateFormatting from "./DateFormatting";
 import NumericFormatting from "./NumericFormatting";
 import StringFormatting from "./StringFormatting";
@@ -48,9 +47,6 @@ class Formatting extends React.Component {
       }
       return c;
     });
-    const updateParams = {
-      settings: JSON.stringify({ formats: updatedColumnFormats }),
-    };
     propagateState({
       data: updatedData,
       columnFormats: updatedColumnFormats,
@@ -59,11 +55,7 @@ class Formatting extends React.Component {
       triggerResize: true,
       formattingUpdate: true,
     });
-    fetchJsonPromise(buildURLString(`/dtale/update-settings/${dataId}?`, updateParams))
-      .then(_.noop)
-      .catch((e, callstack) => {
-        logException(e, callstack);
-      });
+    serverState.updateSettings({ formats: updatedColumnFormats }, dataId);
   }
 
   renderBody() {

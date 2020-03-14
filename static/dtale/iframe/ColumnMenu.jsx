@@ -7,8 +7,9 @@ import { connect } from "react-redux";
 import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
+import ColumnFilter from "../../filters/ColumnFilter";
 import menuFuncs from "../dataViewerMenuUtils";
-import { SORT_PROPS } from "../gridUtils";
+import { ROW_HEIGHT, SORT_PROPS } from "../gridUtils";
 import serverState from "../serverStateManagement";
 
 require("./ColumnMenu.css");
@@ -34,25 +35,52 @@ function buildCaretClass(caretPct = 90) {
 }
 
 function positionMenu(selectedToggle, menuDiv) {
-  const currLeft = selectedToggle.offset().left;
+  const currLeft = _.get(selectedToggle.offset(), "left", 0);
+  const currTop = _.get(selectedToggle.offset(), "top", 0);
   const divWidth = menuDiv.width();
+  const css = {};
   if (currLeft + divWidth > window.innerWidth) {
     const finalLeft = currLeft - (currLeft + divWidth + 20 - window.innerWidth);
-    menuDiv.css({ left: finalLeft });
+    css.left = finalLeft;
     const overlapPct = (currLeft - (finalLeft - 20)) / divWidth;
     const caretPct = Math.floor(100 - overlapPct * 100);
     buildCaretClass(caretPct);
   } else {
-    menuDiv.css({ left: currLeft });
+    css.left = currLeft;
     buildCaretClass();
   }
+  css.top = currTop + ROW_HEIGHT - 6;
+  menuDiv.css(css);
+}
+
+function ignoreMenuClicks(e) {
+  const colFilter = $("div.column-filter");
+  if (colFilter && (colFilter.is(e.target) || colFilter.has(e.target).length > 0)) {
+    return true; // ignore filter clicks
+  }
+  if (colFilter && $(e.target).hasClass("Select__option")) {
+    return true; // ignore option selection
+  }
+  if (colFilter && e.target.nodeName === "svg") {
+    return true; // ignore option selection
+  }
+  return false;
 }
 
 class ReactColumnMenu extends React.Component {
-  componentDidUpdate(prevProps) {
-    if (!_.isNull(this.props.selectedCol) && this.props.selectedCol !== prevProps.selectedCol) {
+  constructor(props) {
+    super(props);
+    this.updatePosition = this.updatePosition.bind(this);
+  }
+
+  updatePosition() {
+    if (!_.isNull(this.props.selectedCol)) {
       positionMenu($(`div.${this.props.selectedToggle}`), $(this._div));
     }
+  }
+
+  componentDidUpdate() {
+    this.updatePosition();
   }
 
   render() {
@@ -102,10 +130,7 @@ class ReactColumnMenu extends React.Component {
         id="column-menu-div"
         className="column-toggle__dropdown"
         hidden={!this.props.columnMenuOpen}
-        style={{
-          minWidth: "11em",
-          top: this.props.noInfo ? "1.25em" : "2.75em",
-        }}
+        style={{ minWidth: "11em" }}
         ref={cm => (this._div = cm)}>
         <header>{`Column "${selectedCol}"`}</header>
         <ul>
@@ -198,6 +223,7 @@ class ReactColumnMenu extends React.Component {
               </button>
             </span>
           </li>
+          <ColumnFilter {...this.props} />
         </ul>
       </div>
     );
@@ -221,4 +247,4 @@ const ReduxColumnMenu = connect(
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactColumnMenu);
 
-export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu, positionMenu };
+export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu, positionMenu, ignoreMenuClicks };

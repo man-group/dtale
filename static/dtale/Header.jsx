@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
 import * as gu from "./gridUtils";
+import { ignoreMenuClicks } from "./iframe/ColumnMenu";
 
 const SORT_CHARS = {
   ASC: String.fromCharCode("9650"),
@@ -56,7 +57,8 @@ class ReactHeader extends React.Component {
       `${colName}Actions`,
       () => this.props.toggleColumnMenu(colName, toggleId),
       () => this.props.hideColumnMenu(colName),
-      `div.${toggleId}`
+      `div.${toggleId}`,
+      ignoreMenuClicks
     );
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     return (

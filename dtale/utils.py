@@ -194,7 +194,7 @@ def json_string(x, nan_display='', **kwargs):
     :return: string value
     :rtype: str
     """
-    if x:
+    if x or x in [False, 0]:
         try:
             return str(x)
         except UnicodeEncodeError:
@@ -400,28 +400,12 @@ def retrieve_grid_params(req, props=None):
     :rtype: dict
     """
     params = dict()
-    filters = get_str_arg(req, 'filters')
-    if filters:
-        params['filters'] = json.loads(filters)
-    params['query'] = get_str_arg(req, 'query')
-
-    params['page'] = get_int_arg(req, 'page', 1)
-    params['page_size'] = get_int_arg(req, 'page_size')
     params['sort_column'] = get_str_arg(req, 'sortColumn')
     params['sort_direction'] = get_str_arg(req, 'sortDirection')
     sort = get_str_arg(req, 'sort')
     if sort:
         params['sort'] = json.loads(sort)
-    if props:
-        return filter_params(params, props)
     return params
-
-
-def filter_params(params, props):
-    """
-    Return list of values from dictionary for list of keys
-    """
-    return list(map(params.get, props))
 
 
 def sort_df_for_grid(df, params):
@@ -450,101 +434,6 @@ def sort_df_for_grid(df, params):
             dirs.append(dir == 'ASC')
         return df.sort_values(cols, ascending=dirs)
     return df.sort_index()
-
-
-def filter_df_for_grid(df, params, context_vars):
-    """
-    Filter dataframe based on 'filters' property in parameter dictionary. Filter
-    configuration is of the following shape:
-    {
-        filters: {
-            col1: {
-                value: {
-                    type: 1, # Equals
-                    value: 1.0
-                }
-                type: 'NumericFilter'
-            },
-            col2: {
-                value: {
-                    type: 2, # Range
-                    begin: 1.0,
-                    end: 2.0
-                }
-                type: 'NumericFilter'
-            },
-            col3: {
-                value: {
-                    type: 3, # GreaterThan
-                    value: 1.0
-                }
-                type: 'NumericFilter'
-            },
-            col4: {
-                value: {
-                    type: 4, # LessThan
-                    value: 1.0
-                }
-                type: 'NumericFilter'
-            },
-            col5: {
-                value: 'aaaa' # contains 'aaaa'
-                type: 'StringFilter'
-            },
-            col6: {
-                value: '2000-01-01' # contains '2000-01-01'
-                type: 'StringFilter'
-            },
-            col7: {
-                value: '=aaaa' # equals 'aaaa'
-                type: 'StringFilter'
-            }
-        },
-        query: 'col1 === 1'
-    }
-
-    :param df: dataframe
-    :type df: :class:`pandas:pandas.DataFrame`
-    :param params: arguments from :attr:`flask:flask.request`
-    :type params: dict
-    :param context_vars: a dictionary of the variables that will be available for use in user-defined expressions
-    :type context_vars: dict
-    :return: filtering dataframe
-    :rtype: :class:`pandas:pandas.DataFrame`
-    """
-    data_type_info = get_dtypes(df)
-    for col, filter_cfg in params.get('filters', {}).items():
-        filter_val = filter_cfg['value']
-        if filter_cfg.get('type') == 'NumericFilter':
-            for numeric_operation in filter_val:
-                operation_type = numeric_operation['type']
-                df_filter = None
-                if operation_type == 2:  # Range
-                    begin = numeric_operation.get('begin')
-                    end = numeric_operation.get('end')
-                    if begin is not None and end is not None:
-                        df_filter = ((df[col] >= begin) & (df[col] <= end))
-                elif numeric_operation.get('value') is not None:
-                    operation_val = numeric_operation['value']
-                    if operation_type == 1:  # Number
-                        df_filter = df[col] == operation_val
-                    elif operation_type == 3:  # GreaterThan
-                        df_filter = df[col] > operation_val
-                    elif operation_type == 4:  # LessThan
-                        df_filter = df[col] < operation_val
-
-                if df_filter is not None:
-                    df = df[df_filter]
-        else:  # this catches StringFilter values
-            stringified_col = df[col]
-            if classify_type(data_type_info[col]) == 'D':
-                stringified_col = df[col].apply(lambda d: d.strftime('%Y-%m-%d'))
-            if filter_val.startswith('='):
-                df = df[stringified_col.astype(str) == filter_val[1:]]
-            else:
-                df = df[stringified_col.astype(str).str.lower().str.contains(filter_val.lower(), na=False)]
-    df = run_query(df, params.get('query'), context_vars)
-    return df
 
 
 def find_dtype(s):
@@ -734,7 +623,22 @@ def divide_chunks(l, n):
         yield l[i:i + n]
 
 
-def run_query(df, query, context_vars=None):
+def build_query(data_id, query=None):
+    curr_settings = global_state.get_settings(data_id) or {}
+    return inner_build_query(curr_settings, query)
+
+
+def inner_build_query(settings, query=None):
+    curr_filters = settings.get('columnFilters') or {}
+    query_segs = []
+    for col, filter_cfg in curr_filters.items():
+        query_segs.append(filter_cfg['query'])
+    if query not in [None, '']:
+        query_segs.append(query)
+    return ' and '.join(query_segs)
+
+
+def run_query(df, query, context_vars=None, ignore_empty=False):
     """
     Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
     handle when column names contain special characters.  Looks like pandas will be handling this in a future
@@ -774,7 +678,7 @@ def run_query(df, query, context_vars=None):
     else:
         df = df.query(query, local_dict=context_vars or {})
 
-    if not len(df):
+    if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))
     return df
 

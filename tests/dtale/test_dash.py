@@ -200,41 +200,97 @@ def test_chart_type_changes(unittest):
 def test_yaxis_changes(unittest):
     with app.test_client() as c:
         params = dict(
-            output='..yaxis-min-input.value...yaxis-max-input.value..',
+            output=(
+                '..yaxis-min-input.value...yaxis-max-input.value...yaxis-dropdown.style...yaxis-min-label.style...'
+                'yaxis-min-input.style...yaxis-max-label.style...yaxis-max-input.style...yaxis-type-div.style..'
+            ),
             changedPropIds=['yaxis-dropdown.value'],
-            inputs=[{'id': 'yaxis-dropdown', 'property': 'value'}],
+            inputs=[
+                {'id': 'yaxis-type', 'property': 'value', 'value': 'default'},
+                {'id': 'yaxis-dropdown', 'property': 'value'}
+            ],
             state=[
                 dict(id='input-data', property='data', value=dict(chart_type='line', x='a', y=['b'])),
                 dict(id='yaxis-data', property='data', value=dict(yaxis={})),
-                dict(id='range-data', property='data', value=dict(min={'b': 4}, max={'b': 6}))
+                dict(id='range-data', property='data', value=dict(min={'b': 4, 'c': 5}, max={'b': 6, 'c': 7}))
             ]
         )
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response'], {
-            'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
+            'yaxis-dropdown': {'style': {'display': 'none'}},
+            'yaxis-max-input': {'style': {'display': 'none', 'lineHeight': 'inherit'}, 'value': None},
+            'yaxis-max-label': {'style': {'display': 'none'}},
+            'yaxis-min-input': {'style': {'display': 'none', 'lineHeight': 'inherit'}, 'value': None},
+            'yaxis-min-label': {'style': {'display': 'none'}},
+            'yaxis-type-div': {'style': {'borderRadius': '0 0.25rem 0.25rem 0'}}
         })
 
         params['state'][0]['value']['y'] = None
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response'], {
-            'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
+            'yaxis-dropdown': {'style': {'display': 'none'}},
+            'yaxis-max-input': {'style': {'display': 'none', 'lineHeight': 'inherit'}, 'value': None},
+            'yaxis-max-label': {'style': {'display': 'none'}},
+            'yaxis-min-input': {'style': {'display': 'none', 'lineHeight': 'inherit'}, 'value': None},
+            'yaxis-min-label': {'style': {'display': 'none'}},
+            'yaxis-type-div': {'style': {'borderRadius': '0 0.25rem 0.25rem 0'}}
         })
 
         params['state'][0]['value']['y'] = ['b']
-        params['inputs'][0]['value'] = 'b'
+        params['inputs'][0]['value'] = 'single'
+        params['inputs'][1]['value'] = 'b'
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response'], {
-            'yaxis-min-input': {'value': 4}, 'yaxis-max-input': {'value': 6}
+            'yaxis-dropdown': {'style': {'display': 'none'}},
+            'yaxis-max-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 6},
+            'yaxis-max-label': {'style': {'display': 'block'}},
+            'yaxis-min-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 4},
+            'yaxis-min-label': {'style': {'display': 'block'}},
+            'yaxis-type-div': {'style': None}
+        })
+
+        params['state'][0]['value']['y'] = ['b', 'c']
+        params['inputs'][0]['value'] = 'multi'
+        params['inputs'][1]['value'] = 'b'
+        response = c.post('/charts/_dash-update-component', json=params)
+        resp_data = response.get_json()
+        unittest.assertEqual(resp_data['response'], {
+            'yaxis-dropdown': {'style': {'display': 'block'}},
+            'yaxis-max-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 6},
+            'yaxis-max-label': {'style': {'display': 'block'}},
+            'yaxis-min-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 4},
+            'yaxis-min-label': {'style': {'display': 'block'}},
+            'yaxis-type-div': {'style': None}
         })
 
         params['state'][0]['value']['chart_type'] = 'heatmap'
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response'], {
-            'yaxis-min-input': {'value': None}, 'yaxis-max-input': {'value': None}
+            'yaxis-dropdown': {'style': {'display': 'block'}},
+            'yaxis-max-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 6},
+            'yaxis-max-label': {'style': {'display': 'block'}},
+            'yaxis-min-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 4},
+            'yaxis-min-label': {'style': {'display': 'block'}},
+            'yaxis-type-div': {'style': None}
+        })
+
+        params['state'][0]['value']['y'] = ['b']
+        params['state'][0]['value']['chart_type'] = 'line'
+        params['inputs'][0]['value'] = 'single'
+        params['inputs'][1]['value'] = None
+        response = c.post('/charts/_dash-update-component', json=params)
+        resp_data = response.get_json()
+        unittest.assertEqual(resp_data['response'], {
+            'yaxis-dropdown': {'style': {'display': 'none'}},
+            'yaxis-max-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 6},
+            'yaxis-max-label': {'style': {'display': 'block'}},
+            'yaxis-min-input': {'style': {'display': 'block', 'lineHeight': 'inherit'}, 'value': 4},
+            'yaxis-min-label': {'style': {'display': 'block'}},
+            'yaxis-type-div': {'style': None}
         })
 
 
@@ -261,35 +317,52 @@ def test_chart_input_updates(unittest):
 @pytest.mark.unit
 def test_yaxis_data(unittest):
     with app.test_client() as c:
+        inputs = {
+            'chart_type': 'line', 'x': 'a', 'y': ['Col1'], 'z': None, 'group': None, 'agg': None,
+            'window': None, 'rolling_comp': None
+        }
         params = {
             'output': 'yaxis-data.data',
             'changedPropIds': ['yaxis-min-input.value'],
             'inputs': [
+                {'id': 'yaxis-type', 'property': 'value', 'value': 'single'},
                 {'id': 'yaxis-min-input', 'property': 'value', 'value': -1.52},
                 {'id': 'yaxis-max-input', 'property': 'value', 'value': 0.42}
             ],
             'state': [
                 {'id': 'yaxis-dropdown', 'property': 'value', 'value': 'Col1'},
                 {'id': 'yaxis-data', 'property': 'data', 'value': {}},
-                {'id': 'range-data', 'property': 'data', 'value': {'min': {'Col1': -0.52}, 'max': {'Col1': 0.42}}}
+                {'id': 'range-data', 'property': 'data', 'value': {
+                    'min': {'Col1': -0.52, 'Col2': -1},
+                    'max': {'Col1': 0.42, 'Col2': 3}
+                }},
+                {'id': 'input-data', 'property': 'data', 'value': inputs}
             ]
         }
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEqual(resp_data['response']['props']['data'], {'Col1': {'min': -1.52, 'max': 0.42}})
+        unittest.assertEqual(
+            resp_data['response']['props']['data'],
+            {'data': {'all': {'max': 0.42, 'min': -1.52}}, 'type': 'single'}
+        )
 
-        params['inputs'][1]['value'] = 1.42
-        params['state'][1]['value'] = {'Col1': {'min': -1.52, 'max': 0.42}}
+        params['inputs'][0]['value'] = 'multi'
+        params['inputs'][2]['value'] = 1.42
+        params['state'][1]['value'] = {'data': {'Col1': {'max': 0.42, 'min': -1.52}}, 'type': 'single'}
+        params['state'][3]['value'] = ['Col1', 'Col2']
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEqual(resp_data['response']['props']['data'], {'Col1': {'min': -1.52, 'max': 1.42}})
+        unittest.assertEqual(
+            resp_data['response']['props']['data'],
+            {'data': {'Col1': {'max': 1.42, 'min': -1.52}}, 'type': 'multi'}
+        )
 
-        params['inputs'][0]['value'] = -0.52
-        params['inputs'][1]['value'] = 0.42
-        params['state'][1]['value'] = {'Col1': {'min': -1.52, 'max': 1.42}}
+        params['inputs'][1]['value'] = -0.52
+        params['inputs'][2]['value'] = 0.42
+        params['state'][1]['value'] = {'data': {'Col1': {'max': 1.42, 'min': -1.52}}, 'type': 'single'}
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEqual(resp_data['response']['props']['data'], {})
+        unittest.assertEqual(resp_data['response']['props']['data'], {'data': {}, 'type': 'multi'})
 
         params['state'][0]['value'] = None
         response = c.post('/charts/_dash-update-component', json=params)
@@ -300,7 +373,10 @@ def test_yaxis_data(unittest):
 
 def build_chart_params(pathname, inputs={}, chart_inputs={}, yaxis={}, last_inputs={}):
     return {
-        'output': '..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..',
+        'output': (
+            '..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value...'
+            'yaxis-type.children..'
+        ),
         'changedPropIds': ['input-data.modified_timestamp'],
         'inputs': [ts_builder('input-data'), ts_builder('chart-input-data'), ts_builder('yaxis-data')],
         'state': [
@@ -395,7 +471,7 @@ def test_chart_building_bar_and_popup(unittest):
                 'window': None, 'rolling_comp': None
             }
             chart_inputs = {'cpg': False, 'barmode': 'group', 'barsort': None}
-            params = build_chart_params(pathname, inputs, chart_inputs)
+            params = build_chart_params(pathname, inputs, chart_inputs, dict(type='multi', data={}))
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             links_div = resp_data['chart-content']['children']['props']['children'][0]['props']['children']
@@ -412,9 +488,9 @@ def test_chart_building_bar_and_popup(unittest):
                  'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
                  'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
-                 'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
-                 'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
-                            'tickformat': '.0f'}}
+                 'yaxis': {'tickformat': '.0f', 'title': {'text': 'b'}},
+                 'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'tickformat': '.0f',
+                            'title': {'text': 'c'}}}
             )
 
             response = c.get(url)
@@ -455,9 +531,7 @@ def test_chart_building_bar_and_popup(unittest):
                  'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
                  'xaxis': {'tickmode': 'auto', 'nticks': 3, 'tickformat': '.0f', 'title': {'text': 'a'}},
-                 'yaxis': {'title': {'text': 'b'}, 'tickformat': '.0f'},
-                 'yaxis2': {'anchor': 'x', 'overlaying': 'y', 'side': 'right', 'title': {'text': 'c'},
-                            'tickformat': '.0f'}}
+                 'yaxis': {'tickformat': '.0f', 'title': {'text': 'b, c'}}}
             )
 
             inputs['y'] = ['b']
@@ -771,25 +845,25 @@ def test_build_axes(unittest):
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6], d=[8, 9, 10], e=[11, 12, 13], f=[14, 15, 16]))
     with mock.patch('dtale.global_state.DATA', {'1': df}):
         y = ['b', 'c', 'd']
-        yaxis_data = dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10))
+        yaxis_data = dict(type='multi', data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)))
         mins = dict(b=2, c=5, d=8)
         maxs = dict(b=4, c=6, d=10)
         axes = build_axes('1', 'a', yaxis_data, mins, maxs)(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
             'yaxis2': {'title': 'c', 'overlaying': 'y', 'side': 'right', 'anchor': 'x', 'range': [5, 7],
                        'tickformat': '.0f'},
             'yaxis3': {'title': 'd', 'overlaying': 'y', 'side': 'left', 'anchor': 'free', 'position': 0.05,
                        'tickformat': '.0f'},
             'xaxis': {'domain': [0.1, 1], 'tickformat': '.0f', 'title': 'a'}
-        })
+        }, True))
 
         y.append('e')
-        yaxis_data['e'] = dict(min=11, max=13)
+        yaxis_data['data']['e'] = dict(min=11, max=13)
         mins['e'] = 11
         maxs['e'] = 13
         axes = build_axes('1', 'a', yaxis_data, mins, maxs)(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
             'yaxis2': {'title': 'c', 'overlaying': 'y', 'side': 'right', 'anchor': 'x', 'range': [5, 7],
                        'tickformat': '.0f'},
@@ -798,14 +872,14 @@ def test_build_axes(unittest):
             'yaxis4': {'title': 'e', 'overlaying': 'y', 'side': 'right', 'anchor': 'free', 'position': 0.95,
                        'tickformat': '.0f'},
             'xaxis': {'domain': [0.1, 0.8999999999999999], 'tickformat': '.0f', 'title': 'a'}
-        })
+        }, True))
 
         y.append('f')
-        yaxis_data['f'] = dict(min=14, max=17)
+        yaxis_data['data']['f'] = dict(min=14, max=17)
         mins['f'] = 14
         maxs['f'] = 17
         axes = build_axes('1', 'a', yaxis_data, mins, maxs)(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
             'yaxis2': {'title': 'c', 'overlaying': 'y', 'side': 'right', 'anchor': 'x', 'range': [5, 7],
                        'tickformat': '.0f'},
@@ -816,31 +890,37 @@ def test_build_axes(unittest):
             'yaxis5': {'title': 'f', 'overlaying': 'y', 'side': 'left', 'anchor': 'free', 'position': 0.1,
                        'tickformat': '.0f'},
             'xaxis': {'domain': [0.15000000000000002, 0.8999999999999999], 'tickformat': '.0f', 'title': 'a'}
-        })
+        }, True))
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6]))
     with mock.patch('dtale.global_state.DATA', {'1': df}):
         y = ['b']
-        yaxis_data = dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10))
+        yaxis_data = dict(type='multi', data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)))
         mins = dict(b=2, c=5, d=8)
         maxs = dict(b=4, c=6, d=10)
         axes = build_axes('1', 'a', yaxis_data, mins, maxs, z='c')(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'xaxis': {'title': 'a', 'tickformat': '.0f'},
             'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
             'zaxis': {'title': 'c', 'tickformat': '.0f'}
-        })
+        }, False))
         axes = build_axes('1', 'a', yaxis_data, mins, maxs, z='c', agg='corr')(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'xaxis': {'title': 'a', 'tickformat': '.0f'},
             'yaxis': {'title': 'b', 'range': [1, 4], 'tickformat': '.0f'},
             'zaxis': {'title': 'c (Correlation)', 'tickformat': '.0f'}
-        })
+        }, False))
         axes = build_axes('1', 'a', yaxis_data, mins, maxs, agg='corr')(y)
-        unittest.assertEqual(axes, {
+        unittest.assertEqual(axes, ({
             'xaxis': {'title': 'a', 'tickformat': '.0f'},
             'yaxis': {'title': 'b (Correlation)', 'range': [1, 4], 'tickformat': '.0f'},
-        })
+        }, False))
+        yaxis_data['type'] = 'single'
+        axes = build_axes('1', 'a', yaxis_data, mins, maxs, agg='corr')(y)
+        unittest.assertEqual(axes, ({
+            'xaxis': {'title': 'a', 'tickformat': '.0f'},
+            'yaxis': {'tickformat': '.0f', 'title': 'b (Correlation)'},
+        }, False))
 
 
 @pytest.mark.unit

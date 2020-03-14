@@ -442,21 +442,40 @@ div.tab-container > div.tab:last-child {
 #agg-dropdown .Select-menu-outer {
     z-index: 7;
 }
-
+#yaxis-type-div {
+    min-width: fit-content;
+    border: 1px solid #a7b3b7;
+}
 #yaxis-dropdown .Select {
-    min-width: 8em;
+    min-width: 9em;
 }
 
 #yaxis-dropdown .Select-control {
     border-radius: 0;
+    height: 35px;
+    display: inline-flex !important;
 }
 
 #yaxis-dropdown .Select-menu-outer {
     z-index: 6;
 }
+#yaxis-dropdown .Select-multi-value-wrapper {
+    width: 90%;
+}
+#yaxis-dropdown .Select-arrow-zone,
+#yaxis-dropdown .Select-clear-zone {
+    margin-top: auto;
+    margin-bottom: auto;
+}
 
 #yaxis-min-input, #yaxis-max-input {
-    width: 5em;
+    width: 6em;
+    padding: 0;
+    text-align: center;
+    font-size: 11px;
+}
+#yaxis-max-input {
+    border-radius: 0 0.25rem 0.25rem 0;
 }
 #cpg-input .input-group-addon {
     height: 36px;

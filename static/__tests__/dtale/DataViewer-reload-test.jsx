@@ -25,6 +25,9 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
+        if (url === "/dtale/data/1?ids=%5B%22100-101%22%5D") {
+          return { error: "No data found" };
+        }
         const { urlFetcher } = require("../redux-test-utils").default;
         return urlFetcher(url);
       })
@@ -97,7 +100,7 @@ describe("DataViewer tests", () => {
         dv.getData(dv.state.ids);
         dv.getData([0, 1, 2, 3]);
         dv = result.find(ReactDataViewer).instance();
-        result.find(ReactDataViewer).setState({ query: "error", loadQueue: [], loading: false });
+        result.find(ReactDataViewer).setState({ ids: [100, 101], loadQueue: [], loading: false });
         result.update();
         dv = result.find(ReactDataViewer).instance();
         dv.getData(dv.state.ids, true);

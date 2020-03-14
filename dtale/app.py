@@ -559,7 +559,7 @@ def get_instance(data_id):
 
 
 def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
-                  rolling_comp=None, barmode=None, barsort=None, filepath=None, **kwargs):
+                  rolling_comp=None, barmode=None, barsort=None, yaxis=None, filepath=None, **kwargs):
     """
     Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
 
@@ -602,6 +602,6 @@ def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group
     instance = startup(url=None, data=df, data_id=999)
     output = instance.offline_chart(chart_type=chart_type, query=query, x=x, y=y, z=z, group=group, agg=agg,
                                     window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort,
-                                    filepath=filepath)
+                                    yaxis=yaxis, filepath=filepath)
     global_state.cleanup()
     return output

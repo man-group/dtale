@@ -1,10 +1,8 @@
-import json
 from collections import namedtuple
 
 import mock
 import numpy as np
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
 from six import PY3
 
@@ -97,48 +95,6 @@ def test_formatters(unittest):
             'json': [{'a': 1}], 'str': ['hello'], 'date': ['2018-04-30 04:00:00']
         }
     )
-
-
-@pytest.mark.unit
-def test_filter_df_for_grid(test_data):
-    req = build_req_tuple({
-        'filters': json.dumps({
-            'security_id': {'type': 'NumericFilter', 'value': [{'value': 1, 'type': 1}]},
-            'bar': {'type': 'NumericFilter', 'value': [{'value': 1, 'type': 3}]},
-            'baz': {'type': 'StringFilter', 'value': 'baz'}
-        })
-    })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
-    pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
-
-    req = build_req_tuple({
-        'filters': json.dumps({
-            'security_id': {'type': 'NumericFilter', 'value': [{'value': 1, 'type': 1}]},
-            'bar': {'type': 'NumericFilter', 'value': [{'begin': 1, 'end': 2, 'type': 2}]},
-            'baz': {'type': 'StringFilter', 'value': '=baz'}
-        })
-    })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
-    pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
-
-    req = build_req_tuple({
-        'filters': json.dumps({
-            'security_id': {'type': 'NumericFilter', 'value': [{'value': 1, 'type': 1}]},
-            'bar': {'type': 'NumericFilter', 'value': [{'value': 2, 'type': 4}]},
-            'date': {'type': 'StringFilter', 'value': '2000-01-01'}
-        })
-    })
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
-    pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
-
-    req = build_req_tuple({'query': 'security_id == 1'})
-    results = utils.filter_df_for_grid(test_data, utils.retrieve_grid_params(req), dict())
-    pdt.assert_frame_equal(results, test_data[test_data.security_id == 1])
-
-    req = build_req_tuple({'page': 1, 'page_size': 50})
-    page, page_size = utils.retrieve_grid_params(req, props=['page', 'page_size'])
-    assert page == 1
-    assert page_size == 50
 
 
 @pytest.mark.unit
@@ -266,3 +222,11 @@ def test_run_query():
             {'a.b': 3, 'b': 4, 'c': 5}
         ])
         assert len(utils.run_query(df, 'a.b == 1')) == 1
+
+
+@pytest.mark.unit
+def test_build_query():
+    with ExitStack() as stack:
+        settings = {'1': {'columnFilters': {'foo': {'query': 'foo == 1'}}}}
+        stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+        assert utils.build_query('1') == 'foo == 1'

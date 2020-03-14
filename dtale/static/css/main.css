@@ -4556,6 +4556,10 @@ div.reshape-modal > div.modal-lg {
   min-width: 720px;
 }
 
+div.filter-modal > div.modal-lg {
+  min-width: 1100px;
+}
+
 @media (min-width: 992px) {
   .modal-lg {
     max-width: 800px;
@@ -8614,7 +8618,10 @@ caption {
   content: '';
 }
 
-.column-toggle {
+.column-toggle,
+.sort-menu-toggle,
+.filter-menu-toggle,
+.hidden-menu-toggle {
   position: relative;
   text-align: center;
 }
@@ -10487,8 +10494,12 @@ div.container-fluid.describe > div#popup-content > div.modal-body {
   height: 450px;
 }
 
+div.container-fluid.filter > div#popup-content > div.modal-body {
+  height: 400px;
+}
+
 div.container-fluid.code-popup > div#popup-content > div.modal-footer,
-div.container-fluid.code-export > div#popup-content > div.modal-footer {
+div.container-fluid.code-export > div#popup-content > div.modal-footer, {
   position: absolute;
   bottom: 0;
   width: 100%;
@@ -10496,7 +10507,15 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
 
 @media (min-height: 330px) {
   div.container-fluid.build > div#popup-content > div.modal-footer,
-  div.container-fluid.reshape > div#popup-content > div.modal-footer{
+  div.container-fluid.reshape > div#popup-content > div.modal-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+}
+
+@media (min-height: 475px) {
+  div.container-fluid.filter > div#popup-content > div.modal-footer {
     position: absolute;
     bottom: 0;
     width: 100%;

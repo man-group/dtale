@@ -15,14 +15,13 @@ import { Popup } from "../popups/Popup";
 import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
-import Filter from "./Filter";
 import { Header } from "./Header";
 import { MeasureText } from "./MeasureText";
 import * as gu from "./gridUtils";
 import { ColumnMenu } from "./iframe/ColumnMenu";
 
 require("./DataViewer.css");
-const URL_PROPS = ["ids", "sortInfo", "query"];
+const URL_PROPS = ["ids", "sortInfo"];
 
 class ReactDataViewer extends React.Component {
   constructor(props) {
@@ -51,7 +50,7 @@ class ReactDataViewer extends React.Component {
   }
 
   componentDidUpdate(_prevProps, prevState) {
-    const gridState = ["sortInfo", "query"];
+    const gridState = ["sortInfo", "query", "columnFilters"];
     const refresh = !_.isEqual(_.pick(this.state, gridState), _.pick(prevState, gridState));
     if (!this.state.loading && prevState.loading) {
       if (!_.isEmpty(this.state.loadQueue)) {
@@ -68,8 +67,10 @@ class ReactDataViewer extends React.Component {
     }
     if (this.state.triggerResize) {
       this.setState({ triggerResize: false }, () => {
-        this._grid.forceUpdate();
-        this._grid.recomputeGridSize();
+        if (_.size(this.state.data)) {
+          this._grid.forceUpdate();
+          this._grid.recomputeGridSize();
+        }
       });
       return;
     }
@@ -129,6 +130,8 @@ class ReactDataViewer extends React.Component {
         const newState = {
           rowCount: data.total + 1,
           data: _.assignIn(savedData, formattedData),
+          error: null,
+          traceback: null,
           loading: false,
           heatMapMode,
         };
@@ -214,7 +217,7 @@ class ReactDataViewer extends React.Component {
   }
 
   render() {
-    const { filterOpen, formattingOpen, query } = this.state;
+    const { formattingOpen } = this.state;
     return (
       <div key={1} style={{ height: "100%", width: "100%" }}>
         <InfiniteLoader
@@ -249,7 +252,6 @@ class ReactDataViewer extends React.Component {
         </InfiniteLoader>
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
         <Popup propagateState={this.propagateState} />
-        <Filter visible={filterOpen} propagateState={this.propagateState} query={query} dataId={this.props.dataId} />
         <Formatting
           {..._.pick(this.state, ["data", "columns", "columnFormats"])}
           selectedCol={_.get(this.state.selectedCols, "0")}
@@ -259,7 +261,7 @@ class ReactDataViewer extends React.Component {
         />
         <MeasureText />
         <ColumnMenu
-          {..._.pick(this.state, ["columns", "sortInfo"])}
+          {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "error"])}
           propagateState={this.propagateState}
           noInfo={gu.hasNoInfo(this.state)}
         />
