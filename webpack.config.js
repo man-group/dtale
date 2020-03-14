@@ -166,9 +166,6 @@ function createDashConfig(entry) {
           use: [
             {
               loader: "style-loader",
-              options: {
-                insertAt: "top",
-              },
             },
             {
               loader: "css-loader",
