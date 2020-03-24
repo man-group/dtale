@@ -53,7 +53,7 @@ class DateFilter extends React.Component {
     return [
       <DateInput
         key={0}
-        value={start}
+        value={_.isNull(start) ? null : new Date(moment(start))}
         onChange={date => this.updateState("start", date)}
         inputProps={{ inputRef: c => (this.startInput = c) }}
         {...inputProps}

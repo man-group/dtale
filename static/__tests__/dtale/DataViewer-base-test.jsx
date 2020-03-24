@@ -114,20 +114,10 @@ describe("DataViewer tests", () => {
           .find(DataViewerMenu)
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
-        _.concat([
-          "Describe",
-          "Filter",
-          "Build Column",
-          "Reshape",
-          "Correlations",
-          "Charts",
-          "Resize",
-          "Heat Map",
-          "Instances 1",
-          "Code Export",
-          "About",
-          "Shutdown",
-        ]),
+        _.concat(
+          ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Heat Map", "Highlight Dtypes"],
+          ["Instances 1", "Code Export", "Export", "Resize", "About", "Shutdown"]
+        ),
         "Should render default menu options"
       );
       setTimeout(() => {

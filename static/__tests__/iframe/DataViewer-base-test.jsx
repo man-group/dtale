@@ -9,7 +9,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, withGlobalJquery } from "../test-utils";
 import { clickColMenuButton, clickColMenuSubButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
@@ -144,8 +144,8 @@ describe("DataViewer iframe tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Resize", "Heat Map"],
-          ["Instances 1", "Code Export", "About", "Refresh", "Open Popup", "Shutdown"]
+          ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Heat Map", "Highlight Dtypes"],
+          ["Instances 1", "Code Export", "Export", "Resize", "About", "Refresh", "Open Popup", "Shutdown"]
         ),
         "Should render default menu options"
       );
@@ -310,6 +310,19 @@ describe("DataViewer iframe tests", () => {
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/charts/1");
           clickMainMenuButton(result, "Instances 1");
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
+          const exports = findMainMenuButton(result, "CSV", "div.btn-group");
+          exports
+            .find("button")
+            .first()
+            .simulate("click");
+          let exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
+          t.ok(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=false"));
+          exports
+            .find("button")
+            .last()
+            .simulate("click");
+          exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
+          t.ok(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=true"));
           clickMainMenuButton(result, "Resize");
           clickMainMenuButton(result, "Refresh");
           expect(window.location.reload).toHaveBeenCalled();

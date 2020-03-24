@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.8.1 (2020-3-29)
+ * [#92](https://github.com/man-group/dtale/issues/92), column builders for random data
+ * [#84](https://github.com/man-group/dtale/issues/84), highlight columns based on dtype
+ * [#111](https://github.com/man-group/dtale/issues/111), fix for syntax error in charts code export
+ * [#113](https://github.com/man-group/dtale/issues/113), updates to "Value Counts" chart in "Column Analysis" for number of values and ordinal entry
+ * [#114](https://github.com/man-group/dtale/issues/114), export data to CSV/TSV
+ * [#116](https://github.com/man-group/dtale/issues/116), upodated styling for github fork link so "Code Export" is partially clickable
+ * [#119](https://github.com/man-group/dtale/issues/119), fixed bug with queries not being passed to functions
+ * [#120](https://github.com/man-group/dtale/issues/120), fix to allow duplicate x-axis entries in bar charts
+ * added "category breakdown" in column analysis popup for float columns
+ * fixed bug where previous "show missing only" selection was not being recognized
+ 
 ### 1.8.0 (2020-3-22)
  * [#102](https://github.com/man-group/dtale/issues/102), interactive column filtering for string, date, int, float & bool
  * better handling for y-axis management in charts.  Now able to toggle between default, single & multi axis

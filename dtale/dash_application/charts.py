@@ -23,8 +23,8 @@ from dtale.charts.utils import (check_all_nan, check_exceptions,
 from dtale.dash_application.layout import (AGGS, build_error,
                                            update_label_for_freq)
 from dtale.utils import (build_code_export, classify_type, dict_merge,
-                         divide_chunks, flatten_lists, get_dtypes, make_list,
-                         run_query)
+                         divide_chunks, export_to_csv_buffer, flatten_lists,
+                         get_dtypes, make_list, run_query)
 
 if PY3:
     from io import StringIO
@@ -208,7 +208,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
     return _build_axes
 
 
-def build_spaced_ticks(ticktext):
+def build_spaced_ticks(ticktext, mode='auto'):
     """
     plotly/dash doesn't have particularly good tick position handling so in order to handle this on our end we'll take
     the list of tick labels and depending on how large that list is we'll build a configuration which will show a
@@ -220,9 +220,21 @@ def build_spaced_ticks(ticktext):
     :rtype: dict
     """
     size = len(ticktext)
-    if size <= 30:
-        return {'tickmode': 'auto', 'nticks': size}
     factor = int(math.ceil(size / 28.0))
+    tick_cutoff = 30
+    if mode == 'array':
+        tickvals = list(range(size))
+        if size <= tick_cutoff:
+            return {'tickmode': 'array', 'tickvals': tickvals, 'ticktext': ticktext}
+        spaced_ticks, spaced_text = [tickvals[0]], [ticktext[0]]
+        for i in range(factor, size - 1, factor):
+            spaced_ticks.append(tickvals[i])
+            spaced_text.append(ticktext[i])
+        spaced_ticks.append(tickvals[-1])
+        spaced_text.append(ticktext[-1])
+        return {'tickmode': 'array', 'tickvals': spaced_ticks, 'ticktext': spaced_text}
+    if size <= tick_cutoff:
+        return {'tickmode': 'auto', 'nticks': size}
     nticks = len(range(factor, size - 1, factor)) + 2
     return {'tickmode': 'auto', 'nticks': nticks}
 
@@ -544,14 +556,16 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
     if barsort is not None:
         for series_key, series in data['data'].items():
             barsort_col = 'x' if barsort == x or barsort not in series else barsort
-            if barsort_col != 'x':
+            if barsort_col != 'x' or kwargs.get('agg') == 'raw':
                 df = pd.DataFrame(series)
                 df = df.sort_values(barsort_col)
                 data['data'][series_key] = {c: df[c].values for c in df.columns}
-                data['data'][series_key]['x'] = list(range(len(df['x'])))
+                tickvals = list(range(len(df['x'])))
+                data['data'][series_key]['x'] = tickvals
                 hover_text[series_key] = {'hovertext': df['x'].values, 'hoverinfo': 'y+text'}
                 axes['xaxis'] = dict_merge(
-                    axes.get('xaxis', {}), build_spaced_ticks(df['x'].values)
+                    axes.get('xaxis', {}),
+                    build_spaced_ticks(df['x'].values, mode='array')
                 )
 
     if cpg:
@@ -754,7 +768,11 @@ def heatmap_builder(data_id, export=False, **inputs):
     try:
         if not valid_chart(**inputs):
             return None, None
-        raw_data = global_state.get_data(data_id)
+        raw_data = run_query(
+            global_state.get_data(data_id),
+            inputs.get('query'),
+            global_state.get_context_variables(data_id)
+        )
         wrapper = chart_wrapper(data_id, raw_data, inputs)
         hm_kwargs = dict(colorscale='Greens', showscale=True, hoverinfo='x+y+z')  # hoverongaps=False,
         x, y, z, agg = (inputs.get(p) for p in ['x', 'y', 'z', 'agg'])
@@ -798,9 +816,7 @@ def heatmap_builder(data_id, export=False, **inputs):
                 code += agg_code
         if not len(data):
             raise Exception('No data returned for this computation!')
-        # check_exceptions(data[dupe_cols], agg != 'corr', data_limit=40000,
-        #                  limit_msg='Heatmap exceeds {} cells, cannot render. Please apply filter...')
-        check_exceptions(data[dupe_cols], agg != 'corr', unlimited_data=True)
+        check_exceptions(data[dupe_cols], agg not in ['corr', 'raw'], unlimited_data=True)
         dtypes = {c: classify_type(dtype) for c, dtype in get_dtypes(data).items()}
         data_f, _ = chart_formatters(data)
         data = data_f.format_df(data)
@@ -1120,16 +1136,4 @@ def export_chart(data_id, params):
 
 def export_chart_data(data_id, params):
     data = build_raw_figure_data(data_id, **params)
-    if PY3:
-        from io import BytesIO
-        proxy = StringIO()
-        data.to_csv(proxy, encoding='utf-8', index=False)
-        csv_buffer = BytesIO()
-        csv_buffer.write(proxy.getvalue().encode('utf-8'))
-        proxy.close()
-    else:
-        csv_buffer = StringIO()
-        data.to_csv(csv_buffer, encoding='utf-8', index=False)
-
-    csv_buffer.seek(0)
-    return csv_buffer
+    return export_to_csv_buffer(data)

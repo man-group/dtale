@@ -11,6 +11,7 @@ import { fetchJson } from "../../fetcher";
 import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
+import { CreateRandom, validateRandomCfg } from "./CreateRandom";
 
 require("./CreateColumn.css");
 
@@ -63,6 +64,9 @@ class ReactCreateColumn extends React.Component {
       case "bins":
         error = validateBinsCfg(cfg);
         break;
+      case "random":
+        error = validateRandomCfg(cfg);
+        break;
       case "numeric":
       default:
         error = validateNumericCfg(cfg);
@@ -113,6 +117,9 @@ class ReactCreateColumn extends React.Component {
       case "bins":
         body = <CreateBins columns={this.state.columns} updateState={updateState} />;
         break;
+      case "random":
+        body = <CreateRandom updateState={updateState} />;
+        break;
     }
     return (
       <div key="body" className="modal-body">
@@ -131,13 +138,17 @@ class ReactCreateColumn extends React.Component {
           <label className="col-md-3 col-form-label text-right">Column Type</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(["numeric", "bins", "datetime"], (type, i) => {
+              {_.map(["numeric", "bins", "datetime", "random"], (type, i) => {
                 const buttonProps = { className: "btn" };
                 if (type === this.state.type) {
                   buttonProps.className += " btn-primary active";
                 } else {
                   buttonProps.className += " btn-primary inactive";
-                  buttonProps.onClick = () => this.setState({ type });
+                  const updatedState = { type };
+                  if (type === "random") {
+                    updatedState.cfg = { type: "float" };
+                  }
+                  buttonProps.onClick = () => this.setState(updatedState);
                 }
                 return (
                   <button key={i} {...buttonProps}>
@@ -164,10 +175,15 @@ class ReactCreateColumn extends React.Component {
     }
     let codeMarkup = null;
     if (_.get(this.state, ["code", this.state.type])) {
+      const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
       codeMarkup = (
         <div className="col" style={{ paddingRight: 0 }}>
           <span className="pr-3">Code:</span>
-          <span className="font-weight-bold">{_.get(this.state, ["code", this.state.type])}</span>
+          <div className="font-weight-bold">
+            {_.map(code, (c, i) => (
+              <div key={i}>{c}</div>
+            ))}
+          </div>
         </div>
       );
     }

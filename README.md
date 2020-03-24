@@ -44,13 +44,14 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
     - [Describe](#describe), [Filter](#filter), [Building Columns](#building-columns), [Reshape](#reshape), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
-  - [Menu Functions within a Jupyter Notebook](#menu-functions-within-a-jupyter-notebook)
+  - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
   - [Running Tests](#running-tests)
   - [Linting](#linting)
   - [Formatting JS](#formatting-js)
   - [Docker Development](#docker-development)
+- [Global State/Data Storage](#global-state_data-storage)
 - [Startup Behavior](#startup-behavior)
 - [Documentation](#documentation)
 - [Requirements](#requirements)
@@ -368,6 +369,7 @@ This video shows you how to build the following:
  - Numeric: adding/subtracting two columns or columns with static values
  - Bins: bucketing values using pandas cut & qcut as well as assigning custom labels
  - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
+ - Random: columns of data type (int, float, string & date) populated with random uniformly distributed values.
 
 #### Reshape
 
@@ -475,6 +477,11 @@ d = dtale.show(test_data())
 d.offline_chart(chart_type='bar', x='x', y='z3', agg='sum')
 ```
 [![](http://img.youtube.com/vi/DseSmc3fZvc/0.jpg)](http://www.youtube.com/watch?v=DseSmc3fZvc "Offline Charts Tutorial")
+
+**Pro Tip: If generating offline charts in jupyter notebooks and you run out of memory please add the following to your command-line when starting jupyter**
+
+`--NotebookApp.iopub_data_rate_limit=1.0e10`
+
 
 **Disclaimer: Long Running Chart Requests**
 
@@ -678,18 +685,23 @@ Here's a grid of all the formats available with -123456.789 as input:
 #### Column Analysis
 Based on the data type of a column different charts will be shown.
 
-| Data Type     | Chart          |
-|---------------|----------------|
-| Integer       | Histogram, Value Counts|
-| Float         | Value Counts   |
-| Date          | Value Counts   |
-| String        | Value Counts   |
+| Chart         | Data Types     | Sample |
+|---------------|----------------|--------|
+| Histogram     | Float, Int |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/histogram.PNG)|
+| Value Counts  | Int, String, Bool, Date, Category|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts.PNG)|
+| Category      | Float   |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/category.PNG)|
 
-*Histograms* can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input
 
-![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Histogram.png)
+**Histogram** can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input
 
-*Value Counts* are a bar chart containing the counts of each unique value in a column.
+**Value Count** by default, show the top 100 values ranked by frequency.  If you would like to show the least frequent values simply make your number negative (-10 => 10 least frequent value)
+
+**Value Count w/ Ordinal** you can also apply an ordinal to your **Value Count** chart by selecting a column (of type int or float) and applying an aggregation (default: sum) to it (sum, mean, etc...) this column will be grouped by the column you're analyzing and the value produced by the aggregation will be used to sort your bars and also displayed in a line.  Here's an example:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts_ordinal.PNG
+)
+
+**Category (Category Breakdown)** when viewing float columns you can also see them broken down by a categorical column (string, date, int, etc...).  This means that when you select a category column this will then display the frequency of each category in a line as well as bars based on the float column you're analyzing grouped by that category and computed by your aggregation (default: mean).
 
 ### Menu Functions Depending on Browser Dimensions
 Depending on the dimensions of your browser window the following buttons will not open modals, but rather separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)
@@ -786,7 +798,7 @@ $ python
 Then view your D-Tale instance in your browser using the link that gets printed
 
 
-### Global State/Data Storage
+## Global State/Data Storage
 
 If D-Tale is running in an environment with multiple python processes (ex: on a web server running [gunicorn](https://github.com/benoitc/gunicorn)) it will most likely encounter issues with inconsistent state.  Developers can fix this by configuring the system D-Tale uses for storing data.  Detailed documentation is available here: [Data Storage and managing Global State](https://github.com/man-group/dtale/blob/master/docs/GLOBAL_STATE.md)
 

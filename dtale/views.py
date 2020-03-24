@@ -27,12 +27,12 @@ from dtale.dash_application.charts import (build_raw_chart, chart_url_params,
 from dtale.data_reshapers import DataReshaper
 from dtale.utils import (DuplicateDataError, build_code_export, build_query,
                          build_shutdown_url, classify_type, dict_merge,
-                         divide_chunks, find_dtype, find_dtype_formatter,
-                         find_selected_column, get_bool_arg, get_dtypes,
-                         get_int_arg, get_json_arg, get_str_arg, grid_columns,
-                         grid_formatter, json_date, json_float, json_int,
-                         json_timestamp, jsonify, make_list,
-                         retrieve_grid_params, run_query,
+                         divide_chunks, export_to_csv_buffer, find_dtype,
+                         find_dtype_formatter, find_selected_column,
+                         get_bool_arg, get_dtypes, get_int_arg, get_json_arg,
+                         get_str_arg, grid_columns, grid_formatter, json_date,
+                         json_float, json_int, json_timestamp, jsonify,
+                         make_list, retrieve_grid_params, run_query,
                          running_with_flask_debug, running_with_pytest,
                          sort_df_for_grid)
 
@@ -843,6 +843,7 @@ def build_column(data_id):
         name = get_str_arg(request, 'name')
         if not name:
             raise Exception("'name' is required for new column!")
+        name = str(name)
         data = global_state.get_data(data_id)
         if name in data.columns:
             raise Exception("A column named '{}' already exists!".format(name))
@@ -854,7 +855,10 @@ def build_column(data_id):
         dtype = find_dtype(data[name])
         data_ranges = {}
         if classify_type(dtype) == 'F' and not data[name].isnull().all():
-            data_ranges[name] = data[[name]].agg([min, max]).to_dict()[name]
+            try:
+                data_ranges[name] = data[[name]].agg(['min', 'max']).to_dict()[name]
+            except ValueError:
+                pass
         dtype_f = dtype_formatter(data, {name: dtype}, data_ranges)
         global_state.set_data(data_id, data)
         curr_dtypes = global_state.get_dtypes(data_id)
@@ -1135,6 +1139,27 @@ def get_data(data_id):
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
 
+@dtale.route('/data-export/<data_id>')
+def data_export(data_id):
+    try:
+        curr_settings = global_state.get_settings(data_id) or {}
+        curr_dtypes = global_state.get_dtypes(data_id) or []
+        data = run_query(
+            global_state.get_data(data_id),
+            build_query(data_id, curr_settings.get('query')),
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+        )
+        data = data[[c['name'] for c in sorted(curr_dtypes, key=lambda c: c['index']) if c['visible']]]
+        tsv = get_str_arg(request, 'tsv') == 'true'
+        file_ext = 'tsv' if tsv else 'csv'
+        csv_buffer = export_to_csv_buffer(data, tsv=tsv)
+        filename = build_chart_filename('data', ext=file_ext)
+        return send_file(csv_buffer, filename, 'text/{}'.format(file_ext))
+    except BaseException as e:
+        return jsonify(error=str(e), traceback=str(traceback.format_exc()))
+
+
 @dtale.route('/column-analysis/<data_id>')
 def get_column_analysis(data_id):
     """
@@ -1146,42 +1171,80 @@ def get_column_analysis(data_id):
     :param type: string from flask.request.args['type'] to signify either a histogram or value counts
     :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param bins: the number of bins to display in your histogram, options on the front-end are 5, 10, 20, 50
+    :param top: the number of top values to display in your value counts, default is 100
     :returns: JSON {results: DATA, desc: output from pd.DataFrame[col].describe(), success: True/False}
     """
     try:
         col = get_str_arg(request, 'col', 'values')
         bins = get_int_arg(request, 'bins', 20)
-        data_type = get_str_arg(request, 'type') or 'histogram'
-        data = run_query(
-            global_state.get_data(data_id),
-            build_query(data_id, get_str_arg(request, 'query')),
-            global_state.get_context_variables(data_id)
-        )
+        top = get_int_arg(request, 'top', 100)
+        ordinal_col = get_str_arg(request, 'ordinalCol')
+        ordinal_agg = get_str_arg(request, 'ordinalAgg', 'sum')
+        category_col = get_str_arg(request, 'categoryCol')
+        category_agg = get_str_arg(request, 'categoryAgg', 'mean')
+        data_type = get_str_arg(request, 'type')
+        curr_settings = global_state.get_settings(data_id) or {}
+        query = build_query(data_id, curr_settings.get('query'))
+        data = run_query(global_state.get_data(data_id), query, global_state.get_context_variables(data_id))
         selected_col = find_selected_column(data, col)
-        data = data[~pd.isnull(data[selected_col])][[selected_col]]
+        cols = [selected_col]
+        if ordinal_col is not None:
+            cols.append(ordinal_col)
+        if category_col is not None:
+            cols.append(category_col)
+        data = data[~pd.isnull(data[selected_col])][cols]
 
         code = build_code_export(data_id, imports='import numpy as np\nimport pandas as pd\n\n')
         dtype = get_dtypes(data)[selected_col]
         classifier = classify_type(dtype)
-        if classifier in ['S', 'D'] or data_type != 'histogram':
-            hist = pd.value_counts(data[selected_col]).reset_index()
-            hist.columns = ['labels', 'data']
+        if data_type is None:
+            data_type = 'histogram' if classifier in ['F', 'I'] else 'value_counts'
+        if data_type == 'value_counts':
+            hist = pd.value_counts(data[selected_col]).to_frame(name='data').sort_index()
+            code.append("chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(col=selected_col))
+            if ordinal_col is not None:
+                ordinal_data = getattr(data.groupby(selected_col)[[ordinal_col]], ordinal_agg)()
+                hist['ordinal'] = ordinal_data
+                hist = hist.sort_values('ordinal')
+                code.append((
+                    "ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()\n"
+                    "chart['ordinal'] = ordinal_data\n"
+                    "chart = chart.sort_values('ordinal')"
+                ).format(col=selected_col, ordinal=ordinal_col, agg=ordinal_agg))
+            hist.index.name = 'labels'
+            hist = hist.reset_index()
+            if top is not None:
+                top = int(top)
+                hist = hist[:top] if top > 0 else hist[top:]
             col_types = grid_columns(hist)
             f = grid_formatter(col_types, nan_display=None)
             return_data = f.format_lists(hist)
-            return_data['dtype'] = dtype
-            return_data['chart_type'] = 'value_counts'
-            code.append("hist = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(col=selected_col))
-        else:
+        elif data_type == 'categories':
+            hist = data.groupby(category_col)[[selected_col]].agg(['count', category_agg])
+            hist.columns = hist.columns.droplevel(0)
+            hist.columns = ['count', 'data']
+            code.append(
+                "chart = data.groupby('{cat}')[['{col}']].agg(['count', '{agg}'])".format(
+                    cat=category_col, col=selected_col, agg=category_agg)
+            )
+            hist.index.name = 'labels'
+            hist = hist.reset_index()
+            if top is not None:
+                top = int(top)
+                hist = hist[:top] if top > 0 else hist[top:]
+            f = grid_formatter(grid_columns(hist), nan_display=None)
+            return_data = f.format_lists(hist)
+        elif data_type == 'histogram':
             hist_data, hist_labels = np.histogram(data, bins=bins)
             hist_data = [json_float(h) for h in hist_data]
             hist_labels = ['{0:.1f}'.format(l) for l in hist_labels]
-            code.append("hist = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
+            code.append("chart = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
                 col=selected_col, bins=bins))
             desc, desc_code = load_describe(data[selected_col])
             code += desc_code
-            return_data = dict(labels=hist_labels, data=hist_data, desc=desc, dtype=dtype, chart_type='histogram')
-        return jsonify(code='\n'.join(code), **return_data)
+            return_data = dict(labels=hist_labels, data=hist_data, desc=desc)
+        cols = global_state.get_dtypes(data_id)
+        return jsonify(code='\n'.join(code), query=query, cols=cols, dtype=dtype, chart_type=data_type, **return_data)
     except BaseException as e:
         return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
 
@@ -1203,9 +1266,10 @@ def get_correlations(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
+        curr_settings = global_state.get_settings(data_id) or {}
         data = run_query(
             global_state.get_data(data_id),
-            build_query(data_id, get_str_arg(request, 'query')),
+            build_query(data_id, curr_settings.get('query')),
             global_state.get_context_variables(data_id)
         )
         valid_corr_cols = []
@@ -1308,7 +1372,6 @@ def get_correlations_ts(data_id):
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
-    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param cols: comma-separated string from flask.request.args['cols'] containing names of two columns in dataframe
     :param dateCol: string from flask.request.args['dateCol'] with name of date-type column in dateframe for timeseries
     :returns: JSON {
@@ -1316,9 +1379,10 @@ def get_correlations_ts(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     try:
+        curr_settings = global_state.get_settings(data_id) or {}
         data = run_query(
             global_state.get_data(data_id),
-            build_query(data_id, get_str_arg(request, 'query')),
+            build_query(data_id, curr_settings.get('query')),
             global_state.get_context_variables(data_id)
         )
         cols = get_str_arg(request, 'cols')
@@ -1366,7 +1430,6 @@ def get_scatter(data_id):
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
-    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
     :param cols: comma-separated string from flask.request.args['cols'] containing names of two columns in dataframe
     :param dateCol: string from flask.request.args['dateCol'] with name of date-type column in dateframe for timeseries
     :param date: string from flask.request.args['date'] date value in dateCol to filter dataframe to
@@ -1390,9 +1453,10 @@ def get_scatter(data_id):
         date_col = get_str_arg(request, 'dateCol')
         rolling = get_bool_arg(request, 'rolling')
 
+        curr_settings = global_state.get_settings(data_id) or {}
         data = run_query(
             global_state.get_data(data_id),
-            build_query(data_id, get_str_arg(request, 'query')),
+            build_query(data_id, curr_settings.get('query')),
             global_state.get_context_variables(data_id)
         )
         idx_col = str('index')

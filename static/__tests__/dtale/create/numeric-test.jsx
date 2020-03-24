@@ -4,11 +4,11 @@ import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
-import { RemovableError } from "../../RemovableError";
-import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { RemovableError } from "../../../RemovableError";
+import mockPopsicle from "../../MockPopsicle";
+import * as t from "../../jest-assertions";
+import reduxUtils from "../../redux-test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -36,7 +36,7 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../redux-test-utils").default;
+        const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
@@ -63,9 +63,9 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build numeric column", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const CreateColumn = require("../../popups/create/CreateColumn").ReactCreateColumn;
-    const { CreateNumeric } = require("../../popups/create/CreateNumeric");
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -146,9 +146,9 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build column errors", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const CreateColumn = require("../../popups/create/CreateColumn").ReactCreateColumn;
-    const { CreateNumeric } = require("../../popups/create/CreateNumeric");
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -245,7 +245,7 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build numeric cfg validation", done => {
-    const { validateNumericCfg } = require("../../popups/create/CreateNumeric");
+    const { validateNumericCfg } = require("../../../popups/create/CreateNumeric");
     const cfg = {};
     t.equal(validateNumericCfg(cfg), "Please select an operation!");
     cfg.operation = "x";

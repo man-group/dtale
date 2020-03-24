@@ -1,0 +1,11 @@
+input.column-analysis-filter {
+  padding: 0.45rem;
+}
+
+.ordinal-dd .Select {
+  min-width: 10em;
+}
+
+.ordinal-dd .is-clearable.Select--single .Select__value-container--has-value > .Select__single-value {
+  padding-right: 0;
+}
