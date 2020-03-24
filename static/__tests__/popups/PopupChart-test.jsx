@@ -2,8 +2,8 @@ import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
-import { ReactColumnAnalysis } from "../../popups/ColumnAnalysis";
 import { ReactCorrelations } from "../../popups/Correlations";
+import { ReactColumnAnalysis } from "../../popups/analysis/ColumnAnalysis";
 import { ReactCharts } from "../../popups/charts/Charts";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
@@ -40,7 +40,7 @@ describe("Popup tests", () => {
     );
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("../../popups/ColumnAnalysis", () => ({
+    jest.mock("../../popups/analysis/ColumnAnalysis", () => ({
       ColumnAnalysis: MockReactColumnAnalysis,
     }));
     jest.mock("../../popups/Correlations", () => ({

@@ -3,9 +3,9 @@
     display:block;
     top:0;
     right:0;
-    width:125px;
+    width:85px;
     overflow:hidden;
-    height:125px;
+    height:85px;
     z-index:9999;
 }
 #forkongithub a{
@@ -15,19 +15,19 @@
     font-family:arial,sans-serif;
     text-align:center;
     font-weight:bold;
-    font-size:0.45rem;
-    line-height:2rem;
+    font-size:0.55rem;
+    line-height:1.35rem;
     transition:0.5s;
     width:125px;
     position:absolute;
-    top:17px;
-    right:-31px;
+    top:23px;
+    right:-30px;
     transform:rotate(45deg);
     -webkit-transform:rotate(45deg);
     -ms-transform:rotate(45deg);
     -moz-transform:rotate(45deg);
     -o-transform:rotate(45deg);
-    box-shadow:4px 4px 10px rgba(0,0,0,0.8);
+    box-shadow:2px 2px 5px rgba(0,0,0,0.8);
 }
 #forkongithub a:hover{
     background:#c11;

@@ -83,7 +83,7 @@ class ReactDataViewer extends React.Component {
   }
 
   getData(ids, refresh = false) {
-    const { loading, loadQueue, heatMapMode } = this.state;
+    const { loading, loadQueue, heatMapMode, dtypeHighlighting } = this.state;
     const data = this.state.data || {};
     if (loading) {
       this.setState({ loadQueue: _.concat(loadQueue, [ids]) });
@@ -134,6 +134,7 @@ class ReactDataViewer extends React.Component {
           traceback: null,
           loading: false,
           heatMapMode,
+          dtypeHighlighting,
         };
         const { columns } = this.state;
         if (_.isEmpty(columns)) {
@@ -190,7 +191,10 @@ class ReactDataViewer extends React.Component {
       value = rec.view;
       valueStyle = _.get(rec, "style", {});
       if (this.state.heatMapMode) {
-        valueStyle = _.assignIn({ background: gu.heatMapBackground(rec, colCfg) }, valueStyle);
+        valueStyle = _.assignIn(gu.heatMapBackground(rec, colCfg), valueStyle);
+      }
+      if (this.state.dtypeHighlighting) {
+        valueStyle = _.assignIn(gu.dtypeHighlighting(colCfg), valueStyle);
       }
       if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
         divProps.title = rec.raw;

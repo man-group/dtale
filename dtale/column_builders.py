@@ -1,3 +1,6 @@
+import random
+import string
+
 import numpy as np
 import pandas as pd
 
@@ -14,8 +17,10 @@ class ColumnBuilder(object):
             self.builder = DatetimeColumnBuilder(name, cfg)
         elif column_type == 'bins':
             self.builder = BinsColumnBuilder(name, cfg)
+        elif column_type == 'random':
+            self.builder = RandomColumnBuilder(name, cfg)
         else:
-            raise NotImplementedError('{} column builder not implemented yet!'.format(column_type))
+            raise NotImplementedError("'{}' column builder not implemented yet!".format(column_type))
 
     def build_column(self):
         data = global_state.get_data(self.data_id)
@@ -129,3 +134,128 @@ class BinsColumnBuilder(object):
         s_str = "df.loc[:, '{name}'] = pd.Series({name}_data.cat.codes.map({name}_cats), index=df.index, name='{name}')"
         bins_code.append(s_str.format(name=self.name))
         return '\n'.join(bins_code)
+
+
+def id_generator(size=10, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(int(size)))
+
+
+class RandomColumnBuilder(object):
+
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        rand_type = self.cfg['type']
+        if 'string' == rand_type:
+            kwargs = dict(size=self.cfg.get('length', 10))
+            if self.cfg.get('chars'):
+                kwargs['chars'] = self.cfg['chars']
+            return pd.Series(
+                [id_generator(**kwargs) for _ in range(len(data))], index=data.index, name=self.name
+            )
+        if 'int' == rand_type:
+            low = self.cfg.get('low', 0)
+            high = self.cfg.get('high', 100)
+            return pd.Series(
+                np.random.randint(low, high=high, size=len(data)), index=data.index, name=self.name
+            )
+        if 'date' == rand_type:
+            start = pd.Timestamp(self.cfg.get('start') or '19000101')
+            end = pd.Timestamp(self.cfg.get('end') or '21991231')
+            business_days = self.cfg.get('businessDay') is True
+            timestamps = self.cfg.get('timestamps') is True
+            if timestamps:
+                def pp(start, end, n):
+                    start_u = start.value // 10 ** 9
+                    end_u = end.value // 10 ** 9
+                    return pd.DatetimeIndex(
+                        (10 ** 9 * np.random.randint(start_u, end_u, n)).view('M8[ns]')
+                    )
+
+                dates = pp(pd.Timestamp(start), pd.Timestamp(end), len(data))
+            else:
+                dates = pd.date_range(start, end, freq='B' if business_days else 'D')
+                dates = [dates[i] for i in np.random.randint(0, len(dates) - 1, size=len(data))]
+            return pd.Series(dates, index=data.index, name=self.name)
+        if 'bool' == rand_type:
+            return pd.Series(np.random.choice([True, False], len(data)), index=data.index, name=self.name)
+        if 'choice' == rand_type:
+            choices = self.cfg.get('choices') or 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
+            choices = choices.split(',')
+            return pd.Series(np.random.choice(choices, len(data)), index=data.index, name=self.name)
+
+        # floats
+        low = self.cfg.get('low', 0)
+        high = self.cfg.get('high', 1)
+        return pd.Series(np.random.uniform(low, high, len(data)), index=data.index, name=self.name)
+
+    def build_code(self):
+        rand_type = self.cfg['type']
+        if 'string' == rand_type:
+            kwargs = []
+            if self.cfg.get('length') != 10:
+                kwargs.append('size={size}'.format(size=self.cfg.get('length')))
+            if self.cfg.get('chars'):
+                kwargs.append("chars='{chars}'".format(chars=self.cfg.get('chars')))
+            kwargs = ', '.join(kwargs)
+            return (
+                'import number\nimport random\n\n'
+                'def id_generator(size=1500, chars=string.ascii_uppercase + string.digits):\n'
+                "\treturn ''.join(random.choice(chars) for _ in range(size))\n\n"
+                "df.loc[:, '{name}'] = pd.Series([id_generator({kwargs}) for _ in range(len(df)], index=df.index)"
+            ).format(kwargs=kwargs, name=self.name)
+            return "df.loc[:, '{name}'] = df['{col}'].dt.{property}".format(name=self.name, **self.cfg)
+
+        if 'bool' == rand_type:
+            return (
+                "df.loc[:, '{name}'] = pd.Series(np.random.choice([True, False], len(df)), index=data.index"
+            ).format(name=self.name)
+        if 'date' == rand_type:
+            start = pd.Timestamp(self.cfg.get('start') or '19000101')
+            end = pd.Timestamp(self.cfg.get('end') or '21991231')
+            business_days = self.cfg.get('businessDay') is True
+            timestamps = self.cfg.get('timestamps') is True
+            if timestamps:
+                code = (
+                    'def pp(start, end, n):\n'
+                    '\tstart_u = start.value // 10 ** 9\n'
+                    '\tend_u = end.value // 10 ** 9\n'
+                    '\treturn pd.DatetimeIndex(\n'
+                    "\t\t(10 ** 9 * np.random.randint(start_u, end_u, n, dtype=np.int64)).view('M8[ns]')\n"
+                    ')\n\n'
+                    "df.loc[:, '{name}'] = pd.Series(\n"
+                    "\tpp(pd.Timestamp('{start}'), pd.Timestamp('{end}'), len(df)), index=df.index\n"
+                    ')'
+                ).format(name=self.name, start=start.strftime('%Y%m%d'), end=end.strftime('%Y%m%d'))
+            else:
+                freq = ", freq='B'" if business_days else ''
+                code = (
+                    "dates = pd.date_range('{start}', '{end}'{freq})\n"
+                    'dates = [dates[i] for i in np.random.randint(0, len(dates) - 1, size=len(data))]\n'
+                    "df.loc[:, '{name}'] = pd.Series(dates, index=data.index)"
+                ).format(name=self.name, start=start.strftime('%Y%m%d'), end=end.strftime('%Y%m%d'), freq=freq)
+            return code
+        if 'choice' == rand_type:
+            choices = self.cfg.get('choices') or 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
+            choices = choices.split(',')
+            return "df.loc[:, '{name}'] = pd.Series(np.random.choice({choices}, len(df)), index=df.index)".format(
+                choices="', '".join(choices), name=self.name
+            )
+
+        if 'int' == rand_type:
+            low = self.cfg.get('low', 0)
+            high = self.cfg.get('high', 100)
+            return (
+                'import numpy as np\n\n'
+                "df.loc[:, '{name}'] = pd.Series(np.random.randint({low}, high={high}, size=len(df)), "
+                'index=df.index)'
+            ).format(name=self.name, low=low, high=high)
+
+        low = self.cfg.get('low', 0)
+        high = self.cfg.get('high', 1)
+        return (
+            'import numpy as np\n\n'
+            "df.loc[:, '{name}'] = pd.Series(np.random.uniform({low}, {high}, len(df)), index=df.index)"
+        ).format(low=low, high=high, name=self.name)

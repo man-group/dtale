@@ -31,7 +31,13 @@ function getStyles() {
 function buildState({ columns, selectedCol }) {
   const colCfg = _.find(columns, { name: selectedCol }) || {};
   const colType = findColType(colCfg.dtype);
-  return { colType, hasMissing: false, missing: false, loadingState: true };
+  return {
+    colType,
+    dtype: colCfg.dtype,
+    hasMissing: false,
+    missing: false,
+    loadingState: true,
+  };
 }
 
 class ColumnFilter extends React.Component {
@@ -46,7 +52,8 @@ class ColumnFilter extends React.Component {
   fetchData(state) {
     fetchJson(`/dtale/column-filter-data/${this.props.dataId}/${this.props.selectedCol}`, data => {
       if (data.success) {
-        this.setState(_.assignIn(state || {}, { loadingState: false }, data));
+        const missing = _.get(this.props.columnFilters, [this.props.selectedCol, "missing"], false);
+        this.setState(_.assignIn(state || {}, { loadingState: false, missing }, data));
       }
     });
   }
@@ -75,14 +82,14 @@ class ColumnFilter extends React.Component {
     );
   }
 
-  renderMissingToggle() {
+  renderMissingToggle(showIcon) {
     const { hasMissing, missing, colType } = this.state;
     if (hasMissing) {
       const toggleMissing = () =>
         this.updateState(_.assignIn({}, this.state.cfg, { type: colType, missing: !missing }));
       return (
         <li key={1}>
-          <span className="toggler-action" />
+          <span className="toggler-action">{showIcon && <i className="fa fa-filter" />}</span>
           <div className="m-auto">
             <div className="column-filter m-2">
               <span className="font-weight-bold pr-3">Show Only Missing</span>
@@ -114,9 +121,12 @@ class ColumnFilter extends React.Component {
     let markup = null;
     switch (colType) {
       case "string":
-      case "unknown":
-        markup = <StringFilter {..._.assignIn({}, this.props, this.state)} updateState={this.updateState} />;
+      case "unknown": {
+        if (!_.startsWith(this.state.dtype, "timedelta")) {
+          markup = <StringFilter {..._.assignIn({}, this.props, this.state)} updateState={this.updateState} />;
+        }
         break;
+      }
       case "date":
         markup = <DateFilter {..._.assignIn({}, this.props, this.state)} updateState={this.updateState} />;
         break;
@@ -128,22 +138,32 @@ class ColumnFilter extends React.Component {
         markup = null;
         break;
     }
-    return [
-      <li key={0}>
-        <span className="toggler-action">
-          <i className="fa fa-filter" />
-        </span>
-        <div className="m-auto">
-          <div className="column-filter m-2">{markup}</div>
-        </div>
-      </li>,
-      this.renderMissingToggle(),
-    ];
+    let missingToggle = null;
+    if (_.isNull(markup)) {
+      if (!this.state.hasMissing) {
+        return null;
+      }
+      missingToggle = this.renderMissingToggle(true);
+    } else {
+      markup = (
+        <li key={0}>
+          <span className="toggler-action">
+            <i className="fa fa-filter" />
+          </span>
+          <div className="m-auto">
+            <div className="column-filter m-2">{markup}</div>
+          </div>
+        </li>
+      );
+      missingToggle = this.renderMissingToggle(false);
+    }
+    return [markup, missingToggle];
   }
 }
 ColumnFilter.displayName = "ColumnFilter";
 ColumnFilter.propTypes = {
   columns: PropTypes.array,
+  columnFilters: PropTypes.object,
   selectedCol: PropTypes.string,
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,

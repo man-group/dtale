@@ -62,3 +62,19 @@ def test_valid_chart():
     assert not chart_utils.valid_chart(chart_type='line', x='a', y='b', agg='rolling', window=10)
     assert not chart_utils.valid_chart(chart_type='line', x='a', y='b', agg='rolling', rolling_comp='sum')
     assert chart_utils.valid_chart(chart_type='line', x='a', y='b', agg='rolling', window=10, rolling_comp='sum')
+
+
+@pytest.mark.unit
+def test_build_spaced_ticks(unittest):
+    from dtale.dash_application.charts import build_spaced_ticks
+
+    ticks = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef')
+    output = build_spaced_ticks(ticks)
+    unittest.assertEqual({'tickmode': 'auto', 'nticks': 17}, output)
+    output = build_spaced_ticks(ticks, mode='array')
+    expected = {
+        'tickmode': 'array',
+        'tickvals': [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 31],
+        'ticktext': ['A', 'C', 'E', 'G', 'I', 'K', 'M', 'O', 'Q', 'S', 'U', 'W', 'Y', 'a', 'c', 'e', 'f']
+    }
+    unittest.assertEqual(expected, output)

@@ -198,8 +198,10 @@ def check_exceptions(df, allow_duplicates, unlimited_data=False, data_limit=1500
     :raises Exception: if any failure condition is met
     """
     if not allow_duplicates and any(df.duplicated()):
-        raise Exception(
-            '{} contains duplicates, please specify group or additional filtering'.format(', '.join(df.columns)))
+        raise Exception((
+            "{} contains duplicates, please specify group or additional filtering or select 'No Aggregation' from"
+            ' Aggregation drop-down.'
+        ).format(', '.join(df.columns)))
     if not unlimited_data and len(df) > data_limit:
         raise Exception(limit_msg.format(data_limit))
 
@@ -225,7 +227,8 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
     :return: dataframe of aggregated data
     :rtype: :class:`pandas:pandas.DataFrame`
     """
-
+    if agg == 'raw':
+        return df, []
     z_exists = len(make_list(z))
     if agg == 'corr':
         if not z_exists:
@@ -256,7 +259,7 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
     groups = df.groupby(x)
     return getattr(groups[y], agg)().reset_index(), [
         "chart_data = chart_data.groupby('{x}')[['{y}']].{agg}().reset_index()".format(
-            x=x, y=y, agg=agg
+            x=x, y=make_list(y)[0], agg=agg
         )
     ]
 
@@ -365,8 +368,12 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
     code.append("chart_data = chart_data.dropna()")
 
     dupe_cols = [x_col] + (y_cols if len(z_cols) else [])
-    check_exceptions(data[dupe_cols].rename(columns={'x': x}), allow_duplicates, unlimited_data=unlimited_data,
-                     data_limit=40000 if len(z_cols) else 15000)
+    check_exceptions(
+        data[dupe_cols].rename(columns={'x': x}),
+        allow_duplicates or agg == 'raw',
+        unlimited_data=unlimited_data,
+        data_limit=40000 if len(z_cols) else 15000
+    )
     data_f, range_f = build_formatters(data)
     ret_data = dict(
         data={str('all'): data_f.format_lists(data)},

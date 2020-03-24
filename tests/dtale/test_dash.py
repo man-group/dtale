@@ -508,6 +508,7 @@ def test_chart_building_bar_and_popup(unittest):
             assert response.status_code == 200
 
             chart_inputs['barmode'] = 'stack'
+            inputs['agg'] = 'raw'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -515,13 +516,14 @@ def test_chart_building_bar_and_popup(unittest):
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'stack',
                  'legend': {'orientation': 'h', 'y': 1.2},
-                 'title': {'text': 'b, c by a'},
+                 'title': {'text': 'b, c by a (No Aggregation)'},
                  'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
-                 'yaxis': {'tickformat': '.0f', 'title': {'text': 'b'}}}
+                 'yaxis': {'tickformat': '.0f', 'title': {'text': 'b (No Aggregation)'}}}
             )
 
             chart_inputs['barmode'] = 'group'
             chart_inputs['barsort'] = 'b'
+            inputs['agg'] = None
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -530,7 +532,10 @@ def test_chart_building_bar_and_popup(unittest):
                 {'barmode': 'group',
                  'legend': {'orientation': 'h', 'y': 1.2},
                  'title': {'text': 'b, c by a'},
-                 'xaxis': {'tickmode': 'auto', 'nticks': 3, 'tickformat': '.0f', 'title': {'text': 'a'}},
+                 'xaxis': {
+                     'tickmode': 'array', 'ticktext': [1, 2, 3], 'tickvals': [0, 1, 2],
+                     'tickformat': '.0f', 'title': {'text': 'a'}
+                 },
                  'yaxis': {'tickformat': '.0f', 'title': {'text': 'b, c'}}}
             )
 

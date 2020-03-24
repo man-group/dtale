@@ -3,10 +3,10 @@ import React from "react";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
-import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import mockPopsicle from "../../MockPopsicle";
+import * as t from "../../jest-assertions";
+import reduxUtils from "../../redux-test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -34,7 +34,7 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../redux-test-utils").default;
+        const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
@@ -61,9 +61,9 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build datetime property column", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const CreateColumn = require("../../popups/create/CreateColumn").ReactCreateColumn;
-    const { CreateDatetime } = require("../../popups/create/CreateDatetime");
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    const { CreateDatetime } = require("../../../popups/create/CreateDatetime");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -91,7 +91,7 @@ describe("DataViewer tests", () => {
           .find("div.form-group")
           .at(1)
           .find("button")
-          .last()
+          .at(2)
           .simulate("click");
         result.update();
         t.equal(result.find(CreateDatetime).length, 1, "should show build datetime column");
@@ -122,9 +122,9 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build datetime conversion column", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const CreateColumn = require("../../popups/create/CreateColumn").ReactCreateColumn;
-    const { CreateDatetime } = require("../../popups/create/CreateDatetime");
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    const { CreateDatetime } = require("../../../popups/create/CreateDatetime");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -152,7 +152,7 @@ describe("DataViewer tests", () => {
           .find("div.form-group")
           .at(1)
           .find("button")
-          .last()
+          .at(2)
           .simulate("click");
         result.update();
         t.equal(result.find(CreateDatetime).length, 1, "should show build datetime column");
@@ -189,7 +189,7 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: build datetime cfg validation", done => {
-    const { validateDatetimeCfg } = require("../../popups/create/CreateDatetime");
+    const { validateDatetimeCfg } = require("../../../popups/create/CreateDatetime");
     t.equal(validateDatetimeCfg({ col: null }), "Missing a column selection!");
     done();
   });

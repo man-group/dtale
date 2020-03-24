@@ -316,6 +316,13 @@ def test_build_column(unittest):
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             resp = c.get(
                 '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='not_implemented', name='test', cfg=json.dumps({}))
+            )
+            response_data = json.loads(resp.data)
+            assert response_data['error'] == "'not_implemented' column builder not implemented yet!"
+
+            resp = c.get(
+                '/dtale/build-column/{}'.format(c.port),
                 query_string=dict(type='numeric', cfg=json.dumps({}))
             )
             response_data = json.loads(resp.data)
@@ -407,6 +414,28 @@ def test_build_column(unittest):
                     '/dtale/build-column/{}'.format(c.port),
                     query_string=dict(type='datetime', name=conv, cfg=json.dumps(dict(col='d', conversion=conv)))
                 )
+
+            response = c.get('/dtale/code-export/{}'.format(c.port))
+            response_data = json.loads(response.data)
+            assert response_data['success']
+
+            for dt in ['float', 'int', 'string', 'date', 'bool', 'choice']:
+                c.get(
+                    '/dtale/build-column/{}'.format(c.port),
+                    query_string=dict(type='random', name='random_{}'.format(dt), cfg=json.dumps(dict(type=dt)))
+                )
+
+            cfg = dict(type='string', chars='ABCD')
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='random', name='random_string2', cfg=json.dumps(cfg))
+            )
+
+            cfg = dict(type='date', timestamps=True, businessDay=True)
+            c.get(
+                '/dtale/build-column/{}'.format(c.port),
+                query_string=dict(type='random', name='random_date2', cfg=json.dumps(cfg))
+            )
 
             response = c.get('/dtale/code-export/{}'.format(c.port))
             response_data = json.loads(response.data)
@@ -785,6 +814,16 @@ def test_get_data(unittest, test_data):
             response_data = json.loads(response.data)
             assert len(response_data['results']) == 0
 
+            response = c.get('/dtale/data-export/{}'.format(c.port))
+            assert response.content_type == 'text/csv'
+
+            response = c.get('/dtale/data-export/{}'.format(c.port), query_string=dict(tsv='true'))
+            assert response.content_type == 'text/tsv'
+
+            response = c.get('/dtale/data-export/a', query_string=dict(tsv='true'))
+            response_data = json.loads(response.data)
+            assert 'error' in response_data
+
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
@@ -835,7 +874,7 @@ if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):
 df = df.reset_index().drop('index', axis=1, errors='ignore')
 df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers
 
-hist = np.histogram(df[~pd.isnull(df['foo'])][['foo']], bins=20)
+chart = np.histogram(df[~pd.isnull(df['foo'])][['foo']], bins=20)
 # main statistics
 stats = df['foo'].describe().to_frame().T'''
 
@@ -843,7 +882,10 @@ stats = df['foo'].describe().to_frame().T'''
 @pytest.mark.unit
 def test_get_column_analysis(unittest, test_data):
     with app.test_client() as c:
-        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
             response = c.get('/dtale/column-analysis/{}'.format(c.port), query_string=dict(col='foo'))
             response_data = json.loads(response.data)
             expected = dict(
@@ -855,8 +897,10 @@ def test_get_column_analysis(unittest, test_data):
                 desc={
                     'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 },
+                cols=None,
                 chart_type='histogram',
-                dtype='int64'
+                dtype='int64',
+                query=''
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -874,16 +918,18 @@ def test_get_column_analysis(unittest, test_data):
                     'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 },
                 chart_type='histogram',
-                dtype='int64'
+                dtype='int64',
+                cols=None,
+                query=''
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
                 expected,
                 'should return 5-bin histogram for foo'
             )
-
+            settings[c.port] = dict(query='security_id > 10')
             response = c.get('/dtale/column-analysis/{}'.format(c.port),
-                             query_string=dict(col='foo', bins=5, query='security_id > 10'))
+                             query_string=dict(col='foo', bins=5))
             response_data = json.loads(response.data)
             expected = dict(
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
@@ -892,20 +938,36 @@ def test_get_column_analysis(unittest, test_data):
                     'count': '39', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
                 },
                 chart_type='histogram',
-                dtype='int64'
+                dtype='int64',
+                cols=None,
+                query='security_id > 10'
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
                 expected,
                 'should return a filtered 5-bin histogram for foo'
             )
-
+            settings[c.port] = dict()
             response = c.get(
                 '/dtale/column-analysis/{}'.format(c.port),
                 query_string=dict(col='foo', type='value_counts')
             )
             response_data = json.loads(response.data)
             assert response_data['chart_type'] == 'value_counts'
+
+            response = c.get(
+                '/dtale/column-analysis/{}'.format(c.port),
+                query_string=dict(col='foo', type='value_counts', ordinalCol='bar', ordinalAgg='mean')
+            )
+            response_data = json.loads(response.data)
+            assert 'ordinal' in response_data
+
+            response = c.get(
+                '/dtale/column-analysis/{}'.format(c.port),
+                query_string=dict(col='bar', type='categories', categoryCol='foo', categoryAgg='mean')
+            )
+            response_data = json.loads(response.data)
+            assert 'count' in response_data
 
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -969,7 +1031,9 @@ def test_get_correlations(unittest, test_data, rolling_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            response = c.get('/dtale/correlations/{}'.format(c.port), query_string=dict(query="missing_col == 'blah'"))
+            settings = {c.port: {'query': "missing_col == 'blah'"}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -1077,11 +1141,11 @@ def test_get_correlations_ts(unittest, rolling_data):
             unittest.assertEqual(response_data['success'], True, 'should return rolling correlation')
 
     with app.test_client() as c:
-        with mock.patch('dtale.global_state.DATA', {c.port: test_data}):
-            response = c.get(
-                '/dtale/correlations-ts/{}'.format(c.port),
-                query_string=dict(query="missing_col == 'blah'")
-            )
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
+            settings = {c.port: {'query': "missing_col == 'blah'"}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            response = c.get('/dtale/correlations-ts/{}'.format(c.port))
             response_data = json.loads(response.data)
             unittest.assertEqual(
                 response_data['error'], "name 'missing_col' is not defined", 'should handle correlations exception'
@@ -1123,8 +1187,7 @@ def test_get_scatter(unittest, rolling_data):
             params = dict(
                 dateCol='date',
                 cols=json.dumps(['foo', 'bar']),
-                date='20000101',
-                query="date == '20000101'"
+                date='20000101'
             )
             response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
@@ -1206,12 +1269,9 @@ def test_get_scatter(unittest, rolling_data):
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: test_data}))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(test_data)}))
-            params = dict(
-                dateCol='date',
-                cols=json.dumps(['foo', 'bar']),
-                date='20000101',
-                query="missing_col == 'blah'"
-            )
+            settings = {c.port: {'query': "missing_col == 'blah'"}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            params = dict(dateCol='date', cols=json.dumps(['foo', 'bar']), date='20000101')
             response = c.get('/dtale/scatter/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
             unittest.assertEqual(
@@ -1273,7 +1333,10 @@ def test_get_chart_data(unittest, test_data, rolling_data):
             params = dict(x='baz', y=json.dumps(['foo']))
             response = c.get('/dtale/chart-data/{}'.format(c.port), query_string=params)
             response_data = json.loads(response.data)
-            assert response_data['error'] == 'baz contains duplicates, please specify group or additional filtering'
+            assert response_data['error'] == (
+                "baz contains duplicates, please specify group or additional filtering or select 'No Aggregation' "
+                'from Aggregation drop-down.'
+            )
 
     with app.test_client() as c:
         with mock.patch('dtale.global_state.DATA', {c.port: test_data}):

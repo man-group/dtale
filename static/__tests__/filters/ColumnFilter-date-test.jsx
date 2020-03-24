@@ -1,5 +1,6 @@
 import { mount } from "enzyme";
 import _ from "lodash";
+import moment from "moment";
 import React from "react";
 
 import { DateFilter } from "../../filters/DateFilter";
@@ -65,29 +66,29 @@ describe("ColumnFilter date tests", () => {
             .find(DateInput)
             .first()
             .instance();
-          dateStart.state = "200";
-          dateStart.props.onChange({ value: "200" });
-          dateStart.state = "20000102";
-          dateStart.props.onChange({ value: "20000102" });
+          dateStart.inputEl.value = "200";
+          dateStart.props.onChange("200");
+          dateStart.inputEl.value = "20000102";
+          dateStart.props.onChange(new Date(moment("20000102")));
           setTimeout(() => {
             result.update();
             t.deepEqual(result.state().cfg, {
               type: "date",
-              start: "20200322",
+              start: "20000102",
               end: "20000131",
             });
             const dateEnd = result
               .find(DateInput)
               .last()
               .instance();
-            dateEnd.state = "20000103";
-            dateEnd.props.onChange({ value: "20000103" });
+            dateEnd.inputEl.value = "20000103";
+            dateEnd.props.onChange(new Date(moment("20000103")));
             setTimeout(() => {
               result.update();
               t.deepEqual(result.state().cfg, {
                 type: "date",
-                start: "20200322",
-                end: "20200322",
+                start: "20000102",
+                end: "20000103",
               });
               done();
             }, 400);

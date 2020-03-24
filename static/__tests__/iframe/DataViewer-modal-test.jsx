@@ -63,7 +63,7 @@ describe("DataViewer iframe tests", () => {
   test("DataViewer: column analysis display in a modal", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
-    const ColumnAnalysis = require("../../popups/ColumnAnalysis").ReactColumnAnalysis;
+    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);

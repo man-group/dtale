@@ -734,7 +734,7 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
                 "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
                 "#             differing results\n"
                 "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
-                "df = df.query('{query}', local_dict=ctxt_vars)\n"
+                'df = df.query("{query}", local_dict=ctxt_vars)\n'
             ).format(query=final_query, data_id=data_id))
         else:
             final_history.append("df = df.query('{}')\n".format(final_query))
@@ -749,3 +749,23 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
             cols=', '.join(cols), dirs="', '".join(dirs)
         ))
     return final_history
+
+
+def export_to_csv_buffer(data, tsv=False):
+    kwargs = dict(encoding='utf-8', index=False)
+    if tsv:
+        kwargs['sep'] = '\t'
+    if PY3:
+        from io import BytesIO, StringIO
+        proxy = StringIO()
+        data.to_csv(proxy, **kwargs)
+        csv_buffer = BytesIO()
+        csv_buffer.write(proxy.getvalue().encode('utf-8'))
+        proxy.close()
+    else:
+        from StringIO import StringIO
+        csv_buffer = StringIO()
+        data.to_csv(csv_buffer, **kwargs)
+
+    csv_buffer.seek(0)
+    return csv_buffer

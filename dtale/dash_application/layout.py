@@ -160,7 +160,7 @@ CHART_INPUT_SETTINGS = {
 AGGS = dict(
     count='Count', nunique='Unique Count', sum='Sum', mean='Mean', rolling='Rolling', corr='Correlation', first='First',
     last='Last', median='Median', min='Minimum', max='Maximum', std='Standard Deviation', var='Variance',
-    mad='Mean Absolute Deviation', prod='Product of All Items'
+    mad='Mean Absolute Deviation', prod='Product of All Items', raw='No Aggregation'
 )
 FREQS = ['H', 'H2', 'WD', 'D', 'W', 'M', 'Q', 'Y']
 FREQ_LABELS = dict(H='Hourly', H2='Hour', WD='Weekday', W='Weekly', M='Monthly', Q='Quarterly', Y='Yearly')
@@ -390,7 +390,7 @@ def charts_layout(df, settings, **inputs):
                 id='agg-dropdown',
                 options=[build_option(v, AGGS[v]) for v in ['count', 'nunique', 'sum', 'mean', 'rolling', 'corr',
                                                             'first', 'last', 'median', 'min', 'max', 'std', 'var',
-                                                            'mad', 'prod']],
+                                                            'mad', 'prod', 'raw']],
                 placeholder='Select an aggregation',
                 style=dict(width='inherit'),
                 value=agg,

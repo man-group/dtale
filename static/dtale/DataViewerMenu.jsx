@@ -24,7 +24,18 @@ class ReactDataViewerMenu extends React.Component {
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
       });
-    const toggleHeatMap = () => this.props.propagateState({ heatMapMode: !this.props.heatMapMode });
+    const toggleHeatMap = () =>
+      this.props.propagateState({
+        heatMapMode: !this.props.heatMapMode,
+        dtypeHighlighting: false,
+      });
+    const toggleDtypeHighlighting = () =>
+      this.props.propagateState({
+        dtypeHighlighting: !this.props.dtypeHighlighting,
+        heatMapMode: false,
+      });
+    const exportFile = tsv => () =>
+      window.open(`/dtale/data-export/${dataId}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
     return (
       <div
         className="column-toggle__dropdown"
@@ -84,17 +95,21 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={resize}>
-                <i className="fa fa-expand ml-2 mr-4" />
-                <span className="font-weight-bold">Resize</span>
+              <button className="btn btn-plain" onClick={toggleHeatMap}>
+                <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
+                <span className={`font-weight-bold${this.props.heatMapMode ? " flames" : ""}`}>Heat Map</span>
               </button>
             </span>
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={toggleHeatMap}>
-                <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
-                <span className={`font-weight-bold${this.props.heatMapMode ? " flames" : ""}`}>Heat Map</span>
+              <button className="btn btn-plain" onClick={toggleDtypeHighlighting}>
+                <div style={{ display: "inherit" }}>
+                  <div className={`dtype-highlighting${this.props.dtypeHighlighting ? " spin" : ""}`} />
+                  <span className="font-weight-bold" style={{ paddingLeft: ".4em" }}>
+                    Highlight Dtypes
+                  </span>
+                </div>
               </button>
             </span>
           </li>
@@ -114,6 +129,37 @@ class ReactDataViewerMenu extends React.Component {
               <button className="btn btn-plain" onClick={openCodeExport}>
                 <i className="ico-code" />
                 <span className="font-weight-bold">Code Export</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <i className="far fa-file" />
+            </span>
+            <span className="font-weight-bold pl-2">Export</span>
+            <div className="btn-group compact m-auto font-weight-bold column-sorting">
+              {_.map(
+                [
+                  ["CSV", "false"],
+                  ["TSV", "true"],
+                ],
+                ([label, tsv]) => (
+                  <button
+                    key={label}
+                    style={{ color: "#565b68" }}
+                    className="btn btn-primary font-weight-bold"
+                    onClick={exportFile(tsv)}>
+                    {label}
+                  </button>
+                )
+              )}
+            </div>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={resize}>
+                <i className="fa fa-expand ml-2 mr-4" />
+                <span className="font-weight-bold">Resize</span>
               </button>
             </span>
           </li>
@@ -177,6 +223,7 @@ ReactDataViewerMenu.propTypes = {
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
   heatMapMode: PropTypes.bool,
+  dtypeHighlighting: PropTypes.bool,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
 };

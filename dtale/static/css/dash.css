@@ -439,7 +439,10 @@ div.tab-container > div.tab:last-child {
 #y-multi-dropdown .Select-menu-outer,
 #z-dropdown .Select-menu-outer,
 #group-dropdown .Select-menu-outer,
-#agg-dropdown .Select-menu-outer {
+#agg-dropdown .Select-menu-outer,
+#barmode-dropdown .Select-menu-outer,
+#barsort-dropdown .Select-menu-outer,
+#yaxis-dropdown .Select-menu-outer {
     z-index: 7;
 }
 #yaxis-type-div {
