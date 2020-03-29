@@ -25,7 +25,7 @@ class ColumnAnalysisFilters extends React.Component {
     this.state = {
       type: props.type,
       bins: "20",
-      top: "100",
+      top: (props.top || 100) + "",
       ordinalCol: null,
       categoryCol: null,
     };
@@ -272,6 +272,7 @@ ColumnAnalysisFilters.propTypes = {
   dtype: PropTypes.string,
   code: PropTypes.string,
   type: PropTypes.string,
+  top: PropTypes.number,
   buildChart: PropTypes.func,
 };
 

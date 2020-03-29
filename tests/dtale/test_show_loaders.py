@@ -15,9 +15,24 @@ else:
 def test_show_csv():
     import dtale
 
+    csv_path = "/../".join([os.path.dirname(__file__), 'data/test_df.csv'])
+
     with mock.patch('dtale.app.show', mock.Mock()):
-        csv_path = "/../".join([os.path.dirname(__file__), 'data/test_df.csv'])
         dtale.show_csv(path=csv_path)
+
+    with open(csv_path, 'r') as f:
+        csv_txt = f.read()
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.app.show', mock.Mock()))
+
+            class MockRequest(object):
+                def __init__(self):
+                    self.content = str(csv_txt)
+                    self.status_code = 200
+
+            stack.enter_context(mock.patch('requests.get', mock.Mock(return_value=MockRequest())))
+            dtale.show_csv(path='http://test-csv')
+            dtale.show_csv(path='http://test-csv', proxy='http://test-proxy')
 
 
 @pytest.mark.unit
@@ -37,6 +52,7 @@ def test_show_json():
             class MockRequest(object):
                 def __init__(self):
                     self.text = json_txt
+                    self.status_code = 200
 
                 def json(self):
                     return json.loads(json_txt)

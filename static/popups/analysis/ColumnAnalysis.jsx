@@ -68,6 +68,7 @@ class ReactColumnAnalysis extends React.Component {
       newState.type = _.get(fetchedChartData, "chart_type", "histogram");
       newState.query = _.get(fetchedChartData, "query");
       newState.cols = _.get(fetchedChartData, "cols", []);
+      newState.top = _.get(fetchedChartData, "top", null);
       const builder = ctx => {
         if (!_.get(fetchedChartData, "data", []).length) {
           return null;
@@ -99,7 +100,7 @@ class ReactColumnAnalysis extends React.Component {
       filters = (
         <div key="inputs" className="modal-body modal-form">
           <ColumnAnalysisFilters
-            {..._.pick(this.state, ["type", "cols", "dtype", "code"])}
+            {..._.pick(this.state, ["type", "cols", "dtype", "code", "top"])}
             chartType={this.state.type}
             buildChart={this.buildAnalysis}
           />

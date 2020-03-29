@@ -1,5 +1,19 @@
 ## Changelog
 
+### 1.8.2 (2020-4-1)
+ * [#129](https://github.com/man-group/dtale/issues/129), show dtype when hovering over header in "Highlight Dtypes" mode and description tooltips added to main menu
+ * made "No Aggregation" the default aggregation in charts
+ * bugfix for line charts with more than 15000 points
+ * updated "Value Counts" & "Category Breakdown" to return top on initial load
+ * [#118](https://github.com/man-group/dtale/issues/118), added scattergeo & choropleth maps
+ * [#121](https://github.com/man-group/dtale/issues/121), added "not equal" toggle to filters
+ * [#132](https://github.com/man-group/dtale/issues/132), updated resize button to "Refresh Widths"
+ * added "Animate" toggle to scatter, line & bar charts
+ * [#131](https://github.com/man-group/dtale/issues/131), changes to "Reshape Data" window
+ * [#130](https://github.com/man-group/dtale/issues/130), updates to pivot reshaper
+ * [#128](https://github.com/man-group/dtale/issues/128), additional hover display of code snippets for column creation
+ * [#112](https://github.com/man-group/dtale/issues/112), updated "Group" selection to give users the ability to select group values
+
 ### 1.8.1 (2020-3-29)
  * [#92](https://github.com/man-group/dtale/issues/92), column builders for random data
  * [#84](https://github.com/man-group/dtale/issues/84), highlight columns based on dtype

@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
@@ -116,6 +117,13 @@ describe("DataViewer tests", () => {
           .first()
           .simulate("click");
         result
+          .find("div.modal-body")
+          .find("div.row")
+          .last()
+          .find("button")
+          .last()
+          .simulate("click");
+        result
           .find("div.modal-footer")
           .first()
           .find("button")
@@ -125,10 +133,11 @@ describe("DataViewer tests", () => {
           result.update();
           t.equal(result.find(Reshape).length, 1, "should hide reshape");
           result
-            .find(Reshape)
             .find("div.modal-body")
-            .find("button")
+            .find("div.row")
             .last()
+            .find("button")
+            .first()
             .simulate("click");
           result
             .find("div.modal-footer")
@@ -189,6 +198,13 @@ describe("DataViewer tests", () => {
           .instance()
           .onChange({ value: "col2" });
         result
+          .find("div.modal-body")
+          .find("div.row")
+          .last()
+          .find("button")
+          .last()
+          .simulate("click");
+        result
           .find("div.modal-footer")
           .first()
           .find("button")
@@ -196,10 +212,11 @@ describe("DataViewer tests", () => {
           .simulate("click");
         setTimeout(() => {
           result
-            .find(Reshape)
             .find("div.modal-body")
-            .find("button")
+            .find("div.row")
             .last()
+            .find("button")
+            .first()
             .simulate("click");
           result
             .find("div.modal-footer")

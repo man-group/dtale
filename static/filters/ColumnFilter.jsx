@@ -89,7 +89,7 @@ class ColumnFilter extends React.Component {
         this.updateState(_.assignIn({}, this.state.cfg, { type: colType, missing: !missing }));
       return (
         <li key={1}>
-          <span className="toggler-action">{showIcon && <i className="fa fa-filter" />}</span>
+          <span className="toggler-action">{showIcon && <i className="fa fa-filter align-bottom" />}</span>
           <div className="m-auto">
             <div className="column-filter m-2">
               <span className="font-weight-bold pr-3">Show Only Missing</span>

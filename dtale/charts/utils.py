@@ -1,10 +1,12 @@
 import pandas as pd
 
-from dtale.utils import (classify_type, find_dtype_formatter, get_dtypes,
+from dtale.utils import (ChartBuildingError, classify_type,
+                         find_dtype_formatter, flatten_lists, get_dtypes,
                          grid_columns, grid_formatter, json_int, make_list)
 
 YAXIS_CHARTS = ['line', 'bar', 'scatter']
 ZAXIS_CHARTS = ['heatmap', '3d_scatter', 'surface']
+MAX_GROUPS = 30
 
 
 def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
@@ -24,6 +26,14 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
     :return: `True` if executed from test, `False` otherwise
     :rtype: bool
     """
+    if chart_type == 'maps':
+        map_type = inputs.get('map_type')
+        if map_type == 'choropleth' and all(inputs.get(p) is not None for p in ['loc_mode', 'loc', 'map_val']):
+            return True
+        elif map_type == 'scattergeo' and all(inputs.get(p) is not None for p in ['lat', 'lon', 'map_val']):
+            return True
+        return False
+
     if x is None or not len(y or []):
         return False
 
@@ -95,6 +105,8 @@ def group_filter_handler(col_def, group_val, group_classifier):
     col_def_segs = col_def.split('|')
     if len(col_def_segs) > 1:
         col, freq = col_def_segs
+        if group_val == 'nan':
+            return '{col} != {col}'.format(col=col)
         if freq == 'WD':
             return '{}.dt.dayofweek == {}'.format(col, group_val)
         elif freq == 'H2':
@@ -125,31 +137,27 @@ def group_filter_handler(col_def, group_val, group_classifier):
         elif freq == 'Y':
             ts_val = pd.Timestamp(group_val)
             return "{col}.dt.year == {year}".format(col=col, year=ts_val.year)
+    if group_val == 'nan':
+        return '{col} != {col}'.format(col=col_def)
     if group_classifier in ['I', 'F']:
         return '{col} == {val}'.format(col=col_def, val=group_val)
     return "{col} == '{val}'".format(col=col_def, val=group_val)
 
 
-def retrieve_chart_data(df, x, y, z, group=None):
+def retrieve_chart_data(df, *args, **kwargs):
     """
     Retrieves data from a dataframe for x, y, z & group inputs complete with date frequency
     formatting (:meth:`dtale.charts.utils.date_freq_handler`) if specified
 
     :param df: dataframe that contains data for chart
     :type df: :class:`pandas:pandas.DataFrame`
-    :param x: column to use for the X-Axis
-    :type x: str
-    :param y: columns to use for the Y-Axes
-    :type y: list of str
-    :param z: column to use for the Z-Axis
-    :type z: str
-    :param group: column(s) to use for grouping
-    :type group: list of str or str
+    :param args: columns to use
+    :type args: iterable of str
     :return: dataframe of data required for chart construction
     :rtype: :class:`pandas:pandas.DataFrame`
     """
     freq_handler = date_freq_handler(df)
-    cols = [x] + make_list(y) + make_list(z) + make_list(group)
+    cols = flatten_lists([make_list(a) for a in args])
     all_code = []
     all_data = []
     for col in cols:
@@ -158,8 +166,26 @@ def retrieve_chart_data(df, x, y, z, group=None):
             all_data.append(s)
             if code is not None:
                 all_code.append(code)
+    all_data = pd.concat(all_data, axis=1)
     all_code = ["chart_data = pd.concat(["] + all_code + ["], axis=1)"]
-    return pd.concat(all_data, axis=1), all_code
+    if len(make_list(kwargs.get('group_val'))):
+        dtypes = get_dtypes(all_data)
+
+        def _group_filter(group_val):
+            for gc, gv in group_val.items():
+                classifier = classify_type(dtypes[gc])
+                yield group_filter_handler(gc, gv, classifier)
+
+        def _full_filter():
+            for group_val in kwargs['group_val']:
+                group_filter = ' and '.join(list(_group_filter(group_val)))
+                yield group_filter
+
+        filters = list(_full_filter())
+        filters = '({})'.format(') or ('.join(filters))
+        all_data = all_data.query(filters)
+        all_code.append('chart_data = chart_data.query({})'.format(filters))
+    return all_data, all_code
 
 
 def check_all_nan(df, cols=None):
@@ -198,12 +224,12 @@ def check_exceptions(df, allow_duplicates, unlimited_data=False, data_limit=1500
     :raises Exception: if any failure condition is met
     """
     if not allow_duplicates and any(df.duplicated()):
-        raise Exception((
+        raise ChartBuildingError((
             "{} contains duplicates, please specify group or additional filtering or select 'No Aggregation' from"
             ' Aggregation drop-down.'
         ).format(', '.join(df.columns)))
     if not unlimited_data and len(df) > data_limit:
-        raise Exception(limit_msg.format(data_limit))
+        raise ChartBuildingError(limit_msg.format(data_limit))
 
 
 def build_agg_data(df, x, y, inputs, agg, z=None):
@@ -264,8 +290,8 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
     ]
 
 
-def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False, return_raw=False,
-                unlimited_data=False, **kwargs):
+def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, allow_duplicates=False, return_raw=False,
+                     unlimited_data=False, **kwargs):
     """
     Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
     dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
@@ -289,7 +315,7 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
     :return: dict
     """
 
-    data, code = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col)
+    data, code = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col, group_val=group_val)
     x_col = str('x')
     y_cols = make_list(y)
     z_col = kwargs.get('z')
@@ -300,34 +326,28 @@ def build_chart(raw_data, x, y, group_col=None, agg=None, allow_duplicates=False
         check_all_nan(data, [x] + y_cols)
         data = data.rename(columns={x: x_col})
         code.append("chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})")
-        if agg is not None:
+        if agg is not None and agg != 'raw':
             data = data.groupby(group_col + [x_col])
             data = getattr(data, agg)().reset_index()
             code.append("chart_data = chart_data.groupby(['{cols}']).{agg}().reset_index()".format(
                 cols="', '".join(group_col + [x]), agg=agg
             ))
-        max_groups = 30
+        MAX_GROUPS = 30
         group_vals = data[group_col].drop_duplicates()
-        if len(group_vals) > max_groups:
+        if len(group_vals) > MAX_GROUPS:
             dtypes = get_dtypes(group_vals)
             group_fmt_overrides = {'I': lambda v, as_string: json_int(v, as_string=as_string, fmt='{}')}
             group_fmts = {c: find_dtype_formatter(dtypes[c], overrides=group_fmt_overrides) for c in group_col}
-
-            def _group_filter():
-                for gv, gc in zip(group_vals.values[0], group_col):
-                    classifier = classify_type(dtypes[gc])
-                    yield group_filter_handler(gc, group_fmts[gc](gv, as_string=True), classifier)
-            group_filter = ' and '.join(list(_group_filter()))
 
             group_f, _ = build_formatters(group_vals)
             group_vals = group_f.format_lists(group_vals)
             group_vals = pd.DataFrame(group_vals, columns=group_col)
             msg = (
-                'Group ({}) contains more than {} unique values, please add additional filtering'
-                ' or else chart will be unreadable. Additional filtering can be added above, for example:\n\n'
-                '{}\n\nHere are the values to choose from:\n\n{}'
-            ).format(', '.join(group_col), max_groups, group_filter, group_vals.to_string(index=False))
-            raise Exception(msg)
+                'Group ({}) contains more than {} unique values, more groups than that will make the chart unreadable. '
+                'You can choose specific groups to display from then "Group(s)" dropdown above. The available group(s) '
+                'are listed below:'
+            ).format(', '.join(group_col), MAX_GROUPS, group_vals.to_string(index=False))
+            raise ChartBuildingError(msg, group_vals.to_string(index=False))
 
         data = data.dropna()
         if return_raw:
@@ -402,3 +422,10 @@ def weekday_tick_handler(col_data, col):
     if col.endswith('|WD'):
         return [WEEKDAY_MAP[d] for d in col_data]
     return col_data
+
+
+def find_group_vals(df, group_cols):
+    group_vals, _ = retrieve_chart_data(df, group_cols)
+    group_vals = group_vals.drop_duplicates()
+    group_f, _ = build_formatters(group_vals)
+    return group_f.format_dicts(group_vals.itertuples())

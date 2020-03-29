@@ -145,7 +145,7 @@ describe("DataViewer iframe tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Heat Map", "Highlight Dtypes"],
-          ["Instances 1", "Code Export", "Export", "Resize", "About", "Refresh", "Open Popup", "Shutdown"]
+          ["Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Reload Data", "Open Popup", "Shutdown"]
         ),
         "Should render default menu options"
       );
@@ -323,8 +323,8 @@ describe("DataViewer iframe tests", () => {
             .simulate("click");
           exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
           t.ok(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=true"));
-          clickMainMenuButton(result, "Resize");
-          clickMainMenuButton(result, "Refresh");
+          clickMainMenuButton(result, "Refresh Widths");
+          clickMainMenuButton(result, "Reload Data");
           expect(window.location.reload).toHaveBeenCalled();
           clickMainMenuButton(result, "Shutdown", "a");
           clickColMenuButton(result, "Formats");

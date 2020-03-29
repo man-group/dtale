@@ -17,7 +17,7 @@ from six import string_types
 
 import dtale.global_state as global_state
 from dtale import dtale
-from dtale.charts.utils import build_chart
+from dtale.charts.utils import build_base_chart
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_builders import ColumnBuilder
 from dtale.column_filters import ColumnFilter
@@ -32,9 +32,9 @@ from dtale.utils import (DuplicateDataError, build_code_export, build_query,
                          get_bool_arg, get_dtypes, get_int_arg, get_json_arg,
                          get_str_arg, grid_columns, grid_formatter, json_date,
                          json_float, json_int, json_timestamp, jsonify,
-                         make_list, retrieve_grid_params, run_query,
-                         running_with_flask_debug, running_with_pytest,
-                         sort_df_for_grid)
+                         jsonify_error, make_list, retrieve_grid_params,
+                         run_query, running_with_flask_debug,
+                         running_with_pytest, sort_df_for_grid)
 
 logger = getLogger(__name__)
 
@@ -686,7 +686,7 @@ def get_processes():
         processes = sorted([_load_process(data_id) for data_id in global_state.get_data()], key=lambda p: p['ts'])
         return jsonify(dict(data=processes, success=True))
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/update-settings/<data_id>')
@@ -705,7 +705,7 @@ def update_settings(data_id):
         global_state.set_settings(data_id, updated_settings)
         return jsonify(dict(success=True))
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 def refresh_col_indexes(data_id):
@@ -757,7 +757,7 @@ def update_column_position(data_id):
         refresh_col_indexes(data_id)
         return jsonify(success=True)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/update-locked/<data_id>')
@@ -789,7 +789,7 @@ def update_locked(data_id):
         refresh_col_indexes(data_id)
         return jsonify(success=True)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/update-visibility/<data_id>', methods=['POST'])
@@ -819,7 +819,7 @@ def update_visibility(data_id):
             global_state.set_dtypes(data_id, curr_dtypes)
         return jsonify(success=True)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/build-column/<data_id>')
@@ -869,7 +869,7 @@ def build_column(data_id):
         global_state.set_history(data_id, curr_history)
         return jsonify(success=True)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/reshape/<data_id>')
@@ -887,7 +887,7 @@ def reshape_data(data_id):
         global_state.set_settings(instance._data_id, dict_merge(curr_settings, dict(startup_code=builder.build_code())))
         return jsonify(success=True, data_id=instance._data_id)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/test-filter/<data_id>')
@@ -917,7 +917,7 @@ def test_filter(data_id):
             global_state.set_settings(data_id, curr_settings)
         return jsonify(dict(success=True))
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/dtypes/<data_id>')
@@ -1027,7 +1027,7 @@ def describe(data_id, column):
         return_data['code'] = '\n'.join(code)
         return jsonify(return_data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/column-filter-data/<data_id>/<column>')
@@ -1047,7 +1047,7 @@ def get_column_filter_data(data_id, column):
             ret['uniques'] = vals
         return jsonify(ret)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/save-column-filter/<data_id>/<column>')
@@ -1057,7 +1057,7 @@ def save_column_filter(data_id, column):
         curr_filters = (global_state.get_settings(data_id) or {}).get('columnFilters') or {}
         return jsonify(success=True, currFilters=curr_filters)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/data/<data_id>')
@@ -1136,7 +1136,7 @@ def get_data(data_id):
         return_data = dict(results=results, columns=columns, total=total)
         return jsonify(return_data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/data-export/<data_id>')
@@ -1174,10 +1174,18 @@ def get_column_analysis(data_id):
     :param top: the number of top values to display in your value counts, default is 100
     :returns: JSON {results: DATA, desc: output from pd.DataFrame[col].describe(), success: True/False}
     """
+    def handle_top(df, top):
+        if top is not None:
+            top = int(top)
+            return df[:top] if top > 0 else df[top:], top
+        elif len(df) > 100:
+            top = 100
+            return df[:top], top
+        return df, len(df)
+
     try:
         col = get_str_arg(request, 'col', 'values')
         bins = get_int_arg(request, 'bins', 20)
-        top = get_int_arg(request, 'top', 100)
         ordinal_col = get_str_arg(request, 'ordinalCol')
         ordinal_agg = get_str_arg(request, 'ordinalAgg', 'sum')
         category_col = get_str_arg(request, 'categoryCol')
@@ -1213,12 +1221,11 @@ def get_column_analysis(data_id):
                 ).format(col=selected_col, ordinal=ordinal_col, agg=ordinal_agg))
             hist.index.name = 'labels'
             hist = hist.reset_index()
-            if top is not None:
-                top = int(top)
-                hist = hist[:top] if top > 0 else hist[top:]
+            hist, top = handle_top(hist, get_int_arg(request, 'top'))
             col_types = grid_columns(hist)
             f = grid_formatter(col_types, nan_display=None)
             return_data = f.format_lists(hist)
+            return_data['top'] = top
         elif data_type == 'categories':
             hist = data.groupby(category_col)[[selected_col]].agg(['count', category_agg])
             hist.columns = hist.columns.droplevel(0)
@@ -1229,11 +1236,10 @@ def get_column_analysis(data_id):
             )
             hist.index.name = 'labels'
             hist = hist.reset_index()
-            if top is not None:
-                top = int(top)
-                hist = hist[:top] if top > 0 else hist[top:]
+            hist, top = handle_top(hist, get_int_arg(request, 'top'))
             f = grid_formatter(grid_columns(hist), nan_display=None)
             return_data = f.format_lists(hist)
+            return_data['top'] = top
         elif data_type == 'histogram':
             hist_data, hist_labels = np.histogram(data, bins=bins)
             hist_data = [json_float(h) for h in hist_data]
@@ -1246,7 +1252,7 @@ def get_column_analysis(data_id):
         cols = global_state.get_dtypes(data_id)
         return jsonify(code='\n'.join(code), query=query, cols=cols, dtype=dtype, chart_type=data_type, **return_data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/correlations/<data_id>')
@@ -1316,7 +1322,7 @@ def get_correlations(data_id):
         f = grid_formatter(col_types, nan_display=None)
         return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols, rolling=rolling, code=code)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/chart-data/<data_id>')
@@ -1357,11 +1363,12 @@ def get_chart_data(data_id):
         allow_duplicates = get_bool_arg(request, 'allowDupes')
         window = get_int_arg(request, 'rollingWin')
         comp = get_str_arg(request, 'rollingComp')
-        data, code = build_chart(data, x, y, group_col, agg, allow_duplicates, rolling_win=window, rolling_comp=comp)
+        data, code = build_base_chart(data, x, y, group_col=group_col, agg=agg, allow_duplicates=allow_duplicates,
+                                      rolling_win=window, rolling_comp=comp)
         data['success'] = True
         return jsonify(data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/correlations-ts/<data_id>')
@@ -1415,12 +1422,12 @@ def get_correlations_ts(data_id):
             ).format(col1=col1, col2=col2, date_col=date_col, cols="', '".join(cols)))
         data.columns = ['date', 'corr']
         code.append("corr_ts.columns = ['date', 'corr']")
-        return_data, _code = build_chart(data.fillna(0), 'date', 'corr')
+        return_data, _code = build_base_chart(data.fillna(0), 'date', 'corr')
         return_data['success'] = True
         return_data['code'] = '\n'.join(code)
         return jsonify(return_data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 @dtale.route('/scatter/<data_id>')
@@ -1515,14 +1522,14 @@ def get_scatter(data_id):
                 code='\n'.join(code),
                 error='Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...'
             )
-        data, _code = build_chart(data, cols[0], y_cols, allow_duplicates=True)
+        data, _code = build_base_chart(data, cols[0], y_cols, allow_duplicates=True)
         data['x'] = cols[0]
         data['y'] = cols[1]
         data['stats'] = stats
         data['code'] = '\n'.join(code)
         return jsonify(data)
     except BaseException as e:
-        return jsonify(dict(error=str(e), traceback=str(traceback.format_exc())))
+        return jsonify_error(e)
 
 
 def build_context_variables(data_id, new_context_vars=None):

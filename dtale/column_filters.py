@@ -56,13 +56,14 @@ class StringFilter(MissingFilter):
             return super(StringFilter, self).handle_missing(None)
 
         state = self.cfg.get('value', [])
+        operand = self.cfg.get('operand', '=')
         fltr = dict(value=state)
         if len(state) == 1:
             val_str = ("'{}'" if self.classification == 'S' else '{}').format(state[0])
-            fltr['query'] = "{} == {}".format(self.column, val_str)
+            fltr['query'] = "{} {} {}".format(self.column, '==' if operand == '=' else '!=', val_str)
         else:
             val_str = ("'{}'".format("', '".join(state)) if self.classification == 'S' else ','.join(state))
-            fltr['query'] = "{} in ({})".format(self.column, val_str)
+            fltr['query'] = "{} {} ({})".format(self.column, 'in' if operand == '=' else 'not in', val_str)
         return super(StringFilter, self).handle_missing(fltr)
 
 
@@ -76,15 +77,17 @@ class NumericFilter(MissingFilter):
             return super(NumericFilter, self).handle_missing(None)
         cfg_val, cfg_operand, cfg_min, cfg_max = (self.cfg.get(p) for p in ['value', 'operand', 'min', 'max'])
 
-        if cfg_operand == '=':
+        if cfg_operand in ['=', 'ne']:
             state = make_list(cfg_val or [])
             if not len(state):
                 return super(NumericFilter, self).handle_missing(None)
             fltr = dict(value=cfg_val, operand=cfg_operand)
             if len(state) == 1:
-                fltr['query'] = "{} == {}".format(self.column, state[0])
+                fltr['query'] = "{} {} {}".format(self.column, '==' if cfg_operand == '=' else '!=', state[0])
             else:
-                fltr['query'] = "{} in ({})".format(self.column, ", ".join(state))
+                fltr['query'] = "{} {} ({})".format(
+                    self.column, 'in' if cfg_operand == '=' else 'not in', ", ".join(state)
+                )
             return super(NumericFilter, self).handle_missing(fltr)
         if cfg_operand in ['<', '>', '<=', '>=']:
             if cfg_val is None:

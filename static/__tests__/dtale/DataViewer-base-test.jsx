@@ -116,12 +116,12 @@ describe("DataViewer tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Heat Map", "Highlight Dtypes"],
-          ["Instances 1", "Code Export", "Export", "Resize", "About", "Shutdown"]
+          ["Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
         ),
         "Should render default menu options"
       );
       setTimeout(() => {
-        clickMainMenuButton(result, "Resize");
+        clickMainMenuButton(result, "Refresh Widths");
         clickMainMenuButton(result, "Shutdown", "a");
         done();
       }, 400);

@@ -512,7 +512,7 @@ def test_reshape(custom_data, unittest):
             stack.enter_context(mock.patch('dtale.global_state.DATA', data))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
             stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
-            reshape_cfg = dict(index='date', columns='security_id', values=['Col0'])  # , aggfunc=None
+            reshape_cfg = dict(index='date', columns='security_id', values=['Col0'])
             resp = c.get(
                 '/dtale/reshape/{}'.format(c.port),
                 query_string=dict(output='new', type='pivot', cfg=json.dumps(reshape_cfg))
@@ -529,6 +529,7 @@ def test_reshape(custom_data, unittest):
             assert json.loads(resp.data)['success']
             assert len(data.keys()) == 1
 
+            reshape_cfg['columnNameHeaders'] = True
             reshape_cfg['aggfunc'] = 'sum'
             resp = c.get(
                 '/dtale/reshape/{}'.format(c.port),
@@ -537,11 +538,15 @@ def test_reshape(custom_data, unittest):
             response_data = json.loads(resp.data)
             assert response_data['data_id'] == new_key
             assert len(data.keys()) == 2
-            unittest.assertEqual([d['name'] for d in dtypes[new_key]], ['date', '100000', '100001'])
+            unittest.assertEqual(
+                [d['name'] for d in dtypes[new_key]],
+                ['date', 'security_id-100000', 'security_id-100001']
+            )
             assert len(data[new_key]) == 365
             assert settings[new_key].get('startup_code') is not None
             c.get('/dtale/cleanup/{}'.format(new_key))
 
+            reshape_cfg['columnNameHeaders'] = False
             reshape_cfg['values'] = ['Col0', 'Col1']
             resp = c.get(
                 '/dtale/reshape/{}'.format(c.port),
@@ -950,7 +955,7 @@ def test_get_column_analysis(unittest, test_data):
             settings[c.port] = dict()
             response = c.get(
                 '/dtale/column-analysis/{}'.format(c.port),
-                query_string=dict(col='foo', type='value_counts')
+                query_string=dict(col='foo', type='value_counts', top=2)
             )
             response_data = json.loads(response.data)
             assert response_data['chart_type'] == 'value_counts'
@@ -1430,7 +1435,7 @@ def test_version_info():
 
 @pytest.mark.unit
 @pytest.mark.parametrize('custom_data', [dict(rows=1000, cols=3)], indirect=True)
-def test_chart_exports(custom_data):
+def test_chart_exports(custom_data, state_data):
     import dtale.views as views
 
     with app.test_client() as c:
@@ -1500,6 +1505,39 @@ def test_chart_exports(custom_data):
             del params['x']
             response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
             assert response.content_type == 'application/json'
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: state_data}))
+            stack.enter_context(
+                mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(state_data)})
+            )
+            params = dict(chart_type='maps', map_type='choropleth', loc_mode='USA-states', loc='Code', map_val='val',
+                          agg='raw')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv'
+
+    df = pd.DataFrame({
+        'lat': np.random.uniform(-40, 40, 50),
+        'lon': np.random.uniform(-40, 40, 50),
+        'val': np.random.randint(0, high=100, size=50)
+    })
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            stack.enter_context(
+                mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)})
+            )
+            params = dict(chart_type='maps', map_type='scattergeo', lat='lat', lon='lon', map_val='val', scope='world',
+                          agg='raw')
+            response = c.get('/dtale/chart-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/html'
+
+            response = c.get('/dtale/chart-csv-export/{}'.format(c.port), query_string=params)
+            assert response.content_type == 'text/csv'
 
 
 @pytest.mark.unit

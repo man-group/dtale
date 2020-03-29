@@ -20,7 +20,7 @@ function buildForwardURL(href, dataId) {
 
 const BASE_STATE = {
   type: "pivot",
-  output: "override",
+  output: "new",
   cfg: {},
   code: {},
   loadingColumns: true,
@@ -121,20 +121,31 @@ class ReactReshape extends React.Component {
           <label className="col-md-3 col-form-label text-right">Operation</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(["aggregate", "pivot", "transpose"], (type, i) => {
-                const buttonProps = { className: "btn" };
-                if (type === this.state.type) {
-                  buttonProps.className += " btn-primary active";
-                } else {
-                  buttonProps.className += " btn-primary inactive";
-                  buttonProps.onClick = () => this.setState({ type });
+              {_.map(
+                [
+                  ["aggregate", "GroupBy"],
+                  ["pivot", "Pivot"],
+                  ["transpose", "Transpose"],
+                ],
+                ([type, label], i) => {
+                  const buttonProps = { className: "btn" };
+                  if (type === this.state.type) {
+                    buttonProps.className += " btn-primary active";
+                  } else {
+                    buttonProps.className += " btn-primary inactive";
+                    buttonProps.onClick = () => this.setState({ type });
+                  }
+                  if (type === "pivot") {
+                    buttonProps.className += " p-3";
+                  }
+                  return (
+                    <button key={i} {...buttonProps}>
+                      <span className="d-block">{label}</span>
+                      {label === "Pivot" && <small className="d-block">(Summarizing Table)</small>}
+                    </button>
+                  );
                 }
-                return (
-                  <button key={i} {...buttonProps}>
-                    {_.capitalize(type)}
-                  </button>
-                );
-              })}
+              )}
             </div>
           </div>
         </div>
@@ -145,8 +156,8 @@ class ReactReshape extends React.Component {
             <div className="btn-group">
               {_.map(
                 [
-                  ["override", "Override Current"],
                   ["new", "New Instance"],
+                  ["override", "Override Current"],
                 ],
                 ([output, label], i) => {
                   const buttonProps = { className: "btn" };

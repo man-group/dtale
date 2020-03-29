@@ -1,0 +1,16 @@
+{
+  "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
+  "filter": "Defining custom Filtering for the main spreadsheet, Charts, ...",
+  "build": "Creating a/multi new column based on the existing columns or random values",
+  "reshape":  "Creating new PIVOT table, Aggregated table GroupBy, Transpose",
+  "corr": "Presenting correlations matrix and chart",
+  "charts": "Plot chart (line, bar, scatter, pie, wordcloud,...)",
+  "heatmap": "Presenting heatmap for numerical values in the main table",
+  "highlight_dtypes": "Highlight columns based on pandas dtypes. For dtype's name hover the mouse over column name",
+  "instances": "Show existing datasets loaded to D-Tale",
+  "code": "Code snippet of commands performed upon your data to produce this grid",
+  "export": "Download DataFrame as CSV or TSV",
+  "widths": "Auto-Resize the column widths",
+  "about": "Link to the source code repository, documentation",
+  "shutdown": "Close D-Tale and all other open datasets without save. Do you want to export DataFrame?"
+}

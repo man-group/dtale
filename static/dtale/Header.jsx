@@ -51,7 +51,8 @@ class ReactHeader extends React.Component {
     if (columnIndex == 0) {
       return this.renderMenu();
     }
-    const colName = _.get(gu.getCol(columnIndex, this.props), "name");
+    const colCfg = gu.getCol(columnIndex, this.props);
+    const colName = _.get(colCfg, "name");
     const toggleId = gu.buildToggleId(colName);
     const menuHandler = menuUtils.openMenu(
       `${colName}Actions`,
@@ -61,11 +62,17 @@ class ReactHeader extends React.Component {
       ignoreMenuClicks
     );
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
+    let headerStyle = _.assignIn({}, style);
+    let colNameMarkup = colName;
+    if (this.props.dtypeHighlighting) {
+      headerStyle = _.assignIn(gu.dtypeHighlighting(colCfg), headerStyle);
+      colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
+    }
     return (
-      <div className={`headerCell ${toggleId}`} style={style} onClick={menuHandler}>
+      <div className={`headerCell ${toggleId}`} style={headerStyle} onClick={menuHandler}>
         <div>
           {_.get(SORT_CHARS, sortDir, "")}
-          {colName}
+          {colNameMarkup}
         </div>
       </div>
     );
@@ -82,6 +89,7 @@ ReactHeader.propTypes = {
   rowCount: PropTypes.number,
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
+  dtypeHighlighting: PropTypes.bool,
 };
 
 const ReduxHeader = connect(
