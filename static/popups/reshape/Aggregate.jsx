@@ -258,7 +258,7 @@ class Aggregate extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Index</label>
+        <label className="col-md-3 col-form-label text-right">Column(s) to GroupBy</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("index", ["columns"], true)}</div>
         </div>

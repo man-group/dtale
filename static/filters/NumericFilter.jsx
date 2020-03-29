@@ -3,15 +3,19 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-const OPERANDS = [
+const NE = "\u2260";
+const EQ_TOGGLE = [
   ["=", "Equals"],
+  [NE, "Not Equals"],
+];
+const OPERANDS = _.concat(EQ_TOGGLE, [
   ["<", "Less Than"],
   [">", "Greater Than"],
   ["<=", "Less Than or Equal"],
   [">=", "Greater Than or Equal"],
   ["[]", "Range (Inclusive)"],
   ["()", "Range (Exclusive)"],
-];
+]);
 
 function createValueInput(updateState, { missing }, state, prop) {
   return (
@@ -32,12 +36,12 @@ function createValueInput(updateState, { missing }, state, prop) {
 
 function buildState({ columnFilters, selectedCol, min, max }) {
   const cfg = _.get(columnFilters, selectedCol, { operand: "=" });
-  const selected = cfg.operand === "=" ? _.map(cfg.value || null, v => ({ value: v })) : null;
-  const value = cfg.operand === "=" ? "" : cfg.value;
+  const selected = _.includes(["=", "ne"], cfg.operand) ? _.map(cfg.value || null, v => ({ value: v })) : null;
+  const value = _.includes(["=", "ne"], cfg.operand) ? "" : cfg.value;
   const { operand } = cfg;
   return {
     selected,
-    operand,
+    operand: operand === "ne" ? NE : "=",
     minimum: (cfg.min || min) + "",
     maximum: (cfg.max || max) + "",
     value: value + "",
@@ -72,9 +76,11 @@ class NumericFilter extends React.Component {
       cfg.value = numVal;
     };
     switch (cfg.operand) {
-      case "=": {
+      case "=":
+      case NE: {
         if (colType === "int") {
           cfg.value = _.map(updatedState.selected || [], "value");
+          cfg.operand = cfg.operand === NE ? "ne" : cfg.operand;
         } else {
           updateCfgForVal();
         }
@@ -126,6 +132,7 @@ class NumericFilter extends React.Component {
           createValueInput(this.updateState, this.props, this.state, "maximum"),
         ];
       case "=":
+      case NE:
       default: {
         if (colType === "float") {
           return createValueInput(this.updateState, this.props, this.state, "value");
@@ -191,4 +198,4 @@ NumericFilter.propTypes = {
   missing: PropTypes.bool,
 };
 
-export { NumericFilter };
+export { NumericFilter, EQ_TOGGLE, NE };

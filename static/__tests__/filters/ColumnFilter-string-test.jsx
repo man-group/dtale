@@ -54,8 +54,24 @@ describe("ColumnFilter string tests", () => {
             .onChange([{ value: "a" }]);
           setTimeout(() => {
             result.update();
-            t.deepEqual(result.state().cfg, { type: "string", value: ["a"] });
-            done();
+            t.deepEqual(result.state().cfg, {
+              type: "string",
+              operand: "=",
+              value: ["a"],
+            });
+            result
+              .find("button")
+              .last()
+              .simulate("click");
+            setTimeout(() => {
+              result.update();
+              t.deepEqual(result.state().cfg, {
+                type: "string",
+                operand: "ne",
+                value: ["a"],
+              });
+              done();
+            }, 400);
           }, 400);
         }, 400);
       }, 400);

@@ -1,7 +1,15 @@
 import pandas as pd
+import requests
+from six import PY3
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options
+
+if PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
 
 '''
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
@@ -10,6 +18,7 @@ from dtale.cli.clickutils import get_loader_options
 LOADER_KEY = 'csv'
 LOADER_PROPS = [
     dict(name='path', help='path to CSV file'),
+    dict(name='proxy', help="proxy URL if you're passing in a URL for --csv-path"),
     dict(name='parse_dates', help='comma-separated string of column names which should be parsed as dates')
 ]
 
@@ -21,6 +30,14 @@ def show_loader(**kwargs):
 
 def loader_func(**kwargs):
     path = kwargs.pop('path')
+    if path.startswith('http://') or path.startswith('https://'):  # add support for URLs
+        proxy = kwargs.pop('proxy', None)
+        req_kwargs = {}
+        if proxy is not None:
+            req_kwargs['proxies'] = dict(http=proxy, https=proxy)
+        resp = requests.get(path, **req_kwargs)
+        assert resp.status_code == 200
+        path = StringIO(resp.content if PY3 else resp.content.decode('utf-8'))
     return pd.read_csv(path, **{k: v for k, v in kwargs.items() if k in LOADER_PROPS})
 
 

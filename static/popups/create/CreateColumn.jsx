@@ -30,6 +30,7 @@ class ReactCreateColumn extends React.Component {
     this.state = _.assign({}, BASE_STATE);
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
+    this.renderCode = this.renderCode.bind(this);
   }
 
   componentDidMount() {
@@ -164,6 +165,40 @@ class ReactCreateColumn extends React.Component {
     );
   }
 
+  renderCode() {
+    if (_.get(this.state, ["code", this.state.type])) {
+      const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
+      let markup = null;
+      if (_.size(code) > 2) {
+        markup = (
+          <div className="font-weight-bold hoverable">
+            <div>{code[0]}</div>
+            <div>{code[1]}</div>
+            <div style={{ fontSize: "85%" }}>{"hover to see more..."}</div>
+            <div className="hoverable__content build-code" style={{ width: "auto" }}>
+              <pre className="pb-0 mb-0">{_.join(code, "\n")}</pre>
+            </div>
+          </div>
+        );
+      } else {
+        markup = (
+          <div className="font-weight-bold">
+            {_.map(code, (c, i) => (
+              <div key={i}>{c}</div>
+            ))}
+          </div>
+        );
+      }
+      return (
+        <div className="col" style={{ paddingRight: 0 }}>
+          <span className="pr-3">Code:</span>
+          {markup}
+        </div>
+      );
+    }
+    return null;
+  }
+
   render() {
     let error = null;
     if (this.state.error) {
@@ -173,27 +208,13 @@ class ReactCreateColumn extends React.Component {
         </div>
       );
     }
-    let codeMarkup = null;
-    if (_.get(this.state, ["code", this.state.type])) {
-      const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
-      codeMarkup = (
-        <div className="col" style={{ paddingRight: 0 }}>
-          <span className="pr-3">Code:</span>
-          <div className="font-weight-bold">
-            {_.map(code, (c, i) => (
-              <div key={i}>{c}</div>
-            ))}
-          </div>
-        </div>
-      );
-    }
     return [
       error,
       <BouncerWrapper key={0} showBouncer={this.state.loadingColumns}>
         {this.renderBody()}
       </BouncerWrapper>,
       <div key={1} className="modal-footer">
-        {codeMarkup}
+        {this.renderCode()}
         <button className="btn btn-primary" onClick={this.state.loadingColumn ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingColumn}>
             <span>Create</span>

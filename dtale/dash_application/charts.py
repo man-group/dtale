@@ -14,13 +14,14 @@ from six import PY3, string_types
 
 import dtale.dash_application.components as dash_components
 import dtale.global_state as global_state
-from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, build_agg_data
-from dtale.charts.utils import build_chart as build_chart_data
+from dtale.charts.utils import (YAXIS_CHARTS, ZAXIS_CHARTS, build_agg_data,
+                                build_base_chart)
 from dtale.charts.utils import build_formatters as chart_formatters
 from dtale.charts.utils import (check_all_nan, check_exceptions,
                                 retrieve_chart_data, valid_chart,
                                 weekday_tick_handler)
-from dtale.dash_application.layout import (AGGS, build_error,
+from dtale.dash_application.layout import (AGGS, ANIMATION_CHARTS, build_error,
+                                           test_plotly_version,
                                            update_label_for_freq)
 from dtale.utils import (build_code_export, classify_type, dict_merge,
                          divide_chunks, export_to_csv_buffer, flatten_lists,
@@ -64,10 +65,11 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip('?')))
     else:
         params = search
-    for gp in ['y', 'group', 'yaxis']:
+    for gp in ['y', 'group', 'group_val', 'yaxis']:
         if gp in params:
             params[gp] = json.loads(params[gp])
     params['cpg'] = 'true' == params.get('cpg')
+    params['animate'] = 'true' == params.get('animate')
     if 'window' in params:
         params['window'] = int(params['window'])
     if 'group_filter' in params:
@@ -82,10 +84,24 @@ def url_encode_func():
 
 
 def chart_url_querystring(params, data=None, group_filter=None):
-    base_props = ['chart_type', 'query', 'x', 'z', 'agg', 'window', 'rolling_comp', 'barmode', 'barsort']
+    base_props = ['chart_type', 'query', 'x', 'z', 'agg', 'window', 'rolling_comp']
+    chart_type = params.get('chart_type')
+    if chart_type == 'bar':
+        base_props += ['barmode', 'barsort']
+    elif chart_type == 'maps':
+        if params.get('map_type') == 'scattergeo':
+            base_props += ['map_type', 'lat', 'lon', 'map_val', 'scope', 'proj']
+        else:
+            base_props += ['map_type', 'loc_mode', 'loc', 'map_val']
+
+    if chart_type in ['maps', 'heatmap']:
+        base_props += ['colorscale']
+
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params['cpg'] = 'true' if params.get('cpg') is True else 'false'
-    for gp in ['y', 'group']:
+    if chart_type in ANIMATION_CHARTS:
+        final_params['animate'] = 'true' if params.get('animate') is True else 'false'
+    for gp in ['y', 'group', 'group_val']:
         list_param = [val for val in params.get(gp) or [] if val is not None]
         if len(list_param):
             final_params[gp] = json.dumps(list_param)
@@ -395,7 +411,7 @@ def cpg_chunker(charts, columns=2):
     ]
 
 
-def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=None):
+def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=None, animate=False):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
 
@@ -434,21 +450,41 @@ def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=N
         return {'size': 15, 'line': {'width': 0.5, 'color': 'white'}}
 
     scatter_func = go.Scatter3d if z is not None else go.Scattergl
-    return [
-        wrapper(graph_wrapper(
-            id='scatter-{}-{}'.format(group or 'all', y2),
-            figure={'data': [
+
+    def _build_final_scatter(y_val):
+        figure_cfg = {
+            'data': [
                 scatter_func(**dict_merge(
-                    dict(x=d['x'], y=d[y2], mode='markers', opacity=0.7, name=series_key, marker=marker(d)),
+                    dict(x=d['x'], y=d[y_val], mode='markers', opacity=0.7, name=series_key, marker=marker(d)),
                     dict(z=d[z]) if z is not None else dict())
                 )
-                for series_key, d in data['data'].items() if y2 in d and (group is None or group == series_key)
+                for series_key, d in data['data'].items() if y_val in d and (group is None or group == series_key)
             ], 'layout': build_layout(
-                dict_merge(build_title(x, y2, group, z=z, agg=agg), layout(axes_builder([y2])[0]))
-            )}
-        ), group_filter=dict_merge(dict(y=y2), {} if group is None else dict(group=group)))
-        for y2 in y
-    ]
+                dict_merge(build_title(x, y_val, group, z=z, agg=agg), layout(axes_builder([y_val])[0]))
+            )
+        }
+        if animate:
+            def build_frame(i):
+                for series_key, series in data['data'].items():
+                    if y_val in series and (group is None or group == series_key):
+                        yield scatter_func(**dict(
+                            x=series['x'][:i], y=series[y_val][:i], mode='markers', opacity=0.7,
+                            name=series_key, marker=marker(series)
+                        ))
+
+            def build_frames():
+                x = next(iter(data['data'].values()), {}).get('x', [])
+                for i in range(1, len(x) + 1):
+                    yield dict(data=list(build_frame(i)))
+
+            update_cfg_w_frames(figure_cfg, list(build_frames()))
+
+        return wrapper(graph_wrapper(
+            id='scatter-{}-{}'.format(group or 'all', y_val),
+            figure=figure_cfg
+        ), group_filter=dict_merge(dict(y=y_val), {} if group is None else dict(group=group)))
+
+    return [_build_final_scatter(y2) for y2 in y]
 
 
 def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
@@ -526,6 +562,17 @@ def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
                 )
 
 
+def update_cfg_w_frames(cfg, frames):
+    cfg['frames'] = frames
+    cfg['layout']['updatemenus'] = [{'type': 'buttons', 'showactive': True, 'buttons': [
+        {'label': 'Play', 'method': 'animate', 'args': [None]},
+        {'label': 'Pause', 'method': 'animate', 'args': [
+            [None],
+            {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}
+        ]}
+    ]}]
+
+
 def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', barsort=None, **kwargs):
     """
     Builder function for :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
@@ -553,20 +600,19 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
     allow_multiaxis = barmode is None or barmode == 'group'
     axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
     name_builder = build_series_name(y, cpg)
-    if barsort is not None:
-        for series_key, series in data['data'].items():
-            barsort_col = 'x' if barsort == x or barsort not in series else barsort
-            if barsort_col != 'x' or kwargs.get('agg') == 'raw':
-                df = pd.DataFrame(series)
-                df = df.sort_values(barsort_col)
-                data['data'][series_key] = {c: df[c].values for c in df.columns}
-                tickvals = list(range(len(df['x'])))
-                data['data'][series_key]['x'] = tickvals
-                hover_text[series_key] = {'hovertext': df['x'].values, 'hoverinfo': 'y+text'}
-                axes['xaxis'] = dict_merge(
-                    axes.get('xaxis', {}),
-                    build_spaced_ticks(df['x'].values, mode='array')
-                )
+    for series_key, series in data['data'].items():
+        barsort_col = 'x' if barsort == x or barsort not in series else barsort
+        if barsort_col != 'x' or kwargs.get('agg') == 'raw':
+            df = pd.DataFrame(series)
+            df = df.sort_values(barsort_col)
+            data['data'][series_key] = {c: df[c].values for c in df.columns}
+            tickvals = list(range(len(df['x'])))
+            data['data'][series_key]['x'] = tickvals
+            hover_text[series_key] = {'hovertext': df['x'].values, 'hoverinfo': 'y+text'}
+            axes['xaxis'] = dict_merge(
+                axes.get('xaxis', {}),
+                build_spaced_ticks(df['x'].values, mode='array')
+            )
 
     if cpg:
         charts = [
@@ -606,11 +652,32 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
     if barmode == 'group' and allow_multiaxis:
         data_cfgs = list(build_grouped_bars_with_multi_yaxis(data_cfgs, y))
 
-    return wrapper(graph_wrapper(
-        id='bar-graph',
-        figure={'data': data_cfgs, 'layout': build_layout(
-            dict_merge(build_title(x, y, agg=kwargs.get('agg')), axes, dict(barmode=barmode or 'group')))}
-    ))
+    figure_cfg = {
+        'data': data_cfgs,
+        'layout': build_layout(
+            dict_merge(build_title(x, y, agg=kwargs.get('agg')), axes, dict(barmode=barmode or 'group'))
+        )
+    }
+    if kwargs.get('animate', False):
+
+        def build_frame(i):
+            for series_key, series in data['data'].items():
+                for j, y2 in enumerate(y, 1):
+                    yield dict_merge(
+                        {'x': series['x'][:i], 'y': series[y2][:i], 'type': 'bar'},
+                        name_builder(y2, series_key),
+                        {} if j == 1 or not allow_multiaxis else {'yaxis': 'y{}'.format(j)},
+                        hover_text.get(series_key) or {}
+                    )
+
+        def build_frames():
+            x = next(iter(data['data'].values()), {}).get('x', [])
+            for i in range(1, len(x) + 1):
+                yield dict(data=list(build_frame(i)))
+
+        update_cfg_w_frames(figure_cfg, list(build_frames()))
+
+    return wrapper(graph_wrapper(id='bar-graph', figure=figure_cfg))
 
 
 def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
@@ -643,7 +710,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
 
     def line_cfg(s):
         if len(s['x']) > 15000:
-            {'mode': 'lines', 'line': {'shape': 'linear'}}
+            return {'mode': 'lines', 'line': {'shape': 'linear'}}
         return {'mode': 'lines', 'line': {'shape': 'spline', 'smoothing': 0.3}}
 
     if cpg:
@@ -679,10 +746,28 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
         ]
         for series_key, series in data['data'].items()
     ])
-    return wrapper(graph_wrapper(
-        id='line-graph',
-        figure={'data': data_cfgs, 'layout': build_layout(dict_merge(build_title(x, y, agg=inputs.get('agg')), axes))}
-    ))
+
+    figure_cfg = {'data': data_cfgs, 'layout': build_layout(dict_merge(build_title(x, y, agg=inputs.get('agg')), axes))}
+    if inputs.get('animate', False):
+
+        def build_frame(i):
+            for series_key, series in data['data'].items():
+                for j, y2 in enumerate(y, 1):
+                    yield line_func(series)(**dict_merge(
+                        line_cfg(series),
+                        {'x': series['x'][:i], 'y': series[y2][:i]},
+                        name_builder(y2, series_key),
+                        {} if j == 1 or not multi_yaxis else {'yaxis': 'y{}'.format(j)}
+                    ))
+
+        def build_frames():
+            x = next(iter(data['data'].values()), {}).get('x', [])
+            for i in range(1, len(x) + 1):
+                yield dict(data=list(build_frame(i)))
+
+        update_cfg_w_frames(figure_cfg, list(build_frames()))
+
+    return wrapper(graph_wrapper(id='line-graph', figure=figure_cfg))
 
 
 def pie_builder(data, x, y, wrapper, export=False, **inputs):
@@ -774,7 +859,7 @@ def heatmap_builder(data_id, export=False, **inputs):
             global_state.get_context_variables(data_id)
         )
         wrapper = chart_wrapper(data_id, raw_data, inputs)
-        hm_kwargs = dict(colorscale='Greens', showscale=True, hoverinfo='x+y+z')  # hoverongaps=False,
+        hm_kwargs = dict(colorscale=inputs.get('colorscale') or 'Greens', showscale=True, hoverinfo='x+y+z')
         x, y, z, agg = (inputs.get(p) for p in ['x', 'y', 'z', 'agg'])
         y = y[0]
         data, code = retrieve_chart_data(raw_data, x, y, z)
@@ -858,11 +943,79 @@ def heatmap_builder(data_id, export=False, **inputs):
             return chart
         return wrapper(chart), code
     except BaseException as e:
-        return build_error(str(e), str(traceback.format_exc())), code
+        return build_error(e, traceback.format_exc()), code
 
 
-def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
-                      rolling_comp=None, return_raw=False, **kwargs):
+def map_builder(data_id, export=False, **inputs):
+    code = None
+    try:
+        if not valid_chart(**inputs):
+            return None, None
+        props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val', 'scope', 'proj', 'agg']
+        map_type, loc_mode, loc, lat, lon, map_val, scope, proj, agg = (inputs.get(p) for p in props)
+        raw_data = run_query(
+            global_state.get_data(data_id),
+            inputs.get('query'),
+            global_state.get_context_variables(data_id)
+        )
+        wrapper = chart_wrapper(data_id, raw_data, inputs)
+        title = 'Map of {}'.format(map_val)
+        if agg:
+            agg_title = AGGS[agg]
+            title = '{} ({})'.format(title, agg_title)
+        layout = build_layout(dict(title=title, autosize=True, margin={'l': 0, 'r': 0, 'b': 0}))
+        if map_type == 'scattergeo':
+            data, code = retrieve_chart_data(raw_data, lat, lon, map_val)
+            if agg is not None:
+                data, agg_code = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+                code += agg_code
+
+            geo_layout = {}
+            if test_plotly_version('4.5.0'):
+                geo_layout['fitbounds'] = 'locations'
+            if scope is not None:
+                geo_layout['scope'] = scope
+            if proj is not None:
+                geo_layout['projection_type'] = proj
+            if len(geo_layout):
+                layout['geo'] = geo_layout
+            chart = graph_wrapper(
+                id='scattergeo-graph',
+                style={'margin-right': 'auto', 'margin-left': 'auto'},
+                figure=dict(
+                    data=[go.Scattergeo(
+                        lon=data[lon], lat=data[lat], mode='markers', marker_color=data[map_val]
+                    )],
+                    layout=layout
+                )
+            )
+        else:
+            data, code = retrieve_chart_data(raw_data, loc, map_val)
+            if agg is not None:
+                data, agg_code = build_agg_data(data, loc, map_val, {}, agg)
+                code += agg_code
+            if loc_mode == 'USA-states':
+                layout['geo'] = dict(scope='usa')
+            chart = graph_wrapper(
+                id='choropleth-graph',
+                style={'margin-right': 'auto', 'margin-left': 'auto'},
+                figure=dict(
+                    data=[go.Choropleth(
+                        locations=data[loc], locationmode=loc_mode, z=data[map_val],
+                        colorscale=inputs.get('colorscale') or 'Reds', colorbar_title=map_val
+                    )],
+                    layout=layout
+                )
+            )
+        if export:
+            return chart
+        return wrapper(chart), code
+    except BaseException as e:
+        return build_error(e, traceback.format_exc()), code
+
+
+def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=None, group=None, group_val=None,
+                      agg=None, window=None, rolling_comp=None, return_raw=False, **kwargs):
     """
     Builds chart figure data for loading into dash:`dash_core_components.Graph <dash-core-components/graph>` components
 
@@ -892,27 +1045,26 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
     :return: dictionary of series data, min/max ranges of columns used in chart
     :rtype: dict
     """
-    code = None
-    try:
-        if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window,
-                                  rolling_comp=rolling_comp)):
-            return None, None
+    if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window,
+                              rolling_comp=rolling_comp)):
+        return None, None
 
-        data = run_query(
-            global_state.get_data(data_id),
-            query,
-            global_state.get_context_variables(data_id)
-        )
-        code = build_code_export(data_id, query=query)
-        chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
-                            rolling_comp=rolling_comp)
-        if chart_type in ZAXIS_CHARTS:
-            chart_kwargs['z'] = z
-            del chart_kwargs['group_col']
-        data, chart_code = build_chart_data(data, x, y, unlimited_data=True, **chart_kwargs)
-        return data, code + chart_code
-    except BaseException as e:
-        return dict(error=str(e), traceback=str(traceback.format_exc())), code
+    data = run_query(
+        global_state.get_data(data_id),
+        query,
+        global_state.get_context_variables(data_id)
+    )
+    if data is None or not len(data):
+        return None, None
+
+    code = build_code_export(data_id, query=query)
+    chart_kwargs = dict(group_col=group, group_val=group_val, agg=agg, allow_duplicates=chart_type == 'scatter',
+                        rolling_win=window, rolling_comp=rolling_comp)
+    if chart_type in ZAXIS_CHARTS:
+        chart_kwargs['z'] = z
+        del chart_kwargs['group_col']
+    data, chart_code = build_base_chart(data, x, y, unlimited_data=True, **chart_kwargs)
+    return data, code + chart_code
 
 
 def build_raw_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None,
@@ -946,23 +1098,37 @@ def build_raw_figure_data(data_id, chart_type=None, query=None, x=None, y=None, 
     :return: dataframe of all data used in chart
     :rtype: :class:`pandas:pandas.DataFrame`
     """
-    if not valid_chart(**dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window,
-                              rolling_comp=rolling_comp)):
-        raise ValueError('invalid chart configuration: {}'.format(
-            dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window, rolling_comp=rolling_comp)
-        ))
+    chart_params = dict_merge(
+        dict(x=x, y=y, z=z, chart_type=chart_type, agg=agg, window=window, rolling_comp=rolling_comp),
+        kwargs
+    )
+    if not valid_chart(**chart_params):
+        raise ValueError('invalid chart configuration: {}'.format(chart_params))
 
     data = run_query(
         global_state.get_data(data_id),
         query,
         global_state.get_context_variables(data_id)
     )
+    if chart_type == 'maps':
+        if kwargs.get('map_type') == 'choropleth':
+            loc, map_val = (kwargs.get(p) for p in ['loc', 'map_val'])
+            data, _ = retrieve_chart_data(data, loc, map_val)
+            if agg is not None:
+                data, _ = build_agg_data(data, loc, map_val, {}, agg)
+            return data
+        lat, lon, map_val = (kwargs.get(p) for p in ['lat', 'lon', 'map_val'])
+        data, _ = retrieve_chart_data(data, lat, lon, map_val)
+        if agg is not None:
+            data, _ = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+        return data
+
     chart_kwargs = dict(group_col=group, agg=agg, allow_duplicates=chart_type == 'scatter', rolling_win=window,
                         rolling_comp=rolling_comp)
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs['z'] = z
         del chart_kwargs['group_col']
-    return build_chart_data(data, x, y, unlimited_data=True, return_raw=True, **chart_kwargs)
+    return build_base_chart(data, x, y, unlimited_data=True, return_raw=True, **chart_kwargs)
 
 
 def build_chart(data_id=None, **inputs):
@@ -992,6 +1158,10 @@ def build_chart(data_id=None, **inputs):
             chart, code = heatmap_builder(data_id, **inputs)
             return chart, None, code
 
+        if inputs.get('chart_type') == 'maps':
+            chart, code = map_builder(data_id, **inputs)
+            return chart, None, code
+
         data, code = build_figure_data(data_id, **inputs)
         if data is None:
             return None, None, None
@@ -1003,7 +1173,9 @@ def build_chart(data_id=None, **inputs):
         range_data = dict(min=data['min'], max=data['max'])
         axis_inputs = inputs.get('yaxis') or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
-        chart_type, x, y, z, agg, group = (inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg', 'group'])
+        chart_type, x, y, z, agg, group = (
+            inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg', 'group']
+        )
         z = z if chart_type in ZAXIS_CHARTS else None
         chart_inputs = {k: v for k, v in inputs.items() if k not in ['chart_type', 'x', 'y', 'z', 'group']}
 
@@ -1029,7 +1201,9 @@ def build_chart(data_id=None, **inputs):
             return cpg_chunker(scatter_charts), range_data, code
 
         if chart_type == '3d_scatter':
-            return scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg), range_data, code
+            chart = scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg,
+                                    animate=inputs.get('animate', False))
+            return chart, range_data, code
 
         if chart_type == 'surface':
             return surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg), range_data, code
@@ -1042,7 +1216,7 @@ def build_chart(data_id=None, **inputs):
 
         raise NotImplementedError('chart type: {}'.format(chart_type))
     except BaseException as e:
-        return build_error(str(e), str(traceback.format_exc())), None, code
+        return build_error(e, traceback.format_exc()), None, code
 
 
 def build_raw_chart(data_id=None, **inputs):
@@ -1082,12 +1256,12 @@ def build_raw_chart(data_id=None, **inputs):
             chart = heatmap_builder(data_id, **inputs)
             return chart
 
+        if inputs.get('chart_type') == 'maps':
+            chart = map_builder(data_id, **inputs)
+            return chart
+
         data, _ = build_figure_data(data_id, **inputs)
         if data is None:
-            return None
-
-        if 'error' in data:
-            logger.error(data['traceback'])
             return None
 
         chart_type, x, y, z, agg = (inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg'])

@@ -22,6 +22,8 @@ def test_date_freq_handler():
 def test_group_filter_handler():
     s = chart_utils.group_filter_handler('date|WD', 1, 'I')
     assert s == 'date.dt.dayofweek == 1'
+    s = chart_utils.group_filter_handler('date|WD', 'nan', 'I')
+    assert s == 'date != date'
     s = chart_utils.group_filter_handler('date|H2', 1, 'I')
     assert s == 'date.dt.hour == 1'
     s = chart_utils.group_filter_handler('date|H', '20190101', 'D')
@@ -40,6 +42,8 @@ def test_group_filter_handler():
     assert s == "foo == 1"
     s = chart_utils.group_filter_handler('foo', 'bar', 'S')
     assert s == "foo == 'bar'"
+    s = chart_utils.group_filter_handler('foo', 'nan', 'S')
+    assert s == "foo != foo"
 
 
 @pytest.mark.unit

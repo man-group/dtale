@@ -58,6 +58,7 @@ class Pivot extends React.Component {
       columns: null,
       values: null,
       aggfunc: null,
+      columnNameHeaders: false,
     };
     this.renderSelect = this.renderSelect.bind(this);
     this.updateState = this.updateState.bind(this);
@@ -65,7 +66,7 @@ class Pivot extends React.Component {
 
   updateState(state) {
     const currState = _.assignIn(this.state, state);
-    const cfg = _.pick(currState, ["index", "columns", "values"]);
+    const cfg = _.pick(currState, ["index", "columns", "values", "columnNameHeaders"]);
     cfg.index = _.get(currState, "index.value") || null;
     cfg.columns = _.get(currState, "columns.value") || null;
     if (_.size(currState.values)) {
@@ -107,7 +108,7 @@ class Pivot extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Index</label>
+        <label className="col-md-3 col-form-label text-right">Rows</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("index", ["columns", "values"])}</div>
         </div>
@@ -116,6 +117,21 @@ class Pivot extends React.Component {
         <label className="col-md-3 col-form-label text-right">Columns</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("columns", ["index", "values"])}</div>
+          <div className="row mb-0">
+            <label className="col-auto col-form-label pr-3" style={{ fontSize: "85%" }}>
+              {"Include Column Names in Headers?"}
+            </label>
+            <div className="col-auto mt-auto mb-auto p-0">
+              <i
+                className={`ico-check-box${this.state.columnNameHeaders ? "" : "-outline-blank"} pointer`}
+                onClick={() =>
+                  this.updateState({
+                    columnNameHeaders: !this.state.columnNameHeaders,
+                  })
+                }
+              />
+            </div>
+          </div>
         </div>
       </div>,
       <div key={2} className="form-group row">

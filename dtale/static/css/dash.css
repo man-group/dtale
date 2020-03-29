@@ -442,7 +442,8 @@ div.tab-container > div.tab:last-child {
 #agg-dropdown .Select-menu-outer,
 #barmode-dropdown .Select-menu-outer,
 #barsort-dropdown .Select-menu-outer,
-#yaxis-dropdown .Select-menu-outer {
+#yaxis-dropdown .Select-menu-outer,
+#colorscale-dropdown .Select-menu-outer{
     z-index: 7;
 }
 #yaxis-type-div {
@@ -480,14 +481,18 @@ div.tab-container > div.tab:last-child {
 #yaxis-max-input {
     border-radius: 0 0.25rem 0.25rem 0;
 }
-#cpg-input .input-group-addon {
+#cpg-input .input-group-addon,
+#animate-input .input-group-addon,
+#map-loc-mode-input .input-group-addon {
     height: 36px;
     white-space: pre-line;
 }
-#cpg-input > div.input-group div:last-child {
+#cpg-input > div.input-group div:last-child,
+#animate-input > div.input-group div:last-child{
     min-width: 3.75em;
 }
-#cpg-toggle {
+#cpg-toggle,
+#animate-toggle {
     margin-top: 3px;
 }
 .toggle-wrapper {
@@ -498,5 +503,22 @@ div.modebar > div.modebar-group:last-child, /* hide plotly logo */
 div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
 {
     display: none;
+}
+
+#map-loc-mode-dropdown .Select,
+#map-loc-dropdown .Select,
+#map-lat-dropdown .Select,
+#map-lon-dropdown .Select,
+#map-scope-dropdown .Select,
+#map-proj-dropdown .Select{
+    min-width: 8em;
+}
+
+#map-type-dropdown .Select {
+    min-width: 10em;
+}
+
+#map-inputs > div.col-auto + div.col-auto {
+    padding-left: 0;
 }
 

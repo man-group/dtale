@@ -73,28 +73,43 @@ describe("ColumnFilter numeric tests", () => {
               .find("div.row")
               .first()
               .find("button")
-              .at(2)
+              .at(1)
               .simulate("click");
+            t.deepEqual(result.state().cfg, {
+              type: "int",
+              operand: "ne",
+              value: [1],
+            });
             setTimeout(() => {
               result.update();
               result
                 .find(NumericFilter)
-                .find("input")
+                .find("div.row")
                 .first()
-                .simulate("change", { target: { value: "a" } });
-              result
-                .find(NumericFilter)
-                .find("input")
-                .first()
-                .simulate("change", { target: { value: "0" } });
+                .find("button")
+                .at(3)
+                .simulate("click");
               setTimeout(() => {
                 result.update();
-                t.deepEqual(result.state().cfg, {
-                  type: "int",
-                  operand: ">",
-                  value: 0,
-                });
-                done();
+                result
+                  .find(NumericFilter)
+                  .find("input")
+                  .first()
+                  .simulate("change", { target: { value: "a" } });
+                result
+                  .find(NumericFilter)
+                  .find("input")
+                  .first()
+                  .simulate("change", { target: { value: "0" } });
+                setTimeout(() => {
+                  result.update();
+                  t.deepEqual(result.state().cfg, {
+                    type: "int",
+                    operand: ">",
+                    value: 0,
+                  });
+                  done();
+                }, 400);
               }, 400);
             }, 400);
           }, 400);

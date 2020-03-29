@@ -1,3 +1,4 @@
+import json as json
 from logging import getLogger
 
 import dash
@@ -7,11 +8,16 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import dtale.global_state as global_state
-from dtale.charts.utils import ZAXIS_CHARTS
+from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
-from dtale.dash_application.layout import (bar_input_style, base_layout,
-                                           build_input_options, charts_layout,
+from dtale.dash_application.layout import (animate_input_style,
+                                           bar_input_style, base_layout,
+                                           build_group_val_options,
+                                           build_input_options,
+                                           build_map_options, charts_layout,
+                                           colorscale_input_style,
                                            get_yaxis_type_tabs,
+                                           main_inputs_and_group_val_display,
                                            show_chart_per_group,
                                            show_input_handler,
                                            show_yaxis_ranges)
@@ -122,6 +128,9 @@ def init_callbacks(dash_app):
             Output('group-dropdown', 'options'),
             Output('barsort-dropdown', 'options'),
             Output('yaxis-dropdown', 'options'),
+            Output('non-map-inputs', 'style'),
+            Output('map-inputs', 'style'),
+            Output('colorscale-input', 'style'),
         ],
         [
             Input('query-data', 'modified_timestamp'),
@@ -131,26 +140,77 @@ def init_callbacks(dash_app):
             Input('y-single-dropdown', 'value'),
             Input('z-dropdown', 'value'),
             Input('group-dropdown', 'value'),
+            Input('group-val-dropdown', 'value'),
             Input('agg-dropdown', 'value'),
             Input('window-input', 'value'),
             Input('rolling-comp-dropdown', 'value'),
         ],
         [State('url', 'pathname'), State('query-data', 'data')]
     )
-    def input_data(_ts, chart_type, x, y_multi, y_single, z, group, agg, window, rolling_comp, pathname, query):
+    def input_data(_ts, chart_type, x, y_multi, y_single, z, group, group_val, agg, window, rolling_comp, pathname,
+                   query):
         """
         dash callback for maintaining chart input state and column-based dropdown options.  This will guard against
         users selecting the same column for multiple axes.
         """
         y_val = make_list(y_single if chart_type in ZAXIS_CHARTS else y_multi)
-        inputs = dict(query=query, chart_type=chart_type, x=x, y=y_val, z=z, group=group, agg=agg, window=window,
-                      rolling_comp=rolling_comp)
+        if group_val is not None:
+            group_val = [json.loads(gv) for gv in group_val]
+        inputs = dict(query=query, chart_type=chart_type, x=x, y=y_val, z=z, group=group, group_val=group_val, agg=agg,
+                      window=window, rolling_comp=rolling_comp)
         data_id = get_data_id(pathname)
         options = build_input_options(global_state.get_data(data_id), **inputs)
         x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
+        show_map = chart_type == 'maps'
+        map_style = {} if show_map else {'display': 'none'}
+        non_map_style = {'display': 'none'} if show_map else {}
+        cscale_style = colorscale_input_style(chart_type=chart_type)
         return (
             inputs, x_options, y_single_options, y_multi_options, z_options, group_options, barsort_options,
-            yaxis_options
+            yaxis_options, non_map_style, map_style, cscale_style
+        )
+
+    @dash_app.callback(
+        [
+            Output('map-input-data', 'data'),
+            Output('map-loc-dropdown', 'options'),
+            Output('map-lat-dropdown', 'options'),
+            Output('map-lon-dropdown', 'options'),
+            Output('map-value-dropdown', 'options'),
+            Output('map-loc-mode-input', 'style'),
+            Output('map-loc-input', 'style'),
+            Output('map-lat-input', 'style'),
+            Output('map-lon-input', 'style'),
+            Output('map-scope-input', 'style'),
+            Output('map-proj-input', 'style'),
+        ],
+        [
+            Input('map-type-dropdown', 'value'),
+            Input('map-loc-mode-dropdown', 'value'),
+            Input('map-loc-dropdown', 'value'),
+            Input('map-lat-dropdown', 'value'),
+            Input('map-lon-dropdown', 'value'),
+            Input('map-val-dropdown', 'value'),
+            Input('map-scope-dropdown', 'value'),
+            Input('map-proj-dropdown', 'value')
+        ],
+        [State('url', 'pathname')]
+    )
+    def map_data(map_type, loc_mode, loc, lat, lon, map_val, scope, proj, pathname):
+        data_id = get_data_id(pathname)
+        map_type = map_type or 'choropleth'
+        if map_type == 'choropleth':
+            map_data = dict(map_type=map_type, loc_mode=loc_mode, loc=loc, map_val=map_val)
+        else:
+            map_data = dict(map_type=map_type, lat=lat, lon=lon, map_val=map_val, scope=scope, proj=proj)
+        df = global_state.get_data(data_id)
+        loc_options, lat_options, lon_options, map_val_options = build_map_options(df, type=map_type, loc=loc,
+                                                                                   lat=lat, lon=lon, map_val=map_val)
+        choro_style = {} if map_type == 'choropleth' else {'display': 'none'}
+        scatt_style = {} if map_type == 'scattergeo' else {'display': 'none'}
+        return (
+            map_data, loc_options, lat_options, lon_options, map_val_options, choro_style, choro_style, scatt_style,
+            scatt_style, scatt_style, scatt_style
         )
 
     @dash_app.callback(
@@ -163,7 +223,8 @@ def init_callbacks(dash_app):
             Output('cpg-input', 'style'),
             Output('barmode-input', 'style'),
             Output('barsort-input', 'style'),
-            Output('yaxis-input', 'style')
+            Output('yaxis-input', 'style'),
+            Output('animate-input', 'style'),
         ],
         [Input('input-data', 'modified_timestamp')],
         [State('input-data', 'data')]
@@ -184,10 +245,11 @@ def init_callbacks(dash_app):
         cpg_style = {'display': 'block' if show_chart_per_group(**inputs) else 'none'}
         bar_style = bar_input_style(**inputs)
         yaxis_style = {'display': 'block' if show_yaxis_ranges(**inputs) else 'none'}
+        animate_style = animate_input_style(**inputs)
 
         return (
             y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
-            yaxis_style
+            yaxis_style, animate_style
         )
 
     @dash_app.callback(
@@ -196,16 +258,18 @@ def init_callbacks(dash_app):
             Input('cpg-toggle', 'on'),
             Input('barmode-dropdown', 'value'),
             Input('barsort-dropdown', 'value'),
+            Input('colorscale-dropdown', 'value'),
+            Input('animate-toggle', 'on'),
         ]
     )
-    def chart_input_data(cpg, barmode, barsort):
+    def chart_input_data(cpg, barmode, barsort, colorscale, animate):
         """
         dash callback for maintaining selections in chart-formatting inputs
             - chart per group flag
             - bar chart mode
             - bar chart sorting
         """
-        return dict(cpg=cpg, barmode=barmode, barsort=barsort)
+        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate=animate)
 
     @dash_app.callback(
         [
@@ -225,20 +289,22 @@ def init_callbacks(dash_app):
             Input('input-data', 'modified_timestamp'),
             Input('chart-input-data', 'modified_timestamp'),
             Input('yaxis-data', 'modified_timestamp'),
+            Input('map-input-data', 'modified_timestamp')
         ],
         [
             State('url', 'pathname'),
             State('input-data', 'data'),
             State('chart-input-data', 'data'),
             State('yaxis-data', 'data'),
+            State('map-input-data', 'data'),
             State('last-chart-input-data', 'data')
         ]
     )
-    def on_data(_ts1, _ts2, _ts3, pathname, inputs, chart_inputs, yaxis_data, last_chart_inputs):
+    def on_data(_ts1, _ts2, _ts3, _ts4, pathname, inputs, chart_inputs, yaxis_data, map_data, last_chart_inputs):
         """
         dash callback controlling the building of dash charts
         """
-        all_inputs = dict_merge(inputs, chart_inputs, dict(yaxis=yaxis_data or {}))
+        all_inputs = dict_merge(inputs, chart_inputs, dict(yaxis=yaxis_data or {}), map_data)
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
         charts, range_data, code = build_chart(get_data_id(pathname), **all_inputs)
@@ -326,6 +392,40 @@ def init_callbacks(dash_app):
             if (yaxis_min, yaxis_max) != (range_min, range_max):
                 yaxis_data['data'][yaxis_name] = dict(min=yaxis_min, max=yaxis_max)
         return yaxis_data
+
+    @dash_app.callback(
+        [Output('group-val-input', 'style'), Output('main-inputs', 'className')],
+        [Input('input-data', 'modified_timestamp')],
+        [State('input-data', 'data')]
+    )
+    def main_input_class(ts_, inputs):
+        return main_inputs_and_group_val_display(inputs)
+
+    @dash_app.callback(
+        [Output('group-val-dropdown', 'options'), Output('group-val-dropdown', 'value')],
+        [Input('group-dropdown', 'value')],
+        [State('url', 'pathname'), State('input-data', 'data'), State('group-val-dropdown', 'value')]
+    )
+    def group_values(group_cols, pathname, inputs, prev_group_vals):
+        group_cols = make_list(group_cols)
+        if not show_input_handler(inputs.get('chart_type', 'line'))('group') or not len(group_cols):
+            return [], None
+        print('loading group vals...')
+        data_id = get_data_id(pathname)
+        group_vals = run_query(
+            global_state.get_data(data_id),
+            inputs.get('query'),
+            global_state.get_context_variables(data_id)
+        )
+        group_vals = build_group_val_options(group_vals, group_cols)
+        selections = []
+        available_vals = [gv['value'] for gv in group_vals]
+        if prev_group_vals is not None:
+            selections = [pgv for pgv in prev_group_vals if pgv in available_vals]
+        if not len(selections) and len(group_vals) <= MAX_GROUPS:
+            selections = available_vals
+
+        return group_vals, selections
 
     @dash_app.callback(
         Output('popup-content', 'children'),

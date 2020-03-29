@@ -12,6 +12,7 @@ from dtale.cli.clickutils import get_loader_options
 LOADER_KEY = 'json'
 LOADER_PROPS = [
     dict(name='path', help='path to JSON file or URL to JSON endpoint'),
+    dict(name='proxy', help="proxy URL if you're passing in a URL for --json-path"),
     dict(name='convert_dates', help='comma-separated string of column names which should be parsed as dates')
 ]
 
@@ -34,6 +35,7 @@ def loader_func(**kwargs):
         if proxy is not None:
             req_kwargs['proxies'] = dict(http=proxy, https=proxy)
         resp = requests.get(path, **req_kwargs)
+        assert resp.status_code == 200
         path = resp.json() if normalize else resp.text
     if normalize:
         normalize_func = pd.json_normalize if is_pandas1() else pd.io.json.json_normalize

@@ -1,11 +1,16 @@
 import pandas as pd
 
 import dtale.global_state as global_state
-from dtale.utils import run_query
+from dtale.utils import make_list, run_query
 
 
-def flatten_columns(df):
-    return [' '.join([str(c) for c in col]).strip() for col in df.columns.values]
+def flatten_columns(df, columns=None):
+    if columns is not None:
+        return [
+            ' '.join(['{}-{}'.format(c1, str(c2)) for c1, c2 in zip(make_list(columns), make_list(col_val))]).strip()
+            for col_val in df.columns.values
+        ]
+    return [' '.join([str(c) for c in make_list(col)]).strip() for col in df.columns.values]
 
 
 class DataReshaper(object):
@@ -42,12 +47,14 @@ class PivotBuilder(object):
         index, columns, values, aggfunc = (self.cfg.get(p) for p in ['index', 'columns', 'values', 'aggfunc'])
         if aggfunc is not None or len(values) > 1:
             pivot_data = pd.pivot_table(data, values=values, index=index, columns=columns, aggfunc=aggfunc)
-            if len(values) > 1:
-                pivot_data.columns = flatten_columns(pivot_data)
-            elif len(values) == 1:
+            if len(values) == 1:
                 pivot_data.columns = pivot_data.columns.droplevel(0)
         else:
             pivot_data = data.pivot(index=index, columns=columns, values=values[0])
+        if self.cfg.get('columnNameHeaders', False):
+            pivot_data.columns = flatten_columns(pivot_data, columns=columns)
+        else:
+            pivot_data.columns = flatten_columns(pivot_data)
         pivot_data = pivot_data.rename_axis(None, axis=1)
         return pivot_data
 

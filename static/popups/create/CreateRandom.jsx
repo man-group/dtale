@@ -5,6 +5,8 @@ import React from "react";
 
 import { DateInput } from "@blueprintjs/datetime";
 
+import { buildRandomCode as buildCode } from "./codeSnippets";
+
 require("@blueprintjs/core/lib/css/blueprint.css");
 require("@blueprintjs/datetime/lib/css/blueprint-datetime.css");
 
@@ -26,38 +28,6 @@ function validateRandomCfg(cfg) {
     }
   }
   return null;
-}
-
-function buildCode(cfg) {
-  let code = "";
-  if (cfg.type === "string") {
-    code = "pd.Series([''.join(random.choice(chars) for _ in range(length)) for _ in range(len(df)]), index=df.index)";
-  } else if (cfg.type === "choice") {
-    let choices = cfg.choices || "a,b,c,d,e,f";
-    choices = _.join(_.split(choices, ","), "','");
-    code = `pd.Series(np.random.choice(['${choices}'], len(df)), index=df.index)`;
-  } else if (cfg.type === "bool") {
-    code = "pd.Series(np.random.choice([True, False], len(data)), index=df.index)";
-  } else if (cfg.type === "date") {
-    const freq = cfg.businessDay ? ", freq='B'" : "";
-    code = [
-      `dates = pd.date_range('${cfg.start || "16770921"}', '${cfg.end || "22620411"}'${freq}).to_list()`,
-      "pd.Series([dates[i] for i in np.random.randint(0, len(dates) - 1, size=len(df))], index=df.index)",
-    ];
-  } else {
-    let { low, high } = cfg;
-    low = parseInt(low);
-    high = parseInt(high);
-    if (!_.isNaN(low) && !_.isNaN(high) && low > high) {
-      return null;
-    }
-    if (cfg.type === "int") {
-      code = `pd.Series(np.random.randint(${low || 0}, high=${high || 100}, size=len(df)), index=df.index)`;
-    } else {
-      code = `pd.Series(np.random.uniform(${low || 0}, high=${(high || 1) - 1}, size=len(df)), index=df.index)`;
-    }
-  }
-  return code;
 }
 
 class CreateRandom extends React.Component {

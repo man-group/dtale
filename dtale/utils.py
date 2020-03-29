@@ -6,6 +6,7 @@ import os
 import socket
 import sys
 import time
+import traceback
 from builtins import map, object
 from logging import getLogger
 
@@ -548,6 +549,25 @@ def jsonify(return_data={}, **kwargs):
     if len(kwargs):
         return _jsonify(dict_merge(kwargs, return_data))
     return _jsonify(return_data)
+
+
+class ChartBuildingError(Exception):
+    """
+    Exception for signalling there was an issue constructing the data for your chart.
+    """
+    def __init__(self, error, details=None):
+        super(ChartBuildingError, self).__init__('Chart Error')
+        self.error = error
+        self.details = details
+
+
+def jsonify_error(e):
+    tb = traceback.format_exc()
+    if isinstance(e, ChartBuildingError):
+        if e.details:
+            tb = e.details
+        e = e.error
+    return jsonify(dict(error=str(e), traceback=str(tb)))
 
 
 def find_selected_column(data, col):

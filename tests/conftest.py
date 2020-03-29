@@ -1,4 +1,5 @@
 import getpass
+import os
 import random
 import string
 import unittest as ut
@@ -106,6 +107,13 @@ def custom_data(request):
     data.loc[data['security_id'] == 100001, 'str_val'] = np.nan
     data.loc[:, 'bool_val'] = data.index % 2 == 0
     return data
+
+
+@pytest.fixture(scope="module")
+def state_data():
+    df = pd.read_csv('{}/data/state-codes.csv'.format(os.path.dirname(__file__)))
+    df.loc[:, 'val'] = df.index.values
+    return df
 
 
 @pytest.fixture(scope="module")
