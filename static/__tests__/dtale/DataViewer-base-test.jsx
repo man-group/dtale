@@ -115,8 +115,8 @@ describe("DataViewer tests", () => {
           .find("ul li span.font-weight-bold")
           .map(s => s.text()),
         _.concat(
-          ["Describe", "Filter", "Build Column", "Reshape", "Correlations", "Charts", "Heat Map", "Highlight Dtypes"],
-          ["Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
+          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
+          ["Highlight Dtypes", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
         ),
         "Should render default menu options"
       );

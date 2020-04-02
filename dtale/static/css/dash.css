@@ -443,7 +443,8 @@ div.tab-container > div.tab:last-child {
 #barmode-dropdown .Select-menu-outer,
 #barsort-dropdown .Select-menu-outer,
 #yaxis-dropdown .Select-menu-outer,
-#colorscale-dropdown .Select-menu-outer{
+#colorscale-dropdown .Select-menu-outer,
+#animate-by-dropdown .Select-menu-outer {
     z-index: 7;
 }
 #yaxis-type-div {
@@ -510,8 +511,15 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
 #map-lat-dropdown .Select,
 #map-lon-dropdown .Select,
 #map-scope-dropdown .Select,
-#map-proj-dropdown .Select{
+#map-proj-dropdown .Select,
+#map-val-dropdown .Select {
     min-width: 8em;
+}
+#map-scope-dropdown .Select-menu-outer > .Select-menu {
+    min-width: 10em;
+}
+#map-proj-dropdown .Select-menu-outer > .Select-menu {
+    min-width: 13em;
 }
 
 #map-type-dropdown .Select {

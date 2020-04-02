@@ -2,7 +2,7 @@
   "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
   "filter": "Defining custom Filtering for the main spreadsheet, Charts, ...",
   "build": "Creating a/multi new column based on the existing columns or random values",
-  "reshape":  "Creating new PIVOT table, Aggregated table GroupBy, Transpose",
+  "reshape":  "Create a new grid using either PIVOT table, Aggregations w/ GroupBy or Transpose",
   "corr": "Presenting correlations matrix and chart",
   "charts": "Plot chart (line, bar, scatter, pie, wordcloud,...)",
   "heatmap": "Presenting heatmap for numerical values in the main table",

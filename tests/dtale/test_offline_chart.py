@@ -9,7 +9,7 @@ else:
 
 
 @pytest.mark.unit
-def test_build_file(test_data, builtin_pkg, unittest):
+def test_build_file(test_data, state_data, scattergeo_data, builtin_pkg, unittest):
     from dtale import offline_chart
     if PY3:
         from unittest.mock import mock_open
@@ -26,6 +26,12 @@ def test_build_file(test_data, builtin_pkg, unittest):
         assert output is None
         output = offline_chart(test_data, chart_type='bar', x='date', y='foo', agg='sum', filepath='foo.html')
         assert output is None
+        output = offline_chart(state_data, chart_type='maps', map_type='choropleth', loc_mode='USA-states', loc='Code',
+                               map_val='val')
+        assert output is not None
+        output = offline_chart(scattergeo_data, chart_type='maps', map_type='scattergeo', lat='lat', lon='lon',
+                               map_val='val', scope='world', proj='mercator')
+        assert output is not None
 
 
 @pytest.mark.unit

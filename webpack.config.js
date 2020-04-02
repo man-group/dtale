@@ -43,6 +43,12 @@ function createConfig(entry) {
             if (file.startsWith(__dirname + "/node_modules/popsicle")) {
               return false;
             }
+            if (file.startsWith(__dirname + "/node_modules/d3")) {
+              return false;
+            }
+            if (file.startsWith(__dirname + "/node_modules/react-wordcloud")) {
+              return false;
+            }
             return file.startsWith(__dirname + "/node_modules");
           },
           query: {

@@ -41,7 +41,10 @@ describe("Correlations tests", () => {
             return { error: "No data found." };
           }
           if (query == "one-date") {
-            return { data: correlationsData.data, dates: ["col4"] };
+            return {
+              data: correlationsData.data,
+              dates: [{ name: "col4", rolling: false }],
+            };
           }
           if (query == "no-date") {
             return { data: correlationsData.data, dates: [] };

@@ -13,6 +13,8 @@ from dtale.utils import (ChartBuildingError, classify_type, dict_merge,
 
 
 def test_plotly_version(version_num):
+    if 'unknown' in plotly.__version__:
+        return True
     return parse_version(plotly.__version__) >= parse_version(version_num)
 
 
@@ -90,7 +92,7 @@ def base_layout(github_fork, **kwargs):
     )
 
 
-def build_input(label, input, className='col-auto', **kwargs):
+def build_input(label, input, className='col-auto', label_class='input-group-addon', **kwargs):
     """
     Helper function to build a standard label/input component in dash.
 
@@ -107,7 +109,7 @@ def build_input(label, input, className='col-auto', **kwargs):
     return html.Div(
         [
             html.Div(
-                [html.Span(label, className='input-group-addon'), input],
+                [html.Span(label, className=label_class), input],
                 className='input-group mr-3',
             )
         ],
@@ -166,6 +168,8 @@ CHART_INPUT_SETTINGS = {
                        group=dict(display=True)),
     'surface': dict(x=dict(type='single'), y=dict(type='single'), z=dict(display=True, type='single'),
                     group=dict(display=False)),
+    'maps': dict(x=dict(display=False), y=dict(display=False), z=dict(display=False), group=dict(display=False),
+                 map_group=dict(display=True)),
 }
 AGGS = dict(
     count='Count', nunique='Unique Count', sum='Sum', mean='Mean', rolling='Rolling', corr='Correlation', first='First',
@@ -181,10 +185,44 @@ PROJECTIONS = ['equirectangular', 'mercator', 'orthographic', 'natural earth', '
                'conic equidistant', 'gnomonic', 'stereographic', 'mollweide', 'hammer', 'transverse mercator',
                'albers usa', 'winkel tripel', 'aitoff', 'sinusoidal']
 
+
+def build_proj_img_src(proj):
+    return '/images/projections/{}.png'.format('_'.join(proj.split(' ')))
+
+
+def build_proj_hover_children(proj):
+    if proj is None:
+        return None
+    return [
+        html.I(className='ico-help-outline', style=dict(color='white')),
+        html.Div(
+            [html.Div(proj), html.Img(src=build_proj_img_src(proj))],
+            className='hoverable__content',
+            style=dict(width='auto')
+        )
+    ]
+
+
+def build_proj_hover(proj):
+    return html.Span(
+        [
+            'Projection',
+            html.Div(
+                build_proj_hover_children(proj),
+                className='ml-3 hoverable',
+                style=dict(display='none') if proj is None else dict(borderBottom='none'),
+                id='proj-hover'
+            )
+        ],
+        className='input-group-addon'
+    )
+
+
 COLORSCALES = ['Blackbody', 'Bluered', 'Blues', 'Earth', 'Electric', 'Greens', 'Greys', 'Hot', 'Jet', 'Picnic',
                'Portland', 'Rainbow', 'RdBu', 'Reds', 'Viridis', 'YlGnBu', 'YlOrRd']
 
 ANIMATION_CHARTS = ['line', 'bar', '3d_scatter']
+ANIMATE_BY_CHARTS = ['maps']
 
 
 def show_input_handler(chart_type):
@@ -308,8 +346,9 @@ def colorscale_input_style(**inputs):
 
 def animate_input_style(**inputs):
     chart_type, cpg = (inputs.get(p) for p in ['chart_type', 'cpg'])
-    show = not cpg and chart_type in ANIMATION_CHARTS and test_plotly_version('4.4.1')
-    return dict(display='block' if show else 'none')
+    show = not cpg and chart_type in ANIMATION_CHARTS
+    show_by = not cpg and chart_type in ANIMATE_BY_CHARTS
+    return dict(display='block' if show else 'none'), dict(display='block' if show_by else 'none')
 
 
 def show_chart_per_group(**inputs):
@@ -348,8 +387,11 @@ def build_group_val_options(df, group_cols):
 
 
 def main_inputs_and_group_val_display(inputs):
-    group_cols = make_list(inputs.get('group'))
-    if not show_input_handler(inputs.get('chart_type', 'line'))('group') or not len(group_cols):
+    chart_type = inputs.get('chart_type')
+    show_group = show_input_handler(inputs.get('chart_type', 'line'))('group')
+    if chart_type == 'maps' and not len(make_list(inputs.get('map_group'))):
+        return dict(display='none'), 'col-md-12'
+    elif show_group and not len(make_list(inputs.get('group'))):
         return dict(display='none'), 'col-md-12'
     return dict(display='block'), 'col-md-8'
 
@@ -372,7 +414,7 @@ def charts_layout(df, settings, **inputs):
     show_cpg = show_chart_per_group(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
     bar_style = bar_input_style(**inputs)
-    animate_style = animate_input_style(**inputs)
+    animate_style, animate_by_style = animate_input_style(**inputs)
 
     options = build_input_options(df, **inputs)
     x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
@@ -391,6 +433,7 @@ def charts_layout(df, settings, **inputs):
     show_map = chart_type == 'maps'
     map_props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val']
     map_type, loc_mode, loc, lat, lon, map_val = (inputs.get(p) for p in map_props)
+    map_scope, proj = (inputs.get(p) for p in ['scope', 'proj'])
     loc_options, lat_options, lon_options, map_val_options = build_map_options(df, type=map_type, loc=loc, lat=lat,
                                                                                lon=lon, map_val=map_val)
     cscale_style = colorscale_input_style(**inputs)
@@ -435,13 +478,17 @@ def charts_layout(df, settings, **inputs):
             [html.Div([
                 html.Div(
                     [
-                        build_input('X', dcc.Dropdown(
-                            id='x-dropdown',
-                            options=x_options,
-                            placeholder='Select a column',
-                            value=x,
-                            style=dict(width='inherit'),
-                        )),
+                        build_input(
+                            [html.Div('X'), html.Small('(Agg By)')],
+                            dcc.Dropdown(
+                                id='x-dropdown',
+                                options=x_options,
+                                placeholder='Select a column',
+                                value=x,
+                                style=dict(width='inherit'),
+                            ),
+                            label_class='input-group-addon d-block pt-1 pb-0'
+                        ),
                         build_input(
                             'Y',
                             dcc.Dropdown(
@@ -456,13 +503,20 @@ def charts_layout(df, settings, **inputs):
                             id='y-multi-input',
                             style=show_style(show_input('y', 'multi'))
                         ),
-                        build_input('Y', dcc.Dropdown(
-                            id='y-single-dropdown',
-                            options=y_single_options,
-                            placeholder='Select a column',
-                            style=dict(width='inherit'),
-                            value=y[0] if show_input('y') and len(y) else None
-                        ), className='col', id='y-single-input', style=show_style(show_input('y'))),
+                        build_input(
+                            [html.Div('Y'), html.Small('(Agg By)')],
+                            dcc.Dropdown(
+                                id='y-single-dropdown',
+                                options=y_single_options,
+                                placeholder='Select a column',
+                                style=dict(width='inherit'),
+                                value=y[0] if show_input('y') and len(y) else None
+                            ),
+                            className='col',
+                            label_class='input-group-addon d-block pt-1 pb-0',
+                            id='y-single-input',
+                            style=show_style(show_input('y'))
+                        ),
                         build_input('Z', dcc.Dropdown(
                             id='z-dropdown',
                             options=z_options,
@@ -503,27 +557,68 @@ def charts_layout(df, settings, **inputs):
                             style=dict(width='inherit'),
                             value=loc_mode
                         ), id='map-loc-mode-input', style=show_map_style(map_type == 'choropleth')),
-                        build_input('Locations', dcc.Dropdown(
-                            id='map-loc-dropdown',
-                            options=loc_options,
-                            placeholder='Select a column',
-                            value=loc,
+                        build_input(
+                            [html.Div('Locations'), html.Small('(Agg By)')],
+                            dcc.Dropdown(
+                                id='map-loc-dropdown',
+                                options=loc_options,
+                                placeholder='Select a column',
+                                value=loc,
+                                style=dict(width='inherit'),
+                            ),
+                            id='map-loc-input',
+                            label_class='input-group-addon d-block pt-1 pb-0',
+                            style=show_map_style(map_type == 'choropleth')
+                        ),
+                        build_input(
+                            [html.Div('Lat'), html.Small('(Agg By)')],
+                            dcc.Dropdown(
+                                id='map-lat-dropdown',
+                                options=lat_options,
+                                placeholder='Select a column',
+                                value=lat,
+                                style=dict(width='inherit'),
+                            ),
+                            id='map-lat-input',
+                            label_class='input-group-addon d-block pt-1 pb-0',
+                            style=show_map_style(map_type == 'scattergeo')
+                        ),
+                        build_input(
+                            [html.Div('Lon'), html.Small('(Agg By)')],
+                            dcc.Dropdown(
+                                id='map-lon-dropdown',
+                                options=lon_options,
+                                placeholder='Select a column',
+                                style=dict(width='inherit'),
+                                value=lon
+                            ),
+                            id='map-lon-input',
+                            label_class='input-group-addon d-block pt-1 pb-0',
+                            style=show_map_style(map_type == 'scattergeo')
+                        ),
+                        build_input('Scope', dcc.Dropdown(
+                            id='map-scope-dropdown',
+                            options=[build_option(v) for v in SCOPES],
                             style=dict(width='inherit'),
-                        ), id='map-loc-input', style=show_map_style(map_type == 'choropleth')),
-                        build_input('Lat', dcc.Dropdown(
-                            id='map-lat-dropdown',
-                            options=lat_options,
-                            placeholder='Select a column',
-                            value=lat,
-                            style=dict(width='inherit'),
-                        ), id='map-lat-input', style=show_map_style(map_type == 'scattergeo')),
-                        build_input('Lon', dcc.Dropdown(
-                            id='map-lon-dropdown',
-                            options=lon_options,
-                            placeholder='Select a column',
-                            style=dict(width='inherit'),
-                            value=lon
-                        ), id='map-lon-input', style=show_map_style(map_type == 'scattergeo')),
+                            value=map_scope or 'world'
+                        ), id='map-scope-input', style=show_map_style(map_type == 'scattergeo')),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        build_proj_hover(proj),
+                                        dcc.Dropdown(
+                                            id='map-proj-dropdown',
+                                            options=[build_option(v) for v in PROJECTIONS],
+                                            style=dict(width='inherit'),
+                                            value=proj
+                                        )
+                                    ],
+                                    className='input-group mr-3',
+                                )
+                            ],
+                            id='map-proj-input', style=show_map_style(map_type == 'scattergeo'), className='col-auto'
+                        ),
                         build_input('Value', dcc.Dropdown(
                             id='map-val-dropdown',
                             options=map_val_options,
@@ -531,18 +626,19 @@ def charts_layout(df, settings, **inputs):
                             style=dict(width='inherit'),
                             value=map_val
                         )),
-                        build_input('Scope', dcc.Dropdown(
-                            id='map-scope-dropdown',
-                            options=[build_option(v) for v in SCOPES],
-                            style=dict(width='inherit'),
-                            value='world'
-                        ), id='map-scope-input', style=show_map_style(map_type == 'scattergeo')),
-                        build_input('Projection', dcc.Dropdown(
-                            id='map-proj-dropdown',
-                            options=[build_option(v) for v in PROJECTIONS],
-                            style=dict(width='inherit'),
-                            value=None
-                        ), id='map-proj-input', style=show_map_style(map_type == 'scattergeo')),
+                        build_input(
+                            'Group',
+                            dcc.Dropdown(
+                                id='map-group-dropdown',
+                                options=group_options,
+                                multi=True,
+                                placeholder='Select a group(s)',
+                                value=inputs.get('map_group'),
+                                style=dict(width='inherit'),
+                            ),
+                            className='col',
+                            id='map-group-input'
+                        )
                     ],
                     id='map-inputs', className='row pt-3 pb-3 charts-filters',
                     style={} if show_map else {'display': 'none'}
@@ -646,6 +742,10 @@ def charts_layout(df, settings, **inputs):
                             style=animate_style,
                             className='col-auto'
                         ),
+                        build_input('Animate By', dcc.Dropdown(
+                            id='animate-by-dropdown', options=map_val_options,
+                            value=inputs.get('animate_by')
+                        ), className='col-auto addon-min-width', style=animate_by_style, id='animate-by-input'),
                     ],
                     className='row pt-3 pb-5 charts-filters'
                 )],

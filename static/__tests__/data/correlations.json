@@ -29,5 +29,9 @@
       "column": "col4"
     }
   ],
-  "dates": ["col4", "col5"]
+  "dates": [{
+    "name": "col4", "rolling": false
+  }, {
+    "name": "col5", "rolling": true
+  }]
 }

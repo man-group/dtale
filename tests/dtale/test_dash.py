@@ -156,7 +156,7 @@ def test_map_data(unittest):
                     '..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options...'
                     'map-lon-dropdown.options...map-value-dropdown.options...map-loc-mode-input.style...'
                     'map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style...'
-                    'map-proj-input.style..'
+                    'map-proj-input.style...proj-hover.style...proj-hover.children..'
                 ),
                 'changedPropIds': ['map-type-dropdown.value'],
                 'inputs': [
@@ -167,7 +167,8 @@ def test_map_data(unittest):
                     {'id': 'map-lon-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-val-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-scope-dropdown', 'property': 'value', 'value': 'world'},
-                    {'id': 'map-proj-dropdown', 'property': 'value', 'value': None}
+                    {'id': 'map-proj-dropdown', 'property': 'value', 'value': None},
+                    {'id': 'map-group-dropdown', 'property': 'value', 'value': None},
                 ],
                 'state': [
                     pathname
@@ -192,10 +193,14 @@ def test_map_data(unittest):
             unittest.assertEqual(resp_data['map-lat-input']['style'], {})
 
             params['inputs'][0]['value'] = 'choropleth'
+            params['inputs'][-1]['value'] = 'foo'
+            params['inputs'][-2]['value'] = 'hammer'
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             unittest.assertEqual(resp_data['map-loc-mode-input']['style'], {})
             unittest.assertEqual(resp_data['map-lat-input']['style'], {'display': 'none'})
+            img_src = resp_data['proj-hover']['children'][1]['props']['children'][1]['props']['src']
+            assert img_src == '/images/projections/hammer.png'
 
 
 @pytest.mark.unit
@@ -212,7 +217,9 @@ def test_group_values(unittest):
                 'output': '..group-val-dropdown.options...group-val-dropdown.value..',
                 'changedPropIds': ['group-dropdown.value'],
                 'inputs': [
-                    {'id': 'group-dropdown', 'property': 'value', 'value': None}
+                    {'id': 'chart-tabs', 'property': 'value', 'value': None},
+                    {'id': 'group-dropdown', 'property': 'value', 'value': None},
+                    {'id': 'map-group-dropdown', 'property': 'value', 'value': None}
                 ],
                 'state': [
                     pathname,
@@ -225,7 +232,8 @@ def test_group_values(unittest):
                 response.get_json()['response'],
                 {'group-val-dropdown': {'options': [], 'value': None}}
             )
-            params['inputs'][0]['value'] = ['c']
+            params['inputs'][0]['value'] = 'line'
+            params['inputs'][1]['value'] = ['c']
             params['state'][1]['value'] = dict(chart_type='line')
 
             response = c.post('/charts/_dash-update-component', json=params)
@@ -253,9 +261,11 @@ def test_main_input_styling(unittest):
         params = {
             'output': '..group-val-input.style...main-inputs.className..',
             'changedPropIds': ['input-data.modified_timestamp'],
-            'inputs': [ts_builder('input-data')],
+            'inputs': [ts_builder('input-data'), ts_builder('map-input-data')],
             'state': [
-                {'id': 'input-data', 'property': 'data', 'value': {'chart_type': 'maps'}}]
+                {'id': 'input-data', 'property': 'data', 'value': {'chart_type': 'maps'}},
+                {'id': 'map-input-data', 'property': 'data', 'value': {}},
+            ]
         }
         response = c.post('/charts/_dash-update-component', json=params)
         unittest.assertEqual(
@@ -276,7 +286,8 @@ def test_chart_type_changes(unittest):
     with app.test_client() as c:
         fig_data_outputs = (
             '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...rolling-inputs.style...'
-            'cpg-input.style...barmode-input.style...barsort-input.style...yaxis-input.style...animate-input.style..'
+            'cpg-input.style...barmode-input.style...barsort-input.style...yaxis-input.style...animate-input.style...'
+            'animate-by-input.style..'
         )
         inputs = {'id': 'input-data', 'property': 'data', 'value': {
             'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -444,13 +455,14 @@ def test_chart_input_updates(unittest):
                 {'id': 'barsort-dropdown', 'property': 'value'},
                 {'id': 'colorscale-dropdown', 'property': 'value'},
                 {'id': 'animate-toggle', 'property': 'on'},
+                {'id': 'animate-by-dropdown', 'property': 'value'}
             ],
         }
 
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response']['props']['data'], {
-            'animate': None, 'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None,
+            'animate': None, 'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate_by': None
         })
 
 
@@ -963,7 +975,7 @@ def test_chart_building_surface(unittest, test_data):
 
 
 @pytest.mark.unit
-def test_chart_building_map(unittest, state_data):
+def test_chart_building_map(unittest, state_data, scattergeo_data):
     import dtale.views as views
 
     with app.test_client() as c:
@@ -986,14 +998,15 @@ def test_chart_building_map(unittest, state_data):
                 {'text': 'Map of val (No Aggregation)'}
             )
 
-    df = pd.DataFrame({
-        'lat': np.random.uniform(-40, 40, 50),
-        'lon': np.random.uniform(-40, 40, 50),
-        'val': np.random.randint(0, high=100, size=50)
-    })
+            chart_inputs['animate_by'] = 'cat'
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
+
     with app.test_client() as c:
         with ExitStack() as stack:
-            df, _ = views.format_data(df)
+            df, _ = views.format_data(scattergeo_data)
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {'chart_type': 'maps', 'agg': 'raw'}
@@ -1007,6 +1020,24 @@ def test_chart_building_map(unittest, state_data):
                 chart_markup['props']['figure']['layout']['title'],
                 {'text': 'Map of val (No Aggregation)'}
             )
+
+            map_inputs['map_group'] = 'cat'
+            group_val = df['cat'].values[0]
+            inputs['group_val'] = [dict(cat=group_val)]
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            title = resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout']['title']
+            assert title['text'] == 'Map of val (No Aggregation) (cat == {})'.format(group_val)
+
+            map_inputs['map_group'] = None
+            inputs['group_val'] = None
+            chart_inputs['animate_by'] = 'cat'
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
+
             map_inputs['map_val'] = 'foo'
             params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
             response = c.post('/charts/_dash-update-component', json=params)

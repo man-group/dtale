@@ -141,7 +141,6 @@ class ReactReshape extends React.Component {
                   return (
                     <button key={i} {...buttonProps}>
                       <span className="d-block">{label}</span>
-                      {label === "Pivot" && <small className="d-block">(Summarizing Table)</small>}
                     </button>
                   );
                 }

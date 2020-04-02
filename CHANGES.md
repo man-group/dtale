@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.8.3 (2020-4-4)
+* [#143](https://github.com/man-group/dtale/issues/143), scattergeo map chart UI changes
+* updated offline chart generation of maps to work without loading topojson from the web
+* fix to allow correlations timeseries to handle when date columns jump between rolling & non-rolling
+* added slider to animation and added animation to maps
+* fixes for IE 11 compatibility issues
+* labeling changes for "Reshape" popup
+* added grouping to maps
+
 ### 1.8.2 (2020-4-1)
  * [#129](https://github.com/man-group/dtale/issues/129), show dtype when hovering over header in "Highlight Dtypes" mode and description tooltips added to main menu
  * made "No Aggregation" the default aggregation in charts

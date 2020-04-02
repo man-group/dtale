@@ -42,7 +42,7 @@ class ReactPopup extends React.Component {
         modalTitle = (
           <ModalTitle>
             <i className="fa fa-filter" />
-            <strong>Filter</strong>
+            <strong>Custom Filter</strong>
           </ModalTitle>
         );
         body = <Filter />;
@@ -89,7 +89,7 @@ class ReactPopup extends React.Component {
         modalTitle = (
           <ModalTitle>
             <i className="fas fa-tools" />
-            <strong>{"Reshape Data"}</strong>
+            <strong>{"Summarize Data"}</strong>
           </ModalTitle>
         );
         body = <Reshape />;

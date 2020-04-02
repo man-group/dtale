@@ -14,7 +14,9 @@ from dtale.dash_application.layout import (animate_input_style,
                                            bar_input_style, base_layout,
                                            build_group_val_options,
                                            build_input_options,
-                                           build_map_options, charts_layout,
+                                           build_map_options,
+                                           build_proj_hover_children,
+                                           charts_layout,
                                            colorscale_input_style,
                                            get_yaxis_type_tabs,
                                            main_inputs_and_group_val_display,
@@ -67,6 +69,7 @@ def add_dash(server):
     dash_app.config.suppress_callback_exceptions = True
     dash_app.layout = html.Div([dcc.Location(id='url', refresh=False), html.Div(id='popup-content')])
     dash_app.scripts.config.serve_locally = True
+    dash_app.css.config.serve_locally = True
 
     init_callbacks(dash_app)
 
@@ -183,6 +186,8 @@ def init_callbacks(dash_app):
             Output('map-lon-input', 'style'),
             Output('map-scope-input', 'style'),
             Output('map-proj-input', 'style'),
+            Output('proj-hover', 'style'),
+            Output('proj-hover', 'children'),
         ],
         [
             Input('map-type-dropdown', 'value'),
@@ -192,25 +197,31 @@ def init_callbacks(dash_app):
             Input('map-lon-dropdown', 'value'),
             Input('map-val-dropdown', 'value'),
             Input('map-scope-dropdown', 'value'),
-            Input('map-proj-dropdown', 'value')
+            Input('map-proj-dropdown', 'value'),
+            Input('map-group-dropdown', 'value')
         ],
         [State('url', 'pathname')]
     )
-    def map_data(map_type, loc_mode, loc, lat, lon, map_val, scope, proj, pathname):
+    def map_data(map_type, loc_mode, loc, lat, lon, map_val, scope, proj, group, pathname):
         data_id = get_data_id(pathname)
         map_type = map_type or 'choropleth'
         if map_type == 'choropleth':
             map_data = dict(map_type=map_type, loc_mode=loc_mode, loc=loc, map_val=map_val)
         else:
             map_data = dict(map_type=map_type, lat=lat, lon=lon, map_val=map_val, scope=scope, proj=proj)
+
+        if group is not None:
+            map_data['map_group'] = group
         df = global_state.get_data(data_id)
         loc_options, lat_options, lon_options, map_val_options = build_map_options(df, type=map_type, loc=loc,
                                                                                    lat=lat, lon=lon, map_val=map_val)
         choro_style = {} if map_type == 'choropleth' else {'display': 'none'}
         scatt_style = {} if map_type == 'scattergeo' else {'display': 'none'}
+        proj_hover_style = {'display': 'none'} if proj is None else {}
+        proj_hopver_children = build_proj_hover_children(proj)
         return (
             map_data, loc_options, lat_options, lon_options, map_val_options, choro_style, choro_style, scatt_style,
-            scatt_style, scatt_style, scatt_style
+            scatt_style, scatt_style, scatt_style, proj_hover_style, proj_hopver_children
         )
 
     @dash_app.callback(
@@ -225,6 +236,7 @@ def init_callbacks(dash_app):
             Output('barsort-input', 'style'),
             Output('yaxis-input', 'style'),
             Output('animate-input', 'style'),
+            Output('animate-by-input', 'style')
         ],
         [Input('input-data', 'modified_timestamp')],
         [State('input-data', 'data')]
@@ -245,11 +257,11 @@ def init_callbacks(dash_app):
         cpg_style = {'display': 'block' if show_chart_per_group(**inputs) else 'none'}
         bar_style = bar_input_style(**inputs)
         yaxis_style = {'display': 'block' if show_yaxis_ranges(**inputs) else 'none'}
-        animate_style = animate_input_style(**inputs)
+        animate_style, animate_by_style = animate_input_style(**inputs)
 
         return (
             y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
-            yaxis_style, animate_style
+            yaxis_style, animate_style, animate_by_style
         )
 
     @dash_app.callback(
@@ -260,16 +272,18 @@ def init_callbacks(dash_app):
             Input('barsort-dropdown', 'value'),
             Input('colorscale-dropdown', 'value'),
             Input('animate-toggle', 'on'),
+            Input('animate-by-dropdown', 'value'),
         ]
     )
-    def chart_input_data(cpg, barmode, barsort, colorscale, animate):
+    def chart_input_data(cpg, barmode, barsort, colorscale, animate, animate_by):
         """
         dash callback for maintaining selections in chart-formatting inputs
             - chart per group flag
             - bar chart mode
             - bar chart sorting
         """
-        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate=animate)
+        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate=animate,
+                    animate_by=animate_by)
 
     @dash_app.callback(
         [
@@ -395,22 +409,25 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [Output('group-val-input', 'style'), Output('main-inputs', 'className')],
-        [Input('input-data', 'modified_timestamp')],
-        [State('input-data', 'data')]
+        [Input('input-data', 'modified_timestamp'), Input('map-input-data', 'modified_timestamp')],
+        [State('input-data', 'data'), State('map-input-data', 'data')]
     )
-    def main_input_class(ts_, inputs):
-        return main_inputs_and_group_val_display(inputs)
+    def main_input_class(ts_, ts2_, inputs, map_inputs):
+        return main_inputs_and_group_val_display(dict_merge(inputs, map_inputs))
 
     @dash_app.callback(
         [Output('group-val-dropdown', 'options'), Output('group-val-dropdown', 'value')],
-        [Input('group-dropdown', 'value')],
+        [Input('chart-tabs', 'value'), Input('group-dropdown', 'value'), Input('map-group-dropdown', 'value')],
         [State('url', 'pathname'), State('input-data', 'data'), State('group-val-dropdown', 'value')]
     )
-    def group_values(group_cols, pathname, inputs, prev_group_vals):
+    def group_values(chart_type, group_cols, map_group_cols, pathname, inputs, prev_group_vals):
         group_cols = make_list(group_cols)
-        if not show_input_handler(inputs.get('chart_type', 'line'))('group') or not len(group_cols):
+        if show_input_handler(chart_type or 'line')('group') and not len(group_cols):
             return [], None
-        print('loading group vals...')
+        elif chart_type == 'maps':  # all maps have a group input
+            group_cols = make_list(map_group_cols)
+            if not len(group_cols):
+                return [], None
         data_id = get_data_id(pathname)
         group_vals = run_query(
             global_state.get_data(data_id),

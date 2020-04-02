@@ -88,7 +88,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Filter");
+      clickMainMenuButton(result, "Custom Filter");
       result.update();
       setTimeout(() => {
         result.update();
@@ -99,7 +99,7 @@ describe("DataViewer tests", () => {
           .simulate("click");
         result.update();
         t.notOk(result.find(Filter).length, "should close filter");
-        clickMainMenuButton(result, "Filter");
+        clickMainMenuButton(result, "Custom Filter");
         setTimeout(() => {
           result.update();
           result
@@ -113,7 +113,7 @@ describe("DataViewer tests", () => {
           setTimeout(() => {
             result.update();
             t.notOk(result.find(Filter).length, "should close filter");
-            clickMainMenuButton(result, "Filter");
+            clickMainMenuButton(result, "Custom Filter");
             result.update();
             result
               .find(Filter)
@@ -172,7 +172,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Filter");
+      clickMainMenuButton(result, "Custom Filter");
       setTimeout(() => {
         result.update();
         result
@@ -236,7 +236,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Filter");
+      clickMainMenuButton(result, "Custom Filter");
       setTimeout(() => {
         result.update();
         t.equal(
@@ -270,7 +270,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Filter");
+      clickMainMenuButton(result, "Custom Filter");
       setTimeout(() => {
         result.update();
         const mainCol = result.find(Filter).find("div.col-md-12.h-100");

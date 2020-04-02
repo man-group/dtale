@@ -1022,8 +1022,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
                     dict(column='foo', security_id=None, foo=None, bar=None),
                     dict(column='bar', security_id=None, foo=None, bar=None)
                 ],
-                dates=[],
-                rolling=False
+                dates=[]
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -1060,8 +1059,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
                     dict(column='foo', security_id=None, foo=None, bar=None),
                     dict(column='bar', security_id=None, foo=None, bar=None)
                 ],
-                dates=['date'],
-                rolling=False
+                dates=[dict(name='date', rolling=False)]
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != 'code'},
@@ -1076,8 +1074,11 @@ def test_get_correlations(unittest, test_data, rolling_data):
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
             response = c.get('/dtale/correlations/{}'.format(c.port))
             response_data = json.loads(response.data)
-            unittest.assertEqual(response_data['dates'], ['date'], 'should return correlation date columns')
-            assert response_data['rolling']
+            unittest.assertEqual(
+                response_data['dates'],
+                [dict(name='date', rolling=True)],
+                'should return correlation date columns'
+            )
 
 
 def build_ts_data(size=5, days=5):

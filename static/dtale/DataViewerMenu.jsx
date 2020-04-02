@@ -57,7 +57,7 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("filter", 500, 1100)}>
                 <i className="fa fa-filter ml-2 mr-4" />
-                <span className="font-weight-bold">Filter</span>
+                <span className="font-weight-bold">Custom Filter</span>
               </button>
             </span>
             <div className="hoverable__content menu-description">{Descriptions.filter}</div>
@@ -75,7 +75,7 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("reshape", 400, 770)}>
                 <i className="fas fa-tools ml-2 mr-4" />
-                <span className="font-weight-bold">Reshape</span>
+                <span className="font-weight-bold">Summarize Data</span>
               </button>
             </span>
             <div className="hoverable__content menu-description">{Descriptions.reshape}</div>
