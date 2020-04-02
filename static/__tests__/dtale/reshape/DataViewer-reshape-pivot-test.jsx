@@ -93,7 +93,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Reshape");
+      clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
         t.equal(result.find(Reshape).length, 1, "should show reshape");
@@ -102,7 +102,7 @@ describe("DataViewer tests", () => {
           .first()
           .simulate("click");
         t.equal(result.find(Reshape).length, 0, "should hide reshape");
-        clickMainMenuButton(result, "Reshape");
+        clickMainMenuButton(result, "Summarize Data");
         setTimeout(() => {
           result.update();
           t.equal(result.find(Pivot).length, 1, "should show reshape pivot");
@@ -180,7 +180,7 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Reshape");
+      clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
         t.equal(result.find(Reshape).length, 1, "should show reshape");

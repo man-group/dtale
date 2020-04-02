@@ -602,6 +602,6 @@ def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group
     instance = startup(url=None, data=df, data_id=999)
     output = instance.offline_chart(chart_type=chart_type, query=query, x=x, y=y, z=z, group=group, agg=agg,
                                     window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort,
-                                    yaxis=yaxis, filepath=filepath)
+                                    yaxis=yaxis, filepath=filepath, **kwargs)
     global_state.cleanup()
     return output

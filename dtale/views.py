@@ -351,6 +351,7 @@ class DtaleData(object):
         """
         params = dict(chart_type=chart_type, query=query, x=x, y=make_list(y), z=z, group=make_list(group), agg=agg,
                       window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort, yaxis=yaxis)
+        params = dict_merge(params, kwargs)
 
         if filepath is None and in_ipython_frontend():
             from plotly.offline import iplot, init_notebook_mode
@@ -360,15 +361,15 @@ class DtaleData(object):
             iplot(chart)
             return
 
-        html_buffer = export_chart(self._data_id, params)
+        html_str = export_chart(self._data_id, params)
         if filepath is None:
-            return html_buffer.getvalue()
+            return html_str
 
         if not filepath.endswith('.html'):
             filepath = '{}.html'.format(filepath)
 
         with open(filepath, 'w') as f:
-            f.write(html_buffer.getvalue())
+            f.write(html_str)
 
     def adjust_cell_dimensions(self, width='100%', height=350):
         """
@@ -628,7 +629,12 @@ def view_popup(popup_type, data_id=None):
     title = 'D-Tale'
     if curr_metadata.get('name'):
         title = '{} ({})'.format(title, curr_metadata['name'])
-    popup_title = ' '.join([pt.capitalize() for pt in popup_type.split('-')])
+    if popup_type == 'reshape':
+        popup_title = 'Summarize Data'
+    elif popup_type == 'filter':
+        popup_title = 'Custom Filter'
+    else:
+        popup_title = ' '.join([pt.capitalize() for pt in popup_type.split('-')])
     title = '{} - {}'.format(title, popup_title)
     params = request.args.to_dict()
     if len(params):
@@ -1155,7 +1161,7 @@ def data_export(data_id):
         file_ext = 'tsv' if tsv else 'csv'
         csv_buffer = export_to_csv_buffer(data, tsv=tsv)
         filename = build_chart_filename('data', ext=file_ext)
-        return send_file(csv_buffer, filename, 'text/{}'.format(file_ext))
+        return send_file(csv_buffer.getvalue(), filename, 'text/{}'.format(file_ext))
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -1280,7 +1286,6 @@ def get_correlations(data_id):
         )
         valid_corr_cols = []
         valid_date_cols = []
-        rolling = False
         for col_info in global_state.get_dtypes(data_id):
             name, dtype = map(col_info.get, ['name', 'dtype'])
             dtype = classify_type(dtype)
@@ -1291,10 +1296,9 @@ def get_correlations(data_id):
                 # to warrant a correlation, https://github.com/man-group/dtale/issues/43
                 date_counts = data[name].dropna().value_counts()
                 if len(date_counts[date_counts > 1]) > 1:
-                    valid_date_cols.append(name)
+                    valid_date_cols.append(dict(name=name, rolling=False))
                 elif date_counts.eq(1).all():
-                    valid_date_cols.append(name)
-                    rolling = True
+                    valid_date_cols.append(dict(name=name, rolling=True))
 
         if data[valid_corr_cols].isnull().values.any():
             data = data.corr(method='pearson')
@@ -1320,7 +1324,7 @@ def get_correlations(data_id):
         data = data.reset_index()
         col_types = grid_columns(data)
         f = grid_formatter(col_types, nan_display=None)
-        return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols, rolling=rolling, code=code)
+        return jsonify(data=f.format_dicts(data.itertuples()), dates=valid_date_cols, code=code)
     except BaseException as e:
         return jsonify_error(e)
 
@@ -1595,8 +1599,8 @@ def build_chart_filename(chart_type, ext='html'):
     return '{}_export_{}.{}'.format(chart_type, json_timestamp(pd.Timestamp('now')), ext)
 
 
-def send_file(buffer, filename, content_type):
-    resp = make_response(buffer.getvalue())
+def send_file(output, filename, content_type):
+    resp = make_response(output)
     resp.headers["Content-Disposition"] = ("attachment; filename=%s" % filename)
     resp.headers["Content-Type"] = content_type
     return resp
@@ -1606,9 +1610,9 @@ def send_file(buffer, filename, content_type):
 def chart_export(data_id):
     try:
         params = chart_url_params(request.args.to_dict())
-        html_buffer = export_chart(data_id, params)
+        html_str = export_chart(data_id, params)
         filename = build_chart_filename(params['chart_type'])
-        return send_file(html_buffer, filename, 'text/html')
+        return send_file(html_str, filename, 'text/html')
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 
@@ -1619,7 +1623,7 @@ def chart_csv_export(data_id):
         params = chart_url_params(request.args.to_dict())
         csv_buffer = export_chart_data(data_id, params)
         filename = build_chart_filename(params['chart_type'], ext='csv')
-        return send_file(csv_buffer, filename, 'text/csv')
+        return send_file(csv_buffer.getvalue(), filename, 'text/csv')
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))
 

@@ -65,14 +65,15 @@ class ReactCorrelations extends React.Component {
         this.setState({ error: <RemovableError {...gridData} /> });
         return;
       }
-      const { data, dates, rolling, code } = gridData;
+      const { data, dates, code } = gridData;
       const columns = _.map(data, "column");
+      const rolling = _.get(dates, "0.rolling", false);
       const state = {
         correlations: data,
         columns,
         dates,
         hasDate: _.size(dates) > 0,
-        selectedDate: _.get(dates, 0, null),
+        selectedDate: _.get(dates, "0.name", null),
         rolling,
         gridCode: code,
       };
@@ -90,9 +91,9 @@ class ReactCorrelations extends React.Component {
         if (col1 && col2) {
           if (state.hasDate) {
             if (rolling) {
-              this.buildTs([col1, col2], state.selectedDate, 4);
+              this.buildTs([col1, col2], state.selectedDate, true, 4);
             } else {
-              this.buildTs([col1, col2], state.selectedDate);
+              this.buildTs([col1, col2], state.selectedDate, false);
             }
           } else {
             this.buildScatter([col1, col2]);
@@ -102,7 +103,7 @@ class ReactCorrelations extends React.Component {
     });
   }
 
-  buildTs(selectedCols, selectedDate, rollingWindow = null) {
+  buildTs(selectedCols, selectedDate, rolling, rollingWindow = null) {
     const query = _.get(this.props, "chartData.query");
     const path = `${BASE_CORRELATIONS_TS_URL}/${this.props.dataId}`;
     const tsUrl = buildURL(path, { query, selectedCols, dateCol: selectedDate, rollingWindow }, [
@@ -111,8 +112,8 @@ class ReactCorrelations extends React.Component {
       "dateCol",
       "rollingWindow",
     ]);
-    const updatedState = { selectedCols, selectedDate, tsUrl };
-    if (this.state.rolling && !_.isNull(rollingWindow)) {
+    const updatedState = { selectedCols, selectedDate, tsUrl, rolling };
+    if (rolling && !_.isNull(rollingWindow)) {
       updatedState.window = rollingWindow;
     }
     this.setState(updatedState);

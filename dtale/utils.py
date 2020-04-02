@@ -15,7 +15,7 @@ from flask import jsonify as _jsonify
 import numpy as np
 import pandas as pd
 from past.utils import old_div
-from six import PY3
+from six import PY3, StringIO
 
 import dtale.global_state as global_state
 
@@ -596,8 +596,7 @@ def make_list(vals):
         return []
     elif isinstance(vals, (list, tuple)):
         return vals
-    else:
-        return [vals]
+    return [vals]
 
 
 def dict_merge(d1, d2, *args):
@@ -775,17 +774,7 @@ def export_to_csv_buffer(data, tsv=False):
     kwargs = dict(encoding='utf-8', index=False)
     if tsv:
         kwargs['sep'] = '\t'
-    if PY3:
-        from io import BytesIO, StringIO
-        proxy = StringIO()
-        data.to_csv(proxy, **kwargs)
-        csv_buffer = BytesIO()
-        csv_buffer.write(proxy.getvalue().encode('utf-8'))
-        proxy.close()
-    else:
-        from StringIO import StringIO
-        csv_buffer = StringIO()
-        data.to_csv(csv_buffer, **kwargs)
-
+    csv_buffer = StringIO()
+    data.to_csv(csv_buffer, **kwargs)
     csv_buffer.seek(0)
     return csv_buffer

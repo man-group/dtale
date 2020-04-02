@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import qs from "querystring";
 
 import { mount } from "enzyme";
@@ -40,13 +41,20 @@ describe("Correlations tests", () => {
             return { error: "No data found." };
           }
           if (query == "one-date") {
-            return { data: correlationsData.data, dates: ["col4"] };
+            return {
+              data: correlationsData.data,
+              dates: [{ name: "col4", rolling: false }],
+            };
           }
           if (query == "no-date") {
             return { data: correlationsData.data, dates: [] };
           }
           if (query == "rolling") {
-            return _.assignIn({ rolling: true }, correlationsData);
+            const dates = [
+              { name: "col4", rolling: true },
+              { name: "col5", rolling: false },
+            ];
+            return { data: correlationsData.data, dates };
           }
         }
         const { urlFetcher } = require("../redux-test-utils").default;

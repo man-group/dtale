@@ -16,7 +16,8 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   changeDate(evt) {
-    this.props.buildTs(this.props.selectedCols, evt.target.value, this.props.rolling ? this.state.window : null);
+    const rolling = _.get(_.find(this.props.dates, { name: evt.target.value }, {}), "rolling", false);
+    this.props.buildTs(this.props.selectedCols, evt.target.value, rolling, rolling ? this.state.window : null);
   }
 
   renderDescription() {
@@ -45,7 +46,8 @@ class CorrelationsTsOptions extends React.Component {
     const updateWindow = e => {
       if (e.key === "Enter") {
         if (this.state.window && parseInt(this.state.window)) {
-          this.props.buildTs(this.props.selectedCols, this.props.selectedDate, parseInt(this.state.window));
+          const { selectedCols, selectedDate, rolling } = this.props;
+          this.props.buildTs(selectedCols, selectedDate, rolling, parseInt(this.state.window));
         }
       }
     };
@@ -79,7 +81,7 @@ class CorrelationsTsOptions extends React.Component {
       <div key="date-input">
         <select className="form-control custom-select" defaultValue={selectedDate} onChange={this.changeDate}>
           {_.map(dates, d => (
-            <option key={d}>{d}</option>
+            <option key={d.name}>{d.name}</option>
           ))}
         </select>
       </div>,
@@ -103,7 +105,9 @@ class CorrelationsTsOptions extends React.Component {
             {this.props.rolling && this.renderRollingWindow()}
           </div>
         </div>
-        <div className="col text-right">{renderCodePopupAnchor(this.props.tsCode, "Correlations Timeseries")}</div>
+        <div className="col-auto pl-0 text-right">
+          {renderCodePopupAnchor(this.props.tsCode, "Correlations Timeseries")}
+        </div>
       </div>
     );
   }
@@ -112,7 +116,7 @@ CorrelationsTsOptions.displayName = "CorrelationsTsOptions";
 CorrelationsTsOptions.propTypes = {
   hasDate: PropTypes.bool,
   rolling: PropTypes.bool,
-  dates: PropTypes.arrayOf(PropTypes.string),
+  dates: PropTypes.arrayOf(PropTypes.object),
   selectedCols: PropTypes.arrayOf(PropTypes.string),
   selectedDate: PropTypes.string,
   window: PropTypes.number,

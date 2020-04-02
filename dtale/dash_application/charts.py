@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import traceback
 import urllib
 from logging import getLogger
@@ -10,28 +11,24 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.io import write_html
-from six import PY3, string_types
+from six import PY3, StringIO, string_types
 
 import dtale.dash_application.components as dash_components
 import dtale.global_state as global_state
 from dtale.charts.utils import (YAXIS_CHARTS, ZAXIS_CHARTS, build_agg_data,
                                 build_base_chart)
 from dtale.charts.utils import build_formatters as chart_formatters
-from dtale.charts.utils import (check_all_nan, check_exceptions,
-                                retrieve_chart_data, valid_chart,
-                                weekday_tick_handler)
-from dtale.dash_application.layout import (AGGS, ANIMATION_CHARTS, build_error,
+from dtale.charts.utils import (build_group_inputs_filter, check_all_nan,
+                                check_exceptions, retrieve_chart_data,
+                                valid_chart, weekday_tick_handler)
+from dtale.dash_application.layout import (AGGS, ANIMATE_BY_CHARTS,
+                                           ANIMATION_CHARTS, build_error,
                                            test_plotly_version,
                                            update_label_for_freq)
 from dtale.utils import (build_code_export, classify_type, dict_merge,
-                         divide_chunks, export_to_csv_buffer, flatten_lists,
-                         get_dtypes, make_list, run_query)
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
-
+                         divide_chunks, export_to_csv_buffer,
+                         find_dtype_formatter, flatten_lists, get_dtypes,
+                         make_list, run_query)
 
 logger = getLogger(__name__)
 
@@ -65,7 +62,7 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip('?')))
     else:
         params = search
-    for gp in ['y', 'group', 'group_val', 'yaxis']:
+    for gp in ['y', 'group', 'map_group', 'group_val', 'yaxis']:
         if gp in params:
             params[gp] = json.loads(params[gp])
     params['cpg'] = 'true' == params.get('cpg')
@@ -93,6 +90,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
             base_props += ['map_type', 'lat', 'lon', 'map_val', 'scope', 'proj']
         else:
             base_props += ['map_type', 'loc_mode', 'loc', 'map_val']
+        base_props += ['map_group']
 
     if chart_type in ['maps', 'heatmap']:
         base_props += ['colorscale']
@@ -101,7 +99,9 @@ def chart_url_querystring(params, data=None, group_filter=None):
     final_params['cpg'] = 'true' if params.get('cpg') is True else 'false'
     if chart_type in ANIMATION_CHARTS:
         final_params['animate'] = 'true' if params.get('animate') is True else 'false'
-    for gp in ['y', 'group', 'group_val']:
+    if chart_type in ANIMATE_BY_CHARTS and params.get('animate_by') is not None:
+        final_params['animate_by'] = params.get('animate_by')
+    for gp in ['y', 'group', 'map_group', 'group_val']:
         list_param = [val for val in params.get(gp) or [] if val is not None]
         if len(list_param):
             final_params[gp] = json.dumps(list_param)
@@ -472,12 +472,7 @@ def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=N
                             name=series_key, marker=marker(series)
                         ))
 
-            def build_frames():
-                x = next(iter(data['data'].values()), {}).get('x', [])
-                for i in range(1, len(x) + 1):
-                    yield dict(data=list(build_frame(i)))
-
-            update_cfg_w_frames(figure_cfg, list(build_frames()))
+            update_cfg_w_frames(figure_cfg, *build_frames(data, build_frame))
 
         return wrapper(graph_wrapper(
             id='scatter-{}-{}'.format(group or 'all', y_val),
@@ -562,15 +557,45 @@ def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
                 )
 
 
-def update_cfg_w_frames(cfg, frames):
+def update_cfg_w_frames(cfg, frames, slider_steps):
     cfg['frames'] = frames
-    cfg['layout']['updatemenus'] = [{'type': 'buttons', 'showactive': True, 'buttons': [
-        {'label': 'Play', 'method': 'animate', 'args': [None]},
-        {'label': 'Pause', 'method': 'animate', 'args': [
-            [None],
-            {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}
-        ]}
-    ]}]
+    cfg['layout']['updatemenus'] = [{
+        'x': 0.1, 'y': 0, 'yanchor': "top", 'xanchor': "right", 'showactive': False,
+        'direction': "left", 'type': "buttons", 'pad': {"t": 87, "r": 10},
+        'buttons': [
+            {'label': 'Play', 'method': 'animate', 'args': [None]},
+            {'label': 'Pause', 'method': 'animate', 'args': [
+                [None],
+                {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}
+            ]}
+        ]
+    }]
+    if slider_steps is not None:
+        cfg['layout']['sliders'] = [{
+            'active': 0,
+            'steps': [dict(
+                label=ss, method='animate',
+                args=[
+                    [ss],
+                    dict(mode='immediate', transition=dict(duration=300), frame=dict(duration=300))
+                ]
+            ) for ss in slider_steps],
+            'x': 0.1, 'len': 0.9, 'xanchor': "left", 'y': 0, 'yanchor': "top", 'pad': {'t': 50, 'b': 10},
+            'currentvalue': {
+                'visible': True, 'prefix': "Year:", 'xanchor': "right",
+                'font': {'size': 20, 'color': "#666"}
+            },
+            'transition': {'duration': 300, 'easing': "cubic-in-out"}
+        }]
+
+
+def build_frames(data, frame_builder):
+    x_data = next(iter(data['data'].values()), {}).get('x', [])
+    frames, slider_steps = [], []
+    for i, x in enumerate(x_data, 1):
+        frames.append(dict(data=list(frame_builder(i)), name=x))
+        slider_steps.append(x)
+    return frames, slider_steps
 
 
 def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', barsort=None, **kwargs):
@@ -670,12 +695,7 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
                         hover_text.get(series_key) or {}
                     )
 
-        def build_frames():
-            x = next(iter(data['data'].values()), {}).get('x', [])
-            for i in range(1, len(x) + 1):
-                yield dict(data=list(build_frame(i)))
-
-        update_cfg_w_frames(figure_cfg, list(build_frames()))
+        update_cfg_w_frames(figure_cfg, *build_frames(data, build_frame))
 
     return wrapper(graph_wrapper(id='bar-graph', figure=figure_cfg))
 
@@ -760,12 +780,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                         {} if j == 1 or not multi_yaxis else {'yaxis': 'y{}'.format(j)}
                     ))
 
-        def build_frames():
-            x = next(iter(data['data'].values()), {}).get('x', [])
-            for i in range(1, len(x) + 1):
-                yield dict(data=list(build_frame(i)))
-
-        update_cfg_w_frames(figure_cfg, list(build_frames()))
+        update_cfg_w_frames(figure_cfg, *build_frames(data, build_frame))
 
     return wrapper(graph_wrapper(id='line-graph', figure=figure_cfg))
 
@@ -951,23 +966,26 @@ def map_builder(data_id, export=False, **inputs):
     try:
         if not valid_chart(**inputs):
             return None, None
-        props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val', 'scope', 'proj', 'agg']
-        map_type, loc_mode, loc, lat, lon, map_val, scope, proj, agg = (inputs.get(p) for p in props)
+        props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val', 'scope', 'proj', 'agg', 'animate_by']
+        map_type, loc_mode, loc, lat, lon, map_val, scope, proj, agg, animate_by = (inputs.get(p) for p in props)
+        map_group, group_val = (inputs.get(p) for p in ['map_group', 'group_val'])
         raw_data = run_query(
             global_state.get_data(data_id),
             inputs.get('query'),
             global_state.get_context_variables(data_id)
         )
         wrapper = chart_wrapper(data_id, raw_data, inputs)
-        title = 'Map of {}'.format(map_val)
+        title = 'Map of {}'.format(map_val or 'lat/lon')
         if agg:
             agg_title = AGGS[agg]
             title = '{} ({})'.format(title, agg_title)
+        if group_val is not None:
+            title = '{} {}'.format(title, build_group_inputs_filter(raw_data, group_val))
         layout = build_layout(dict(title=title, autosize=True, margin={'l': 0, 'r': 0, 'b': 0}))
         if map_type == 'scattergeo':
-            data, code = retrieve_chart_data(raw_data, lat, lon, map_val)
+            data, code = retrieve_chart_data(raw_data, lat, lon, map_val, animate_by, map_group, group_val=group_val)
             if agg is not None:
-                data, agg_code = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+                data, agg_code = build_agg_data(raw_data, lat, lon, {}, agg, z=map_val)
                 code += agg_code
 
             geo_layout = {}
@@ -979,33 +997,74 @@ def map_builder(data_id, export=False, **inputs):
                 geo_layout['projection_type'] = proj
             if len(geo_layout):
                 layout['geo'] = geo_layout
+
+            chart_kwargs = dict(lon=data[lon], lat=data[lat], mode='markers', marker=dict(color='darkblue'))
+            if map_val is not None:
+                chart_kwargs['text'] = data[map_val]
+                chart_kwargs['marker'] = dict(
+                    color=data[map_val],
+                    colorscale=inputs.get('colorscale') or 'Reds',
+                    colorbar_title=map_val
+                )
+            figure_cfg = dict(data=[go.Scattergeo(**chart_kwargs)], layout=layout)
+            if animate_by is not None:
+                def build_frames():
+                    formatter = find_dtype_formatter(get_dtypes(data)[animate_by])
+                    frames, slider_steps = [], []
+                    for g_name, g in data.groupby(animate_by):
+                        g_name = formatter(g_name)
+                        frame_kwargs = dict(lon=g[lon], lat=g[lat], mode='markers')
+                        if map_val is not None:
+                            frame_kwargs['text'] = g[map_val]
+                            frame_kwargs['marker'] = dict(color=g[map_val])
+                        frames.append(dict(data=[frame_kwargs], name=g_name))
+                        slider_steps.append(g_name)
+                    return frames, slider_steps
+
+                update_cfg_w_frames(figure_cfg, *build_frames())
             chart = graph_wrapper(
                 id='scattergeo-graph',
-                style={'margin-right': 'auto', 'margin-left': 'auto'},
-                figure=dict(
-                    data=[go.Scattergeo(
-                        lon=data[lon], lat=data[lat], mode='markers', marker_color=data[map_val]
-                    )],
-                    layout=layout
-                )
+                style={'margin-right': 'auto', 'margin-left': 'auto', 'height': '95%'},
+                config=dict(topojsonURL='/maps/'),
+                figure=figure_cfg
             )
         else:
-            data, code = retrieve_chart_data(raw_data, loc, map_val)
+            data, code = retrieve_chart_data(raw_data, loc, map_val, map_group, animate_by, group_val=group_val)
             if agg is not None:
                 data, agg_code = build_agg_data(data, loc, map_val, {}, agg)
                 code += agg_code
             if loc_mode == 'USA-states':
                 layout['geo'] = dict(scope='usa')
+
+            figure_cfg = dict(
+                data=[go.Choropleth(
+                    locations=data[loc], locationmode=loc_mode, z=data[map_val],
+                    colorscale=inputs.get('colorscale') or 'Reds', colorbar_title=map_val
+                )],
+                layout=layout
+            )
+            if animate_by is not None:
+                def build_frames():
+                    formatter = find_dtype_formatter(get_dtypes(data)[animate_by])
+                    frames, slider_steps = [], []
+                    for g_name, g in data.groupby(animate_by):
+                        g_name = formatter(g_name)
+                        frames.append(dict(
+                            data=[dict(
+                                locations=g[loc], locationmode=loc_mode, z=g[map_val], text=g[loc]
+                            )],
+                            name=g_name
+                        ))
+                        slider_steps.append(g_name)
+                    return frames, slider_steps
+
+                update_cfg_w_frames(figure_cfg, *build_frames())
+
             chart = graph_wrapper(
                 id='choropleth-graph',
                 style={'margin-right': 'auto', 'margin-left': 'auto'},
-                figure=dict(
-                    data=[go.Choropleth(
-                        locations=data[loc], locationmode=loc_mode, z=data[map_val],
-                        colorscale=inputs.get('colorscale') or 'Reds', colorbar_title=map_val
-                    )],
-                    layout=layout
-                )
+                config=dict(topojsonURL='/maps/'),
+                figure=figure_cfg
             )
         if export:
             return chart
@@ -1300,12 +1359,43 @@ def export_chart(data_id, params):
             "css.appendChild(document.createTextNode('div.modebar > div.modebar-group:last-child,"
             "div.modebar > div.modebar-group:first-child { display: none; }'));"
         ),
-        'document.getElementsByTagName("head")[0].appendChild(css);'
+        'document.getElementsByTagName("head")[0].appendChild(css);',
     ])
     html_buffer = StringIO()
-    write_html(chart, file=html_buffer, include_plotlyjs=True, auto_open=False, post_script=post_script_css)
+    config = dict(topojsonURL='')
+    write_html(chart, file=html_buffer, include_plotlyjs=True, auto_open=False, post_script=post_script_css,
+               config=config)
     html_buffer.seek(0)
-    return html_buffer
+    html_str = html_buffer.getvalue()
+    if params.get('chart_type') == 'maps':
+        return map_chart_post_processing(html_str, params)
+    return html_str
+
+
+def map_chart_post_processing(html_str, params):
+    topo_find = (
+        '_.fetchTopojson=function(){var t=this,e=y.getTopojsonPath(t.topojsonURL,t.topojsonName);'
+        'return new Promise(function(r,a){n.json(e,function(n,i){if(n)return 404===n.status?a(new Error(["plotly.js '
+        'could not find topojson file at",e,".","Make sure the *topojsonURL* plot config option","is set properly."]'
+        '.join(" "))):a(new Error(["unexpected error while fetching topojson file at",e].join(" ")));'
+        'PlotlyGeoAssets.topojson[t.topojsonName]=i,r()})})}'
+    )
+    if topo_find in html_str:
+        map_path = os.path.join(os.path.dirname(__file__), '../static/maps/')
+        if params.get('map_type') == 'scattergeo':
+            topo_name = '{}_110m'.format('-'.join(params.get('scope').split(' ')))
+        elif params.get('loc_mode') in ['ISO-3', 'country names']:
+            topo_name = 'world_110m'
+        else:
+            topo_name = 'usa_110m'
+        topo_replace = ['_.fetchTopojson=function(){']
+        with open(os.path.join(map_path, '{}.json'.format(topo_name)), 'r') as file:
+            data = file.read().replace('\n', '')
+            topo_replace.append("PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data))
+        topo_replace.append('}')
+        topo_replace = ''.join(topo_replace)
+        return html_str.replace(topo_find, topo_replace)
+    return html_str
 
 
 def export_chart_data(data_id, params):

@@ -88,7 +88,7 @@ describe("DataViewer tests", () => {
     );
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Reshape");
+      clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
         result
@@ -169,7 +169,7 @@ describe("DataViewer tests", () => {
     );
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Reshape");
+      clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
         result
@@ -248,7 +248,7 @@ describe("DataViewer tests", () => {
     );
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Reshape");
+      clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
         result

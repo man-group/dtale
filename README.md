@@ -1,6 +1,6 @@
 [![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Title.png)](https://github.com/man-group/dtale)
 
-[Live Demo](http://andrewschonfeld.pythonanywhere.com)
+[Live Demo](http://alphatechadmin.pythonanywhere.com)
 
 -----------------
 
@@ -41,7 +41,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Filter](#filter), [Building Columns](#building-columns), [Reshape](#reshape), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
@@ -51,7 +51,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Linting](#linting)
   - [Formatting JS](#formatting-js)
   - [Docker Development](#docker-development)
-- [Global State/Data Storage](#global-state_data-storage)
+- [Global State/Data Storage](https://github.com/man-group/dtale/blob/master/docs/GLOBAL_STATE.md)
 - [Startup Behavior](#startup-behavior)
 - [Documentation](#documentation)
 - [Requirements](#requirements)
@@ -333,8 +333,8 @@ View all the columns & their data types as well as individual details of each co
 |int|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
 |float|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_float.png)||
 
-#### Filter
-Apply a simple pandas `query` to your data (link to pandas documentation included in popup)  
+#### Custom Filter
+Apply a custom pandas `query` to your data (link to pandas documentation included in popup)  
 
 Context Variables are user-defined values passed in via the `context_variables` argument to dtale.show(); they can be referenced in filters by prefixing the variable name with '@'.
 
@@ -371,7 +371,7 @@ This video shows you how to build the following:
  - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
  - Random: columns of data type (int, float, string & date) populated with random uniformly distributed values.
 
-#### Reshape
+#### Summarize Data
 
 This is very powerful functionality which allows users to create a new data from currently loaded data.  The operations currently available are:
 - **Aggregation**: consolidate data by running different aggregations on columns by a specific index
@@ -416,6 +416,8 @@ Here are some examples:
 |heatmap|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/heatmap.png)||
 |3D scatter|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/3d_scatter.png)||
 |surface|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/surface.png)||
+|Maps (Scatter GEO)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/scattergeo.png)||
+|Maps (Choropleth)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/charts/choropleth.png)||
 
 Y-Axis Toggling
 

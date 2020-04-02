@@ -30,7 +30,7 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         map_type = inputs.get('map_type')
         if map_type == 'choropleth' and all(inputs.get(p) is not None for p in ['loc_mode', 'loc', 'map_val']):
             return True
-        elif map_type == 'scattergeo' and all(inputs.get(p) is not None for p in ['lat', 'lon', 'map_val']):
+        elif map_type == 'scattergeo' and all(inputs.get(p) is not None for p in ['lat', 'lon']):
             return True
         return False
 
@@ -144,6 +144,23 @@ def group_filter_handler(col_def, group_val, group_classifier):
     return "{col} == '{val}'".format(col=col_def, val=group_val)
 
 
+def build_group_inputs_filter(df, group_inputs):
+    dtypes = get_dtypes(df)
+
+    def _group_filter(group_val):
+        for gc, gv in group_val.items():
+            classifier = classify_type(dtypes[gc])
+            yield group_filter_handler(gc, gv, classifier)
+
+    def _full_filter():
+        for group_val in group_inputs:
+            group_filter = ' and '.join(list(_group_filter(group_val)))
+            yield group_filter
+
+    filters = list(_full_filter())
+    return '({})'.format(') or ('.join(filters))
+
+
 def retrieve_chart_data(df, *args, **kwargs):
     """
     Retrieves data from a dataframe for x, y, z & group inputs complete with date frequency
@@ -169,20 +186,7 @@ def retrieve_chart_data(df, *args, **kwargs):
     all_data = pd.concat(all_data, axis=1)
     all_code = ["chart_data = pd.concat(["] + all_code + ["], axis=1)"]
     if len(make_list(kwargs.get('group_val'))):
-        dtypes = get_dtypes(all_data)
-
-        def _group_filter(group_val):
-            for gc, gv in group_val.items():
-                classifier = classify_type(dtypes[gc])
-                yield group_filter_handler(gc, gv, classifier)
-
-        def _full_filter():
-            for group_val in kwargs['group_val']:
-                group_filter = ' and '.join(list(_group_filter(group_val)))
-                yield group_filter
-
-        filters = list(_full_filter())
-        filters = '({})'.format(') or ('.join(filters))
+        filters = build_group_inputs_filter(all_data, kwargs['group_val'])
         all_data = all_data.query(filters)
         all_code.append('chart_data = chart_data.query({})'.format(filters))
     return all_data, all_code
@@ -426,6 +430,6 @@ def weekday_tick_handler(col_data, col):
 
 def find_group_vals(df, group_cols):
     group_vals, _ = retrieve_chart_data(df, group_cols)
-    group_vals = group_vals.drop_duplicates()
+    group_vals = group_vals.drop_duplicates().sort_values(group_cols)
     group_f, _ = build_formatters(group_vals)
     return group_f.format_dicts(group_vals.itertuples())

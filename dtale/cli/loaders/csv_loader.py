@@ -1,15 +1,9 @@
 import pandas as pd
 import requests
-from six import PY3
+from six import PY3, StringIO
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options
-
-if PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
-
 
 '''
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
