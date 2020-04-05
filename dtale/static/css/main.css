@@ -10168,6 +10168,11 @@ li.hoverable:hover {
     top: -0.8em;
     left: 11.5em;
 }
+.hoverable__content.map-types {
+    min-width: 13em;
+    right: unset;
+    left: 0;
+}
 .hoverable__content.build-code {
     width: auto;
     right: unset;
@@ -10214,7 +10219,8 @@ div.hoverable.label > div.hoverable__content {
     right: inherit;
     transform: rotate(270deg);
 }
-.hoverable__content.build-code::before {
+.hoverable__content.build-code::before,
+.hoverable__content.map-types::before {
     right: unset;
     left: 2em;
 }
@@ -10247,7 +10253,8 @@ div.hoverable.label > div.hoverable__content {
     right: inherit;
     transform: rotate(270deg);
 }
-.hoverable__content.build-code::after {
+.hoverable__content.build-code::after,
+.hoverable__content.map-types::after {
     right: unset;
     left: 2em;
 }
