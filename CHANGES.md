@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.8.4 [hotfix] (2020-4-5)
+ * update to setup.py to include missing static topojson files
+ * [#145](https://github.com/man-group/dtale/issues/143)
+
 ### 1.8.3 (2020-4-4)
 * [#143](https://github.com/man-group/dtale/issues/143), scattergeo map chart UI changes
 * updated offline chart generation of maps to work without loading topojson from the web

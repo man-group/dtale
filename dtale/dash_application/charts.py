@@ -66,7 +66,6 @@ def chart_url_params(search):
         if gp in params:
             params[gp] = json.loads(params[gp])
     params['cpg'] = 'true' == params.get('cpg')
-    params['animate'] = 'true' == params.get('animate')
     if 'window' in params:
         params['window'] = int(params['window'])
     if 'group_filter' in params:
@@ -97,9 +96,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params['cpg'] = 'true' if params.get('cpg') is True else 'false'
-    if chart_type in ANIMATION_CHARTS:
-        final_params['animate'] = 'true' if params.get('animate') is True else 'false'
-    if chart_type in ANIMATE_BY_CHARTS and params.get('animate_by') is not None:
+    if (chart_type in ANIMATION_CHARTS or chart_type in ANIMATE_BY_CHARTS) and params.get('animate_by') is not None:
         final_params['animate_by'] = params.get('animate_by')
     for gp in ['y', 'group', 'map_group', 'group_val']:
         list_param = [val for val in params.get(gp) or [] if val is not None]
@@ -411,7 +408,7 @@ def cpg_chunker(charts, columns=2):
     ]
 
 
-def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=None, animate=False):
+def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=None, animate_by=None):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
 
@@ -463,7 +460,7 @@ def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=N
                 dict_merge(build_title(x, y_val, group, z=z, agg=agg), layout(axes_builder([y_val])[0]))
             )
         }
-        if animate:
+        if animate_by == 'chart_values':
             def build_frame(i):
                 for series_key, series in data['data'].items():
                     if y_val in series and (group is None or group == series_key):
@@ -683,7 +680,7 @@ def bar_builder(data, x, y, axes_builder, wrapper, cpg=False, barmode='group', b
             dict_merge(build_title(x, y, agg=kwargs.get('agg')), axes, dict(barmode=barmode or 'group'))
         )
     }
-    if kwargs.get('animate', False):
+    if kwargs.get('animate_by') == 'chart_values':
 
         def build_frame(i):
             for series_key, series in data['data'].items():
@@ -768,7 +765,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     ])
 
     figure_cfg = {'data': data_cfgs, 'layout': build_layout(dict_merge(build_title(x, y, agg=inputs.get('agg')), axes))}
-    if inputs.get('animate', False):
+    if inputs.get('animate_by') == 'chart_values':
 
         def build_frame(i):
             for series_key, series in data['data'].items():
@@ -1232,8 +1229,8 @@ def build_chart(data_id=None, **inputs):
         range_data = dict(min=data['min'], max=data['max'])
         axis_inputs = inputs.get('yaxis') or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
-        chart_type, x, y, z, agg, group = (
-            inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg', 'group']
+        chart_type, x, y, z, agg, group, animate_by = (
+            inputs.get(p) for p in ['chart_type', 'x', 'y', 'z', 'agg', 'group', 'animate_by']
         )
         z = z if chart_type in ZAXIS_CHARTS else None
         chart_inputs = {k: v for k, v in inputs.items() if k not in ['chart_type', 'x', 'y', 'z', 'group']}
@@ -1261,7 +1258,7 @@ def build_chart(data_id=None, **inputs):
 
         if chart_type == '3d_scatter':
             chart = scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg,
-                                    animate=inputs.get('animate', False))
+                                    animate_by=animate_by)
             return chart, range_data, code
 
         if chart_type == 'surface':

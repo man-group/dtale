@@ -6,6 +6,7 @@ from datetime import datetime
 
 import click
 import pkg_resources
+from six import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ def get_loader_options(key, options):
         if len(segs) == 1:
             return ''
         return '_'.join(segs[1:])
-    return dict(((_build_key(k), v) for k, v in options.items() if k.startswith(key)))
+    return dict(((_build_key(k), v) for k, v in options.items() if k.startswith(key) if v is not None))
 
 
 def get_log_options(options):
@@ -180,3 +181,7 @@ def run(click_wrapper):
         sys.exit(1)
     finally:
         logger.info("Elapsed time: %s" % (datetime.now() - t1))
+
+
+def loader_prop_keys(prop_cfgs):
+    return [p if isinstance(p, string_types) else p['name'] for p in prop_cfgs]
