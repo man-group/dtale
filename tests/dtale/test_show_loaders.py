@@ -27,7 +27,7 @@ def test_show_csv():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.content = str(csv_txt)
+                    self.content = csv_txt.encode() if PY3 else csv_txt
                     self.status_code = 200
 
             stack.enter_context(mock.patch('requests.get', mock.Mock(return_value=MockRequest())))
@@ -51,7 +51,7 @@ def test_show_json():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.text = json_txt
+                    self.text = json_txt.encode() if PY3 else json_txt
                     self.status_code = 200
 
                 def json(self):

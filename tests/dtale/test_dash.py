@@ -145,7 +145,8 @@ def test_input_changes(unittest):
 def test_map_data(unittest):
     import dtale.views as views
 
-    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=pd.date_range('20200101', '20200103')))
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=pd.date_range('20200101', '20200103'),
+                           e=['a', 'b', 'c']))
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -156,11 +157,12 @@ def test_map_data(unittest):
                     '..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options...'
                     'map-lon-dropdown.options...map-value-dropdown.options...map-loc-mode-input.style...'
                     'map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style...'
-                    'map-proj-input.style...proj-hover.style...proj-hover.children..'
+                    'map-proj-input.style...proj-hover.style...proj-hover.children...loc-mode-hover.style...'
+                    'loc-mode-hover.children..'
                 ),
-                'changedPropIds': ['map-type-dropdown.value'],
+                'changedPropIds': ['map-type-tabs.value'],
                 'inputs': [
-                    {'id': 'map-type-dropdown', 'property': 'value', 'value': 'scattergeo'},
+                    {'id': 'map-type-tabs', 'property': 'value', 'value': 'scattergeo'},
                     {'id': 'map-loc-mode-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-loc-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-lat-dropdown', 'property': 'value', 'value': None},
@@ -180,15 +182,7 @@ def test_map_data(unittest):
                 resp_data['map-input-data']['data'],
                 {'map_type': 'scattergeo', 'lat': None, 'lon': None, 'map_val': None, 'scope': 'world', 'proj': None},
             )
-            unittest.assertEqual(
-                resp_data['map-loc-dropdown']['options'],
-                [
-                    {'label': 'a', 'value': 'a'},
-                    {'label': 'b', 'value': 'b'},
-                    {'label': 'c', 'value': 'c'},
-                    {'label': 'd', 'value': 'd'}
-                ]
-            )
+            unittest.assertEqual(resp_data['map-loc-dropdown']['options'], [{'label': 'e', 'value': 'e'}])
             unittest.assertEqual(resp_data['map-loc-mode-input']['style'], {'display': 'none'})
             unittest.assertEqual(resp_data['map-lat-input']['style'], {})
 
@@ -283,66 +277,72 @@ def test_main_input_styling(unittest):
 
 @pytest.mark.unit
 def test_chart_type_changes(unittest):
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=pd.date_range('20200101', '20200103')))
     with app.test_client() as c:
-        fig_data_outputs = (
-            '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...rolling-inputs.style...'
-            'cpg-input.style...barmode-input.style...barsort-input.style...yaxis-input.style...animate-input.style...'
-            'animate-by-input.style..'
-        )
-        inputs = {'id': 'input-data', 'property': 'data', 'value': {
-            'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
-            'window': None, 'rolling_comp': None}}
-        params = {
-            'output': fig_data_outputs,
-            'changedPropIds': ['input-data.modified_timestamp'],
-            'inputs': [ts_builder()],
-            'state': [inputs]
-        }
-        response = c.post('/charts/_dash-update-component', json=params)
-        resp_data = response.get_json()['response']
-        for id in ['z-input', 'rolling-inputs', 'cpg-input', 'barmode-input', 'barsort-input']:
-            assert resp_data[id]['style']['display'] == 'none'
-        for id in ['group-input', 'yaxis-input']:
-            assert resp_data[id]['style']['display'] == 'block'
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            fig_data_outputs = (
+                '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...'
+                'rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style...'
+                'yaxis-input.style...animate-by-input.style...animate-by-dropdown.options..'
+            )
+            inputs = {'id': 'input-data', 'property': 'data', 'value': {
+                'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
+                'window': None, 'rolling_comp': None}}
+            params = {
+                'output': fig_data_outputs,
+                'changedPropIds': ['input-data.modified_timestamp'],
+                'inputs': [ts_builder()],
+                'state': [inputs, path_builder(c.port)]
+            }
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            for id in ['z-input', 'rolling-inputs', 'cpg-input', 'barmode-input', 'barsort-input']:
+                assert resp_data[id]['style']['display'] == 'none'
+            for id in ['group-input', 'yaxis-input']:
+                assert resp_data[id]['style']['display'] == 'block'
 
-        inputs['value']['chart_type'] = 'bar'
-        inputs['value']['y'] = ['b', 'c']
-        params = {
-            'output': fig_data_outputs,
-            'changedPropIds': ['input-data.modified_timestamp'],
-            'inputs': [ts_builder()],
-            'state': [inputs]
-        }
-        response = c.post('/charts/_dash-update-component', json=params)
-        resp_data = response.get_json()['response']
-        assert resp_data['barmode-input']['style']['display'] == 'block'
-        assert resp_data['barsort-input']['style']['display'] == 'block'
+            inputs['value']['chart_type'] = 'bar'
+            inputs['value']['y'] = ['b', 'c']
+            params = {
+                'output': fig_data_outputs,
+                'changedPropIds': ['input-data.modified_timestamp'],
+                'inputs': [ts_builder()],
+                'state': [inputs, path_builder(c.port)]
+            }
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert resp_data['barmode-input']['style']['display'] == 'block'
+            assert resp_data['barsort-input']['style']['display'] == 'block'
 
-        inputs['value']['chart_type'] = 'line'
-        inputs['value']['y'] = ['b']
-        inputs['value']['group'] = ['c']
-        params = {
-            'output': fig_data_outputs,
-            'changedPropIds': ['input-data.modified_timestamp'],
-            'inputs': [ts_builder()],
-            'state': [inputs]
-        }
-        response = c.post('/charts/_dash-update-component', json=params)
-        resp_data = response.get_json()['response']
-        assert resp_data['cpg-input']['style']['display'] == 'block'
+            inputs['value']['chart_type'] = 'line'
+            inputs['value']['y'] = ['b']
+            inputs['value']['group'] = ['c']
+            params = {
+                'output': fig_data_outputs,
+                'changedPropIds': ['input-data.modified_timestamp'],
+                'inputs': [ts_builder()],
+                'state': [inputs, path_builder(c.port)]
+            }
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert resp_data['cpg-input']['style']['display'] == 'block'
 
-        inputs['value']['chart_type'] = 'heatmap'
-        inputs['value']['group'] = None
-        inputs['value']['z'] = 'c'
-        params = {
-            'output': fig_data_outputs,
-            'changedPropIds': ['input-data.modified_timestamp'],
-            'inputs': [ts_builder()],
-            'state': [inputs]
-        }
-        response = c.post('/charts/_dash-update-component', json=params)
-        resp_data = response.get_json()['response']
-        assert resp_data['z-input']['style']['display'] == 'block'
+            inputs['value']['chart_type'] = 'heatmap'
+            inputs['value']['group'] = None
+            inputs['value']['z'] = 'c'
+            params = {
+                'output': fig_data_outputs,
+                'changedPropIds': ['input-data.modified_timestamp'],
+                'inputs': [ts_builder()],
+                'state': [inputs, path_builder(c.port)]
+            }
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert resp_data['z-input']['style']['display'] == 'block'
 
 
 @pytest.mark.unit
@@ -454,7 +454,6 @@ def test_chart_input_updates(unittest):
                 {'id': 'barmode-dropdown', 'property': 'value', 'value': 'group'},
                 {'id': 'barsort-dropdown', 'property': 'value'},
                 {'id': 'colorscale-dropdown', 'property': 'value'},
-                {'id': 'animate-toggle', 'property': 'on'},
                 {'id': 'animate-by-dropdown', 'property': 'value'}
             ],
         }
@@ -462,7 +461,7 @@ def test_chart_input_updates(unittest):
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response']['props']['data'], {
-            'animate': None, 'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate_by': None
+            'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate_by': None
         })
 
 
@@ -634,8 +633,7 @@ def test_chart_building_bar_and_popup(unittest):
             url_params = dict(get_url_parser()(url.split('?')[-1]))
             unittest.assertEqual(
                 url_params,
-                {'chart_type': 'bar', 'x': 'a', 'barmode': 'group', 'cpg': 'false', 'y': '["b", "c"]',
-                 'animate': 'false'}
+                {'chart_type': 'bar', 'x': 'a', 'barmode': 'group', 'cpg': 'false', 'y': '["b", "c"]'}
             )
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
@@ -662,13 +660,13 @@ def test_chart_building_bar_and_popup(unittest):
             })
             assert response.status_code == 200
 
-            chart_inputs['animate'] = True
+            chart_inputs['animate_by'] = 'chart_values'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
 
-            chart_inputs['animate'] = False
+            chart_inputs['animate_by'] = None
             chart_inputs['barmode'] = 'stack'
             inputs['agg'] = 'raw'
             params = build_chart_params(pathname, inputs, chart_inputs)
@@ -742,7 +740,7 @@ def test_chart_building_line(unittest):
             resp_data = response.get_json()['response']
             assert resp_data['chart-content']['children']['type'] == 'Div'
 
-            chart_inputs['animate'] = True
+            chart_inputs['animate_by'] = 'chart_values'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -907,7 +905,7 @@ def test_chart_building_3D_scatter(unittest, test_data):
                 {'text': 'b by a weighted by c'}
             )
 
-            chart_inputs['animate'] = True
+            chart_inputs['animate_by'] = 'chart_values'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -1191,12 +1189,13 @@ def test_build_figure_data(unittest):
 def test_chart_wrapper(unittest):
     assert chart_wrapper('1', None)('foo') == 'foo'
     url_params = dict(chart_type='line', y=['b', 'c'], yaxis={'b': {'min': 3, 'max': 6}, 'd': {'min': 7, 'max': 10}},
-                      agg='rolling', window=10, rolling_calc='corr')
+                      agg='rolling', window=10, rolling_calc='corr', animate_by='d')
     cw = chart_wrapper('1', dict(min={'b': 4}, max={'b': 6}), url_params)
     output = cw('foo')
     url_params = chart_url_params('?{}'.format(output.children[0].children[0].href.split('?')[-1]))
-    unittest.assertEqual(url_params, {'animate': False, 'chart_type': 'line', 'agg': 'rolling', 'window': 10,
-                                      'cpg': False, 'y': ['b', 'c'], 'yaxis': {'b': {'min': 3, 'max': 6}}})
+    unittest.assertEqual(url_params, {'chart_type': 'line', 'agg': 'rolling', 'window': 10,
+                                      'cpg': False, 'y': ['b', 'c'], 'yaxis': {'b': {'min': 3, 'max': 6}},
+                                      'animate_by': 'd'})
 
 
 @pytest.mark.unit
@@ -1243,13 +1242,13 @@ def test_chart_url_params_w_group_filter(unittest):
     from dtale.dash_application.charts import chart_url_params, chart_url_querystring
 
     querystring = chart_url_querystring(dict(chart_type='bar', x='foo', y=['bar'], group=['baz'],
-                                             group_val=[dict(baz='bizzle')]),
+                                             group_val=[dict(baz='bizzle')], animate_by='bonk'),
                                         group_filter=dict(group="baz == 'bizzle'"))
     parsed_params = chart_url_params(querystring)
     unittest.assertEqual(
         parsed_params,
-        {'animate': False, 'chart_type': 'bar', 'x': 'foo', 'cpg': False, 'y': ['bar'], 'group': ['baz'],
-         'group_val': [{'baz': 'bizzle'}], 'query': "baz == 'bizzle'"}
+        {'chart_type': 'bar', 'x': 'foo', 'cpg': False, 'y': ['bar'], 'group': ['baz'],
+         'group_val': [{'baz': 'bizzle'}], 'query': "baz == 'bizzle'", 'animate_by': 'bonk'}
     )
 
 

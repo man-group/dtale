@@ -10,10 +10,11 @@ from dash.exceptions import PreventUpdate
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
-from dtale.dash_application.layout import (animate_input_style,
-                                           bar_input_style, base_layout,
+from dtale.dash_application.layout import (animate_by_style, bar_input_style,
+                                           base_layout,
                                            build_group_val_options,
                                            build_input_options,
+                                           build_loc_mode_hover_children,
                                            build_map_options,
                                            build_proj_hover_children,
                                            charts_layout,
@@ -188,9 +189,11 @@ def init_callbacks(dash_app):
             Output('map-proj-input', 'style'),
             Output('proj-hover', 'style'),
             Output('proj-hover', 'children'),
+            Output('loc-mode-hover', 'style'),
+            Output('loc-mode-hover', 'children')
         ],
         [
-            Input('map-type-dropdown', 'value'),
+            Input('map-type-tabs', 'value'),
             Input('map-loc-mode-dropdown', 'value'),
             Input('map-loc-dropdown', 'value'),
             Input('map-lat-dropdown', 'value'),
@@ -217,11 +220,14 @@ def init_callbacks(dash_app):
                                                                                    lat=lat, lon=lon, map_val=map_val)
         choro_style = {} if map_type == 'choropleth' else {'display': 'none'}
         scatt_style = {} if map_type == 'scattergeo' else {'display': 'none'}
-        proj_hover_style = {'display': 'none'} if proj is None else {}
+        proj_hover_style = {'display': 'none'} if proj is None else dict(borderBottom='none')
         proj_hopver_children = build_proj_hover_children(proj)
+        loc_mode_hover_style = {'display': 'none'} if loc_mode is None else dict(borderBottom='none')
+        loc_mode_children = build_loc_mode_hover_children(loc_mode)
         return (
             map_data, loc_options, lat_options, lon_options, map_val_options, choro_style, choro_style, scatt_style,
-            scatt_style, scatt_style, scatt_style, proj_hover_style, proj_hopver_children
+            scatt_style, scatt_style, scatt_style, proj_hover_style, proj_hopver_children, loc_mode_hover_style,
+            loc_mode_children
         )
 
     @dash_app.callback(
@@ -235,13 +241,13 @@ def init_callbacks(dash_app):
             Output('barmode-input', 'style'),
             Output('barsort-input', 'style'),
             Output('yaxis-input', 'style'),
-            Output('animate-input', 'style'),
-            Output('animate-by-input', 'style')
+            Output('animate-by-input', 'style'),
+            Output('animate-by-dropdown', 'options')
         ],
         [Input('input-data', 'modified_timestamp')],
-        [State('input-data', 'data')]
+        [State('input-data', 'data'), State('url', 'pathname')]
     )
-    def input_toggles(_ts, inputs):
+    def input_toggles(_ts, inputs, pathname):
         """
         dash callback controlling showing/hiding of chart-specific inputs (for example z-axis) as well as chart
         formatting inputs (sorting for bars in bar chart, bar chart style (stacked) or y-axis ranges.
@@ -257,11 +263,14 @@ def init_callbacks(dash_app):
         cpg_style = {'display': 'block' if show_chart_per_group(**inputs) else 'none'}
         bar_style = bar_input_style(**inputs)
         yaxis_style = {'display': 'block' if show_yaxis_ranges(**inputs) else 'none'}
-        animate_style, animate_by_style = animate_input_style(**inputs)
+
+        data_id = get_data_id(pathname)
+        df = global_state.get_data(data_id)
+        animate_style, animate_opts = animate_by_style(df, **inputs)
 
         return (
             y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
-            yaxis_style, animate_style, animate_by_style
+            yaxis_style, animate_style, animate_opts
         )
 
     @dash_app.callback(
@@ -271,19 +280,17 @@ def init_callbacks(dash_app):
             Input('barmode-dropdown', 'value'),
             Input('barsort-dropdown', 'value'),
             Input('colorscale-dropdown', 'value'),
-            Input('animate-toggle', 'on'),
             Input('animate-by-dropdown', 'value'),
         ]
     )
-    def chart_input_data(cpg, barmode, barsort, colorscale, animate, animate_by):
+    def chart_input_data(cpg, barmode, barsort, colorscale, animate_by):
         """
         dash callback for maintaining selections in chart-formatting inputs
             - chart per group flag
             - bar chart mode
             - bar chart sorting
         """
-        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate=animate,
-                    animate_by=animate_by)
+        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate_by=animate_by)
 
     @dash_app.callback(
         [

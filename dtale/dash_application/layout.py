@@ -179,6 +179,7 @@ AGGS = dict(
 FREQS = ['H', 'H2', 'WD', 'D', 'W', 'M', 'Q', 'Y']
 FREQ_LABELS = dict(H='Hourly', H2='Hour', WD='Weekday', W='Weekly', M='Monthly', Q='Quarterly', Y='Yearly')
 
+MAP_TYPES = [dict(value='choropleth'), dict(value='scattergeo', label='ScatterGeo')]
 SCOPES = ['world', 'usa', 'europe', 'asia', 'africa', 'north america', 'south america']
 PROJECTIONS = ['equirectangular', 'mercator', 'orthographic', 'natural earth', 'kavrayskiy7', 'miller', 'robinson',
                'eckert4', 'azimuthal equal area', 'azimuthal equidistant', 'conic equal area', 'conic conformal',
@@ -218,11 +219,65 @@ def build_proj_hover(proj):
     )
 
 
+LOC_MODE_INFO = {
+    'ISO-3': dict(
+        url=html.A('ISO-3', href='https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3', target='_blank'),
+        examples=['USA (United States)', 'CAN (Canada)', 'GBR (United Kingdom)']
+    ),
+    'USA-states': dict(
+        url=html.A('USA-states (use ISO)', href='https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations',
+                   target='_blank'),
+        examples=['NY (New York)', 'CA (California)', 'MA (Massachusetts)']
+    ),
+    'country names': dict(
+        url=html.A('country names (case-insensitive)', href='https://simple.wikipedia.org/wiki/List_of_countries',
+                   target='_blank'),
+        examples=['United States', 'United Kingdom', 'Germany']
+    )
+}
+
+
+def build_loc_mode_hover_children(loc_mode):
+    if loc_mode is None:
+        return None
+    loc_mode_cfg = LOC_MODE_INFO[loc_mode]
+    return [
+        html.I(className='ico-help-outline', style=dict(color='white')),
+        html.Div(
+            [
+                html.Div([html.Span('View', className='mr-3'), loc_mode_cfg['url']]),
+                html.Ul(
+                    [html.Li(e, style={'listStyleType': 'disc'}, className='mb-3') for e in loc_mode_cfg['examples']],
+                    className='pt-3 mb-0'
+                )
+            ],
+            className='hoverable__content build-code',
+            style=dict(width='auto', whiteSpace='nowrap', left='-2em', top='auto')
+        )
+    ]
+
+
+def build_loc_mode_hover(loc_mode):
+    return html.Span(
+        [
+            html.Span('Location Mode', style=dict(whiteSpace='pre-line')),
+            html.Div(
+                build_loc_mode_hover_children(loc_mode),
+                className='ml-3 hoverable',
+                style=dict(display='none') if loc_mode is None else dict(borderBottom='none'),
+                id='loc-mode-hover'
+            )
+        ],
+        className='input-group-addon pt-1 pb-0',
+        style=dict(height='35.5px')
+    )
+
+
 COLORSCALES = ['Blackbody', 'Bluered', 'Blues', 'Earth', 'Electric', 'Greens', 'Greys', 'Hot', 'Jet', 'Picnic',
                'Portland', 'Rainbow', 'RdBu', 'Reds', 'Viridis', 'YlGnBu', 'YlOrRd']
 
 ANIMATION_CHARTS = ['line', 'bar', '3d_scatter']
-ANIMATE_BY_CHARTS = ['maps']
+ANIMATE_BY_CHARTS = ['line', 'bar', 'maps']
 
 
 def show_input_handler(chart_type):
@@ -323,13 +378,25 @@ def build_input_options(df, **inputs):
 
 
 def build_map_options(df, type='choropleth', loc=None, lat=None, lon=None, map_val=None):
-    lat_options = [build_option(c) for c in df.columns if c not in build_selections(lon, map_val)]
-    lon_options = [build_option(c) for c in df.columns if c not in build_selections(lat, map_val)]
-    loc_options = [build_option(c) for c in df.columns if c not in build_selections(map_val)]
+    dtypes = get_dtypes(df)
+    cols = sorted(dtypes.keys())
+    float_cols, str_cols = [], []
+    for c in cols:
+        dtype = dtypes[c]
+        if classify_type(dtype) == 'F':
+            float_cols.append(c)
+            continue
+        if classify_type(dtype) == 'S':
+            str_cols.append(c)
+
+    lat_options = [build_option(c) for c in float_cols if c['name'] not in build_selections(lon, map_val)]
+    lon_options = [build_option(c) for c in float_cols if c not in build_selections(lat, map_val)]
+    loc_options = [build_option(c) for c in str_cols if c not in build_selections(map_val)]
+
     if type == 'choropleth':
-        val_options = [build_option(c) for c in df.columns if c not in build_selections(loc)]
+        val_options = [build_option(c) for c in cols if c not in build_selections(loc)]
     else:
-        val_options = [build_option(c) for c in df.columns if c not in build_selections(lon, lat)]
+        val_options = [build_option(c) for c in cols if c not in build_selections(lon, lat)]
     return loc_options, lat_options, lon_options, val_options
 
 
@@ -344,11 +411,18 @@ def colorscale_input_style(**inputs):
     return dict(display='block' if inputs.get('chart_type') in ['heatmap', 'maps'] else 'none')
 
 
-def animate_input_style(**inputs):
+def animate_by_style(df, **inputs):
     chart_type, cpg = (inputs.get(p) for p in ['chart_type', 'cpg'])
-    show = not cpg and chart_type in ANIMATION_CHARTS
-    show_by = not cpg and chart_type in ANIMATE_BY_CHARTS
-    return dict(display='block' if show else 'none'), dict(display='block' if show_by else 'none')
+    if cpg:
+        return dict(display='none'), []
+    opts = []
+    if chart_type in ANIMATE_BY_CHARTS:
+        opts = [build_option(v, l) for v, l in build_cols(df.columns, get_dtypes(df))]
+    if chart_type in ANIMATION_CHARTS:
+        opts = [build_option('chart_values', 'Values in Chart')]
+    if len(opts):
+        return dict(display='block'), opts
+    return dict(display='none'), []
 
 
 def show_chart_per_group(**inputs):
@@ -414,7 +488,7 @@ def charts_layout(df, settings, **inputs):
     show_cpg = show_chart_per_group(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
     bar_style = bar_input_style(**inputs)
-    animate_style, animate_by_style = animate_input_style(**inputs)
+    animate_style, animate_opts = animate_by_style(df, **inputs)
 
     options = build_input_options(df, **inputs)
     x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
@@ -544,19 +618,42 @@ def charts_layout(df, settings, **inputs):
                 ),
                 html.Div(
                     [
-                        build_input('Map Type', dcc.Dropdown(
-                            id='map-type-dropdown',
-                            options=[build_option(v, v.capitalize()) for v in ['choropleth', 'scattergeo']],
-                            value=map_type or 'choropleth',
-                            style=dict(width='inherit'),
-                            className='map-dd'
-                        )),
-                        build_input('Location Mode', dcc.Dropdown(
-                            id='map-loc-mode-dropdown',
-                            options=[build_option(v) for v in ["ISO-3", "USA-states", "country names"]],
-                            style=dict(width='inherit'),
-                            value=loc_mode
-                        ), id='map-loc-mode-input', style=show_map_style(map_type == 'choropleth')),
+                        # build_input('Map Type', dcc.Dropdown(
+                        #     id='map-type-dropdown',
+                        #     options=[build_option(v, v.capitalize()) for v in ['choropleth', 'scattergeo']],
+                        #     value=map_type or 'choropleth',
+                        #     style=dict(width='inherit'),
+                        #     className='map-dd'
+                        # )),
+                        html.Div(
+                            dcc.Tabs(
+                                id='map-type-tabs',
+                                value=map_type or 'choropleth',
+                                children=[
+                                    build_tab(t.get('label', t['value'].capitalize()), t['value']) for t in MAP_TYPES
+                                ],
+                                style=dict(height='36px')
+                            ),
+                            style=dict(paddingLeft=15)
+                        ),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        build_loc_mode_hover(loc_mode),
+                                        dcc.Dropdown(
+                                            id='map-loc-mode-dropdown',
+                                            options=[build_option(v) for v in ["ISO-3", "USA-states", "country names"]],
+                                            style=dict(width='inherit'),
+                                            value=loc_mode
+                                        )
+                                    ],
+                                    className='input-group mr-3',
+                                )
+                            ],
+                            id='map-loc-mode-input', style=show_map_style(map_type == 'choropleth'),
+                            className='col-auto'
+                        ),
                         build_input(
                             [html.Div('Locations'), html.Small('(Agg By)')],
                             dcc.Dropdown(
@@ -734,18 +831,10 @@ def charts_layout(df, settings, **inputs):
                             id='colorscale-dropdown', options=[build_option(o) for o in COLORSCALES],
                             value=inputs.get('colorscale') or default_cscale
                         ), className='col-auto addon-min-width', style=cscale_style, id='colorscale-input'),
-                        build_input(
-                            'Animate',
-                            html.Div(daq.BooleanSwitch(id='animate-toggle', on=inputs.get('animate') or False),
-                                     className='toggle-wrapper'),
-                            id='animate-input',
-                            style=animate_style,
-                            className='col-auto'
-                        ),
                         build_input('Animate By', dcc.Dropdown(
-                            id='animate-by-dropdown', options=map_val_options,
+                            id='animate-by-dropdown', options=animate_opts,
                             value=inputs.get('animate_by')
-                        ), className='col-auto addon-min-width', style=animate_by_style, id='animate-by-input'),
+                        ), className='col-auto addon-min-width', style=animate_style, id='animate-by-input'),
                     ],
                     className='row pt-3 pb-5 charts-filters'
                 )],

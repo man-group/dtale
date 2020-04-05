@@ -1,9 +1,9 @@
 import pandas as pd
 import requests
-from six import PY3, StringIO
+from six import PY3, BytesIO, StringIO
 
 from dtale.app import show
-from dtale.cli.clickutils import get_loader_options
+from dtale.cli.clickutils import get_loader_options, loader_prop_keys
 
 '''
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
@@ -31,8 +31,8 @@ def loader_func(**kwargs):
             req_kwargs['proxies'] = dict(http=proxy, https=proxy)
         resp = requests.get(path, **req_kwargs)
         assert resp.status_code == 200
-        path = StringIO(resp.content if PY3 else resp.content.decode('utf-8'))
-    return pd.read_csv(path, **{k: v for k, v in kwargs.items() if k in LOADER_PROPS})
+        path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode('utf-8'))
+    return pd.read_csv(path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)})
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.

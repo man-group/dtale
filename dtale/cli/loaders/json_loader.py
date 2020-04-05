@@ -3,7 +3,7 @@ import requests
 from pkg_resources import parse_version
 
 from dtale.app import show
-from dtale.cli.clickutils import get_loader_options
+from dtale.cli.clickutils import get_loader_options, loader_prop_keys
 
 '''
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
@@ -40,7 +40,7 @@ def loader_func(**kwargs):
     if normalize:
         normalize_func = pd.json_normalize if is_pandas1() else pd.io.json.json_normalize
         return normalize_func(path, **kwargs)
-    return pd.read_json(path, **{k: v for k, v in kwargs.items() if k in LOADER_PROPS})
+    return pd.read_json(path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)})
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.
