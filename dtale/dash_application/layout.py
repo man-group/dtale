@@ -187,8 +187,8 @@ PROJECTIONS = ['equirectangular', 'mercator', 'orthographic', 'natural earth', '
                'albers usa', 'winkel tripel', 'aitoff', 'sinusoidal']
 
 
-def build_proj_img_src(proj):
-    return '/images/projections/{}.png'.format('_'.join(proj.split(' ')))
+def build_img_src(proj, img_type='projections'):
+    return '/images/{}/{}.png'.format(img_type, '_'.join(proj.split(' ')))
 
 
 def build_proj_hover_children(proj):
@@ -197,7 +197,7 @@ def build_proj_hover_children(proj):
     return [
         html.I(className='ico-help-outline', style=dict(color='white')),
         html.Div(
-            [html.Div(proj), html.Img(src=build_proj_img_src(proj))],
+            [html.Div(proj), html.Img(src=build_img_src(proj))],
             className='hoverable__content',
             style=dict(width='auto')
         )
@@ -389,7 +389,7 @@ def build_map_options(df, type='choropleth', loc=None, lat=None, lon=None, map_v
         if classify_type(dtype) == 'S':
             str_cols.append(c)
 
-    lat_options = [build_option(c) for c in float_cols if c['name'] not in build_selections(lon, map_val)]
+    lat_options = [build_option(c) for c in float_cols if c not in build_selections(lon, map_val)]
     lon_options = [build_option(c) for c in float_cols if c not in build_selections(lat, map_val)]
     loc_options = [build_option(c) for c in str_cols if c not in build_selections(map_val)]
 
@@ -458,6 +458,28 @@ def build_group_val_options(df, group_cols):
         build_option(json.dumps(gv), '|'.join([str(gv.get(p, 'NaN')) for p in group_cols]))
         for gv in group_vals
     ]
+
+
+def build_map_type_tabs(map_type):
+    def _build_hoverable():
+        for t in MAP_TYPES:
+            yield html.Div([
+                html.Span(t.get('label', t['value'].capitalize())),
+                html.Img(src=build_img_src(t['value'], img_type='map_type'))
+            ], className='col-md-6')
+
+    return html.Div(
+        [dcc.Tabs(
+            id='map-type-tabs',
+            value=map_type or 'choropleth',
+            children=[build_tab(t.get('label', t['value'].capitalize()), t['value']) for t in MAP_TYPES],
+            style=dict(height='36px'),
+        ), html.Div(
+            html.Div(list(_build_hoverable()), className='row'),
+            className='hoverable__content map-types'
+        )],
+        style=dict(paddingLeft=15, borderBottom='none'), className="pr-5 hoverable"
+    )
 
 
 def main_inputs_and_group_val_display(inputs):
@@ -618,24 +640,7 @@ def charts_layout(df, settings, **inputs):
                 ),
                 html.Div(
                     [
-                        # build_input('Map Type', dcc.Dropdown(
-                        #     id='map-type-dropdown',
-                        #     options=[build_option(v, v.capitalize()) for v in ['choropleth', 'scattergeo']],
-                        #     value=map_type or 'choropleth',
-                        #     style=dict(width='inherit'),
-                        #     className='map-dd'
-                        # )),
-                        html.Div(
-                            dcc.Tabs(
-                                id='map-type-tabs',
-                                value=map_type or 'choropleth',
-                                children=[
-                                    build_tab(t.get('label', t['value'].capitalize()), t['value']) for t in MAP_TYPES
-                                ],
-                                style=dict(height='36px')
-                            ),
-                            style=dict(paddingLeft=15)
-                        ),
+                        build_map_type_tabs(map_type),
                         html.Div(
                             [
                                 html.Div(

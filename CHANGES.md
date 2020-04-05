@@ -1,8 +1,12 @@
 ## Changelog
 
+### 1.8.5 [hotfix] (2020-4-5)
+ * fixed bug with column calculation for map inputs
+ * [#149](https://github.com/man-group/dtale/issues/149)
+
 ### 1.8.4 [hotfix] (2020-4-5)
  * update to setup.py to include missing static topojson files
- * [#145](https://github.com/man-group/dtale/issues/143)
+ * [#145](https://github.com/man-group/dtale/issues/145)
 
 ### 1.8.3 (2020-4-4)
 * [#143](https://github.com/man-group/dtale/issues/143), scattergeo map chart UI changes
