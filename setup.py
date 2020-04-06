@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.8.5",
+    version="1.8.6",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -107,7 +107,7 @@ setup(
                             "static/dash/*",
                             "static/css/*",
                             "static/fonts/*",
-                            "static/images/*",
+                            "static/images/**/*",
                             "static/maps/*",
                             "templates/**/*",
                             "templates/**/**/*"]},

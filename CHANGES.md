@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.6 [hotfix] (2020-4-5)
+ * updates to setup.py to include images
+
 ### 1.8.5 [hotfix] (2020-4-5)
  * fixed bug with column calculation for map inputs
  * [#149](https://github.com/man-group/dtale/issues/149)
