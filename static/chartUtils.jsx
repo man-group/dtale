@@ -7,7 +7,7 @@ import _ from "lodash";
 import moment from "moment";
 
 import { buildRGBA } from "./colors";
-import { isDateCol } from "./dtale/gridUtils";
+import { exports as gu } from "./dtale/gridUtils";
 import { formatScatterPoints, getScatterMax, getScatterMin } from "./scatterChartUtils";
 
 // needed to add these parameters because Chart.Zoom.js causes Chart.js to look for them
@@ -268,7 +268,7 @@ function createPieCfg({ data, min, max }, { columns, x, y, additionalOptions, co
   cfg.type = "pie";
   delete cfg.options.scales;
   delete cfg.options.tooltips;
-  if (isDateCol(_.find(columns, { name: x }).dtype)) {
+  if (gu.isDateCol(_.find(columns, { name: x }).dtype)) {
     cfg.data.labels = _.map(cfg.data.labels, l => moment(new Date(l)).format("YYYY-MM-DD"));
   }
   return configHandler(cfg);

@@ -42,4 +42,8 @@ function dtypesUrl(dataId) {
   return `/dtale/dtypes/${dataId}`;
 }
 
-export { buildURLParams, buildURLString, buildURL, dtypesUrl };
+function saveColFilterUrl(dataId, column) {
+  return `/dtale/save-column-filter/${dataId}/${column}`;
+}
+
+export { buildURLParams, buildURLString, buildURL, dtypesUrl, saveColFilterUrl };

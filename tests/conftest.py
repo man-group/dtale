@@ -122,8 +122,8 @@ def scattergeo_data():
     return pd.DataFrame({
         'lat': np.random.uniform(-40, 40, 50),
         'lon': np.random.uniform(-40, 40, 50),
-        'cat': np.random.uniform(1, 20, 50),
-        'val': np.random.randint(0, high=100, size=50)
+        'val': np.random.uniform(1, 20, 50),
+        'cat': np.random.randint(0, high=100, size=50)
     })
 
 

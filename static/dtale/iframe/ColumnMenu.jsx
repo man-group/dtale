@@ -9,11 +9,12 @@ import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
 import menuFuncs from "../dataViewerMenuUtils";
-import { ROW_HEIGHT, SORT_PROPS } from "../gridUtils";
+import { exports as gu } from "../gridUtils";
 import serverState from "../serverStateManagement";
 
 require("./ColumnMenu.css");
 
+const { ROW_HEIGHT, SORT_PROPS } = gu;
 const MOVE_COLS = [
   ["step-backward", serverState.moveToFront, "Move Column To Front", {}],
   ["caret-left", serverState.moveLeft, "Move Column Left", { fontSize: "1.2em", padding: 0, width: "1.3em" }],
@@ -125,6 +126,11 @@ class ReactColumnMenu extends React.Component {
       };
       serverState.toggleVisibility(dataId, selectedCol, hideCallback);
     };
+    const deleteCol = () =>
+      this.props.propagateState(
+        { columns: _.reject(this.props.columns, { name: selectedCol }) },
+        serverState.deleteColumn(dataId, selectedCol)
+      );
     return (
       <div
         id="column-menu-div"
@@ -196,6 +202,14 @@ class ReactColumnMenu extends React.Component {
               <button className="btn btn-plain" onClick={hideCol}>
                 <i className="ico-visibility-off" />
                 <span className="font-weight-bold">Hide</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={deleteCol}>
+                <i className="ico-delete" />
+                <span className="font-weight-bold">Delete</span>
               </button>
             </span>
           </li>

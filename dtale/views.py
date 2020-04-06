@@ -408,7 +408,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
         if prev_dtypes and col in prev_dtypes:
             visible = prev_dtypes[col].get('visible', True)
         dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible)
-        if classify_type(dtype) == 'F' and not data[col].isnull().all() and col in data_ranges:  # floats
+        if classify_type(dtype) in ['F', 'I'] and not data[col].isnull().all() and col in data_ranges:  # floats/ints
             col_ranges = data_ranges[col]
             if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
                 dtype_data = dict_merge(col_ranges, dtype_data)
@@ -1036,6 +1036,54 @@ def describe(data_id, column):
         return jsonify_error(e)
 
 
+@dtale.route('/outliers/<data_id>/<column>')
+def outliers(data_id, column):
+    try:
+        df = global_state.get_data(data_id)
+        s = df[column]
+        q1 = s.quantile(0.25)
+        q3 = s.quantile(0.75)
+        iqr = q3 - q1
+        iqr_lower = q1 - 1.5 * iqr
+        iqr_upper = q3 + 1.5 * iqr
+        formatter = find_dtype_formatter(get_dtypes(df)[column])
+        outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
+        top = len(outliers) > 100
+        outliers = [formatter(v) for v in outliers[:100]]
+        query = '(({column} < {lower}) or ({column} > {upper}))'.format(column=column, lower=json_float(iqr_lower),
+                                                                        upper=json_float(iqr_upper))
+        code = (
+            "s = df['{column}']\n"
+            "q1 = s.quantile(0.25)\n"
+            "q3 = s.quantile(0.75)\n"
+            "iqr = q3 - q1\n"
+            "iqr_lower = q1 - 1.5 * iqr\n"
+            "iqr_upper = q3 + 1.5 * iqr\n"
+            "outliers = dict(s[(s < iqr_lower) | (s > iqr_upper)])"
+        ).format(column=column)
+        queryApplied = column in ((global_state.get_settings(data_id) or {}).get('outlierFilters') or {})
+        return jsonify(outliers=outliers, query=query, code=code, queryApplied=queryApplied, top=top)
+    except BaseException as e:
+        return jsonify_error(e)
+
+
+@dtale.route('/delete-col/<data_id>/<column>')
+def delete_col(data_id, column):
+    try:
+        data = global_state.get_data(data_id)
+        data = data[[c for c in data.columns if c != column]]
+        dtypes = global_state.get_dtypes(data_id)
+        dtypes = [dt for dt in dtypes if dt['name'] != column]
+        curr_settings = global_state.get_settings(data_id)
+        curr_settings['locked'] = [c for c in curr_settings.get('locked', []) if c != column]
+        global_state.set_data(data_id, data)
+        global_state.set_dtypes(data_id, dtypes)
+        global_state.set_settings(data_id, curr_settings)
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify_error(e)
+
+
 @dtale.route('/column-filter-data/<data_id>/<column>')
 def get_column_filter_data(data_id, column):
     try:
@@ -1059,8 +1107,7 @@ def get_column_filter_data(data_id, column):
 @dtale.route('/save-column-filter/<data_id>/<column>')
 def save_column_filter(data_id, column):
     try:
-        ColumnFilter(data_id, column, get_str_arg(request, 'cfg')).save_filter()
-        curr_filters = (global_state.get_settings(data_id) or {}).get('columnFilters') or {}
+        curr_filters = ColumnFilter(data_id, column, get_str_arg(request, 'cfg')).save_filter()
         return jsonify(success=True, currFilters=curr_filters)
     except BaseException as e:
         return jsonify_error(e)
@@ -1217,11 +1264,21 @@ def get_column_analysis(data_id):
             hist = pd.value_counts(data[selected_col]).to_frame(name='data').sort_index()
             code.append("chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(col=selected_col))
             if ordinal_col is not None:
-                ordinal_data = getattr(data.groupby(selected_col)[[ordinal_col]], ordinal_agg)()
+                if ordinal_agg == 'pctsum':
+                    ordinal_data = data.groupby(selected_col)[[ordinal_col]].sum()
+                    ordinal_data = ordinal_data / ordinal_data.sum()
+                    code.append((
+                        "ordinal_data = df.groupby('{col}')[['{ordinal}']].sum()\n"
+                        "ordinal_data = ordinal_data / ordinal_data.sum()"
+                    ).format(col=selected_col, ordinal=ordinal_col))
+                else:
+                    ordinal_data = getattr(data.groupby(selected_col)[[ordinal_col]], ordinal_agg)()
+                    code.append("ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()".format(
+                        col=selected_col, ordinal=ordinal_col, agg=ordinal_agg
+                    ))
                 hist['ordinal'] = ordinal_data
                 hist = hist.sort_values('ordinal')
                 code.append((
-                    "ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()\n"
                     "chart['ordinal'] = ordinal_data\n"
                     "chart = chart.sort_values('ordinal')"
                 ).format(col=selected_col, ordinal=ordinal_col, agg=ordinal_agg))
@@ -1233,13 +1290,16 @@ def get_column_analysis(data_id):
             return_data = f.format_lists(hist)
             return_data['top'] = top
         elif data_type == 'categories':
-            hist = data.groupby(category_col)[[selected_col]].agg(['count', category_agg])
+            aggs = ['count', 'sum' if category_agg == 'pctsum' else category_agg]
+            hist = data.groupby(category_col)[[selected_col]].agg(aggs)
             hist.columns = hist.columns.droplevel(0)
             hist.columns = ['count', 'data']
-            code.append(
-                "chart = data.groupby('{cat}')[['{col}']].agg(['count', '{agg}'])".format(
-                    cat=category_col, col=selected_col, agg=category_agg)
-            )
+            code.append("chart = data.groupby('{cat}')[['{col}']].agg(['{aggs}'])".format(
+                cat=category_col, col=selected_col, aggs="', '".join(aggs)
+            ))
+            if category_agg == 'pctsum':
+                hist['data'] = hist['data'] / hist['data'].sum()
+                code.append('chart.loc[:, -1] = chart[chart.columns[-1]] / chart[chart.columns[-1]].sum()')
             hist.index.name = 'labels'
             hist = hist.reset_index()
             hist, top = handle_top(hist, get_int_arg(request, 'top'))
@@ -1580,7 +1640,7 @@ def get_filter_info(data_id):
         ctxt_vars = global_state.get_context_variables(data_id) or {}
         ctxt_vars = [dict(name=k, value=value_as_str(v)) for k, v in ctxt_vars.items()]
         curr_settings = global_state.get_settings(data_id) or {}
-        curr_settings = {k: v for k, v in curr_settings.items() if k in ['query', 'columnFilters']}
+        curr_settings = {k: v for k, v in curr_settings.items() if k in ['query', 'columnFilters', 'outlierFilters']}
         return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)
     except BaseException as e:
         return jsonify(error=str(e), traceback=str(traceback.format_exc()))

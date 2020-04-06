@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-import { isDateCol } from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 
 const AGGREGATION_OPTS = [
   { value: "count", label: "Count" },
@@ -23,7 +23,7 @@ const AGGREGATION_OPTS = [
 ];
 
 function getAggregations({ columns, x, group }) {
-  if (isDateCol(_.get(_.find(columns, { name: _.get(x, "value") }), "dtype", "")) && _.isEmpty(group)) {
+  if (gu.isDateCol(_.get(_.find(columns, { name: _.get(x, "value") }), "dtype", "")) && _.isEmpty(group)) {
     return AGGREGATION_OPTS;
   }
   return _.reject(AGGREGATION_OPTS, { value: "rolling" });

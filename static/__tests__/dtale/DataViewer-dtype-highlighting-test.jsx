@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, findMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -36,7 +36,7 @@ describe("DataViewer heatmap tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: heatmap", done => {
+  test("DataViewer: dtype highlighting", done => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -50,59 +50,21 @@ describe("DataViewer heatmap tests", () => {
 
     setTimeout(() => {
       result.update();
-      let heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .first()
-        .simulate("click");
+      clickMainMenuButton(result, "Highlight Dtypes");
       result.update();
       let dv = result.find(ReactDataViewer).instance().state;
-      t.ok(
-        _.every(
-          result
-            .find(ReactDataViewer)
-            .find("div.cell")
-            .map(c => _.includes(c.html(), "background: rgb"))
-        ),
-        "should turn on background css attribute on for all cells"
-      );
-      t.deepEqual(
-        result
-          .find(ReactDataViewer)
-          .find("div.headerCell")
-          .map(hc => hc.text()),
-        ["col1", "col2"],
-        "should render int/float column headers"
-      );
-      heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .last()
-        .simulate("click");
-      t.deepEqual(
-        result
-          .find(ReactDataViewer)
-          .find("div.headerCell")
-          .map(hc => hc.text()),
-        ["col1", "col2"],
-        "should render int/float column headers"
-      );
-      heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .last()
-        .simulate("click");
+      t.deepEqual(_.pick(dv, ["dtypeHighlighting", "heatMapMode"]), {
+        dtypeHighlighting: true,
+        heatMapMode: null,
+      });
+      clickMainMenuButton(result, "Highlight Dtypes");
+      result.update();
       dv = result.find(ReactDataViewer).instance().state;
-      t.ok(_.filter(dv.columns, { visible: true }).length, 5, "should turn all columns back on");
-      t.ok(
-        _.every(
-          result
-            .find(ReactDataViewer)
-            .find("div.cell")
-            .map(c => !_.includes(c.html(), "background: rgb"))
-        ),
-        "should turn background css attribute off for all cells"
-      );
+      t.deepEqual(_.pick(dv, ["dtypeHighlighting", "heatMapMode"]), {
+        dtypeHighlighting: false,
+        heatMapMode: null,
+      });
+
       done();
     }, 600);
   });

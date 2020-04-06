@@ -8,7 +8,7 @@ import Table from "react-virtualized/dist/commonjs/Table/Table";
 
 import { Bouncer } from "../Bouncer";
 import { RemovableError } from "../RemovableError";
-import * as gu from "../dtale/gridUtils";
+import { exports as gu } from "../dtale/gridUtils";
 import { fetchJson } from "../fetcher";
 
 require("./Instances.css");
@@ -205,7 +205,7 @@ class Instances extends React.Component {
             if (rowData.data_id === this.props.dataId) {
               return null;
             }
-            return <i className="ico-remove-circle" onClick={cleanup(rowData)} />;
+            return <i className="ico-delete" onClick={cleanup(rowData)} />;
           }}
           className="cell"
         />

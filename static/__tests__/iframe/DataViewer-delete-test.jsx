@@ -1,21 +1,20 @@
 import { mount } from "enzyme";
-import _ from "lodash";
+import $ from "jquery";
 import React from "react";
 import { Provider } from "react-redux";
-import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { clickColMenuButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
+describe("DataViewer iframe tests", () => {
+  const { post } = $;
 
-describe("DataViewer tests", () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -49,13 +48,14 @@ describe("DataViewer tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    $.post = post;
   });
 
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
+  test("DataViewer: hiding a column", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
+    buildInnerHTML({ settings: "", iframe: "True" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -67,36 +67,18 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      const grid = result
-        .find(MultiGrid)
-        .first()
-        .instance();
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should render column headers"
-      );
-      t.deepEqual(grid.props.columns, COL_PROPS, "should properly size/lock columns");
       result
-        .find("div.crossed")
-        .first()
-        .find("div.grid-menu")
-        .first()
+        .find(".main-grid div.headerCell div")
+        .last()
         .simulate("click");
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
-        ),
-        "Should render default menu options"
-      );
+      clickColMenuButton(result, "Delete");
       setTimeout(() => {
-        clickMainMenuButton(result, "Refresh Widths");
-        clickMainMenuButton(result, "Shutdown", "a");
+        result.update();
+        t.deepEqual(
+          result.find(".main-grid div.headerCell").map(hc => hc.text()),
+          ["col1", "col2", "col3"],
+          "should render column headers"
+        );
         done();
       }, 400);
     }, 600);

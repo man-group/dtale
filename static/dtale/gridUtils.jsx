@@ -6,42 +6,33 @@ import numeral from "numeral";
 import { measureText } from "./MeasureText";
 import menuFuncs from "./dataViewerMenuUtils";
 
-const IDX = "dtale_index";
+const EXPORTS = {};
+
+EXPORTS.IDX = "dtale_index";
 const DEFAULT_COL_WIDTH = 70;
 
 numeral.nullFormat("");
 
-function isStringCol(dtype) {
-  return _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
-}
+EXPORTS.isStringCol = dtype => _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
+EXPORTS.isIntCol = dtype => _.startsWith(dtype, "int");
+EXPORTS.isFloatCol = dtype => _.startsWith(dtype, "float");
+EXPORTS.isDateCol = dtype => _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
 
-function isIntCol(dtype) {
-  return _.startsWith(dtype, "int");
-}
-
-function isFloatCol(dtype) {
-  return _.startsWith(dtype, "float");
-}
-
-function isDateCol(dtype) {
-  return _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
-}
-
-function findColType(dtype) {
-  if (isStringCol(dtype)) {
+EXPORTS.findColType = dtype => {
+  if (EXPORTS.isStringCol(dtype)) {
     return "string";
   }
-  if (isIntCol(dtype)) {
+  if (EXPORTS.isIntCol(dtype)) {
     return "int";
   }
-  if (isFloatCol(dtype)) {
+  if (EXPORTS.isFloatCol(dtype)) {
     return "float";
   }
-  if (isDateCol(dtype)) {
+  if (EXPORTS.isDateCol(dtype)) {
     return "date";
   }
   return "unknown";
-}
+};
 
 function buildNumeral(val, fmt) {
   return numeral(val).format(fmt);
@@ -50,7 +41,7 @@ function buildNumeral(val, fmt) {
 function buildValue({ name, dtype }, rawValue, { columnFormats }) {
   if (!_.isUndefined(rawValue)) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
-    switch (findColType((dtype || "").toLowerCase())) {
+    switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
       case "float":
         return buildNumeral(rawValue, fmt || "0.00");
       case "int":
@@ -65,35 +56,29 @@ function buildValue({ name, dtype }, rawValue, { columnFormats }) {
   return "";
 }
 
-function buildDataProps({ name, dtype }, rawValue, { columnFormats }) {
-  return {
-    raw: rawValue,
-    view: buildValue({ name, dtype }, rawValue, { columnFormats }),
-    style: menuFuncs.buildStyling(
-      rawValue,
-      findColType((dtype || "").toLowerCase()),
-      _.get(columnFormats, [name, "style"], {})
-    ),
-  };
-}
+EXPORTS.buildDataProps = ({ name, dtype }, rawValue, { columnFormats }) => ({
+  raw: rawValue,
+  view: buildValue({ name, dtype }, rawValue, { columnFormats }),
+  style: menuFuncs.buildStyling(
+    rawValue,
+    EXPORTS.findColType((dtype || "").toLowerCase()),
+    _.get(columnFormats, [name, "style"], {})
+  ),
+});
 
 function getHeatActive(column) {
-  return (_.has(column, "min") || column.name === IDX) && column.visible;
+  return (_.has(column, "min") || column.name === EXPORTS.IDX) && column.visible;
 }
 
-function getActiveCols({ columns, heatMapMode }) {
-  return _.filter(columns || [], c => (heatMapMode ? getHeatActive(c) : c.visible));
-}
+EXPORTS.getActiveCols = ({ columns, heatMapMode }) =>
+  _.filter(columns || [], c => (heatMapMode ? getHeatActive(c) : c.visible));
 
-function getCol(index, { columns, heatMapMode }) {
-  return _.get(getActiveCols({ columns, heatMapMode }), index, {});
-}
+EXPORTS.getCol = (index, { columns, heatMapMode }) => _.get(EXPORTS.getActiveCols({ columns, heatMapMode }), index, {});
 
-function getColWidth(index, { columns, heatMapMode }) {
-  return _.get(getCol(index, { columns, heatMapMode }), "width", DEFAULT_COL_WIDTH);
-}
+EXPORTS.getColWidth = (index, { columns, heatMapMode }) =>
+  _.get(EXPORTS.getCol(index, { columns, heatMapMode }), "width", DEFAULT_COL_WIDTH);
 
-function getRanges(array) {
+EXPORTS.getRanges = array => {
   const ranges = [];
   let rstart, rend;
   for (let i = 0; i < array.length; i++) {
@@ -106,17 +91,17 @@ function getRanges(array) {
     ranges.push(rstart == rend ? rstart + "" : rstart + "-" + rend);
   }
   return ranges;
-}
+};
 
-function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
+EXPORTS.calcColWidth = ({ name, dtype }, { data, rowCount, sortInfo }) => {
   let w = DEFAULT_COL_WIDTH;
-  if (name === IDX) {
+  if (name === EXPORTS.IDX) {
     w = measureText(rowCount - 1 + "");
     w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
   } else {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
     const headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
-    switch (findColType((dtype || "").toLowerCase())) {
+    switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
       case "date": {
         let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
         maxText = _.get(maxText, [name, "view"], "").replace(new RegExp("[0-9]", "g"), "0"); // zero is widest number
@@ -139,54 +124,60 @@ function calcColWidth({ name, dtype }, { data, rowCount, sortInfo }) {
     w = headerWidth > w ? headerWidth : w;
   }
   return w;
-}
+};
 
-const ROW_HEIGHT = 25;
-const HEADER_HEIGHT = 35;
+EXPORTS.ROW_HEIGHT = 25;
+EXPORTS.HEADER_HEIGHT = 35;
 
-function buildGridStyles(headerHeight = HEADER_HEIGHT) {
-  return {
-    style: { border: "1px solid #ddd" },
-    styleBottomLeftGrid: {
-      borderRight: "2px solid #aaa",
-      backgroundColor: "#f7f7f7",
-    },
-    styleTopLeftGrid: _.assignIn(
-      { height: headerHeight + 15 },
-      {
-        borderBottom: "2px solid #aaa",
-        borderRight: "2px solid #aaa",
-        fontWeight: "bold",
-      }
-    ),
-    styleTopRightGrid: {
-      height: headerHeight + 15,
+EXPORTS.buildGridStyles = (headerHeight = EXPORTS.HEADER_HEIGHT) => ({
+  style: { border: "1px solid #ddd" },
+  styleBottomLeftGrid: {
+    borderRight: "2px solid #aaa",
+    backgroundColor: "#f7f7f7",
+  },
+  styleTopLeftGrid: _.assignIn(
+    { height: headerHeight + 15 },
+    {
       borderBottom: "2px solid #aaa",
+      borderRight: "2px solid #aaa",
       fontWeight: "bold",
-    },
-    enableFixedColumnScroll: true,
-    enableFixedRowScroll: true,
-    hideTopRightGridScrollbar: true,
-    hideBottomLeftGridScrollbar: true,
-  };
-}
+    }
+  ),
+  styleTopRightGrid: {
+    height: headerHeight + 15,
+    borderBottom: "2px solid #aaa",
+    fontWeight: "bold",
+  },
+  enableFixedColumnScroll: true,
+  enableFixedRowScroll: true,
+  hideTopRightGridScrollbar: true,
+  hideBottomLeftGridScrollbar: true,
+});
 
 const heatMap = chroma.scale(["red", "yellow", "green"]).domain([0, 0.5, 1]);
 
-function heatMapBackground({ raw, view }, { min, max }) {
+EXPORTS.getTotalRange = columns => {
+  const activeCols = EXPORTS.getActiveCols({ columns });
+  return {
+    min: _.min(_.map(activeCols, "min")),
+    max: _.max(_.map(activeCols, "max")),
+  };
+};
+
+EXPORTS.heatMapBackground = ({ raw, view }, { min, max }) => {
   if (view === "") {
     return {};
   }
   const factor = min * -1;
   return { background: heatMap((raw + factor) / (max + factor)) };
-}
+};
 
-function dtypeHighlighting({ name, dtype }) {
-  if (name === IDX) {
+EXPORTS.dtypeHighlighting = ({ name, dtype }) => {
+  if (name === EXPORTS.IDX) {
     return {};
   }
   const lowerDtype = (dtype || "").toLowerCase();
-  const colType = findColType(lowerDtype);
+  const colType = EXPORTS.findColType(lowerDtype);
   if (_.startsWith(lowerDtype, "category")) {
     return { background: "#E1BEE7" };
   } else if (_.startsWith(lowerDtype, "timedelta")) {
@@ -203,9 +194,9 @@ function dtypeHighlighting({ name, dtype }) {
     return { background: "#FFF59D" };
   }
   return {};
-}
+};
 
-const SORT_PROPS = [
+EXPORTS.SORT_PROPS = [
   {
     dir: "ASC",
     full: { label: "Sort Ascending", icon: "fa fa-sort-down ml-4 mr-4" },
@@ -223,64 +214,48 @@ const SORT_PROPS = [
   },
 ];
 
-function buildToggleId(colName) {
-  return `col-${_.join(_.split(colName, " "), "_")}-toggle`;
-}
+EXPORTS.buildToggleId = colName => `col-${_.join(_.split(colName, " "), "_")}-toggle`;
 
-function buildState(props) {
-  return {
-    ...buildGridStyles(),
-    columnFormats: _.get(props, "settings.formats", {}),
-    overscanColumnCount: 0,
-    overscanRowCount: 5,
-    rowHeight: ({ index }) => (index == 0 ? HEADER_HEIGHT : ROW_HEIGHT),
-    rowCount: 0,
-    fixedColumnCount: _.size(_.concat(_.get(props, "settings.locked", []), [IDX])),
-    fixedRowCount: 1,
-    data: {},
-    loading: false,
-    ids: [0, 55],
-    loadQueue: [],
-    columns: [],
-    query: _.get(props, "settings.query", ""),
-    columnFilters: _.get(props, "settings.columnFilters", {}),
-    sortInfo: _.get(props, "settings.sort", []),
-    selectedCols: [],
-    menuOpen: false,
-    formattingOpen: false,
-    triggerResize: false,
-    heatMapMode: false,
-    dtypeHighlighting: false,
-  };
-}
+EXPORTS.buildState = props => ({
+  ...EXPORTS.buildGridStyles(),
+  columnFormats: _.get(props, "settings.formats", {}),
+  overscanColumnCount: 0,
+  overscanRowCount: 5,
+  rowHeight: ({ index }) => (index == 0 ? EXPORTS.HEADER_HEIGHT : EXPORTS.ROW_HEIGHT),
+  rowCount: 0,
+  fixedColumnCount: _.size(_.concat(_.get(props, "settings.locked", []), [EXPORTS.IDX])),
+  fixedRowCount: 1,
+  data: {},
+  loading: false,
+  ids: [0, 55],
+  loadQueue: [],
+  columns: [],
+  query: _.get(props, "settings.query", ""),
+  columnFilters: _.get(props, "settings.columnFilters", {}),
+  outlierFilters: _.get(props, "settings.outlierFilters", {}),
+  sortInfo: _.get(props, "settings.sort", []),
+  selectedCols: [],
+  menuOpen: false,
+  formattingOpen: false,
+  triggerResize: false,
+  heatMapMode: null,
+  dtypeHighlighting: false,
+});
 
-function noHidden(columns) {
-  return !_.some(columns, { visible: false });
-}
+EXPORTS.noHidden = columns => !_.some(columns, { visible: false });
 
-function hasNoInfo({ sortInfo, query, columns, columnFilters }) {
-  return _.isEmpty(sortInfo) && _.isEmpty(query) && noHidden(columns) && _.isEmpty(columnFilters);
-}
+EXPORTS.noFilters = ({ query, columnFilters, outlierFilters }) =>
+  _.isEmpty(query) && _.isEmpty(columnFilters) && _.isEmpty(outlierFilters);
 
-export {
-  buildDataProps,
-  getActiveCols,
-  getCol,
-  getColWidth,
-  getRanges,
-  calcColWidth,
-  findColType,
-  isDateCol,
-  isStringCol,
-  IDX,
-  buildGridStyles,
-  ROW_HEIGHT,
-  HEADER_HEIGHT,
-  heatMapBackground,
-  dtypeHighlighting,
-  SORT_PROPS,
-  buildToggleId,
-  buildState,
-  noHidden,
-  hasNoInfo,
+EXPORTS.hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters }) => {
+  const hideSort = _.isEmpty(sortInfo);
+  const hideFilter = EXPORTS.noFilters({
+    query,
+    columnFilters,
+    outlierFilters,
+  });
+  const hideHidden = EXPORTS.noHidden(columns);
+  return hideSort && hideFilter && hideHidden;
 };
+
+export { EXPORTS as exports };

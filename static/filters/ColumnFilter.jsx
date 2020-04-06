@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import { components } from "react-select";
 
-import { buildURLString } from "../actions/url-utils";
-import { findColType } from "../dtale/gridUtils";
+import { buildURLString, saveColFilterUrl } from "../actions/url-utils";
+import { exports as gu } from "../dtale/gridUtils";
 import { fetchJson } from "../fetcher";
 import { DateFilter } from "./DateFilter";
 import { NumericFilter } from "./NumericFilter";
@@ -30,7 +30,7 @@ function getStyles() {
 
 function buildState({ columns, selectedCol }) {
   const colCfg = _.find(columns, { name: selectedCol }) || {};
-  const colType = findColType(colCfg.dtype);
+  const colType = gu.findColType(colCfg.dtype);
   return {
     colType,
     dtype: colCfg.dtype,
@@ -69,7 +69,7 @@ class ColumnFilter extends React.Component {
   }
 
   updateState(cfg) {
-    const url = buildURLString(`/dtale/save-column-filter/${this.props.dataId}/${this.props.selectedCol}`, {
+    const url = buildURLString(saveColFilterUrl(this.props.dataId, this.props.selectedCol), {
       cfg: JSON.stringify(cfg),
     });
     const updatedState = { cfg };

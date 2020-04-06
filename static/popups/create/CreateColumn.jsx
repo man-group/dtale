@@ -176,7 +176,7 @@ class ReactCreateColumn extends React.Component {
             <div>{code[1]}</div>
             <div style={{ fontSize: "85%" }}>{"hover to see more..."}</div>
             <div className="hoverable__content build-code" style={{ width: "auto" }}>
-              <pre className="pb-0 mb-0">{_.join(code, "\n")}</pre>
+              <pre className="mb-0">{_.join(code, "\n")}</pre>
             </div>
           </div>
         );

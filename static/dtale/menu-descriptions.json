@@ -5,7 +5,7 @@
   "reshape":  "Create a new grid using either PIVOT table, Aggregations w/ GroupBy or Transpose",
   "corr": "Presenting correlations matrix and chart",
   "charts": "Plot chart (line, bar, scatter, pie, wordcloud,...)",
-  "heatmap": "Presenting heatmap for numerical values in the main table",
+  "heatmap": "Presenting heatmap for numerical values in the main table. 'Overall' will calculate over the min/max of every column whereas 'By Col' will calculate each column individually by its min/max.",
   "highlight_dtypes": "Highlight columns based on pandas dtypes. For dtype's name hover the mouse over column name",
   "instances": "Show existing datasets loaded to D-Tale",
   "code": "Code snippet of commands performed upon your data to produce this grid",

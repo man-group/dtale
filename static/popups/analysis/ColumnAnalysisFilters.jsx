@@ -3,9 +3,11 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-import { findColType } from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../CodePopup";
 import { AGGREGATION_OPTS } from "../charts/Aggregations";
+
+const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
 
 function createSelect(selectProps, labelProp = "value") {
   return (
@@ -29,8 +31,8 @@ class ColumnAnalysisFilters extends React.Component {
       ordinalCol: null,
       categoryCol: null,
     };
-    this.state.ordinalAgg = _.find(AGGREGATION_OPTS, { value: "sum" });
-    this.state.categoryAgg = _.find(AGGREGATION_OPTS, { value: "mean" });
+    this.state.ordinalAgg = _.find(ANALYSIS_AGGS, { value: "sum" });
+    this.state.categoryAgg = _.find(ANALYSIS_AGGS, { value: "mean" });
     this.buildChart = this.buildChart.bind(this);
     this.buildChartTypeToggle = this.buildChartTypeToggle.bind(this);
     this.buildFilter = this.buildFilter.bind(this);
@@ -47,7 +49,7 @@ class ColumnAnalysisFilters extends React.Component {
   }
 
   buildChartTypeToggle() {
-    const colType = findColType(this.props.dtype);
+    const colType = gu.findColType(this.props.dtype);
     const options = [["Histogram", "histogram"]];
     if (colType === "float") {
       options.push(["Categories", "categories"]);
@@ -75,7 +77,7 @@ class ColumnAnalysisFilters extends React.Component {
   }
 
   buildFilter(prop) {
-    const colType = findColType(this.props.dtype);
+    const colType = gu.findColType(this.props.dtype);
     const updateFilter = e => {
       if (e.key === "Enter") {
         if (this.state[prop] && parseInt(this.state[prop])) {
@@ -119,7 +121,7 @@ class ColumnAnalysisFilters extends React.Component {
       });
     };
     const { cols } = this.props;
-    let colOpts = _.filter(cols, c => _.includes(["float", "int"], findColType(c.dtype)));
+    let colOpts = _.filter(cols, c => _.includes(["float", "int"], gu.findColType(c.dtype)));
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
       c => _.toLower(c.value)
@@ -146,7 +148,7 @@ class ColumnAnalysisFilters extends React.Component {
         {createSelect(
           {
             value: this.state.ordinalAgg,
-            options: AGGREGATION_OPTS,
+            options: ANALYSIS_AGGS,
             onChange: v => updateOrdinal("ordinalAgg", v),
           },
           "label"
@@ -165,7 +167,7 @@ class ColumnAnalysisFilters extends React.Component {
       });
     };
     const { cols } = this.props;
-    let colOpts = _.reject(cols, c => findColType(c.dtype) === "float");
+    let colOpts = _.reject(cols, c => gu.findColType(c.dtype) === "float");
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
       c => _.toLower(c.value)
@@ -192,7 +194,7 @@ class ColumnAnalysisFilters extends React.Component {
         {createSelect(
           {
             value: this.state.categoryAgg,
-            options: AGGREGATION_OPTS,
+            options: ANALYSIS_AGGS,
             onChange: v => updateCategory("categoryAgg", v),
           },
           "label"
@@ -206,7 +208,7 @@ class ColumnAnalysisFilters extends React.Component {
       return null;
     }
     const { code, dtype } = this.props;
-    const colType = findColType(dtype);
+    const colType = gu.findColType(dtype);
     const title = this.state.type === "histogram" ? "Histogram" : "Value Counts";
     let filterMarkup = null;
     if ("int" === colType) {

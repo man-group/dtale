@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.8.7 (2020-4-8)
+ * [#137](https://github.com/man-group/dtale/issues/137)
+ * [#141](https://github.com/man-group/dtale/issues/141)
+ * [#156](https://github.com/man-group/dtale/issues/156)
+ * [#160](https://github.com/man-group/dtale/issues/160)
+ * [#161](https://github.com/man-group/dtale/issues/161)
+ * [#162](https://github.com/man-group/dtale/issues/162)
+ * [#163](https://github.com/man-group/dtale/issues/163)
+
 ### 1.8.6 [hotfix] (2020-4-5)
  * updates to setup.py to include images
 

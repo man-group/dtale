@@ -49,13 +49,13 @@ class ReactFilter extends React.Component {
     );
   }
 
-  renderColumnFilters() {
+  renderColumnFilters(prop, label) {
     const { dataId } = this.props;
-    const { columnFilters } = this.state;
-    if (_.size(columnFilters)) {
+    const filters = this.state[prop];
+    if (_.size(filters)) {
       const dropColFilter = col => () => {
         const updatedSettings = {
-          columnFilters: _.pickBy(columnFilters, (_, k) => k !== col),
+          [prop]: _.pickBy(filters, (_, k) => k !== col),
         };
         serverState.updateSettings(updatedSettings, dataId, () => {
           if (_.startsWith(window.location.pathname, "/dtale/popup/filter")) {
@@ -68,10 +68,10 @@ class ReactFilter extends React.Component {
       return _.concat(
         [
           <div key="col-filter-label" className="font-weight-bold">
-            Active Column Filters:
+            {`Active ${label}:`}
           </div>,
         ],
-        _.map(this.state.columnFilters, (v, k) => (
+        _.map(filters, (v, k) => (
           <div key={k}>
             <i className="ico-cancel pointer mr-4" onClick={dropColFilter(k)} />
             {`${v.query} and`}
@@ -92,7 +92,8 @@ class ReactFilter extends React.Component {
         <div className="col-md-7">
           <div className="row h-100">
             <div className="col-md-12 h-100">
-              {this.renderColumnFilters()}
+              {this.renderColumnFilters("columnFilters", "Column Filters")}
+              {this.renderColumnFilters("outlierFilters", "Outlier Filters")}
               <div className="font-weight-bold pt-3 pb-3">Custom Filter:</div>
               <textarea
                 style={{ width: "100%", height: 150 }}

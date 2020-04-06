@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-import * as gu from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 
 function validateBinsCfg(cfg) {
   const { col, bins, labels } = cfg;

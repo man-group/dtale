@@ -7,7 +7,9 @@ import * as t from "../../jest-assertions";
 
 describe("NumericFormatting tests", () => {
   test("NumericFormatting test", done => {
-    const columnFormats = { col1: { fmt: "0,000.000", style: null } };
+    const columnFormats = {
+      col1: { fmt: "0,000.000", style: { currency: "USD" } },
+    };
     const result = mount(<NumericFormatting {...{ columnFormats, selectedCol: "col1", updateState: _.noop }} />);
     const state = {
       precision: 3,
@@ -17,6 +19,7 @@ describe("NumericFormatting tests", () => {
       bps: false,
       redNegs: false,
       fmt: "0,000.000",
+      currency: { value: "USD", label: "USD ($)" },
     };
     t.deepEqual(result.state(), state, "should parse formatting");
     done();
