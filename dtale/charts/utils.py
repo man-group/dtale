@@ -1,8 +1,11 @@
+import copy
+
 import pandas as pd
 
-from dtale.utils import (ChartBuildingError, classify_type,
+from dtale.utils import (ChartBuildingError, classify_type, find_dtype,
                          find_dtype_formatter, flatten_lists, get_dtypes,
-                         grid_columns, grid_formatter, json_int, make_list)
+                         grid_columns, grid_formatter, json_int, make_list,
+                         run_query)
 
 YAXIS_CHARTS = ['line', 'bar', 'scatter']
 ZAXIS_CHARTS = ['heatmap', '3d_scatter', 'surface']
@@ -187,7 +190,7 @@ def retrieve_chart_data(df, *args, **kwargs):
     all_code = ["chart_data = pd.concat(["] + all_code + ["], axis=1)"]
     if len(make_list(kwargs.get('group_val'))):
         filters = build_group_inputs_filter(all_data, kwargs['group_val'])
-        all_data = all_data.query(filters)
+        all_data = run_query(all_data, filters)
         all_code.append('chart_data = chart_data.query({})'.format(filters))
     return all_data, all_code
 
@@ -236,7 +239,7 @@ def check_exceptions(df, allow_duplicates, unlimited_data=False, data_limit=1500
         raise ChartBuildingError(limit_msg.format(data_limit))
 
 
-def build_agg_data(df, x, y, inputs, agg, z=None):
+def build_agg_data(df, x, y, inputs, agg, z=None, animate_by=None):
     """
     Builds aggregated data when an aggregation (sum, mean, max, min...) is selected from the front-end.
 
@@ -280,14 +283,24 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
         return agg_df, code
 
     if z_exists:
-        groups = df.groupby([x] + make_list(y))
-        return getattr(groups[make_list(z)], agg)().reset_index(), [
+        idx_cols = make_list(animate_by) + [x] + make_list(y)
+        groups = df.groupby(idx_cols)
+        groups = getattr(groups[make_list(z)], agg)()
+        if animate_by is not None:
+            full_idx = pd.MultiIndex.from_product([df[c].unique() for c in idx_cols], names=idx_cols)
+            groups = groups.reindex(full_idx).fillna(0)
+        return groups.reset_index(), [
             "chart_data = chart_data.groupby(['{cols}'])[['{z}']].{agg}().reset_index()".format(
                 cols="', '".join([x] + make_list(y)), z=z, agg=agg
             )
         ]
-    groups = df.groupby(x)
-    return getattr(groups[y], agg)().reset_index(), [
+    idx_cols = make_list(animate_by) + [x]
+    groups = df.groupby(idx_cols)
+    groups = getattr(groups[y], agg)()
+    if animate_by is not None:
+        full_idx = pd.MultiIndex.from_product([df[c].unique() for c in idx_cols], names=idx_cols)
+        groups = groups.reindex(full_idx).fillna(0)
+    return groups.reset_index(), [
         "chart_data = chart_data.groupby('{x}')[['{y}']].{agg}().reset_index()".format(
             x=x, y=make_list(y)[0], agg=agg
         )
@@ -295,7 +308,7 @@ def build_agg_data(df, x, y, inputs, agg, z=None):
 
 
 def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, allow_duplicates=False, return_raw=False,
-                     unlimited_data=False, **kwargs):
+                     unlimited_data=False, animate_by=None, **kwargs):
     """
     Helper function to return data for 'chart-data' & 'correlations-ts' endpoints.  Will return a dictionary of
     dictionaries (one for each series) which contain the data for the x & y axes of the chart as well as the minimum &
@@ -318,29 +331,32 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
     :type allow_duplicates: bool, optional
     :return: dict
     """
-
-    data, code = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col, group_val=group_val)
+    group_fmt_overrides = {'I': lambda v, as_string: json_int(v, as_string=as_string, fmt='{}')}
+    data, code = retrieve_chart_data(raw_data, x, y, kwargs.get('z'), group_col, animate_by, group_val=group_val)
     x_col = str('x')
     y_cols = make_list(y)
     z_col = kwargs.get('z')
     z_cols = make_list(z_col)
     if group_col is not None and len(group_col):
-        data = data.sort_values(group_col + [x])
-        code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(group_col + [x])))
+        main_group = group_col
+        if animate_by is not None:
+            main_group = [animate_by] + main_group
+        sort_cols = main_group + [x]
+        data = data.sort_values(sort_cols)
+        code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(sort_cols)))
         check_all_nan(data, [x] + y_cols)
         data = data.rename(columns={x: x_col})
         code.append("chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})")
         if agg is not None and agg != 'raw':
-            data = data.groupby(group_col + [x_col])
+            data = data.groupby(main_group + [x_col])
             data = getattr(data, agg)().reset_index()
             code.append("chart_data = chart_data.groupby(['{cols}']).{agg}().reset_index()".format(
-                cols="', '".join(group_col + [x]), agg=agg
+                cols="', '".join(main_group + [x]), agg=agg
             ))
         MAX_GROUPS = 30
         group_vals = data[group_col].drop_duplicates()
         if len(group_vals) > MAX_GROUPS:
             dtypes = get_dtypes(group_vals)
-            group_fmt_overrides = {'I': lambda v, as_string: json_int(v, as_string=as_string, fmt='{}')}
             group_fmts = {c: find_dtype_formatter(dtypes[c], overrides=group_fmt_overrides) for c in group_col}
 
             group_f, _ = build_formatters(group_vals)
@@ -365,45 +381,73 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
         )
 
         dtypes = get_dtypes(data)
-        group_fmt_overrides = {'I': lambda v, as_string: json_int(v, as_string=as_string, fmt='{}')}
         group_fmts = {c: find_dtype_formatter(dtypes[c], overrides=group_fmt_overrides) for c in group_col}
-        for group_val, grp in data.groupby(group_col):
 
-            def _group_filter():
-                for gv, gc in zip(make_list(group_val), group_col):
-                    classifier = classify_type(dtypes[gc])
-                    yield group_filter_handler(gc, group_fmts[gc](gv, as_string=True), classifier)
-            group_filter = ' and '.join(list(_group_filter()))
-            ret_data['data'][group_filter] = data_f.format_lists(grp)
+        def _load_groups(df):
+            for group_val, grp in df.groupby(group_col):
+
+                def _group_filter():
+                    for gv, gc in zip(make_list(group_val), group_col):
+                        classifier = classify_type(dtypes[gc])
+                        yield group_filter_handler(gc, group_fmts[gc](gv, as_string=True), classifier)
+
+                group_filter = ' and '.join(list(_group_filter()))
+                yield group_filter, data_f.format_lists(grp)
+
+        if animate_by is not None:
+            frame_fmt = find_dtype_formatter(dtypes[animate_by], overrides=group_fmt_overrides)
+            ret_data['frames'] = []
+            for frame_key, frame in data.sort_values(animate_by).groupby(animate_by):
+                ret_data['frames'].append(
+                    dict(data=dict(_load_groups(frame)), name=frame_fmt(frame_key, as_string=True))
+                )
+            ret_data['data'] = copy.deepcopy(ret_data['frames'][-1]['data'])
+        else:
+            ret_data['data'] = dict(_load_groups(data))
         return ret_data, code
-    sort_cols = [x] + (y_cols if len(z_cols) else [])
+    main_group = [x]
+    if animate_by is not None:
+        main_group = [animate_by] + main_group
+    sort_cols = main_group + (y_cols if len(z_cols) else [])
     data = data.sort_values(sort_cols)
     code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(sort_cols)))
-    check_all_nan(data, [x] + y_cols + z_cols)
+    check_all_nan(data, main_group + y_cols + z_cols)
     y_cols = [str(y_col) for y_col in y_cols]
-    data.columns = [x_col] + y_cols + z_cols
-    code.append("chart_data.columns = ['{cols}']".format(cols="', '".join([x_col] + y_cols + z_cols)))
+    data = data[main_group + y_cols + z_cols]
+    main_group[-1] = x_col
+    data.columns = main_group + y_cols + z_cols
+    code.append("chart_data.columns = ['{cols}']".format(cols="', '".join(main_group + y_cols + z_cols)))
     if agg is not None:
-        data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col)
+        data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col, animate_by=animate_by)
         code += agg_code
     data = data.dropna()
     if return_raw:
         return data.rename(columns={x_col: x})
     code.append("chart_data = chart_data.dropna()")
 
-    dupe_cols = [x_col] + (y_cols if len(z_cols) else [])
+    dupe_cols = main_group + (y_cols if len(z_cols) else [])
     check_exceptions(
         data[dupe_cols].rename(columns={'x': x}),
         allow_duplicates or agg == 'raw',
         unlimited_data=unlimited_data,
-        data_limit=40000 if len(z_cols) else 15000
+        data_limit=40000 if len(z_cols) or animate_by is not None else 15000
     )
     data_f, range_f = build_formatters(data)
+
     ret_data = dict(
-        data={str('all'): data_f.format_lists(data)},
         min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
         max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols}
     )
+    if animate_by is not None:
+        frame_fmt = find_dtype_formatter(find_dtype(data[animate_by]), overrides=group_fmt_overrides)
+        ret_data['frames'] = []
+        for frame_key, frame in data.sort_values(animate_by).groupby(animate_by):
+            ret_data['frames'].append(
+                dict(data={str('all'): data_f.format_lists(frame)}, name=frame_fmt(frame_key, as_string=True))
+            )
+        ret_data['data'] = copy.deepcopy(ret_data['frames'][-1]['data'])
+    else:
+        ret_data['data'] = {str('all'): data_f.format_lists(data)}
     return ret_data, code
 
 

@@ -25,15 +25,15 @@ class ReactDataViewerMenu extends React.Component {
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
       });
-    const toggleHeatMap = () =>
+    const toggleHeatMap = mode => () =>
       this.props.propagateState({
-        heatMapMode: !this.props.heatMapMode,
+        heatMapMode: this.props.heatMapMode == mode ? null : mode,
         dtypeHighlighting: false,
       });
     const toggleDtypeHighlighting = () =>
       this.props.propagateState({
         dtypeHighlighting: !this.props.dtypeHighlighting,
-        heatMapMode: false,
+        heatMapMode: null,
       });
     const exportFile = tsv => () =>
       window.open(`/dtale/data-export/${dataId}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
@@ -100,13 +100,31 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.charts}</div>
           </li>
-          <li className="hoverable">
+          <li className="hoverable" style={{ color: "inherit" }}>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={toggleHeatMap}>
-                <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
-                <span className={`font-weight-bold${this.props.heatMapMode ? " flames" : ""}`}>Heat Map</span>
-              </button>
+              <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
             </span>
+            <span className={`font-weight-bold pl-2${_.isNull(this.props.heatMapMode) ? "" : " flames"}`}>
+              {"Heat Map"}
+            </span>
+            <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" style={{ fontSize: "75%" }}>
+              {_.map(
+                [
+                  ["By Col", "col"],
+                  ["Overall", "all"],
+                ],
+                ([label, mode]) => (
+                  <button
+                    key={label}
+                    style={{ color: "#565b68" }}
+                    className="btn btn-primary font-weight-bold"
+                    onClick={toggleHeatMap(mode)}>
+                    {mode === this.props.heatMapMode && <span className="flames">{label}</span>}
+                    {mode !== this.props.heatMapMode && label}
+                  </button>
+                )
+              )}
+            </div>
             <div className="hoverable__content menu-description">{Descriptions.heatmap}</div>
           </li>
           <li className="hoverable">
@@ -114,9 +132,7 @@ class ReactDataViewerMenu extends React.Component {
               <button className="btn btn-plain" onClick={toggleDtypeHighlighting}>
                 <div style={{ display: "inherit" }}>
                   <div className={`dtype-highlighting${this.props.dtypeHighlighting ? " spin" : ""}`} />
-                  <span className="font-weight-bold" style={{ paddingLeft: ".4em" }}>
-                    Highlight Dtypes
-                  </span>
+                  <span className="font-weight-bold pl-4">Highlight Dtypes</span>
                 </div>
               </button>
             </span>
@@ -124,7 +140,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("instances")}>
+              <button className="btn btn-plain" onClick={openPopup("instances", 450, 750)}>
                 <i className="ico-apps" />
                 <span className="font-weight-bold">
                   {"Instances "}
@@ -145,12 +161,12 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.code}</div>
           </li>
-          <li className="hoverable">
+          <li className="hoverable" style={{ color: "inherit" }}>
             <span className="toggler-action">
               <i className="far fa-file" />
             </span>
             <span className="font-weight-bold pl-2">Export</span>
-            <div className="btn-group compact m-auto font-weight-bold column-sorting">
+            <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
               {_.map(
                 [
                   ["CSV", "false"],
@@ -239,7 +255,7 @@ ReactDataViewerMenu.propTypes = {
   menuOpen: PropTypes.bool,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
-  heatMapMode: PropTypes.bool,
+  heatMapMode: PropTypes.string,
   dtypeHighlighting: PropTypes.bool,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,

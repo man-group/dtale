@@ -2,9 +2,14 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { Bouncer } from "../../Bouncer";
+import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
+import { buildURLString, saveColFilterUrl } from "../../actions/url-utils";
 import chartUtils from "../../chartUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
+import { buildButton } from "../../toggleUtils";
 import { renderCodePopupAnchor } from "../CodePopup";
 
 const BASE_DESCRIBE_URL = "/dtale/describe";
@@ -15,24 +20,32 @@ class Details extends React.Component {
     this.state = {
       error: null,
       details: null,
+      deepData: "uniques",
+      outliers: null,
+      loadingOutliers: false,
     };
     this.loadDetails = this.loadDetails.bind(this);
     this.createBoxplot = this.createBoxplot.bind(this);
     this.renderUniques = this.renderUniques.bind(this);
+    this.renderDeepDataToggle = this.renderDeepDataToggle.bind(this);
+    this.loadOutliers = this.loadOutliers.bind(this);
+    this.renderOutliers = this.renderOutliers.bind(this);
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.selected !== prevProps.selected) {
+    if (!_.isEqual(this.props.selected, prevProps.selected)) {
       this.loadDetails();
     }
   }
 
   loadDetails() {
-    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${this.props.selected}`, detailData => {
+    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${this.props.selected.name}`, detailData => {
       const newState = {
         error: null,
         details: null,
         code: null,
+        outliers: null,
+        deepData: "uniques",
       };
       if (detailData.error) {
         newState.error = (
@@ -44,7 +57,7 @@ class Details extends React.Component {
         return;
       }
       newState.details = _.pick(detailData, ["describe", "uniques"]);
-      newState.details.name = this.props.selected;
+      newState.details.name = this.props.selected.name;
       newState.code = detailData.code;
       this.setState(newState, this.createBoxplot);
     });
@@ -100,6 +113,9 @@ class Details extends React.Component {
   }
 
   renderUniques() {
+    if (this.state.deepData == "outliers") {
+      return null;
+    }
     const uniques = _.get(this.state, "details.uniques") || {};
     if (_.isEmpty(uniques.data)) {
       return null;
@@ -115,6 +131,100 @@ class Details extends React.Component {
         </div>
       </div>
     );
+  }
+
+  loadOutliers() {
+    this.setState({ loadingOutliers: true });
+    fetchJson(`/dtale/outliers/${this.props.dataId}/${this.props.selected.name}`, outlierData => {
+      this.setState({ outliers: outlierData, loadingOutliers: false });
+    });
+  }
+
+  renderDeepDataToggle() {
+    if (_.includes(["float", "int"], gu.findColType(this.props.selected.dtype))) {
+      const { deepData, outliers, loadingOutliers } = this.state;
+      const toggle = val => () => {
+        const outliersCallback = _.isNull(outliers) && !loadingOutliers ? this.loadOutliers : _.noop;
+        this.setState({ deepData: val }, outliersCallback);
+      };
+      return (
+        <div key="toggle" className="row pb-5">
+          <div className="col-auto pl-0">
+            <div className="btn-group compact col-auto">
+              <button {...buildButton(deepData == "uniques", toggle("uniques"))}>Uniques</button>
+              <button {...buildButton(deepData == "outliers", toggle("outliers"))}>Outliers</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  renderOutliers() {
+    if (this.state.deepData == "uniques") {
+      return null;
+    }
+    if (this.state.loadingOutliers) {
+      return <Bouncer key={3} />;
+    }
+    const { outliers } = this.state;
+    const outlierValues = _.get(outliers, "outliers", []);
+    if (_.isEmpty(outlierValues)) {
+      return (
+        <div key={3} className="row">
+          <div className="col-sm-12">
+            <span className="font-weight-bold" style={{ fontSize: "120%" }}>
+              No Outliers Detected
+            </span>
+          </div>
+        </div>
+      );
+    }
+    const saveFilter = () => {
+      const cfg = { type: "outliers" };
+      if (!outliers.queryApplied) {
+        cfg.query = outliers.query;
+      }
+      const url = buildURLString(saveColFilterUrl(this.props.dataId, this.props.selected.name), {
+        cfg: JSON.stringify(cfg),
+      });
+      this.setState(
+        {
+          outliers: _.assignIn({}, outliers, {
+            queryApplied: !outliers.queryApplied,
+          }),
+        },
+        fetchJson(url, data => this.props.propagateState({ outlierFilters: data.currFilters || {} }))
+      );
+    };
+    return [
+      <div key={3} className="row">
+        <div className="col">
+          <span className="font-weight-bold" style={{ fontSize: "120%" }}>
+            {`${_.size(outlierValues)} Outliers Found${outliers.top ? " (top 100)" : ""}:`}
+          </span>
+          <JSAnchor onClick={saveFilter} className="d-block">
+            <span className="pr-3">{`${outliers.queryApplied ? "Remove" : "Apply"} outlier filter:`}</span>
+            <span className="font-weight-bold">{outliers.query}</span>
+          </JSAnchor>
+        </div>
+        <div className="col-auto">
+          <div className="hoverable" style={{ borderBottom: "none" }}>
+            <i className="ico-code pr-3" />
+            <span>View Code</span>
+            <div className="hoverable__content" style={{ width: "auto" }}>
+              <pre className="mb-0">{outliers.code}</pre>
+            </div>
+          </div>
+        </div>
+      </div>,
+      <div key={4} className="row">
+        <div className="col-sm-12">
+          <span>{_.join(_.sortBy(outlierValues), ", ")}</span>
+        </div>
+      </div>,
+    ];
   }
 
   render() {
@@ -134,6 +244,7 @@ class Details extends React.Component {
       <div key={1} className="row">
         <div className="col-auto">
           <h1>{details.name}</h1>
+          <span className="pl-3">({this.props.selected.dtype})</span>
         </div>
         <div className="col text-right">{renderCodePopupAnchor(this.state.code, "Describe")}</div>
       </div>,
@@ -156,13 +267,15 @@ class Details extends React.Component {
           </div>
         </div>
       </div>,
+      this.renderDeepDataToggle(),
       this.renderUniques(),
+      this.renderOutliers(),
     ];
   }
 }
 Details.displayName = "Details";
 Details.propTypes = {
-  selected: PropTypes.string,
+  selected: PropTypes.object,
   dataId: PropTypes.string,
   propagateState: PropTypes.func,
 };

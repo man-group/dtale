@@ -648,10 +648,11 @@ def build_query(data_id, query=None):
 
 
 def inner_build_query(settings, query=None):
-    curr_filters = settings.get('columnFilters') or {}
     query_segs = []
-    for col, filter_cfg in curr_filters.items():
-        query_segs.append(filter_cfg['query'])
+    for p in ['columnFilters', 'outlierFilters']:
+        curr_filters = settings.get(p) or {}
+        for col, filter_cfg in curr_filters.items():
+            query_segs.append(filter_cfg['query'])
     if query not in [None, '']:
         query_segs.append(query)
     return ' and '.join(query_segs)

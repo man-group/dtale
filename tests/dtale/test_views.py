@@ -283,6 +283,68 @@ def test_update_locked(unittest):
 
 
 @pytest.mark.unit
+def test_delete_col(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            settings = {c.port: {'locked': ['a']}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            dtypes = {c.port: build_dtypes_state(df)}
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            c.get('/dtale/delete-col/{}/a'.format(c.port))
+            assert 'a' not in data[c.port].columns
+            assert next((dt for dt in dtypes[c.port] if dt['name'] == 'a'), None) is None
+            assert len(settings[c.port]['locked']) == 0
+
+            resp = c.get('/dtale/delete-col/-1/d'.format(c.port))
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_outliers(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame.from_dict({
+        'a': [1, 2, 3, 4, 1000, 5, 3, 5, 55, 12, 13, 10000, 221, 12, 2000],
+        'b': list(range(15)),
+        'c': ['a'] * 15
+    })
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            settings = {c.port: {'locked': ['a']}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            dtypes = {c.port: build_dtypes_state(df)}
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            resp = c.get('/dtale/outliers/{}/a'.format(c.port))
+            resp = json.loads(resp.data)
+            unittest.assertEqual(resp['outliers'], [1000, 10000, 2000])
+            c.get('/dtale/save-column-filter/{}/a'.format(c.port), query_string=dict(
+                cfg=json.dumps(dict(type='outliers', query=resp['query']))
+            ))
+            resp = c.get('/dtale/outliers/{}/a'.format(c.port))
+            resp = json.loads(resp.data)
+            assert resp['queryApplied']
+            c.get('/dtale/save-column-filter/{}/a'.format(c.port), query_string=dict(
+                cfg=json.dumps(dict(type='outliers'))
+            ))
+            resp = c.get('/dtale/outliers/{}/a'.format(c.port))
+            resp = json.loads(resp.data)
+            assert not resp['queryApplied']
+            resp = c.get('/dtale/outliers/{}/b'.format(c.port))
+            resp = json.loads(resp.data)
+            unittest.assertEqual(resp['outliers'], [])
+            resp = c.get('/dtale/outliers/{}/c'.format(c.port))
+            resp = json.loads(resp.data)
+            assert 'error' in resp
+
+
+@pytest.mark.unit
 def test_update_visibility(unittest):
     from dtale.views import build_dtypes_state
 
@@ -761,8 +823,8 @@ def test_get_data(unittest, test_data):
                 columns=[
                     dict(dtype='int64', name='dtale_index', visible=True),
                     dict(dtype='datetime64[ns]', name='date', index=0, visible=True),
-                    dict(dtype='int64', name='security_id', index=1, visible=True),
-                    dict(dtype='int64', name='foo', index=2, visible=True),
+                    dict(dtype='int64', name='security_id', max=49, min=0, index=1, visible=True),
+                    dict(dtype='int64', name='foo', min=1, max=1, index=2, visible=True),
                     dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3, visible=True),
                     dict(dtype='string', name='baz', index=4, visible=True),
                 ]
@@ -969,7 +1031,21 @@ def test_get_column_analysis(unittest, test_data):
 
             response = c.get(
                 '/dtale/column-analysis/{}'.format(c.port),
+                query_string=dict(col='foo', type='value_counts', ordinalCol='bar', ordinalAgg='pctsum')
+            )
+            response_data = json.loads(response.data)
+            assert 'ordinal' in response_data
+
+            response = c.get(
+                '/dtale/column-analysis/{}'.format(c.port),
                 query_string=dict(col='bar', type='categories', categoryCol='foo', categoryAgg='mean')
+            )
+            response_data = json.loads(response.data)
+            assert 'count' in response_data
+
+            response = c.get(
+                '/dtale/column-analysis/{}'.format(c.port),
+                query_string=dict(col='bar', type='categories', categoryCol='foo', categoryAgg='pctsum')
             )
             response_data = json.loads(response.data)
             assert 'count' in response_data
@@ -1571,7 +1647,9 @@ def test_main():
 @pytest.mark.unit
 def test_200():
     paths = ['/dtale/main/{port}', '/dtale/iframe/{port}', '/dtale/popup/test/{port}', 'site-map', 'version-info',
-             'health', '/charts/{port}', '/charts/popup/{port}', '/dtale/code-popup', '/missing-js']
+             'health', '/charts/{port}', '/charts/popup/{port}', '/dtale/code-popup', '/missing-js',
+             'images/fire.jpg', 'images/projections/miller.png', 'images/map_type/choropleth.png',
+             'maps/usa_110m.json']
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))

@@ -10166,7 +10166,7 @@ li.hoverable:hover {
 }
 .hoverable__content.menu-description {
     top: -0.8em;
-    left: 11.5em;
+    left: 13em;
 }
 .hoverable__content.map-types {
     min-width: 13em;
@@ -10532,6 +10532,29 @@ div.container-fluid.reshape > div#popup-content > div.modal-body{
 
 div.container-fluid.describe > div#popup-content > div.modal-body {
   height: 450px;
+}
+
+div.container-fluid.describe {
+    height: calc(100vh);
+}
+div.container-fluid.describe > div#popup-content {
+    height: calc(100vh - 30px);
+}
+div.container-fluid.describe > div#popup-content > div.modal-body {
+    height: calc(100vh - 75px);
+    overflow-y: scroll;
+}
+div.container-fluid.describe div.describe-dtypes-grid-col {
+    height: calc(100vh - 112px);
+}
+div.modal-dialog div.modal-body.describe-body {
+  height: 500px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+div.modal-dialog div.modal-body.describe-body div.describe-dtypes-grid-col {
+  height: 470px;
 }
 
 div.container-fluid.filter > div#popup-content > div.modal-body {

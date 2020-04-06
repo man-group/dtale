@@ -287,7 +287,7 @@ def test_chart_type_changes(unittest):
             fig_data_outputs = (
                 '..y-multi-input.style...y-single-input.style...z-input.style...group-input.style...'
                 'rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style...'
-                'yaxis-input.style...animate-by-input.style...animate-by-dropdown.options..'
+                'yaxis-input.style...animate-input.style...animate-by-input.style...animate-by-dropdown.options..'
             )
             inputs = {'id': 'input-data', 'property': 'data', 'value': {
                 'chart_type': 'line', 'x': 'a', 'y': ['b'], 'z': None, 'group': None, 'agg': None,
@@ -454,6 +454,7 @@ def test_chart_input_updates(unittest):
                 {'id': 'barmode-dropdown', 'property': 'value', 'value': 'group'},
                 {'id': 'barsort-dropdown', 'property': 'value'},
                 {'id': 'colorscale-dropdown', 'property': 'value'},
+                {'id': 'animate-toggle', 'property': 'on'},
                 {'id': 'animate-by-dropdown', 'property': 'value'}
             ],
         }
@@ -461,7 +462,7 @@ def test_chart_input_updates(unittest):
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(resp_data['response']['props']['data'], {
-            'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate_by': None
+            'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate': None, 'animate_by': None
         })
 
 
@@ -613,7 +614,7 @@ def test_chart_building_scatter(unittest):
 def test_chart_building_bar_and_popup(unittest):
     import dtale.views as views
 
-    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=[10, 11, 12]))
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -660,12 +661,26 @@ def test_chart_building_bar_and_popup(unittest):
             })
             assert response.status_code == 200
 
-            chart_inputs['animate_by'] = 'chart_values'
+            inputs['y'] = ['b']
+            inputs['agg'] = 'sum'
+            chart_inputs['animate_by'] = 'c'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
             assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
 
+            inputs['y'] = ['b']
+            inputs['agg'] = 'raw'
+            inputs['group'] = ['d']
+            chart_inputs['animate_by'] = 'c'
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
+
+            inputs['y'] = ['b', 'c']
+            inputs['agg'] = 'raw'
+            inputs['group'] = None
             chart_inputs['animate_by'] = None
             chart_inputs['barmode'] = 'stack'
             inputs['agg'] = 'raw'
@@ -740,7 +755,7 @@ def test_chart_building_line(unittest):
             resp_data = response.get_json()['response']
             assert resp_data['chart-content']['children']['type'] == 'Div'
 
-            chart_inputs['animate_by'] = 'chart_values'
+            chart_inputs['animate'] = True
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -886,7 +901,7 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
 def test_chart_building_3D_scatter(unittest, test_data):
     import dtale.views as views
 
-    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=[10, 11, 12]))
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -905,7 +920,8 @@ def test_chart_building_3D_scatter(unittest, test_data):
                 {'text': 'b by a weighted by c'}
             )
 
-            chart_inputs['animate_by'] = 'chart_values'
+            inputs['agg'] = 'sum'
+            chart_inputs['animate_by'] = 'd'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
@@ -1020,11 +1036,12 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
             )
 
             map_inputs['map_group'] = 'cat'
-            group_val = df['cat'].values[0]
+            group_val = str(df['cat'].values[0])
             inputs['group_val'] = [dict(cat=group_val)]
             params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
+            print(resp_data['chart-content']['children'])
             title = resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout']['title']
             assert title['text'] == 'Map of val (No Aggregation) (cat == {})'.format(group_val)
 
@@ -1189,11 +1206,20 @@ def test_build_figure_data(unittest):
 def test_chart_wrapper(unittest):
     assert chart_wrapper('1', None)('foo') == 'foo'
     url_params = dict(chart_type='line', y=['b', 'c'], yaxis={'b': {'min': 3, 'max': 6}, 'd': {'min': 7, 'max': 10}},
-                      agg='rolling', window=10, rolling_calc='corr', animate_by='d')
+                      agg='rolling', window=10, rolling_calc='corr')
     cw = chart_wrapper('1', dict(min={'b': 4}, max={'b': 6}), url_params)
     output = cw('foo')
     url_params = chart_url_params('?{}'.format(output.children[0].children[0].href.split('?')[-1]))
     unittest.assertEqual(url_params, {'chart_type': 'line', 'agg': 'rolling', 'window': 10,
+                                      'cpg': False, 'y': ['b', 'c'], 'yaxis': {'b': {'min': 3, 'max': 6}},
+                                      'animate': False})
+
+    url_params = dict(chart_type='bar', y=['b', 'c'], yaxis={'b': {'min': 3, 'max': 6}, 'd': {'min': 7, 'max': 10}},
+                      agg='rolling', window=10, rolling_calc='corr', animate_by='d')
+    cw = chart_wrapper('1', dict(min={'b': 4}, max={'b': 6}), url_params)
+    output = cw('foo')
+    url_params = chart_url_params('?{}'.format(output.children[0].children[0].href.split('?')[-1]))
+    unittest.assertEqual(url_params, {'chart_type': 'bar', 'agg': 'rolling', 'window': 10,
                                       'cpg': False, 'y': ['b', 'c'], 'yaxis': {'b': {'min': 3, 'max': 6}},
                                       'animate_by': 'd'})
 

@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 
 import { RemovableError } from "../RemovableError";
 import menuUtils from "../menuUtils";
-import * as gu from "./gridUtils";
+import { exports as gu } from "./gridUtils";
 import serverState from "./serverStateManagement";
 
 function buildMenuHandler(prop, propagateState) {
@@ -24,6 +24,29 @@ function buildMenuHandler(prop, propagateState) {
     }
   );
 }
+
+function displayQueries(props, prop) {
+  const queries = props[prop];
+  return _.map(queries, (cfg, col) => {
+    const dropColFilter = () => {
+      const updatedSettings = {
+        [prop]: _.pickBy(queries, (_, k) => k !== col),
+      };
+      serverState.updateSettings(updatedSettings, props.dataId, () => props.propagateState(updatedSettings));
+    };
+    return (
+      <li key={`${prop}-${col}`}>
+        <span className="toggler-action">
+          <button className="btn btn-plain ignore-clicks" onClick={dropColFilter}>
+            <i className="ico-cancel mr-4" />
+          </button>
+        </span>
+        <span className="font-weight-bold text-nowrap">{cfg.query}</span>
+      </li>
+    );
+  });
+}
+
 class ReactDataViewerInfo extends React.Component {
   constructor(props) {
     super(props);
@@ -96,8 +119,8 @@ class ReactDataViewerInfo extends React.Component {
   }
 
   renderFilter() {
-    const { query, columnFilters, dataId, propagateState } = this.props;
-    if (_.isEmpty(query) && _.isEmpty(columnFilters)) {
+    const { query, columnFilters, outlierFilters, dataId, propagateState } = this.props;
+    if (gu.noFilters(this.props)) {
       return null;
     }
     const label = (
@@ -105,12 +128,16 @@ class ReactDataViewerInfo extends React.Component {
         Filter:
       </div>
     );
-    const filterSegs = _.map(columnFilters, "query");
+    const filterSegs = _.concat(_.map(columnFilters, "query"), _.map(outlierFilters, "query"));
     if (query) {
       filterSegs.push(query);
     }
     const clearFilter = () => {
-      const settingsUpdates = { query: "", columnFilters: {} };
+      const settingsUpdates = {
+        query: "",
+        columnFilters: {},
+        outlierFilters: {},
+      };
       serverState.updateSettings(settingsUpdates, dataId, () => propagateState(settingsUpdates));
     };
     const clearAll = (
@@ -139,24 +166,8 @@ class ReactDataViewerInfo extends React.Component {
           hidden={this.state.menuOpen !== "filter"}
           style={{ minWidth: "8em", top: "1em" }}>
           <ul>
-            {_.map(columnFilters, (cfg, col) => {
-              const dropColFilter = () => {
-                const updatedSettings = {
-                  columnFilters: _.pickBy(columnFilters, (_, k) => k !== col),
-                };
-                serverState.updateSettings(updatedSettings, dataId, () => propagateState(updatedSettings));
-              };
-              return (
-                <li key={`${col}`}>
-                  <span className="toggler-action">
-                    <button className="btn btn-plain ignore-clicks" onClick={dropColFilter}>
-                      <i className="ico-cancel mr-4" />
-                    </button>
-                  </span>
-                  <span className="font-weight-bold text-nowrap">{cfg.query}</span>
-                </li>
-              );
-            })}
+            {displayQueries(this.props, "columnFilters")}
+            {displayQueries(this.props, "outlierFilters")}
             {query && (
               <li>
                 <span className="toggler-action">
@@ -255,10 +266,7 @@ class ReactDataViewerInfo extends React.Component {
         </div>
       );
     }
-    const hideSort = _.isEmpty(this.props.sortInfo);
-    const hideFilter = _.isEmpty(this.props.query) && _.isEmpty(this.props.columnFilters);
-    const hideHidden = gu.noHidden(this.props.columns);
-    if (hideSort && hideFilter && hideHidden) {
+    if (gu.hasNoInfo(this.props)) {
       return errorMarkup;
     }
     return [
@@ -281,6 +289,7 @@ ReactDataViewerInfo.propTypes = {
   columns: PropTypes.arrayOf(PropTypes.object),
   dataId: PropTypes.string,
   columnFilters: PropTypes.object,
+  outlierFilters: PropTypes.object,
 };
 
 const ReduxDataViewerInfo = connect(({ dataId }) => ({ dataId }))(ReactDataViewerInfo);

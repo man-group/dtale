@@ -1,18 +1,24 @@
+import getSymbolFromCurrency from "currency-symbol-map";
+import currencyToSymbolMap from "currency-symbol-map/map";
 import _ from "lodash";
 import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
 import { ModalBody } from "react-modal-bootstrap";
+import Select, { createFilter } from "react-select";
 
 import menuFuncs from "../../dtale/dataViewerMenuUtils";
 
-const STYLE_PROPS = ["redNegs"];
+const STYLE_PROPS = ["redNegs", "currency"];
 
 function buildFormatter(fmt = { precision: 2 }) {
-  const { precision, thousands, abbreviate, exponent, bps } = fmt;
+  const { precision, thousands, abbreviate, exponent, bps, currency } = fmt;
   let fmtStr = "0";
   if (thousands) {
     fmtStr = "0,000";
+  }
+  if (currency) {
+    fmtStr = `${getSymbolFromCurrency(currency.value)}${fmtStr}`;
   }
   if (precision) {
     fmtStr += `.${_.repeat(0, precision)}`;
@@ -26,7 +32,16 @@ function buildFormatter(fmt = { precision: 2 }) {
   if (bps) {
     fmtStr += "BPS";
   }
-  return { fmt: fmtStr, style: _.pick(fmt, STYLE_PROPS) };
+  const style = _.pick(fmt, STYLE_PROPS);
+  style.currency = _.get(style.currency, "value");
+  return { fmt: fmtStr, style };
+}
+
+function buildCurrencyOpt(currency) {
+  return {
+    value: currency,
+    label: `${currency} (${currencyToSymbolMap[currency]})`,
+  };
 }
 
 function parseState({ fmt, style }) {
@@ -37,6 +52,7 @@ function parseState({ fmt, style }) {
     exponent: _.includes(fmt, "e+0"),
     bps: _.includes(fmt, "BPS"),
     redNegs: _.get(style, "redNegs", false),
+    currency: _.get(style, "currency") ? buildCurrencyOpt(style.currency) : null,
     fmt,
   };
   if (_.includes(fmt, ".")) {
@@ -57,6 +73,7 @@ const BASE_STATE = {
   exponent: false,
   bps: false,
   redNegs: false,
+  currency: null,
   fmt: "",
 };
 
@@ -136,6 +153,22 @@ class NumericFormatting extends React.Component {
         {this.buildSimpleToggle("exponent", "Exponent")}
         {this.buildSimpleToggle("bps", "BPS")}
         {this.buildSimpleToggle("redNegs", "Red Negatives")}
+        <div className="form-group row">
+          <label className="col-md-4 col-form-label text-right">Currency</label>
+          <div className="col-md-6">
+            <Select
+              className="Select is-clearable is-searchable Select--single"
+              classNamePrefix="Select"
+              options={_.map(_.sortBy(_.keys(currencyToSymbolMap)), buildCurrencyOpt)}
+              getOptionLabel={_.property("label")}
+              getOptionValue={_.property("value")}
+              value={this.state.currency}
+              onChange={currency => this.updateState({ currency })}
+              isClearable
+              filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+            />
+          </div>
+        </div>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">
             <span>Numeral.js Format</span>

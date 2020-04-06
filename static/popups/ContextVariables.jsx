@@ -4,7 +4,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
 
-import { ROW_HEIGHT } from "../dtale/gridUtils";
+import { exports as gu } from "../dtale/gridUtils";
 
 require("./ContextVariables.css");
 
@@ -46,10 +46,10 @@ class ContextVariables extends React.Component {
             <Table
               className="contextVariables"
               width={width}
-              height={Math.min(300, (this.props.contextVars.length + 1) * (ROW_HEIGHT + 2))}
-              headerHeight={ROW_HEIGHT}
+              height={Math.min(300, (this.props.contextVars.length + 1) * (gu.ROW_HEIGHT + 2))}
+              headerHeight={gu.ROW_HEIGHT}
               headerClassName="headerCell"
-              rowHeight={ROW_HEIGHT}
+              rowHeight={gu.ROW_HEIGHT}
               rowCount={this.props.contextVars.length}
               rowGetter={({ index }) => this.props.contextVars[index]}
               rowStyle={{ display: "flex" }}>

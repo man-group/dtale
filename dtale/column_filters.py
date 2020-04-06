@@ -21,17 +21,33 @@ class ColumnFilter(object):
             self.builder = NumericFilter(column, self.classification, self.cfg)
         if self.cfg['type'] == 'date':
             self.builder = DateFilter(column, self.classification, self.cfg)
+        if self.cfg['type'] == 'outliers':
+            self.builder = OutlierFilter(column, self.classification, self.cfg)
 
     def save_filter(self):
         curr_settings = global_state.get_settings(self.data_id)
-        curr_filters = curr_settings.get('columnFilters') or {}
+        filters_key = '{}Filters'.format('outlier' if self.cfg['type'] == 'outliers' else 'column')
+        curr_filters = curr_settings.get(filters_key) or {}
         fltr = self.builder.build_filter()
         if fltr is None:
             curr_filters.pop(self.column, None)
         else:
             curr_filters[self.column] = fltr
-        curr_settings['columnFilters'] = curr_filters
+        curr_settings[filters_key] = curr_filters
         global_state.set_settings(self.data_id, curr_settings)
+        return curr_filters
+
+
+class OutlierFilter(object):
+    def __init__(self, column, classification, cfg):
+        self.column = column
+        self.classification = classification
+        self.cfg = cfg
+
+    def build_filter(self):
+        if self.cfg.get("query") is None:
+            return None
+        return self.cfg
 
 
 class MissingFilter(object):

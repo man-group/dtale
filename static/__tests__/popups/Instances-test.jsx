@@ -199,7 +199,7 @@ describe("Instances tests", () => {
             assignSpy.mockRestore();
             global.window = origWindow;
             result
-              .find(".ico-remove-circle")
+              .find(".ico-delete")
               .first()
               .simulate("click");
             setTimeout(() => {

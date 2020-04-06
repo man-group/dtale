@@ -15,33 +15,7 @@ import { clickColMenuButton, clickColMenuSubButton } from "./iframe-utils";
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-const COL_PROPS = [
-  {
-    locked: true,
-    width: 70,
-    name: "dtale_index",
-    dtype: "int64",
-    visible: true,
-  },
-  { locked: false, width: 20, name: "col1", dtype: "int64", visible: true },
-  {
-    locked: false,
-    width: 20,
-    name: "col2",
-    dtype: "float64",
-    visible: true,
-    min: 2.5,
-    max: 5.5,
-  },
-  { locked: false, width: 20, name: "col3", dtype: "object", visible: true },
-  {
-    locked: false,
-    width: 20,
-    name: "col4",
-    dtype: "datetime64[ns]",
-    visible: true,
-  },
-];
+const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
 
 class MockDateInput extends React.Component {
   render() {
@@ -178,7 +152,7 @@ describe("DataViewer iframe tests", () => {
       );
       t.deepEqual(
         colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-        ["Lock", "Hide", "Describe", "Column Analysis", "Formats"],
+        ["Lock", "Hide", "Delete", "Describe", "Column Analysis", "Formats"],
         "Should render column menu options"
       );
       clickColMenuSubButton(result, "Asc");

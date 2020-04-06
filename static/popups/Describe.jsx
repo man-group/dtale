@@ -35,12 +35,14 @@ class ReactDescribe extends React.Component {
       }
       newState.dtypes = dtypesData.dtypes;
       if (dtypesData.dtypes.length) {
-        let selectedRow = _.find(dtypesData.dtypes, ({ name }) => name === this.props.chartData.selectedCol);
+        let selectedRow = _.find(dtypesData.dtypes, {
+          name: this.props.chartData.selectedCol,
+        });
         if (_.isUndefined(selectedRow)) {
           selectedRow = _.head(dtypesData.dtypes);
         }
         newState.dtypes = _.map(newState.dtypes, d => _.assign(d, { selected: d.name == selectedRow.name }));
-        newState.selected = selectedRow.name; // by default, display first column
+        newState.selected = selectedRow; // by default, display first column
       }
       this.setState(newState);
     });
@@ -70,15 +72,19 @@ class ReactDescribe extends React.Component {
     };
     const propagateState = state => this.setState(state);
     return [
-      <div key="body" className="modal-body">
+      <div key="body" className="modal-body describe-body">
         <div className="row">
-          <div className="col-md-5">
+          <div className="col-md-5 describe-dtypes-grid-col">
             <BouncerWrapper showBouncer={this.state.loadingDtypes}>
               <DtypesGrid ref={mg => (this._grid = mg)} dtypes={this.state.dtypes} propagateState={propagateState} />
             </BouncerWrapper>
           </div>
-          <div className="col-md-7">
-            <Details selected={this.state.selected} dataId={this.props.dataId} propagateState={propagateState} />
+          <div className="col-md-7 describe-details-col">
+            <Details
+              selected={this.state.selected}
+              dataId={this.props.dataId}
+              propagateState={this.props.chartData.propagateState}
+            />
           </div>
         </div>
       </div>,

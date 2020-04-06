@@ -137,4 +137,5 @@ export default {
     persistVisibility(dataId, { visibility: JSON.stringify(visibility) }, callback),
   toggleVisibility: (dataId, toggle, callback) => persistVisibility(dataId, { toggle }, callback),
   updateSettings,
+  deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}/${col}`), _.noop),
 };

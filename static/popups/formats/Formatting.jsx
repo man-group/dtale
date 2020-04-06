@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 
-import * as gu from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 import serverState from "../../dtale/serverStateManagement";
 import DateFormatting from "./DateFormatting";
 import NumericFormatting from "./NumericFormatting";

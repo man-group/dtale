@@ -10,7 +10,7 @@ import ConditionalRender from "../../ConditionalRender";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
 import chartUtils from "../../chartUtils";
-import { isDateCol } from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { toggleBouncer } from "../../toggleUtils";
 import AxisEditor from "./AxisEditor";
@@ -248,7 +248,7 @@ class ChartsBody extends React.Component {
             c.update();
           });
           let zoomed = `${ticks.min} - ${ticks.max}`;
-          if (isDateCol(_.find(this.props.columns, { name: this.props.x.value }).dtype)) {
+          if (gu.isDateCol(_.find(this.props.columns, { name: this.props.x.value }).dtype)) {
             const buildLabel = x => moment(new Date(x)).format("YYYY-MM-DD");
             zoomed = `${buildLabel(ticks.min)} - ${buildLabel(ticks.max)}`;
           }

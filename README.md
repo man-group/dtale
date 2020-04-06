@@ -1,6 +1,9 @@
 [![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Title.png)](https://github.com/man-group/dtale)
 
-[Live Demo](http://alphatechadmin.pythonanywhere.com)
+* [Live Demo](http://alphatechadmin.pythonanywhere.com)
+* [Animated US COVID-19 Deaths By State](http://alphatechadmin.pythonanywhere.com/charts/3?chart_type=maps&query=date+%3E+%2720200301%27&agg=raw&map_type=choropleth&loc_mode=USA-states&loc=state_code&map_val=deaths&colorscale=Reds&cpg=false&animate_by=date)
+* [3D Scatter Chart](http://alphatechadmin.pythonanywhere.com/charts/4?chart_type=3d_scatter&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
+* [Surface Chart](http://alphatechadmin.pythonanywhere.com/charts/4?chart_type=surface&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
 
 -----------------
 
@@ -41,9 +44,9 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -333,8 +336,33 @@ View all the columns & their data types as well as individual details of each co
 |int|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_int.png)|Anything with standard numeric classifications (min, max, 25%, 50%, 75%) will have a nice boxplot with the mean (if it exists) displayed as an outlier if you look closely.|
 |float|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Describe_float.png)||
 
+#### Outlier Detection
+When viewing integer & float columns in the ["Describe" popup](#describe) you will see in the lower right-hand corner a toggle for Uniques & Outliers.
+
+|Outliers|Filter|
+|--------|------|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/outliers.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/outlier_filter.png)|
+
+If you click the "Outliers" toggle this will load the top 100 outliers in your column based on the following code snippet:
+```python
+s = df[column]
+q1 = s.quantile(0.25)
+q3 = s.quantile(0.75)
+iqr = q3 - q1
+iqr_lower = q1 - 1.5 * iqr
+iqr_upper = q3 + 1.5 * iqr
+outliers = s[(s < iqr_lower) | (s > iqr_upper)]
+```
+If you click on the "Apply outlier filter" link this will add an addtional "outlier" filter for this column which can be removed from the [header](#header) or the [custom filter](#custom-filter) shown in picture above to the right.
+
 #### Custom Filter
 Apply a custom pandas `query` to your data (link to pandas documentation included in popup)  
+
+|Editing|Result|
+|--------|:------:|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Filter_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_filter.png)|
+
+You can also see any outlier or column filters you've applied (which will be included in addition to your custom query) and remove them if you'd like.
 
 Context Variables are user-defined values passed in via the `context_variables` argument to dtale.show(); they can be referenced in filters by prefixing the variable name with '@'.
 
@@ -354,12 +382,6 @@ df.query('age in @two_oldest_ages')
 And here is how you would pass that context variable to D-Tale: `dtale.show(df, context_variables=dict(two_oldest_ages=two_oldest_ages))`
 
 Here's some nice documentation on the performance of [pandas queries](https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#pandas-eval-performance)
-
-
-|Editing|Result|
-|--------|:------:|
-|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Filter_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_filter.png)|
-
 
 #### Building Columns
 
@@ -531,13 +553,26 @@ When the data being viewed in D-Tale has date or timestamp columns but for each 
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr.png)|
 
 #### Heat Map
-This will hide any non-float columns (with the exception of the index on the right) and apply a color to the background of each cell
+This will hide any non-float or non-int columns (with the exception of the index on the right) and apply a color to the background of each cell.
+
   - Each float is renormalized to be a value between 0 and 1.0
+  - You have two options for the renormalization
+    - **By Col**: each value is calculated based on the min/max of its column
+    - **Overall**: each value is caluclated by the overall min/max of all the non-hidden float/int columns in the dataset
   - Each renormalized value is passed to a color scale of red(0) - yellow(0.5) - green(1.0)
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap.png)
 
-Turn off Heat Map by clicking menu option again
-![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Heatmap_toggle.png)
+Turn off Heat Map by clicking menu option you previously selected one more time
+
+#### Highlight Dtypes
+This is a quick way to check and see if your data has been categorized correctly.  By clicking this menu option it will assign a specific background color to each column of a specific data type.
+
+|category|timedelta|float|int|date|string|bool|
+|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|:-------:|
+|purple|orange|green|light blue|pink|white|yellow
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_dtypes.png)
+
 
 #### Code Exports
 *Code Exports* are small snippets of code representing the current state of the grid you're viewing including things like:
@@ -638,6 +673,10 @@ All column movements are saved on the server so refreshing your browser won't lo
 [![](http://img.youtube.com/vi/ryZT2Lk_YaA/0.jpg)](http://www.youtube.com/watch?v=ryZT2Lk_YaA "Hide/Unhide Columns in D-Tale")
 
 All column movements are saved on the server so refreshing your browser won't lose them :ok_hand:
+
+#### Delete
+
+As simple as it sounds, click this button to delete this column from your dataframe.  (Warning: not un-doable!)
 
 #### Lock
 Adds your column to "locked" columns
@@ -894,6 +933,7 @@ D-Tale works with:
     * Flask
     * Flask-Compress
     * Pandas
+    * plotly
     * scipy
     * six
   * Front-end
@@ -909,11 +949,12 @@ Original concept and implementation: [Andrew Schonfeld](https://github.com/ascho
 Contributors:
 
  * [Phillip Dupuis](https://github.com/phillipdupuis)
+ * [Fernando Saravia Rajal](https://github.com/fersarr)
  * [Dominik Christ](https://github.com/DominikMChrist)
+ * [Reza Moshkzar](https://github.com/reza1615)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
  * [Tom Taylor](https://github.com/TomTaylorLondon)
- * [Fernando Saravia Rajal](https://github.com/fersarr)
  * [Wilfred Hughes](https://github.com/Wilfred)
  * Mike Kelly
  * [Vincent Riemer](https://github.com/vincentriemer)

@@ -10,7 +10,7 @@ from dash.exceptions import PreventUpdate
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
-from dtale.dash_application.layout import (animate_by_style, bar_input_style,
+from dtale.dash_application.layout import (animate_styles, bar_input_style,
                                            base_layout,
                                            build_group_val_options,
                                            build_input_options,
@@ -241,6 +241,7 @@ def init_callbacks(dash_app):
             Output('barmode-input', 'style'),
             Output('barsort-input', 'style'),
             Output('yaxis-input', 'style'),
+            Output('animate-input', 'style'),
             Output('animate-by-input', 'style'),
             Output('animate-by-dropdown', 'options')
         ],
@@ -266,11 +267,11 @@ def init_callbacks(dash_app):
 
         data_id = get_data_id(pathname)
         df = global_state.get_data(data_id)
-        animate_style, animate_opts = animate_by_style(df, **inputs)
+        animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
 
         return (
             y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
-            yaxis_style, animate_style, animate_opts
+            yaxis_style, animate_style, animate_by_style, animate_opts
         )
 
     @dash_app.callback(
@@ -280,17 +281,19 @@ def init_callbacks(dash_app):
             Input('barmode-dropdown', 'value'),
             Input('barsort-dropdown', 'value'),
             Input('colorscale-dropdown', 'value'),
+            Input('animate-toggle', 'on'),
             Input('animate-by-dropdown', 'value'),
         ]
     )
-    def chart_input_data(cpg, barmode, barsort, colorscale, animate_by):
+    def chart_input_data(cpg, barmode, barsort, colorscale, animate, animate_by):
         """
         dash callback for maintaining selections in chart-formatting inputs
             - chart per group flag
             - bar chart mode
             - bar chart sorting
         """
-        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate_by=animate_by)
+        return dict(cpg=cpg, barmode=barmode, barsort=barsort, colorscale=colorscale, animate=animate,
+                    animate_by=animate_by)
 
     @dash_app.callback(
         [

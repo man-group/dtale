@@ -89,13 +89,14 @@ def test_ipython_notebook_funcs():
         [path, query] = mock_iframe.call_args[0][0].split('?')
         assert path == 'http://localhost:9999/charts/9999'
         assert dict(url_parser(query)) == dict(chart_type='line', agg='count', group='["col3", "col4"]', x='col1',
-                                               y='["col2"]', cpg='false')
+                                               y='["col2"]', cpg='false', animate='false')
 
         instance.notebook_charts(x='col1', y='col2', agg='count')
         [_path, query] = mock_iframe.call_args[0][0].split('?')
-        assert dict(url_parser(query)) == dict(chart_type='line', agg='count', x='col1', y='["col2"]', cpg='false')
+        assert dict(url_parser(query)) == dict(chart_type='line', agg='count', x='col1', y='["col2"]', cpg='false',
+                                               animate='false')
 
         instance.notebook_charts(x='col1', y='col2', group=['col3', 'col4'])
         [_path, query] = mock_iframe.call_args[0][0].split('?')
         assert dict(url_parser(query)) == dict(chart_type='line', x='col1', y='["col2"]', group='["col3", "col4"]',
-                                               cpg='false')
+                                               cpg='false', animate='false')

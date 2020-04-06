@@ -5,7 +5,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
 
-import * as gu from "../../dtale/gridUtils";
+import { exports as gu } from "../../dtale/gridUtils";
 
 require("./DtypesGrid.css");
 
@@ -160,7 +160,7 @@ class DtypesGrid extends React.Component {
         {
           dtypes: _.map(this.state.dtypes, d => _.assign({}, d, { selected: d.name === rowData.name })),
         },
-        () => this.props.propagateState({ selected: rowData.name })
+        () => this.props.propagateState({ selected: rowData })
       );
     return (
       <AutoSizer>

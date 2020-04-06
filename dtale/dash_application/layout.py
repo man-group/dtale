@@ -276,8 +276,8 @@ def build_loc_mode_hover(loc_mode):
 COLORSCALES = ['Blackbody', 'Bluered', 'Blues', 'Earth', 'Electric', 'Greens', 'Greys', 'Hot', 'Jet', 'Picnic',
                'Portland', 'Rainbow', 'RdBu', 'Reds', 'Viridis', 'YlGnBu', 'YlOrRd']
 
-ANIMATION_CHARTS = ['line', 'bar', '3d_scatter']
-ANIMATE_BY_CHARTS = ['line', 'bar', 'maps']
+ANIMATION_CHARTS = ['line']
+ANIMATE_BY_CHARTS = ['bar', '3d_scatter', 'maps']
 
 
 def show_input_handler(chart_type):
@@ -411,18 +411,18 @@ def colorscale_input_style(**inputs):
     return dict(display='block' if inputs.get('chart_type') in ['heatmap', 'maps'] else 'none')
 
 
-def animate_by_style(df, **inputs):
+def animate_styles(df, **inputs):
     chart_type, cpg = (inputs.get(p) for p in ['chart_type', 'cpg'])
-    if cpg:
-        return dict(display='none'), []
     opts = []
+    if cpg:
+        return dict(display='none'), dict(display='none'), opts
+    if chart_type in ANIMATION_CHARTS:
+        return dict(display='block'), dict(display='none'), opts
     if chart_type in ANIMATE_BY_CHARTS:
         opts = [build_option(v, l) for v, l in build_cols(df.columns, get_dtypes(df))]
-    if chart_type in ANIMATION_CHARTS:
-        opts = [build_option('chart_values', 'Values in Chart')]
     if len(opts):
-        return dict(display='block'), opts
-    return dict(display='none'), []
+        return dict(display='none'), dict(display='block'), opts
+    return dict(display='none'), dict(display='none'), []
 
 
 def show_chart_per_group(**inputs):
@@ -510,7 +510,7 @@ def charts_layout(df, settings, **inputs):
     show_cpg = show_chart_per_group(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
     bar_style = bar_input_style(**inputs)
-    animate_style, animate_opts = animate_by_style(df, **inputs)
+    animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
 
     options = build_input_options(df, **inputs)
     x_options, y_multi_options, y_single_options, z_options, group_options, barsort_options, yaxis_options = options
@@ -836,6 +836,14 @@ def charts_layout(df, settings, **inputs):
                             id='colorscale-dropdown', options=[build_option(o) for o in COLORSCALES],
                             value=inputs.get('colorscale') or default_cscale
                         ), className='col-auto addon-min-width', style=cscale_style, id='colorscale-input'),
+                        build_input(
+                            'Animate',
+                            html.Div(daq.BooleanSwitch(id='animate-toggle', on=inputs.get('animate') or False),
+                                     className='toggle-wrapper'),
+                            id='animate-input',
+                            style=animate_style,
+                            className='col-auto'
+                        ),
                         build_input('Animate By', dcc.Dropdown(
                             id='animate-by-dropdown', options=animate_opts,
                             value=inputs.get('animate_by')
