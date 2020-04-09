@@ -1,10 +1,10 @@
 /* eslint max-lines: "off" */
 import { mount } from "enzyme";
-import moment from "moment";
 import React from "react";
 import { Provider } from "react-redux";
+import Select from "react-select";
 
-import { CreateRandom } from "../../../popups/create/CreateRandom";
+import { CreateTypeConversion } from "../../../popups/create/CreateTypeConversion";
 import mockPopsicle from "../../MockPopsicle";
 import * as t from "../../jest-assertions";
 import reduxUtils from "../../redux-test-utils";
@@ -21,12 +21,12 @@ function initialize(res) {
     .first()
     .find("input")
     .first()
-    .simulate("change", { target: { value: "rando_col" } });
+    .simulate("change", { target: { value: "conv_col" } });
   res
     .find("div.form-group")
     .at(1)
     .find("button")
-    .at(3)
+    .last()
     .simulate("click");
 }
 
@@ -86,7 +86,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  test("DataViewer: build random float column", done => {
+  test("DataViewer: build int conversion column", done => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
 
@@ -106,76 +106,36 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        t.equal(result.find(CreateRandom).length, 1, "should show build random column");
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
+        t.equal(result.find(CreateTypeConversion).length, 1, "should show build conversion column");
+        result
+          .find(CreateTypeConversion)
+          .find(Select)
+          .first()
+          .instance()
+          .onChange({ value: "col1" });
+        result.update();
+        result
+          .find(CreateTypeConversion)
           .find("div.form-group")
           .at(1)
-          .find("input")
-          .first()
-          .simulate("change", { target: { value: "-2" } });
-        randomInputs
-          .find("div.form-group")
-          .last()
-          .find("input")
-          .simulate("change", { target: { value: "2" } });
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "float",
-            low: "-2",
-            high: "2",
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
-  });
-
-  test("DataViewer: build random int column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
           .find("button")
-          .at(1)
+          .first()
           .simulate("click");
-        randomInputs
-          .find("div.form-group")
+        result.update();
+        result
+          .find(CreateTypeConversion)
+          .find(Select)
           .at(1)
-          .find("input")
-          .simulate("change", { target: { value: "-2" } });
-        randomInputs
-          .find("div.form-group")
-          .last()
-          .find("input")
-          .simulate("change", { target: { value: "2" } });
+          .instance()
+          .onChange({ value: "YYYYMMDD" });
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "int",
-            low: "-2",
-            high: "2",
+            to: "date",
+            from: "int64",
+            col: "col1",
+            unit: "YYYYMMDD",
+            fmt: null,
           });
           result.update();
           done();
@@ -184,7 +144,7 @@ describe("DataViewer tests", () => {
     }, 600);
   });
 
-  test("DataViewer: build random string column", done => {
+  test("DataViewer: build float conversion column", done => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
 
@@ -204,29 +164,85 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
+        result
+          .find(CreateTypeConversion)
+          .find(Select)
           .first()
+          .instance()
+          .onChange({ value: "col2" });
+        result.update();
+        result
+          .find(CreateTypeConversion)
+          .find("div.form-group")
+          .at(1)
           .find("button")
+          .first()
+          .simulate("click");
+        submit(result);
+        setTimeout(() => {
+          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
+            col: "col2",
+            to: "int",
+            from: "float64",
+            fmt: null,
+            unit: null,
+          });
+          result.update();
+          done();
+        }, 400);
+      }, 400);
+    }, 600);
+  });
+
+  test("DataViewer: build string conversion column", done => {
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "" }, store);
+    const result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      { attachTo: document.getElementById("content") }
+    );
+
+    setTimeout(() => {
+      result.update();
+      clickMainMenuButton(result, "Build Column");
+      setTimeout(() => {
+        result.update();
+        initialize(result.find(CreateColumn));
+        result.update();
+        result
+          .find(CreateTypeConversion)
+          .find(Select)
+          .first()
+          .instance()
+          .onChange({ value: "col3" });
+        result.update();
+        result
+          .find(CreateTypeConversion)
+          .find("div.form-group")
+          .at(1)
+          .find("button")
+          .first()
+          .simulate("click");
+        result
+          .find(CreateTypeConversion)
+          .find("div.form-group")
           .at(2)
-          .simulate("click");
-        randomInputs
-          .find("div.form-group")
-          .at(1)
           .find("input")
-          .simulate("change", { target: { value: "5" } });
-        randomInputs
-          .find("div.form-group")
-          .last()
-          .find("input")
-          .simulate("change", { target: { value: "abcde" } });
+          .first()
+          .simulate("change", { target: { value: "%d/%m/%Y" } });
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "string",
-            chars: "abcde",
-            length: "5",
+            col: "col3",
+            to: "date",
+            from: "object",
+            fmt: "%d/%m/%Y",
+            unit: null,
           });
           result.update();
           done();
@@ -235,7 +251,7 @@ describe("DataViewer tests", () => {
     }, 600);
   });
 
-  test("DataViewer: build random choice column", done => {
+  test("DataViewer: build date conversion column", done => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
 
@@ -255,126 +271,35 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(3)
-          .simulate("click");
-        randomInputs
-          .find("div.form-group")
-          .at(1)
-          .find("input")
-          .simulate("change", { target: { value: "foo,bar,baz" } });
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "choice",
-            choices: "foo,bar,baz",
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
-  });
-
-  test("DataViewer: build random bool column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(4)
-          .simulate("click");
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "bool",
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
-  });
-
-  test("DataViewer: build random date column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    const DateInput = require("@blueprintjs/datetime").DateInput;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .last()
-          .simulate("click");
-        const dateInputs = result.find(CreateColumn).find(DateInput);
-        dateInputs
+        result
+          .find(CreateTypeConversion)
+          .find(Select)
           .first()
           .instance()
-          .props.onChange(new Date(moment("20000101")));
-        dateInputs
-          .find(DateInput)
-          .last()
-          .instance()
-          .props.onChange(new Date(moment("20000102")));
+          .onChange({ value: "col4" });
+        result.update();
         result
-          .find(CreateColumn)
-          .find("i")
+          .find(CreateTypeConversion)
+          .find("div.form-group")
+          .at(1)
+          .find("button")
           .first()
           .simulate("click");
+        result.update();
         result
-          .find(CreateColumn)
-          .find("i")
-          .last()
-          .simulate("click");
+          .find(CreateTypeConversion)
+          .find(Select)
+          .at(1)
+          .instance()
+          .onChange({ value: "ms" });
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            type: "date",
-            start: "20000101",
-            end: "20000102",
-            businessDay: true,
-            timestamps: true,
+            col: "col4",
+            to: "int",
+            from: "datetime[ns]",
+            unit: "ms",
+            fmt: null,
           });
           result.update();
           done();
@@ -383,13 +308,37 @@ describe("DataViewer tests", () => {
     }, 600);
   });
 
-  test("DataViewer: build random cfg validation", done => {
-    const { validateRandomCfg } = require("../../../popups/create/CreateRandom");
+  test("DataViewer: build conversion cfg validation", done => {
+    const { validateTypeConversionCfg } = require("../../../popups/create/CreateTypeConversion");
+    t.equal(validateTypeConversionCfg({ col: null }), "Missing a column selection!");
+    t.equal(validateTypeConversionCfg({ col: "col1", to: null }), "Missing a conversion selection!");
     t.equal(
-      validateRandomCfg({ type: "int", low: "3", high: "2" }),
-      "Invalid range specification, low must be less than high!"
+      validateTypeConversionCfg({
+        col: "col2",
+        to: "date",
+        from: "int64",
+        unit: null,
+      }),
+      "Missing a unit selection!"
     );
-    t.equal(validateRandomCfg({ type: "date", start: "20000101", end: "19991231" }), "Start must be before End!");
+    t.equal(
+      validateTypeConversionCfg({
+        col: "col2",
+        to: "int",
+        from: "datetime64[ns]",
+        unit: "D",
+      }),
+      "Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'"
+    );
+    t.equal(
+      validateTypeConversionCfg({
+        col: "col2",
+        to: "int",
+        from: "datetime64[ns]",
+        unit: "ms",
+      }),
+      null
+    );
     done();
   });
 });

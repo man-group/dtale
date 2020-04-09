@@ -392,6 +392,7 @@ This video shows you how to build the following:
  - Bins: bucketing values using pandas cut & qcut as well as assigning custom labels
  - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
  - Random: columns of data type (int, float, string & date) populated with random uniformly distributed values.
+  - Type Conversion: switch columns from one data type to another, fun. :smile:
 
 #### Summarize Data
 

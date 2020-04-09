@@ -12,8 +12,15 @@ import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
+import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
 
 require("./CreateColumn.css");
+
+const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion"];
+
+function buildLabel(v) {
+  return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
+}
 
 const BASE_STATE = {
   type: "numeric",
@@ -68,6 +75,9 @@ class ReactCreateColumn extends React.Component {
       case "random":
         error = validateRandomCfg(cfg);
         break;
+      case "type_conversion":
+        error = validateTypeConversionCfg(cfg);
+        break;
       case "numeric":
       default:
         error = validateNumericCfg(cfg);
@@ -121,6 +131,9 @@ class ReactCreateColumn extends React.Component {
       case "random":
         body = <CreateRandom updateState={updateState} />;
         break;
+      case "type_conversion":
+        body = <CreateTypeConversion columns={this.state.columns} updateState={updateState} />;
+        break;
     }
     return (
       <div key="body" className="modal-body">
@@ -139,7 +152,7 @@ class ReactCreateColumn extends React.Component {
           <label className="col-md-3 col-form-label text-right">Column Type</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(["numeric", "bins", "datetime", "random"], (type, i) => {
+              {_.map(TYPES, (type, i) => {
                 const buttonProps = { className: "btn" };
                 if (type === this.state.type) {
                   buttonProps.className += " btn-primary active";
@@ -153,7 +166,7 @@ class ReactCreateColumn extends React.Component {
                 }
                 return (
                   <button key={i} {...buttonProps}>
-                    {_.capitalize(type)}
+                    {buildLabel(type)}
                   </button>
                 );
               })}
