@@ -1,6 +1,7 @@
 import { buildCode as buildBinsCode } from "../../../popups/create/CreateBins";
 import { buildCode as buildDatetimeCode } from "../../../popups/create/CreateDatetime";
 import { buildCode as buildNumericCode } from "../../../popups/create/CreateNumeric";
+import { buildCode as buildTypeConversionCode } from "../../../popups/create/CreateTypeConversion";
 import * as t from "../../jest-assertions";
 
 describe("CreateColumn buildCode tests", () => {
@@ -133,6 +134,95 @@ describe("CreateColumn buildCode tests", () => {
       labels: "foo,bar,baz",
     });
     t.equal(code, "pd.cut(df['col1'], bins=3, labels=['foo', 'bar', 'baz'])");
+    done();
+  });
+
+  test("TypeConversion buildCode test", done => {
+    const code = buildTypeConversionCode({
+      col: null,
+      from: null,
+      to: null,
+      fmt: null,
+      unit: null,
+    });
+    t.equal(code, null);
+    buildTypeConversionCode({
+      col: "col1",
+      from: "object",
+      to: "date",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "object",
+      to: "int",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "object",
+      to: "float",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "int",
+      to: "date",
+      fmt: null,
+      unit: "YYYYMMDD",
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "int",
+      to: "date",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "int",
+      to: "float",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "date",
+      to: "int",
+      fmt: null,
+      unit: "YYYYMMDD",
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "date",
+      to: "int",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "date",
+      to: "int",
+      fmt: "%m/%d/%Y",
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "float64",
+      to: "int",
+      fmt: null,
+      unit: null,
+    });
+    buildTypeConversionCode({
+      col: "col1",
+      from: "bool",
+      to: "int",
+      fmt: null,
+      unit: null,
+    });
     done();
   });
 });

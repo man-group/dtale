@@ -1,10 +1,12 @@
 import random
 import string
+import time
 
 import numpy as np
 import pandas as pd
 
 import dtale.global_state as global_state
+from dtale.utils import classify_type
 
 
 class ColumnBuilder(object):
@@ -19,6 +21,8 @@ class ColumnBuilder(object):
             self.builder = BinsColumnBuilder(name, cfg)
         elif column_type == 'random':
             self.builder = RandomColumnBuilder(name, cfg)
+        elif column_type == 'type_conversion':
+            self.builder = TypeConversionColumnBuilder(name, cfg)
         else:
             raise NotImplementedError("'{}' column builder not implemented yet!".format(column_type))
 
@@ -259,3 +263,109 @@ class RandomColumnBuilder(object):
             'import numpy as np\n\n'
             "df.loc[:, '{name}'] = pd.Series(np.random.uniform({low}, {high}, len(df)), index=df.index)"
         ).format(low=low, high=high, name=self.name)
+
+
+class TypeConversionColumnBuilder(object):
+
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, from_type, to_type = (self.cfg.get(p) for p in ['col', 'from', 'to'])
+        s = data[col]
+        classifier = classify_type(from_type)
+        if classifier == 'S':  # col can be (str or category) -> date, int, float, bool, category
+            if to_type == 'date':
+                date_kwargs = {}
+                if self.cfg.get('fmt'):
+                    date_kwargs['format'] = self.cfg['fmt']
+                else:
+                    date_kwargs['infer_datetime_format'] = True
+                return pd.Series(pd.to_datetime(s, **date_kwargs), name=self.name, index=s.index)
+            elif to_type == 'int':
+                return pd.Series(s.astype('float').astype('int'), name=self.name, index=s.index)
+            else:
+                return pd.Series(s.astype(to_type), name=self.name, index=s.index)
+        elif classifier == 'I':  # date, float, category, str, bool
+            if to_type == 'date':
+                unit = self.cfg.get('unit') or 'D'
+                if unit == 'YYYYMMDD':
+                    return pd.Series(s.astype(str).apply(pd.Timestamp), name=self.name, index=s.index)
+                return pd.Series(pd.to_datetime(s, unit=unit), name=self.name, index=s.index)
+            return pd.Series(s.astype(to_type), name=self.name, index=s.index)
+        elif classifier == 'F':  # str, int
+            return pd.Series(s.astype(to_type), name=self.name, index=s.index)
+        elif classifier == 'D':  # str, int
+            if to_type == 'int':
+                unit = self.cfg.get('unit')
+                if unit == 'YYYYMMDD':
+                    return pd.Series(s.dt.strftime('%Y%m%d').astype(int), name=self.name, index=s.index)
+                return pd.Series(s.apply(lambda x: time.mktime(x.timetuple())).astype(int))
+            return pd.Series(s.dt.strftime(self.cfg.get('fmt') or '%Y%m%d'), name=self.name, index=s.index)
+        elif classifier == 'B':
+            return pd.Series(s.astype(to_type), name=self.name, index=s.index)
+        raise NotImplementedError('data type conversion not supported for dtype: {}'.format(from_type))
+
+    def build_inner_code(self):
+        col, from_type, to_type = (self.cfg.get(p) for p in ['col', 'from', 'to'])
+        s = "df['{col}']".format(col=col)
+        classifier = classify_type(from_type)
+        if classifier == 'S':  # date, int, float, bool, category
+            if to_type == 'date':
+                if self.cfg.get('fmt'):
+                    date_kwargs = "format='{}'".format(self.cfg['fmt'])
+                else:
+                    date_kwargs = 'infer_datetime_format=True'
+                code = "pd.Series(pd.to_datetime({s}, {kwargs}), name='{name}', index={s}.index)"
+                return code.format(s=s, name=self.name, kwargs=date_kwargs)
+            elif to_type == 'int':
+                return "pd.Series({s}.astype('float').astype('int'), name='{name}', index={s}.index)".format(
+                    s=s, name=self.name
+                )
+            else:
+                return "pd.Series({s}.astype({to_type}), name='{name}', index={s}.index)".format(
+                    s=s, to_type=to_type, name=self.name
+                )
+        elif classifier == 'I':  # date, float, category, str, bool
+            if to_type == 'date':
+                unit = self.cfg.get('unit') or 'D'
+                if unit == 'YYYYMMDD':
+                    return "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
+                        s=s, name=self.name,
+                    )
+                return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
+                    s=s, name=self.name, unit=unit
+                )
+            return "pd.Series({s}.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                s=s, to_type=to_type, name=self.name
+            )
+        elif classifier == 'F':  # str, int
+            return "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                s=s, to_type=to_type, name=self.name
+            )
+        elif classifier == 'D':  # str, int
+            if to_type == 'int':
+                unit = self.cfg.get('unit') or 'D'
+                if unit == 'YYYYMMDD':
+                    return "pd.Series({s}.dt.strftime('%Y%m%d').astype(int), name='{name}', index={s}.index)".format(
+                        s=s, name=self.name
+                    )
+                return (
+                    "pd.Series(\n"
+                    "\t{s}.apply(lambda x: time.mktime(x.timetuple())).astype(int), \n"
+                    "name='{name}', index={s}.index\n"
+                    ")"
+                ).format(s=s, name=self.name)
+            return "pd.Series({s}.dt.strftime('{fmt}'), name='{name}', index={s}.index)".format(
+                fmt=self.cfg.get('fmt') or '%Y%m%d', s=s, name=self.name
+            )
+        elif classifier == 'B':
+            return "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                s=s, to_type=to_type, name=self.name
+            )
+        raise NotImplementedError('data type conversion not supported for dtype: {}'.format(from_type))
+
+    def build_code(self):
+        code = self.build_inner_code()
+        return "df.loc[:, '{name}'] = {code}".format(name=self.name, code=code)

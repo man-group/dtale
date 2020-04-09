@@ -35,7 +35,7 @@ const DTYPES = {
   dtypes: [
     { index: 0, name: "col1", dtype: "int64", visible: true },
     { index: 1, name: "col2", dtype: "float64", visible: true },
-    { index: 2, name: "col3", dtype: "string", visible: true },
+    { index: 2, name: "col3", dtype: "object", visible: true },
     { index: 3, name: "col4", dtype: "datetime[ns]", visible: true },
   ],
   success: true,

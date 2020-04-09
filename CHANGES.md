@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.8 (2020-4-9)
+ * [#144](https://github.com/man-group/dtale/issues/144)
+
 ### 1.8.7 (2020-4-8)
  * [#137](https://github.com/man-group/dtale/issues/137)
  * [#141](https://github.com/man-group/dtale/issues/141)

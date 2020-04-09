@@ -1015,7 +1015,7 @@ def describe(data_id, column):
         uniq_vals = data[column].unique()
         if 'unique' not in return_data['describe']:
             return_data['describe']['unique'] = json_int(len(uniq_vals), as_string=True)
-        uniq_f = find_dtype_formatter(get_dtypes(data)[column])
+        uniq_f = find_dtype_formatter(find_dtype(data[column]))
         if len(uniq_vals) <= 100:
             code.append("uniq_vals = data['{}'].unique()".format(column))
             return_data['uniques'] = dict(
@@ -1046,7 +1046,7 @@ def outliers(data_id, column):
         iqr = q3 - q1
         iqr_lower = q1 - 1.5 * iqr
         iqr_upper = q3 + 1.5 * iqr
-        formatter = find_dtype_formatter(get_dtypes(df)[column])
+        formatter = find_dtype_formatter(find_dtype(df[column]))
         outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
         top = len(outliers) > 100
         outliers = [formatter(v) for v in outliers[:100]]
@@ -1256,7 +1256,7 @@ def get_column_analysis(data_id):
         data = data[~pd.isnull(data[selected_col])][cols]
 
         code = build_code_export(data_id, imports='import numpy as np\nimport pandas as pd\n\n')
-        dtype = get_dtypes(data)[selected_col]
+        dtype = find_dtype(data[selected_col])
         classifier = classify_type(dtype)
         if data_type is None:
             data_type = 'histogram' if classifier in ['F', 'I'] else 'value_counts'

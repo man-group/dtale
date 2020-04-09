@@ -26,7 +26,7 @@ from dtale.dash_application.layout import (AGGS, ANIMATE_BY_CHARTS,
                                            test_plotly_version,
                                            update_label_for_freq)
 from dtale.utils import (build_code_export, classify_type, dict_merge,
-                         divide_chunks, export_to_csv_buffer,
+                         divide_chunks, export_to_csv_buffer, find_dtype,
                          find_dtype_formatter, flatten_lists, get_dtypes,
                          make_list, run_query)
 
@@ -991,7 +991,7 @@ def heatmap_builder(data_id, export=False, **inputs):
 
 
 def build_map_frames(data, animate_by, frame_builder):
-    formatter = find_dtype_formatter(get_dtypes(data)[animate_by])
+    formatter = find_dtype_formatter(find_dtype(data[animate_by]))
     frames, slider_steps = [], []
     for g_name, g in data.groupby(animate_by):
         g_name = formatter(g_name)
