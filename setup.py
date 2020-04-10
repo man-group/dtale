@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.8.8",
+    version="1.8.9",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -83,7 +83,7 @@ setup(
         'tests': [
             "ipython",
             "mock",
-            "pytest==4.6.4",
+            "pytest",
             "pytest-cov",
             "pytest-server-fixtures",
         ]
@@ -97,6 +97,8 @@ setup(
         "Topic :: Scientific/Engineering",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     cmdclass={
         "test": PyTest,

@@ -120,7 +120,7 @@ describe("DataViewer iframe tests", () => {
         _.concat(
           ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
           ["Highlight Dtypes", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Reload Data"],
-          ["Open Popup", "Shutdown"]
+          ["Open In New Tab", "Shutdown"]
         ),
         "Should render default menu options"
       );

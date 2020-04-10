@@ -21,6 +21,7 @@ class ReactDataViewerMenu extends React.Component {
       }
     };
     const openCodeExport = () => menuFuncs.open("/dtale/popup/code-export", dataId, 450, 700);
+    const openCorrelations = () => window.open(menuFuncs.fullPath("/dtale/popup/correlations", dataId), "_blank");
     const refreshWidths = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
@@ -82,7 +83,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("correlations", 1235, 1000)}>
+              <button className="btn btn-plain" onClick={openCorrelations}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>
@@ -224,11 +225,9 @@ class ReactDataViewerMenu extends React.Component {
           <ConditionalRender display={iframe}>
             <li>
               <span className="toggler-action">
-                <button
-                  className="btn btn-plain"
-                  onClick={() => menuFuncs.open(window.location.pathname, null, 400, 700)}>
+                <button className="btn btn-plain" onClick={() => window.open(window.location.pathname, "_blank")}>
                   <i className="ico-open-in-new" />
-                  <span className="font-weight-bold">Open Popup</span>
+                  <span className="font-weight-bold">Open In New Tab</span>
                 </button>
               </span>
             </li>

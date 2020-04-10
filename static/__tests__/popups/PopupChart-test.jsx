@@ -2,19 +2,19 @@ import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
-import { ReactCorrelations } from "../../popups/Correlations";
+import { Correlations } from "../../popups/Correlations";
 import { ReactColumnAnalysis } from "../../popups/analysis/ColumnAnalysis";
 import { ReactCharts } from "../../popups/charts/Charts";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
 
-class MockReactCorrelations extends React.Component {
+class MockCorrelations extends React.Component {
   render() {
-    return <ReactCorrelations dataId="1" />;
+    return <Correlations dataId="1" />;
   }
 }
-MockReactCorrelations.displayName = "Correlations";
+MockCorrelations.displayName = "Correlations";
 
 class MockReactColumnAnalysis extends React.Component {
   render() {
@@ -44,7 +44,7 @@ describe("Popup tests", () => {
       ColumnAnalysis: MockReactColumnAnalysis,
     }));
     jest.mock("../../popups/Correlations", () => ({
-      Correlations: MockReactCorrelations,
+      Correlations: MockCorrelations,
     }));
     jest.mock("../../popups/charts/Charts", () => ({
       Charts: MockReactCharts,

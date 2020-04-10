@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.8.9 (2020-4-18)
+ * updated correlations & "Open Popup" to create new tabs instead
+ * test fixes for dash 1.11.0
+ * added python 3.7 & 3.8 support
+
 ### 1.8.8 (2020-4-9)
  * [#144](https://github.com/man-group/dtale/issues/144)
 

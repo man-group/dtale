@@ -8,7 +8,7 @@ import "./adapter-for-react-16";
 import { DataViewer } from "./dtale/DataViewer";
 import { CodeExport } from "./popups/CodeExport";
 import { CodePopup } from "./popups/CodePopup";
-import { ReactCorrelations as Correlations } from "./popups/Correlations";
+import { Correlations } from "./popups/Correlations";
 import { ReactDescribe as Describe } from "./popups/Describe";
 import { ReactFilter as Filter } from "./popups/Filter";
 import Instances from "./popups/Instances";

@@ -44,12 +44,11 @@ def test_display_page(unittest):
             params = {
                 'output': 'popup-content.children',
                 'changedPropIds': ['url.modified_timestamp'],
-                'inputs': [{'id': 'url', 'property': 'modified_timestamp'}],
-                'state': [pathname, {'id': 'url', 'property': 'search', 'value': None}]
+                'inputs': [pathname, {'id': 'url', 'property': 'search', 'value': None}]
             }
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
-            component_defs = resp_data['props']['children']['props']['children']
+            component_defs = resp_data['popup-content']['children']['props']['children']
             x_dd = component_defs[10]['props']['children'][0]
             x_dd = x_dd['props']['children'][0]
             x_dd = x_dd['props']['children'][0]
@@ -155,7 +154,7 @@ def test_map_data(unittest):
             params = {
                 'output': (
                     '..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options...'
-                    'map-lon-dropdown.options...map-value-dropdown.options...map-loc-mode-input.style...'
+                    'map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style...'
                     'map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style...'
                     'map-proj-input.style...proj-hover.style...proj-hover.children...loc-mode-hover.style...'
                     'loc-mode-hover.children..'
@@ -461,7 +460,7 @@ def test_chart_input_updates(unittest):
 
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEqual(resp_data['response']['props']['data'], {
+        unittest.assertEqual(resp_data['response']['chart-input-data']['data'], {
             'cpg': False, 'barmode': 'group', 'barsort': None, 'colorscale': None, 'animate': None, 'animate_by': None
         })
 
@@ -494,7 +493,7 @@ def test_yaxis_data(unittest):
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(
-            resp_data['response']['props']['data'],
+            resp_data['response']['yaxis-data']['data'],
             {'data': {'all': {'max': 0.42, 'min': -1.52}}, 'type': 'single'}
         )
 
@@ -505,7 +504,7 @@ def test_yaxis_data(unittest):
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
         unittest.assertEqual(
-            resp_data['response']['props']['data'],
+            resp_data['response']['yaxis-data']['data'],
             {'data': {'Col1': {'max': 1.42, 'min': -1.52}}, 'type': 'multi'}
         )
 
@@ -514,7 +513,7 @@ def test_yaxis_data(unittest):
         params['state'][1]['value'] = {'data': {'Col1': {'max': 1.42, 'min': -1.52}}, 'type': 'single'}
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        unittest.assertEqual(resp_data['response']['props']['data'], {'data': {}, 'type': 'multi'})
+        unittest.assertEqual(resp_data['response']['yaxis-data']['data'], {'data': {}, 'type': 'multi'})
 
         params['state'][0]['value'] = None
         response = c.post('/charts/_dash-update-component', json=params)
@@ -536,8 +535,8 @@ def build_chart_params(pathname, inputs={}, chart_inputs={}, yaxis={}, last_inpu
             {'id': 'input-data', 'property': 'data', 'value': inputs},
             {'id': 'chart-input-data', 'property': 'data', 'value': chart_inputs},
             {'id': 'yaxis-data', 'property': 'data', 'value': yaxis},
+            {'id': 'map-input-data', 'property': 'data', 'value': map_inputs},
             {'id': 'last-chart-input-data', 'property': 'data', 'value': last_inputs},
-            {'id': 'map-input-data', 'property': 'data', 'value': map_inputs}
         ]
     }
 
@@ -557,7 +556,7 @@ def test_chart_building_nones(unittest):
         params['state'][-1]['value'] = {'cpg': False, 'barmode': 'group', 'barsort': None, 'yaxis': {}}
         response = c.post('/charts/_dash-update-component', json=params)
         resp_data = response.get_json()
-        assert resp_data['response']['chart-content']['children'] is None
+        assert resp_data is None
 
 
 @pytest.mark.unit
@@ -653,8 +652,7 @@ def test_chart_building_bar_and_popup(unittest):
             response = c.post('/charts/_dash-update-component', json={
                 'output': 'popup-content.children',
                 'changedPropIds': ['url.modified_timestamp'],
-                'inputs': [{'id': 'url', 'property': 'modified_timestamp'}],
-                'state': [
+                'inputs': [
                     {'id': 'url', 'property': 'pathname', 'value': pathname_val},
                     {'id': 'url', 'property': 'search', 'value': '?{}'.format(search_val)}
                 ]
@@ -1233,15 +1231,15 @@ def test_build_spaced_ticks(unittest):
 
 @pytest.mark.unit
 def test_wordcloud():
-    with pytest.raises(Exception) as error:
+    with pytest.raises(TypeError) as error:
         Wordcloud('foo', {}, y='b', invalid_arg='blah')
-    assert str(error).endswith(
-        'TypeError: The `Wordcloud` component with the ID "foo" received an unexpected keyword argument: `invalid_arg`'
-    )
+    assert (
+        'The `Wordcloud` component with the ID "foo" received an unexpected keyword argument: `invalid_arg`'
+    ) in str(error)
 
-    with pytest.raises(Exception) as error:
+    with pytest.raises(TypeError) as error:
         Wordcloud(data={}, y='b', invalid_arg='blah')
-    assert str(error).endswith('TypeError: Required argument `id` was not specified.')
+    assert 'Required argument `id` was not specified.' in str(error)
 
 
 @pytest.mark.unit

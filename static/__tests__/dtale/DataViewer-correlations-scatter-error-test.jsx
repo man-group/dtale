@@ -1,13 +1,11 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
-import { Provider } from "react-redux";
 
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
-import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -71,41 +69,33 @@ describe("DataViewer tests", () => {
   });
 
   test("DataViewer: correlations scatter error", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
+    buildInnerHTML({ settings: "" });
+    const props = { dataId: "1", chartData: { visible: true } };
+    const result = mount(<Correlations {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Correlations");
+      const corrGrid = result
+        .find(Correlations)
+        .first()
+        .find("div.ReactVirtualized__Grid__innerScrollContainer");
+      corrGrid
+        .find("div.cell")
+        .at(1)
+        .simulate("click");
       setTimeout(() => {
         result.update();
-        const corrGrid = result
-          .find(Correlations)
-          .first()
-          .find("div.ReactVirtualized__Grid__innerScrollContainer");
-        corrGrid
-          .find("div.cell")
-          .at(1)
-          .simulate("click");
+        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
+        const tsChart = result.find(ChartsBody).instance().state.charts[0];
+        tsChart.cfg.options.onClick({});
         setTimeout(() => {
           result.update();
-          t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-          const tsChart = result.find(ChartsBody).instance().state.charts[0];
-          tsChart.cfg.options.onClick({});
-          setTimeout(() => {
-            result.update();
-            t.equal(result.find(RemovableError).length, 1, "should render scatter error");
-            done();
-          }, 400);
+          t.equal(result.find(RemovableError).length, 1, "should render scatter error");
+          done();
         }, 400);
       }, 400);
     }, 400);

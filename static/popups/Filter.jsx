@@ -12,6 +12,10 @@ import serverState from "../dtale/serverStateManagement";
 import { fetchJson } from "../fetcher";
 import ContextVariables from "./ContextVariables";
 
+function saveFilter(dataId, query, callback) {
+  fetchJson(buildURLString(`/dtale/test-filter/${dataId}`, { query, save: true }), callback);
+}
+
 class ReactFilter extends React.Component {
   constructor(props) {
     super(props);
@@ -28,25 +32,19 @@ class ReactFilter extends React.Component {
   }
 
   save() {
-    const { query } = this.state;
-    fetchJson(
-      buildURLString(`/dtale/test-filter/${this.props.dataId}`, {
-        query,
-        save: true,
-      }),
-      data => {
-        if (data.error) {
-          this.setState({ error: data.error, traceback: data.traceback });
-          return;
-        }
-        if (_.startsWith(window.location.pathname, "/dtale/popup/filter")) {
-          window.opener.location.reload();
-          window.close();
-        } else {
-          this.props.chartData.propagateState({ query: this.state.query }, this.props.onClose);
-        }
+    const callback = data => {
+      if (data.error) {
+        this.setState({ error: data.error, traceback: data.traceback });
+        return;
       }
-    );
+      if (_.startsWith(window.location.pathname, "/dtale/popup/filter")) {
+        window.opener.location.reload();
+        window.close();
+      } else {
+        this.props.chartData.propagateState({ query: this.state.query }, this.props.onClose);
+      }
+    };
+    saveFilter(this.props.dataId, this.state.query, callback);
   }
 
   renderColumnFilters(prop, label) {
@@ -207,4 +205,4 @@ const ReduxFilter = connect(
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
 )(ReactFilter);
 
-export { ReactFilter, ReduxFilter as Filter };
+export { ReactFilter, ReduxFilter as Filter, saveFilter };

@@ -5,7 +5,7 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.8.8
+      VERSION: 1.8.9
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
@@ -36,9 +36,11 @@ defaults: &defaults
         name: Install MongoDB
         command: |
           # run "cat /etc/os-release" to view information about the OS
-          # this article really helped with this madness: https://linuxize.com/post/how-to-install-mongodb-on-debian-9/
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
-          echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+          # good article on how to install mongo, https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
+          wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+          sudo apt-get install gnupg
+          wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+          echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
           sudo apt-get update
           sudo apt-get install -y mongodb-org
     - run:
@@ -137,8 +139,7 @@ defaults: &defaults
             pip install Pygments
             grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
             grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
-            grep -q $VERSION docker/2_7/Dockerfile || (echo "ERROR: Version number not found in docker/2_7/Dockerfile: $VERSION"; exit 1)
-            grep -q $VERSION docker/3_6/Dockerfile || (echo "ERROR: Version number not found in docker/3_6/Dockerfile: $VERSION"; exit 1)
+            grep -q $VERSION .env || (echo "ERROR: Version number not found in .env: $VERSION"; exit 1)
             grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
             grep -q $VERSION package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
             python setup.py --long-description > ../README.rst
@@ -167,16 +168,28 @@ jobs:
   build_2_7:
     working_directory: ~/man-group/dtale_2_7
     docker:
-    - image: circleci/python:2.7-stretch-node-browsers
+    - image: circleci/python:2.7-buster-node-browsers
     <<: *defaults
-  build_3:
-    working_directory: ~/man-group/dtale_3
+  build_3_6:
+    working_directory: ~/man-group/dtale_3_6
     docker:
-    - image: circleci/python:3.6-stretch-node-browsers
+    - image: circleci/python:3.6-buster-node-browsers
+    <<: *defaults
+  build_3_7:
+    working_directory: ~/man-group/dtale_3_7
+    docker:
+      - image: circleci/python:3.7-buster-node-browsers
+    <<: *defaults
+  build_3_8:
+    working_directory: ~/man-group/dtale_3_8
+    docker:
+      - image: circleci/python:3.8-buster-node-browsers
     <<: *defaults
 workflows:
   version: 2
   build_all:
     jobs:
       - build_2_7
-      - build_3
+      - build_3_6
+      - build_3_7
+      - build_3_8
