@@ -952,7 +952,7 @@ Contributors:
  * [Phillip Dupuis](https://github.com/phillipdupuis)
  * [Fernando Saravia Rajal](https://github.com/fersarr)
  * [Dominik Christ](https://github.com/DominikMChrist)
- * [Reza Moshkzar](https://github.com/reza1615)
+ * [Reza Moshksar](https://github.com/reza1615)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
  * [Tom Taylor](https://github.com/TomTaylorLondon)
