@@ -180,7 +180,7 @@ def init_callbacks(dash_app):
             Output('map-loc-dropdown', 'options'),
             Output('map-lat-dropdown', 'options'),
             Output('map-lon-dropdown', 'options'),
-            Output('map-value-dropdown', 'options'),
+            Output('map-val-dropdown', 'options'),
             Output('map-loc-mode-input', 'style'),
             Output('map-loc-input', 'style'),
             Output('map-lat-input', 'style'),
@@ -456,13 +456,14 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         Output('popup-content', 'children'),
-        [Input('url', 'modified_timestamp')],
-        [State('url', 'pathname'), State('url', 'search')])
-    def display_page(_ts, pathname, search):
+        [Input('url', 'pathname'), Input('url', 'search')])
+    def display_page(pathname, search):
         """
         dash callback which gets called on initial load of each dash page (main & popup)
         """
         dash_app.config.suppress_callback_exceptions = False
+        if pathname is None:
+            raise PreventUpdate
         params = chart_url_params(search)
         data_id = get_data_id(pathname)
         df = global_state.get_data(data_id)

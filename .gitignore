@@ -25,6 +25,7 @@ npm-debug.log
 .vscode
 .project
 .pydevproject
+.python-version
 docs/source/dtale*rst
 docs/source/modules.rst
 

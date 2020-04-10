@@ -85,7 +85,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations rendering data", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} dataId="1" />, {
@@ -125,7 +125,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations rendering data and filtering it", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={chartData} dataId="1" />, {
@@ -158,7 +158,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations rendering data w/ one date column", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} dataId="1" />, {
@@ -183,7 +183,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations rendering data w/ no date columns", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     buildInnerHTML({ settings: "" });
     const props = {
       chartData: _.assign({}, chartData, { query: "no-date" }),
@@ -228,7 +228,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations rendering rolling data", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
     const CorrelationScatterStats = require("../../popups/correlations/CorrelationScatterStats").default;
     buildInnerHTML({ settings: "" });
@@ -290,7 +290,7 @@ describe("Correlations tests", () => {
   });
 
   test("Correlations missing data", done => {
-    const Correlations = require("../../popups/Correlations").ReactCorrelations;
+    const Correlations = require("../../popups/Correlations").Correlations;
     const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "null" })} dataId="1" />);
     setTimeout(() => {
       result.update();

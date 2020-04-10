@@ -1,15 +1,14 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import { connect } from "react-redux";
 
 import { Bouncer } from "../Bouncer";
 import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
-import { closeChart } from "../actions/charts";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
+import { saveFilter } from "../popups/Filter";
 import { toggleBouncer } from "../toggleUtils";
 import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
@@ -37,7 +36,7 @@ function buildState() {
   };
 }
 
-class ReactCorrelations extends React.Component {
+class Correlations extends React.Component {
   constructor(props) {
     super(props);
     this.state = buildState();
@@ -125,14 +124,15 @@ class ReactCorrelations extends React.Component {
       const data = _.get(point, ["0", "_chart", "config", "data", "datasets", point[0]._datasetIndex, "data"]);
       if (data) {
         const index = data[point[0]._index].index;
-        this.props.onClose();
         let updatedQuery = this.props.chartData.query;
         if (updatedQuery) {
           updatedQuery = [updatedQuery, `index == ${index}`];
         } else {
           updatedQuery = [`index == ${index}`];
         }
-        this.props.propagateState({ query: _.join(updatedQuery, " and ") });
+        saveFilter(this.props.dataId, _.join(updatedQuery, " and "), () => {
+          window.opener.location.reload();
+        });
       }
     }
   }
@@ -273,8 +273,8 @@ class ReactCorrelations extends React.Component {
     );
   }
 }
-ReactCorrelations.displayName = "Correlations";
-ReactCorrelations.propTypes = {
+Correlations.displayName = "Correlations";
+Correlations.propTypes = {
   dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
@@ -283,13 +283,7 @@ ReactCorrelations.propTypes = {
     col1: PropTypes.string,
     col2: PropTypes.string,
   }),
-  onClose: PropTypes.func,
   propagateState: PropTypes.func,
 };
 
-const ReduxCorrelations = connect(
-  state => _.pick(state, ["dataId", "chartData"]),
-  dispatch => ({ onClose: () => dispatch(closeChart()) })
-)(ReactCorrelations);
-
-export { ReactCorrelations, ReduxCorrelations as Correlations };
+export { Correlations };

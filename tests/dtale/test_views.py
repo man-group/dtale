@@ -97,7 +97,7 @@ def test_startup(unittest):
     test_data = test_data.rename(columns={'b': 'a'})
     with pytest.raises(Exception) as error:
         views.startup(URL, data_loader=lambda: test_data)
-    assert str(error).endswith('Exception: data contains duplicated column names: a')
+    assert 'data contains duplicated column names: a' in str(error)
 
 
 @pytest.mark.unit

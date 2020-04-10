@@ -90,11 +90,11 @@ describe("DataViewer within iframe tests", () => {
         _.concat(
           ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
           ["Highlight Dtypes", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Reload Data"],
-          ["Open Popup", "Shutdown"]
+          ["Open In New Tab", "Shutdown"]
         ),
         "Should render default iframe menu options"
       );
-      clickMainMenuButton(result, "Open Popup");
+      clickMainMenuButton(result, "Open In New Tab");
       expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/iframe/1");
       done();
     }, 600);

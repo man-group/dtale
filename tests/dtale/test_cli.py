@@ -139,7 +139,7 @@ def test_arctic_import_error(builtin_pkg):
         ]
         with pytest.raises(ImportError) as error:
             script.main(args, standalone_mode=False)
-        assert 'ImportError: In order to use the arctic loader you must install arctic!' in str(error)
+        assert 'In order to use the arctic loader you must install arctic!' in str(error)
 
 
 @pytest.mark.unit

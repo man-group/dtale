@@ -48,10 +48,10 @@ def test_initialize_process_props():
         stack.enter_context(mock.patch('dtale.app.find_free_port', mock.Mock(return_value=40001)))
         with pytest.raises(IOError) as excinfo:
             app.initialize_process_props(host='localhost', port=40000, force=True)
-        assert str(excinfo).endswith((
+        assert (
             'Could not kill process at http://localhost:40000, possibly something else is running at '
             'port 40000. Please try another port.'
-        ))
+        ) in str(excinfo)
 
     app.ACTIVE_PORT = None
     app.ACTIVE_HOST = None
@@ -93,10 +93,10 @@ def test_find_free_port():
         stack.enter_context(mock.patch('socket.socket', mock.Mock(return_value=MockSocket2())))
         with pytest.raises(IOError) as excinfo:
             find_free_port()
-        assert str(excinfo).endswith((
+        assert (
             'D-Tale could not find an open port from 40000 to 49000, please increase your range by altering '
             'the environment variables DTALE_MIN_PORT & DTALE_MAX_PORT.'
-        ))
+        ) in str(excinfo)
 
 
 @pytest.mark.unit
