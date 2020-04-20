@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.8.10 (2020-4-26)
+ * [#184](https://github.com/man-group/dtale/issues/184): "nan" not showing up for numeric columns
+ * [#181](https://github.com/man-group/dtale/issues/181): percentage sum/count charts
+ * [#179](https://github.com/man-group/dtale/issues/179): confirmation for column deletion
+ * [#176](https://github.com/man-group/dtale/issues/176): highlight background of outliers/missing values
+ * [#175](https://github.com/man-group/dtale/issues/175): column renaming
+ * [#174](https://github.com/man-group/dtale/issues/174): moved "Describe" popup to new browser tab
+ * [#173](https://github.com/man-group/dtale/issues/173): wider column input box for GroupBy in "Summarize Data" popup
+ * [#172](https://github.com/man-group/dtale/issues/172): allowing groups to be specified in 3D scatter
+ * [#170](https://github.com/man-group/dtale/issues/170): filter "Value" dropdown for maps to only int or float columns
+ * [#164](https://github.com/man-group/dtale/issues/164): show information about missing data in "Describe" popup
+ 
 ### 1.8.9 (2020-4-18)
  * updated correlations & "Open Popup" to create new tabs instead
  * test fixes for dash 1.11.0

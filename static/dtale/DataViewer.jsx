@@ -17,6 +17,7 @@ import { DataViewerInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
 import { Header } from "./Header";
 import { MeasureText } from "./MeasureText";
+import bu from "./backgroundUtils";
 import { exports as gu } from "./gridUtils";
 import { ColumnMenu } from "./iframe/ColumnMenu";
 
@@ -28,6 +29,7 @@ class ReactDataViewer extends React.Component {
     super(props);
     this.state = gu.buildState(props);
     this._cellRenderer = this._cellRenderer.bind(this);
+    this._cellRenderer = this._cellRenderer.bind(this);
     this._onSectionRendered = this._onSectionRendered.bind(this);
     this.propagateState = this.propagateState.bind(this);
     this.getData = this.getData.bind(this);
@@ -35,17 +37,22 @@ class ReactDataViewer extends React.Component {
 
   propagateState(state, callback = _.noop) {
     if (_.has(state, "columns") && !_.get(state, "formattingUpdate", false)) {
-      state.columns = _.map(state.columns, c => _.assignIn(c, { width: gu.calcColWidth(c, this.state) }));
-      const totalRange = gu.getTotalRange(state.columns);
-      state.min = totalRange.min;
-      state.max = totalRange.max;
+      state.columns = gu.updateColWidths(this.state, state);
+      state = _.assignIn(state, gu.getTotalRange(state.columns));
+    }
+    if (_.has(state, "renameUpdate")) {
+      state.data = state.renameUpdate(this.state.data);
+    }
+    if (_.has(state, "triggerBgResize")) {
+      state.columns = gu.updateColWidths(this.state, state);
+      state.triggerResize = true;
     }
     if (_.get(state, "refresh", false)) {
       this.getData(this.state.ids, true);
       callback();
       return;
     }
-    this.setState(_.omit(state, "formattingUpdate"), callback);
+    this.setState(_.omit(state, ["formattingUpdate", "renameUpdate", "triggerBgResize"]), callback);
   }
 
   componentDidMount() {
@@ -86,7 +93,7 @@ class ReactDataViewer extends React.Component {
   }
 
   getData(ids, refresh = false) {
-    const { loading, loadQueue, heatMapMode, dtypeHighlighting } = this.state;
+    const { loading, loadQueue, backgroundMode } = this.state;
     const data = this.state.data || {};
     if (loading) {
       this.setState({ loadQueue: _.concat(loadQueue, [ids]) });
@@ -136,8 +143,7 @@ class ReactDataViewer extends React.Component {
           error: null,
           traceback: null,
           loading: false,
-          heatMapMode,
-          dtypeHighlighting,
+          backgroundMode,
         };
         const { columns } = this.state;
         if (_.isEmpty(columns)) {
@@ -195,15 +201,7 @@ class ReactDataViewer extends React.Component {
       const rec = _.get(this.state, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
       valueStyle = _.get(rec, "style", {});
-      if (this.state.heatMapMode === "col") {
-        valueStyle = _.assignIn(gu.heatMapBackground(rec, colCfg), valueStyle);
-      }
-      if (this.state.heatMapMode === "all" && colCfg.name !== gu.IDX) {
-        valueStyle = _.assignIn(gu.heatMapBackground(rec, this.state), valueStyle);
-      }
-      if (this.state.dtypeHighlighting) {
-        valueStyle = _.assignIn(gu.dtypeHighlighting(colCfg), valueStyle);
-      }
+      valueStyle = bu.updateBackgroundStyles(this.state, valueStyle, colCfg, rec);
       if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
         divProps.title = rec.raw;
       }

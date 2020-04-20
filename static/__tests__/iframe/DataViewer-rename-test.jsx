@@ -1,19 +1,20 @@
 import { mount } from "enzyme";
-import _ from "lodash";
+import $ from "jquery";
 import React from "react";
 import { Provider } from "react-redux";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
+import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { clickColMenuButton } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer within iframe tests", () => {
-  const { location, open, top, self } = window;
+describe("DataViewer iframe tests", () => {
+  const { post } = $;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -24,15 +25,6 @@ describe("DataViewer within iframe tests", () => {
       configurable: true,
       value: 500,
     });
-
-    delete window.location;
-    delete window.open;
-    delete window.top;
-    delete window.self;
-    window.location = { reload: jest.fn(), pathname: "/dtale/iframe/1" };
-    window.open = jest.fn();
-    window.top = { location: { href: "http://test.com" } };
-    window.self = { location: { href: "http://test/dtale/iframe" } };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -48,26 +40,21 @@ describe("DataViewer within iframe tests", () => {
       return chartCfg;
     });
 
-    const mockDateInput = withGlobalJquery(() => require("@blueprintjs/datetime"));
-
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-    jest.mock("@blueprintjs/datetime", () => mockDateInput);
   });
 
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    window.location = location;
-    window.open = open;
-    window.top = top;
-    window.self = self;
+    $.post = post;
   });
 
-  test("DataViewer: iframe menu rendering...", done => {
+  test("DataViewer: renaming a column", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const { ReactRename } = require("../../popups/Rename");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -82,21 +69,41 @@ describe("DataViewer within iframe tests", () => {
 
     setTimeout(() => {
       result.update();
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-          ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
-        ),
-        "Should render default iframe menu options"
-      );
-      clickMainMenuButton(result, "Open In New Tab");
-      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/iframe/1");
-      done();
+      result
+        .find(".main-grid div.headerCell div")
+        .last()
+        .simulate("click");
+      clickColMenuButton(result, "Rename");
+      result
+        .find(ReactRename)
+        .find("div.modal-body")
+        .find("input")
+        .first()
+        .simulate("change", { target: { value: "col2" } });
+      result.update();
+      t.ok(result.find(ReactRename).find(RemovableError).length > 0);
+      result
+        .find(ReactRename)
+        .find("div.modal-body")
+        .find("input")
+        .first()
+        .simulate("change", { target: { value: "col5" } });
+      result.update();
+      result
+        .find(ReactRename)
+        .find("div.modal-footer")
+        .find("button")
+        .first()
+        .simulate("click");
+      setTimeout(() => {
+        result.update();
+        t.deepEqual(
+          result.find(".main-grid div.headerCell").map(hc => hc.text()),
+          ["col1", "col2", "col3", "col5"],
+          "should render column headers"
+        );
+        done();
+      }, 400);
     }, 600);
   });
 });

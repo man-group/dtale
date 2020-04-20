@@ -385,7 +385,7 @@ def build_layout(cfg):
     :return: layout object
     :rtype: :plotly:`plotly.graph_objects.Layout <plotly.graph_objects.Layout>`
     """
-    return go.Layout(**dict_merge(dict(legend=dict(orientation='h', y=1.2)), cfg))
+    return go.Layout(**dict_merge(dict(legend=dict(orientation='h')), cfg))
 
 
 def cpg_chunker(charts, columns=2):
@@ -479,7 +479,6 @@ def scatter_builder(data, x, y, axes_builder, wrapper, group=None, z=None, agg=N
             id='scatter-{}-{}'.format(group or 'all', y_val),
             figure=figure_cfg
         ), group_filter=dict_merge(dict(y=y_val), {} if group is None else dict(group=group)))
-
     return [_build_final_scatter(y2) for y2 in y]
 
 
@@ -1147,7 +1146,6 @@ def build_figure_data(data_id, chart_type=None, query=None, x=None, y=None, z=No
         chart_kwargs['animate_by'] = animate_by
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs['z'] = z
-        del chart_kwargs['group_col']
     data, chart_code = build_base_chart(data, x, y, unlimited_data=True, **chart_kwargs)
     return data, code + chart_code
 
@@ -1274,20 +1272,19 @@ def build_chart(data_id=None, **inputs):
             return pie_builder(data, x, y, chart_builder, **chart_inputs), range_data, code
 
         axes_builder = build_axes(data_id, x, axis_inputs, data['min'], data['max'], z=z, agg=agg)
-        if chart_type == 'scatter':
+        if chart_type in ['scatter', '3d_scatter']:
+            kwargs = dict(agg=agg)
+            if chart_type == '3d_scatter':
+                kwargs['z'] = z
+                kwargs['animate_by'] = animate_by
             if inputs['cpg']:
                 scatter_charts = flatten_lists([
-                    scatter_builder(data, x, y, axes_builder, chart_builder, group=subgroup, agg=agg)
+                    scatter_builder(data, x, y, axes_builder, chart_builder, group=subgroup, **kwargs)
                     for subgroup in data['data']
                 ])
             else:
-                scatter_charts = scatter_builder(data, x, y, axes_builder, chart_builder, agg=agg)
+                scatter_charts = scatter_builder(data, x, y, axes_builder, chart_builder, **kwargs)
             return cpg_chunker(scatter_charts), range_data, code
-
-        if chart_type == '3d_scatter':
-            chart = scatter_builder(data, x, y, axes_builder, chart_builder, z=z, agg=agg,
-                                    animate_by=animate_by)
-            return chart, range_data, code
 
         if chart_type == 'surface':
             return surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg), range_data, code

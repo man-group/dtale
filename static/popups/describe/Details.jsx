@@ -58,6 +58,7 @@ class Details extends React.Component {
       }
       newState.details = _.pick(detailData, ["describe", "uniques"]);
       newState.details.name = this.props.selected.name;
+      newState.details.dtype = this.props.selected.dtype;
       newState.code = detailData.code;
       this.setState(newState, this.createBoxplot);
     });
@@ -195,7 +196,7 @@ class Details extends React.Component {
             queryApplied: !outliers.queryApplied,
           }),
         },
-        fetchJson(url, data => this.props.propagateState({ outlierFilters: data.currFilters || {} }))
+        fetchJson(url, () => window.opener.location.reload())
       );
     };
     return [
@@ -244,7 +245,7 @@ class Details extends React.Component {
       <div key={1} className="row">
         <div className="col-auto">
           <h1>{details.name}</h1>
-          <span className="pl-3">({this.props.selected.dtype})</span>
+          <span className="pl-3">({details.dtype})</span>
         </div>
         <div className="col text-right">{renderCodePopupAnchor(this.state.code, "Describe")}</div>
       </div>,
@@ -277,7 +278,6 @@ Details.displayName = "Details";
 Details.propTypes = {
   selected: PropTypes.object,
   dataId: PropTypes.string,
-  propagateState: PropTypes.func,
 };
 
 export { Details };

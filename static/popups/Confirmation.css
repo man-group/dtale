@@ -1,0 +1,12 @@
+.modal-footer.confirmation {
+  justify-content: center;
+}
+
+.modal-footer.confirmation > .btn {
+  min-width: 8em;
+  border: 1px solid transparent;
+}
+
+.modal-footer.confirmation > :not(:last-child) {
+  margin-right: unset;
+}

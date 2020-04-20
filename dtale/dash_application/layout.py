@@ -172,9 +172,10 @@ CHART_INPUT_SETTINGS = {
                  map_group=dict(display=True)),
 }
 AGGS = dict(
-    count='Count', nunique='Unique Count', sum='Sum', mean='Mean', rolling='Rolling', corr='Correlation', first='First',
-    last='Last', median='Median', min='Minimum', max='Maximum', std='Standard Deviation', var='Variance',
-    mad='Mean Absolute Deviation', prod='Product of All Items', raw='No Aggregation'
+    raw='No Aggregation', count='Count', nunique='Unique Count', sum='Sum', mean='Mean', rolling='Rolling',
+    corr='Correlation', first='First', last='Last', median='Median', min='Minimum', max='Maximum',
+    std='Standard Deviation', var='Variance', mad='Mean Absolute Deviation', prod='Product of All Items',
+    pctct='Percentage Count', pctsum='Percentage Sum'
 )
 FREQS = ['H', 'H2', 'WD', 'D', 'W', 'M', 'Q', 'Y']
 FREQ_LABELS = dict(H='Hourly', H2='Hour', WD='Weekday', W='Weekly', M='Monthly', Q='Quarterly', Y='Yearly')
@@ -268,8 +269,7 @@ def build_loc_mode_hover(loc_mode):
                 id='loc-mode-hover'
             )
         ],
-        className='input-group-addon pt-1 pb-0',
-        style=dict(height='35.5px')
+        className='input-group-addon pt-1 pb-0'
     )
 
 
@@ -313,7 +313,7 @@ def build_error(error, tb):
 
     :param error: execption message
     :type error: str
-    :param tb: traceback
+    :param tb: tracebackF
     :type tb: str
     :return: error component
     :rtype: :dash:`dash_html_components.Div <dash-html-components/div>`
@@ -380,23 +380,26 @@ def build_input_options(df, **inputs):
 def build_map_options(df, type='choropleth', loc=None, lat=None, lon=None, map_val=None):
     dtypes = get_dtypes(df)
     cols = sorted(dtypes.keys())
-    float_cols, str_cols = [], []
+    float_cols, str_cols, num_cols = [], [], []
     for c in cols:
         dtype = dtypes[c]
-        if classify_type(dtype) == 'F':
-            float_cols.append(c)
-            continue
-        if classify_type(dtype) == 'S':
+        classification = classify_type(dtype)
+        if classification == 'S':
             str_cols.append(c)
+            continue
+        if classification in ['F', 'I']:
+            num_cols.append(c)
+            if classification == 'F':
+                float_cols.append(c)
 
     lat_options = [build_option(c) for c in float_cols if c not in build_selections(lon, map_val)]
     lon_options = [build_option(c) for c in float_cols if c not in build_selections(lat, map_val)]
     loc_options = [build_option(c) for c in str_cols if c not in build_selections(map_val)]
 
     if type == 'choropleth':
-        val_options = [build_option(c) for c in cols if c not in build_selections(loc)]
+        val_options = [build_option(c) for c in num_cols if c not in build_selections(loc)]
     else:
-        val_options = [build_option(c) for c in cols if c not in build_selections(lon, lat)]
+        val_options = [build_option(c) for c in num_cols if c not in build_selections(lon, lat)]
     return loc_options, lat_options, lon_options, val_options
 
 
@@ -636,7 +639,7 @@ def charts_layout(df, settings, **inputs):
                         )
                     ],
                     id='non-map-inputs', style={} if not show_map else {'display': 'none'},
-                    className='row pt-3 pb-3 charts-filters'
+                    className='row p-0 charts-filters'
                 ),
                 html.Div(
                     [
@@ -748,9 +751,9 @@ def charts_layout(df, settings, **inputs):
                 html.Div([
                     build_input('Aggregation', dcc.Dropdown(
                         id='agg-dropdown',
-                        options=[build_option(v, AGGS[v]) for v in ['count', 'nunique', 'sum', 'mean', 'rolling',
+                        options=[build_option(v, AGGS[v]) for v in ['raw', 'count', 'nunique', 'sum', 'mean', 'rolling',
                                                                     'corr', 'first', 'last', 'median', 'min', 'max',
-                                                                    'std', 'var', 'mad', 'prod', 'raw']],
+                                                                    'std', 'var', 'mad', 'prod', 'pctsum', 'pctct']],
                         placeholder='Select an aggregation',
                         style=dict(width='inherit'),
                         value=agg or 'raw',
@@ -849,7 +852,7 @@ def charts_layout(df, settings, **inputs):
                             value=inputs.get('animate_by')
                         ), className='col-auto addon-min-width', style=animate_style, id='animate-by-input'),
                     ],
-                    className='row pt-3 pb-5 charts-filters'
+                    className='row pt-3 pb-5 charts-filters', id='chart-inputs'
                 )],
                 id='main-inputs', className=main_input_class
             ), build_input('Group(s)', dcc.Dropdown(

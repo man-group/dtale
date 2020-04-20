@@ -51,8 +51,9 @@ describe("DataViewer iframe tests", () => {
     $.post = post;
   });
 
-  test("DataViewer: hiding a column", done => {
+  test("DataViewer: deleting a column", done => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const { ReactConfirmation } = require("../../popups/Confirmation");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -72,6 +73,12 @@ describe("DataViewer iframe tests", () => {
         .last()
         .simulate("click");
       clickColMenuButton(result, "Delete");
+      result
+        .find(ReactConfirmation)
+        .find("div.modal-footer")
+        .find("button")
+        .first()
+        .simulate("click");
       setTimeout(() => {
         result.update();
         t.deepEqual(

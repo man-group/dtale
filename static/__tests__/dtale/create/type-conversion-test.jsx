@@ -297,7 +297,7 @@ describe("DataViewer tests", () => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
             col: "col4",
             to: "int",
-            from: "datetime[ns]",
+            from: "datetime64[ns]",
             unit: "ms",
             fmt: null,
           });

@@ -1,4 +1,3 @@
-import chroma from "chroma-js";
 import _ from "lodash";
 import moment from "moment";
 import numeral from "numeral";
@@ -35,7 +34,7 @@ EXPORTS.findColType = dtype => {
 };
 
 function buildNumeral(val, fmt) {
-  return numeral(val).format(fmt);
+  return _.includes(["nan", "inf"], val) ? val : numeral(val).format(fmt);
 }
 
 function buildValue({ name, dtype }, rawValue, { columnFormats }) {
@@ -70,13 +69,16 @@ function getHeatActive(column) {
   return (_.has(column, "min") || column.name === EXPORTS.IDX) && column.visible;
 }
 
-EXPORTS.getActiveCols = ({ columns, heatMapMode }) =>
-  _.filter(columns || [], c => (heatMapMode ? getHeatActive(c) : c.visible));
+EXPORTS.getActiveCols = ({ columns, backgroundMode }) => {
+  const heatmapActive = _.startsWith(backgroundMode, "heatmap");
+  return _.filter(columns || [], c => (heatmapActive ? getHeatActive(c) : c.visible));
+};
 
-EXPORTS.getCol = (index, { columns, heatMapMode }) => _.get(EXPORTS.getActiveCols({ columns, heatMapMode }), index, {});
+EXPORTS.getCol = (index, { columns, backgroundMode }) =>
+  _.get(EXPORTS.getActiveCols({ columns, backgroundMode }), index, {});
 
-EXPORTS.getColWidth = (index, { columns, heatMapMode }) =>
-  _.get(EXPORTS.getCol(index, { columns, heatMapMode }), "width", DEFAULT_COL_WIDTH);
+EXPORTS.getColWidth = (index, { columns, backgroundMode }) =>
+  _.get(EXPORTS.getCol(index, { columns, backgroundMode }), "width", DEFAULT_COL_WIDTH);
 
 EXPORTS.getRanges = array => {
   const ranges = [];
@@ -93,14 +95,19 @@ EXPORTS.getRanges = array => {
   return ranges;
 };
 
-EXPORTS.calcColWidth = ({ name, dtype }, { data, rowCount, sortInfo }) => {
-  let w = DEFAULT_COL_WIDTH;
+EXPORTS.calcColWidth = ({ name, dtype, hasMissing, hasOutliers }, { data, rowCount, sortInfo, backgroundMode }) => {
+  let w;
   if (name === EXPORTS.IDX) {
     w = measureText(rowCount - 1 + "");
     w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
   } else {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
-    const headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
+    let headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
+    if (backgroundMode === "missing" && hasMissing) {
+      headerWidth += 10; // "!" emoji
+    } else if (backgroundMode === "outliers" && hasOutliers) {
+      headerWidth += 15; // star emoji
+    }
     switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
       case "date": {
         let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
@@ -154,46 +161,12 @@ EXPORTS.buildGridStyles = (headerHeight = EXPORTS.HEADER_HEIGHT) => ({
   hideBottomLeftGridScrollbar: true,
 });
 
-const heatMap = chroma.scale(["red", "yellow", "green"]).domain([0, 0.5, 1]);
-
 EXPORTS.getTotalRange = columns => {
   const activeCols = EXPORTS.getActiveCols({ columns });
   return {
     min: _.min(_.map(activeCols, "min")),
     max: _.max(_.map(activeCols, "max")),
   };
-};
-
-EXPORTS.heatMapBackground = ({ raw, view }, { min, max }) => {
-  if (view === "") {
-    return {};
-  }
-  const factor = min * -1;
-  return { background: heatMap((raw + factor) / (max + factor)) };
-};
-
-EXPORTS.dtypeHighlighting = ({ name, dtype }) => {
-  if (name === EXPORTS.IDX) {
-    return {};
-  }
-  const lowerDtype = (dtype || "").toLowerCase();
-  const colType = EXPORTS.findColType(lowerDtype);
-  if (_.startsWith(lowerDtype, "category")) {
-    return { background: "#E1BEE7" };
-  } else if (_.startsWith(lowerDtype, "timedelta")) {
-    return { background: "#FFCC80" };
-  } else if (colType === "float") {
-    return { background: "#B2DFDB" };
-  } else if (colType === "int") {
-    return { background: "#BBDEFB" };
-  } else if (colType === "date") {
-    return { background: "#F8BBD0" };
-  } else if (colType === "string") {
-    return {};
-  } else if (_.startsWith(lowerDtype, "bool")) {
-    return { background: "#FFF59D" };
-  }
-  return {};
 };
 
 EXPORTS.SORT_PROPS = [
@@ -238,8 +211,7 @@ EXPORTS.buildState = props => ({
   menuOpen: false,
   formattingOpen: false,
   triggerResize: false,
-  heatMapMode: null,
-  dtypeHighlighting: false,
+  backgroundMode: null,
 });
 
 EXPORTS.noHidden = columns => !_.some(columns, { visible: false });
@@ -257,5 +229,12 @@ EXPORTS.hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters }
   const hideHidden = EXPORTS.noHidden(columns);
   return hideSort && hideFilter && hideHidden;
 };
+
+EXPORTS.updateColWidths = (currState, newState) =>
+  _.map(_.get(newState, "columns", currState.columns), c =>
+    _.assignIn(c, {
+      width: EXPORTS.calcColWidth(c, _.assignIn(currState, newState)),
+    })
+  );
 
 export { EXPORTS as exports };

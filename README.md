@@ -44,7 +44,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
@@ -573,6 +573,23 @@ This is a quick way to check and see if your data has been categorized correctly
 |purple|orange|green|light blue|pink|white|yellow
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_dtypes.png)
+
+#### Highlight Missing
+
+* Any cells which contain `nan` values will be highlighted in yellow.
+* Any string column cells which are empty strings or strings consisting only of spaces will be highlighted in orange.
+*  ❗will be prepended to any column header which contains missing values.
+
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_missing.png)
+
+#### Highlight Outliers
+Highlight any cells for numeric columns which surpass the upper or lower bounds of a [custom outlier computation](#outlier-detection). 
+* Lower bounds outliers will be on a red scale, where the darker reds will be near the maximum value for the column.
+* Upper bounds outliers will be on a blue scale, where the darker blues will be closer to the minimum value for the column.
+* ⭐ will be prepended to any column header which contains outliers.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_outliers.png)
 
 
 #### Code Exports

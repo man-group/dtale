@@ -1,6 +1,5 @@
-from collections import MutableMapping
-
 from six import PY3
+from six.moves.collections_abc import MutableMapping
 
 DATA = {}
 DTYPES = {}

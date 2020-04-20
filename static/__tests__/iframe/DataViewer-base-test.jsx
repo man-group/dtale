@@ -119,8 +119,8 @@ describe("DataViewer iframe tests", () => {
           .map(s => s.text()),
         _.concat(
           ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Reload Data"],
-          ["Open In New Tab", "Shutdown"]
+          ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
+          ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
         ),
         "Should render default menu options"
       );
@@ -152,7 +152,7 @@ describe("DataViewer iframe tests", () => {
       );
       t.deepEqual(
         colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-        ["Lock", "Hide", "Delete", "Describe", "Column Analysis", "Formats"],
+        ["Lock", "Hide", "Delete", "Rename", "Describe", "Column Analysis", "Formats"],
         "Should render column menu options"
       );
       clickColMenuSubButton(result, "Asc");

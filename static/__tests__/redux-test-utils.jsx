@@ -13,31 +13,45 @@ import scatterData from "./data/scatter";
 
 const pjson = require("../../package.json");
 
+const DTYPES = {
+  dtypes: [
+    {
+      name: "col1",
+      index: 0,
+      dtype: "int64",
+      min: 2,
+      max: 5,
+      visible: true,
+      hasMissing: true,
+      hasOutliers: false,
+    },
+    {
+      name: "col2",
+      index: 1,
+      dtype: "float64",
+      min: 2.5,
+      max: 5.5,
+      visible: true,
+      hasMissing: false,
+      hasOutliers: false,
+      outlierRange: { lower: 3.5, upper: 4.5 },
+    },
+    { name: "col3", index: 2, dtype: "object", visible: true },
+    { name: "col4", index: 3, dtype: "datetime64[ns]", visible: true },
+  ],
+  success: true,
+};
+
 const DATA = {
   results: [
     { dtale_index: 0, col1: 1, col2: 2.5, col3: "foo", col4: "2000-01-01" },
     { dtale_index: 1, col1: 2, col2: 3.5, col3: "foo", col4: "2000-01-01" },
     { dtale_index: 2, col1: 3, col2: 4.5, col3: "foo", col4: "2000-01-01" },
     { dtale_index: 3, col1: 4, col2: 5.5, col3: "foo" },
+    { dtale_index: 4, col1: "nan", col2: 5.5, col3: "foo" },
   ],
-  columns: [
-    { name: "dtale_index", dtype: "int64", visible: true },
-    { name: "col1", dtype: "int64", min: 2, max: 5, visible: true },
-    { name: "col2", dtype: "float64", min: 2.5, max: 5.5, visible: true },
-    { name: "col3", dtype: "object", visible: true },
-    { name: "col4", dtype: "datetime64[ns]", visible: true },
-  ],
-  total: 4,
-  success: true,
-};
-
-const DTYPES = {
-  dtypes: [
-    { index: 0, name: "col1", dtype: "int64", visible: true },
-    { index: 1, name: "col2", dtype: "float64", visible: true },
-    { index: 2, name: "col3", dtype: "object", visible: true },
-    { index: 3, name: "col4", dtype: "datetime[ns]", visible: true },
-  ],
+  columns: _.concat([{ name: "dtale_index", dtype: "int64", visible: true }], DTYPES.dtypes),
+  total: 5,
   success: true,
 };
 
