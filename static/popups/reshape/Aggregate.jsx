@@ -144,15 +144,15 @@ class Aggregate extends React.Component {
       input = _.concat(
         [
           <div key={0} className="row pb-4">
-            <div className="col-auto pr-2">
+            <div className="col-md-5 pr-2">
               <div className="input-group mr-3 col-agg-col-input">
-                <span className="mt-auto mb-auto mr-4">Col:</span>
+                <span className="pt-4 mr-4">Col:</span>
                 {this.renderSelect(null, "index", false, "_curr_agg_col")}
               </div>
             </div>
-            <div className="col pl-0">
+            <div className="col-md-7 pl-0">
               <div className="input-group">
-                <span className="mt-auto mb-auto mr-4">Agg:</span>
+                <span className="pt-4 mr-4">Agg:</span>
                 <Select
                   ref={r => (this._curr_agg_func = r)}
                   className="Select is-clearable is-searchable Select--single"

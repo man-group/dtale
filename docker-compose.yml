@@ -3,21 +3,29 @@ version: '3.4'
 services:
   dtale_2_7:
     image: dtale_2_7:latest
+    env_file:
+      - ./docker/dtale.env
     build:
       context: .
       dockerfile: docker/2_7/Dockerfile
   dtale_3_6:
     image: dtale_3_6:latest
+    env_file:
+      - ./docker/dtale.env
     build:
       context: .
       dockerfile: docker/3_6/Dockerfile
   dtale_3_7:
     image: dtale_3_7:latest
+    env_file:
+      - ./docker/dtale.env
     build:
       context: .
       dockerfile: docker/3_7/Dockerfile
   dtale_3_8:
     image: dtale_3_8:latest
+    env_file:
+      - ./docker/dtale.env
     build:
       context: .
       dockerfile: docker/3_8/Dockerfile

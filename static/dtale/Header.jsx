@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 
 import actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
+import bu from "./backgroundUtils";
 import { exports as gu } from "./gridUtils";
 import { ignoreMenuClicks } from "./iframe/ColumnMenu";
 
@@ -64,13 +65,19 @@ class ReactHeader extends React.Component {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     let headerStyle = _.assignIn({}, style);
     let colNameMarkup = colName;
-    if (this.props.dtypeHighlighting) {
-      headerStyle = _.assignIn(gu.dtypeHighlighting(colCfg), headerStyle);
+    if (this.props.backgroundMode === "dtypes") {
+      headerStyle = _.assignIn(bu.dtypeHighlighting(colCfg), headerStyle);
       colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
+    }
+    if (this.props.backgroundMode === "missing" && colCfg.hasMissing) {
+      colNameMarkup = `${bu.missingIcon}${colName}`;
+    }
+    if (this.props.backgroundMode === "outliers" && colCfg.hasOutliers) {
+      colNameMarkup = `${bu.outlierIcon} ${colName}`;
     }
     return (
       <div className={`headerCell ${toggleId}`} style={headerStyle} onClick={menuHandler}>
-        <div>
+        <div className="text-nowrap">
           {_.get(SORT_CHARS, sortDir, "")}
           {colNameMarkup}
         </div>
@@ -89,7 +96,7 @@ ReactHeader.propTypes = {
   rowCount: PropTypes.number,
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
-  dtypeHighlighting: PropTypes.bool,
+  backgroundMode: PropTypes.string,
 };
 
 const ReduxHeader = connect(

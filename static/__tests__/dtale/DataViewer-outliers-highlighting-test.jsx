@@ -10,7 +10,7 @@ import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-u
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer dtypes tests", () => {
+describe("DataViewer outlier tests", () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -49,11 +49,11 @@ describe("DataViewer dtypes tests", () => {
 
     setTimeout(() => {
       result.update();
-      clickMainMenuButton(result, "Highlight Dtypes");
+      clickMainMenuButton(result, "Highlight Outliers");
       result.update();
       let dv = result.find(ReactDataViewer).instance().state;
-      t.equal(dv.backgroundMode, "dtypes");
-      clickMainMenuButton(result, "Highlight Dtypes");
+      t.equal(dv.backgroundMode, "outliers");
+      clickMainMenuButton(result, "Highlight Outliers");
       result.update();
       dv = result.find(ReactDataViewer).instance().state;
       t.equal(dv.backgroundMode, null);

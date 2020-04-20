@@ -5,7 +5,7 @@ defaults: &defaults
       CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
       CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
       CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.8.9
+      VERSION: 1.8.10
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
     - checkout
@@ -139,7 +139,7 @@ defaults: &defaults
             pip install Pygments
             grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
             grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
-            grep -q $VERSION .env || (echo "ERROR: Version number not found in .env: $VERSION"; exit 1)
+            grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
             grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
             grep -q $VERSION package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
             python setup.py --long-description > ../README.rst

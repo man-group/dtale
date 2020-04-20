@@ -407,11 +407,23 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
         dtype = dtypes.get(col)
         if prev_dtypes and col in prev_dtypes:
             visible = prev_dtypes[col].get('visible', True)
-        dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible)
-        if classify_type(dtype) in ['F', 'I'] and not data[col].isnull().all() and col in data_ranges:  # floats/ints
+        s = data[col]
+        dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible,
+                          hasMissing=bool(s.isnull().any()), hasOutliers=False)
+        classification = classify_type(dtype)
+        if classification in ['F', 'I'] and not data[col].isnull().all() and col in data_ranges:  # floats/ints
             col_ranges = data_ranges[col]
             if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
                 dtype_data = dict_merge(col_ranges, dtype_data)
+
+            # load outlier information
+            o_s, o_e = calc_outlier_range(s)
+            if not any((np.isnan(v) or np.isinf(v) for v in [o_s, o_e])):
+                dtype_data['hasOutliers'] = bool(((s < o_s) | (s > o_e)).any())
+                dtype_data['outlierRange'] = dict(lower=o_s, upper=o_e)
+
+        if classification == 'S' and not dtype_data['hasMissing']:
+            dtype_data['hasMissing'] = bool((s.str.strip() == '').any())
         return dtype_data
     return _formatter
 
@@ -981,6 +993,10 @@ def load_describe(column_series, additional_aggs=None):
     if 'count' in desc:
         # pandas always returns 'count' as a float and it adds useless decimal points
         desc['count'] = desc['count'].split('.')[0]
+    missing_ct = column_series.isnull().sum()
+    desc['missing_pct'] = json_float((missing_ct / len(column_series) * 100).round(2))
+    desc['missing_ct'] = json_int(missing_ct)
+
     return desc, code
 
 
@@ -1036,16 +1052,21 @@ def describe(data_id, column):
         return jsonify_error(e)
 
 
+def calc_outlier_range(s):
+    q1 = s.quantile(0.25)
+    q3 = s.quantile(0.75)
+    iqr = q3 - q1
+    iqr_lower = q1 - 1.5 * iqr
+    iqr_upper = q3 + 1.5 * iqr
+    return iqr_lower, iqr_upper
+
+
 @dtale.route('/outliers/<data_id>/<column>')
 def outliers(data_id, column):
     try:
         df = global_state.get_data(data_id)
         s = df[column]
-        q1 = s.quantile(0.25)
-        q3 = s.quantile(0.75)
-        iqr = q3 - q1
-        iqr_lower = q1 - 1.5 * iqr
-        iqr_upper = q3 + 1.5 * iqr
+        iqr_lower, iqr_upper = calc_outlier_range(s)
         formatter = find_dtype_formatter(find_dtype(df[column]))
         outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
         top = len(outliers) > 100
@@ -1072,10 +1093,37 @@ def delete_col(data_id, column):
     try:
         data = global_state.get_data(data_id)
         data = data[[c for c in data.columns if c != column]]
+        curr_history = global_state.get_history(data_id) or []
+        curr_history += ['df = df[[c for c in df.columns if c != "{}"]]'.format(column)]
+        global_state.set_history(data_id, curr_history)
         dtypes = global_state.get_dtypes(data_id)
         dtypes = [dt for dt in dtypes if dt['name'] != column]
         curr_settings = global_state.get_settings(data_id)
         curr_settings['locked'] = [c for c in curr_settings.get('locked', []) if c != column]
+        global_state.set_data(data_id, data)
+        global_state.set_dtypes(data_id, dtypes)
+        global_state.set_settings(data_id, curr_settings)
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify_error(e)
+
+
+@dtale.route('/rename-col/<data_id>/<column>')
+def rename_col(data_id, column):
+    try:
+        rename = get_str_arg(request, 'rename')
+        data = global_state.get_data(data_id)
+        if column != rename and rename in data.columns:
+            return jsonify(dict(error='Column name "{}" already exists!'))
+
+        data = data.rename(columns={column: rename})
+        curr_history = global_state.get_history(data_id) or []
+        curr_history += ["df = df.rename(columns={'%s': '%s'})" % (column, rename)]
+        global_state.set_history(data_id, curr_history)
+        dtypes = global_state.get_dtypes(data_id)
+        dtypes = [dict_merge(dt, {'name': rename}) if dt['name'] == column else dt for dt in dtypes]
+        curr_settings = global_state.get_settings(data_id)
+        curr_settings['locked'] = [rename if c == column else c for c in curr_settings.get('locked', [])]
         global_state.set_data(data_id, data)
         global_state.set_dtypes(data_id, dtypes)
         global_state.set_settings(data_id, curr_settings)
@@ -1153,7 +1201,7 @@ def get_data(data_id):
             return jsonify({})
 
         col_types = global_state.get_dtypes(data_id)
-        f = grid_formatter(col_types)
+        f = grid_formatter(col_types, nan_display='nan')
         curr_settings = global_state.get_settings(data_id) or {}
         if curr_settings.get('sort') != params.get('sort'):
             data = sort_df_for_grid(data, params)

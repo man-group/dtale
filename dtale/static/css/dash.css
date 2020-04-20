@@ -530,3 +530,9 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
     padding-left: 0;
 }
 
+div#non-map-inputs > div,
+div#chart-inputs > div {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+

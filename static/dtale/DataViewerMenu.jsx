@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { openChart } from "../actions/charts";
+import bu from "./backgroundUtils";
 import menuFuncs from "./dataViewerMenuUtils";
 import Descriptions from "./menu-descriptions.json";
 
@@ -20,22 +21,26 @@ class ReactDataViewerMenu extends React.Component {
         this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
       }
     };
+    const openTab = type => () => window.open(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), "_blank");
     const openCodeExport = () => menuFuncs.open("/dtale/popup/code-export", dataId, 450, 700);
-    const openCorrelations = () => window.open(menuFuncs.fullPath("/dtale/popup/correlations", dataId), "_blank");
     const refreshWidths = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
       });
-    const toggleHeatMap = mode => () =>
-      this.props.propagateState({
-        heatMapMode: this.props.heatMapMode == mode ? null : mode,
-        dtypeHighlighting: false,
-      });
-    const toggleDtypeHighlighting = () =>
-      this.props.propagateState({
-        dtypeHighlighting: !this.props.dtypeHighlighting,
-        heatMapMode: null,
-      });
+    const resizeBgs = ["outliers", "missing"];
+    const bgState = bgType => ({
+      backgroundMode: this.props.backgroundMode === bgType ? null : bgType,
+      triggerBgResize: _.includes(resizeBgs, this.props.backgroundMode) || _.includes(resizeBgs, bgType),
+    });
+    const toggleBackground = bgType => () => this.props.propagateState(bgState(bgType));
+    const toggleOutlierBackground = () => {
+      const updatedState = bgState("outliers");
+      if (updatedState.backgroundMode === "outliers") {
+        updatedState.columns = _.map(this.props.columns, bu.buildOutlierScales);
+      }
+      this.props.propagateState(updatedState);
+    };
+    const heatmapActive = _.startsWith(this.props.backgroundMode, "heatmap");
     const exportFile = tsv => () =>
       window.open(`/dtale/data-export/${dataId}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
     return (
@@ -47,7 +52,7 @@ class ReactDataViewerMenu extends React.Component {
         <ul>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("describe", 670, 1100)}>
+              <button className="btn btn-plain" onClick={openTab("describe")}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>
@@ -83,7 +88,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openCorrelations}>
+              <button className="btn btn-plain" onClick={openTab("correlations")}>
                 <i className="ico-bubble-chart" />
                 <span className="font-weight-bold">Correlations</span>
               </button>
@@ -101,27 +106,25 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.charts}</div>
           </li>
-          <li className="hoverable" style={{ color: "inherit" }}>
+          <li className="hoverable" style={{ color: "#565b68" }}>
             <span className="toggler-action">
-              <i className={`fa fa-${this.props.heatMapMode ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
+              <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
             </span>
-            <span className={`font-weight-bold pl-2${_.isNull(this.props.heatMapMode) ? "" : " flames"}`}>
-              {"Heat Map"}
-            </span>
+            <span className={`font-weight-bold pl-2${heatmapActive ? "flames" : ""}`}>{"Heat Map"}</span>
             <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" style={{ fontSize: "75%" }}>
               {_.map(
                 [
-                  ["By Col", "col"],
-                  ["Overall", "all"],
+                  ["By Col", "heatmap-col"],
+                  ["Overall", "heatmap-all"],
                 ],
                 ([label, mode]) => (
                   <button
                     key={label}
                     style={{ color: "#565b68" }}
                     className="btn btn-primary font-weight-bold"
-                    onClick={toggleHeatMap(mode)}>
-                    {mode === this.props.heatMapMode && <span className="flames">{label}</span>}
-                    {mode !== this.props.heatMapMode && label}
+                    onClick={toggleBackground(mode)}>
+                    {mode === this.props.backgroundMode && <span className="flames">{label}</span>}
+                    {mode !== this.props.backgroundMode && label}
                   </button>
                 )
               )}
@@ -130,14 +133,36 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={toggleDtypeHighlighting}>
+              <button className="btn btn-plain" onClick={toggleBackground("dtypes")}>
                 <div style={{ display: "inherit" }}>
-                  <div className={`dtype-highlighting${this.props.dtypeHighlighting ? " spin" : ""}`} />
+                  <div className={`bg-icon dtype-bg${this.props.backgroundMode === "dtypes" ? " spin" : ""}`} />
                   <span className="font-weight-bold pl-4">Highlight Dtypes</span>
                 </div>
               </button>
             </span>
             <div className="hoverable__content menu-description">{Descriptions.highlight_dtypes}</div>
+          </li>
+          <li className="hoverable">
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={toggleBackground("missing")}>
+                <div style={{ display: "inherit" }}>
+                  <div className={`bg-icon missing-bg${this.props.backgroundMode === "missing" ? " spin" : ""}`} />
+                  <span className="font-weight-bold pl-4">Highlight Missing</span>
+                </div>
+              </button>
+            </span>
+            <div className="hoverable__content menu-description">{Descriptions.highlight_missings}</div>
+          </li>
+          <li className="hoverable">
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={toggleOutlierBackground}>
+                <div style={{ display: "inherit" }}>
+                  <div className={`bg-icon outliers-bg${this.props.backgroundMode === "outliers" ? " spin" : ""}`} />
+                  <span className="font-weight-bold pl-4">Highlight Outliers</span>
+                </div>
+              </button>
+            </span>
+            <div className="hoverable__content menu-description">{Descriptions.highlight_outliers}</div>
           </li>
           <li className="hoverable">
             <span className="toggler-action">
@@ -162,7 +187,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.code}</div>
           </li>
-          <li className="hoverable" style={{ color: "inherit" }}>
+          <li className="hoverable" style={{ color: "#565b68" }}>
             <span className="toggler-action">
               <i className="far fa-file" />
             </span>
@@ -254,8 +279,7 @@ ReactDataViewerMenu.propTypes = {
   menuOpen: PropTypes.bool,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
-  heatMapMode: PropTypes.string,
-  dtypeHighlighting: PropTypes.bool,
+  backgroundMode: PropTypes.string,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
 };

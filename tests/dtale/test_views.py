@@ -89,7 +89,7 @@ def test_startup(unittest):
     ], columns=['date', 'security_id', 'foo', 'bar'])
     instance = views.startup(URL, data_loader=lambda: test_data)
     unittest.assertEqual(
-        {'name': 'bar', 'dtype': 'float64', 'index': 3, 'visible': True},
+        {'name': 'bar', 'dtype': 'float64', 'index': 3, 'visible': True, 'hasMissing': False, 'hasOutliers': False},
         next((dt for dt in global_state.DTYPES[instance._data_id] if dt['name'] == 'bar'), None),
     )
 
@@ -283,7 +283,7 @@ def test_update_locked(unittest):
 
 
 @pytest.mark.unit
-def test_delete_col(unittest):
+def test_delete_col():
     from dtale.views import build_dtypes_state
 
     df = pd.DataFrame([dict(a=1, b=2, c=3)])
@@ -300,7 +300,32 @@ def test_delete_col(unittest):
             assert next((dt for dt in dtypes[c.port] if dt['name'] == 'a'), None) is None
             assert len(settings[c.port]['locked']) == 0
 
-            resp = c.get('/dtale/delete-col/-1/d'.format(c.port))
+            resp = c.get('/dtale/delete-col/-1/d')
+            assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_rename_col():
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            settings = {c.port: {'locked': ['a']}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            dtypes = {c.port: build_dtypes_state(df)}
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            c.get('/dtale/rename-col/{}/a'.format(c.port), query_string=dict(rename='d'))
+            assert 'a' not in data[c.port].columns
+            assert next((dt for dt in dtypes[c.port] if dt['name'] == 'a'), None) is None
+            assert len(settings[c.port]['locked']) == 1
+
+            resp = c.get('/dtale/rename-col/{}/d'.format(c.port), query_string=dict(rename='b'))
+            assert 'error' in json.loads(resp.data)
+
+            resp = c.get('/dtale/rename-col/-1/d', query_string=dict(rename='b'))
             assert 'error' in json.loads(resp.data)
 
 
@@ -822,11 +847,15 @@ def test_get_data(unittest, test_data):
                 results={'1': dict(date='2000-01-01', security_id=1, dtale_index=1, foo=1, bar=1.5, baz='baz')},
                 columns=[
                     dict(dtype='int64', name='dtale_index', visible=True),
-                    dict(dtype='datetime64[ns]', name='date', index=0, visible=True),
-                    dict(dtype='int64', name='security_id', max=49, min=0, index=1, visible=True),
-                    dict(dtype='int64', name='foo', min=1, max=1, index=2, visible=True),
-                    dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3, visible=True),
-                    dict(dtype='string', name='baz', index=4, visible=True),
+                    dict(dtype='datetime64[ns]', name='date', index=0, visible=True, hasMissing=False,
+                         hasOutliers=False),
+                    dict(dtype='int64', name='security_id', max=49, min=0, index=1, visible=True, hasMissing=False,
+                         hasOutliers=False, outlierRange={'lower': -24.5, 'upper': 73.5}),
+                    dict(dtype='int64', name='foo', min=1, max=1, index=2, visible=True, hasMissing=False,
+                         hasOutliers=False, outlierRange={'lower': 1.0, 'upper': 1.0}),
+                    dict(dtype='float64', name='bar', min=1.5, max=1.5, index=3, visible=True, hasMissing=False,
+                         hasOutliers=False, outlierRange={'lower': 1.5, 'upper': 1.5}),
+                    dict(dtype='string', name='baz', index=4, visible=True, hasMissing=False, hasOutliers=False),
                 ]
             )
             unittest.assertEqual(response_data, expected, 'should return data at index 1')
@@ -924,7 +953,8 @@ def test_get_data(unittest, test_data):
             )
             unittest.assertEqual(
                 mocked_dtypes[c.port][-1],
-                dict(index=5, name='biz', dtype='float64', min=2.5, max=2.5, visible=True),
+                dict(index=5, name='biz', dtype='float64', min=2.5, max=2.5, visible=True, hasMissing=False,
+                     hasOutliers=False, outlierRange={'lower': 2.5, 'upper': 2.5}),
                 'should update dtypes on data structure change'
             )
 
@@ -962,7 +992,8 @@ def test_get_column_analysis(unittest, test_data):
                 ],
                 data=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 desc={
-                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
+                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1',
+                    'missing_ct': 0, 'missing_pct': 0.0
                 },
                 cols=None,
                 chart_type='histogram',
@@ -982,7 +1013,8 @@ def test_get_column_analysis(unittest, test_data):
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
                 data=[0, 0, 50, 0, 0],
                 desc={
-                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
+                    'count': '50', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1',
+                    'missing_ct': 0, 'missing_pct': 0.0
                 },
                 chart_type='histogram',
                 dtype='int64',
@@ -1002,7 +1034,8 @@ def test_get_column_analysis(unittest, test_data):
                 labels=['0.5', '0.7', '0.9', '1.1', '1.3', '1.5'],
                 data=[0, 0, 39, 0, 0],
                 desc={
-                    'count': '39', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1'
+                    'count': '39', 'std': '0', 'min': '1', 'max': '1', '50%': '1', '25%': '1', '75%': '1', 'mean': '1',
+                    'missing_ct': 0, 'missing_pct': 0.0
                 },
                 chart_type='histogram',
                 dtype='int64',

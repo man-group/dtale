@@ -126,6 +126,10 @@ function updateSettings(settings, dataId, callback = _.noop) {
     });
 }
 
+function renameColumn(dataId, col, rename, callback) {
+  fetchJson(buildURLString(`/dtale/rename-col/${dataId}/${col}`, { rename }), callback);
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -138,4 +142,5 @@ export default {
   toggleVisibility: (dataId, toggle, callback) => persistVisibility(dataId, { toggle }, callback),
   updateSettings,
   deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}/${col}`), _.noop),
+  renameColumn,
 };

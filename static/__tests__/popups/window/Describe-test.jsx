@@ -58,7 +58,7 @@ describe("Describe tests", () => {
   });
 
   test("Describe: dtypes error", done => {
-    const Describe = require("../../../popups/Describe").ReactDescribe;
+    const { Describe } = require("../../../popups/Describe");
     buildInnerHTML({ settings: "" });
     const result = mount(<Describe chartData={chartData} dataId="1" />, {
       attachTo: document.getElementById("content"),
@@ -72,7 +72,7 @@ describe("Describe tests", () => {
   });
 
   test("Describe: describe error", done => {
-    const Describe = require("../../../popups/Describe").ReactDescribe;
+    const { Describe } = require("../../../popups/Describe");
     buildInnerHTML({ settings: "" });
     const result = mount(<Describe chartData={chartData} dataId="2" />, {
       attachTo: document.getElementById("content"),

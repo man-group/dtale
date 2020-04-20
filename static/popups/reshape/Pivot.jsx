@@ -121,7 +121,7 @@ class Pivot extends React.Component {
             <label className="col-auto col-form-label pr-3" style={{ fontSize: "85%" }}>
               {"Include Column Names in Headers?"}
             </label>
-            <div className="col-auto mt-auto mb-auto p-0">
+            <div className="col-auto p-0">
               <i
                 className={`ico-check-box${this.state.columnNameHeaders ? "" : "-outline-blank"} pointer`}
                 onClick={() =>

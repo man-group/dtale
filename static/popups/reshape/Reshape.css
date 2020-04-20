@@ -16,6 +16,10 @@ input[type='number'].numeric-input {
 }
 
 div.col-agg-col-input div.Select {
-  width: 10em;
-  min-width: 10em;
+  width: 13em;
+  min-width: 13em;
+}
+
+div.col-agg-col-input div.is-clearable.Select--single .Select__value-container--has-value > .Select__single-value {
+  padding-right: 5px;
 }

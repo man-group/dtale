@@ -4551,9 +4551,12 @@ button.close {
   }
 }
 
-div.build-modal > div.modal-lg,
-div.reshape-modal > div.modal-lg {
+div.build-modal > div.modal-lg {
   min-width: 720px;
+}
+
+div.reshape-modal > div.modal-lg {
+  min-width: 800px;
 }
 
 div.filter-modal > div.modal-lg {
@@ -4564,9 +4567,11 @@ div.filter-modal > div.modal-lg {
   .modal-lg {
     max-width: 800px;
   }
-  div.build-modal > div.modal-lg,
-  div.reshape-modal > div.modal-lg {
+  div.build-modal > div.modal-lg {
     max-width: 720px;
+  }
+  div.reshape-modal > div.modal-lg {
+    max-width: 800px;
   }
   div.histogram-modal > div.modal-lg,
   div.code-modal > div.modal-lg {
@@ -10599,8 +10604,7 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer, {
   100% { transform: rotate(360deg); }
 }
 
-.dtype-highlighting
-{
+.bg-icon {
   height: 18px;
   width: 18px;
   box-sizing: border-box;
@@ -10611,7 +10615,20 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer, {
   float: left;
 }
 
-.dtype-highlighting.spin {
+
+.dtype-bg {
+  border-color: rgba(102,205,170,1.0) rgba(65,105,225,0.5) rgba(255,182,193,1.0) rgba(255,215,0,1.0);
+}
+
+.missing-bg {
+  border-color: #FFF59D #FFF59D #FFCC80 #FFCC80;
+}
+
+.outliers-bg {
+  border-color: dodgerblue dodgerblue red red;
+}
+
+.dtype-bg.spin, .missing-bg.spin, .outliers-bg.spin {
   animation: dtype-spin 1s infinite linear;
 }
 

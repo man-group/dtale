@@ -23,6 +23,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("Correlations tests", () => {
+  const { opener } = window;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -32,6 +33,9 @@ describe("Correlations tests", () => {
       configurable: true,
       value: 500,
     });
+
+    delete window.opener;
+    window.opener = { location: { reload: jest.fn() } };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -82,6 +86,7 @@ describe("Correlations tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    window.opener = opener;
   });
 
   test("Correlations rendering data", done => {

@@ -638,7 +638,7 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'group',
-                 'legend': {'orientation': 'h', 'y': 1.2},
+                 'legend': {'orientation': 'h'},
                  'title': {'text': 'b, c by a'},
                  'xaxis': {'tickformat': '.0f', 'title': {'text': 'a'}},
                  'yaxis': {'tickformat': '.0f', 'title': {'text': 'b'}},
@@ -688,7 +688,7 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'stack',
-                 'legend': {'orientation': 'h', 'y': 1.2},
+                 'legend': {'orientation': 'h'},
                  'title': {'text': 'b, c by a (No Aggregation)'},
                  'xaxis': {'tickformat': '.0f',
                            'tickmode': 'array',
@@ -707,7 +707,7 @@ def test_chart_building_bar_and_popup(unittest):
             unittest.assertEqual(
                 resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout'],
                 {'barmode': 'group',
-                 'legend': {'orientation': 'h', 'y': 1.2},
+                 'legend': {'orientation': 'h'},
                  'title': {'text': 'b, c by a'},
                  'xaxis': {
                      'tickmode': 'array', 'ticktext': [1, 2, 3], 'tickvals': [0, 1, 2],
@@ -918,7 +918,14 @@ def test_chart_building_3D_scatter(unittest, test_data):
                 {'text': 'b by a weighted by c'}
             )
 
+            inputs['group'] = ['d']
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children'][0]['props']['children'][1]
+            assert len(chart_markup['props']['figure']['data']) == 3
+
             inputs['agg'] = 'sum'
+            inputs['group'] = None
             chart_inputs['animate_by'] = 'd'
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post('/charts/_dash-update-component', json=params)

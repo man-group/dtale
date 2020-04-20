@@ -8,10 +8,12 @@ import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
 import About from "./About";
 import { CodeExport } from "./CodeExport";
+import { Confirmation } from "./Confirmation";
 import { Correlations } from "./Correlations";
 import { Describe } from "./Describe";
 import { Filter } from "./Filter";
 import Instances from "./Instances";
+import { Rename } from "./Rename";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
@@ -102,6 +104,25 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <About />;
+        break;
+      case "confirm":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-check-circle" />
+            <strong>Yes/No</strong>
+            <small className="pl-3">({chartData.title})</small>
+          </ModalTitle>
+        );
+        body = <Confirmation />;
+        break;
+      case "rename":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-edit" />
+            <strong>Rename</strong>
+          </ModalTitle>
+        );
+        body = <Rename {...this.props} />;
         break;
       case "instances":
         modalTitle = (

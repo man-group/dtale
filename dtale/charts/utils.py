@@ -239,7 +239,7 @@ def check_exceptions(df, allow_duplicates, unlimited_data=False, data_limit=1500
         raise ChartBuildingError(limit_msg.format(data_limit))
 
 
-def build_agg_data(df, x, y, inputs, agg, z=None, animate_by=None):
+def build_agg_data(df, x, y, inputs, agg, z=None, group_col=None, animate_by=None):
     """
     Builds aggregated data when an aggregation (sum, mean, max, min...) is selected from the front-end.
 
@@ -282,29 +282,46 @@ def build_agg_data(df, x, y, inputs, agg, z=None, animate_by=None):
         ]
         return agg_df, code
 
+    idx_cols = make_list(animate_by) + make_list(group_col) + [x]
+    agg_cols = y
     if z_exists:
-        idx_cols = make_list(animate_by) + [x] + make_list(y)
-        groups = df.groupby(idx_cols)
-        groups = getattr(groups[make_list(z)], agg)()
-        if animate_by is not None:
-            full_idx = pd.MultiIndex.from_product([df[c].unique() for c in idx_cols], names=idx_cols)
-            groups = groups.reindex(full_idx).fillna(0)
-        return groups.reset_index(), [
-            "chart_data = chart_data.groupby(['{cols}'])[['{z}']].{agg}().reset_index()".format(
-                cols="', '".join([x] + make_list(y)), z=z, agg=agg
+        idx_cols += make_list(y)
+        agg_cols = make_list(z)
+
+    groups = df.groupby(idx_cols)
+    if agg in ['pctsum', 'pctct']:
+        func = 'sum' if agg == 'pctsum' else 'size'
+        subidx_cols = [c for c in idx_cols if c not in make_list(group_col)]
+        groups = getattr(groups[agg_cols], func)()
+        groups = groups / getattr(df.groupby(subidx_cols)[agg_cols], func)() * 100
+        if len(agg_cols) > 1:
+            groups.columns = agg_cols
+        elif len(agg_cols) == 1:
+            groups.name = agg_cols[0]
+        code = (
+            "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}()\n"
+            "chart_data = chart_data / chart_data.groupby(['{subidx_cols}']).{agg}()\n"
+            "chart_data = chart_data.reset_index()"
+        )
+        code = code.format(cols="', '".join(idx_cols), subidx_cols="', '".join(subidx_cols),
+                           agg_cols="', '".join(agg_cols), agg=func)
+        code = [code]
+    else:
+        groups = getattr(groups[agg_cols], agg)()
+        code = [
+            "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}().reset_index()".format(
+                cols="', '".join(idx_cols), agg_cols="', '".join(agg_cols), agg=agg
             )
         ]
-    idx_cols = make_list(animate_by) + [x]
-    groups = df.groupby(idx_cols)
-    groups = getattr(groups[y], agg)()
     if animate_by is not None:
         full_idx = pd.MultiIndex.from_product([df[c].unique() for c in idx_cols], names=idx_cols)
         groups = groups.reindex(full_idx).fillna(0)
-    return groups.reset_index(), [
-        "chart_data = chart_data.groupby('{x}')[['{y}']].{agg}().reset_index()".format(
-            x=x, y=make_list(y)[0], agg=agg
-        )
-    ]
+        code += [
+            "idx_cols = ['{cols}']".format(cols="', '".join(idx_cols)),
+            'full_idx = pd.MultiIndex.from_product([df[c].unique() for c in idx_cols], names=idx_cols)'
+            'chart_data = chart_data.reindex(full_idx).fillna(0)'
+        ]
+    return groups.reset_index(), code
 
 
 def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, allow_duplicates=False, return_raw=False,
@@ -337,22 +354,21 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
     y_cols = make_list(y)
     z_col = kwargs.get('z')
     z_cols = make_list(z_col)
+    sort_cols = (y_cols if len(z_cols) else [])
     if group_col is not None and len(group_col):
         main_group = group_col
         if animate_by is not None:
             main_group = [animate_by] + main_group
-        sort_cols = main_group + [x]
+        sort_cols = main_group + [x] + sort_cols
         data = data.sort_values(sort_cols)
         code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(sort_cols)))
-        check_all_nan(data, [x] + y_cols)
+        check_all_nan(data)
         data = data.rename(columns={x: x_col})
         code.append("chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})")
-        if agg is not None and agg != 'raw':
-            data = data.groupby(main_group + [x_col])
-            data = getattr(data, agg)().reset_index()
-            code.append("chart_data = chart_data.groupby(['{cols}']).{agg}().reset_index()".format(
-                cols="', '".join(main_group + [x]), agg=agg
-            ))
+        if agg is not None:
+            data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col, group_col=group_col,
+                                            animate_by=animate_by)
+            code += agg_code
         MAX_GROUPS = 30
         group_vals = data[group_col].drop_duplicates()
         if len(group_vals) > MAX_GROUPS:
@@ -376,8 +392,8 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
         data_f, range_f = build_formatters(data)
         ret_data = dict(
             data={},
-            min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
-            max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols},
+            min={col: fmt(data[col].min(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
+            max={col: fmt(data[col].max(), None) for _, col, fmt in range_f.fmts if col in [x_col] + y_cols + z_cols},
         )
 
         dtypes = get_dtypes(data)
@@ -408,15 +424,17 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
     main_group = [x]
     if animate_by is not None:
         main_group = [animate_by] + main_group
-    sort_cols = main_group + (y_cols if len(z_cols) else [])
+    sort_cols = main_group + sort_cols
     data = data.sort_values(sort_cols)
     code.append("chart_data = chart_data.sort_values(['{cols}'])".format(cols="', '".join(sort_cols)))
-    check_all_nan(data, main_group + y_cols + z_cols)
+    check_all_nan(data)
     y_cols = [str(y_col) for y_col in y_cols]
     data = data[main_group + y_cols + z_cols]
-    main_group[-1] = x_col
-    data.columns = main_group + y_cols + z_cols
-    code.append("chart_data.columns = ['{cols}']".format(cols="', '".join(main_group + y_cols + z_cols)))
+
+    data = data.rename(columns={x: x_col})
+    main_group = [x_col if c == x else c for c in main_group]
+    code.append("chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})")
+
     if agg is not None:
         data, agg_code = build_agg_data(data, x_col, y_cols, kwargs, agg, z=z_col, animate_by=animate_by)
         code += agg_code
@@ -427,7 +445,7 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
 
     dupe_cols = main_group + (y_cols if len(z_cols) else [])
     check_exceptions(
-        data[dupe_cols].rename(columns={'x': x}),
+        data[dupe_cols].rename(columns={x_col: x}),
         allow_duplicates or agg == 'raw',
         unlimited_data=unlimited_data,
         data_limit=40000 if len(z_cols) or animate_by is not None else 15000

@@ -1,18 +1,16 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../BouncerWrapper";
 import { RemovableError } from "../RemovableError";
-import { closeChart } from "../actions/charts";
 import { dtypesUrl } from "../actions/url-utils";
 import serverState from "../dtale/serverStateManagement";
 import { fetchJson } from "../fetcher";
 import { Details } from "./describe/Details";
 import { DtypesGrid } from "./describe/DtypesGrid";
 
-class ReactDescribe extends React.Component {
+class Describe extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -58,17 +56,7 @@ class ReactDescribe extends React.Component {
     }
     const save = () => {
       const visibility = _.reduce(this._grid.state.dtypes, (ret, d) => _.assignIn(ret, { [d.name]: d.visible }), {});
-      const vizzCallback = () => {
-        if (_.startsWith(window.location.pathname, "/dtale/popup/describe")) {
-          window.opener.location.reload();
-        } else {
-          const updatedColumns = _.map(this.props.chartData.columns, c =>
-            _.assignIn({}, c, { visible: _.get(visibility, c.name, true) })
-          );
-          this.props.chartData.propagateState({ columns: updatedColumns }, this.props.onClose);
-        }
-      };
-      serverState.updateVisibility(this.props.dataId, visibility, vizzCallback);
+      serverState.updateVisibility(this.props.dataId, visibility, () => window.opener.location.reload());
     };
     const propagateState = state => this.setState(state);
     return [
@@ -80,11 +68,7 @@ class ReactDescribe extends React.Component {
             </BouncerWrapper>
           </div>
           <div className="col-md-7 describe-details-col">
-            <Details
-              selected={this.state.selected}
-              dataId={this.props.dataId}
-              propagateState={this.props.chartData.propagateState}
-            />
+            <Details selected={this.state.selected} dataId={this.props.dataId} />
           </div>
         </div>
       </div>,
@@ -96,22 +80,13 @@ class ReactDescribe extends React.Component {
     ];
   }
 }
-ReactDescribe.displayName = "ReactDescribe";
-ReactDescribe.propTypes = {
+Describe.displayName = "Describe";
+Describe.propTypes = {
   dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     selectedCol: PropTypes.string,
-    columns: PropTypes.arrayOf(PropTypes.object),
-    propagateState: PropTypes.func,
   }),
-  onClose: PropTypes.func,
 };
-ReactDescribe.defaultProps = { onClose: _.noop };
 
-const ReduxDescribe = connect(
-  state => _.pick(state, ["dataId", "chartData"]),
-  dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactDescribe);
-
-export { ReactDescribe, ReduxDescribe as Describe };
+export { Describe };

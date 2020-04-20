@@ -112,6 +112,13 @@ class ReactColumnMenu extends React.Component {
         );
       }
     };
+    const openDescribe = () =>
+      window.open(
+        buildURLString(menuFuncs.fullPath("/dtale/popup/describe", dataId), {
+          selectedCol,
+        }),
+        "_blank"
+      );
     const openFormatting = () =>
       this.props.propagateState({
         formattingOpen: true,
@@ -126,11 +133,23 @@ class ReactColumnMenu extends React.Component {
       };
       serverState.toggleVisibility(dataId, selectedCol, hideCallback);
     };
-    const deleteCol = () =>
-      this.props.propagateState(
-        { columns: _.reject(this.props.columns, { name: selectedCol }) },
-        serverState.deleteColumn(dataId, selectedCol)
-      );
+    const deleteCol = () => {
+      const yesAction = () =>
+        this.props.propagateState(
+          { columns: _.reject(this.props.columns, { name: selectedCol }) },
+          serverState.deleteColumn(dataId, selectedCol)
+        );
+      const msg = `Are you sure you want to delete the column "${selectedCol}"?`;
+      const title = `Delete column - ${selectedCol}`;
+      openChart({ type: "confirm", title, msg, yesAction, size: "modal-sm" });
+    };
+    const renameCol = () =>
+      openChart({
+        type: "rename",
+        selectedCol,
+        columns: this.props.columns,
+        size: "modal-sm",
+      });
     return (
       <div
         id="column-menu-div"
@@ -215,7 +234,15 @@ class ReactColumnMenu extends React.Component {
           </li>
           <li>
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("describe", 670, 1100)}>
+              <button className="btn btn-plain" onClick={renameCol}>
+                <i className="ico-edit" />
+                <span className="font-weight-bold">Rename</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openDescribe}>
                 <i className="ico-view-column" />
                 <span className="font-weight-bold">Describe</span>
               </button>

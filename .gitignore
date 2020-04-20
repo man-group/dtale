@@ -4,6 +4,7 @@
 # test output files
 .cache
 .coverage
+.DS_store
 .eggs
 .nyc_output
 js_junit.xml

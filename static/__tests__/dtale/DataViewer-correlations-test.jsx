@@ -4,7 +4,6 @@ import React from "react";
 
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
-import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
@@ -71,8 +70,7 @@ describe("DataViewer tests", () => {
   test("DataViewer: correlations", done => {
     const Correlations = require("../../popups/Correlations").Correlations;
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
+    buildInnerHTML({ settings: "" });
     Object.defineProperty(global.document, "queryCommandSupported", {
       value: () => true,
     });
