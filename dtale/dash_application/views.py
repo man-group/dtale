@@ -262,7 +262,7 @@ def init_callbacks(dash_app):
         group_style = {'display': 'block' if show_input('group') else 'none'}
         rolling_style = {'display': 'inherit' if agg == 'rolling' else 'none'}
         cpg_style = {'display': 'block' if show_chart_per_group(**inputs) else 'none'}
-        bar_style = bar_input_style(**inputs)
+        bar_style, barsort_style = bar_input_style(**inputs)
         yaxis_style = {'display': 'block' if show_yaxis_ranges(**inputs) else 'none'}
 
         data_id = get_data_id(pathname)
@@ -270,7 +270,7 @@ def init_callbacks(dash_app):
         animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
 
         return (
-            y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, bar_style,
+            y_multi_style, y_single_style, z_style, group_style, rolling_style, cpg_style, bar_style, barsort_style,
             yaxis_style, animate_style, animate_by_style, animate_opts
         )
 

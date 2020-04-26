@@ -11,6 +11,7 @@ import { CodeExport } from "./CodeExport";
 import { Confirmation } from "./Confirmation";
 import { Correlations } from "./Correlations";
 import { Describe } from "./Describe";
+import { Error } from "./ErrorPopup";
 import { Filter } from "./Filter";
 import Instances from "./Instances";
 import { Rename } from "./Rename";
@@ -124,6 +125,15 @@ class ReactPopup extends React.Component {
         );
         body = <Rename {...this.props} />;
         break;
+      case "error":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-cancel" />
+            <strong>Error</strong>
+          </ModalTitle>
+        );
+        body = <Error {...this.props} />;
+        break;
       case "instances":
         modalTitle = (
           <ModalTitle>
@@ -184,6 +194,7 @@ ReactPopup.propTypes = {
     size: PropTypes.string,
     backdrop: PropTypes.bool,
     selectedCol: PropTypes.string,
+    rowIndex: PropTypes.number,
   }),
   propagateState: PropTypes.func,
 };

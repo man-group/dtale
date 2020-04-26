@@ -93,23 +93,13 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(Filter).length, 1, "should open filter");
-        result
-          .find(ModalClose)
-          .first()
-          .simulate("click");
+        result.find(ModalClose).first().simulate("click");
         result.update();
         t.notOk(result.find(Filter).length, "should close filter");
         clickMainMenuButton(result, "Custom Filter");
         setTimeout(() => {
           result.update();
-          result
-            .find(Filter)
-            .first()
-            .find("div.modal-footer")
-            .first()
-            .find("button")
-            .at(1)
-            .simulate("click");
+          result.find(Filter).first().find("div.modal-footer").first().find("button").at(1).simulate("click");
           setTimeout(() => {
             result.update();
             t.notOk(result.find(Filter).length, "should close filter");
@@ -121,28 +111,11 @@ describe("DataViewer tests", () => {
               .find("textarea")
               .simulate("change", { target: { value: "test" } });
             result.update();
-            result
-              .find(Filter)
-              .first()
-              .find("button")
-              .last()
-              .simulate("click");
+            result.find(Filter).first().find("button").last().simulate("click");
             setTimeout(() => {
               result.update();
-              t.equal(
-                result
-                  .find("div.row div.col-auto")
-                  .first()
-                  .text(),
-                "Filter:foo == 1",
-                "should display filter"
-              );
-              result
-                .find("div.row div.col-auto")
-                .first()
-                .find("i.ico-cancel")
-                .last()
-                .simulate("click");
+              t.equal(result.find("div.row div.col-auto").first().text(), "Filter:foo == 1", "should display filter");
+              result.find("div.row div.col-auto").first().find("i.ico-cancel").last().simulate("click");
               setTimeout(() => {
                 result.update();
                 t.equal(result.find("div.row").length, 0, "should clear filter and hide info row");
@@ -181,36 +154,14 @@ describe("DataViewer tests", () => {
           .find("textarea")
           .simulate("change", { target: { value: "error" } });
         result.update();
-        result
-          .find(Filter)
-          .first()
-          .find("button")
-          .last()
-          .simulate("click");
+        result.find(Filter).first().find("button").last().simulate("click");
         setTimeout(() => {
           result.update();
-          t.equal(
-            result
-              .find(RemovableError)
-              .find("div.dtale-alert")
-              .text(),
-            "No data found",
-            "should display error"
-          );
-          result
-            .find(Filter)
-            .find(RemovableError)
-            .first()
-            .instance()
-            .props.onRemove();
+          t.equal(result.find(RemovableError).find("div.dtale-alert").text(), "No data found", "should display error");
+          result.find(Filter).find(RemovableError).first().instance().props.onRemove();
           result.update();
           t.equal(result.find(Filter).find("div.dtale-alert").length, 0, "should hide error");
-          result
-            .find(Filter)
-            .find("div.modal-footer")
-            .find("button")
-            .first()
-            .simulate("click");
+          result.find(Filter).find("div.modal-footer").find("button").first().simulate("click");
           const pandasURL = "https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query";
           expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(pandasURL);
           done();
@@ -240,11 +191,7 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(
-          result
-            .find(Filter)
-            .find(RemovableError)
-            .find("div.dtale-alert")
-            .text(),
+          result.find(Filter).find(RemovableError).find("div.dtale-alert").text(),
           "Error loading context variables",
           "should display error"
         );
@@ -275,18 +222,9 @@ describe("DataViewer tests", () => {
         result.update();
         const mainCol = result.find(Filter).find("div.col-md-12.h-100");
         t.equal(mainCol.text(), "Active Column Filters:foo == 1 andCustom Filter:foo == 1");
-        mainCol
-          .find("i.ico-cancel")
-          .first()
-          .simulate("click");
+        mainCol.find("i.ico-cancel").first().simulate("click");
         setTimeout(() => {
-          t.equal(
-            result
-              .find(Filter)
-              .find("div.col-md-12.h-100")
-              .text(),
-            "Custom Filter:foo == 1"
-          );
+          t.equal(result.find(Filter).find("div.col-md-12.h-100").text(), "Custom Filter:foo == 1");
           done();
         }, 400);
       }, 400);

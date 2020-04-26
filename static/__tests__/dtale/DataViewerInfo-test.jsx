@@ -28,10 +28,7 @@ describe("DataViewerInfo tests", () => {
       attachTo: document.getElementById("content"),
     });
     t.ok(result.find(RemovableError).length, 1, "should render error");
-    result
-      .find(RemovableError)
-      .find("i.ico-cancel")
-      .simulate("click");
+    result.find(RemovableError).find("i.ico-cancel").simulate("click");
     t.deepEqual(props, { error: null, traceback: null }, "should clear error");
     done();
   });
@@ -45,14 +42,7 @@ describe("DataViewerInfo tests", () => {
     const result = mount(<DataViewerInfo {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    t.equal(
-      result
-        .find("div.col")
-        .last()
-        .text(),
-      "Hidden:a",
-      "should display hidden columns"
-    );
+    t.equal(result.find("div.col").last().text(), "Hidden:a", "should display hidden columns");
     done();
   });
 
@@ -71,17 +61,10 @@ describe("DataViewerInfo tests", () => {
     const result = mount(<DataViewerInfo {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    const hiddenLink = result
-      .find("div.col")
-      .last()
-      .find("span.pointer");
+    const hiddenLink = result.find("div.col").last().find("span.pointer");
     t.equal(hiddenLink.text(), "10 Columns", "should display hidden columns");
     hiddenLink.simulate("click");
-    result
-      .find("div.hidden-menu-toggle")
-      .find("button")
-      .first()
-      .simulate("click");
+    result.find("div.hidden-menu-toggle").find("button").first().simulate("click");
     setTimeout(() => {
       result.update();
       done();
@@ -104,24 +87,13 @@ describe("DataViewerInfo tests", () => {
     const result = mount(<DataViewerInfo {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    const filterLink = result
-      .find("div.filter-menu-toggle")
-      .first()
-      .find("span.pointer");
+    const filterLink = result.find("div.filter-menu-toggle").first().find("span.pointer");
     t.equal(filterLink.text(), "bar == 1 and baz == 1 and f...", "should display filters");
     filterLink.simulate("click");
-    result
-      .find("div.filter-menu-toggle")
-      .find("button")
-      .first()
-      .simulate("click");
+    result.find("div.filter-menu-toggle").find("button").first().simulate("click");
     setTimeout(() => {
       result.update();
-      result
-        .find("div.filter-menu-toggle")
-        .find("button")
-        .last()
-        .simulate("click");
+      result.find("div.filter-menu-toggle").find("button").last().simulate("click");
       setTimeout(() => {
         result.update();
         done();
@@ -145,17 +117,10 @@ describe("DataViewerInfo tests", () => {
     const result = mount(<DataViewerInfo {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    const sortLink = result
-      .find("div.sort-menu-toggle")
-      .first()
-      .find("span.pointer");
+    const sortLink = result.find("div.sort-menu-toggle").first().find("span.pointer");
     t.equal(sortLink.text(), "foo (ASC), bar (DESC), baz (ASC)", "should display sorts");
     sortLink.simulate("click");
-    result
-      .find("div.sort-menu-toggle")
-      .find("button")
-      .first()
-      .simulate("click");
+    result.find("div.sort-menu-toggle").find("button").first().simulate("click");
     setTimeout(() => {
       result.update();
       done();

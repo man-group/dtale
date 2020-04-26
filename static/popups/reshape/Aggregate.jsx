@@ -85,13 +85,7 @@ class Aggregate extends React.Component {
   renderSelect(prop, otherProps, isMulti = false, ref = null) {
     const { shape } = this.state;
     let finalOptions = _.map(shape, "name");
-    const otherValues = _(this.state)
-      .pick(otherProps)
-      .values()
-      .concat()
-      .map("value")
-      .compact()
-      .value();
+    const otherValues = _(this.state).pick(otherProps).values().concat().map("value").compact().value();
     finalOptions = _.reject(finalOptions, otherValues);
     const props = {
       isMulti,

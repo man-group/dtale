@@ -59,10 +59,7 @@ describe("ColumnFilter string tests", () => {
               operand: "=",
               value: ["a"],
             });
-            result
-              .find("button")
-              .last()
-              .simulate("click");
+            result.find("button").last().simulate("click");
             setTimeout(() => {
               result.update();
               t.deepEqual(result.state().cfg, {

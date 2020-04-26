@@ -5,6 +5,7 @@ import { components } from "react-select";
 
 import { buildURLString, saveColFilterUrl } from "../actions/url-utils";
 import { exports as gu } from "../dtale/gridUtils";
+import Descriptions from "../dtale/iframe/column-menu-descriptions.json";
 import { fetchJson } from "../fetcher";
 import { DateFilter } from "./DateFilter";
 import { NumericFilter } from "./NumericFilter";
@@ -105,7 +106,7 @@ class ColumnFilter extends React.Component {
   render() {
     if (this.state.loadingState) {
       return (
-        <li>
+        <li className="hoverable">
           <span className="toggler-action">
             <i className="fa fa-filter" />
           </span>
@@ -114,6 +115,7 @@ class ColumnFilter extends React.Component {
               <components.LoadingIndicator getStyles={getStyles} cx={() => ""} />
             </div>
           </div>
+          <div className="hoverable__content col-menu-desc">{Descriptions.filter}</div>
         </li>
       );
     }
@@ -146,13 +148,14 @@ class ColumnFilter extends React.Component {
       missingToggle = this.renderMissingToggle(true);
     } else {
       markup = (
-        <li key={0}>
+        <li key={0} className="hoverable">
           <span className="toggler-action">
             <i className="fa fa-filter" />
           </span>
           <div className="m-auto">
             <div className="column-filter m-2">{markup}</div>
           </div>
+          <div className="hoverable__content col-menu-desc">{Descriptions.filter}</div>
         </li>
       );
       missingToggle = this.renderMissingToggle(false);

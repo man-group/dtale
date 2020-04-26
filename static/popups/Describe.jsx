@@ -56,7 +56,11 @@ class Describe extends React.Component {
     }
     const save = () => {
       const visibility = _.reduce(this._grid.state.dtypes, (ret, d) => _.assignIn(ret, { [d.name]: d.visible }), {});
-      serverState.updateVisibility(this.props.dataId, visibility, () => window.opener.location.reload());
+      const callback = () => {
+        window.opener.location.reload();
+        window.close();
+      };
+      serverState.updateVisibility(this.props.dataId, visibility, callback);
     };
     const propagateState = state => this.setState(state);
     return [

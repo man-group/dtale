@@ -1,20 +1,22 @@
 import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
-import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
+
+import { it } from "@jest/globals";
 
 import mockPopsicle from "../MockPopsicle";
 import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton } from "./iframe-utils";
+import { buildInnerHTML, tick, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
-describe("DataViewer iframe tests", () => {
+describe("DataViewer tests", () => {
+  const { open } = window;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -26,12 +28,14 @@ describe("DataViewer iframe tests", () => {
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 1005,
+      value: 1205,
     });
     Object.defineProperty(window, "innerHeight", {
       configurable: true,
-      value: 1240,
+      value: 775,
     });
+    delete window.open;
+    window.open = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -41,9 +45,15 @@ describe("DataViewer iframe tests", () => {
     );
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      const chartCfg = {
+        ctx,
+        cfg,
+        data: cfg.data,
+        destroyed: false,
+      };
+      chartCfg.destroy = function destroy() {
+        chartCfg.destroyed = true;
+      };
       return chartCfg;
     });
 
@@ -58,15 +68,16 @@ describe("DataViewer iframe tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
+    window.open = open;
   });
 
-  test("DataViewer: column analysis display in a modal", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
+  it("DataViewer: cell editing", async () => {
+    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
+    const GridCell = require("../../dtale/GridCell").ReactGridCell;
+    const GridCellEditor = require("../../dtale/GridCellEditor").ReactGridCellEditor;
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", iframe: "True" }, store);
+    buildInnerHTML({ settings: "" }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -76,23 +87,29 @@ describe("DataViewer iframe tests", () => {
       }
     );
 
-    setTimeout(() => {
-      result.update();
-      result.find(MultiGrid).first().instance();
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should render column headers"
-      );
-      result.find(".main-grid div.headerCell div").at(1).simulate("click");
-      t.equal(result.find("#column-menu-div").length, 1, "should show column menu");
-      t.equal(result.find(ColumnMenu).first().find("header").first().text(), 'Column "col2"', "should show col2 menu");
-      clickColMenuButton(result, "Column Analysis");
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(ColumnAnalysis).length, 1, "should show column analysis");
-        done();
-      }, 400);
-    }, 600);
+    await tick();
+    result.update();
+    const cellIdx = result.find(GridCell).last().find("div").prop("cell_idx");
+    result
+      .find(ReactDataViewer)
+      .instance()
+      .doubleClickCell({
+        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+      });
+    result.update();
+    let cellEditor = result.find(GridCellEditor).first();
+    cellEditor.instance().onKeyDown({ key: "Escape" });
+    result
+      .find(ReactDataViewer)
+      .instance()
+      .doubleClickCell({
+        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+      });
+    result.update();
+    cellEditor = result.find(GridCellEditor).first();
+    cellEditor.find("input").simulate("change", { target: { value: "20000101" } });
+    cellEditor.instance().onKeyDown({ key: "Enter" });
+    await tick();
+    t.equal(result.find(GridCell).last().text(), "20000101");
   });
 });

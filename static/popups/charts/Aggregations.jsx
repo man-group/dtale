@@ -23,7 +23,7 @@ const AGGREGATION_OPTS = [
 ];
 
 function getAggregations({ columns, x, group }) {
-  if (gu.isDateCol(_.get(_.find(columns, { name: _.get(x, "value") }), "dtype", "")) && _.isEmpty(group)) {
+  if (gu.isDateCol(gu.getDtype(_.get(x, "value"), columns)) && _.isEmpty(group)) {
     return AGGREGATION_OPTS;
   }
   return _.reject(AGGREGATION_OPTS, { value: "rolling" });

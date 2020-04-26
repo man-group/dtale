@@ -14,12 +14,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 function updateChartType(result, cmp, chartType) {
-  result
-    .find(cmp)
-    .find(Select)
-    .first()
-    .instance()
-    .onChange({ value: chartType });
+  result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
   result.update();
 }
 
@@ -99,29 +94,17 @@ describe("Charts bar tests", () => {
     setTimeout(() => {
       result.update();
       const filters = result.find(Charts).find(Select);
-      filters
-        .first()
-        .instance()
-        .onChange({ value: "col4" });
+      filters.first().instance().onChange({ value: "col4" });
       filters
         .at(1)
         .instance()
         .onChange([{ value: "col1" }]);
       updateChartType(result, ChartsBody, "bar");
-      result
-        .find(Charts)
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Charts).find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
         t.ok(result.find(ChartsBody).instance().state.charts.length == 1, "should render charts");
-        result
-          .find(ChartsBody)
-          .find(Select)
-          .at(1)
-          .instance()
-          .onChange({ value: "col1" });
+        result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "col1" });
         result.update();
         let axisEditor = result.find(AxisEditor).first();
         axisEditor.find("span.axis-select").simulate("click");

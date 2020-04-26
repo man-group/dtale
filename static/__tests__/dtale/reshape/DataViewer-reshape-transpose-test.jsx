@@ -95,12 +95,7 @@ describe("DataViewer tests", () => {
       clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
-        result
-          .find(Reshape)
-          .find("div.modal-body")
-          .find("button")
-          .at(2)
-          .simulate("click");
+        result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
         t.equal(result.find(Transpose).length, 1, "should show reshape pivot");
         const transposeComp = result.find(Transpose).first();
         const transposeInputs = transposeComp.find(Select);
@@ -112,35 +107,13 @@ describe("DataViewer tests", () => {
           .last()
           .instance()
           .onChange([{ value: "col2" }]);
-        result
-          .find("div.modal-body")
-          .find("div.row")
-          .last()
-          .find("button")
-          .last()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           t.equal(result.find(Reshape).length, 1, "should hide reshape");
-          result
-            .find("div.modal-body")
-            .find("div.row")
-            .last()
-            .find("button")
-            .first()
-            .simulate("click");
-          result
-            .find("div.modal-footer")
-            .first()
-            .find("button")
-            .first()
-            .simulate("click");
+          result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
+          result.find("div.modal-footer").first().find("button").first().simulate("click");
           setTimeout(() => {
             result.update();
             t.equal(result.find(Reshape).length, 0, "should hide reshape");
@@ -171,33 +144,12 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(Reshape).length, 1, "should show reshape");
-        result
-          .find(Reshape)
-          .find("div.modal-body")
-          .find("button")
-          .at(2)
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         result.update();
         t.equal(result.find(RemovableError).text(), "Missing an index selection!", "should render error");
-        result
-          .find(Transpose)
-          .first()
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Transpose).first().find(Select).first().instance().onChange({ value: "col1" });
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           done();

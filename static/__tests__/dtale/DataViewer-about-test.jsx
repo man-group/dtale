@@ -69,10 +69,7 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(About).length, 1, "should show about");
-        result
-          .find(ModalClose)
-          .first()
-          .simulate("click");
+        result.find(ModalClose).first().simulate("click");
         t.equal(result.find(About).length, 0, "should hide about");
         clickMainMenuButton(result, "About");
         setTimeout(() => {
@@ -80,18 +77,12 @@ describe("DataViewer tests", () => {
 
           const about = result.find(About).first();
           t.equal(
-            about
-              .find("div.modal-body div.row")
-              .first()
-              .text(),
+            about.find("div.modal-body div.row").first().text(),
             `Your Version:${pjson.version}`,
             "renders our version"
           );
           t.equal(
-            about
-              .find("div.modal-body div.row")
-              .at(1)
-              .text(),
+            about.find("div.modal-body div.row").at(1).text(),
             `PyPi Version:${pjson.version}`,
             "renders PyPi version"
           );

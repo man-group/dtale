@@ -2,6 +2,7 @@
     "trailingComma": "es5",
     "printWidth": 120,
     "jsxBracketSameLine": true,
+    "arrowParens": "avoid",
     "overrides": [
     {
         "files": "*.css",

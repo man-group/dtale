@@ -88,35 +88,20 @@ describe("Charts rolling tests", () => {
     setTimeout(() => {
       result.update();
       const filters = result.find(Charts).find(Select);
-      filters
-        .first()
-        .instance()
-        .onChange({ value: "col4" });
+      filters.first().instance().onChange({ value: "col4" });
       filters
         .at(1)
         .instance()
         .onChange([{ value: "col1" }]);
-      filters
-        .at(3)
-        .instance()
-        .onChange({ value: "rolling", label: "Rolling" });
+      filters.at(3).instance().onChange({ value: "rolling", label: "Rolling" });
       result.update();
       result
         .find(Aggregations)
         .find("input")
         .at(1)
         .simulate("change", { target: { value: "" } });
-      result
-        .find(Aggregations)
-        .find(Select)
-        .last()
-        .instance()
-        .onChange({ value: "corr", label: "Correlation" });
-      result
-        .find(Charts)
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Aggregations).find(Select).last().instance().onChange({ value: "corr", label: "Correlation" });
+      result.find(Charts).find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find(Charts).instance().state.error, "Aggregation (rolling) requires a window");
@@ -125,17 +110,8 @@ describe("Charts rolling tests", () => {
           .find("input")
           .at(1)
           .simulate("change", { target: { value: "10" } });
-        result
-          .find(Aggregations)
-          .find(Select)
-          .last()
-          .instance()
-          .onChange(null);
-        result
-          .find(Charts)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Aggregations).find(Select).last().instance().onChange(null);
+        result.find(Charts).find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           t.equal(result.find(Charts).instance().state.error, "Aggregation (rolling) requires a computation");

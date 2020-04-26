@@ -86,27 +86,12 @@ describe("DataViewer tests", () => {
           .find("input")
           .first()
           .simulate("change", { target: { value: "cut_col" } });
-        result
-          .find(CreateColumn)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .at(1)
-          .simulate("click");
+        result.find(CreateColumn).find("div.form-group").at(1).find("button").at(1).simulate("click");
         result.update();
         t.equal(result.find(CreateBins).length, 1, "should show build bins column");
         const binInputs = result.find(CreateBins).first();
-        binInputs
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col2" });
-        binInputs
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .first()
-          .simulate("click");
+        binInputs.find(Select).first().instance().onChange({ value: "col2" });
+        binInputs.find("div.form-group").at(1).find("button").first().simulate("click");
         binInputs
           .find("div.form-group")
           .at(2)
@@ -117,12 +102,7 @@ describe("DataViewer tests", () => {
           .at(3)
           .find("input")
           .simulate("change", { target: { value: "foo,bar,bin,baz" } });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           done();
@@ -157,38 +137,18 @@ describe("DataViewer tests", () => {
           .find("input")
           .first()
           .simulate("change", { target: { value: "qcut_col" } });
-        result
-          .find(CreateColumn)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .at(1)
-          .simulate("click");
+        result.find(CreateColumn).find("div.form-group").at(1).find("button").at(1).simulate("click");
         result.update();
         t.equal(result.find(CreateBins).length, 1, "should show build bins column");
         const binInputs = result.find(CreateBins).first();
-        binInputs
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col2" });
-        binInputs
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .last()
-          .simulate("click");
+        binInputs.find(Select).first().instance().onChange({ value: "col2" });
+        binInputs.find("div.form-group").at(1).find("button").last().simulate("click");
         binInputs
           .find("div.form-group")
           .at(2)
           .find("input")
           .simulate("change", { target: { value: "4" } });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           done();

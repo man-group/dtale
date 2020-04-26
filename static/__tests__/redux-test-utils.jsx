@@ -22,8 +22,8 @@ const DTYPES = {
       min: 2,
       max: 5,
       visible: true,
-      hasMissing: true,
-      hasOutliers: false,
+      hasMissing: 1,
+      hasOutliers: 0,
     },
     {
       name: "col2",
@@ -32,8 +32,8 @@ const DTYPES = {
       min: 2.5,
       max: 5.5,
       visible: true,
-      hasMissing: false,
-      hasOutliers: false,
+      hasMissing: 0,
+      hasOutliers: 0,
       outlierRange: { lower: 3.5, upper: 4.5 },
     },
     { name: "col3", index: 2, dtype: "object", visible: true },
@@ -195,7 +195,7 @@ function urlFetcher(url) {
     _.find(
       _.concat(
         ["/dtale/update-visibility", "/dtale/update-settings", "/dtale/update-locked", "/dtale/update-column-position"],
-        ["/dtale/delete-col"]
+        ["/dtale/delete-col", "/dtale/edit-cell"]
       ),
       prefix => _.startsWith(url, prefix)
     )

@@ -64,7 +64,7 @@ class Formatting extends React.Component {
     }
     const { columns, selectedCol } = this.props;
     const updateState = state => this.setState(state);
-    switch (gu.findColType(_.get(_.find(columns, { name: selectedCol }), "dtype"))) {
+    switch (gu.findColType(gu.getDtype(selectedCol, columns))) {
       case "int":
       case "float":
         return <NumericFormatting {...this.props} updateState={updateState} />;

@@ -75,6 +75,12 @@ function clickMainMenuButton(result, name, btnTag = "button") {
   return findMainMenuButton(result, name, btnTag).simulate("click");
 }
 
+function tick() {
+  return new Promise(resolve => {
+    setTimeout(resolve, 0);
+  });
+}
+
 export {
   withGlobalJquery,
   replaceNBSP,
@@ -83,4 +89,5 @@ export {
   buildInnerHTML,
   findMainMenuButton,
   clickMainMenuButton,
+  tick,
 };

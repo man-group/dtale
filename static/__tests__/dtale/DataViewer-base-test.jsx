@@ -67,22 +67,14 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      const grid = result
-        .find(MultiGrid)
-        .first()
-        .instance();
+      const grid = result.find(MultiGrid).first().instance();
       t.deepEqual(
         result.find(".main-grid div.headerCell").map(hc => hc.text()),
         ["col1", "col2", "col3", "col4"],
         "should render column headers"
       );
       t.deepEqual(grid.props.columns, COL_PROPS, "should properly size/lock columns");
-      result
-        .find("div.crossed")
-        .first()
-        .find("div.grid-menu")
-        .first()
-        .simulate("click");
+      result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
       t.deepEqual(
         result
           .find(DataViewerMenu)

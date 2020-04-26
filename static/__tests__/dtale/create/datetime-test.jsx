@@ -86,33 +86,13 @@ describe("DataViewer tests", () => {
           .find("input")
           .first()
           .simulate("change", { target: { value: "datetime_col" } });
-        result
-          .find(CreateColumn)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .at(2)
-          .simulate("click");
+        result.find(CreateColumn).find("div.form-group").at(1).find("button").at(2).simulate("click");
         result.update();
         t.equal(result.find(CreateDatetime).length, 1, "should show build datetime column");
         const dateInputs = result.find(CreateDatetime).first();
-        dateInputs
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col4" });
-        dateInputs
-          .find("div.form-group")
-          .at(2)
-          .find("button")
-          .first()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        dateInputs.find(Select).first().instance().onChange({ value: "col4" });
+        dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           done();
@@ -147,39 +127,14 @@ describe("DataViewer tests", () => {
           .find("input")
           .first()
           .simulate("change", { target: { value: "datetime_col" } });
-        result
-          .find(CreateColumn)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .at(2)
-          .simulate("click");
+        result.find(CreateColumn).find("div.form-group").at(1).find("button").at(2).simulate("click");
         result.update();
         t.equal(result.find(CreateDatetime).length, 1, "should show build datetime column");
         const dateInputs = result.find(CreateDatetime).first();
-        dateInputs
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col4" });
-        dateInputs
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .last()
-          .simulate("click");
-        dateInputs
-          .find("div.form-group")
-          .at(2)
-          .find("button")
-          .first()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        dateInputs.find(Select).first().instance().onChange({ value: "col4" });
+        dateInputs.find("div.form-group").at(1).find("button").last().simulate("click");
+        dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           done();

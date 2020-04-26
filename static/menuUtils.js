@@ -4,7 +4,7 @@ function openMenu(namespace, open, close, selector = "div.column-toggle", clickF
   return e => {
     const container = $(e.target).closest(selector);
     // add handler to close menu
-    $(document).bind(`click.${namespace}`, function(e) {
+    $(document).bind(`click.${namespace}`, function (e) {
       if (clickFilters(e)) {
         return;
       }

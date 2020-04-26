@@ -14,6 +14,11 @@ else:
 
 @pytest.mark.unit
 def test_type_conversion(unittest):
+
+    def verify_builder(builder, checker):
+        assert checker(builder.build_column())
+        assert builder.build_code()
+
     df = pd.DataFrame([{
         'str_num': '1.5', 'str_date': '20200101', 'str_date2': '1/1/2020', 'str_bool': 'True',
         'int': 1, 'int_date': 20200101, 'int_s': 1490195805,
@@ -31,105 +36,84 @@ def test_type_conversion(unittest):
 
         cfg = {'col': 'str_num', 'to': 'int', 'from': 'str'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1
+        verify_builder(builder, lambda col: col.values[0] == 1)
 
         cfg = {'col': 'str_num', 'to': 'float', 'from': 'str'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1.5
+        verify_builder(builder, lambda col: col.values[0] == 1.5)
 
         cfg = {'col': 'str_date', 'to': 'date', 'from': 'object'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert pd.Timestamp(s.values[0]).strftime('%Y%m%d') == '20200101'
+        verify_builder(builder, lambda col: pd.Timestamp(col.values[0]).strftime('%Y%m%d') == '20200101')
 
         cfg = {'col': 'str_date2', 'to': 'date', 'from': 'object'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert pd.Timestamp(s.values[0]).strftime('%Y%m%d') == '20200101'
+        verify_builder(builder, lambda col: pd.Timestamp(col.values[0]).strftime('%Y%m%d') == '20200101')
 
         cfg = {'col': 'str_bool', 'to': 'bool', 'from': 'object'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0]
+        verify_builder(builder, lambda col: col.values[0])
 
         cfg = {'col': 'int', 'to': 'float', 'from': 'int'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1.0
+        verify_builder(builder, lambda col: col.values[0] == 1.0)
 
         cfg = {'col': 'int', 'to': 'str', 'from': 'int'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == '1'
+        verify_builder(builder, lambda col: col.values[0] == '1')
 
         cfg = {'col': 'int', 'to': 'category', 'from': 'int'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.dtype.name == 'category'
+        verify_builder(builder, lambda col: col.dtype.name == 'category')
 
         cfg = {'col': 'int', 'to': 'bool', 'from': 'int'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert isinstance(s.values[0], np.bool_) and np.bool_(True) == s.values[0]
+        verify_builder(builder, lambda col: isinstance(col.values[0], np.bool_) and np.bool_(True) == col.values[0])
 
         cfg = {'col': 'int_date', 'to': 'date', 'from': 'int', 'unit': 'YYYYMMDD'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert pd.Timestamp(s.values[0]).strftime('%Y%m%d') == '20200101'
+        verify_builder(builder, lambda col: pd.Timestamp(col.values[0]).strftime('%Y%m%d') == '20200101')
 
         cfg = {'col': 'int_s', 'to': 'date', 'from': 'int', 'unit': 's'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert pd.Timestamp(s.values[0]).strftime('%Y%m%d') == '20170322'
+        verify_builder(builder, lambda col: pd.Timestamp(col.values[0]).strftime('%Y%m%d') == '20170322')
 
         cfg = {'col': 'float', 'to': 'int', 'from': 'float'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1
+        verify_builder(builder, lambda col: col.values[0] == 1)
 
         cfg = {'col': 'float', 'to': 'str', 'from': 'float'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == '1.5'
+        verify_builder(builder, lambda col: col.values[0] == '1.5')
 
         cfg = {'col': 'date', 'to': 'str', 'from': 'datetime64', 'fmt': '%m/%d/%Y'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == '01/01/2020'
+        verify_builder(builder, lambda col: col.values[0] == '01/01/2020')
 
         cfg = {'col': 'date', 'to': 'int', 'from': 'datetime64', 'unit': 'YYYYMMDD'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 20200101
+        verify_builder(builder, lambda col: col.values[0] == 20200101)
 
         cfg = {'col': 'date', 'to': 'int', 'from': 'datetime64', 'unit': 'ms'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1577854800
+        verify_builder(builder, lambda col: col.values[0] == 1577854800)
 
         cfg = {'col': 'bool', 'to': 'int', 'from': 'bool'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1
+        verify_builder(builder, lambda col: col.values[0] == 1)
 
         cfg = {'col': 'bool', 'to': 'str', 'from': 'bool'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 'True'
+        verify_builder(builder, lambda col: col.values[0] == 'True')
 
         cfg = {'col': 'cat_int', 'to': 'int', 'from': 'category'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 1
+        verify_builder(builder, lambda col: col.values[0] == 1)
 
         cfg = {'col': 'cat_bool', 'to': 'bool', 'from': 'category'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert isinstance(s.values[0], np.bool_) and np.bool_(True) == s.values[0]
+        verify_builder(builder, lambda col: isinstance(col.values[0], np.bool_) and np.bool_(True) == col.values[0])
 
         cfg = {'col': 'cat_str', 'to': 'str', 'from': 'category'}
         builder = ColumnBuilder(data_id, column_type, 'Col{}'.format(++i), cfg)
-        s = builder.build_column()
-        assert s.values[0] == 'a'
+        verify_builder(builder, lambda col: col.values[0] == 'a')

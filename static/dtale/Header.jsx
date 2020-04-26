@@ -70,10 +70,10 @@ class ReactHeader extends React.Component {
       colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
     }
     if (this.props.backgroundMode === "missing" && colCfg.hasMissing) {
-      colNameMarkup = `${bu.missingIcon}${colName}`;
+      colNameMarkup = <div title={`Missing Values: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
     }
     if (this.props.backgroundMode === "outliers" && colCfg.hasOutliers) {
-      colNameMarkup = `${bu.outlierIcon} ${colName}`;
+      colNameMarkup = <div title={`Outliers: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
     }
     return (
       <div className={`headerCell ${toggleId}`} style={headerStyle} onClick={menuHandler}>

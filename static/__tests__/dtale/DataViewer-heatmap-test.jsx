@@ -51,10 +51,7 @@ describe("DataViewer heatmap tests", () => {
     setTimeout(() => {
       result.update();
       let heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .first()
-        .simulate("click");
+      heatMapBtn.find("button").first().simulate("click");
       result.update();
       let dv = result.find(ReactDataViewer).instance().state;
       t.ok(
@@ -75,10 +72,7 @@ describe("DataViewer heatmap tests", () => {
         "should render int/float column headers"
       );
       heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .last()
-        .simulate("click");
+      heatMapBtn.find("button").last().simulate("click");
       t.deepEqual(
         result
           .find(ReactDataViewer)
@@ -88,10 +82,7 @@ describe("DataViewer heatmap tests", () => {
         "should render int/float column headers"
       );
       heatMapBtn = findMainMenuButton(result, "By Col", "div.btn-group");
-      heatMapBtn
-        .find("button")
-        .last()
-        .simulate("click");
+      heatMapBtn.find("button").last().simulate("click");
       dv = result.find(ReactDataViewer).instance().state;
       t.ok(_.filter(dv.columns, { visible: true }).length, 5, "should turn all columns back on");
       t.ok(

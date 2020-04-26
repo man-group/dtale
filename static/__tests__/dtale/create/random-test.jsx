@@ -22,21 +22,11 @@ function initialize(res) {
     .find("input")
     .first()
     .simulate("change", { target: { value: "rando_col" } });
-  res
-    .find("div.form-group")
-    .at(1)
-    .find("button")
-    .at(3)
-    .simulate("click");
+  res.find("div.form-group").at(1).find("button").at(3).simulate("click");
 }
 
 function submit(res) {
-  res
-    .find("div.modal-footer")
-    .first()
-    .find("button")
-    .first()
-    .simulate("click");
+  res.find("div.modal-footer").first().find("button").first().simulate("click");
 }
 
 describe("DataViewer tests", () => {
@@ -154,12 +144,7 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(1)
-          .simulate("click");
+        randomInputs.find("div.form-group").first().find("button").at(1).simulate("click");
         randomInputs
           .find("div.form-group")
           .at(1)
@@ -205,12 +190,7 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(2)
-          .simulate("click");
+        randomInputs.find("div.form-group").first().find("button").at(2).simulate("click");
         randomInputs
           .find("div.form-group")
           .at(1)
@@ -256,12 +236,7 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(3)
-          .simulate("click");
+        randomInputs.find("div.form-group").first().find("button").at(3).simulate("click");
         randomInputs
           .find("div.form-group")
           .at(1)
@@ -301,12 +276,7 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .at(4)
-          .simulate("click");
+        randomInputs.find("div.form-group").first().find("button").at(4).simulate("click");
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
@@ -341,12 +311,7 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         const randomInputs = result.find(CreateRandom).first();
-        randomInputs
-          .find("div.form-group")
-          .first()
-          .find("button")
-          .last()
-          .simulate("click");
+        randomInputs.find("div.form-group").first().find("button").last().simulate("click");
         const dateInputs = result.find(CreateColumn).find(DateInput);
         dateInputs
           .first()
@@ -357,16 +322,8 @@ describe("DataViewer tests", () => {
           .last()
           .instance()
           .props.onChange(new Date(moment("20000102")));
-        result
-          .find(CreateColumn)
-          .find("i")
-          .first()
-          .simulate("click");
-        result
-          .find(CreateColumn)
-          .find("i")
-          .last()
-          .simulate("click");
+        result.find(CreateColumn).find("i").first().simulate("click");
+        result.find(CreateColumn).find("i").last().simulate("click");
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {

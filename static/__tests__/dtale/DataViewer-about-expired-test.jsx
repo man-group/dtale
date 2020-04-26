@@ -74,21 +74,11 @@ describe("DataViewer tests", () => {
 
         const about = result.find(About).first();
         t.equal(
-          about
-            .find("div.modal-body div.row")
-            .first()
-            .text(),
+          about.find("div.modal-body div.row").first().text(),
           `Your Version:${pjson.version}`,
           "renders our version"
         );
-        t.equal(
-          about
-            .find("div.modal-body div.row")
-            .at(1)
-            .text(),
-          "PyPi Version:999.0.0",
-          "renders PyPi version"
-        );
+        t.equal(about.find("div.modal-body div.row").at(1).text(), "PyPi Version:999.0.0", "renders PyPi version");
         t.equal(about.find("div.dtale-alert").length, 1, "should render alert");
         done();
       }, 400);
