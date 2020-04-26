@@ -17,6 +17,8 @@ EXPORTS.isIntCol = dtype => _.startsWith(dtype, "int");
 EXPORTS.isFloatCol = dtype => _.startsWith(dtype, "float");
 EXPORTS.isDateCol = dtype => _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
 
+EXPORTS.getDtype = (col, columns) => _.get(_.find(columns, { name: col }, {}), "dtype");
+
 EXPORTS.findColType = dtype => {
   if (EXPORTS.isStringCol(dtype)) {
     return "string";

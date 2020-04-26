@@ -97,10 +97,7 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(Reshape).length, 1, "should show reshape");
-        result
-          .find(ModalClose)
-          .first()
-          .simulate("click");
+        result.find(ModalClose).first().simulate("click");
         t.equal(result.find(Reshape).length, 0, "should hide reshape");
         clickMainMenuButton(result, "Summarize Data");
         setTimeout(() => {
@@ -108,51 +105,20 @@ describe("DataViewer tests", () => {
           t.equal(result.find(Pivot).length, 1, "should show reshape pivot");
           const pivotComp = result.find(Pivot).first();
           const pivotInputs = pivotComp.find(Select);
-          pivotInputs
-            .first()
-            .instance()
-            .onChange({ value: "col1" });
-          pivotInputs
-            .at(1)
-            .instance()
-            .onChange({ value: "col2" });
+          pivotInputs.first().instance().onChange({ value: "col1" });
+          pivotInputs.at(1).instance().onChange({ value: "col2" });
           pivotInputs
             .at(2)
             .instance()
             .onChange([{ value: "col3" }]);
-          pivotInputs
-            .last()
-            .instance()
-            .onChange({ value: "count" });
-          result
-            .find("div.modal-body")
-            .find("div.row")
-            .last()
-            .find("button")
-            .last()
-            .simulate("click");
-          result
-            .find("div.modal-footer")
-            .first()
-            .find("button")
-            .first()
-            .simulate("click");
+          pivotInputs.last().instance().onChange({ value: "count" });
+          result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+          result.find("div.modal-footer").first().find("button").first().simulate("click");
           setTimeout(() => {
             result.update();
             t.equal(result.find(Reshape).length, 1, "should hide reshape");
-            result
-              .find("div.modal-body")
-              .find("div.row")
-              .last()
-              .find("button")
-              .first()
-              .simulate("click");
-            result
-              .find("div.modal-footer")
-              .first()
-              .find("button")
-              .first()
-              .simulate("click");
+            result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
+            result.find("div.modal-footer").first().find("button").first().simulate("click");
             setTimeout(() => {
               result.update();
               t.equal(result.find(Reshape).length, 0, "should hide reshape");
@@ -185,46 +151,22 @@ describe("DataViewer tests", () => {
         result.update();
         t.equal(result.find(Reshape).length, 1, "should show reshape");
         result.update();
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         result.update();
         t.equal(result.find(RemovableError).text(), "Missing an index selection!", "should render error");
         const pivotComp = result.find(Pivot).first();
         const pivotInputs = pivotComp.find(Select);
-        pivotInputs
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        pivotInputs.first().instance().onChange({ value: "col1" });
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         t.equal(result.find(RemovableError).text(), "Missing a columns selection!", "should render error");
-        pivotInputs
-          .at(1)
-          .instance()
-          .onChange({ value: "col2" });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        pivotInputs.at(1).instance().onChange({ value: "col2" });
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         t.equal(result.find(RemovableError).text(), "Missing a value(s) selection!", "should render error");
         pivotInputs
           .at(2)
           .instance()
           .onChange([{ value: "col3" }]);
-        pivotInputs
-          .last()
-          .instance()
-          .onChange({ value: "count" });
+        pivotInputs.last().instance().onChange({ value: "count" });
         done();
       }, 400);
     }, 600);

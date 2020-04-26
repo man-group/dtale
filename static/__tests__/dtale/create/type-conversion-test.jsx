@@ -22,21 +22,11 @@ function initialize(res) {
     .find("input")
     .first()
     .simulate("change", { target: { value: "conv_col" } });
-  res
-    .find("div.form-group")
-    .at(1)
-    .find("button")
-    .last()
-    .simulate("click");
+  res.find("div.form-group").at(1).find("button").last().simulate("click");
 }
 
 function submit(res) {
-  res
-    .find("div.modal-footer")
-    .first()
-    .find("button")
-    .first()
-    .simulate("click");
+  res.find("div.modal-footer").first().find("button").first().simulate("click");
 }
 
 describe("DataViewer tests", () => {
@@ -107,27 +97,11 @@ describe("DataViewer tests", () => {
         initialize(result.find(CreateColumn));
         result.update();
         t.equal(result.find(CreateTypeConversion).length, 1, "should show build conversion column");
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
+        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .at(1)
-          .instance()
-          .onChange({ value: "YYYYMMDD" });
+        result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
@@ -164,20 +138,9 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col2" });
+        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
@@ -214,20 +177,9 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col3" });
+        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col3" });
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
         result
           .find(CreateTypeConversion)
           .find("div.form-group")
@@ -271,27 +223,11 @@ describe("DataViewer tests", () => {
         result.update();
         initialize(result.find(CreateColumn));
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col4" });
+        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col4" });
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find("div.form-group")
-          .at(1)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
         result.update();
-        result
-          .find(CreateTypeConversion)
-          .find(Select)
-          .at(1)
-          .instance()
-          .onChange({ value: "ms" });
+        result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "ms" });
         submit(result);
         setTimeout(() => {
           t.deepEqual(result.find(CreateColumn).instance().state.cfg, {

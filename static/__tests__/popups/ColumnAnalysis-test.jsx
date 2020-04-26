@@ -177,18 +177,9 @@ describe("ColumnAnalysis tests", () => {
           chartData: _.assignIn(props.chartData, { visible: true }),
         });
         result.update();
-        result
-          .find(ColumnAnalysisFilters)
-          .find("button")
-          .at(1)
-          .simulate("click");
+        result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
         result.update();
-        result
-          .find(ColumnAnalysisFilters)
-          .find(Select)
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
+        result.find(ColumnAnalysisFilters).find(Select).first().instance().onChange({ value: "col1" });
         setTimeout(() => {
           result.update();
           result
@@ -196,11 +187,7 @@ describe("ColumnAnalysis tests", () => {
             .find("input")
             .first()
             .simulate("change", { target: { value: 50 } });
-          result
-            .find(ColumnAnalysisFilters)
-            .find("input")
-            .first()
-            .simulate("keyPress", { key: "Enter" });
+          result.find(ColumnAnalysisFilters).find("input").first().simulate("keyPress", { key: "Enter" });
           setTimeout(() => {
             result.update();
             done();
@@ -222,11 +209,7 @@ describe("ColumnAnalysis tests", () => {
     setTimeout(() => {
       result.update();
       result.update();
-      result
-        .find(ColumnAnalysisFilters)
-        .find("button")
-        .at(1)
-        .simulate("click");
+      result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         done();
@@ -261,10 +244,7 @@ describe("ColumnAnalysis tests", () => {
     setTimeout(() => {
       result.update();
       const ordinalInputs = result.find(Select);
-      ordinalInputs
-        .first()
-        .instance()
-        .onChange({ value: "col1" });
+      ordinalInputs.first().instance().onChange({ value: "col1" });
       setTimeout(() => {
         result.update();
         done();

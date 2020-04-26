@@ -63,32 +63,12 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
       clickColMenuSubButton(result, "Asc");
-      t.equal(
-        result
-          .find("div.row div.col")
-          .first()
-          .text(),
-        "Sort:col4 (ASC)",
-        "should display column sort"
-      );
+      t.equal(result.find("div.row div.col").first().text(), "Sort:col4 (ASC)", "should display column sort");
       clickColMenuSubButton(result, "Desc");
-      t.equal(
-        result
-          .find("div.row div.col")
-          .first()
-          .text(),
-        "Sort:col4 (DESC)",
-        "should display column sort"
-      );
+      t.equal(result.find("div.row div.col").first().text(), "Sort:col4 (DESC)", "should display column sort");
       clickColMenuSubButton(result, "None");
       t.deepEqual(
         result.find(".main-grid div.headerCell").map(hc => hc.text()),

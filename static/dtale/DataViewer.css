@@ -17,6 +17,10 @@
   font-weight: bold;
 }
 
+.cell:hover {
+  background: lightblue;
+}
+
 .headerCell {
   align-items: center;
   text-align: center;

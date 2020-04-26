@@ -88,93 +88,42 @@ describe("DataViewer tests", () => {
     setTimeout(() => {
       result.update();
       // select column
-      result
-        .find(".main-grid div.headerCell div")
-        .at(1)
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").at(1).simulate("click");
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
       t.equal(result.find(NumericFormatting).length, 1, "should open numeric formatting");
-      result
-        .find(Formatting)
-        .find(ModalClose)
-        .first()
-        .simulate("click");
+      result.find(Formatting).find(ModalClose).first().simulate("click");
       result.update();
       t.notOk(result.find(Formatting).instance().props.visible, "should close numeric formatting");
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
 
-      result
-        .find(NumericFormatting)
-        .find("i.ico-info-outline")
-        .first()
-        .simulate("click");
+      result.find(NumericFormatting).find("i.ico-info-outline").first().simulate("click");
       expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("http://numeraljs.com/#format");
       _.forEach(TEXT_TESTS, ([expected, msg], i) => {
-        let clicker = result
-          .find(NumericFormatting)
-          .find("div.form-group")
-          .at(i)
-          .find("button");
+        let clicker = result.find(NumericFormatting).find("div.form-group").at(i).find("button");
         if (i == 0) {
           clicker = clicker.last();
         } else {
           clicker = clicker.first();
         }
         clicker.simulate("click");
-        t.equal(
-          result
-            .find(NumericFormatting)
-            .find("small")
-            .first()
-            .text(),
-          expected,
-          msg
-        );
+        t.equal(result.find(NumericFormatting).find("small").first().text(), expected, msg);
       });
-      result
-        .find(NumericFormatting)
-        .find("div.form-group")
-        .at(5)
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(NumericFormatting).find("div.form-group").at(5).find("button").first().simulate("click");
       t.ok(
-        _.includes(
-          result
-            .find(NumericFormatting)
-            .find("small")
-            .first()
-            .html(),
-          'style="color: red;"'
-        ),
+        _.includes(result.find(NumericFormatting).find("small").first().html(), 'style="color: red;"'),
         "should display red highlighting in sample formatting"
       );
       _.forEach(_.range(1, 6), i => {
-        result
-          .find(NumericFormatting)
-          .find("div.form-group")
-          .at(i)
-          .find("button")
-          .last()
-          .simulate("click");
+        result.find(NumericFormatting).find("div.form-group").at(i).find("button").last().simulate("click");
       });
-      result
-        .find(Formatting)
-        .find(ModalFooter)
-        .first()
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
-        const grid = result
-          .find(MultiGrid)
-          .first()
-          .instance();
+        const grid = result.find(MultiGrid).first().instance();
         t.equal(grid.props.data["0"].col2.view, "2.500000", "should update grid formatting");
         done();
       }, 400);

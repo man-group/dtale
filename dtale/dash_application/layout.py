@@ -407,7 +407,10 @@ def bar_input_style(**inputs):
     """
     Sets display CSS property for bar chart inputs
     """
-    return dict(display='block' if inputs.get('chart_type') == 'bar' else 'none')
+    chart_type, group_col = (inputs.get(p) for p in ['chart_type', 'group'])
+    show_bar = chart_type == 'bar'
+    show_barsort = show_bar and group_col is None
+    return dict(display='block' if show_bar else 'none'), dict(display='block' if show_barsort else 'none')
 
 
 def colorscale_input_style(**inputs):
@@ -415,9 +418,9 @@ def colorscale_input_style(**inputs):
 
 
 def animate_styles(df, **inputs):
-    chart_type, cpg = (inputs.get(p) for p in ['chart_type', 'cpg'])
+    chart_type, agg, cpg = (inputs.get(p) for p in ['chart_type', 'agg', 'cpg'])
     opts = []
-    if cpg:
+    if cpg or agg in ['pctsum', 'pctct']:
         return dict(display='none'), dict(display='none'), opts
     if chart_type in ANIMATION_CHARTS:
         return dict(display='block'), dict(display='none'), opts
@@ -512,7 +515,7 @@ def charts_layout(df, settings, **inputs):
     show_input = show_input_handler(chart_type)
     show_cpg = show_chart_per_group(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
-    bar_style = bar_input_style(**inputs)
+    bar_style, barsort_input_style = bar_input_style(**inputs)
     animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
 
     options = build_input_options(df, **inputs)
@@ -803,7 +806,7 @@ def charts_layout(df, settings, **inputs):
                         ), className='col-auto addon-min-width', style=bar_style, id='barmode-input'),
                         build_input('Barsort', dcc.Dropdown(
                             id='barsort-dropdown', options=barsort_options, value=inputs.get('barsort')
-                        ), className='col-auto addon-min-width', style=bar_style, id='barsort-input'),
+                        ), className='col-auto addon-min-width', style=barsort_input_style, id='barsort-input'),
                         html.Div(
                             html.Div(
                                 [

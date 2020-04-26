@@ -15,7 +15,7 @@ const TYPE_MAP = {
 };
 
 function getDtype(col, columns) {
-  return _.get(_.find(columns, { name: _.get(col, "value") }, {}), "dtype");
+  return gu.getDtype(_.get(col, "value"), columns);
 }
 
 function getColType(col, columns) {

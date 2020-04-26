@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import scrollbarSize from "dom-helpers/scrollbarSize";
+import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
@@ -8,6 +9,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import InfiniteLoader from "react-virtualized/dist/commonjs/InfiniteLoader";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
+import { openChart } from "../actions/charts";
 import actions from "../actions/dtale";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
@@ -15,11 +17,11 @@ import { Popup } from "../popups/Popup";
 import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
 import { DataViewerMenu } from "./DataViewerMenu";
-import { Header } from "./Header";
+import { GridCell } from "./GridCell";
 import { MeasureText } from "./MeasureText";
-import bu from "./backgroundUtils";
 import { exports as gu } from "./gridUtils";
 import { ColumnMenu } from "./iframe/ColumnMenu";
+import Descriptions from "./menu-descriptions.json";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
@@ -29,10 +31,17 @@ class ReactDataViewer extends React.Component {
     super(props);
     this.state = gu.buildState(props);
     this._cellRenderer = this._cellRenderer.bind(this);
-    this._cellRenderer = this._cellRenderer.bind(this);
     this._onSectionRendered = this._onSectionRendered.bind(this);
     this.propagateState = this.propagateState.bind(this);
     this.getData = this.getData.bind(this);
+    this.doubleClickCell = this.doubleClickCell.bind(this);
+  }
+
+  doubleClickCell(e) {
+    const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
+    if (cellIdx) {
+      this.props.editCell(cellIdx);
+    }
   }
 
   propagateState(state, callback = _.noop) {
@@ -56,6 +65,7 @@ class ReactDataViewer extends React.Component {
   }
 
   componentDidMount() {
+    $("div.ReactVirtualized__Grid").on("dblclick", this.doubleClickCell);
     this.getData(this.state.ids);
   }
 
@@ -182,34 +192,17 @@ class ReactDataViewer extends React.Component {
   }
 
   _cellRenderer({ columnIndex, _isScrolling, key, rowIndex, style }) {
-    if (rowIndex == 0) {
-      return (
-        <Header
-          {...this.state}
-          key={key}
-          columnIndex={columnIndex}
-          style={style}
-          propagateState={this.propagateState}
-        />
-      );
-    }
-    const colCfg = gu.getCol(columnIndex, this.state);
-    let value = "-";
-    let valueStyle = {};
-    const divProps = {};
-    if (colCfg.name) {
-      const rec = _.get(this.state, ["data", rowIndex - 1, colCfg.name], {});
-      value = rec.view;
-      valueStyle = _.get(rec, "style", {});
-      valueStyle = bu.updateBackgroundStyles(this.state, valueStyle, colCfg, rec);
-      if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
-        divProps.title = rec.raw;
-      }
-    }
     return (
-      <div className="cell" key={key} style={_.assignIn({}, style, valueStyle)} {...divProps}>
-        {value}
-      </div>
+      <GridCell
+        {...{
+          gridState: this.state,
+          columnIndex,
+          key,
+          rowIndex,
+          style,
+          propagateState: this.propagateState,
+        }}
+      />
     );
   }
 
@@ -275,6 +268,9 @@ class ReactDataViewer extends React.Component {
           propagateState={this.propagateState}
           noInfo={gu.hasNoInfo(this.state)}
         />
+        <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
+          {Descriptions.editing}
+        </div>
       </div>
     );
   }
@@ -285,11 +281,17 @@ ReactDataViewer.propTypes = {
   dataId: PropTypes.string.isRequired,
   iframe: PropTypes.bool,
   closeColumnMenu: PropTypes.func,
+  openChart: PropTypes.func,
+  editCell: PropTypes.func,
 };
 
 const ReduxDataViewer = connect(
   ({ dataId, iframe }) => ({ dataId, iframe }),
-  dispatch => ({ closeColumnMenu: () => dispatch(actions.closeColumnMenu()) })
+  dispatch => ({
+    closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
+    openChart: chartProps => dispatch(openChart(chartProps)),
+    editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),
+  })
 )(ReactDataViewer);
 
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

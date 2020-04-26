@@ -131,77 +131,37 @@ describe("Instances tests", () => {
     });
     setTimeout(() => {
       result.update();
-      result
-        .find("button.preview-btn")
-        .last()
-        .simulate("click");
+      result.find("button.preview-btn").last().simulate("click");
       setTimeout(() => {
         result.update();
-        t.equal(
-          result
-            .find("h4.preview-header")
-            .first()
-            .text(),
-          "2018-04-30 12:36:44Preview",
-          "should render preview"
-        );
-        result
-          .find("button.preview-btn")
-          .first()
-          .simulate("click");
+        t.equal(result.find("h4.preview-header").first().text(), "2018-04-30 12:36:44Preview", "should render preview");
+        result.find("button.preview-btn").first().simulate("click");
         setTimeout(() => {
           result.update();
           t.equal(
-            result
-              .find("h4.preview-header")
-              .first()
-              .text(),
+            result.find("h4.preview-header").first().text(),
             "2018-04-30 12:36:44(foo)Preview",
             "should render preview"
           );
           t.equal(
-            result
-              .find("div.preview")
-              .first()
-              .find("div.ReactVirtualized__Table__row").length,
+            result.find("div.preview").first().find("div.ReactVirtualized__Table__row").length,
             6,
             "should render ... row"
           );
           t.equal(
-            result
-              .find("div.preview")
-              .first()
-              .find("div.ReactVirtualized__Table__row")
-              .first()
-              .find("div.cell").length,
+            result.find("div.preview").first().find("div.ReactVirtualized__Table__row").first().find("div.cell").length,
             6,
             "should render ... column"
           );
-          result
-            .find("button.preview-btn")
-            .at(1)
-            .simulate("click");
+          result.find("button.preview-btn").at(1).simulate("click");
           setTimeout(() => {
             result.update();
-            t.equal(
-              result
-                .find("div.dtale-alert")
-                .first()
-                .text(),
-              "No data found.",
-              "should render error"
-            );
-            result
-              .find("div.clickable")
-              .last()
-              .simulate("click");
+            t.equal(result.find("div.dtale-alert").first().text(), "No data found.", "should render error");
+            result.find("div.clickable").last().simulate("click");
             expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
             assignSpy.mockRestore();
             global.window = origWindow;
-            result
-              .find(".ico-delete")
-              .first()
-              .simulate("click");
+            result.find(".ico-delete").first().simulate("click");
             setTimeout(() => {
               result.update();
               done();
@@ -222,14 +182,7 @@ describe("Instances tests", () => {
       result.update();
       result.setState({ processes: { error: "Error Test" } });
       result.update();
-      t.equal(
-        result
-          .find("div.dtale-alert")
-          .first()
-          .text(),
-        "Error Test",
-        "should render error"
-      );
+      t.equal(result.find("div.dtale-alert").first().text(), "Error Test", "should render error");
       done();
     }, 200);
   });

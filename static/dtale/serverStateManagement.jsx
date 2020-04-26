@@ -130,6 +130,16 @@ function renameColumn(dataId, col, rename, callback) {
   fetchJson(buildURLString(`/dtale/rename-col/${dataId}/${col}`, { rename }), callback);
 }
 
+function editCell(dataId, col, rowIndex, updated, callback) {
+  fetchJson(
+    buildURLString(`/dtale/edit-cell/${dataId}/${col}`, {
+      rowIndex,
+      updated,
+    }),
+    callback
+  );
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -143,4 +153,5 @@ export default {
   updateSettings,
   deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}/${col}`), _.noop),
   renameColumn,
+  editCell,
 };

@@ -1,3 +1,4 @@
+import datetime
 import json
 from builtins import str
 
@@ -327,6 +328,56 @@ def test_rename_col():
 
             resp = c.get('/dtale/rename-col/-1/d', query_string=dict(rename='b'))
             assert 'error' in json.loads(resp.data)
+
+
+@pytest.mark.unit
+def test_edit_cell(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame([dict(
+        a=1, b=1.25, c='abc', d=pd.Timestamp('20000101'), e=pd.Timestamp('20000101 11:59:59.999999999'), f=True,
+        g=datetime.timedelta(seconds=500)
+    )])
+    df['h'] = df['c'].astype('category')
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            settings = {c.port: {'locked': ['a']}}
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            dtypes = {c.port: build_dtypes_state(df)}
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            resp = c.get('/dtale/edit-cell/{}/a'.format(c.port), query_string=dict(rowIndex=0, updated=2))
+            assert 'error' not in resp.json
+            resp = c.get('/dtale/edit-cell/{}/b'.format(c.port), query_string=dict(rowIndex=0, updated=2.5))
+            assert 'error' not in resp.json
+            resp = c.get('/dtale/edit-cell/{}/d'.format(c.port), query_string=dict(rowIndex=0, updated='20000102'))
+            assert 'error' not in resp.json
+            resp = c.get(
+                '/dtale/edit-cell/{}/e'.format(c.port),
+                query_string=dict(rowIndex=0, updated='20000101 11:58:59.999999999')
+            )
+            assert 'error' not in resp.json
+            resp = c.get('/dtale/edit-cell/{}/f'.format(c.port), query_string=dict(rowIndex=0, updated='False'))
+            assert 'error' not in resp.json
+            resp = c.get(
+                '/dtale/edit-cell/{}/g'.format(c.port),
+                query_string=dict(rowIndex=0, updated='0 days 00:09:20')
+            )
+            assert 'error' not in resp.json
+            resp = c.get('/dtale/edit-cell/{}/h'.format(c.port), query_string=dict(rowIndex=0, updated='cbd'))
+            assert 'error' not in resp.json
+            unittest.assertEqual(
+                {'a': 2, 'b': 2.5, 'c': 'abc', 'd': pd.Timestamp('2000-01-02 00:00:00'),
+                 'e': pd.Timestamp('2000-01-01 11:58:59.999999999'), 'f': False, 'g': pd.Timedelta('0 days 00:09:20'),
+                 'h': 'cbd'},
+                data[c.port].to_dict(orient='records')[0]
+            )
+            c.get('/dtale/edit-cell/{}/a'.format(c.port), query_string=dict(rowIndex=0, updated='nan'))
+            assert pd.isnull(data[c.port].a.values[0])
+            c.get('/dtale/edit-cell/{}/b'.format(c.port), query_string=dict(rowIndex=0, updated='inf'))
+            assert np.isinf(data[c.port].b.values[0])
 
 
 @pytest.mark.unit

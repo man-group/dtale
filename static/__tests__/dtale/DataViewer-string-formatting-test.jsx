@@ -79,45 +79,25 @@ describe("DataViewer tests", () => {
     setTimeout(() => {
       result.update();
       // select column
-      result
-        .find(".main-grid div.headerCell div")
-        .at(2)
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").at(2).simulate("click");
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
       t.equal(result.find(StringFormatting).length, 1, "should open string formatting");
 
-      const input = result
-        .find(StringFormatting)
-        .find("div.form-group")
-        .at(0)
-        .find("input");
+      const input = result.find(StringFormatting).find("div.form-group").at(0).find("input");
 
       input.simulate("change", { target: { value: "2" } });
       t.equal(
-        result
-          .find(StringFormatting)
-          .find("div.row")
-          .last()
-          .text(),
+        result.find(StringFormatting).find("div.row").last().text(),
         "Raw:I am a long piece of text, please truncate me.Truncated:...",
         "should truncate text"
       );
 
-      result
-        .find(Formatting)
-        .find(ModalFooter)
-        .first()
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
-        const grid = result
-          .find(MultiGrid)
-          .first()
-          .instance();
+        const grid = result.find(MultiGrid).first().instance();
         t.equal(grid.props.data["0"].col3.view, "...", "should update grid formatting");
         done();
       }, 400);

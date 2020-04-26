@@ -55,10 +55,7 @@ describe("DataViewer tests", () => {
       setTimeout(() => {
         result.update();
         t.equal(result.find(Instances).length, 1, "should show instances");
-        result
-          .find(ModalClose)
-          .first()
-          .simulate("click");
+        result.find(ModalClose).first().simulate("click");
         t.equal(result.find(Instances).length, 0, "should hide instances");
         done();
       }, 400);

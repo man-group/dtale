@@ -33,6 +33,18 @@ function iframe(state = false, action = {}) {
   }
 }
 
+function editedCell(state = null, action = {}) {
+  switch (action.type) {
+    case "edit-cell":
+      return action.editedCell;
+    case "toggle-column-menu":
+    case "clear-edit":
+      return null;
+    default:
+      return state;
+  }
+}
+
 function hideShutdown(state = false, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -79,6 +91,7 @@ const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
   dataId,
+  editedCell,
   iframe,
   columnMenuOpen,
   selectedCol,

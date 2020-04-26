@@ -79,14 +79,8 @@ describe("DataViewer tests", () => {
 
     setTimeout(() => {
       result.update();
-      const corrGrid = result
-        .find(Correlations)
-        .first()
-        .find("div.ReactVirtualized__Grid__innerScrollContainer");
-      corrGrid
-        .find("div.cell")
-        .at(1)
-        .simulate("click");
+      const corrGrid = result.find(Correlations).first().find("div.ReactVirtualized__Grid__innerScrollContainer");
+      corrGrid.find("div.cell").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");

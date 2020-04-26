@@ -70,10 +70,7 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
       clickColMenuButton(result, "Hide");
       expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
       $.post.mock.calls[0][2](); // execute callback
@@ -83,12 +80,7 @@ describe("DataViewer iframe tests", () => {
         ["col1", "col2", "col3"],
         "should render column headers"
       );
-      result
-        .find(DataViewerInfo)
-        .find("div.col")
-        .last()
-        .find("i")
-        .simulate("click");
+      result.find(DataViewerInfo).find("div.col").last().find("i").simulate("click");
       $.post.mock.calls[$.post.mock.calls.length - 1][2]();
       result.update();
       t.deepEqual(

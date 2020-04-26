@@ -13,7 +13,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("DataViewer tests", () => {
   const { post } = $;
-  const { opener } = window;
+  const { close, opener } = window;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -34,7 +34,9 @@ describe("DataViewer tests", () => {
     });
 
     delete window.opener;
+    delete window.close;
     window.opener = { location: { reload: jest.fn() } };
+    window.close = jest.fn();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -66,6 +68,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
     $.post = post;
     window.opener = opener;
+    window.close = close;
   });
 
   test("DataViewer: describe", done => {
@@ -81,69 +84,39 @@ describe("DataViewer tests", () => {
     setTimeout(() => {
       result.update();
       let details = result.find(Details).first();
-      details
-        .find("div.row")
-        .at(2)
-        .find("button")
-        .last()
-        .simulate("click");
+      details.find("div.row").at(2).find("button").last().simulate("click");
       setTimeout(() => {
         result.update();
         details = result.find(Details).first();
         t.equal(
-          details
-            .find("div.row")
-            .at(3)
-            .find("span.font-weight-bold")
-            .first()
-            .text(),
+          details.find("div.row").at(3).find("span.font-weight-bold").first().text(),
           "3 Outliers Found (top 100):"
         );
-        details
-          .find("div.row")
-          .at(3)
-          .find("a")
-          .simulate("click");
+        details.find("div.row").at(3).find("a").simulate("click");
         setTimeout(() => {
           let dtypesGrid = result.find(DtypesGrid).first();
           t.equal(dtypesGrid.find("div[role='row']").length, 5, "should render dtypes");
 
-          dtypesGrid
-            .find("div[role='columnheader']")
-            .first()
-            .simulate("click");
+          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
           dtypesGrid = result.find(DtypesGrid).first();
           t.equal(
-            dtypesGrid
-              .find("div.headerCell")
-              .first()
-              .find("svg.ReactVirtualized__Table__sortableHeaderIcon--ASC").length,
+            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--ASC")
+              .length,
             1,
             "should sort col1 ASC"
           );
-          dtypesGrid
-            .find("div[role='columnheader']")
-            .first()
-            .simulate("click");
+          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
           dtypesGrid = result.find(DtypesGrid).first();
           t.equal(
-            dtypesGrid
-              .find("div.headerCell")
-              .first()
-              .find("svg.ReactVirtualized__Table__sortableHeaderIcon--DESC").length,
+            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--DESC")
+              .length,
             1,
             "should sort col1 DESC"
           );
-          dtypesGrid
-            .find("div[role='columnheader']")
-            .first()
-            .simulate("click");
+          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
           dtypesGrid = result.find(DtypesGrid).first();
           t.equal(
-            dtypesGrid
-              .find("div.headerCell")
-              .first()
-              .find("svg.ReactVirtualized__Table__sortableHeaderIcon").length,
+            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon").length,
             0,
             "should remove col1 sort"
           );
@@ -155,43 +128,15 @@ describe("DataViewer tests", () => {
             .simulate("change", { target: { value: "1" } });
           dtypesGrid = result.find(DtypesGrid).first();
           t.equal(dtypesGrid.find("div[role='row']").length, 2, "should render filtered dtypes");
-          dtypesGrid
-            .find("div[title='col1']")
-            .first()
-            .simulate("click");
+          dtypesGrid.find("div[title='col1']").first().simulate("click");
           setTimeout(() => {
             result.update();
-            t.equal(
-              result
-                .find(Describe)
-                .first()
-                .find("h1")
-                .first()
-                .text(),
-              "col1",
-              "should describe col1"
-            );
+            t.equal(result.find(Describe).first().find("h1").first().text(), "col1", "should describe col1");
             dtypesGrid = result.find(DtypesGrid).first();
-            dtypesGrid
-              .find("div.headerCell")
-              .at(1)
-              .find("i.ico-check-box")
-              .simulate("click");
-            dtypesGrid
-              .find("div.headerCell")
-              .at(1)
-              .find("i.ico-check-box")
-              .simulate("click");
-            dtypesGrid
-              .find("i.ico-check-box")
-              .last()
-              .simulate("click");
-            result
-              .find("div.modal-footer")
-              .first()
-              .find("button")
-              .first()
-              .simulate("click");
+            dtypesGrid.find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
+            dtypesGrid.find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
+            dtypesGrid.find("i.ico-check-box").last().simulate("click");
+            result.find("div.modal-footer").first().find("button").first().simulate("click");
             expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
             $.post.mock.calls[0][2](); // execute callback
             result.update();

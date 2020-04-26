@@ -68,17 +68,9 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
       clickColMenuButton(result, "Delete");
-      result
-        .find(ReactConfirmation)
-        .find("div.modal-footer")
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(ReactConfirmation).find("div.modal-footer").find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
         t.deepEqual(

@@ -15,12 +15,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 function updateChartType(result, cmp, chartType) {
-  result
-    .find(cmp)
-    .find(Select)
-    .first()
-    .instance()
-    .onChange({ value: chartType });
+  result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
   result.update();
 }
 
@@ -101,41 +96,26 @@ describe("Charts tests", () => {
     setTimeout(() => {
       result.update();
       let filters = result.find(Charts).find(Select);
-      filters
-        .first()
-        .instance()
-        .onChange({ value: "col4" });
+      filters.first().instance().onChange({ value: "col4" });
       filters
         .at(1)
         .instance()
         .onChange([{ value: "col1" }, { value: "col2" }]);
-      filters
-        .at(3)
-        .instance()
-        .onChange({ value: "rolling", label: "Rolling" });
+      filters.at(3).instance().onChange({ value: "rolling", label: "Rolling" });
       result.update();
       result
         .find(Aggregations)
         .find("input")
         .at(1)
         .simulate("change", { target: { value: "10" } });
-      result
-        .find(Aggregations)
-        .find(Select)
-        .last()
-        .instance()
-        .onChange({ value: "corr", label: "Correlation" });
+      result.find(Aggregations).find(Select).last().instance().onChange({ value: "corr", label: "Correlation" });
       result
         .find(Charts)
         .find("input.form-control")
         .first()
         .simulate("change", { target: { value: "col4 == '20181201'" } });
       result.update();
-      result
-        .find(Charts)
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Charts).find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
         t.ok(result.find(ChartsBody).instance().state.charts.length == 1, "should render charts");
@@ -150,17 +130,11 @@ describe("Charts tests", () => {
           ),
           "should update chart URL"
         );
-        result
-          .find(ChartsBody)
-          .instance()
-          .state.charts[0].cfg.options.onClick();
+        result.find(ChartsBody).instance().state.charts[0].cfg.options.onClick();
         result.update();
         const { ticks } = result.find(ChartsBody).instance().state.charts[0].options.scales.xAxes[0];
         t.deepEqual(ticks, { max: "2018-12-26", min: "2018-12-18" }, "should limit x-axis");
-        result
-          .find(ChartsBody)
-          .instance()
-          .resetZoom();
+        result.find(ChartsBody).instance().resetZoom();
         result.update();
         t.notOk(
           result.find(ChartsBody).instance().state.charts[0].options.scales.xAxes[0].length == 0,
@@ -176,19 +150,12 @@ describe("Charts tests", () => {
         updateChartType(result, ChartsBody, "pie");
         t.ok(result.find(ChartsBody).instance().state.charts[0].cfg.type === "pie");
         filters = result.find(Charts).find(Select);
-        filters
-          .at(3)
-          .instance()
-          .onChange(null);
+        filters.at(3).instance().onChange(null);
         filters
           .at(2)
           .instance()
           .onChange([{ value: "col1" }, { value: "col3" }]);
-        result
-          .find(Charts)
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Charts).find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           updateChartType(result, ChartsBody, "line");
@@ -203,12 +170,7 @@ describe("Charts tests", () => {
           );
           updateChartType(result, ChartsBody, "wordcloud");
           updateChartType(result, ChartsBody, "line");
-          result
-            .find(ChartsBody)
-            .find(Select)
-            .at(1)
-            .instance()
-            .onChange({ value: "On" });
+          result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "On" });
           result.update();
           t.ok(result.find(ChartsBody).instance().state.charts.length == 2, "should render multiple charts");
           chartObj = result.find(ChartsBody).instance().state.charts[0];

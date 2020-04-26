@@ -17,10 +17,7 @@ function buildMenuHandler(prop, propagateState) {
     `div.${prop}-menu-toggle`,
     e => {
       const target = $(e.target);
-      if (target.hasClass("ignore-click") || target.parent().hasClass("ignore-click")) {
-        return true; // ignore filter clicks
-      }
-      return false;
+      return target.hasClass("ignore-click") || target.parent().hasClass("ignore-click");
     }
   );
 }
@@ -63,7 +60,7 @@ class ReactDataViewerInfo extends React.Component {
     }
     const label = (
       <div key={0} className="font-weight-bold d-inline-block">
-        Sort:
+        {"Sort:"}
       </div>
     );
     const clearAll = (
@@ -202,8 +199,11 @@ class ReactDataViewerInfo extends React.Component {
     const hidden = _.map(_.filter(columns, { visible: false }), "name");
     const clearHidden = () => {
       const visibility = _.reduce(columns, (ret, { name }) => _.assignIn(ret, { [name]: true }), {});
-      const updatedColumns = _.map(columns, c => _.assignIn({}, c, { visible: true }));
-      serverState.updateVisibility(dataId, visibility, () => propagateState({ columns: updatedColumns }));
+      const updatedState = {
+        columns: _.map(columns, c => _.assignIn({}, c, { visible: true })),
+        triggerResize: true,
+      };
+      serverState.updateVisibility(dataId, visibility, () => propagateState(updatedState));
     };
     const clearAll = (
       <i key={2} className="ico-cancel pl-3 pointer" style={{ marginTop: "-0.1em" }} onClick={clearHidden} />

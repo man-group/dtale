@@ -14,5 +14,6 @@
   "export": "Download DataFrame as CSV or TSV",
   "widths": "Auto-Resize the column widths",
   "about": "Link to the source code repository, documentation",
-  "shutdown": "Close D-Tale and all other open datasets without save. Do you want to export DataFrame?"
+  "shutdown": "Close D-Tale and all other open datasets without save. Do you want to export DataFrame?",
+  "editing": "Update cells to anything you'd like. Press \"Enter\" to confirm or \"Esc\" to exit. Invalid types will throw errors. Protected values are \"nan\" & \"inf\"."
 }

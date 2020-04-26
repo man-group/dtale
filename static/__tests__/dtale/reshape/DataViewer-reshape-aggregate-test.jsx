@@ -91,60 +91,21 @@ describe("DataViewer tests", () => {
       clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
-        result
-          .find(Reshape)
-          .find("div.modal-body")
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Reshape).find("div.modal-body").find("button").first().simulate("click");
         t.equal(result.find(Aggregate).length, 1, "should show reshape pivot");
         const aggComp = result.find(Aggregate).first();
         const aggInputs = aggComp.find(Select);
-        aggInputs
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
-        aggInputs
-          .at(1)
-          .instance()
-          .onChange({ value: "col2" });
-        aggInputs
-          .at(2)
-          .instance()
-          .onChange({ value: "count" });
-        aggComp
-          .find("i")
-          .first()
-          .simulate("click");
-        result
-          .find("div.modal-body")
-          .find("div.row")
-          .last()
-          .find("button")
-          .last()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        aggInputs.first().instance().onChange({ value: "col1" });
+        aggInputs.at(1).instance().onChange({ value: "col2" });
+        aggInputs.at(2).instance().onChange({ value: "count" });
+        aggComp.find("i").first().simulate("click");
+        result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
           result.update();
           t.equal(result.find(Reshape).length, 1, "should hide reshape");
-          result
-            .find("div.modal-body")
-            .find("div.row")
-            .last()
-            .find("button")
-            .first()
-            .simulate("click");
-          result
-            .find("div.modal-footer")
-            .first()
-            .find("button")
-            .first()
-            .simulate("click");
+          result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
+          result.find("div.modal-footer").first().find("button").first().simulate("click");
           setTimeout(() => {
             result.update();
             t.equal(result.find(Reshape).length, 0, "should hide reshape");
@@ -172,58 +133,19 @@ describe("DataViewer tests", () => {
       clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
-        result
-          .find(Reshape)
-          .find("div.modal-body")
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Reshape).find("div.modal-body").find("button").first().simulate("click");
         t.equal(result.find(Aggregate).length, 1, "should show reshape pivot");
         const aggComp = result.find(Aggregate).first();
         const aggInputs = aggComp.find(Select);
-        aggInputs
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
-        aggComp
-          .find("button")
-          .last()
-          .simulate("click");
-        aggInputs
-          .at(1)
-          .instance()
-          .onChange({ value: "count" });
-        aggInputs
-          .at(2)
-          .instance()
-          .onChange({ value: "col2" });
-        result
-          .find("div.modal-body")
-          .find("div.row")
-          .last()
-          .find("button")
-          .last()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        aggInputs.first().instance().onChange({ value: "col1" });
+        aggComp.find("button").last().simulate("click");
+        aggInputs.at(1).instance().onChange({ value: "count" });
+        aggInputs.at(2).instance().onChange({ value: "col2" });
+        result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         setTimeout(() => {
-          result
-            .find("div.modal-body")
-            .find("div.row")
-            .last()
-            .find("button")
-            .first()
-            .simulate("click");
-          result
-            .find("div.modal-footer")
-            .first()
-            .find("button")
-            .first()
-            .simulate("click");
+          result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
+          result.find("div.modal-footer").first().find("button").first().simulate("click");
           setTimeout(() => {
             result.update();
             t.equal(result.find(Reshape).length, 0, "should hide reshape");
@@ -251,43 +173,17 @@ describe("DataViewer tests", () => {
       clickMainMenuButton(result, "Summarize Data");
       setTimeout(() => {
         result.update();
-        result
-          .find(Reshape)
-          .find("div.modal-body")
-          .find("button")
-          .first()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        result.find(Reshape).find("div.modal-body").find("button").first().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         result.update();
         t.equal(result.find(RemovableError).text(), "Missing an index selection!", "should render error");
         const aggComp = result.find(Aggregate).first();
         const aggInputs = aggComp.find(Select);
-        aggInputs
-          .first()
-          .instance()
-          .onChange({ value: "col1" });
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        aggInputs.first().instance().onChange({ value: "col1" });
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         t.equal(result.find(RemovableError).text(), "Missing an aggregation selection!", "should render error");
-        aggComp
-          .find("button")
-          .last()
-          .simulate("click");
-        result
-          .find("div.modal-footer")
-          .first()
-          .find("button")
-          .first()
-          .simulate("click");
+        aggComp.find("button").last().simulate("click");
+        result.find("div.modal-footer").first().find("button").first().simulate("click");
         t.equal(result.find(RemovableError).text(), "Missing an aggregation selection!", "should render error");
         done();
       }, 400);

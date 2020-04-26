@@ -79,52 +79,28 @@ describe("DataViewer tests", () => {
     setTimeout(() => {
       result.update();
       // select column
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
       result.update();
       clickColMenuButton(result, "Formats");
       result.update();
       t.equal(result.find(DateFormatting).length, 1, "should open numeric formatting");
 
-      result
-        .find(Formatting)
-        .find("i.ico-info-outline")
-        .first()
-        .simulate("click");
+      result.find(Formatting).find("i.ico-info-outline").first().simulate("click");
       const momentUrl = "https://momentjs.com/docs/#/displaying/format/";
       expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(momentUrl);
-      const input = result
-        .find(DateFormatting)
-        .find("div.form-group")
-        .at(0)
-        .find("input");
+      const input = result.find(DateFormatting).find("div.form-group").at(0).find("input");
 
       input.simulate("change", { target: { value: "YYYYMMDD" } });
       t.equal(
-        result
-          .find(DateFormatting)
-          .find("div.row")
-          .last()
-          .text(),
+        result.find(DateFormatting).find("div.row").last().text(),
         "Raw:December 31st 1999, 7:00:00 pmFormatted:19991231",
         "should update formatting hint"
       );
 
-      result
-        .find(Formatting)
-        .find(ModalFooter)
-        .first()
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
-        const grid = result
-          .find(MultiGrid)
-          .first()
-          .instance();
+        const grid = result.find(MultiGrid).first().instance();
         t.equal(grid.props.data["0"].col4.view.length, 8, "should update grid formatting");
         done();
       }, 400);

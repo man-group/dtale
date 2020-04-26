@@ -944,7 +944,7 @@ def heatmap_builder(data_id, export=False, **inputs):
                 code += agg_code
         if not len(data):
             raise Exception('No data returned for this computation!')
-        check_exceptions(data[dupe_cols], agg not in ['corr', 'raw'], unlimited_data=True)
+        check_exceptions(data[dupe_cols], agg in ['corr', 'raw'], unlimited_data=True)
         dtypes = {c: classify_type(dtype) for c, dtype in get_dtypes(data).items()}
         data_f, _ = chart_formatters(data)
         data = data_f.format_df(data)

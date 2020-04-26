@@ -141,12 +141,7 @@ const COLORS = [
 ];
 
 function buildRGBA(colorScale) {
-  return val =>
-    "rgba(" +
-    colorScale(val)
-      .rgba()
-      .join(",") +
-    ")";
+  return val => "rgba(" + colorScale(val).rgba().join(",") + ")";
 }
 
 export { COLORS, buildRGBA };

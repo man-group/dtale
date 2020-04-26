@@ -69,10 +69,7 @@ describe("DataViewer iframe tests", () => {
 
     setTimeout(() => {
       result.update();
-      result
-        .find(".main-grid div.headerCell div")
-        .last()
-        .simulate("click");
+      result.find(".main-grid div.headerCell div").last().simulate("click");
       clickColMenuButton(result, "Rename");
       result
         .find(ReactRename)
@@ -89,12 +86,7 @@ describe("DataViewer iframe tests", () => {
         .first()
         .simulate("change", { target: { value: "col5" } });
       result.update();
-      result
-        .find(ReactRename)
-        .find("div.modal-footer")
-        .find("button")
-        .first()
-        .simulate("click");
+      result.find(ReactRename).find("div.modal-footer").find("button").first().simulate("click");
       setTimeout(() => {
         result.update();
         t.deepEqual(

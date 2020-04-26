@@ -68,13 +68,7 @@ describe("ColumnFilter numeric tests", () => {
               operand: "=",
               value: [1],
             });
-            result
-              .find(NumericFilter)
-              .find("div.row")
-              .first()
-              .find("button")
-              .at(1)
-              .simulate("click");
+            result.find(NumericFilter).find("div.row").first().find("button").at(1).simulate("click");
             t.deepEqual(result.state().cfg, {
               type: "int",
               operand: "ne",
@@ -82,13 +76,7 @@ describe("ColumnFilter numeric tests", () => {
             });
             setTimeout(() => {
               result.update();
-              result
-                .find(NumericFilter)
-                .find("div.row")
-                .first()
-                .find("button")
-                .at(3)
-                .simulate("click");
+              result.find(NumericFilter).find("div.row").first().find("button").at(3).simulate("click");
               setTimeout(() => {
                 result.update();
                 result
@@ -138,21 +126,11 @@ describe("ColumnFilter numeric tests", () => {
       result.find("i.ico-check-box-outline-blank").simulate("click");
       setTimeout(() => {
         result.update();
-        t.ok(
-          result
-            .find("input")
-            .first()
-            .props().disabled
-        );
+        t.ok(result.find("input").first().props().disabled);
         result.find("i.ico-check-box").simulate("click");
         setTimeout(() => {
           result.update();
-          t.notOk(
-            result
-              .find("input")
-              .first()
-              .props().disabled
-          );
+          t.notOk(result.find("input").first().props().disabled);
           result
             .find(NumericFilter)
             .find("input")
@@ -165,13 +143,7 @@ describe("ColumnFilter numeric tests", () => {
               operand: "=",
               value: 1.1,
             });
-            result
-              .find(NumericFilter)
-              .find("div.row")
-              .first()
-              .find("button")
-              .last()
-              .simulate("click");
+            result.find(NumericFilter).find("div.row").first().find("button").last().simulate("click");
             setTimeout(() => {
               result.update();
               result

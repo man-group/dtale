@@ -47,25 +47,12 @@ describe("ColumnFilter date tests", () => {
       result.find("i.ico-check-box-outline-blank").simulate("click");
       setTimeout(() => {
         result.update();
-        t.ok(
-          result
-            .find(DateInput)
-            .first()
-            .instance().props.disabled
-        );
+        t.ok(result.find(DateInput).first().instance().props.disabled);
         result.find("i.ico-check-box").simulate("click");
         setTimeout(() => {
           result.update();
-          t.notOk(
-            result
-              .find(DateInput)
-              .first()
-              .instance().props.disabled
-          );
-          const dateStart = result
-            .find(DateInput)
-            .first()
-            .instance();
+          t.notOk(result.find(DateInput).first().instance().props.disabled);
+          const dateStart = result.find(DateInput).first().instance();
           dateStart.inputEl.value = "200";
           dateStart.props.onChange("200");
           dateStart.inputEl.value = "20000102";
@@ -77,10 +64,7 @@ describe("ColumnFilter date tests", () => {
               start: "20000102",
               end: "20000131",
             });
-            const dateEnd = result
-              .find(DateInput)
-              .last()
-              .instance();
+            const dateEnd = result.find(DateInput).last().instance();
             dateEnd.inputEl.value = "20000103";
             dateEnd.props.onChange(new Date(moment("20000103")));
             setTimeout(() => {

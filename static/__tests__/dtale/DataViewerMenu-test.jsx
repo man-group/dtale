@@ -23,13 +23,7 @@ describe("DataViewerMenu tests", () => {
     const result = mount(<DataViewerMenu {...props} />, {
       attachTo: document.getElementById("content"),
     });
-    t.ok(
-      result
-        .find("ul li span.toggler-action")
-        .last()
-        .text() === "Shutdown",
-      "should render shutdown"
-    );
+    t.ok(result.find("ul li span.toggler-action").last().text() === "Shutdown", "should render shutdown");
     done();
   });
 

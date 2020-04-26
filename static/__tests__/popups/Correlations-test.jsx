@@ -100,10 +100,7 @@ describe("Correlations tests", () => {
     setTimeout(() => {
       result.update();
       const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
-      corrGrid
-        .find("div.cell")
-        .at(1)
-        .simulate("click");
+      corrGrid.find("div.cell").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
@@ -141,17 +138,11 @@ describe("Correlations tests", () => {
       result.update();
       let corrGrid = result.find(CorrelationsGrid).first();
       const filters = corrGrid.find(Select);
-      filters
-        .first()
-        .instance()
-        .onChange({ value: "col1" });
+      filters.first().instance().onChange({ value: "col1" });
       result.update();
       corrGrid = result.find(CorrelationsGrid).first();
       t.deepEqual([correlationsData.data[0]], corrGrid.instance().state.correlations, "should filter on col1");
-      filters
-        .last()
-        .instance()
-        .onChange({ value: "col3" });
+      filters.last().instance().onChange({ value: "col3" });
       result.update();
       t.deepEqual(
         [{ column: "col1", col3: -0.098802 }],
@@ -173,10 +164,7 @@ describe("Correlations tests", () => {
     setTimeout(() => {
       result.update();
       const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
-      corrGrid
-        .find("div.cell")
-        .at(1)
-        .simulate("click");
+      corrGrid.find("div.cell").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
@@ -203,10 +191,7 @@ describe("Correlations tests", () => {
     setTimeout(() => {
       result.update();
       const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
-      corrGrid
-        .find("div.cell")
-        .at(1)
-        .simulate("click");
+      corrGrid.find("div.cell").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
@@ -243,17 +228,11 @@ describe("Correlations tests", () => {
     setTimeout(() => {
       result.update();
       const corrGrid = result.first().find("div.ReactVirtualized__Grid__innerScrollContainer");
-      corrGrid
-        .find("div.cell")
-        .at(1)
-        .simulate("click");
+      corrGrid.find("div.cell").at(1).simulate("click");
       setTimeout(() => {
         result.update();
         t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-        result
-          .find(ChartsBody)
-          .instance()
-          .state.charts[0].cfg.options.onClick({ foo: 1 });
+        result.find(ChartsBody).instance().state.charts[0].cfg.options.onClick({ foo: 1 });
         setTimeout(() => {
           result.update();
           t.ok(result.find(Correlations).instance().state.chart, "should show scatter chart");

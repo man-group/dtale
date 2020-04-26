@@ -1702,7 +1702,7 @@ select.form-control-lg:not([size]):not([multiple]), .input-group-lg > select.for
   margin-left: 0.75rem;
 }
 
-.invalianeld-feedback {
+.invalid-feedback {
   display: none;
   margin-top: .25rem;
   font-size: .875rem;
@@ -10124,6 +10124,9 @@ select.form-control:focus,
   position: relative;
   border-bottom: dashed 1px #004c93;
 }
+.cell.hoverable {
+  border-bottom: solid 1px rgba(170, 170, 170, 0.25);
+}
 .hoverable-click {
   display: inline;
   position: relative;
@@ -10138,6 +10141,9 @@ select.form-control:focus,
 }
 li.hoverable:hover {
   border-bottom: solid 1px #a7b3b7;
+}
+.cell.hoverable:hover {
+  border-bottom: solid 1px rgba(170, 170, 170, 0.25);
 }
 
 .hoverable:focus {
@@ -10169,7 +10175,8 @@ li.hoverable:hover {
   text-align: left;
   color: #404040;
 }
-.hoverable__content.menu-description {
+.hoverable__content.menu-description,
+.hoverable__content.edit-cell {
     top: -0.8em;
     left: 13em;
 }
@@ -10192,6 +10199,12 @@ li.hoverable:hover {
 .hoverable__content.copy-tt-top {
   padding: .5em .5em;
   width: 10em;
+  text-align: center;
+  top: unset;
+  bottom: 110%;
+}
+.hoverable__content.col-menu-desc {
+  padding: .5em .5em;
   text-align: center;
   top: unset;
   bottom: 110%;
@@ -10224,13 +10237,21 @@ div.hoverable.label > div.hoverable__content {
     right: inherit;
     transform: rotate(270deg);
 }
+.hoverable__content.edit-cell::before {
+    left: -0.7em;
+    top: 2.75em;
+    right: inherit;
+    transform: rotate(270deg);
+}
 .hoverable__content.build-code::before,
 .hoverable__content.map-types::before {
     right: unset;
     left: 2em;
 }
-.hoverable__content.copy-tt-top::before {
+.hoverable__content.copy-tt-top::before,
+.hoverable__content.col-menu-desc::before {
     bottom: unset;
+    border-bottom: none;
     top: 95%;
     -moz-transform: rotate(180deg);
     -webkit-transform: rotate(180deg);
@@ -10258,12 +10279,19 @@ div.hoverable.label > div.hoverable__content {
     right: inherit;
     transform: rotate(270deg);
 }
+.hoverable__content.edit-cell::after {
+    left: -0.6em;
+    top: 2.75em;
+    right: inherit;
+    transform: rotate(270deg);
+}
 .hoverable__content.build-code::after,
 .hoverable__content.map-types::after {
     right: unset;
     left: 2em;
 }
-.hoverable__content.copy-tt-top::after {
+.hoverable__content.copy-tt-top::after,
+.hoverable__content.col-menu-desc::after {
     bottom: unset;
     top: calc(92% + .1em);
     -moz-transform: rotate(180deg);
@@ -10567,7 +10595,7 @@ div.container-fluid.filter > div#popup-content > div.modal-body {
 }
 
 div.container-fluid.code-popup > div#popup-content > div.modal-footer,
-div.container-fluid.code-export > div#popup-content > div.modal-footer, {
+div.container-fluid.code-export > div#popup-content > div.modal-footer {
   position: absolute;
   bottom: 0;
   width: 100%;

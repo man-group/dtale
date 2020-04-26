@@ -9,9 +9,7 @@ function findColMenuButton(result, name, btnTag = "button") {
 }
 
 function clickColMenuButton(result, name, btnTag = "button") {
-  findColMenuButton(result, name, btnTag)
-    .first()
-    .simulate("click");
+  findColMenuButton(result, name, btnTag).first().simulate("click");
 }
 
 function clickColMenuSubButton(result, label, row = 0) {

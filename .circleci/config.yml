@@ -1,4 +1,65 @@
-defaults: &defaults
+javascript: &javascript
+    parallelism: 1
+    shell: /bin/bash --login
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
+    steps:
+      - checkout
+      - run: mkdir -p $CIRCLE_TEST_REPORTS
+      - run:
+          name: View node versions
+          command: |
+            node --version
+            npm -version
+            yarn -version
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: |
+            yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Lint & Format JS Code
+          command: |
+            yarn run lint
+            yarn run format
+      - run:
+          name: Check for JS Formatting Diffs
+          command: |
+            git diff --name-status
+            git diff-files --quiet || (echo 'The files above have not been formatted!' && (exit 1))
+      - run:
+          name: Run JS Tests & Coverage
+          command: |
+            export TZ=America/New_York
+            yarn run test-with-coverage --maxWorkers=50%
+            bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
+            yarn run report-duplicate-code
+            cp -r ./JS_coverage /tmp/circleci-test-results
+      - run:
+          name: Build JS
+          command: |
+            yarn run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dtale/static/dist
+            - dtale/static/dash
+      # Save test results
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      - store_artifacts:
+          path: /tmp/circleci-test-results
+python: &python
     parallelism: 1
     shell: /bin/bash --login
     environment:
@@ -8,188 +69,176 @@ defaults: &defaults
       VERSION: 1.8.10
       PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
-    - checkout
-    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
-    # Restore the dependency cache
-    - restore_cache:
-        keys:
-        # This branch if available
-        - v1-dep-{{ .Branch }}-
-        # Default branch if not
-        - v1-dep-master-
-        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
-        - v1-dep-
-    - restore_cache:
-        name: Restore Yarn Package Cache
-        keys:
-          - yarn-packages-{{ checksum "yarn.lock" }}
-    - run:
-        name: Install Dependencies
-        command: |
-          yarn install --frozen-lockfile
-    - save_cache:
-        name: Save Yarn Package Cache
-        key: yarn-packages-{{ checksum "yarn.lock" }}
-        paths:
-          - ~/.cache/yarn
-    - run:
-        name: Install MongoDB
-        command: |
-          # run "cat /etc/os-release" to view information about the OS
-          # good article on how to install mongo, https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
-          wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-          sudo apt-get install gnupg
-          wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-          echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-          sudo apt-get update
-          sudo apt-get install -y mongodb-org
-    - run:
-        name: Lint & Format JS Code
-        command: |
-          yarn run lint
-          yarn run format
-    - run:
-        name: Check for JS Formatting Diffs
-        command: |
-          git diff --name-status
-          git diff-files --quiet || (echo 'The files above have not been formatted!' && (exit 1))
-    - run:
-        name: Run JS Tests & Coverage
-        command: |
-          export TZ=America/New_York
-          yarn run test-with-coverage --maxWorkers=50%
-          bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
-          yarn run report-duplicate-code
-          cp -r ./JS_coverage /tmp/circleci-test-results
-    - run:
-        name: Build JS
-        command: |
-          yarn run build
-    - run:
-       name: Create and activate virtualenv
-       command: |
-         virtualenv ci
-         . ci/bin/activate
-         pip install six
-         pip install lxml
-         pip install flake8
-         pip install isort
-         pip install -r docs/source/requirements.txt
-         python setup.py develop
-    # Save dependency cache
-    - save_cache:
-        key: v1-dep-{{ .Branch }}-{{ epoch }}
-        paths:
-        - ~/ci
-    - run:
-        name: Run Flake8
-        command: |
-          . ci/bin/activate
-          flake8
-    - run:
-        name: Run isort
-        command: |
-          . ci/bin/activate
-          isort --recursive -c -vb setup.py dtale tests
-    # Test
-    - run:
-       name: Run all tests
-       command: |
-         set -e
-         . ci/bin/activate
-         export TZ=America/New_York
-         pip install -e ".[arctic]"
-         pip install -e ".[redis]"
-         pip install -e ".[tests]"
-         python setup.py test
-         bash <(curl -s https://codecov.io/bash) -c -F python
-         cp -r ./htmlcov /tmp/circleci-test-results
-    - run:
-        name: Download & Install latest pandoc
-        command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            # the 'latest' URL redirects to the name of the latest tag.
-            # export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
-            export PANDOC_VERSION=2.9.2
-            echo $PANDOC_VERSION
-            export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
-            echo $PANDOC_FILE
-            wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
-            sudo dpkg -i $PANDOC_FILE
-            rm $PANDOC_FILE
-          fi
-    - run:
-        name: Build Sphinx Documentation
-        command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            set -e
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+      # Restore the dependency cache
+      - restore_cache:
+          keys:
+          # This branch if available
+          - v1-dep-{{ .Branch }}-
+          # Default branch if not
+          - v1-dep-master-
+          # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+          - v1-dep-
+      - run:
+          name: Install MongoDB
+          command: |
+            # run "cat /etc/os-release" to view information about the OS
+            # good article on how to install mongo, https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+            sudo apt-get install gnupg
+            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+            echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+            sudo apt-get update
+            sudo apt-get install -y mongodb-org
+      - run:
+         name: Create and activate virtualenv
+         command: |
+           virtualenv ci
+           . ci/bin/activate
+           pip install six
+           pip install lxml
+           pip install flake8
+           pip install isort
+           pip install -r docs/source/requirements.txt
+           python setup.py develop
+      # Save dependency cache
+      - save_cache:
+          key: v1-dep-{{ .Branch }}-{{ epoch }}
+          paths:
+          - ~/ci
+      - run:
+          name: Copy JS Artifacts
+          command: |
+            ls -al /tmp/dtale/static/dist
+            cp -r /tmp/dtale/static/dist ./dtale/static/
+            ls -al /tmp/dtale/static/dash
+            cp -r /tmp/dtale/static/dash ./dtale/static/
+      - run:
+          name: Run Flake8
+          command: |
             . ci/bin/activate
-            python setup.py build_sphinx
-            cp -r ./build /tmp/circleci-artifacts
-          fi
-    # Build egg
-    - run:
-        name: Build egg
-        command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
-            set -e
+            flake8
+      - run:
+          name: Run isort
+          command: |
             . ci/bin/activate
-            pip install pypandoc
-            pip install docutils
-            pip install Pygments
-            grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
-            grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
-            grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
-            grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
-            grep -q $VERSION package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
-            python setup.py --long-description > ../README.rst
-            # pandoc --from=markdown --to=rst --output=../README.rst README.md
-            cat ../README.rst | rst2html.py 1> ../README.html 2> ../log
-            cp ../README.rst /tmp/circleci-artifacts
-            cp ../log /tmp/circleci-artifacts
-            if [ -s ../log ] ; then
-              exit 1
-            fi # rst2html.py alwaysexits with 0, check log size
-            python setup.py bdist_wheel --universal
-            python setup.py bdist_egg
-            python setup.py sdist
-            cp -r ./dist /tmp/circleci-artifacts
-          fi
-    # Save test results
-    - store_test_results:
-        path: /tmp/circleci-test-results
-    # Save artifacts
-    - store_artifacts:
-        path: /tmp/circleci-artifacts
-    - store_artifacts:
-        path: /tmp/circleci-test-results
+            isort --recursive -c -vb setup.py dtale tests
+      # Test
+      - run:
+         name: Run all tests
+         command: |
+           set -e
+           . ci/bin/activate
+           export TZ=America/New_York
+           pip install -e ".[arctic]"
+           pip install -e ".[redis]"
+           pip install -e ".[tests]"
+           python setup.py test
+           bash <(curl -s https://codecov.io/bash) -c -F python
+           cp -r ./htmlcov /tmp/circleci-test-results
+      - run:
+          name: Download & Install latest pandoc
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              # the 'latest' URL redirects to the name of the latest tag.
+              # export PANDOC_VERSION=$(curl --connect-timeout 5  --max-time 10  --retry 5  --retry-delay 0  --retry-max-time 40 -L -I "$PANDOC_RELEASES_URL/latest" | sed -ne 's#Location:.*tag/\(.*\)$#\1#p' | tr -d "\n\r")
+              export PANDOC_VERSION=2.9.2
+              echo $PANDOC_VERSION
+              export PANDOC_FILE=pandoc-$PANDOC_VERSION-1-amd64.deb
+              echo $PANDOC_FILE
+              wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
+              sudo dpkg -i $PANDOC_FILE
+              rm $PANDOC_FILE
+            fi
+      - run:
+          name: Build Sphinx Documentation
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              set -e
+              . ci/bin/activate
+              python setup.py build_sphinx
+              cp -r ./build /tmp/circleci-artifacts
+            fi
+      # Build egg
+      - run:
+          name: Build egg
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              set -e
+              . ci/bin/activate
+              pip install pypandoc
+              pip install docutils
+              pip install Pygments
+              grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
+              grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
+              grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
+              grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
+              grep -q $VERSION package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
+              python setup.py --long-description > ../README.rst
+              # pandoc --from=markdown --to=rst --output=../README.rst README.md
+              cat ../README.rst | rst2html.py 1> ../README.html 2> ../log
+              cp ../README.rst /tmp/circleci-artifacts
+              cp ../log /tmp/circleci-artifacts
+              if [ -s ../log ] ; then
+                exit 1
+              fi # rst2html.py alwaysexits with 0, check log size
+              python setup.py bdist_wheel --universal
+              python setup.py bdist_egg
+              python setup.py sdist
+              cp -r ./dist /tmp/circleci-artifacts
+            fi
+      # Save test results
+      - store_test_results:
+          path: /tmp/circleci-test-results
+      # Save artifacts
+      - store_artifacts:
+          path: /tmp/circleci-artifacts
+      - store_artifacts:
+          path: /tmp/circleci-test-results
 version: 2
 jobs:
+  build_JS:
+    working_directory: ~/man-group/dtale_JS
+    docker:
+    - image: circleci/python:3.8-buster-node-browsers
+    <<: *javascript
   build_2_7:
     working_directory: ~/man-group/dtale_2_7
     docker:
-    - image: circleci/python:2.7-buster-node-browsers
-    <<: *defaults
+    - image: circleci/python:2.7-buster
+    <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
     docker:
-    - image: circleci/python:3.6-buster-node-browsers
-    <<: *defaults
+    - image: circleci/python:3.6-buster
+    <<: *python
   build_3_7:
     working_directory: ~/man-group/dtale_3_7
     docker:
-      - image: circleci/python:3.7-buster-node-browsers
-    <<: *defaults
+      - image: circleci/python:3.7-buster
+    <<: *python
   build_3_8:
     working_directory: ~/man-group/dtale_3_8
     docker:
-      - image: circleci/python:3.8-buster-node-browsers
-    <<: *defaults
+      - image: circleci/python:3.8-buster
+    <<: *python
 workflows:
   version: 2
   build_all:
     jobs:
-      - build_2_7
-      - build_3_6
-      - build_3_7
-      - build_3_8
+      - build_JS
+      - build_2_7:
+          requires:
+            - build_JS
+      - build_3_6:
+          requires:
+            - build_JS
+      - build_3_7:
+          requires:
+            - build_JS
+      - build_3_8:
+          requires:
+            - build_JS

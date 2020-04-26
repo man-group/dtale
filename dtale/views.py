@@ -409,7 +409,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             visible = prev_dtypes[col].get('visible', True)
         s = data[col]
         dtype_data = dict(name=col, dtype=dtype, index=col_index, visible=visible,
-                          hasMissing=bool(s.isnull().any()), hasOutliers=False)
+                          hasMissing=int(s.isnull().sum()), hasOutliers=0)
         classification = classify_type(dtype)
         if classification in ['F', 'I'] and not data[col].isnull().all() and col in data_ranges:  # floats/ints
             col_ranges = data_ranges[col]
@@ -419,11 +419,11 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             # load outlier information
             o_s, o_e = calc_outlier_range(s)
             if not any((np.isnan(v) or np.isinf(v) for v in [o_s, o_e])):
-                dtype_data['hasOutliers'] = bool(((s < o_s) | (s > o_e)).any())
+                dtype_data['hasOutliers'] += int(((s < o_s) | (s > o_e)).sum())
                 dtype_data['outlierRange'] = dict(lower=o_s, upper=o_e)
 
         if classification == 'S' and not dtype_data['hasMissing']:
-            dtype_data['hasMissing'] = bool((s.str.strip() == '').any())
+            dtype_data['hasMissing'] += int((s.str.strip() == '').sum())
         return dtype_data
     return _formatter
 
@@ -1069,10 +1069,17 @@ def outliers(data_id, column):
         iqr_lower, iqr_upper = calc_outlier_range(s)
         formatter = find_dtype_formatter(find_dtype(df[column]))
         outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
+        if not len(outliers):
+            return jsonify(outliers=[])
         top = len(outliers) > 100
         outliers = [formatter(v) for v in outliers[:100]]
-        query = '(({column} < {lower}) or ({column} > {upper}))'.format(column=column, lower=json_float(iqr_lower),
-                                                                        upper=json_float(iqr_upper))
+        queries = []
+        if iqr_lower > s.min():
+            queries.append('{column} < {lower}'.format(column=column, lower=json_float(iqr_lower)))
+        if iqr_upper < s.max():
+            queries.append('{column} > {upper}'.format(column=column, upper=json_float(iqr_upper)))
+        query = '(({}))'.format(') or ('.join(queries)) if len(queries) > 1 else queries[0]
+
         code = (
             "s = df['{column}']\n"
             "q1 = s.quantile(0.25)\n"
@@ -1114,7 +1121,7 @@ def rename_col(data_id, column):
         rename = get_str_arg(request, 'rename')
         data = global_state.get_data(data_id)
         if column != rename and rename in data.columns:
-            return jsonify(dict(error='Column name "{}" already exists!'))
+            return jsonify(error='Column name "{}" already exists!')
 
         data = data.rename(columns={column: rename})
         curr_history = global_state.get_history(data_id) or []
@@ -1127,6 +1134,71 @@ def rename_col(data_id, column):
         global_state.set_data(data_id, data)
         global_state.set_dtypes(data_id, dtypes)
         global_state.set_settings(data_id, curr_settings)
+        return jsonify(success=True)
+    except BaseException as e:
+        return jsonify_error(e)
+
+
+@dtale.route('/edit-cell/<data_id>/<column>')
+def edit_cell(data_id, column):
+    try:
+        row_index = get_int_arg(request, "rowIndex")
+        updated = get_str_arg(request, "updated")
+        updated_str = updated
+        curr_settings = global_state.get_settings(data_id)
+        data = run_query(
+            global_state.get_data(data_id),
+            build_query(data_id, curr_settings.get('query')),
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+        )
+        dtype = find_dtype(data[column])
+
+        code = []
+        if updated in ['nan', 'inf']:
+            updated_str = 'np.{}'.format(updated)
+            updated = getattr(np, updated)
+            data.loc[row_index, column] = updated
+            code.append("df.loc[{row_index}, '{column}'] = {updated}".format(row_index=row_index, column=column,
+                                                                             updated=updated_str))
+        else:
+            classification = classify_type(dtype)
+            if classification == 'B':
+                updated = updated.lower() == 'true'
+                updated_str = str(updated)
+            elif classification == 'I':
+                updated = int(updated)
+            elif classification == 'F':
+                updated = float(updated)
+            elif classification == 'D':
+                updated_str = 'pd.Timestamp({})'.format(updated)
+                updated = pd.Timestamp(updated)
+            elif classification == 'TD':
+                updated_str = 'pd.Timedelta({})'.format(updated)
+                updated = pd.Timedelta(updated)
+            else:
+                if dtype.startswith('category') and updated not in data[column].unique():
+                    data[column].cat.add_categories(updated, inplace=True)
+                    code.append("data['{column}'].cat.add_categories('{updated}', inplace=True)".format(
+                        column=column, updated=updated))
+                updated_str = "'{}'".format(updated)
+            data.at[row_index, column] = updated
+            code.append("df.at[{row_index}, '{column}'] = {updated}".format(row_index=row_index, column=column,
+                                                                            updated=updated_str))
+        curr_history = global_state.get_history(data_id) or []
+        curr_history += code
+        global_state.set_history(data_id, curr_history)
+
+        data = global_state.get_data(data_id)
+        dtypes = global_state.get_dtypes(data_id)
+        ranges = {}
+        try:
+            ranges[column] = data[[column]].agg(['min', 'max']).to_dict()[column]
+        except ValueError:
+            pass
+        dtype_f = dtype_formatter(data, {column: dtype}, ranges)
+        dtypes = [dtype_f(dt['index'], column) if dt['name'] == column else dt for dt in dtypes]
+        global_state.set_dtypes(data_id, dtypes)
         return jsonify(success=True)
     except BaseException as e:
         return jsonify_error(e)

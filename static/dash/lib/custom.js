@@ -9,20 +9,12 @@ function openCodeSnippet(e) {
 function copy(e) {
   e.preventDefault();
   const textCmp = document.getElementById("copy-text");
-  const chartLink = $(e.target)
-    .parent()
-    .attr("href");
+  const chartLink = $(e.target).parent().attr("href");
   textCmp.value = `${window.location.origin}${chartLink}`;
   textCmp.select();
   document.execCommand("copy");
   e.target.focus();
-  $(e.target)
-    .parent()
-    .parent()
-    .find("div.copy-tt-bottom")
-    .fadeIn(300)
-    .delay(300)
-    .fadeOut(400);
+  $(e.target).parent().parent().find("div.copy-tt-bottom").fadeIn(300).delay(300).fadeOut(400);
 }
 
 function exportChart(e, href) {
@@ -30,8 +22,8 @@ function exportChart(e, href) {
   window.open(href + "&_id=" + new Date().getTime(), "_blank");
 }
 
-window.onload = function() {
-  $("body").click(function(e) {
+window.onload = function () {
+  $("body").click(function (e) {
     const target = $(e.target);
     if (target.parent().is("a.code-snippet-btn")) {
       openCodeSnippet(e);
