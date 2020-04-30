@@ -127,7 +127,7 @@
     "es6-promise": "4.2.8",
     "expose-loader": "0.7.5",
     "immutable": "4.0.0-rc.12",
-    "jquery": "3.4.1",
+    "jquery": "3.5.0",
     "json-loader": "0.5.7",
     "lodash": "4.17.15",
     "moment": "2.24.0",
