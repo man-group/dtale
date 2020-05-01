@@ -1771,8 +1771,16 @@ def test_200():
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
             for path in paths:
-                response = c.get(path.format(port=c.port))
-                assert response.status_code == 200, '{} should return 200 response'.format(path)
+                final_path = path.format(port=c.port)
+                response = c.get(final_path)
+                assert response.status_code == 200, '{} should return 200 response'.format(final_path)
+    with app.test_client(app_root='/test_route') as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: None}))
+            for path in paths:
+                final_path = path.format(port=c.port)
+                response = c.get(final_path)
+                assert response.status_code == 200, '{} should return 200 response'.format(final_path)
 
 
 @pytest.mark.unit

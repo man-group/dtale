@@ -1,3 +1,4 @@
+import getpass
 from collections import namedtuple
 
 from flask import Flask
@@ -107,7 +108,7 @@ def test_show(unittest, builtin_pkg):
 
     class MockDtaleFlask(Flask):
 
-        def __init__(self, import_name, reaper_on=True, url=None, *args, **kwargs):
+        def __init__(self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs):
             kwargs.pop('instance_relative_config', None)
             kwargs.pop('static_url_path', None)
             super(MockDtaleFlask, self).__init__(import_name, *args, **kwargs)
@@ -221,7 +222,7 @@ def test_show(unittest, builtin_pkg):
 
     class MockDtaleFlaskRunTest(Flask):
 
-        def __init__(self, import_name, reaper_on=True, url=None, *args, **kwargs):
+        def __init__(self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs):
             kwargs.pop('instance_relative_config', None)
             kwargs.pop('static_url_path', None)
             super(MockDtaleFlaskRunTest, self).__init__(import_name, *args, **kwargs)
@@ -249,7 +250,8 @@ def test_show(unittest, builtin_pkg):
 
         _, kwargs = mock_build_app.call_args
         unittest.assertEqual(
-            {'host': 'localhost', 'reaper_on': True}, kwargs, 'build_app should be called with defaults'
+            {'app_root': None, 'host': 'localhost', 'reaper_on': True}, kwargs,
+            'build_app should be called with defaults'
         )
 
     # test adding duplicate column
@@ -328,6 +330,64 @@ def test_show_ngrok(unittest, builtin_pkg):
 
 
 @pytest.mark.unit
+def test_show_jupyter_server_proxy(unittest):
+    from dtale.app import show, get_instance, instances
+    import dtale.app as dtale_app
+    import dtale.views as views
+    import dtale.global_state as global_state
+
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.JUPYTER_SERVER_PROXY', True))
+        mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
+        mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
+        instance = show(data=test_data, subprocess=False, name='foo', ignore_duplicate=True)
+        assert '/user/{}/proxy/{}'.format(getpass.getuser(), dtale_app.ACTIVE_PORT) == instance._url
+        mock_run.assert_called_once()
+
+        pdt.assert_frame_equal(instance.data, test_data)
+        tmp = test_data.copy()
+        tmp['biz'] = 2.5
+        instance.data = tmp
+        unittest.assertEqual(
+            global_state.DTYPES[instance._data_id],
+            views.build_dtypes_state(tmp),
+            'should update app data/dtypes'
+        )
+
+        instance2 = get_instance(instance._data_id)
+        assert instance2._url == instance._url
+        instances()
+
+        assert get_instance(20) is None  # should return None for invalid data ids
+
+        instance.kill()
+        mock_requests.assert_called_once()
+        assert mock_requests.call_args[0][0] == '/user/{}/proxy/{}/shutdown'.format(
+            getpass.getuser(), dtale_app.ACTIVE_PORT
+        )
+        assert global_state.METADATA['1']['name'] == 'foo'
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.JUPYTER_SERVER_PROXY', True))
+        mock_run = stack.enter_context(mock.patch('dtale.app.DtaleFlask.run', mock.Mock()))
+        stack.enter_context(mock.patch('dtale.app.is_up', mock.Mock(return_value=False)))
+        mock_requests = stack.enter_context(mock.patch('requests.get', mock.Mock()))
+        instance = show(data=test_data, subprocess=False, ignore_duplicate=True, app_root='/custom_root/')
+        assert '/custom_root/{}'.format(dtale_app.ACTIVE_PORT) == instance._url
+        mock_run.assert_called_once()
+
+        instance2 = get_instance(instance._data_id)
+        # this is a known bug where get_instance will not work if you've specified an `app_root' in show()
+        assert not instance2._url == instance._url
+        instances()
+        instance.kill()
+        mock_requests.assert_called_once()
+        assert mock_requests.call_args[0][0] == '/custom_root/{}/shutdown'.format(dtale_app.ACTIVE_PORT)
+
+
+@pytest.mark.unit
 def test_DtaleFlask():
     from dtale.app import DtaleFlask, REAPER_TIMEOUT
 
@@ -375,3 +435,36 @@ def test_DtaleFlask():
         mock_run.assert_called_once()
         assert not tmp.reaper_on
         mock_timer.assert_not_called()
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('socket.gethostname', mock.Mock(return_value='test')))
+        tmp = DtaleFlask('dtale', static_url_path='', url='http://test:9999', app_root='/test_route/')
+        assert tmp.url_for('static', 'test_path') == '/test_route/test_path'
+        assert tmp.url_for('static', 'test_path', filename='test_file') == '/test_route/test_file'
+
+
+def test_build_startup_url_and_app_root():
+    from dtale.app import build_startup_url_and_app_root
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.JUPYTER_SERVER_PROXY', True))
+        stack.enter_context(mock.patch('dtale.app.ACTIVE_PORT', 40000))
+        stack.enter_context(mock.patch('dtale.app.ACTIVE_HOST', 'localhost'))
+        url, app_root = build_startup_url_and_app_root()
+
+        assert url == '/user/{}/proxy/40000'.format(getpass.getuser())
+        assert app_root == '/user/{}/proxy/40000'.format(getpass.getuser())
+        url, app_root = build_startup_url_and_app_root('/test_route/')
+        assert url == '/test_route/40000'
+        assert app_root == '/test_route/40000'
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch('dtale.app.JUPYTER_SERVER_PROXY', False))
+        stack.enter_context(mock.patch('dtale.app.ACTIVE_PORT', 40000))
+        stack.enter_context(mock.patch('dtale.app.ACTIVE_HOST', 'localhost'))
+        url, app_root = build_startup_url_and_app_root()
+        assert url == 'http://localhost:40000'
+        assert app_root is None
+        url, app_root = build_startup_url_and_app_root('/test_route/')
+        assert url == 'http:/localhost:40000/test_route/'
+        assert app_root == '/test_route/'

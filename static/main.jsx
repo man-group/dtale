@@ -19,16 +19,22 @@ import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
 import app from "./reducers/dtale";
 import { createStore } from "./reducers/store";
 
+require("./publicPath");
+
 const settingsElem = document.getElementById("settings");
 const settings = settingsElem ? JSON.parse(settingsElem.value) : {};
 
-if (_.startsWith(window.location.pathname, "/dtale/popup")) {
+let pathname = window.location.pathname;
+if (window.resourceBaseUrl) {
+  pathname = _.replace(pathname, window.resourceBaseUrl, "");
+}
+if (_.startsWith(pathname, "/dtale/popup")) {
   require("./dtale/DataViewer.css");
 
   let rootNode = null;
   const dataId = app.getHiddenValue("data_id");
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
-  const pathSegs = _.split(window.location.pathname, "/");
+  const pathSegs = _.split(pathname, "/");
   const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];
 
   switch (popupType) {
@@ -62,7 +68,7 @@ if (_.startsWith(window.location.pathname, "/dtale/popup")) {
       break;
   }
   ReactDOM.render(rootNode, document.getElementById("popup-content"));
-} else if (_.startsWith(window.location.pathname, "/dtale/code-popup")) {
+} else if (_.startsWith(pathname, "/dtale/code-popup")) {
   require("./dtale/DataViewer.css");
   document.getElementById("code-title").innerHTML = `${window.opener.code_popup.title} Code Export`;
   ReactDOM.render(<CodePopup code={window.opener.code_popup.code} />, document.getElementById("popup-content"));

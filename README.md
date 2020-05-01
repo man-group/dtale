@@ -37,6 +37,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
   - [Jupyter Notebook](#jupyter-notebook)
+  - [Jupyterhub w/ Jupyter Server Proxy](#jupyterhub-w-jupyter-server-proxy)
   - [Jupyterhub w/ Kubernetes](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
   - [Google Colab & Kaggle](#google-colab--kaggle)
   - [R with Reticulate](#r-with-reticulate)
@@ -147,6 +148,58 @@ One thing of note is that a lot of the modal popups you see in the standard brow
 |:------:|:------:|:------:|:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Column_menu.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/correlations_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/describe_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/histogram_popup.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/instances_popup.png)|
 
+### JupyterHub w/ Jupyter Server Proxy
+
+JupyterHub has an extension that allows to proxy port for user, [JupyterHub Server Proxy](https://github.com/jupyterhub/jupyter-server-proxy)
+
+To me it seems like this extension might be the best solution to getting D-Tale running within kubernetes.  Here's how to use it:
+
+```python
+import pandas as pd
+
+import dtale
+import dtale.app as dtale_app
+
+dtale_app.JUPYTER_SERVER_PROXY = True
+
+dtale.show(pd.DataFrame([1,2,3]))
+```
+
+Notice the command `dtale_app.JUPYTER_SERVER_PROXY = True` this will make sure that any D-Tale instance will be served with the jupyter server proxy application root prefix:
+
+`/user/{jupyter username}/proxy/{dtale instance port}/`
+
+One thing to note is that if you try to look at the `_main_url` of your D-Tale instance in your notebook it will not include the hostname or port:
+
+```python
+import pandas as pd
+
+import dtale
+import dtale.app as dtale_app
+
+dtale_app.JUPYTER_SERVER_PROXY = True
+
+d = dtale.show(pd.DataFrame([1,2,3]))
+d._main_url # /user/johndoe/proxy/40000/dtale/main/1
+```
+
+ This is because it's very hard to promgramatically figure out the host/port that your notebook is running on.  So if you want to look at `_main_url` please be sure to preface it with:
+ 
+ `http[s]://[jupyterhub host]:[jupyterhub port]`
+
+If for some reason jupyterhub changes their API so that the application root changes you can also override D-Tale's application root by using the `app_root` parameter to the `show()` function:
+
+```python
+import pandas as pd
+
+import dtale
+import dtale.app as dtale_app
+
+dtale.show(pd.DataFrame([1,2,3]), app_root='/user/johndoe/proxy/40000/`)
+```
+
+Using this parameter will only apply the application root to that specific instance so you would have to include it on every call to `show()`.
+
 ### JupyterHub w/ Kubernetes
 
 Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
@@ -157,7 +210,7 @@ These are hosted notebook sites and thanks to the work of [flask_ngrok](https://
 
 **DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within these two services.  Here is an example:
 
-```
+```python
 import pandas as pd
 
 import dtale
@@ -998,6 +1051,7 @@ Contributors:
  * [Fernando Saravia Rajal](https://github.com/fersarr)
  * [Dominik Christ](https://github.com/DominikMChrist)
  * [Reza Moshksar](https://github.com/reza1615)
+ * [Bertrand Nouvel](https://github.com/bnouvelbmll)
  * [Chris Boddy](https://github.com/cboddy)
  * [Jason Holden](https://github.com/jasonkholden)
  * [Tom Taylor](https://github.com/TomTaylorLondon)

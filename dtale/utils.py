@@ -779,3 +779,13 @@ def export_to_csv_buffer(data, tsv=False):
     data.to_csv(csv_buffer, **kwargs)
     csv_buffer.seek(0)
     return csv_buffer
+
+
+def is_app_root_defined(app_root):
+    return app_root is not None and app_root != '/'
+
+
+def fix_url_path(path):
+    while '//' in path:
+        path = path.replace('//', '/')
+    return path

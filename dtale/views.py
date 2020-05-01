@@ -7,8 +7,8 @@ import webbrowser
 from builtins import map, range, str, zip
 from logging import getLogger
 
-from flask import (json, make_response, redirect, render_template, request,
-                   url_for)
+from flask import (current_app, json, make_response, redirect, render_template,
+                   request)
 
 import numpy as np
 import pandas as pd
@@ -242,8 +242,10 @@ class DtaleData(object):
             logger.info('in order to use this function, please install IPython')
             return self.data.__repr__()
 
-        while not self.is_up():
+        retries = 0
+        while not self.is_up() and retries < 10:
             time.sleep(0.01)
+            retries += 1
 
         self._notebook_handle = display(
             self._build_iframe(route=route, params=params, width=width, height=height), display_id=True
@@ -568,7 +570,7 @@ def base_render_template(template, data_id, **kwargs):
      - processes
     """
     if not len(os.listdir('{}/static/dist'.format(os.path.dirname(__file__)))):
-        return redirect(url_for('missing_js'))
+        return redirect(current_app.url_for('missing_js'))
     curr_settings = global_state.get_settings(data_id) or {}
     _, version = retrieve_meta_info_and_version('dtale')
     return render_template(

@@ -1,15 +1,26 @@
+require("./publicDashPath");
+
 import $ from "jquery";
 
 function openCodeSnippet(e) {
   e.preventDefault();
   window.code_popup = { code: document.getElementById("chart-code").value, title: "Charts" };
-  window.open("../dtale/code-popup", "_blank", `titlebar=1,location=1,status=1,width=700,height=450`);
+
+  let path = "dtale/code-popup";
+  if (window.resourceBaseUrl) {
+    path = `${window.resourceBaseUrl}/${path}`;
+  }
+  window.open(`${window.location.origin}${path}`, "_blank", `titlebar=1,location=1,status=1,width=700,height=450`);
 }
 
 function copy(e) {
   e.preventDefault();
   const textCmp = document.getElementById("copy-text");
-  const chartLink = $(e.target).parent().attr("href");
+  let chartLink = $(e.target).parent().attr("href");
+  const webRoot = window.resourceBaseUrl;
+  if (webRoot) {
+    chartLink = `${webRoot}/${chartLink}`;
+  }
   textCmp.value = `${window.location.origin}${chartLink}`;
   textCmp.select();
   document.execCommand("copy");

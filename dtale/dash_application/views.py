@@ -24,7 +24,7 @@ from dtale.dash_application.layout import (animate_styles, bar_input_style,
                                            show_chart_per_group,
                                            show_input_handler,
                                            show_yaxis_ranges)
-from dtale.utils import dict_merge, make_list, run_query
+from dtale.utils import dict_merge, is_app_root_defined, make_list, run_query
 
 logger = getLogger(__name__)
 
@@ -44,10 +44,21 @@ class DtaleDash(dash.Dash):
             '/dash/components_bundle.js', '/dash/custom_bundle.js', '/dist/base_styles_bundle.js'
         ]
 
+        app_root = server.config.get('APPLICATION_ROOT')
+        if is_app_root_defined(app_root):
+
+            def _prepend_app_root(v):
+                return '{}{}'.format(app_root, v)
+            kwargs['requests_pathname_prefix'] = _prepend_app_root(kwargs['routes_pathname_prefix'])
+            kwargs['external_stylesheets'] = [_prepend_app_root(v) for v in kwargs['external_stylesheets']]
+            kwargs['external_scripts'] = [_prepend_app_root(v) for v in kwargs['external_scripts']]
+            kwargs['assets_url_path'] = _prepend_app_root('')
+            kwargs['assets_external_path'] = _prepend_app_root('/assets')
+
         super(DtaleDash, self).__init__(*args, **kwargs)
 
     def interpolate_index(self, **kwargs):
-        return base_layout(self.server.config['GITHUB_FORK'], **kwargs)
+        return base_layout(self.server.config['GITHUB_FORK'], self.server.config.get('APPLICATION_ROOT'), **kwargs)
 
 
 def add_dash(server):
@@ -331,6 +342,8 @@ def init_callbacks(dash_app):
         all_inputs = dict_merge(inputs, chart_inputs, dict(yaxis=yaxis_data or {}), map_data)
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
+        if is_app_root_defined(dash_app.server.config.get('APPLICATION_ROOT')):
+            all_inputs['app_root'] = dash_app.server.config['APPLICATION_ROOT']
         charts, range_data, code = build_chart(get_data_id(pathname), **all_inputs)
         return charts, all_inputs, range_data, code, get_yaxis_type_tabs(make_list(inputs.get('y') or []))
 
