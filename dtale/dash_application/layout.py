@@ -9,7 +9,7 @@ from pkg_resources import parse_version
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, find_group_vals
 from dtale.utils import (ChartBuildingError, classify_type, dict_merge,
                          flatten_lists, get_dtypes, inner_build_query,
-                         make_list)
+                         is_app_root_defined, make_list)
 
 
 def test_plotly_version(version_num):
@@ -18,7 +18,7 @@ def test_plotly_version(version_num):
     return parse_version(plotly.__version__) >= parse_version(version_num)
 
 
-def base_layout(github_fork, **kwargs):
+def base_layout(github_fork, app_root, **kwargs):
     """
     Base layout to be returned by :meth:`dtale.dash_application.views.DtaleDash.interpolate_index`
 
@@ -29,7 +29,7 @@ def base_layout(github_fork, **kwargs):
     :return: HTML
     :rtype: str
     """
-    back_to_data_padding, github_fork_html = ('', '')
+    back_to_data_padding, github_fork_html, webroot_html = ('', '', '')
     if github_fork:
         back_to_data_padding = 'padding-right: 125px'
         github_fork_html = '''
@@ -37,13 +37,20 @@ def base_layout(github_fork, **kwargs):
                 <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
             </span>
         '''
+    if is_app_root_defined(app_root):
+        webroot_html = '''
+        <script type="text/javascript">
+            window.resourceBaseUrl = '{app_root}';
+        </script>
+        '''.format(app_root=app_root)
     return '''
         <!DOCTYPE html>
         <html>
             <head>
+                {webroot_html}
                 {metas}
                 <title>D-Tale Charts</title>
-                <link rel="shortcut icon" href="../../images/favicon.png">
+                <link rel="shortcut icon" href="{app_root}/images/favicon.png">
                 {css}
             </head>
             <body>
@@ -72,8 +79,8 @@ def base_layout(github_fork, **kwargs):
                     <script type="text/javascript">
                         const pathSegs = window.location.pathname.split('/');
                         const dataId = pathSegs[pathSegs.length - 1];
-                        const backToData = () => window.open('/dtale/main/' + dataId);
-                        const goToLegacy = () => location.replace('/dtale/popup/charts/' + dataId);
+                        const backToData = () => window.open('{app_root}/dtale/main/' + dataId);
+                        const goToLegacy = () => location.replace('{app_root}/dtale/popup/charts/' + dataId);
                     </script>
                     {renderer}
                     {css}
@@ -88,7 +95,9 @@ def base_layout(github_fork, **kwargs):
         scripts=kwargs['scripts'],
         renderer=kwargs['renderer'],
         back_to_data_padding=back_to_data_padding,
-        github_fork_html=github_fork_html
+        webroot_html=webroot_html,
+        github_fork_html=github_fork_html,
+        app_root=app_root or ''
     )
 
 
@@ -189,7 +198,7 @@ PROJECTIONS = ['equirectangular', 'mercator', 'orthographic', 'natural earth', '
 
 
 def build_img_src(proj, img_type='projections'):
-    return '/images/{}/{}.png'.format(img_type, '_'.join(proj.split(' ')))
+    return '../images/{}/{}.png'.format(img_type, '_'.join(proj.split(' ')))
 
 
 def build_proj_hover_children(proj):

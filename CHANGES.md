@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.13 (2020-5-20)
+ * [#193](https://github.com/man-group/dtale/issues/193): Support for JupyterHub Proxy
+
 ### 1.8.12 (2020-5-15)
  * [#196](https://github.com/man-group/dtale/issues/196): dataframes that have datatime indexes without a name
  * Added the ability to apply formats to all columns of same dtype

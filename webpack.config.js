@@ -22,7 +22,7 @@ function createConfig(entry) {
     output: {
       path: path.resolve(__dirname, "./dtale/static/dist"),
       filename: entryName + "_bundle.js",
-      publicPath: "/dist/",
+      //publicPath: "/dist/",
     },
     resolve: {
       extensions: [".js", ".jsx", ".css", ".scss"],
@@ -147,7 +147,7 @@ function createDashConfig(entry) {
     output: {
       path: path.resolve(__dirname, "./dtale/static/dash"),
       filename: entryName + "_bundle.js",
-      publicPath: "/dash/",
+      //publicPath: "/dash/",
       library: entryName,
       libraryTarget: "window",
     },

@@ -46,4 +46,11 @@ function saveColFilterUrl(dataId, column) {
   return `/dtale/save-column-filter/${dataId}/${column}`;
 }
 
-export { buildURLParams, buildURLString, buildURL, dtypesUrl, saveColFilterUrl };
+function cleanupEndpoint(endpoint) {
+  while (_.includes(endpoint, "//")) {
+    endpoint = _.replace(endpoint, "//", "/");
+  }
+  return endpoint;
+}
+
+export { buildURLParams, buildURLString, buildURL, dtypesUrl, saveColFilterUrl, cleanupEndpoint };

@@ -12,8 +12,6 @@ import menuFuncs from "../dataViewerMenuUtils";
 import { exports as gu } from "../gridUtils";
 import serverState from "../serverStateManagement";
 
-require("./ColumnMenu.css");
-
 const { ROW_HEIGHT, SORT_PROPS } = gu;
 const MOVE_COLS = [
   ["step-backward", serverState.moveToFront, "Move Column To Front", {}],

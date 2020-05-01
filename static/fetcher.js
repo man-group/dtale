@@ -1,5 +1,7 @@
 import * as popsicle from "popsicle";
 
+import { cleanupEndpoint } from "./actions/url-utils";
+
 function logException(e, callStack) {
   console.error(`${e.name}: ${e.message} (${e.fileName}:${e.lineNumber})`);
   console.error(e.stack);
@@ -8,6 +10,10 @@ function logException(e, callStack) {
 
 // Useful for libraries that want a Promise.
 function fetchJsonPromise(url) {
+  const webRoot = window.resourceBaseUrl;
+  if (webRoot) {
+    url = cleanupEndpoint(`${webRoot}/${url}`);
+  }
   return popsicle.fetch(url).then(response => response.json());
 }
 

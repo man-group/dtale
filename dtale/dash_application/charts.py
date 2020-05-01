@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import re
 import traceback
 import urllib
 from logging import getLogger
@@ -25,10 +26,11 @@ from dtale.dash_application.layout import (AGGS, ANIMATE_BY_CHARTS,
                                            ANIMATION_CHARTS, build_error,
                                            test_plotly_version,
                                            update_label_for_freq)
+from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.utils import (build_code_export, classify_type, dict_merge,
                          divide_chunks, export_to_csv_buffer, find_dtype,
-                         find_dtype_formatter, flatten_lists, get_dtypes,
-                         make_list, run_query)
+                         find_dtype_formatter, fix_url_path, flatten_lists,
+                         get_dtypes, make_list, run_query)
 
 logger = getLogger(__name__)
 
@@ -272,16 +274,20 @@ def chart_wrapper(data_id, data, url_params=None):
 
     def _chart_wrapper(chart, group_filter=None):
         querystring = chart_url_querystring(url_params, data=data, group_filter=group_filter)
+        app_root = url_params.get('app_root') or ''
+
+        def build_url(path, query):
+            return fix_url_path('{}/{}/{}?{}'.format(app_root, path, data_id, query))
         popup_link = html.A(
             [html.I(className='far fa-window-restore mr-4'), html.Span('Popup Chart')],
-            href='/charts/{}?{}'.format(data_id, querystring),
+            href=build_url('/charts', querystring),
             target='_blank',
             className='mr-5'
         )
         copy_link = html.Div(
             [html.A(
                 [html.I(className='ico-link mr-4'), html.Span('Copy Link')],
-                href='/charts/{}?{}'.format(data_id, querystring),
+                href=build_url('/charts', querystring),
                 target='_blank',
                 className='mr-5 copy-link-btn'
             ), html.Div('Copied to clipboard', className="hoverable__content copy-tt-bottom")
@@ -295,12 +301,12 @@ def chart_wrapper(data_id, data, url_params=None):
         )
         export_html_link = html.A(
             [html.I(className='fas fa-file-code mr-4'), html.Span('Export Chart')],
-            href='/dtale/chart-export/{}?{}'.format(data_id, querystring),
+            href=build_url('/dtale/chart-export', querystring),
             className='export-chart-btn mr-5'
         )
         export_csv_link = html.A(
             [html.I(className='fas fa-file-csv mr-4'), html.Span('Export CSV')],
-            href='/dtale/chart-csv-export/{}?{}'.format(data_id, querystring),
+            href=build_url('/dtale/chart-csv-export', querystring),
             className='export-chart-btn'
         )
         links = html.Div(
@@ -1395,13 +1401,8 @@ def export_chart(data_id, params):
 
 
 def map_chart_post_processing(html_str, params):
-    topo_find = (
-        '_.fetchTopojson=function(){var t=this,e=y.getTopojsonPath(t.topojsonURL,t.topojsonName);'
-        'return new Promise(function(r,a){n.json(e,function(n,i){if(n)return 404===n.status?a(new Error(["plotly.js '
-        'could not find topojson file at",e,".","Make sure the *topojsonURL* plot config option","is set properly."]'
-        '.join(" "))):a(new Error(["unexpected error while fetching topojson file at",e].join(" ")));'
-        'PlotlyGeoAssets.topojson[t.topojsonName]=i,r()})})}'
-    )
+    plotly_version = next((v for v in re.findall(r" plotly.js v(\d+.\d+.\d+)", html_str)), None)
+    topo_find = INJECTIONS.get(plotly_version) or INJECTIONS[sorted(INJECTIONS.keys())[-1]]
     if topo_find in html_str:
         map_path = os.path.join(os.path.dirname(__file__), '../static/maps/')
         if params.get('map_type') == 'scattergeo':
@@ -1410,7 +1411,7 @@ def map_chart_post_processing(html_str, params):
             topo_name = 'world_110m'
         else:
             topo_name = 'usa_110m'
-        topo_replace = ['_.fetchTopojson=function(){']
+        topo_replace = ['.fetchTopojson=function(){']
         with open(os.path.join(map_path, '{}.json'.format(topo_name)), 'r') as file:
             data = file.read().replace('\n', '')
             topo_replace.append("PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data))

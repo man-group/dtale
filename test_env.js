@@ -10,3 +10,6 @@ require("./static/adapter-for-react-16");
 
 // this file is compiled in an odd way so we need to mock it (react-syntax-highlighter)
 jest.mock("react-syntax-highlighter/dist/esm/styles/hljs", () => ({ docco: {} }));
+
+// this is required for webpack dynamic public path setup
+global.__webpack_public_path__ = "";

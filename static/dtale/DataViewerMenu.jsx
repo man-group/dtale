@@ -42,7 +42,10 @@ class ReactDataViewerMenu extends React.Component {
     };
     const heatmapActive = _.startsWith(this.props.backgroundMode, "heatmap");
     const exportFile = tsv => () =>
-      window.open(`/dtale/data-export/${dataId}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
+      window.open(
+        `${menuFuncs.fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`,
+        "_blank"
+      );
     return (
       <div
         className="column-toggle__dropdown"
