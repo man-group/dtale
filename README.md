@@ -8,8 +8,8 @@
 -----------------
 
 [![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
-[![PyPI](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
-![PyPI](https://img.shields.io/pypi/v/dtale)
+[![PyPI Python Versions](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
+[![PyPI](https://img.shields.io/pypi/v/dtale)](https://pypi.org/project/dtale/)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
@@ -44,6 +44,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
+  - [Editing Cells](#editing-cells)
   - [Main Menu Functions](#main-menu-functions)
     - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
@@ -322,6 +323,32 @@ When performing multiple of the same operation the description will become too l
 |Sorts|Filters|Hidden Columns|
 |-----|-------|--------------|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/sorts.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/filters.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/hidden.PNG)|
+
+### Editing Cells
+
+You may edit any cells in your grid (with the exception of the row indexes or headers, the ladder can be edited using the [Rename](#rename) column menu function).
+
+In order to eddit a cell simply double-click on it.  This will convert it into a text-input field and you should see a blinking cursor.  It is assumed that the value you type in will match the data type of the column you editing.  For example:
+
+* integers -> should be a valid positive or negative integer
+* float -> should be a valid positive or negative float
+* string -> any valid string will do
+* category -> either a pre-existing category or this will create a new category for (so beware!)
+* date, timestamp, timedelta -> should be valid string versions of each
+* boolean -> any string you input will be converted to lowercase and if it equals "true" then it will make the cell `True`, otherwise `False`
+
+Users can make use of two protected values as well:
+
+* "nan" -> `numpy.nan`
+* "inf" -> `numpy.inf`
+
+To save your change simply press "Enter" or to cancel your changes press "Esc".
+
+If there is a conversion issue with the value you have entered it will display a popup with the specific exception in question.
+
+Here's a quick demo:
+
+[![](http://img.youtube.com/vi/MY5w0m_4IAc/0.jpg)](http://www.youtube.com/watch?v=MY5w0m_4IAc "Editing Cells")
 
 ### Main Menu Functions
 

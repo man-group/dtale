@@ -1,5 +1,15 @@
 ## Changelog
 
+### 1.8.11 (2020-5-3)
+ * [#191](https://github.com/man-group/dtale/issues/191): improving outlier filter suggestions
+ * [#190](https://github.com/man-group/dtale/issues/190): hide "Animate" inputs when "Percentage Sum" or "Percentage Count" aggregations are used
+ * [#189](https://github.com/man-group/dtale/issues/189): hide "Barsort" when grouping is being applied
+ * [#187](https://github.com/man-group/dtale/issues/187): missing & outlier tooltip descriptions on column headers
+ * [#186](https://github.com/man-group/dtale/issues/186): close "Describe" tab after clicking "Update Grid"
+ * [#122](https://github.com/man-group/dtale/issues/122): editable cells
+ * npm package upgrades
+ * circleci build script refactoring
+
 ### 1.8.10 (2020-4-26)
  * [#184](https://github.com/man-group/dtale/issues/184): "nan" not showing up for numeric columns
  * [#181](https://github.com/man-group/dtale/issues/181): percentage sum/count charts
