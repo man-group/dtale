@@ -19,25 +19,6 @@ function logException(e) {
   console.error(e.stack);
 }
 
-function timeoutChain(tests, result, done) {
-  try {
-    if (tests.length) {
-      const [pre, post] = _.head(tests);
-      pre(result);
-      setTimeout(() => {
-        result.update();
-        post(result);
-        timeoutChain(_.tail(tests), result, done);
-      }, 400);
-    } else {
-      done();
-    }
-  } catch (err) {
-    logException(err);
-    done();
-  }
-}
-
 const BASE_SETTINGS = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]]}";
 const HIDE_SHUTDOWN = "False";
 const PROCESSES = 1;
@@ -81,13 +62,18 @@ function tick() {
   });
 }
 
+async function tickUpdate(result) {
+  await tick();
+  result.update();
+}
+
 export {
   withGlobalJquery,
   replaceNBSP,
-  timeoutChain,
   logException,
   buildInnerHTML,
   findMainMenuButton,
   clickMainMenuButton,
   tick,
+  tickUpdate,
 };

@@ -3,10 +3,11 @@ import React from "react";
 import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -36,10 +37,9 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: instances", done => {
+  it("DataViewer: instances", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const Instances = require("../../popups/Instances").default;
-
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 }, store);
     const result = mount(
@@ -48,17 +48,11 @@ describe("DataViewer tests", () => {
       </Provider>,
       { attachTo: document.getElementById("content") }
     );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Instances");
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(Instances).length, 1, "should show instances");
-        result.find(ModalClose).first().simulate("click");
-        t.equal(result.find(Instances).length, 0, "should hide instances");
-        done();
-      }, 400);
-    }, 600);
+    await tick();
+    clickMainMenuButton(result, "Instances");
+    await tickUpdate(result);
+    expect(result.find(Instances).length).toBe(1);
+    result.find(ModalClose).first().simulate("click");
+    expect(result.find(Instances).length).toBe(0);
   });
 });

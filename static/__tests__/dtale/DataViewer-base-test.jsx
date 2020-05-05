@@ -4,11 +4,12 @@ import React from "react";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
+import { expect, it } from "@jest/globals";
+
 import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -51,9 +52,8 @@ describe("DataViewer tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
+  it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
-
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -64,34 +64,25 @@ describe("DataViewer tests", () => {
         attachTo: document.getElementById("content"),
       }
     );
-
-    setTimeout(() => {
-      result.update();
-      const grid = result.find(MultiGrid).first().instance();
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should render column headers"
-      );
-      t.deepEqual(grid.props.columns, COL_PROPS, "should properly size/lock columns");
-      result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-          ["Refresh Widths", "About", "Shutdown"]
-        ),
-        "Should render default menu options"
-      );
-      setTimeout(() => {
-        clickMainMenuButton(result, "Refresh Widths");
-        clickMainMenuButton(result, "Shutdown", "a");
-        done();
-      }, 400);
-    }, 600);
+    await tickUpdate(result);
+    const grid = result.find(MultiGrid).first().instance();
+    expect(result.find(".main-grid div.headerCell").map(hc => hc.text())).toEqual(["col1", "col2", "col3", "col4"]);
+    expect(grid.props.columns).toEqual(COL_PROPS);
+    result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
+    expect(
+      result
+        .find(DataViewerMenu)
+        .find("ul li span.font-weight-bold")
+        .map(s => s.text())
+    ).toEqual(
+      _.concat(
+        ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
+        ["Refresh Widths", "About", "Shutdown"]
+      )
+    );
+    await tick();
+    clickMainMenuButton(result, "Refresh Widths");
+    clickMainMenuButton(result, "Shutdown", "a");
   });
 });

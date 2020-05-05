@@ -1,11 +1,12 @@
 import { mount } from "enzyme";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import ChartLabel from "../../popups/charts/ChartLabel";
-import * as t from "../jest-assertions";
 
 describe("ChartLabel tests", () => {
-  test("ChartLabel rendering", done => {
+  it("ChartLabel rendering", () => {
     const props = {
       x: { value: "foo" },
       y: [{ value: "bar" }],
@@ -13,7 +14,6 @@ describe("ChartLabel tests", () => {
     };
     const result = mount(<ChartLabel {...props} />);
     result.render();
-    t.equal(result.text(), "Count of bar by foo", "should render label");
-    done();
+    expect(result.text()).toBe("Count of bar by foo");
   });
 });

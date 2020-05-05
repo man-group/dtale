@@ -1,7 +1,8 @@
 /* eslint max-lines: "off" */
 import _ from "lodash";
 
-import * as t from "./jest-assertions";
+import { expect, it } from "@jest/globals";
+
 import { withGlobalJquery } from "./test-utils";
 
 const GRADIENT_FUNCS = [
@@ -13,6 +14,7 @@ const GRADIENT_FUNCS = [
 ];
 
 describe("chartUtils tests", () => {
+  let colorScale, chartUtils;
   beforeAll(() => {
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
@@ -25,13 +27,13 @@ describe("chartUtils tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    const correlationsUtils = require("../popups/correlations/correlationsUtils").default;
+    chartUtils = require("../chartUtils").default;
+    colorScale = correlationsUtils.colorScale;
   });
 
-  test("chartUtils: testing gradientLinePlugin with min & max", done => {
-    const { colorScale } = require("../popups/correlations/correlationsUtils").default;
-    const { gradientLinePlugin } = require("../chartUtils").default;
-
-    const plugin = gradientLinePlugin(colorScale, "y-corr", 1, -1);
+  it("chartUtils: testing gradientLinePlugin with min & max", () => {
+    const plugin = chartUtils.gradientLinePlugin(colorScale, "y-corr", 1, -1);
     const dataset = { data: [{ x: 0, y: 0 }] };
     const chartInstance = {
       data: { datasets: [dataset] },
@@ -49,15 +51,11 @@ describe("chartUtils tests", () => {
       },
     };
     plugin.afterLayout(chartInstance);
-    _.forEach(GRADIENT_FUNCS, f => t.ok(_.isFunction(dataset[f].addColorStop), "should set gradients"));
-    done();
+    _.forEach(GRADIENT_FUNCS, f => expect(_.isFunction(dataset[f].addColorStop)).toBe(true));
   });
 
-  test("chartUtils: testing gradientLinePlugin without min & max", done => {
-    const { colorScale } = require("../popups/correlations/correlationsUtils").default;
-    const { gradientLinePlugin } = require("../chartUtils").default;
-
-    const plugin = gradientLinePlugin(colorScale);
+  it("chartUtils: testing gradientLinePlugin without min & max", () => {
+    const plugin = chartUtils.gradientLinePlugin(colorScale);
     const dataset = {
       data: [
         { x: 0, y: 1.1 },
@@ -81,15 +79,11 @@ describe("chartUtils tests", () => {
       },
     };
     plugin.afterLayout(chartInstance);
-    _.forEach(GRADIENT_FUNCS, f => t.ok(_.isFunction(dataset[f].addColorStop), "should set gradients"));
-    done();
+    _.forEach(GRADIENT_FUNCS, f => expect(_.isFunction(dataset[f].addColorStop)).toBe(true));
   });
 
-  test("chartUtils: testing lineHoverPlugin", done => {
-    const { colorScale } = require("../popups/correlations/correlationsUtils").default;
-    const { lineHoverPlugin } = require("../chartUtils").default;
-
-    const plugin = lineHoverPlugin(colorScale);
+  it("chartUtils: testing lineHoverPlugin", () => {
+    const plugin = chartUtils.lineHoverPlugin(colorScale);
     const dataset = { data: [{ x: 0, y: 0 }] };
     const point = {
       _model: { x: 0 },
@@ -121,21 +115,19 @@ describe("chartUtils tests", () => {
       },
     };
     plugin.afterDraw(chartInstance);
-    t.equal(chartInstance.ctx.lineWidth, 2, "should update lineWidth");
-    t.equal(chartInstance.ctx.strokeStyle, "rgb(42, 145, 209)", "should set strokeStyle");
-    done();
+    expect(chartInstance.ctx.lineWidth).toBe(2);
+    expect(chartInstance.ctx.strokeStyle).toBe("rgb(42, 145, 209)");
   });
 
-  test("chartUtils: testing buildTicks", done => {
-    const { buildTicks } = require("../chartUtils").default;
+  it("chartUtils: testing buildTicks", () => {
     const range = { min: { y: 0.1 }, max: { y: 0.6 } };
-    t.deepEqual(buildTicks("y", range, true), { min: 0.095, max: 0.605 }, "should build padded ticks");
-    done();
+    expect(chartUtils.buildTicks("y", range, true)).toEqual({
+      min: 0.095,
+      max: 0.605,
+    });
   });
 
-  test("chartUtils: testing buildSeries", done => {
-    const { createLineCfg } = require("../chartUtils").default;
-
+  it("chartUtils: testing buildSeries", () => {
     const series = {
       y: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
       x: [1514782800000, 1514786400000, 1514790000000, 1514793600000, 1514797200000, 1514800800000],
@@ -151,14 +143,13 @@ describe("chartUtils tests", () => {
       { name: "x", dtype: "datetime64[ns]" },
       { name: "y", dtype: "float64" },
     ];
-    const cfg = createLineCfg(data, {
+    const cfg = chartUtils.createLineCfg(data, {
       columns,
       x: "x",
       y: "y",
       configHandler: cfg => cfg,
     });
-    t.equal(cfg.data.datasets[0].label, "series1", "should construct series label");
-    t.equal(cfg.options.tooltips.callbacks.label({ yLabel: 0.1, datasetIndex: 0 }, cfg.data), "series1: 0.1");
-    done();
+    expect(cfg.data.datasets[0].label).toBe("series1");
+    expect(cfg.options.tooltips.callbacks.label({ yLabel: 0.1, datasetIndex: 0 }, cfg.data)).toBe("series1: 0.1");
   });
 });

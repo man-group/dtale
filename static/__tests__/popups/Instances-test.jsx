@@ -2,14 +2,17 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("Instances tests", () => {
+  const { location } = window;
+  let Instances, assignSpy;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -19,6 +22,15 @@ describe("Instances tests", () => {
       configurable: true,
       value: 500,
     });
+    delete window.location;
+    window.location = {
+      href: "http://localhost:8080",
+      hostname: "localhost",
+      port: "8080",
+      origin: "http://localhost:8080",
+      assign: _.noop,
+    };
+    assignSpy = jest.spyOn(window.location, "assign");
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -103,87 +115,49 @@ describe("Instances tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
+    Instances = require("../../popups/Instances").default;
   });
+
+  beforeEach(buildInnerHTML);
 
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    assignSpy.mockRestore();
+    window.location = location;
   });
 
-  test("Instances rendering data", done => {
-    const Instances = require("../../popups/Instances").default;
-    buildInnerHTML();
-    const origWindow = global.window;
-    global.window = Object.create(window);
-    Object.defineProperty(window, "location", {
-      value: {
-        href: "http://localhost:8080",
-        hostname: "localhost",
-        port: "8080",
-        origin: "http://localhost:8080",
-        assign: _.noop,
-      },
-      writable: true,
-    });
-    const assignSpy = jest.spyOn(global.window.location, "assign");
+  it("Instances rendering data", async () => {
     const result = mount(<Instances dataId="8080" />, {
       attachTo: document.getElementById("content"),
     });
-    setTimeout(() => {
-      result.update();
-      result.find("button.preview-btn").last().simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find("h4.preview-header").first().text(), "2018-04-30 12:36:44Preview", "should render preview");
-        result.find("button.preview-btn").first().simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.equal(
-            result.find("h4.preview-header").first().text(),
-            "2018-04-30 12:36:44(foo)Preview",
-            "should render preview"
-          );
-          t.equal(
-            result.find("div.preview").first().find("div.ReactVirtualized__Table__row").length,
-            6,
-            "should render ... row"
-          );
-          t.equal(
-            result.find("div.preview").first().find("div.ReactVirtualized__Table__row").first().find("div.cell").length,
-            6,
-            "should render ... column"
-          );
-          result.find("button.preview-btn").at(1).simulate("click");
-          setTimeout(() => {
-            result.update();
-            t.equal(result.find("div.dtale-alert").first().text(), "No data found.", "should render error");
-            result.find("div.clickable").last().simulate("click");
-            expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
-            assignSpy.mockRestore();
-            global.window = origWindow;
-            result.find(".ico-delete").first().simulate("click");
-            setTimeout(() => {
-              result.update();
-              done();
-            }, 400);
-          }, 200);
-        }, 200);
-      }, 200);
-    }, 200);
+    await tickUpdate(result);
+    result.find("button.preview-btn").last().simulate("click");
+    await tickUpdate(result);
+    expect(result.find("h4.preview-header").first().text()).toBe("2018-04-30 12:36:44Preview");
+    result.find("button.preview-btn").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find("h4.preview-header").first().text()).toBe("2018-04-30 12:36:44(foo)Preview");
+    expect(result.find("div.preview").first().find("div.ReactVirtualized__Table__row").length).toBe(6);
+    expect(
+      result.find("div.preview").first().find("div.ReactVirtualized__Table__row").first().find("div.cell").length
+    ).toBe(6);
+    result.find("button.preview-btn").at(1).simulate("click");
+    await tickUpdate(result);
+    expect(result.find("div.dtale-alert").first().text()).toBe("No data found.");
+    result.find("div.clickable").last().simulate("click");
+    expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
+    result.find(".ico-delete").first().simulate("click");
+    await tickUpdate(result);
   });
 
-  test("Instances rendering error", done => {
-    const Instances = require("../../popups/Instances").default;
-    buildInnerHTML();
+  it("Instances rendering error", async () => {
     const result = mount(<Instances dataId="8082" />, {
       attachTo: document.getElementById("content"),
     });
-    setTimeout(() => {
-      result.update();
-      result.setState({ processes: { error: "Error Test" } });
-      result.update();
-      t.equal(result.find("div.dtale-alert").first().text(), "Error Test", "should render error");
-      done();
-    }, 200);
+    await tickUpdate(result);
+    result.setState({ processes: { error: "Error Test" } });
+    result.update();
+    expect(result.find("div.dtale-alert").first().text()).toBe("Error Test");
   });
 });

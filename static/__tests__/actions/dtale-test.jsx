@@ -1,4 +1,4 @@
-import * as t from "../jest-assertions";
+import { expect, it } from "@jest/globals";
 
 describe("dtale tests", () => {
   const { location } = window;
@@ -14,18 +14,13 @@ describe("dtale tests", () => {
     window.location = location;
   });
 
-  test("dtale: testing getParams", done => {
+  it("dtale: testing getParams", () => {
     const actions = require("../../actions/dtale").default;
     const urlParams = actions.getParams();
-    t.deepEqual(
-      {
-        col: "foo",
-        vals: ["a", "b", "c"],
-        baz: JSON.stringify({ bizz: [1, 2] }),
-      },
-      urlParams,
-      "should parse parameters"
-    );
-    done();
+    expect({
+      col: "foo",
+      vals: ["a", "b", "c"],
+      baz: JSON.stringify({ bizz: [1, 2] }),
+    }).toEqual(urlParams);
   });
 });

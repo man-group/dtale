@@ -6,11 +6,14 @@ import React from "react";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton, clickColMenuSubButton } from "./iframe-utils";
+
+import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, tickUpdate, withGlobalJquery } from "../test-utils";
+
+import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -26,6 +29,7 @@ MockDateInput.displayName = "DateInput";
 
 describe("DataViewer iframe tests", () => {
   const { location, open, top, self } = window;
+  let result, DataViewer, ColumnMenu, Header, Formatting, DataViewerMenu, DataViewerInfo;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -65,6 +69,26 @@ describe("DataViewer iframe tests", () => {
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     jest.mock("@blueprintjs/datetime", () => ({ DateInput: MockDateInput }));
+    DataViewer = require("../../dtale/DataViewer").DataViewer;
+    ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
+    Header = require("../../dtale/Header").ReactHeader;
+    Formatting = require("../../popups/formats/Formatting").default;
+    DataViewerMenu = require("../../dtale/DataViewerMenu").DataViewerMenu;
+    DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
+  });
+
+  beforeEach(async () => {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "", iframe: "True" }, store);
+    result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
+    await tickUpdate(result);
   });
 
   afterAll(() => {
@@ -76,171 +100,119 @@ describe("DataViewer iframe tests", () => {
     window.self = self;
   });
 
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
-    const Header = require("../../dtale/Header").ReactHeader;
-    const Formatting = require("../../popups/formats/Formatting").default;
-    const DataViewerMenu = require("../../dtale/DataViewerMenu").DataViewerMenu;
+  const colMenu = () => result.find(ColumnMenu).first();
 
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", iframe: "True" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById("content"),
-      }
+  it("DataViewer: validate menu options", async () => {
+    const grid = result.find(MultiGrid).first().instance();
+    validateHeaders(result, ["col1", "col2", "col3", "col4"]);
+    expect(grid.props.columns).toEqual(COL_PROPS);
+    result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
+    expect(
+      result
+        .find(DataViewerMenu)
+        .find("ul li span.font-weight-bold")
+        .map(s => s.text())
+    ).toEqual(
+      _.concat(
+        ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
+        ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
+      )
     );
+  });
 
-    setTimeout(() => {
-      result.update();
-      const grid = result.find(MultiGrid).first().instance();
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should render column headers"
-      );
-      t.deepEqual(grid.props.columns, COL_PROPS, "should properly size/lock columns");
-      result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-          ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
-        ),
-        "Should render default menu options"
-      );
+  it("DataViewer: validate column menu options", async () => {
+    await openColMenu(result, 3);
+    expect(result.find("#column-menu-div").length).toBe(1);
+    result.find(Header).last().instance().props.hideColumnMenu("col4");
+    result.update();
+    expect(result.find("#column-menu-div").length).toBe(0);
+    await openColMenu(result, 3);
+    expect(colMenu().find("header").first().text()).toBe('Column "col4"');
+    expect(
+      colMenu()
+        .find("ul li span.font-weight-bold")
+        .map(s => s.text())
+    ).toEqual(["Lock", "Hide", "Delete", "Rename", "Describe", "Column Analysis", "Formats"]);
+  });
 
-      result.find(".main-grid div.headerCell div").last().simulate("click");
-      setTimeout(() => {
-        t.equal(result.find("#column-menu-div").length, 1, "should show column menu");
-        result.find(Header).last().instance().props.hideColumnMenu("col4");
-        result.update();
-        t.equal(result.find("#column-menu-div").length, 0, "should hide column menu");
-        result.find(".main-grid div.headerCell div").last().simulate("click");
-        setTimeout(() => {
-          let colMenu = result.find(ColumnMenu).first();
-          t.equal(colMenu.find("header").first().text(), 'Column "col4"', "should show col4 menu");
-          t.deepEqual(
-            colMenu.find("ul li span.font-weight-bold").map(s => s.text()),
-            ["Lock", "Hide", "Delete", "Rename", "Describe", "Column Analysis", "Formats"],
-            "Should render column menu options"
-          );
-          clickColMenuSubButton(result, "Asc");
-          t.equal(result.find("div.row div.col").first().text(), "Sort:col4 (ASC)", "should display column sort");
-          setTimeout(() => {
-            result.update();
-            result.find(".main-grid div.headerCell div").at(2).simulate("click");
-            setTimeout(() => {
-              colMenu = result.find(ColumnMenu).first();
-              t.equal(colMenu.find("header").first().text(), 'Column "col3"', "should show col3 menu");
-              result.find(Header).at(2).instance().props.hideColumnMenu("col3");
-              result.find(".main-grid div.headerCell div").last().simulate("click");
-              result.update();
-              clickColMenuSubButton(result, "fa-step-backward", 1);
-              t.deepEqual(
-                result.find(".main-grid div.headerCell").map(hc => hc.text()),
-                ["▲col4", "col1", "col2", "col3"],
-                "should move col4 to front of main grid"
-              );
-              result.find(".main-grid div.headerCell div").last().simulate("click");
-              result.update();
-              clickColMenuSubButton(result, "fa-caret-left", 1);
-              t.deepEqual(
-                result.find(".main-grid div.headerCell").map(hc => hc.text()),
-                ["▲col4", "col1", "col3", "col2"],
-                "should move col4 to front of main grid"
-              );
-              result.find(".main-grid div.headerCell div").at(2).simulate("click");
-              result.update();
-              clickColMenuSubButton(result, "fa-caret-right", 1);
-              t.deepEqual(
-                result.find(".main-grid div.headerCell").map(hc => hc.text()),
-                ["▲col4", "col1", "col2", "col3"],
-                "should move col4 to front of main grid"
-              );
+  it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
+    await openColMenu(result, 3);
+    clickColMenuSubButton(result, "Asc");
+    expect(result.find("div.row div.col").first().text()).toBe("Sort:col4 (ASC)");
+    await tickUpdate(result);
+    await openColMenu(result, 2);
+    expect(colMenu().find("header").first().text()).toBe('Column "col3"');
+    result.find(Header).at(2).instance().props.hideColumnMenu("col3");
+    await openColMenu(result, 3);
+    clickColMenuSubButton(result, "fa-step-backward", 1);
+    validateHeaders(result, ["▲col4", "col1", "col2", "col3"]);
+    await openColMenu(result, 3);
+    clickColMenuSubButton(result, "fa-caret-left", 1);
+    validateHeaders(result, ["▲col4", "col1", "col3", "col2"]);
+    await openColMenu(result, 2);
+    clickColMenuSubButton(result, "fa-caret-right", 1);
+    validateHeaders(result, ["▲col4", "col1", "col2", "col3"]);
+    await openColMenu(result, 0);
+    // lock
+    clickColMenuButton(result, "Lock");
+    expect(
+      result
+        .find("div.TopRightGrid_ScrollWrapper")
+        .first()
+        .find("div.headerCell")
+        .map(hc => hc.text())
+    ).toEqual(["col1", "col2", "col3"]);
+    //unlock
+    await openColMenu(result, 0);
+    clickColMenuButton(result, "Unlock");
+    result.update();
+    expect(
+      result
+        .find("div.TopRightGrid_ScrollWrapper")
+        .first()
+        .find("div.headerCell")
+        .map(hc => hc.text())
+    ).toEqual(["▲col4", "col1", "col2", "col3"]);
+    //clear sorts
+    result.find(DataViewerInfo).find("i.ico-cancel").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(DataViewerInfo).find("div.row").length).toBe(0);
+    await openColMenu(result, 0);
+    await openColMenu(result, 3);
+    await openColMenu(result, 2);
+  });
 
-              result.find(".main-grid div.headerCell div").first().simulate("click");
-              setTimeout(() => {
-                result.update();
-                // lock
-                clickColMenuButton(result, "Lock");
-                t.deepEqual(
-                  result
-                    .find("div.TopRightGrid_ScrollWrapper")
-                    .first()
-                    .find("div.headerCell")
-                    .map(hc => hc.text()),
-                  ["col1", "col2", "col3"],
-                  "should move col4 out of main grid"
-                );
-
-                //unlock
-                result.find(".main-grid div.headerCell div").first().simulate("click");
-                result.update();
-                clickColMenuButton(result, "Unlock");
-                result.update();
-                t.deepEqual(
-                  result
-                    .find("div.TopRightGrid_ScrollWrapper")
-                    .first()
-                    .find("div.headerCell")
-                    .map(hc => hc.text()),
-                  ["▲col4", "col1", "col2", "col3"],
-                  "should move col4 back into main grid"
-                );
-
-                //clear sorts
-                result.find("div.row i.ico-cancel").first().simulate("click");
-                setTimeout(() => {
-                  result.update();
-                  t.equal(result.find("div.row").length, 0, "should remove information row");
-                  result.find(".main-grid div.headerCell div").last().simulate("click");
-                  result.find(".main-grid div.headerCell div").at(2).simulate("click");
-                  clickColMenuButton(result, "Column Analysis");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-                    "/dtale/popup/column-analysis/1?selectedCol=col2"
-                  );
-                  clickColMenuButton(result, "Describe");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-                    "/dtale/popup/describe/1?selectedCol=col2"
-                  );
-                  clickMainMenuButton(result, "Describe");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
-                  clickMainMenuButton(result, "Correlations");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-                    "/dtale/popup/correlations/1"
-                  );
-                  clickMainMenuButton(result, "Charts");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/charts/1");
-                  clickMainMenuButton(result, "Instances 1");
-                  expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
-                  const exports = findMainMenuButton(result, "CSV", "div.btn-group");
-                  exports.find("button").first().simulate("click");
-                  let exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
-                  t.ok(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=false"));
-                  exports.find("button").last().simulate("click");
-                  exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
-                  t.ok(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=true"));
-                  clickMainMenuButton(result, "Refresh Widths");
-                  clickMainMenuButton(result, "Reload Data");
-                  expect(window.location.reload).toHaveBeenCalled();
-                  clickMainMenuButton(result, "Shutdown", "a");
-                  clickColMenuButton(result, "Formats");
-                  t.equal(result.find(Formatting).length, 1, "should show Formats");
-                  done();
-                }, 400);
-              }, 400);
-            }, 400);
-          }, 400);
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: validate menu functions", async () => {
+    await openColMenu(result, 2);
+    clickColMenuButton(result, "Column Analysis");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
+      "/dtale/popup/column-analysis/1?selectedCol=col3"
+    );
+    clickColMenuButton(result, "Describe");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
+      "/dtale/popup/describe/1?selectedCol=col3"
+    );
+    clickMainMenuButton(result, "Describe");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
+    clickMainMenuButton(result, "Correlations");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations/1");
+    clickMainMenuButton(result, "Charts");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/charts/1");
+    clickMainMenuButton(result, "Instances 1");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
+    const exports = findMainMenuButton(result, "CSV", "div.btn-group");
+    exports.find("button").first().simulate("click");
+    let exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
+    expect(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=false")).toBe(true);
+    exports.find("button").last().simulate("click");
+    exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
+    expect(_.startsWith(exportURL, "/dtale/data-export/1") && _.includes(exportURL, "tsv=true")).toBe(true);
+    clickMainMenuButton(result, "Refresh Widths");
+    clickMainMenuButton(result, "Reload Data");
+    expect(window.location.reload).toHaveBeenCalled();
+    clickMainMenuButton(result, "Shutdown", "a");
+    clickColMenuButton(result, "Formats");
+    expect(result.find(Formatting).length).toBe(1);
   });
 });

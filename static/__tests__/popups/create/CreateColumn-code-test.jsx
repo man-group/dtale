@@ -1,143 +1,141 @@
+import { expect, it } from "@jest/globals";
+
 import { buildCode as buildBinsCode } from "../../../popups/create/CreateBins";
 import { buildCode as buildDatetimeCode } from "../../../popups/create/CreateDatetime";
 import { buildCode as buildNumericCode } from "../../../popups/create/CreateNumeric";
 import { buildCode as buildTypeConversionCode } from "../../../popups/create/CreateTypeConversion";
-import * as t from "../../jest-assertions";
 
 describe("CreateColumn buildCode tests", () => {
-  test("Numeric buildCode test", done => {
+  it("Numeric buildCode test", () => {
     let code = buildNumericCode({
       left: { type: "col", col: { value: "col1" } },
       operation: "sum",
       right: { type: "col", col: { value: "col2" } },
     });
-    t.equal(code, "df['col1'] + df['col2']");
+    expect(code).toBe("df['col1'] + df['col2']");
     code = buildNumericCode({
       left: { type: "col", col: null },
       operation: "sum",
       right: { type: "col", col: { value: "col2" } },
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildNumericCode({
       left: { type: "col", col: { value: "col1" } },
       operation: "sum",
       right: { type: "col", col: null },
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildNumericCode({
       left: { type: "val", val: "5" },
       operation: "sum",
       right: { type: "val", val: "6" },
     });
-    t.equal(code, "5 + 6");
+    expect(code).toBe("5 + 6");
     code = buildNumericCode({
       left: { type: "val", val: null },
       operation: "sum",
       right: { type: "val", val: "6" },
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildNumericCode({
       left: { type: "val", val: "5" },
       operation: "sum",
       right: { type: "val", val: null },
     });
-    t.equal(code, null);
-    done();
+    expect(code).toBeNull();
   });
 
-  test("Datetime buildCode test", done => {
+  it("Datetime buildCode test", () => {
     let code = buildDatetimeCode({
       col: null,
       operation: null,
       property: null,
       conversion: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildDatetimeCode({
       col: { value: "col1" },
       operation: null,
       property: null,
       conversion: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildDatetimeCode({
       col: { value: "col1" },
       operation: null,
       property: null,
       conversion: "month_end",
     });
-    t.equal(code, "df['col1'].dt.to_period('M').dt.to_timestamp(how='end')");
+    expect(code).toBe("df['col1'].dt.to_period('M').dt.to_timestamp(how='end')");
     code = buildDatetimeCode({
       col: { value: "col1" },
       operation: "property",
       property: null,
       conversion: "month_end",
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildDatetimeCode({
       col: { value: "col1" },
       operation: "property",
       property: "hour",
       conversion: "month_end",
     });
-    t.equal(code, "df['col1'].dt.hour");
-    done();
+    expect(code).toBe("df['col1'].dt.hour");
   });
 
-  test("Bins buildCode test", done => {
+  it("Bins buildCode test", () => {
     let code = buildBinsCode({
       col: null,
       operation: null,
       bins: null,
       labels: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildBinsCode({
       col: { value: "col1" },
       operation: null,
       bins: null,
       labels: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildBinsCode({
       col: { value: "col1" },
       operation: "cut",
       bins: null,
       labels: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildBinsCode({
       col: { value: "col1" },
       operation: "cut",
       bins: "3",
       labels: null,
     });
-    t.equal(code, "pd.cut(df['col1'], bins=3)");
+    expect(code).toBe("pd.cut(df['col1'], bins=3)");
     code = buildBinsCode({
       col: { value: "col1" },
       operation: "qcut",
       bins: "3",
       labels: null,
     });
-    t.equal(code, "pd.qcut(df['col1'], q=3)");
+    expect(code).toBe("pd.qcut(df['col1'], q=3)");
     code = buildBinsCode({
       col: { value: "col1" },
       operation: "cut",
       bins: "3",
       labels: "foo,bar",
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     code = buildBinsCode({
       col: { value: "col1" },
       operation: "cut",
       bins: "3",
       labels: "foo,bar,baz",
     });
-    t.equal(code, "pd.cut(df['col1'], bins=3, labels=['foo', 'bar', 'baz'])");
-    done();
+    expect(code).toBe("pd.cut(df['col1'], bins=3, labels=['foo', 'bar', 'baz'])");
   });
 
-  test("TypeConversion buildCode test", done => {
+  it("TypeConversion buildCode test", () => {
     const code = buildTypeConversionCode({
       col: null,
       from: null,
@@ -145,7 +143,7 @@ describe("CreateColumn buildCode tests", () => {
       fmt: null,
       unit: null,
     });
-    t.equal(code, null);
+    expect(code).toBeNull();
     buildTypeConversionCode({
       col: "col1",
       from: "object",
@@ -223,6 +221,5 @@ describe("CreateColumn buildCode tests", () => {
       fmt: null,
       unit: null,
     });
-    done();
   });
 });

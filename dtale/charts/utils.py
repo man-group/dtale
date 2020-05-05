@@ -381,7 +381,7 @@ def build_base_chart(raw_data, x, y, group_col=None, group_val=None, agg=None, a
             msg = (
                 'Group ({}) contains more than {} unique values, more groups than that will make the chart unreadable. '
                 'You can choose specific groups to display from then "Group(s)" dropdown above. The available group(s) '
-                'are listed below:'
+                'are listed below:\n\n{}'
             ).format(', '.join(group_col), MAX_GROUPS, group_vals.to_string(index=False))
             raise ChartBuildingError(msg, group_vals.to_string(index=False))
 

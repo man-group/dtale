@@ -5,9 +5,8 @@ import { Provider } from "react-redux";
 import { it } from "@jest/globals";
 
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, tick, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -75,7 +74,6 @@ describe("DataViewer tests", () => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
     const GridCell = require("../../dtale/GridCell").ReactGridCell;
     const GridCellEditor = require("../../dtale/GridCellEditor").ReactGridCellEditor;
-
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -86,30 +84,30 @@ describe("DataViewer tests", () => {
         attachTo: document.getElementById("content"),
       }
     );
-
-    await tick();
-    result.update();
+    await tickUpdate(result);
     const cellIdx = result.find(GridCell).last().find("div").prop("cell_idx");
-    result
-      .find(ReactDataViewer)
-      .instance()
-      .doubleClickCell({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      });
+    let instance = result.find(ReactDataViewer).instance();
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+    });
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+    });
     result.update();
     let cellEditor = result.find(GridCellEditor).first();
     cellEditor.instance().onKeyDown({ key: "Escape" });
-    result
-      .find(ReactDataViewer)
-      .instance()
-      .doubleClickCell({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      });
+    instance = result.find(ReactDataViewer).instance();
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+    });
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+    });
     result.update();
     cellEditor = result.find(GridCellEditor).first();
     cellEditor.find("input").simulate("change", { target: { value: "20000101" } });
     cellEditor.instance().onKeyDown({ key: "Enter" });
     await tick();
-    t.equal(result.find(GridCell).last().text(), "20000101");
+    expect(result.find(GridCell).last().text()).toBe("20000101");
   });
 });

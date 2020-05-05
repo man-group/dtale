@@ -1,20 +1,9 @@
 import _ from "lodash";
 
-import mockPopsicle from "./MockPopsicle";
-import * as t from "./jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "./test-utils";
+import { expect, it } from "@jest/globals";
 
-function testMain(mainName, search = "") {
-  window.location = { pathname: `/dtale/${mainName}/1`, search };
-  buildInnerHTML();
-  const mockReactDOM = { renderStatus: false };
-  mockReactDOM.render = () => {
-    mockReactDOM.renderStatus = true;
-  };
-  withGlobalJquery(() => jest.mock("react-dom", () => mockReactDOM));
-  require(`../main`);
-  t.ok(mockReactDOM.renderStatus, `${mainName} compiled`);
-}
+import mockPopsicle from "./MockPopsicle";
+import { buildInnerHTML, withGlobalJquery } from "./test-utils";
 
 describe("main tests", () => {
   const { location, open, top, self, opener } = window;
@@ -54,39 +43,44 @@ describe("main tests", () => {
     window.opener = opener;
   });
 
-  test("main rendering", done => {
-    testMain("main");
-    done();
-  });
+  const testMain = (mainName, search = "") => {
+    window.location = { pathname: `/dtale/${mainName}/1`, search };
+    buildInnerHTML();
+    const mockReactDOM = { renderStatus: false };
+    mockReactDOM.render = () => {
+      mockReactDOM.renderStatus = true;
+    };
+    withGlobalJquery(() => jest.mock("react-dom", () => mockReactDOM));
+    require(`../main`);
+    expect(mockReactDOM.renderStatus).toBe(true);
+  };
 
-  test("base_styles.js loading", () => {
+  it("main rendering", () => testMain("main"));
+
+  it("base_styles.js loading", () => {
     require("../base_styles");
-    t.ok(true, "base_styles.js loaded");
+    return;
   });
 
-  test("polyfills.js loading", () => {
+  it("polyfills.js loading", () => {
     const mockES6Promise = { polyfill: _.noop };
     jest.mock("es6-promise", () => mockES6Promise);
     jest.mock("string.prototype.startswith", () => ({}));
     require("../polyfills");
-    t.ok(true, "polyfills.js loaded");
   });
 
-  test("correlations_popup_main rendering", done => {
+  it("correlations_popup_main rendering", () => {
     window.location = { pathname: "/dtale/popup/correlations/1" };
     testMain("popup/correlations");
-    done();
   });
 
   _.forEach(["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter"], popup => {
-    test(`${popup} popup rendering`, done => {
+    it(`${popup} popup rendering`, () => {
       testMain(`popup/${popup}`);
-      done();
     });
   });
 
-  test("code snippet rendering", done => {
+  it("code snippet rendering", () => {
     testMain("code-popup");
-    done();
   });
 });

@@ -221,6 +221,39 @@ def test_update_settings(unittest):
 
 
 @pytest.mark.unit
+def test_update_formats():
+    from dtale.views import build_dtypes_state
+
+    settings = dict()
+    df = pd.DataFrame([dict(a=1, b=2)])
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DATA', data))
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', dtypes))
+            stack.enter_context(mock.patch('dtale.global_state.SETTINGS', settings))
+            response = c.get('/dtale/update-formats/{}'.format(c.port), query_string=dict(
+                all=False, col='a', format=json.dumps(dict(fmt='', style={}))
+            ))
+            assert response.status_code == 200, 'should return 200 response'
+            assert 'a' in settings[c.port]['formats']
+
+            c.get('/dtale/update-formats/{}'.format(c.port), query_string=dict(
+                all=True, col='a', format=json.dumps(dict(fmt='', style={}))
+            ))
+            assert 'b' in settings[c.port]['formats']
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: None}))
+            response = c.get('/dtale/update-formats/{}'.format(c.port), query_string=dict(
+                all=True, col='a', format=json.dumps(dict(fmt='', style={}))
+            ))
+            assert 'error' in response.json
+
+
+@pytest.mark.unit
 def test_update_column_position():
     from dtale.views import build_dtypes_state
 
@@ -763,7 +796,7 @@ def test_reshape(custom_data, unittest):
             assert len(data.keys()) == 2
             unittest.assertEqual(
                 [d['name'] for d in dtypes[new_key]],
-                ['{} 00:00:00 100000'.format(min_date), '{} 00:00:00 100001'.format(min_date)]
+                ['index', '{} 00:00:00 100000'.format(min_date), '{} 00:00:00 100001'.format(min_date)]
             )
             assert len(data[new_key]) == 1
             assert settings[new_key].get('startup_code') is not None

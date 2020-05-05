@@ -2,11 +2,15 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { withGlobalJquery } from "../test-utils";
+import { tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("ChartsBody tests", () => {
+  let result;
+  let testIdx = 1;
+
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -34,33 +38,21 @@ describe("ChartsBody tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
-  test("ChartsBody missing data", done => {
+  beforeEach(async () => {
     const ChartsBody = require("../../popups/charts/ChartsBody").default;
-
-    const result = mount(<ChartsBody url="chart-data-error-test1" visible={true} />, {
+    result = mount(<ChartsBody url={"chart-data-error-test" + testIdx++} visible={true} />, {
       attachTo: document.getElementById("content"),
     });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      t.ok(_.includes(result.html(), "No data found."), "should render no data message");
-      done();
-    }, 200);
+    await tickUpdate(result);
   });
 
-  test("ChartsBody error handling", done => {
-    const ChartsBody = require("../../popups/charts/ChartsBody").default;
+  it("ChartsBody missing data", async () => {
+    expect(_.includes(result.html(), "No data found.")).toBe(true);
+  });
 
-    const result = mount(<ChartsBody url="chart-data-error-test2" visible={true} />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      t.ok(_.includes(result.html(), "Error test."), "should render error");
-      result.setProps({ visible: false });
-      t.equal(result.html(), null);
-      done();
-    }, 200);
+  it("ChartsBody error handling", async () => {
+    expect(_.includes(result.html(), "Error test.")).toBe(true);
+    result.setProps({ visible: false });
+    expect(result.html()).toBeNull();
   });
 });

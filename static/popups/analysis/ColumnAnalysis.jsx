@@ -102,6 +102,7 @@ class ReactColumnAnalysis extends React.Component {
           <ColumnAnalysisFilters
             {..._.pick(this.state, ["type", "cols", "dtype", "code", "top"])}
             chartType={this.state.type}
+            selectedCol={_.get(this, "props.chartData.selectedCol")}
             buildChart={this.buildAnalysis}
           />
         </div>

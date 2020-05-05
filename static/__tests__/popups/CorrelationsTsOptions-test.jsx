@@ -1,22 +1,20 @@
 import { mount } from "enzyme";
-import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import CorrelationsTsOptions from "../../popups/correlations/CorrelationsTsOptions";
-import * as t from "../jest-assertions";
 
 describe("CorrelationsTsOptions tests", () => {
-  test("CorrelationsTsOptions hasDate == false", done => {
+  it("CorrelationsTsOptions hasDate == false", () => {
     const result = mount(<CorrelationsTsOptions hasDate={false} />);
     result.render();
-    t.ok(_.isNull(result.html()), "should render anything");
-    done();
+    expect(result.html()).toBeNull();
   });
 
-  test("CorrelationsTsOptions selectedCols empty", done => {
+  it("CorrelationsTsOptions selectedCols empty", () => {
     const result = mount(<CorrelationsTsOptions hasDate={true} selectedCols={[]} />);
     result.render();
-    t.ok(_.isNull(result.html()), "should render anything");
-    done();
+    expect(result.html()).toBeNull();
   });
 });

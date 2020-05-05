@@ -5,11 +5,12 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
+import { expect, it } from "@jest/globals";
+
 import { RemovableError } from "../../RemovableError";
 import { ColumnAnalysisFilters } from "../../popups/analysis/ColumnAnalysisFilters";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const ANALYSIS_DATA = {
   desc: { count: 20 },
@@ -61,6 +62,8 @@ const props = {
 };
 
 describe("ColumnAnalysis tests", () => {
+  let result;
+
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -133,146 +136,113 @@ describe("ColumnAnalysis tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
-  test("ColumnAnalysis rendering float data", done => {
+  beforeEach(async () => {
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
     buildInnerHTML();
-    const result = mount(<ColumnAnalysis {...props} />, {
+    result = mount(<ColumnAnalysis {...props} />, {
       attachTo: document.getElementById("content"),
     });
-
-    let chart = null;
-    setTimeout(() => {
-      result.update();
-      t.deepEqual(result.find("input").prop("value"), "20", "Should render default bins");
-
-      chart = result.state("chart");
-      t.equal(chart.cfg.type, "bar", "should create bar chart");
-      t.deepEqual(_.get(chart, "cfg.data.datasets[0].data"), ANALYSIS_DATA.data, "should load data");
-      t.deepEqual(_.get(chart, "cfg.data.labels"), ANALYSIS_DATA.labels, "should load labels");
-      const xlabel = _.get(chart, "cfg.options.scales.xAxes[0].scaleLabel.labelString");
-      t.equal(xlabel, "Bin", "should display correct x-axis label");
-
-      result.find("input").simulate("change", { target: { value: "" } });
-      result.find("input").simulate("keyPress", { key: "Shift" });
-      result.find("input").simulate("keyPress", { key: "Enter" });
-      result.find("input").simulate("change", { target: { value: "a" } });
-      result.find("input").simulate("keyPress", { key: "Enter" });
-      result.find("input").simulate("change", { target: { value: 50 } });
-      result.find("input").simulate("keyPress", { key: "Enter" });
-      setTimeout(() => {
-        result.update();
-        t.ok(chart.destroyed, "should have destroyed old chart");
-        t.equal(result.find(ColumnAnalysisFilters).instance().state.bins, 50, "should update bins");
-        result.setProps({
-          chartData: _.assignIn(props.chartData, { selectedCol: "baz" }),
-        });
-        t.equal(result.props().chartData.selectedCol, "baz", "should update column");
-
-        chart = result.state("chart");
-        result.setProps({
-          chartData: _.assignIn(props.chartData, { visible: false }),
-        });
-        t.deepEqual(chart, result.state("chart"), "should not have destroyed old chart");
-        result.setProps({
-          chartData: _.assignIn(props.chartData, { visible: true }),
-        });
-        result.update();
-        result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
-        result.update();
-        result.find(ColumnAnalysisFilters).find(Select).first().instance().onChange({ value: "col1" });
-        setTimeout(() => {
-          result.update();
-          result
-            .find(ColumnAnalysisFilters)
-            .find("input")
-            .first()
-            .simulate("change", { target: { value: 50 } });
-          result.find(ColumnAnalysisFilters).find("input").first().simulate("keyPress", { key: "Enter" });
-          setTimeout(() => {
-            result.update();
-            done();
-          }, 200);
-        }, 200);
-      }, 200);
-    }, 200);
+    await tickUpdate(result);
   });
 
-  test("ColumnAnalysis rendering int data", done => {
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-    buildInnerHTML();
+  const input = () => result.find("input");
+  const chart = () => result.state("chart");
+  const updateProps = newProps => {
+    result.setProps(newProps);
+    result.update();
+  };
+  const filters = () => result.find(ColumnAnalysisFilters);
+
+  it("ColumnAnalysis rendering float data", async () => {
+    expect(input().prop("value")).toBe("20");
+    expect(chart().cfg.type).toBe("bar");
+    expect(_.get(chart(), "cfg.data.datasets[0].data")).toEqual(ANALYSIS_DATA.data);
+    expect(_.get(chart(), "cfg.data.labels")).toEqual(ANALYSIS_DATA.labels);
+    const xlabel = _.get(chart(), "cfg.options.scales.xAxes[0].scaleLabel.labelString");
+    expect(xlabel).toBe("Bin");
+    const currChart = chart();
+    input().simulate("change", { target: { value: "" } });
+    input().simulate("keyPress", { key: "Shift" });
+    input().simulate("keyPress", { key: "Enter" });
+    input().simulate("change", { target: { value: "a" } });
+    input().simulate("keyPress", { key: "Enter" });
+    input().simulate("change", { target: { value: 50 } });
+    input().simulate("keyPress", { key: "Enter" });
+    await tickUpdate(result);
+    expect(currChart.destroyed).toBe(true);
+    expect(result.find(ColumnAnalysisFilters).instance().state.bins).toBe(50);
+  });
+
+  it("ColumnAnalysis chart functionality", async () => {
+    updateProps({
+      ...props,
+      chartData: _.assignIn(props.chartData, { selectedCol: "baz" }),
+    });
+    expect(result.props().chartData.selectedCol).toBe("baz");
+    const currChart = chart();
+    updateProps({
+      ...props,
+      chartData: _.assignIn(props.chartData, { visible: false }),
+    });
+    expect(currChart).toEqual(result.state("chart"));
+    updateProps({
+      ...props,
+      chartData: _.assignIn(props.chartData, { visible: true }),
+    });
+    result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
+    result.update();
+    filters().find(Select).first().instance().onChange({ value: "col1" });
+    await tickUpdate(result);
+    filters()
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: 50 } });
+    filters().find("input").first().simulate("keyPress", { key: "Enter" });
+    await tickUpdate(result);
+  });
+
+  it("ColumnAnalysis rendering int data", async () => {
     const currProps = _.assignIn({}, props);
     currProps.chartData.selectedCol = "intCol";
-    const result = mount(<ColumnAnalysis {...currProps} />, {
-      attachTo: document.getElementById("content"),
-    });
-
-    setTimeout(() => {
-      result.update();
-      result.update();
-      result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
-      setTimeout(() => {
-        result.update();
-        done();
-      }, 200);
-    }, 200);
+    updateProps(currProps);
+    filters().find("button").at(1).simulate("click");
+    await tickUpdate(result);
   });
 
-  test("ColumnAnalysis rendering string data", done => {
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-    buildInnerHTML();
+  it("ColumnAnalysis rendering string data", async () => {
     const currProps = _.assignIn({}, props);
     currProps.chartData.selectedCol = "strCol";
-    const result = mount(<ColumnAnalysis {...currProps} />, {
-      attachTo: document.getElementById("content"),
-    });
-
-    setTimeout(() => {
-      result.update();
-      done();
-    }, 200);
+    updateProps(currProps);
   });
 
-  test("ColumnAnalysis rendering date data", done => {
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-    buildInnerHTML();
+  it("ColumnAnalysis rendering date data", async () => {
     const currProps = _.assignIn({}, props);
     currProps.chartData.selectedCol = "dateCol";
-    const result = mount(<ColumnAnalysis {...currProps} />, {
-      attachTo: document.getElementById("content"),
+    updateProps(currProps);
+    const ordinalInputs = result.find(Select);
+    ordinalInputs.first().instance().onChange({ value: "col1" });
+    await tickUpdate(result);
+  });
+
+  it("ColumnAnalysis missing data", async () => {
+    updateProps({
+      ...props,
+      chartData: { ...props.chartData, selectedCol: "null" },
     });
-
-    setTimeout(() => {
-      result.update();
-      const ordinalInputs = result.find(Select);
-      ordinalInputs.first().instance().onChange({ value: "col1" });
-      setTimeout(() => {
-        result.update();
-        done();
-      }, 200);
-    }, 200);
+    result.unmount();
+    result.mount();
+    await tickUpdate(result);
+    expect(chart()).toBeNull();
   });
 
-  test("ColumnAnalysis missing data", done => {
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-    const currProps = _.clone(props);
-    currProps.chartData.selectedCol = "null";
-    const result = mount(<ColumnAnalysis {...currProps} />);
-    setTimeout(() => {
-      result.update();
-      t.notOk(result.state("chart"), "should not create chart");
-      done();
-    }, 200);
-  });
-
-  test("ColumnAnalysis error", done => {
-    const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-    const currProps = _.clone(props);
-    currProps.chartData.selectedCol = "error";
-    const result = mount(<ColumnAnalysis {...currProps} />);
-    setTimeout(() => {
-      result.update();
-      t.equal(result.find(RemovableError).text(), "column analysis error", "should render error");
-      done();
-    }, 200);
+  it("ColumnAnalysis error", async () => {
+    updateProps({
+      ...props,
+      chartData: { ...props.chartData, selectedCol: "error" },
+    });
+    result.unmount();
+    result.mount();
+    await tickUpdate(result);
+    expect(result.find(RemovableError).text()).toBe("column analysis error");
   });
 });

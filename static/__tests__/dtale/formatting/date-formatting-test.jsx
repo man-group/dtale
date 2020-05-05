@@ -4,11 +4,12 @@ import { ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import mockPopsicle from "../MockPopsicle";
-import { clickColMenuButton } from "../iframe/iframe-utils";
-import * as t from "../jest-assertions";
-import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { expect, it } from "@jest/globals";
+
+import mockPopsicle from "../../MockPopsicle";
+import { clickColMenuButton } from "../../iframe/iframe-utils";
+import reduxUtils from "../../redux-test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -30,7 +31,7 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../redux-test-utils").default;
+        const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
@@ -60,10 +61,10 @@ describe("DataViewer tests", () => {
     window.open = open;
   });
 
-  test("DataViewer: string formatting", done => {
-    const { DataViewer } = require("../../dtale/DataViewer");
-    const Formatting = require("../../popups/formats/Formatting").default;
-    const StringFormatting = require("../../popups/formats/StringFormatting").default;
+  it("DataViewer: date formatting", async () => {
+    const { DataViewer } = require("../../../dtale/DataViewer");
+    const Formatting = require("../../../popups/formats/Formatting").default;
+    const DateFormatting = require("../../../popups/formats/DateFormatting").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -76,31 +77,27 @@ describe("DataViewer tests", () => {
       }
     );
 
-    setTimeout(() => {
-      result.update();
-      // select column
-      result.find(".main-grid div.headerCell div").at(2).simulate("click");
-      result.update();
-      clickColMenuButton(result, "Formats");
-      result.update();
-      t.equal(result.find(StringFormatting).length, 1, "should open string formatting");
+    await tickUpdate(result);
+    // select column
+    result.find(".main-grid div.headerCell div").last().simulate("click");
+    result.update();
+    clickColMenuButton(result, "Formats");
+    result.update();
+    expect(result.find(DateFormatting).length).toBe(1);
 
-      const input = result.find(StringFormatting).find("div.form-group").at(0).find("input");
+    result.find(Formatting).find("i.ico-info-outline").first().simulate("click");
+    const momentUrl = "https://momentjs.com/docs/#/displaying/format/";
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(momentUrl);
+    const input = result.find(DateFormatting).find("div.form-group").at(0).find("input");
 
-      input.simulate("change", { target: { value: "2" } });
-      t.equal(
-        result.find(StringFormatting).find("div.row").last().text(),
-        "Raw:I am a long piece of text, please truncate me.Truncated:...",
-        "should truncate text"
-      );
+    input.simulate("change", { target: { value: "YYYYMMDD" } });
+    expect(result.find(DateFormatting).find("div.row").last().text()).toBe(
+      "Raw:December 31st 1999, 7:00:00 pmFormatted:19991231"
+    );
 
-      result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
-      setTimeout(() => {
-        result.update();
-        const grid = result.find(MultiGrid).first().instance();
-        t.equal(grid.props.data["0"].col3.view, "...", "should update grid formatting");
-        done();
-      }, 400);
-    }, 400);
+    result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
+    await tickUpdate(result);
+    const grid = result.find(MultiGrid).first().instance();
+    expect(grid.props.data["0"].col4.view.length).toBe(8);
   });
 });

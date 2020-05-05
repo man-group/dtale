@@ -3,11 +3,12 @@ import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 
+import { expect, it } from "@jest/globals";
+
 import { DataViewerMenu } from "../../dtale/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, clickMainMenuButton, tick, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -66,9 +67,8 @@ describe("DataViewer within iframe tests", () => {
     window.self = self;
   });
 
-  test("DataViewer: iframe menu rendering...", done => {
+  it("DataViewer: iframe menu rendering...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
-
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
     const result = mount(
@@ -79,24 +79,21 @@ describe("DataViewer within iframe tests", () => {
         attachTo: document.getElementById("content"),
       }
     );
-
-    setTimeout(() => {
-      result.update();
-      t.deepEqual(
-        result
-          .find(DataViewerMenu)
-          .find("ul li span.font-weight-bold")
-          .map(s => s.text()),
-        _.concat(
-          ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-          ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-          ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
-        ),
-        "Should render default iframe menu options"
-      );
-      clickMainMenuButton(result, "Open In New Tab");
-      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/iframe/1");
-      done();
-    }, 600);
+    await tick();
+    //result.update();
+    expect(
+      result
+        .find(DataViewerMenu)
+        .find("ul li span.font-weight-bold")
+        .map(s => s.text())
+    ).toEqual(
+      _.concat(
+        ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
+        ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
+      )
+    );
+    clickMainMenuButton(result, "Open In New Tab");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/iframe/1");
   });
 });

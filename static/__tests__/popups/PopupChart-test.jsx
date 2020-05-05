@@ -2,11 +2,12 @@ import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import { Correlations } from "../../popups/Correlations";
 import { ReactColumnAnalysis } from "../../popups/analysis/ColumnAnalysis";
 import { ReactCharts } from "../../popups/charts/Charts";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
 
 class MockCorrelations extends React.Component {
@@ -31,6 +32,7 @@ class MockReactCharts extends React.Component {
 MockReactCharts.displayName = "Charts";
 
 describe("Popup tests", () => {
+  let ReactPopup;
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -49,11 +51,12 @@ describe("Popup tests", () => {
     jest.mock("../../popups/charts/Charts", () => ({
       Charts: MockReactCharts,
     }));
+    ReactPopup = require("../../popups/Popup").ReactPopup;
   });
 
-  test("Popup w/ ColumnAnalysis initial rendering", () => {
-    const ReactPopup = require("../../popups/Popup").ReactPopup;
+  const buildResult = props => shallow(<ReactPopup {...props} onClose={_.noop} />);
 
+  it("Popup w/ ColumnAnalysis initial rendering", () => {
     const props = {
       dataId: "1",
       chartData: {
@@ -63,8 +66,7 @@ describe("Popup tests", () => {
         selectedCol: "foo",
       },
     };
-
-    const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
+    const result = buildResult(props);
     const title = _.join(
       result
         .find("ModalTitle")
@@ -72,13 +74,11 @@ describe("Popup tests", () => {
         .map(n => n.text()),
       ""
     ).trim();
-    t.equal(title, "Column Analysis for foo", "Should render correct title");
-    t.ok(result.find("ColumnAnalysis").length, "should render column analysis canvas");
+    expect(title).toBe("Column Analysis for foo");
+    expect(result.find("ColumnAnalysis").length).toBeGreaterThan(0);
   });
 
-  test("Popup w/ Correlations initial rendering", () => {
-    const ReactPopup = require("../../popups/Popup").ReactPopup;
-
+  it("Popup w/ Correlations initial rendering", () => {
     const props = {
       dataId: "1",
       chartData: {
@@ -87,8 +87,7 @@ describe("Popup tests", () => {
         title: "Correlations Test",
       },
     };
-
-    const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
+    const result = buildResult(props);
     const title = _.join(
       result
         .find("ModalTitle")
@@ -96,13 +95,11 @@ describe("Popup tests", () => {
         .map(n => n.text()),
       ""
     ).trim();
-    t.equal(title, "Correlations Test", "Should render correct title");
-    t.ok(result.find("Correlations").length, "should render correlations chart canvas");
+    expect(title).toBe("Correlations Test");
+    expect(result.find("Correlations").length).toBeGreaterThan(0);
   });
 
-  test("Popup w/ Charts initial rendering", () => {
-    const ReactPopup = require("../../popups/Popup").ReactPopup;
-
+  it("Popup w/ Charts initial rendering", () => {
     const props = {
       dataId: "1",
       chartData: {
@@ -110,8 +107,7 @@ describe("Popup tests", () => {
         type: "charts",
       },
     };
-
-    const result = shallow(<ReactPopup {...props} onClose={_.noop} />);
+    const result = buildResult(props);
     const title = _.join(
       result
         .find("ModalTitle")
@@ -119,7 +115,7 @@ describe("Popup tests", () => {
         .map(n => n.text()),
       ""
     ).trim();
-    t.equal(title, "Chart Builder", "Should render correct title");
-    t.ok(result.find("Charts").length, "should render charts chart canvas");
+    expect(title).toBe("Chart Builder");
+    expect(result.find("Charts").length).toBeGreaterThan(0);
   });
 });

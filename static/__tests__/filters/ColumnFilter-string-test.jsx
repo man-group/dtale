@@ -3,12 +3,15 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
+import { expect, it } from "@jest/globals";
+
 import { StringFilter } from "../../filters/StringFilter";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("ColumnFilter string tests", () => {
+  let ColumnFilter;
+
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -20,12 +23,12 @@ describe("ColumnFilter string tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
+    ColumnFilter = require("../../filters/ColumnFilter").default;
   });
 
-  test("ColumnFilter string rendering", done => {
-    const ColumnFilter = require("../../filters/ColumnFilter").default;
+  beforeEach(buildInnerHTML);
 
-    buildInnerHTML();
+  it("ColumnFilter string rendering", async () => {
     let props = {
       dataId: "1",
       selectedCol: "col3",
@@ -36,42 +39,31 @@ describe("ColumnFilter string tests", () => {
     const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    setTimeout(() => {
-      result.update();
-      t.ok(result.find(StringFilter).length);
-      result.find("i.ico-check-box-outline-blank").simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.ok(result.find(".Select__control--is-disabled").length);
-        result.find("i.ico-check-box").simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.notOk(result.find(".Select__control--is-disabled").length);
-          const uniqueSelect = result.find(Select);
-          uniqueSelect
-            .first()
-            .instance()
-            .onChange([{ value: "a" }]);
-          setTimeout(() => {
-            result.update();
-            t.deepEqual(result.state().cfg, {
-              type: "string",
-              operand: "=",
-              value: ["a"],
-            });
-            result.find("button").last().simulate("click");
-            setTimeout(() => {
-              result.update();
-              t.deepEqual(result.state().cfg, {
-                type: "string",
-                operand: "ne",
-                value: ["a"],
-              });
-              done();
-            }, 400);
-          }, 400);
-        }, 400);
-      }, 400);
-    }, 400);
+    await tickUpdate(result);
+    expect(result.find(StringFilter).length).toBe(1);
+    result.find("i.ico-check-box-outline-blank").simulate("click");
+    await tickUpdate(result);
+    expect(result.find(".Select__control--is-disabled").length).toBeGreaterThan(0);
+    result.find("i.ico-check-box").simulate("click");
+    await tickUpdate(result);
+    expect(result.find(".Select__control--is-disabled").length).toBe(0);
+    const uniqueSelect = result.find(Select);
+    uniqueSelect
+      .first()
+      .instance()
+      .onChange([{ value: "a" }]);
+    await tickUpdate(result);
+    expect(result.state().cfg).toEqual({
+      type: "string",
+      operand: "=",
+      value: ["a"],
+    });
+    result.find("button").last().simulate("click");
+    await tickUpdate(result);
+    expect(result.state().cfg).toEqual({
+      type: "string",
+      operand: "ne",
+      value: ["a"],
+    });
   });
 });

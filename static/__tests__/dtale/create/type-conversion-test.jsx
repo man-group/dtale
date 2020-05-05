@@ -1,35 +1,27 @@
-/* eslint max-lines: "off" */
 import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
+import { expect, it } from "@jest/globals";
+
 import { CreateTypeConversion } from "../../../popups/create/CreateTypeConversion";
 import mockPopsicle from "../../MockPopsicle";
-import * as t from "../../jest-assertions";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
-function initialize(res) {
-  res
-    .find("div.form-group")
-    .first()
-    .find("input")
-    .first()
-    .simulate("change", { target: { value: "conv_col" } });
-  res.find("div.form-group").at(1).find("button").last().simulate("click");
-}
-
 function submit(res) {
   res.find("div.modal-footer").first().find("button").first().simulate("click");
 }
 
 describe("DataViewer tests", () => {
+  let result, CreateColumn;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -69,6 +61,32 @@ describe("DataViewer tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
+  beforeEach(async () => {
+    CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    const { DataViewer } = require("../../../dtale/DataViewer");
+
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "" }, store);
+    result = mount(
+      <Provider store={store}>
+        <DataViewer />
+      </Provider>,
+      { attachTo: document.getElementById("content") }
+    );
+    await tick();
+    clickMainMenuButton(result, "Build Column");
+    await tickUpdate(result);
+    result
+      .find(CreateColumn)
+      .find("div.form-group")
+      .first()
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "conv_col" } });
+    result.find(CreateColumn).find("div.form-group").at(1).find("button").last().simulate("click");
+    result.update();
+  });
+
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
@@ -76,205 +94,105 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  test("DataViewer: build int conversion column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        t.equal(result.find(CreateTypeConversion).length, 1, "should show build conversion column");
-        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
-        result.update();
-        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-        result.update();
-        result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            to: "date",
-            from: "int64",
-            col: "col1",
-            unit: "YYYYMMDD",
-            fmt: null,
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: build int conversion column", async () => {
+    expect(result.find(CreateTypeConversion).length).toBe(1);
+    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.update();
+    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      to: "date",
+      from: "int64",
+      col: "col1",
+      unit: "YYYYMMDD",
+      fmt: null,
+    });
   });
 
-  test("DataViewer: build float conversion column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
-        result.update();
-        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            col: "col2",
-            to: "int",
-            from: "float64",
-            fmt: null,
-            unit: null,
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: build float conversion column", async () => {
+    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col2",
+      to: "int",
+      from: "float64",
+      fmt: null,
+      unit: null,
+    });
   });
 
-  test("DataViewer: build string conversion column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col3" });
-        result.update();
-        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-        result
-          .find(CreateTypeConversion)
-          .find("div.form-group")
-          .at(2)
-          .find("input")
-          .first()
-          .simulate("change", { target: { value: "%d/%m/%Y" } });
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            col: "col3",
-            to: "date",
-            from: "object",
-            fmt: "%d/%m/%Y",
-            unit: null,
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: build string conversion column", async () => {
+    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col3" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    result
+      .find(CreateTypeConversion)
+      .find("div.form-group")
+      .at(2)
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "%d/%m/%Y" } });
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col3",
+      to: "date",
+      from: "object",
+      fmt: "%d/%m/%Y",
+      unit: null,
+    });
   });
 
-  test("DataViewer: build date conversion column", done => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById("content") }
-    );
-
-    setTimeout(() => {
-      result.update();
-      clickMainMenuButton(result, "Build Column");
-      setTimeout(() => {
-        result.update();
-        initialize(result.find(CreateColumn));
-        result.update();
-        result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col4" });
-        result.update();
-        result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-        result.update();
-        result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "ms" });
-        submit(result);
-        setTimeout(() => {
-          t.deepEqual(result.find(CreateColumn).instance().state.cfg, {
-            col: "col4",
-            to: "int",
-            from: "datetime64[ns]",
-            unit: "ms",
-            fmt: null,
-          });
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: build date conversion column", async () => {
+    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col4" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.update();
+    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "ms" });
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col4",
+      to: "int",
+      from: "datetime64[ns]",
+      unit: "ms",
+      fmt: null,
+    });
   });
 
-  test("DataViewer: build conversion cfg validation", done => {
+  it("DataViewer: build conversion cfg validation", () => {
     const { validateTypeConversionCfg } = require("../../../popups/create/CreateTypeConversion");
-    t.equal(validateTypeConversionCfg({ col: null }), "Missing a column selection!");
-    t.equal(validateTypeConversionCfg({ col: "col1", to: null }), "Missing a conversion selection!");
-    t.equal(
+    expect(validateTypeConversionCfg({ col: null })).toBe("Missing a column selection!");
+    expect(validateTypeConversionCfg({ col: "col1", to: null })).toBe("Missing a conversion selection!");
+    expect(
       validateTypeConversionCfg({
         col: "col2",
         to: "date",
         from: "int64",
         unit: null,
-      }),
-      "Missing a unit selection!"
-    );
-    t.equal(
+      })
+    ).toBe("Missing a unit selection!");
+    expect(
       validateTypeConversionCfg({
         col: "col2",
         to: "int",
         from: "datetime64[ns]",
         unit: "D",
-      }),
-      "Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'"
-    );
-    t.equal(
+      })
+    ).toBe("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'");
+    expect(
       validateTypeConversionCfg({
         col: "col2",
         to: "int",
         from: "datetime64[ns]",
         unit: "ms",
-      }),
-      null
-    );
-    done();
+      })
+    ).toBe(null);
   });
 });

@@ -1,8 +1,9 @@
+import { expect, it } from "@jest/globals";
+
 import { buildURLParams } from "../../actions/url-utils";
-import * as t from "../jest-assertions";
 
 describe("url-utils tests", () => {
-  test("url-utils: testing URL_KEYS", done => {
+  it("url-utils: testing URL_KEYS", () => {
     let params = {
       filters: {},
       ids: [0, 5],
@@ -11,16 +12,12 @@ describe("url-utils tests", () => {
       selectedCols: ["col1", "col2"],
     };
     let urlParams = buildURLParams(params);
-    t.deepEqual(
-      urlParams,
-      {
-        cols: '["col1","col2"]',
-        query: "col == 3",
-        sort: '[["col1","ASC"]]',
-        ids: "[0,5]",
-      },
-      "should serialize parameters"
-    );
+    expect(urlParams).toEqual({
+      cols: '["col1","col2"]',
+      query: "col == 3",
+      sort: '[["col1","ASC"]]',
+      ids: "[0,5]",
+    });
 
     params = {
       filters: {
@@ -31,14 +28,11 @@ describe("url-utils tests", () => {
       },
     };
     urlParams = buildURLParams(params);
-    t.deepEqual(
-      urlParams,
-      { filters: '{"col1":{"value":"blah","type":"StringFilter"}}' },
-      "should serialize filters parameters"
-    );
+    expect(urlParams).toEqual({
+      filters: '{"col1":{"value":"blah","type":"StringFilter"}}',
+    });
 
     urlParams = buildURLParams({}, null, ["ids"]);
-    t.deepEqual(urlParams, {}, "should return empty object when missing required field");
-    done();
+    expect(urlParams).toEqual({});
   });
 });

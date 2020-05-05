@@ -1,7 +1,9 @@
 import _ from "lodash";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "./MockPopsicle";
-import * as t from "./jest-assertions";
+import { tick } from "./test-utils";
 
 describe("fetcher tests", () => {
   beforeAll(() => {
@@ -12,19 +14,15 @@ describe("fetcher tests", () => {
     );
   });
 
-  test("fetcher: testing exceptions", done => {
+  it("fetcher: testing exceptions", async () => {
     const { fetchJson } = require("../fetcher");
-
     const errors = [];
     global.console = {
       log: global.console.log,
       error: error => errors.push(error),
     };
-
     fetchJson("url", _.noop);
-    setTimeout(() => {
-      t.ok(errors.length == 3, "should log 3 exception messages");
-      done();
-    }, 200);
+    await tick();
+    expect(errors.length).toBe(3);
   });
 });

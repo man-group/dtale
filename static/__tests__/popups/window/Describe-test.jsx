@@ -1,10 +1,11 @@
 import { mount } from "enzyme";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
-import * as t from "../../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const chartData = {
   visible: true,
@@ -16,6 +17,9 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("Describe tests", () => {
+  let result;
+  let testIdx = 1;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -52,39 +56,26 @@ describe("Describe tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
+  beforeEach(async () => {
+    const { Describe } = require("../../../popups/Describe");
+    buildInnerHTML({ settings: "" });
+    result = mount(<Describe chartData={chartData} dataId={"" + testIdx++} />, {
+      attachTo: document.getElementById("content"),
+    });
+    await tickUpdate(result);
+  });
+
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("Describe: dtypes error", done => {
-    const { Describe } = require("../../../popups/Describe");
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Describe chartData={chartData} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      t.equal(result.find(RemovableError).text(), "dtypes error", "should render error");
-      done();
-    }, 200);
+  it("Describe: dtypes error", async () => {
+    expect(result.find(RemovableError).text()).toBe("dtypes error");
   });
 
-  test("Describe: describe error", done => {
-    const { Describe } = require("../../../popups/Describe");
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Describe chartData={chartData} dataId="2" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(RemovableError).text(), "describe error", "should render error");
-        done();
-      }, 200);
-    }, 200);
+  it("Describe: describe error", async () => {
+    await tickUpdate(result);
+    expect(result.find(RemovableError).text()).toBe("describe error");
   });
 });

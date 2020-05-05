@@ -5,8 +5,10 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
+import { it } from "@jest/globals";
+
 import mockPopsicle from "../../MockPopsicle";
-import { buildInnerHTML, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -17,6 +19,7 @@ function updateChartType(result, cmp, chartType) {
 }
 
 describe("Charts scatter tests", () => {
+  let result, Charts, ChartsBody;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -74,6 +77,16 @@ describe("Charts scatter tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    Charts = require("../../../popups/charts/Charts").ReactCharts;
+    ChartsBody = require("../../../popups/charts/ChartsBody").default;
+  });
+
+  beforeEach(async () => {
+    buildInnerHTML({ settings: "" });
+    result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+    await tickUpdate(result);
   });
 
   afterAll(() => {
@@ -81,33 +94,18 @@ describe("Charts scatter tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("Charts: rendering", done => {
-    const Charts = require("../../../popups/charts/Charts").ReactCharts;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-
-    setTimeout(() => {
-      result.update();
-      const filters = result.find(Charts).find(Select);
-      filters.first().instance().onChange({ value: "col4" });
-      filters
-        .at(1)
-        .instance()
-        .onChange([{ value: "col1" }]);
-      updateChartType(result, ChartsBody, "scatter");
-      result.find(Charts).find("button").first().simulate("click");
-      setTimeout(() => {
-        result.update();
-        updateChartType(result, ChartsBody, "bar");
-        result.find(Charts).find("button").first().simulate("click");
-        setTimeout(() => {
-          result.update();
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+  it("Charts: rendering", async () => {
+    const filters = result.find(Charts).find(Select);
+    filters.first().instance().onChange({ value: "col4" });
+    filters
+      .at(1)
+      .instance()
+      .onChange([{ value: "col1" }]);
+    updateChartType(result, ChartsBody, "scatter");
+    result.find(Charts).find("button").first().simulate("click");
+    await tickUpdate(result);
+    updateChartType(result, ChartsBody, "bar");
+    result.find(Charts).find("button").first().simulate("click");
+    await tickUpdate(result);
   });
 });

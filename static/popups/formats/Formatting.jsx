@@ -9,38 +9,58 @@ import DateFormatting from "./DateFormatting";
 import NumericFormatting from "./NumericFormatting";
 import StringFormatting from "./StringFormatting";
 
-const BASE_STATE = { fmt: "", style: null };
+const BASE_STATE = { fmt: "", style: null, applyToAll: false };
+
+function buildState({ selectedCol, columnFormats }) {
+  let state = _.assign({}, BASE_STATE);
+  if (_.has(columnFormats, selectedCol)) {
+    state = _.assignIn(state, columnFormats[selectedCol]);
+  }
+  return state;
+}
 
 class Formatting extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, BASE_STATE);
+    this.state = buildState(props);
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
+    this.renderApplyAll = this.renderApplyAll.bind(this);
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.visible && !prevProps.visible) {
-      this.setState(BASE_STATE);
+      this.setState(buildState(this.props));
     }
   }
 
   save() {
-    const { fmt, style } = this.state;
+    const { fmt, style, applyToAll } = this.state;
     const { dataId, data, columns, columnFormats, selectedCol, propagateState } = this.props;
-    const updatedColumnFormats = _.assignIn({}, columnFormats, {
-      [selectedCol]: { fmt, style },
-    });
+    let selectedCols = [selectedCol];
+    if (applyToAll) {
+      const dtype = gu.getDtype(selectedCol, columns);
+      selectedCols = _.map(_.filter(columns, { dtype }), "name");
+    }
+    let updatedColumnFormats = _.reduce(selectedCols, (ret, sc) => ({ ...ret, [sc]: { fmt, style } }), {});
+    updatedColumnFormats = _.assignIn({}, columnFormats, updatedColumnFormats);
     const updatedData = _.mapValues(data, d => {
-      const colCfg = _.find(columns, { name: selectedCol }, {});
-      const raw = _.get(d, [selectedCol, "raw"]);
-      const updatedProp = gu.buildDataProps(colCfg, raw, {
-        columnFormats: { [selectedCol]: { fmt, style } },
-      });
-      return _.assignIn({}, d, { [selectedCol]: updatedProp });
+      const updates = _.reduce(
+        selectedCols,
+        (ret, sc) => {
+          const colCfg = _.find(columns, { name: sc }, {});
+          const raw = _.get(d, [sc, "raw"]);
+          const updatedProp = gu.buildDataProps(colCfg, raw, {
+            columnFormats: { [sc]: { fmt, style } },
+          });
+          return { ...ret, [sc]: updatedProp };
+        },
+        {}
+      );
+      return _.assignIn({}, d, updates);
     });
     const updatedCols = _.map(columns, c => {
-      if (selectedCol === c.name) {
+      if (_.includes(selectedCols, c.name)) {
         return _.assignIn({}, c, {
           width: gu.calcColWidth(c, _.assignIn({}, this.state, { data: updatedData })),
         });
@@ -55,7 +75,7 @@ class Formatting extends React.Component {
       triggerResize: true,
       formattingUpdate: true,
     });
-    serverState.updateSettings({ formats: updatedColumnFormats }, dataId);
+    serverState.updateFormats(dataId, selectedCol, { fmt, style }, applyToAll);
   }
 
   renderBody() {
@@ -64,17 +84,41 @@ class Formatting extends React.Component {
     }
     const { columns, selectedCol } = this.props;
     const updateState = state => this.setState(state);
+    const fmtProps = { ...this.props, updateState };
     switch (gu.findColType(gu.getDtype(selectedCol, columns))) {
       case "int":
       case "float":
-        return <NumericFormatting {...this.props} updateState={updateState} />;
+        return <NumericFormatting {...fmtProps} />;
       case "date":
-        return <DateFormatting {...this.props} updateState={updateState} />;
+        return <DateFormatting {...fmtProps} />;
       case "string":
       case "unknown":
       default:
-        return <StringFormatting {...this.props} updateState={updateState} />;
+        return <StringFormatting {...fmtProps} />;
     }
+  }
+
+  renderApplyAll() {
+    const { columns, selectedCol } = this.props;
+    return (
+      <div className="row mb-0">
+        <div className="col" />
+        <label className="col-auto col-form-label pr-3">
+          {`Apply this formatting to all columns of dtype, ${gu.getDtype(selectedCol, columns)}?`}
+        </label>
+        <div className="col-auto p-0">
+          <i
+            className={`ico-check-box${this.state.applyToAll ? "" : "-outline-blank"} pointer mt-4`}
+            onClick={() =>
+              this.setState({
+                applyToAll: !this.state.applyToAll,
+              })
+            }
+          />
+        </div>
+        <div className="col" />
+      </div>
+    );
   }
 
   render() {
@@ -89,6 +133,7 @@ class Formatting extends React.Component {
           <ModalClose onClick={hide} />
         </ModalHeader>
         {this.renderBody()}
+        {this.renderApplyAll()}
         <ModalFooter>
           <button className="btn btn-primary" onClick={this.save}>
             <span>Apply</span>

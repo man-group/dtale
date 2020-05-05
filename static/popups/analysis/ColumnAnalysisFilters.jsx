@@ -120,8 +120,8 @@ class ColumnAnalysisFilters extends React.Component {
         }
       });
     };
-    const { cols } = this.props;
-    let colOpts = _.filter(cols, c => _.includes(["float", "int"], gu.findColType(c.dtype)));
+    const { cols, selectedCol } = this.props;
+    let colOpts = _.filter(cols, c => c.name !== selectedCol && _.includes(["float", "int"], gu.findColType(c.dtype)));
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
       c => _.toLower(c.value)
@@ -166,8 +166,8 @@ class ColumnAnalysisFilters extends React.Component {
         }
       });
     };
-    const { cols } = this.props;
-    let colOpts = _.reject(cols, c => gu.findColType(c.dtype) === "float");
+    const { cols, selectedCol } = this.props;
+    let colOpts = _.reject(cols, c => c.name === selectedCol || gu.findColType(c.dtype) === "float");
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
       c => _.toLower(c.value)

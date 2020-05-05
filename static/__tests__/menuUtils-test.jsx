@@ -1,4 +1,4 @@
-import * as t from "./jest-assertions";
+import { expect, it } from "@jest/globals";
 
 describe("menuUtils tests", () => {
   beforeAll(() => {
@@ -16,7 +16,7 @@ describe("menuUtils tests", () => {
     });
   });
 
-  test("menuUtils: testing exceptions", done => {
+  it("menuUtils: testing exceptions", () => {
     const { openMenu } = require("../menuUtils").default;
     const $ = require("jquery");
 
@@ -27,7 +27,6 @@ describe("menuUtils tests", () => {
     const opener = openMenu("test", open, close);
     opener({ target: "test_target" });
     $().bindings["click.test"]({ target: "test_target2" });
-    t.ok(opened && closed, "should open & close menu");
-    done();
+    expect(opened && closed).toBe(true);
   });
 });
