@@ -2,8 +2,9 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import chartsData from "./data/charts";
-import * as t from "./jest-assertions";
 import { withGlobalJquery } from "./test-utils";
 
 describe("dash tests", () => {
@@ -33,11 +34,10 @@ describe("dash tests", () => {
     jest.mock("d3-cloud", () => mockD3Cloud);
   });
 
-  test("dash rendering", done => {
+  it("dash rendering", () => {
     const ReactWordcloud = require("react-wordcloud").default;
     const { Wordcloud } = require("../dash/lib/index");
     const result = mount(<Wordcloud id="wc-test" data={chartsData} y={["col1"]} />);
-    t.ok(result.find(ReactWordcloud).length == 1, "should generate wordcloud");
-    done();
+    expect(result.find(ReactWordcloud).length).toBe(1);
   });
 });

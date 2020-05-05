@@ -464,7 +464,13 @@ def format_data(data):
         data = data.to_frame(index=False)
 
     index = [str(i) for i in make_list(data.index.name or data.index.names) if i is not None]
-    data = data.reset_index().drop('index', axis=1, errors='ignore')
+    drop = True
+    if not len(index) and not data.index.equals(pd.RangeIndex(0, len(data))):
+        drop = False
+        index = ['index']
+    data = data.reset_index()
+    if drop:
+        data = data.drop('index', axis=1, errors='ignore')
     data.columns = [str(c) for c in data.columns]
     return data, index
 
@@ -720,6 +726,41 @@ def update_settings(data_id):
     try:
         curr_settings = global_state.get_settings(data_id) or {}
         updated_settings = dict_merge(curr_settings, get_json_arg(request, 'settings', {}))
+        global_state.set_settings(data_id, updated_settings)
+        return jsonify(dict(success=True))
+    except BaseException as e:
+        return jsonify_error(e)
+
+
+@dtale.route('/update-formats/<data_id>')
+def update_formats(data_id):
+    """
+    :class:`flask:flask.Flask` route which updates the "formats" property for global SETTINGS associated w/ the
+    current port
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param all: boolean flag which, if true, tells us we should apply this formatting to all columns with the same
+                data type as our selected column
+    :param col: selected column
+    :param format: JSON string for the formatting configuration we want applied to either the selected column of all
+                   columns with the selected column's data type
+    :return: JSON
+    """
+    try:
+        update_all_dtype = get_bool_arg(request, 'all')
+        col = get_str_arg(request, 'col')
+        col_format = get_json_arg(request, 'format')
+        curr_settings = global_state.get_settings(data_id) or {}
+        updated_formats = {col: col_format}
+        if update_all_dtype:
+            dtypes = global_state.get_dtypes(data_id)
+            col_dtype = next((c['dtype'] for c in dtypes if c['name'] == col), None)
+            updated_formats = {
+                c['name']: col_format for c in global_state.get_dtypes(data_id) if c['dtype'] == col_dtype
+            }
+        updated_formats = dict_merge(curr_settings.get('formats') or {}, updated_formats)
+        updated_settings = dict_merge(curr_settings, dict(formats=updated_formats))
         global_state.set_settings(data_id, updated_settings)
         return jsonify(dict(success=True))
     except BaseException as e:
@@ -1401,7 +1442,7 @@ def get_column_analysis(data_id):
                 code.append((
                     "chart['ordinal'] = ordinal_data\n"
                     "chart = chart.sort_values('ordinal')"
-                ).format(col=selected_col, ordinal=ordinal_col, agg=ordinal_agg))
+                ))
             hist.index.name = 'labels'
             hist = hist.reset_index()
             hist, top = handle_top(hist, get_int_arg(request, 'top'))
@@ -1429,7 +1470,7 @@ def get_column_analysis(data_id):
         elif data_type == 'histogram':
             hist_data, hist_labels = np.histogram(data, bins=bins)
             hist_data = [json_float(h) for h in hist_data]
-            hist_labels = ['{0:.1f}'.format(l) for l in hist_labels]
+            hist_labels = ['{0:.1f}'.format(lbl) for lbl in hist_labels]
             code.append("chart = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
                 col=selected_col, bins=bins))
             desc, desc_code = load_describe(data[selected_col])

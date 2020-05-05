@@ -3,12 +3,13 @@ import $ from "jquery";
 import React from "react";
 import { Provider } from "react-redux";
 
+import { expect, it } from "@jest/globals";
+
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton } from "./iframe-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { clickColMenuButton, openColMenu, validateHeaders } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -52,7 +53,7 @@ describe("DataViewer iframe tests", () => {
     $.post = post;
   });
 
-  test("DataViewer: renaming a column", done => {
+  it("DataViewer: renaming a column", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const { ReactRename } = require("../../popups/Rename");
 
@@ -67,35 +68,26 @@ describe("DataViewer iframe tests", () => {
       }
     );
 
-    setTimeout(() => {
-      result.update();
-      result.find(".main-grid div.headerCell div").last().simulate("click");
-      clickColMenuButton(result, "Rename");
-      result
-        .find(ReactRename)
-        .find("div.modal-body")
-        .find("input")
-        .first()
-        .simulate("change", { target: { value: "col2" } });
-      result.update();
-      t.ok(result.find(ReactRename).find(RemovableError).length > 0);
-      result
-        .find(ReactRename)
-        .find("div.modal-body")
-        .find("input")
-        .first()
-        .simulate("change", { target: { value: "col5" } });
-      result.update();
-      result.find(ReactRename).find("div.modal-footer").find("button").first().simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.deepEqual(
-          result.find(".main-grid div.headerCell").map(hc => hc.text()),
-          ["col1", "col2", "col3", "col5"],
-          "should render column headers"
-        );
-        done();
-      }, 400);
-    }, 600);
+    await tickUpdate(result);
+    await openColMenu(result, 3);
+    clickColMenuButton(result, "Rename");
+    result
+      .find(ReactRename)
+      .find("div.modal-body")
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "col2" } });
+    result.update();
+    expect(result.find(ReactRename).find(RemovableError).length).toBeGreaterThan(0);
+    result
+      .find(ReactRename)
+      .find("div.modal-body")
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "col5" } });
+    result.update();
+    result.find(ReactRename).find("div.modal-footer").find("button").first().simulate("click");
+    await tickUpdate(result);
+    validateHeaders(result, ["col1", "col2", "col3", "col5"]);
   });
 });

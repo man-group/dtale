@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-unused-vars
 import scrollbarSize from "dom-helpers/scrollbarSize";
-import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
@@ -25,22 +24,33 @@ import Descriptions from "./menu-descriptions.json";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
+const FUNCS = ["_cellRenderer", "_onSectionRendered", "propagateState", "getData", "handleClicks"];
 
 class ReactDataViewer extends React.Component {
   constructor(props) {
     super(props);
     this.state = gu.buildState(props);
-    this._cellRenderer = this._cellRenderer.bind(this);
-    this._onSectionRendered = this._onSectionRendered.bind(this);
-    this.propagateState = this.propagateState.bind(this);
-    this.getData = this.getData.bind(this);
-    this.doubleClickCell = this.doubleClickCell.bind(this);
+    _.forEach(FUNCS, f => (this[f] = this[f].bind(this)));
+    this.clickTimeout = null;
   }
 
-  doubleClickCell(e) {
-    const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
-    if (cellIdx) {
-      this.props.editCell(cellIdx);
+  componentDidMount() {
+    this.getData(this.state.ids);
+  }
+
+  handleClicks(e) {
+    if (this.clickTimeout === null) {
+      this.clickTimeout = setTimeout(() => {
+        clearTimeout(this.clickTimeout);
+        this.clickTimeout = null;
+      }, 2000);
+    } else {
+      const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
+      if (cellIdx) {
+        this.props.editCell(cellIdx);
+      }
+      clearTimeout(this.clickTimeout);
+      this.clickTimeout = null;
     }
   }
 
@@ -62,11 +72,6 @@ class ReactDataViewer extends React.Component {
       return;
     }
     this.setState(_.omit(state, ["formattingUpdate", "renameUpdate", "triggerBgResize"]), callback);
-  }
-
-  componentDidMount() {
-    $("div.ReactVirtualized__Grid").on("dblclick", this.doubleClickCell);
-    this.getData(this.state.ids);
   }
 
   componentDidUpdate(_prevProps, prevState) {
@@ -141,9 +146,8 @@ class ReactDataViewer extends React.Component {
         );
         if (data.error) {
           this.setState({
+            ..._.pick(data, ["error", "traceback"]),
             loading: false,
-            error: data.error,
-            traceback: data.traceback,
           });
           return;
         }
@@ -194,14 +198,9 @@ class ReactDataViewer extends React.Component {
   _cellRenderer({ columnIndex, _isScrolling, key, rowIndex, style }) {
     return (
       <GridCell
-        {...{
-          gridState: this.state,
-          columnIndex,
-          key,
-          rowIndex,
-          style,
-          propagateState: this.propagateState,
-        }}
+        {...{ columnIndex, key, rowIndex, style }}
+        gridState={this.state}
+        propagateState={this.propagateState}
       />
     );
   }
@@ -222,7 +221,7 @@ class ReactDataViewer extends React.Component {
   render() {
     const { formattingOpen } = this.state;
     return (
-      <div key={1} style={{ height: "100%", width: "100%" }}>
+      <div key={1} style={{ height: "100%", width: "100%" }} onClick={this.handleClicks}>
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
           loadMoreRows={_.noop}

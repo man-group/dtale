@@ -1,11 +1,12 @@
 import { mount } from "enzyme";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import { JSAnchor } from "../JSAnchor";
-import * as t from "./jest-assertions";
 
 describe("JSAnchor tests", () => {
-  test("JSAnchor click test", done => {
+  it("JSAnchor click test", () => {
     const clicks = [];
     const result = mount(
       <JSAnchor onClick={() => clicks.push(1)}>
@@ -14,11 +15,10 @@ describe("JSAnchor tests", () => {
     );
     result.render();
     result.find("a").simulate("click");
-    t.ok(clicks.length == 1, "should activate click function");
-    done();
+    expect(clicks.length).toBe(1);
   });
 
-  test("JSAnchor no-click test", done => {
+  it("JSAnchor no-click test", () => {
     const result = mount(
       <JSAnchor>
         <span>Hello</span>
@@ -26,6 +26,5 @@ describe("JSAnchor tests", () => {
     );
     result.render();
     result.find("a").simulate("click");
-    done();
   });
 });

@@ -4,11 +4,12 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import CorrelationsTsOptions from "../../../popups/correlations/CorrelationsTsOptions";
 import mockPopsicle from "../../MockPopsicle";
 import correlationsData from "../../data/correlations";
-import * as t from "../../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const chartData = {
   visible: true,
@@ -23,6 +24,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("Correlations tests", () => {
+  let result, Correlations, ChartsBody;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -69,6 +71,8 @@ describe("Correlations tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    Correlations = require("../../../popups/Correlations").Correlations;
+    ChartsBody = require("../../../popups/charts/ChartsBody").default;
   });
 
   afterAll(() => {
@@ -76,166 +80,93 @@ describe("Correlations tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("Correlations rendering data", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
+  const buildResult = async (props = chartData) => {
     buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} dataId="1" />, {
+    const result = mount(<Correlations chartData={props} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
+    await tickUpdate(result);
+    return result;
+  };
+
+  it("Correlations rendering data", async () => {
+    result = await buildResult();
+    await tickUpdate(result);
+    expect(result.find(ChartsBody).length).toBe(1);
+    expect(
+      result
+        .find("select.custom-select")
+        .first()
+        .find("option")
+        .map(o => o.text())
+    ).toEqual(["col4", "col5"]);
+    result
+      .find("select.custom-select")
+      .first()
+      .simulate("change", { target: { value: "col5" } });
+    await tickUpdate(result);
+    expect(result.state().selectedDate).toBe("col5");
+  });
+
+  it("Correlations rendering data and filtering it", async () => {
+    result = await buildResult();
+    expect(result.find(ChartsBody).length).toBe(1);
+  });
+
+  it("Correlations rendering data w/ one date column", async () => {
+    result = await buildResult(_.assign({}, chartData, { query: "one-date" }));
+    await tickUpdate(result);
     result.update();
-    setTimeout(() => {
-      result.update();
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-        t.deepEqual(
-          result
-            .find("select.custom-select")
-            .first()
-            .find("option")
-            .map(o => o.text()),
-          ["col4", "col5"],
-          "should render date options for timeseries"
-        );
-        result
-          .find("select.custom-select")
-          .first()
-          .simulate("change", { target: { value: "col5" } });
-        setTimeout(() => {
-          result.update();
-          t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
-          done();
-        }, 200);
-      }, 200);
-    }, 200);
+    expect(result.find(ChartsBody).length).toBe(1);
+    expect(result.find("select.custom-select").length).toBe(0);
+    expect(result.state().selectedDate).toBe("col4");
   });
 
-  test("Correlations rendering data and filtering it", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={chartData} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-      done();
-    }, 200);
+  it("Correlations rendering data w/ no date columns", async () => {
+    result = await buildResult(_.assign({}, chartData, { query: "no-date" }));
+    await tickUpdate(result);
+    expect(result.find("#rawScatterChart").length).toBe(1);
   });
 
-  test("Correlations rendering data w/ one date column", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "one-date" })} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-        t.ok(result.find("select.custom-select").length == 0, "should not render date options for timeseries");
-        t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
-        done();
-      }, 200);
-    }, 200);
+  it("Correlations rendering rolling data", async () => {
+    result = await buildResult(_.assign({}, chartData, { query: "rolling" }));
+    await tickUpdate(result);
+    expect(result.find(ChartsBody).length).toBe(1);
+    expect(result.find("#rawScatterChart").length).toBe(1);
+    expect(
+      result
+        .find("select.custom-select")
+        .first()
+        .find("option")
+        .map(o => o.text())
+    ).toEqual(["col4", "col5"]);
+    result
+      .find("select.custom-select")
+      .first()
+      .simulate("change", { target: { value: "col5" } });
+    await tickUpdate(result);
+    expect(result.state().selectedDate).toBe("col5");
+    const windowInput = result
+      .find(CorrelationsTsOptions)
+      .find("input")
+      .findWhere(i => i.prop("type") === "text");
+    windowInput.simulate("change", { target: { value: "" } });
+    windowInput.simulate("keyPress", { key: "Shift" });
+    windowInput.simulate("keyPress", { key: "Enter" });
+    windowInput.simulate("change", { target: { value: "a" } });
+    windowInput.simulate("keyPress", { key: "Enter" });
+    windowInput.simulate("change", { target: { value: "5" } });
+    windowInput.simulate("keyPress", { key: "Enter" });
+    await tickUpdate(result);
   });
 
-  test("Correlations rendering data w/ no date columns", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "no-date" })} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
-        done();
-      }, 200);
-    }, 200);
+  it("Correlations w/ col1 pre-selected", async () => {
+    result = await buildResult(_.omit(chartData, "col2"));
+    expect(result.find(Correlations).instance().state.selectedCols).toEqual(["col1", "col2"]);
   });
 
-  test("Correlations rendering rolling data", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.assign({}, chartData, { query: "rolling" })} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
-    setTimeout(() => {
-      result.update();
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(ChartsBody).length, 1, "should show correlation timeseries");
-        t.equal(result.find("#rawScatterChart").length, 1, "should show scatter chart");
-        t.deepEqual(
-          result
-            .find("select.custom-select")
-            .first()
-            .find("option")
-            .map(o => o.text()),
-          ["col4", "col5"],
-          "should render date options for timeseries"
-        );
-        result
-          .find("select.custom-select")
-          .first()
-          .simulate("change", { target: { value: "col5" } });
-        setTimeout(() => {
-          result.update();
-          t.ok((result.state().selectedDate = "col5"), "should change timeseries date");
-          const windowInput = result
-            .find(CorrelationsTsOptions)
-            .find("input")
-            .findWhere(i => i.prop("type") === "text");
-          windowInput.simulate("change", { target: { value: "" } });
-          windowInput.simulate("keyPress", { key: "Shift" });
-          windowInput.simulate("keyPress", { key: "Enter" });
-          windowInput.simulate("change", { target: { value: "a" } });
-          windowInput.simulate("keyPress", { key: "Enter" });
-          windowInput.simulate("change", { target: { value: "5" } });
-          windowInput.simulate("keyPress", { key: "Enter" });
-          setTimeout(() => {
-            result.update();
-            done();
-          }, 200);
-        }, 200);
-      }, 200);
-    }, 200);
-  });
-
-  test("Correlations w/ col1 pre-selected", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.omit(chartData, "col2")} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    setTimeout(() => {
-      result.update();
-      t.deepEqual(result.find(Correlations).instance().state.selectedCols, ["col1", "col2"], "should select cols");
-      done();
-    }, 200);
-  });
-
-  test("Correlations w/ col2 pre-selected", done => {
-    const Correlations = require("../../../popups/Correlations").Correlations;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Correlations chartData={_.omit(chartData, "col1")} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
-    setTimeout(() => {
-      result.update();
-      t.deepEqual(result.find(Correlations).instance().state.selectedCols, ["col1", "col3"], "should select cols");
-      done();
-    }, 200);
+  it("Correlations w/ col2 pre-selected", async () => {
+    result = await buildResult(_.omit(chartData, "col1"));
+    expect(result.find(Correlations).instance().state.selectedCols).toEqual(["col1", "col3"]);
   });
 });

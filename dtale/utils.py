@@ -344,7 +344,7 @@ class JSONFormatter(object):
         return {name: f(lst[idx], nan_display=self.nan_display) for idx, name, f in self.fmts}
 
     def format_dicts(self, lsts):
-        return [self.format_dict(l) for l in lsts]
+        return list(map(self.format_dict, lsts))
 
     def format_lists(self, df):
         return {
@@ -633,13 +633,13 @@ def flatten_lists(lists):
     return [item for sublist in lists for item in sublist]
 
 
-def divide_chunks(l, n):
+def divide_chunks(lst, n):
     """
     Break list input 'l' up into smaller lists of size 'n'
     """
     # looping till length l
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
 def build_query(data_id, query=None):

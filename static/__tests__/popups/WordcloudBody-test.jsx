@@ -2,11 +2,13 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import { withGlobalJquery } from "../test-utils";
 
 describe("WordcloudBody tests", () => {
+  let WordcloudBody;
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -55,33 +57,26 @@ describe("WordcloudBody tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    WordcloudBody = require("../../popups/charts/WordcloudBody").default;
   });
 
-  test("WordcloudBody missing data", done => {
-    const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
-
+  it("WordcloudBody missing data", () => {
     const result = mount(<WordcloudBody chartType={{ value: "wordcloud" }} data={{}} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
-    t.equal(result.html(), '<div class="row"></div>', "shouldn't render anything");
-    done();
+    expect(result.html()).toBe('<div class="row"></div>');
   });
 
-  test("WordcloudBody invalid chartType type", done => {
-    const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
-
+  it("WordcloudBody invalid chartType type", () => {
     const result = mount(<WordcloudBody chartType={{ value: "bar" }} data={{}} />, {
       attachTo: document.getElementById("content"),
     });
     result.update();
-    t.notOk(result.html(), "shouldn't render anything");
-    done();
+    expect(result.html()).toBeNull();
   });
 
-  test("WordcloudBody missing yProp data", done => {
-    const WordcloudBody = require("../../popups/charts/WordcloudBody").default;
-
+  it("WordcloudBody missing yProp data", () => {
     const result = mount(
       <WordcloudBody chartType={{ value: "wordcloud" }} y={[{ value: "foo" }]} data={{ bar: [1, 2, 3] }} />,
       {
@@ -89,7 +84,6 @@ describe("WordcloudBody tests", () => {
       }
     );
     result.update();
-    t.equal(result.html(), '<div class="row"></div>', "shouldn't render anything");
-    done();
+    expect(result.html()).toBe('<div class="row"></div>');
   });
 });

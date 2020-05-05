@@ -2,11 +2,12 @@ import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
 
-import * as t from "../jest-assertions";
+import { expect, it } from "@jest/globals";
+
 import reduxUtils from "../redux-test-utils";
 
 describe("reducer tests", () => {
-  test("dtale: missing hidden input", done => {
+  it("dtale: missing hidden input", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
     body.innerHTML = `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
@@ -24,7 +25,6 @@ describe("reducer tests", () => {
       dataId: null,
       editedCell: null,
     };
-    t.deepEqual(state, store.getState(), "should handle missing inputs correctly");
-    done();
+    expect(state).toEqual(store.getState());
   });
 });

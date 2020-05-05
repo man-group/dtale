@@ -1,10 +1,11 @@
 import _ from "lodash";
 
+import { expect, it } from "@jest/globals";
+
 import { basePointFormatter, formatScatterPoints, getScatterMax, getScatterMin } from "../scatterChartUtils";
-import * as t from "./jest-assertions";
 
 describe("scatterChartUtils tests", () => {
-  test("scatterChartUtils: testing filtering/highlighting logic", done => {
+  it("scatterChartUtils: testing filtering/highlighting logic", () => {
     const data = [
       { col: 1.4, col2: 1.5, index: 0 },
       { col: 2.4, col2: 1.5, index: 1 },
@@ -23,12 +24,10 @@ describe("scatterChartUtils tests", () => {
       _.matches({ index: 0 }),
       _.matches({ index: 9 })
     );
-    t.deepEqual(scatterData.pointRadius, [3, 3, 3, 3, 3, 3, 3, 3, 0, 5], "should set correct radii");
-
-    t.equal(getScatterMin(data, "col"), -2.5);
-    t.equal(getScatterMax(data, "col"), 10.5);
-    t.equal(getScatterMax([3, 4, 2, 1]), 5.5);
-    t.equal(getScatterMin([3, 4, 2, 1]), -0.5);
-    done();
+    expect(scatterData.pointRadius).toEqual([3, 3, 3, 3, 3, 3, 3, 3, 0, 5]);
+    expect(getScatterMin(data, "col")).toBe(-2.5);
+    expect(getScatterMax(data, "col")).toBe(10.5);
+    expect(getScatterMax([3, 4, 2, 1])).toBe(5.5);
+    expect(getScatterMin([3, 4, 2, 1])).toBe(-0.5);
   });
 });

@@ -3,7 +3,8 @@ import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 
-import * as t from "../jest-assertions";
+import { expect, it } from "@jest/globals";
+
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
@@ -37,15 +38,14 @@ describe("ColumnMenu ignoreClicks tests", () => {
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
   });
 
-  test("ColumnMenu: make sure clicks in certain areas of the menu won't close it", done => {
+  it("ColumnMenu: make sure clicks in certain areas of the menu won't close it", () => {
     const { ignoreMenuClicks } = require("../../dtale/iframe/ColumnMenu");
     buildInnerHTML({ settings: "" });
     mount(<span>Hello</span>, { attachTo: document.getElementById("content") });
-    t.ok(ignoreMenuClicks({ target: { id: "pass" } }));
-    t.notOk(ignoreMenuClicks({ target: { id: "fail" } }));
-    t.ok(ignoreMenuClicks({ target: { id: "pass2" } }));
-    t.ok(ignoreMenuClicks({ target: { id: "pass3", nodeName: "svg" } }));
-    t.notOk(ignoreMenuClicks({ target: { id: "fail3" } }));
-    done();
+    expect(ignoreMenuClicks({ target: { id: "pass" } })).toBe(true);
+    expect(ignoreMenuClicks({ target: { id: "fail" } })).toBe(false);
+    expect(ignoreMenuClicks({ target: { id: "pass2" } })).toBe(true);
+    expect(ignoreMenuClicks({ target: { id: "pass3", nodeName: "svg" } })).toBe(true);
+    expect(ignoreMenuClicks({ target: { id: "fail3" } })).toBe(false);
   });
 });

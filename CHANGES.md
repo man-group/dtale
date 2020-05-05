@@ -1,7 +1,11 @@
 ## Changelog
 
+### 1.8.12 (2020-5-15)
+ * [#196](https://github.com/man-group/dtale/issues/196): dataframes that have datatime indexes without a name
+ * Added the ability to apply formats to all columns of same dtype
+ 
 ### 1.8.11 (2020-5-3)
- * [#191](https://github.com/man-group/dtale/issues/191): improving outlier filter suggestions
+ * [#196](https://github.com/man-group/dtale/issues/191): improving outlier filter suggestions
  * [#190](https://github.com/man-group/dtale/issues/190): hide "Animate" inputs when "Percentage Sum" or "Percentage Count" aggregations are used
  * [#189](https://github.com/man-group/dtale/issues/189): hide "Barsort" when grouping is being applied
  * [#187](https://github.com/man-group/dtale/issues/187): missing & outlier tooltip descriptions on column headers

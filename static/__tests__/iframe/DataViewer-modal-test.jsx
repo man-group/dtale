@@ -3,11 +3,12 @@ import React from "react";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
-import { clickColMenuButton } from "./iframe-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { clickColMenuButton, openColMenu, validateHeaders } from "./iframe-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -60,11 +61,10 @@ describe("DataViewer iframe tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  test("DataViewer: column analysis display in a modal", done => {
+  it("DataViewer: column analysis display in a modal", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
-
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
     const result = mount(
@@ -75,24 +75,14 @@ describe("DataViewer iframe tests", () => {
         attachTo: document.getElementById("content"),
       }
     );
-
-    setTimeout(() => {
-      result.update();
-      result.find(MultiGrid).first().instance();
-      t.deepEqual(
-        result.find(".main-grid div.headerCell").map(hc => hc.text()),
-        ["col1", "col2", "col3", "col4"],
-        "should render column headers"
-      );
-      result.find(".main-grid div.headerCell div").at(1).simulate("click");
-      t.equal(result.find("#column-menu-div").length, 1, "should show column menu");
-      t.equal(result.find(ColumnMenu).first().find("header").first().text(), 'Column "col2"', "should show col2 menu");
-      clickColMenuButton(result, "Column Analysis");
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(ColumnAnalysis).length, 1, "should show column analysis");
-        done();
-      }, 400);
-    }, 600);
+    await tickUpdate(result);
+    result.find(MultiGrid).first().instance();
+    validateHeaders(result, ["col1", "col2", "col3", "col4"]);
+    await openColMenu(result, 1);
+    expect(result.find("#column-menu-div").length).toBe(1);
+    expect(result.find(ColumnMenu).first().find("header").first().text()).toBe('Column "col2"');
+    clickColMenuButton(result, "Column Analysis");
+    await tickUpdate(result);
+    expect(result.find(ColumnAnalysis).length).toBe(1);
   });
 });

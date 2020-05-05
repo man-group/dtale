@@ -3,16 +3,19 @@ import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 
+import { expect, it } from "@jest/globals";
+
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer tests", () => {
+  let result, DataViewer, ReactDataViewer;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -44,19 +47,15 @@ describe("DataViewer tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    const dv = require("../../dtale/DataViewer");
+    DataViewer = dv.DataViewer;
+    ReactDataViewer = dv.ReactDataViewer;
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
-
-  test("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", done => {
-    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-
+  beforeEach(async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
-    const result = mount(
+    result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
@@ -65,51 +64,42 @@ describe("DataViewer tests", () => {
       }
     );
 
-    setTimeout(() => {
-      result.update();
-      let dv = result.find(ReactDataViewer).instance();
-      dv.getData(dv.state.ids, true);
-      dv.getData(dv.state.ids, true);
-      dv = result.find(ReactDataViewer).instance();
-      t.deepEqual(
-        _.pick(dv.state, ["loading", "loadQueue"]),
-        { loading: true, loadQueue: [[0, 55]] },
-        "should update state"
-      );
-      dv.getData(dv.state.ids, true);
-      dv = result.find(ReactDataViewer).instance();
-      t.deepEqual(
-        _.pick(dv.state, ["loading", "loadQueue"]),
-        {
-          loading: true,
-          loadQueue: [
-            [0, 55],
-            [0, 55],
-          ],
-        },
-        "should update state"
-      );
-      setTimeout(() => {
-        result.update();
-        dv = result.find(ReactDataViewer).instance();
-        t.deepEqual(
-          _.pick(dv.state, ["loading", "loadQueue"]),
-          { loading: false, loadQueue: [] },
-          "should clear state"
-        );
-        dv.getData(dv.state.ids);
-        dv.getData([0, 1, 2, 3]);
-        dv = result.find(ReactDataViewer).instance();
-        result.find(ReactDataViewer).setState({ ids: [100, 101], loadQueue: [], loading: false });
-        result.update();
-        dv = result.find(ReactDataViewer).instance();
-        dv.getData(dv.state.ids, true);
-        setTimeout(() => {
-          result.update();
-          t.equal(result.find(RemovableError).length, 1, "should display error");
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+    await tickUpdate(result);
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+  });
+
+  const dataViewer = () => result.find(ReactDataViewer).instance();
+
+  it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
+    dataViewer().getData(dataViewer().state.ids, true);
+    dataViewer().getData(dataViewer().state.ids, true);
+    expect(_.pick(dataViewer().state, ["loading", "loadQueue"])).toEqual({
+      loading: true,
+      loadQueue: [[0, 55]],
+    });
+    dataViewer().getData(dataViewer().state.ids, true);
+    expect(_.pick(dataViewer().state, ["loading", "loadQueue"])).toEqual({
+      loading: true,
+      loadQueue: [
+        [0, 55],
+        [0, 55],
+      ],
+    });
+    await tickUpdate(result);
+    expect(_.pick(dataViewer().state, ["loading", "loadQueue"])).toEqual({
+      loading: false,
+      loadQueue: [],
+    });
+    dataViewer().getData(dataViewer().state.ids);
+    dataViewer().getData([0, 1, 2, 3]);
+    result.find(ReactDataViewer).setState({ ids: [100, 101], loadQueue: [], loading: false });
+    result.update();
+    dataViewer().getData(dataViewer().state.ids, true);
+    await tickUpdate(result);
+    expect(result.find(RemovableError).length).toBe(1);
   });
 });

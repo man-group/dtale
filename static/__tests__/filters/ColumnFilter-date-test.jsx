@@ -3,12 +3,15 @@ import _ from "lodash";
 import moment from "moment";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import { DateFilter } from "../../filters/DateFilter";
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("ColumnFilter date tests", () => {
+  let ColumnFilter, DateInput;
+
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -25,12 +28,11 @@ describe("ColumnFilter date tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
+    ColumnFilter = require("../../filters/ColumnFilter").default;
+    DateInput = require("@blueprintjs/datetime").DateInput;
   });
 
-  test("ColumnFilter date rendering", done => {
-    const ColumnFilter = require("../../filters/ColumnFilter").default;
-    const DateInput = require("@blueprintjs/datetime").DateInput;
-
+  it("ColumnFilter date rendering", async () => {
     buildInnerHTML();
     let props = {
       dataId: "1",
@@ -41,44 +43,33 @@ describe("ColumnFilter date tests", () => {
     const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {
       attachTo: document.getElementById("content"),
     });
-    setTimeout(() => {
-      result.update();
-      t.ok(result.find(DateFilter).length);
-      result.find("i.ico-check-box-outline-blank").simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.ok(result.find(DateInput).first().instance().props.disabled);
-        result.find("i.ico-check-box").simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.notOk(result.find(DateInput).first().instance().props.disabled);
-          const dateStart = result.find(DateInput).first().instance();
-          dateStart.inputEl.value = "200";
-          dateStart.props.onChange("200");
-          dateStart.inputEl.value = "20000102";
-          dateStart.props.onChange(new Date(moment("20000102")));
-          setTimeout(() => {
-            result.update();
-            t.deepEqual(result.state().cfg, {
-              type: "date",
-              start: "20000102",
-              end: "20000131",
-            });
-            const dateEnd = result.find(DateInput).last().instance();
-            dateEnd.inputEl.value = "20000103";
-            dateEnd.props.onChange(new Date(moment("20000103")));
-            setTimeout(() => {
-              result.update();
-              t.deepEqual(result.state().cfg, {
-                type: "date",
-                start: "20000102",
-                end: "20000103",
-              });
-              done();
-            }, 400);
-          }, 400);
-        }, 400);
-      }, 400);
-    }, 400);
+    await tickUpdate(result);
+    expect(result.find(DateFilter).length).toBeGreaterThan(0);
+    result.find("i.ico-check-box-outline-blank").simulate("click");
+    await tickUpdate(result);
+    expect(result.find(DateInput).first().instance().props.disabled).toBe(true);
+    result.find("i.ico-check-box").simulate("click");
+    await tickUpdate(result);
+    expect(result.find(DateInput).first().instance().props.disabled).toBe(false);
+    const dateStart = result.find(DateInput).first().instance();
+    dateStart.inputEl.value = "200";
+    dateStart.props.onChange("200");
+    dateStart.inputEl.value = "20000102";
+    dateStart.props.onChange(new Date(moment("20000102")));
+    await tickUpdate(result);
+    expect(result.state().cfg).toEqual({
+      type: "date",
+      start: "20000102",
+      end: "20000131",
+    });
+    const dateEnd = result.find(DateInput).last().instance();
+    dateEnd.inputEl.value = "20000103";
+    dateEnd.props.onChange(new Date(moment("20000103")));
+    await tickUpdate(result);
+    expect(result.state().cfg).toEqual({
+      type: "date",
+      start: "20000102",
+      end: "20000103",
+    });
   });
 });

@@ -1,4 +1,7 @@
 import _ from "lodash";
+import { expect } from "@jest/globals";
+
+import { tick } from "../test-utils";
 
 function findColMenuButton(result, name, btnTag = "button") {
   const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
@@ -25,4 +28,13 @@ function clickColMenuSubButton(result, label, row = 0) {
     .simulate("click");
 }
 
-export { findColMenuButton, clickColMenuButton, clickColMenuSubButton };
+async function openColMenu(result, colIdx) {
+  result.find(".main-grid div.headerCell div").at(colIdx).simulate("click");
+  await tick();
+}
+
+function validateHeaders(result, headers) {
+  expect(result.find(".main-grid div.headerCell").map(hc => hc.text())).toEqual(headers);
+}
+
+export { findColMenuButton, clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders };

@@ -1,15 +1,15 @@
+import { expect, it } from "@jest/globals";
+
 import { buildButton } from "../toggleUtils";
-import * as t from "./jest-assertions";
 
 describe("toggleUtils tests", () => {
-  test("toggleUtils: testing buildButton", done => {
+  it("toggleUtils: testing buildButton", () => {
     let props = buildButton(true, () => "active");
-    t.equal(props.className, "btn btn-primary active");
-    t.equal(props.onClick(), undefined);
+    expect(props.className).toBe("btn btn-primary active");
+    expect(props.onClick()).toBeUndefined();
     props = buildButton(false, () => "active", true);
-    t.equal(props.className, "btn btn-primary ");
-    t.equal(props.onClick(), "active");
-    t.ok(props.disabled);
-    done();
+    expect(props.className).toBe("btn btn-primary ");
+    expect(props.onClick()).toBe("active");
+    expect(props.disabled).toBe(true);
   });
 });

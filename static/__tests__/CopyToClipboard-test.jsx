@@ -2,14 +2,14 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
-import * as t from "./jest-assertions";
+import { expect, it } from "@jest/globals";
+
 import { buildInnerHTML, withGlobalJquery } from "./test-utils";
 
 describe("CopyToClipboard tests", () => {
-  test("CopyToClipboard no queryCommandSupported test", done => {
+  const render = () => {
     const { CopyToClipboard } = withGlobalJquery(() => require("../CopyToClipboard"));
     buildInnerHTML();
-
     const buttonBuilder = props => (
       <div id="clicker" {...props}>
         Hello
@@ -19,28 +19,21 @@ describe("CopyToClipboard tests", () => {
       attachTo: document.getElementById("content"),
     });
     result.render();
-    t.equal(result.html(), null, "shouldn't render anything");
-    done();
+    return result;
+  };
+
+  it("CopyToClipboard no queryCommandSupported test", () => {
+    const result = render();
+    expect(result.html()).toBeNull();
   });
 
-  test("CopyToClipboard queryCommandSupported test", done => {
-    const { CopyToClipboard } = withGlobalJquery(() => require("../CopyToClipboard"));
-    buildInnerHTML();
+  it("CopyToClipboard queryCommandSupported test", () => {
     Object.defineProperty(global.document, "queryCommandSupported", {
       value: () => true,
     });
     Object.defineProperty(global.document, "execCommand", { value: _.noop });
-    const buttonBuilder = props => (
-      <div id="clicker" {...props}>
-        Hello
-      </div>
-    );
-    const result = mount(<CopyToClipboard text="test code" buttonBuilder={buttonBuilder} />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.render();
-    t.ok(result.find("#clicker").length, 1, "should display button");
+    const result = render();
+    expect(result.find("#clicker").length).toBe(1);
     result.find("#clicker").simulate("click");
-    done();
   });
 });

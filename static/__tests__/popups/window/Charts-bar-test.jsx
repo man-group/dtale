@@ -5,10 +5,11 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
+import { expect, it } from "@jest/globals";
+
 import AxisEditor from "../../../popups/charts/AxisEditor";
 import mockPopsicle from "../../MockPopsicle";
-import * as t from "../../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -19,6 +20,8 @@ function updateChartType(result, cmp, chartType) {
 }
 
 describe("Charts bar tests", () => {
+  let result, Charts, ChartsBody;
+
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -76,6 +79,16 @@ describe("Charts bar tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    Charts = require("../../../popups/charts/Charts").ReactCharts;
+    ChartsBody = require("../../../popups/charts/ChartsBody").default;
+  });
+
+  beforeEach(async () => {
+    buildInnerHTML({ settings: "" });
+    result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
+      attachTo: document.getElementById("content"),
+    });
+    await tickUpdate(result);
   });
 
   afterAll(() => {
@@ -83,67 +96,52 @@ describe("Charts bar tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("Charts: rendering", done => {
-    const Charts = require("../../../popups/charts/Charts").ReactCharts;
-    const ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
-      attachTo: document.getElementById("content"),
-    });
+  const axisEditor = () => result.find(AxisEditor).first();
 
-    setTimeout(() => {
-      result.update();
-      const filters = result.find(Charts).find(Select);
-      filters.first().instance().onChange({ value: "col4" });
-      filters
-        .at(1)
-        .instance()
-        .onChange([{ value: "col1" }]);
-      updateChartType(result, ChartsBody, "bar");
-      result.find(Charts).find("button").first().simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.ok(result.find(ChartsBody).instance().state.charts.length == 1, "should render charts");
-        result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "col1" });
-        result.update();
-        let axisEditor = result.find(AxisEditor).first();
-        axisEditor.find("span.axis-select").simulate("click");
-        axisEditor
-          .find("input")
-          .first()
-          .simulate("change", { target: { value: "40" } });
-        axisEditor
-          .find("input")
-          .last()
-          .simulate("change", { target: { value: "42" } });
-        axisEditor.instance().closeMenu();
-        const chartObj = result.find(ChartsBody).instance().state.charts[0];
-        t.deepEqual(chartObj.config.options.scales.yAxes[0].ticks, {
-          min: 40,
-          max: 42,
-        });
-        axisEditor = result.find(AxisEditor).first();
-        axisEditor.find("span.axis-select").simulate("click");
-        axisEditor
-          .find("input")
-          .first()
-          .simulate("change", { target: { value: "40" } });
-        axisEditor
-          .find("input")
-          .last()
-          .simulate("change", { target: { value: "a" } });
-        axisEditor.instance().closeMenu();
-        axisEditor = result.find(AxisEditor).first();
-        t.equal(axisEditor.instance().state.errors[0], "col1 has invalid max!");
-        axisEditor
-          .find("input")
-          .last()
-          .simulate("change", { target: { value: "39" } });
-        axisEditor.instance().closeMenu();
-        axisEditor = result.find(AxisEditor).first();
-        t.equal(axisEditor.instance().state.errors[0], "col1 must have a min < max!");
-        done();
-      }, 400);
-    }, 600);
+  it("Charts: rendering", async () => {
+    const filters = result.find(Charts).find(Select);
+    filters.first().instance().onChange({ value: "col4" });
+    filters
+      .at(1)
+      .instance()
+      .onChange([{ value: "col1" }]);
+    updateChartType(result, ChartsBody, "bar");
+    result.find(Charts).find("button").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(ChartsBody).instance().state.charts.length).toBe(1);
+    result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "col1" });
+    result.update();
+    axisEditor().find("span.axis-select").simulate("click");
+    axisEditor()
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "40" } });
+    axisEditor()
+      .find("input")
+      .last()
+      .simulate("change", { target: { value: "42" } });
+    axisEditor().instance().closeMenu();
+    const chartObj = result.find(ChartsBody).instance().state.charts[0];
+    expect(chartObj.config.options.scales.yAxes[0].ticks).toEqual({
+      min: 40,
+      max: 42,
+    });
+    axisEditor().find("span.axis-select").simulate("click");
+    axisEditor()
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "40" } });
+    axisEditor()
+      .find("input")
+      .last()
+      .simulate("change", { target: { value: "a" } });
+    axisEditor().instance().closeMenu();
+    expect(axisEditor().instance().state.errors[0]).toBe("col1 has invalid max!");
+    axisEditor()
+      .find("input")
+      .last()
+      .simulate("change", { target: { value: "39" } });
+    axisEditor().instance().closeMenu();
+    expect(axisEditor().instance().state.errors[0]).toBe("col1 must have a min < max!");
   });
 });

@@ -162,6 +162,8 @@ function urlFetcher(url) {
       return { error: "No data found" };
     }
     return DATA;
+  } else if (_.startsWith(url, "/dtale/dtypes")) {
+    return DTYPES;
   } else if (_.startsWith(url, "/dtale/column-analysis")) {
     return _.assignIn({ code: "column analysis code test" }, columnAnalysisData);
   } else if (_.startsWith(url, "/dtale/correlations-ts")) {
@@ -195,7 +197,7 @@ function urlFetcher(url) {
     _.find(
       _.concat(
         ["/dtale/update-visibility", "/dtale/update-settings", "/dtale/update-locked", "/dtale/update-column-position"],
-        ["/dtale/delete-col", "/dtale/edit-cell"]
+        ["/dtale/delete-col", "/dtale/edit-cell", "/dtale/update-formats"]
       ),
       prefix => _.startsWith(url, prefix)
     )
@@ -206,8 +208,6 @@ function urlFetcher(url) {
       return { error: "No data found" };
     }
     return { success: true };
-  } else if (_.startsWith(url, "/dtale/dtypes")) {
-    return DTYPES;
   } else if (_.startsWith(url, "/dtale/describe")) {
     const column = _.last(url.split("/"));
     if (_.has(DESCRIBE, column)) {
@@ -262,4 +262,5 @@ export default {
   urlFetcher,
   createDtaleStore,
   DATA,
+  DTYPES,
 };

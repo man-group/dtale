@@ -2,11 +2,12 @@ import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import NumericFormatting from "../../../popups/formats/NumericFormatting";
-import * as t from "../../jest-assertions";
 
 describe("NumericFormatting tests", () => {
-  test("NumericFormatting test", done => {
+  it("NumericFormatting test", () => {
     const columnFormats = {
       col1: { fmt: "0,000.000", style: { currency: "USD" } },
     };
@@ -21,7 +22,6 @@ describe("NumericFormatting tests", () => {
       fmt: "0,000.000",
       currency: { value: "USD", label: "USD ($)" },
     };
-    t.deepEqual(result.state(), state, "should parse formatting");
-    done();
+    expect(result.state()).toEqual(state);
   });
 });

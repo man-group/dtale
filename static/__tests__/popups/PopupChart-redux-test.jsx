@@ -3,10 +3,11 @@ import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("Popup redux tests", () => {
   beforeAll(() => {
@@ -20,7 +21,7 @@ describe("Popup redux tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  test("Popup redux rendering", done => {
+  it("Popup redux rendering", async () => {
     const chartActions = require("../../actions/charts");
     const Popup = require("../../popups/Popup").Popup;
 
@@ -31,8 +32,7 @@ describe("Popup redux tests", () => {
         <Popup onClose={_.noop} />
       </Provider>
     );
-    t.notOk(result.find("canvas").length, "should render nothing by default");
-
+    expect(result.find("canvas").length).toBe(0);
     store.dispatch(
       chartActions.openChart({
         type: "column-analysis",
@@ -42,11 +42,7 @@ describe("Popup redux tests", () => {
         title: "ColumnAnalysis Test",
       })
     );
-    setTimeout(() => {
-      result.update();
-
-      t.ok(result.find("#columnAnalysisChart").length, "should render column analysis canvas");
-      done();
-    }, 400);
+    await tickUpdate(result);
+    expect(result.find("#columnAnalysisChart").length).toBeGreaterThan(0);
   });
 });

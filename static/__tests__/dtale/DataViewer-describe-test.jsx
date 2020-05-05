@@ -2,9 +2,10 @@ import { mount } from "enzyme";
 import $ from "jquery";
 import React from "react";
 
+import { expect, it } from "@jest/globals";
+
 import mockPopsicle from "../MockPopsicle";
-import * as t from "../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -14,6 +15,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 describe("DataViewer tests", () => {
   const { post } = $;
   const { close, opener } = window;
+  let result, DtypesGrid, Details, Describe;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -59,6 +61,18 @@ describe("DataViewer tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+    DtypesGrid = require("../../popups/describe/DtypesGrid").DtypesGrid;
+    Details = require("../../popups/describe/Details").Details;
+    Describe = require("../../popups/Describe").Describe;
+  });
+
+  beforeEach(async () => {
+    const props = { dataId: "1", chartData: { visible: true } };
+    buildInnerHTML({ settings: "" });
+    result = mount(<Describe {...props} />, {
+      attachTo: document.getElementById("content"),
+    });
+    await tickUpdate(result);
   });
 
   afterAll(() => {
@@ -71,80 +85,52 @@ describe("DataViewer tests", () => {
     window.close = close;
   });
 
-  test("DataViewer: describe", done => {
-    const { Describe } = require("../../popups/Describe");
-    const DtypesGrid = require("../../popups/describe/DtypesGrid").DtypesGrid;
-    const Details = require("../../popups/describe/Details").Details;
-    const props = { dataId: "1", chartData: { visible: true } };
-    buildInnerHTML({ settings: "" });
-    const result = mount(<Describe {...props} />, {
-      attachTo: document.getElementById("content"),
-    });
+  const dtypesGrid = result => result.find(DtypesGrid).first();
+  const details = result => result.find(Details).first();
 
-    setTimeout(() => {
-      result.update();
-      let details = result.find(Details).first();
-      details.find("div.row").at(2).find("button").last().simulate("click");
-      setTimeout(() => {
-        result.update();
-        details = result.find(Details).first();
-        t.equal(
-          details.find("div.row").at(3).find("span.font-weight-bold").first().text(),
-          "3 Outliers Found (top 100):"
-        );
-        details.find("div.row").at(3).find("a").simulate("click");
-        setTimeout(() => {
-          let dtypesGrid = result.find(DtypesGrid).first();
-          t.equal(dtypesGrid.find("div[role='row']").length, 5, "should render dtypes");
+  it("DataViewer: describe base grid operations", async () => {
+    details(result).find("div.row").at(2).find("button").last().simulate("click");
+    await tickUpdate(result);
+    expect(details(result).find("div.row").at(3).find("span.font-weight-bold").first().text()).toBe(
+      "3 Outliers Found (top 100):"
+    );
+    details(result).find("div.row").at(3).find("a").simulate("click");
+    await tick();
+    expect(dtypesGrid(result).find("div[role='row']").length).toBe(5);
+    dtypesGrid(result).find("div[role='columnheader']").first().simulate("click");
+    expect(
+      dtypesGrid(result).find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--ASC")
+        .length
+    ).toBe(1);
+    dtypesGrid(result).find("div[role='columnheader']").first().simulate("click");
+    expect(
+      dtypesGrid(result).find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--DESC")
+        .length
+    ).toBe(1);
+    dtypesGrid(result).find("div[role='columnheader']").first().simulate("click");
+    expect(
+      dtypesGrid(result).find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon").length
+    ).toBe(0);
+  });
 
-          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
-          dtypesGrid = result.find(DtypesGrid).first();
-          t.equal(
-            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--ASC")
-              .length,
-            1,
-            "should sort col1 ASC"
-          );
-          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
-          dtypesGrid = result.find(DtypesGrid).first();
-          t.equal(
-            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon--DESC")
-              .length,
-            1,
-            "should sort col1 DESC"
-          );
-          dtypesGrid.find("div[role='columnheader']").first().simulate("click");
-          dtypesGrid = result.find(DtypesGrid).first();
-          t.equal(
-            dtypesGrid.find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon").length,
-            0,
-            "should remove col1 sort"
-          );
-          dtypesGrid
-            .find("div.headerCell")
-            .at(2)
-            .find("input")
-            .first()
-            .simulate("change", { target: { value: "1" } });
-          dtypesGrid = result.find(DtypesGrid).first();
-          t.equal(dtypesGrid.find("div[role='row']").length, 2, "should render filtered dtypes");
-          dtypesGrid.find("div[title='col1']").first().simulate("click");
-          setTimeout(() => {
-            result.update();
-            t.equal(result.find(Describe).first().find("h1").first().text(), "col1", "should describe col1");
-            dtypesGrid = result.find(DtypesGrid).first();
-            dtypesGrid.find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
-            dtypesGrid.find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
-            dtypesGrid.find("i.ico-check-box").last().simulate("click");
-            result.find("div.modal-footer").first().find("button").first().simulate("click");
-            expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
-            $.post.mock.calls[0][2](); // execute callback
-            result.update();
-            expect($.post.mock.calls[0][1].visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');
-            done();
-          }, 400);
-        }, 400);
-      }, 400);
-    }, 600);
+  it("DataViewer: showing/hiding columns from Describe popup & jumping sessions", async () => {
+    dtypesGrid(result)
+      .find("div.headerCell")
+      .at(2)
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "1" } });
+    expect(dtypesGrid(result).find("div[role='row']").length).toBe(2);
+    dtypesGrid(result).find("div[title='col1']").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(Describe).first().find("h1").first().text()).toBe("col1");
+    dtypesGrid(result).find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
+    dtypesGrid(result).find("div.headerCell").at(1).find("i.ico-check-box-outline-blank").simulate("click");
+    dtypesGrid(result).find("i.ico-check-box").last().simulate("click");
+    result.find("div.modal-footer").first().find("button").first().simulate("click");
+    expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
+    $.post.mock.calls[0][2](); // execute callback
+    result.update();
+    expect($.post.mock.calls[0][1].visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');
   });
 });

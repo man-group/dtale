@@ -130,6 +130,17 @@ function renameColumn(dataId, col, rename, callback) {
   fetchJson(buildURLString(`/dtale/rename-col/${dataId}/${col}`, { rename }), callback);
 }
 
+function updateFormats(dataId, col, format, all) {
+  fetchJson(
+    buildURLString(`/dtale/update-formats/${dataId}`, {
+      col,
+      format: JSON.stringify(format),
+      all,
+    }),
+    _.noop
+  );
+}
+
 function editCell(dataId, col, rowIndex, updated, callback) {
   fetchJson(
     buildURLString(`/dtale/edit-cell/${dataId}/${col}`, {
@@ -153,5 +164,6 @@ export default {
   updateSettings,
   deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}/${col}`), _.noop),
   renameColumn,
+  updateFormats,
   editCell,
 };

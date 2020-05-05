@@ -5,10 +5,11 @@ import _ from "lodash";
 import React from "react";
 import Select from "react-select";
 
+import { expect, it } from "@jest/globals";
+
 import { Aggregations } from "../../../popups/charts/Aggregations";
 import mockPopsicle from "../../MockPopsicle";
-import * as t from "../../jest-assertions";
-import { buildInnerHTML, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -78,46 +79,38 @@ describe("Charts rolling tests", () => {
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
   });
 
-  test("Charts: rendering", done => {
+  it("Charts: rendering", async () => {
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     buildInnerHTML({ settings: "" });
     const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {
       attachTo: document.getElementById("content"),
     });
-
-    setTimeout(() => {
-      result.update();
-      const filters = result.find(Charts).find(Select);
-      filters.first().instance().onChange({ value: "col4" });
-      filters
-        .at(1)
-        .instance()
-        .onChange([{ value: "col1" }]);
-      filters.at(3).instance().onChange({ value: "rolling", label: "Rolling" });
-      result.update();
-      result
-        .find(Aggregations)
-        .find("input")
-        .at(1)
-        .simulate("change", { target: { value: "" } });
-      result.find(Aggregations).find(Select).last().instance().onChange({ value: "corr", label: "Correlation" });
-      result.find(Charts).find("button").first().simulate("click");
-      setTimeout(() => {
-        result.update();
-        t.equal(result.find(Charts).instance().state.error, "Aggregation (rolling) requires a window");
-        result
-          .find(Aggregations)
-          .find("input")
-          .at(1)
-          .simulate("change", { target: { value: "10" } });
-        result.find(Aggregations).find(Select).last().instance().onChange(null);
-        result.find(Charts).find("button").first().simulate("click");
-        setTimeout(() => {
-          result.update();
-          t.equal(result.find(Charts).instance().state.error, "Aggregation (rolling) requires a computation");
-          done();
-        }, 400);
-      }, 400);
-    }, 600);
+    await tickUpdate(result);
+    const filters = result.find(Charts).find(Select);
+    filters.first().instance().onChange({ value: "col4" });
+    filters
+      .at(1)
+      .instance()
+      .onChange([{ value: "col1" }]);
+    filters.at(3).instance().onChange({ value: "rolling", label: "Rolling" });
+    result.update();
+    result
+      .find(Aggregations)
+      .find("input")
+      .at(1)
+      .simulate("change", { target: { value: "" } });
+    result.find(Aggregations).find(Select).last().instance().onChange({ value: "corr", label: "Correlation" });
+    result.find(Charts).find("button").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(Charts).instance().state.error).toBe("Aggregation (rolling) requires a window");
+    result
+      .find(Aggregations)
+      .find("input")
+      .at(1)
+      .simulate("change", { target: { value: "10" } });
+    result.find(Aggregations).find(Select).last().instance().onChange(null);
+    result.find(Charts).find("button").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(Charts).instance().state.error).toBe("Aggregation (rolling) requires a computation");
   });
 });
