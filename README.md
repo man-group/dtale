@@ -47,9 +47,9 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Header](#header)
   - [Editing Cells](#editing-cells)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -363,6 +363,7 @@ The information in the upper right-hand corner gives grid dimensions ![](https:/
 - lower-left => row count
 - upper-right => column count
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
+
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_menu_small.png)
 
 ### Header
@@ -661,7 +662,6 @@ This is a quick way to check and see if your data has been categorized correctly
 * Any string column cells which are empty strings or strings consisting only of spaces will be highlighted in orange.
 *  ❗will be prepended to any column header which contains missing values.
 
-
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_missing.png)
 
 #### Highlight Outliers
@@ -671,6 +671,18 @@ Highlight any cells for numeric columns which surpass the upper or lower bounds 
 * ⭐ will be prepended to any column header which contains outliers.
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_outliers.png)
+
+#### Highlight Range
+Highlight any range of numeric cells based on three different criteria:
+* equals
+* greater than
+* less than
+
+You can activate as many of these criteria as you'd like nad they will be treated as an "or" expression.  For example, `(x == 0) or (x < -1) or (x > 1)`
+
+|Selections|Output|
+|:------:|:------:|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_range_selections.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_range_output.png)|
 
 
 #### Code Exports
@@ -775,7 +787,26 @@ All column movements are saved on the server so refreshing your browser won't lo
 
 #### Delete
 
-As simple as it sounds, click this button to delete this column from your dataframe.  (Warning: not un-doable!)
+As simple as it sounds, click this button to delete this column from your dataframe.
+
+#### Rename
+
+Update the name of any column in your dataframe to a name that is not currently in use by your dataframe.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rename.png)
+
+#### Replacements
+
+This feature allows users to replace content on their column directly or for safer purposes in a brand new column.  Here are the options you have:
+
+|Type        |Data Types   |Description|Menu    |
+|------------|-------------|-----------|--------|
+|Value(s)    |all          |Replace specific values in a column with raw values, output from another column or an aggregation on your column|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/replacements_value.png)|
+|Spaces Only |strings      |Replace string values consisting only of spaces with raw values|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/replacements_spaces.png)|
+|Contains Char/Substring|strings      |Replace string values containing a specific character or substring|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/replacements_strings.png)|
+|Scikit-Learn Imputer|numeric      |Replace missing values with the output of using different Scikit-Learn imputers like iterative, knn & simple|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/replacements_sklearn.png)|
+
+Here's a quick demo: [![](http://img.youtube.com/vi/GiNFRtcpIt8/0.jpg)](http://www.youtube.com/watch?v=GiNFRtcpIt8 "Column Replacements")
 
 #### Lock
 Adds your column to "locked" columns

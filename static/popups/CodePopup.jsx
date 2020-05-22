@@ -5,7 +5,7 @@ import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 import { canCopy, CopyToClipboard } from "../CopyToClipboard";
 import { JSAnchor } from "../JSAnchor";
-import menuFuncs from "../dtale/dataViewerMenuUtils";
+import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
 
 require("./CodePopup.css");
 

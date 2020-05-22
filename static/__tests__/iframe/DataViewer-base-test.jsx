@@ -70,10 +70,10 @@ describe("DataViewer iframe tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     jest.mock("@blueprintjs/datetime", () => ({ DateInput: MockDateInput }));
     DataViewer = require("../../dtale/DataViewer").DataViewer;
-    ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
+    ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
     Header = require("../../dtale/Header").ReactHeader;
     Formatting = require("../../popups/formats/Formatting").default;
-    DataViewerMenu = require("../../dtale/DataViewerMenu").DataViewerMenu;
+    DataViewerMenu = require("../../dtale/menu/DataViewerMenu").DataViewerMenu;
     DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
   });
 
@@ -115,8 +115,8 @@ describe("DataViewer iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-        ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
+        ["Code Export", "Export", "Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
       )
     );
   });
@@ -133,7 +133,7 @@ describe("DataViewer iframe tests", () => {
       colMenu()
         .find("ul li span.font-weight-bold")
         .map(s => s.text())
-    ).toEqual(["Lock", "Hide", "Delete", "Rename", "Describe", "Column Analysis", "Formats"]);
+    ).toEqual(["Lock", "Hide", "Delete", "Rename", "Replacements", "Describe", "Column Analysis", "Formats"]);
   });
 
   it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {

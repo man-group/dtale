@@ -14,10 +14,12 @@ import { Describe } from "./Describe";
 import { Error } from "./ErrorPopup";
 import { Filter } from "./Filter";
 import Instances from "./Instances";
+import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
+import { CreateReplacement } from "./replacement/CreateReplacement";
 import { Reshape } from "./reshape/Reshape";
 
 class ReactPopup extends React.Component {
@@ -116,6 +118,15 @@ class ReactPopup extends React.Component {
         );
         body = <Confirmation />;
         break;
+      case "range":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-flag" />
+            <strong>Range Highlights</strong>
+          </ModalTitle>
+        );
+        body = <RangeHighlight {...this.props} />;
+        break;
       case "rename":
         modalTitle = (
           <ModalTitle>
@@ -124,6 +135,16 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <Rename {...this.props} />;
+        break;
+      case "replacement":
+        modalTitle = (
+          <ModalTitle>
+            <i className="fas fa-backspace" />
+            {" Replacements for "}
+            <strong>{chartData.selectedCol}</strong>
+          </ModalTitle>
+        );
+        body = <CreateReplacement {...this.props} />;
         break;
       case "error":
         modalTitle = (

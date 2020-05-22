@@ -4,7 +4,7 @@ import { expect } from "@jest/globals";
 import { tick } from "../test-utils";
 
 function findColMenuButton(result, name, btnTag = "button") {
-  const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
+  const ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
   return result
     .find(ColumnMenu)
     .find(`ul li ${btnTag}`)
@@ -17,7 +17,7 @@ function clickColMenuButton(result, name, btnTag = "button") {
 
 function clickColMenuSubButton(result, label, row = 0) {
   // need to import this component here because it is using fetcher.js which gets mocked during run-time
-  const ColumnMenu = require("../../dtale/iframe/ColumnMenu").ReactColumnMenu;
+  const ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
   result
     .find(ColumnMenu)
     .find("ul li div.column-sorting")

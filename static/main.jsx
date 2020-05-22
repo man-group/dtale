@@ -15,6 +15,7 @@ import Instances from "./popups/Instances";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnAnalysis";
 import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
+import { ReactCreateReplacement as CreateReplacement } from "./popups/replacement/CreateReplacement";
 import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
 import app from "./reducers/dtale";
 import { createStore } from "./reducers/store";
@@ -49,6 +50,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       break;
     case "build":
       rootNode = <CreateColumn {...{ dataId, chartData }} />;
+      break;
+    case "replacement":
+      rootNode = <CreateReplacement {...{ dataId, chartData }} />;
       break;
     case "reshape":
       rootNode = <Reshape {...{ dataId, chartData }} />;

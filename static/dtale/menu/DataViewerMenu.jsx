@@ -3,11 +3,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
 
-import ConditionalRender from "../ConditionalRender";
-import { openChart } from "../actions/charts";
-import bu from "./backgroundUtils";
+import ConditionalRender from "../../ConditionalRender";
+import { openChart } from "../../actions/charts";
+import bu from "../backgroundUtils";
+import Descriptions from "../menu-descriptions.json";
+import RangeHighlightOption from "./RangeHighlightOption";
 import menuFuncs from "./dataViewerMenuUtils";
-import Descriptions from "./menu-descriptions.json";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
@@ -167,6 +168,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.highlight_outliers}</div>
           </li>
+          <RangeHighlightOption {...this.props} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("instances", 450, 750)}>
@@ -283,6 +285,7 @@ ReactDataViewerMenu.propTypes = {
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
   backgroundMode: PropTypes.string,
+  rangeHighlight: PropTypes.object,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
 };

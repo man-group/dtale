@@ -115,4 +115,38 @@ describe("DataViewer highlighting tests", () => {
     result.update();
     expect(dataViewer().instance().state.backgroundMode).toBeNull();
   });
+
+  it("DataViewer: range highlighting", async () => {
+    const RangeHighlight = require("../../popups/RangeHighlight").RangeHighlight;
+    const RangeHighlightOption = require("../../dtale/menu/RangeHighlightOption").default;
+    clickMainMenuButton(result, "Highlight Range");
+    result.update();
+    result
+      .find(RangeHighlight)
+      .find("div.form-group")
+      .forEach(input => {
+        input.find("i").simulate("click");
+        input.find("input").simulate("change", { target: { value: "3" } });
+      });
+    expect(dataViewer().instance().state.backgroundMode).toBe("range");
+    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
+      isEquals: true,
+      equals: 3,
+      isGreaterThan: true,
+      greaterThan: 3,
+      isLessThan: true,
+      lessThan: 3,
+    });
+    result.find(RangeHighlightOption).find("i").simulate("click");
+    result.update();
+    expect(dataViewer().instance().state.backgroundMode).toBeNull();
+    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
+      isEquals: false,
+      equals: 3,
+      isGreaterThan: false,
+      greaterThan: 3,
+      isLessThan: false,
+      lessThan: 3,
+    });
+  });
 });

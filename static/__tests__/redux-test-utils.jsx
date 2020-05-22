@@ -223,6 +223,11 @@ function urlFetcher(url) {
       return { error: "error test" };
     }
     return { success: true, url: "http://localhost:40000/dtale/main/1" };
+  } else if (_.startsWith(url, "/dtale/build-replacement")) {
+    if (urlParams.name === "error") {
+      return { error: "error test" };
+    }
+    return { success: true };
   } else if (_.startsWith(url, "/dtale/reshape")) {
     if (urlParams.index === "error") {
       return { error: "error test" };

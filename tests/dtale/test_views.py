@@ -1832,7 +1832,8 @@ def test_jinja_output():
 
     df = pd.DataFrame([1, 2, 3])
     df, _ = views.format_data(df)
-    with build_app(url=URL).test_client() as c:
+    url = 'http://localhost.localdomain:40000'
+    with build_app(url=url).test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))
@@ -1842,7 +1843,7 @@ def test_jinja_output():
             response = c.get('/charts/{}'.format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
 
-    with build_app(url=URL, github_fork=True).test_client() as c:
+    with build_app(url=url, github_fork=True).test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
             stack.enter_context(mock.patch('dtale.global_state.DTYPES', {c.port: views.build_dtypes_state(df)}))

@@ -1,6 +1,7 @@
 import chroma from "chroma-js";
 import _ from "lodash";
 
+import { MODES } from "../popups/RangeHighlight";
 import { exports as gu } from "./gridUtils";
 
 const heatMap = chroma.scale(["red", "yellow", "green"]).domain([0, 0.5, 1]);
@@ -88,6 +89,25 @@ const outlierHighlighting = ({ name, dtype, hasOutliers, outlierRange }, { raw }
   return {};
 };
 
+const rangeHighlighting = (state, { name, dtype }, { raw }) => {
+  const { rangeHighlight } = state;
+  if (name === gu.IDX || !rangeHighlight) {
+    return {};
+  }
+  const lowerDtype = (dtype || "").toLowerCase();
+  const colType = gu.findColType(lowerDtype);
+  if (_.includes(["float", "int"], colType)) {
+    let styles = {};
+    _.forEach(MODES, ([_label, flag, value, filter]) => {
+      if (rangeHighlight[flag] && !_.isNil(rangeHighlight[value]) && filter(raw, rangeHighlight[value])) {
+        styles = { background: "#FFF59D" };
+      }
+    });
+    return styles;
+  }
+  return {};
+};
+
 const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
   switch (state.backgroundMode) {
     case "heatmap-col":
@@ -100,6 +120,8 @@ const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
       return _.assignIn(missingHighlighting(colCfg, rec.view), valueStyle);
     case "outliers":
       return _.assignIn(outlierHighlighting(colCfg, rec), valueStyle);
+    case "range":
+      return _.assign(rangeHighlighting(state, colCfg, rec), valueStyle);
     default:
       return valueStyle;
   }

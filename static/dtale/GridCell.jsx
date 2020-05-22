@@ -81,6 +81,7 @@ ReactGridCell.propTypes = {
     toggleColumnMenu: PropTypes.func,
     hideColumnMenu: PropTypes.func,
     backgroundMode: PropTypes.string,
+    rangeHighlight: PropTypes.object,
   }),
   propagateState: PropTypes.func,
   dataId: PropTypes.string,

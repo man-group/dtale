@@ -6,7 +6,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
+import { DataViewerMenu } from "../../dtale/menu/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
@@ -77,8 +77,8 @@ describe("DataViewer tests", () => {
     ).toEqual(
       _.concat(
         ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-        ["Refresh Widths", "About", "Shutdown"]
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
+        ["Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
       )
     );
     await tick();

@@ -1,6 +1,5 @@
 import { mount } from "enzyme";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
@@ -8,8 +7,9 @@ import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
+import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -17,27 +17,16 @@ const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
-  const { location, open, opener } = window;
-  let result, Reshape, Pivot;
+  let result, CreateReplacement, Value;
 
   beforeAll(() => {
-    delete window.location;
-    delete window.open;
-    delete window.opener;
-    window.location = {
-      reload: jest.fn(),
-      pathname: "/dtale/column/1",
-      assign: jest.fn(),
-    };
-    window.open = jest.fn();
-    window.opener = { code_popup: { code: "test code", title: "Test" } };
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
       value: 500,
     });
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
       configurable: true,
-      value: 800,
+      value: 500,
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
@@ -67,12 +56,13 @@ describe("DataViewer tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-    Reshape = require("../../../popups/reshape/Reshape").ReactReshape;
-    Pivot = require("../../../popups/reshape/Pivot").Pivot;
   });
 
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
+    CreateReplacement = require("../../../popups/replacement/CreateReplacement").ReactCreateReplacement;
+    Value = require("../../../popups/replacement/Value").Value;
+
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
@@ -81,76 +71,79 @@ describe("DataViewer tests", () => {
       </Provider>,
       { attachTo: document.getElementById("content") }
     );
-    await tick();
-    clickMainMenuButton(result, "Summarize Data");
+    await tickUpdate(result);
+    // select column
+    result.find(".main-grid div.headerCell div").first().simulate("click");
+    result.update();
+
+    clickColMenuButton(result, "Replacements");
     await tickUpdate(result);
   });
 
   afterAll(() => {
-    window.location = location;
-    window.open = open;
-    window.opener = opener;
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: reshape pivot", async () => {
-    expect(result.find(Reshape).length).toBe(1);
-    result.find(ModalClose).first().simulate("click");
-    expect(result.find(Reshape).length).toBe(0);
-    clickMainMenuButton(result, "Summarize Data");
-    await tickUpdate(result);
-    expect(result.find(Pivot).length).toBe(1);
-    const pivotComp = result.find(Pivot).first();
-    const pivotInputs = pivotComp.find(Select);
-    pivotInputs.first().instance().onChange({ value: "col1" });
-    pivotInputs.at(1).instance().onChange({ value: "col2" });
-    pivotInputs
-      .at(2)
-      .instance()
-      .onChange([{ value: "col3" }]);
-    pivotInputs.last().instance().onChange({ value: "count" });
-    result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+  const findValueInputRow = (idx = 0) => result.find(Value).find("div.form-group").at(idx);
+
+  it("DataViewer: value raw replacement w/ new col", async () => {
+    result.find(CreateReplacement).find("div.form-group").first().find("button").last().simulate("click");
+    result
+      .find(CreateReplacement)
+      .find("div.form-group")
+      .first()
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "cut_col" } });
+    result.find(CreateReplacement).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.update();
+    expect(result.find(Value).length).toBe(1);
+    findValueInputRow()
+      .find("input")
+      .simulate("change", { target: { value: "3" } });
+    findValueInputRow(1).find("button").first().simulate("click");
+    result.find("div.modal-footer").first().find("button").first().simulate("click");
+    expect(result.find(CreateReplacement).find(RemovableError)).toHaveLength(1);
+    findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(1);
-    result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(0);
   });
 
-  it("DataViewer: reshape pivot errors", async () => {
-    expect(result.find(Reshape).length).toBe(1);
+  it("DataViewer: value agg replacement", async () => {
+    const validationSpy = jest.spyOn(require("../../../popups/replacement/Value"), "validateValueCfg");
+    validationSpy.mockClear();
+    result.find(CreateReplacement).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
+    findValueInputRow(1).find("button").at(1).simulate("click");
+    findValueInputRow(1).find(Select).first().instance().onChange({ value: "median" });
+    findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
-    result.update();
-    expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
-    const pivotComp = result.find(Pivot).first();
-    const pivotInputs = pivotComp.find(Select);
-    pivotInputs.first().instance().onChange({ value: "col1" });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Missing a columns selection!");
-    pivotInputs.at(1).instance().onChange({ value: "col2" });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Missing a value(s) selection!");
-    pivotInputs
-      .at(2)
-      .instance()
-      .onChange([{ value: "col3" }]);
-    pivotInputs.last().instance().onChange({ value: "count" });
+    await tickUpdate(result);
+    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+      value: [{ type: "agg", value: "nan", replace: "median" }],
+    });
   });
 
-  test("DataViewer: reshape pivot cfg validation", done => {
-    const { validatePivotCfg } = require("../../../popups/reshape/Pivot");
-    const cfg = { index: null, columns: null, values: null };
-    expect(validatePivotCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = "x";
-    expect(validatePivotCfg(cfg)).toBe("Missing a columns selection!");
-    cfg.columns = "y";
-    expect(validatePivotCfg(cfg)).toBe("Missing a value(s) selection!");
-    done();
+  it("DataViewer: value col replacement", async () => {
+    const validationSpy = jest.spyOn(require("../../../popups/replacement/Value"), "validateValueCfg");
+    validationSpy.mockClear();
+    result.find(CreateReplacement).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.update();
+    findValueInputRow(1).find("button").last().simulate("click");
+    findValueInputRow(1).find(Select).first().instance().onChange({ value: "col2" });
+    findValueInputRow(1).find("i").first().simulate("click");
+    result.find("div.modal-footer").first().find("button").first().simulate("click");
+    await tickUpdate(result);
+    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+      value: [{ type: "col", value: "nan", replace: "col2" }],
+    });
+  });
+
+  it("DataViewer: value cfg validation", () => {
+    const { validateValueCfg } = require("../../../popups/replacement/Value");
+    expect(validateValueCfg([])).toBe("Please add (+) a replacement!");
   });
 });

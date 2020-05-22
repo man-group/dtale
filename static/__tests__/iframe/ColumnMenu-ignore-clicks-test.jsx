@@ -39,7 +39,7 @@ describe("ColumnMenu ignoreClicks tests", () => {
   });
 
   it("ColumnMenu: make sure clicks in certain areas of the menu won't close it", () => {
-    const { ignoreMenuClicks } = require("../../dtale/iframe/ColumnMenu");
+    const { ignoreMenuClicks } = require("../../dtale/column/ColumnMenu");
     buildInnerHTML({ settings: "" });
     mount(<span>Hello</span>, { attachTo: document.getElementById("content") });
     expect(ignoreMenuClicks({ target: { id: "pass" } })).toBe(true);

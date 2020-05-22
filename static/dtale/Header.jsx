@@ -6,8 +6,8 @@ import { connect } from "react-redux";
 import actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
 import bu from "./backgroundUtils";
+import { ignoreMenuClicks } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
-import { ignoreMenuClicks } from "./iframe/ColumnMenu";
 
 const SORT_CHARS = {
   ASC: String.fromCharCode("9650"),
