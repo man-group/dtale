@@ -7,7 +7,7 @@ import React from "react";
 import { ModalBody } from "react-modal-bootstrap";
 import Select, { createFilter } from "react-select";
 
-import menuFuncs from "../../dtale/dataViewerMenuUtils";
+import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
 
 const STYLE_PROPS = ["redNegs", "currency"];
 

@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.8.14 (2020-5-31)
+ * [#168](https://github.com/man-group/dtale/issues/168): updated default colorscale for heatmaps to be Jet
+ * [#152](https://github.com/man-group/dtale/issues/152): added scattermapbox as a valid map type
+ * [#136](https://github.com/man-group/dtale/issues/136) & [#86](https://github.com/man-group/dtale/issues/86): column replacements for values
+ * [#87](https://github.com/man-group/dtale/issues/87): highlight ranges of numeric cells
 ### 1.8.13 (2020-5-20)
  * [#193](https://github.com/man-group/dtale/issues/193): Support for JupyterHub Proxy
 

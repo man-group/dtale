@@ -3,7 +3,7 @@ import moment from "moment";
 import numeral from "numeral";
 
 import { measureText } from "./MeasureText";
-import menuFuncs from "./dataViewerMenuUtils";
+import menuFuncs from "./menu/dataViewerMenuUtils";
 
 const EXPORTS = {};
 
@@ -214,6 +214,7 @@ EXPORTS.buildState = props => ({
   formattingOpen: false,
   triggerResize: false,
   backgroundMode: null,
+  rangeHighlight: {},
 });
 
 EXPORTS.noHidden = columns => !_.some(columns, { visible: false });

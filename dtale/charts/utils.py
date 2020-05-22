@@ -10,6 +10,19 @@ from dtale.utils import (ChartBuildingError, classify_type, find_dtype,
 YAXIS_CHARTS = ['line', 'bar', 'scatter']
 ZAXIS_CHARTS = ['heatmap', '3d_scatter', 'surface']
 MAX_GROUPS = 30
+MAPBOX_TOKEN = None
+
+
+def get_mapbox_token():
+    global MAPBOX_TOKEN
+
+    return MAPBOX_TOKEN
+
+
+def set_mapbox_token(token):
+    global MAPBOX_TOKEN
+
+    MAPBOX_TOKEN = token
 
 
 def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
@@ -33,7 +46,7 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         map_type = inputs.get('map_type')
         if map_type == 'choropleth' and all(inputs.get(p) is not None for p in ['loc_mode', 'loc', 'map_val']):
             return True
-        elif map_type == 'scattergeo' and all(inputs.get(p) is not None for p in ['lat', 'lon']):
+        elif map_type in ['scattergeo', 'mapbox'] and all(inputs.get(p) is not None for p in ['lat', 'lon']):
             return True
         return False
 

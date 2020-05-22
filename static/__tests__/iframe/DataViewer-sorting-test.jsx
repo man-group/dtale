@@ -12,7 +12,7 @@ import { clickColMenuSubButton, openColMenu, validateHeaders } from "./iframe-ut
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
-describe("DataViewer iframe tests", () => {
+describe("DataViewer column tests", () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,

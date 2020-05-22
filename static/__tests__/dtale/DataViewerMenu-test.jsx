@@ -4,7 +4,7 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import { ReactDataViewerMenu as DataViewerMenu } from "../../dtale/DataViewerMenu";
+import { ReactDataViewerMenu as DataViewerMenu } from "../../dtale/menu/DataViewerMenu";
 import { buildInnerHTML } from "../test-utils";
 
 describe("DataViewerMenu tests", () => {

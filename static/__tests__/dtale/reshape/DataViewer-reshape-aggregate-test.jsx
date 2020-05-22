@@ -26,7 +26,7 @@ describe("DataViewer tests", () => {
     delete window.opener;
     window.location = {
       reload: jest.fn(),
-      pathname: "/dtale/iframe/1",
+      pathname: "/dtale/column/1",
       assign: jest.fn(),
     };
     window.open = jest.fn();

@@ -11,3 +11,4 @@ pandas
 future
 Flask
 scipy
+scikit-learn

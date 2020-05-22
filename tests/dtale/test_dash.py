@@ -156,8 +156,8 @@ def test_map_data(unittest):
                     '..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options...'
                     'map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style...'
                     'map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style...'
-                    'map-proj-input.style...proj-hover.style...proj-hover.children...loc-mode-hover.style...'
-                    'loc-mode-hover.children..'
+                    'map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children...'
+                    'loc-mode-hover.style...loc-mode-hover.children..'
                 ),
                 'changedPropIds': ['map-type-tabs.value'],
                 'inputs': [
@@ -168,6 +168,7 @@ def test_map_data(unittest):
                     {'id': 'map-lon-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-val-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-scope-dropdown', 'property': 'value', 'value': 'world'},
+                    {'id': 'map-mapbox-style-dropdown', 'property': 'value', 'value': 'open-street-map'},
                     {'id': 'map-proj-dropdown', 'property': 'value', 'value': None},
                     {'id': 'map-group-dropdown', 'property': 'value', 'value': None},
                 ],
@@ -182,6 +183,12 @@ def test_map_data(unittest):
                 {'map_type': 'scattergeo', 'lat': None, 'lon': None, 'map_val': None, 'scope': 'world', 'proj': None},
             )
             unittest.assertEqual(resp_data['map-loc-dropdown']['options'], [{'label': 'e', 'value': 'e'}])
+            unittest.assertEqual(resp_data['map-loc-mode-input']['style'], {'display': 'none'})
+            unittest.assertEqual(resp_data['map-lat-input']['style'], {})
+
+            params['inputs'][0]['value'] = 'mapbox'
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
             unittest.assertEqual(resp_data['map-loc-mode-input']['style'], {'display': 'none'})
             unittest.assertEqual(resp_data['map-lat-input']['style'], {})
 
@@ -1046,7 +1053,46 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
             params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
             response = c.post('/charts/_dash-update-component', json=params)
             resp_data = response.get_json()['response']
-            print(resp_data['chart-content']['children'])
+            title = resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout']['title']
+            assert title['text'] == 'Map of val (No Aggregation) (cat == {})'.format(group_val)
+
+            map_inputs['map_group'] = None
+            inputs['group_val'] = None
+            chart_inputs['animate_by'] = 'cat'
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            assert 'frames' in resp_data['chart-content']['children']['props']['children'][1]['props']['figure']
+
+            map_inputs['map_val'] = 'foo'
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
+            error = resp_data['chart-content']['children']['props']['children'][1]['props']['children']
+            assert "'foo'" in error
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(scattergeo_data)
+            stack.enter_context(mock.patch('dtale.global_state.DATA', {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {'chart_type': 'maps', 'agg': 'raw'}
+            map_inputs = {'map_type': 'mapbox', 'lat': 'lat', 'lon': 'lon', 'map_val': 'val'}
+            chart_inputs = {'colorscale': 'Reds'}
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            chart_markup = response.get_json()['response']['chart-content']['children']['props']['children'][1]
+            unittest.assertEqual(
+                chart_markup['props']['figure']['layout']['title'],
+                {'text': 'Map of val (No Aggregation)'}
+            )
+
+            map_inputs['map_group'] = 'cat'
+            group_val = str(df['cat'].values[0])
+            inputs['group_val'] = [dict(cat=group_val)]
+            params = build_chart_params(pathname, inputs, chart_inputs, map_inputs=map_inputs)
+            response = c.post('/charts/_dash-update-component', json=params)
+            resp_data = response.get_json()['response']
             title = resp_data['chart-content']['children']['props']['children'][1]['props']['figure']['layout']['title']
             assert title['text'] == 'Map of val (No Aggregation) (cat == {})'.format(group_val)
 

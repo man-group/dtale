@@ -66,13 +66,14 @@ class DtaleFlaskTesting(FlaskClient):
         self.host = kwargs.pop('hostname', 'localhost')
         self.port = kwargs.pop('port', str(random.randint(0, 65535))) or str(random.randint(0, 65535))
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
+        self.application.config['SERVER_NAME'] = '{host}:{port}'.format(host=self.host, port=self.port)
+        self.application.config['SESSION_COOKIE_DOMAIN'] = 'localhost.localdomain'
 
     def get(self, *args, **kwargs):
         """
         :param args: Optional arguments to be passed to :meth:`flask:flask.FlaskClient.get`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.FlaskClient.get`
         """
-        self.application.config['SERVER_NAME'] = '{host}:{port}'.format(host=self.host, port=self.port)
         return super(DtaleFlaskTesting, self).get(url_scheme='http', *args, **kwargs)
 
 

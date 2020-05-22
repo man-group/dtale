@@ -16,6 +16,7 @@ from dtale.dash_application.layout import (animate_styles, bar_input_style,
                                            build_input_options,
                                            build_loc_mode_hover_children,
                                            build_map_options,
+                                           build_mapbox_style_options,
                                            build_proj_hover_children,
                                            charts_layout,
                                            colorscale_input_style,
@@ -197,6 +198,7 @@ def init_callbacks(dash_app):
             Output('map-lat-input', 'style'),
             Output('map-lon-input', 'style'),
             Output('map-scope-input', 'style'),
+            Output('map-mapbox-style-input', 'style'),
             Output('map-proj-input', 'style'),
             Output('proj-hover', 'style'),
             Output('proj-hover', 'children'),
@@ -211,16 +213,19 @@ def init_callbacks(dash_app):
             Input('map-lon-dropdown', 'value'),
             Input('map-val-dropdown', 'value'),
             Input('map-scope-dropdown', 'value'),
+            Input('map-mapbox-style-dropdown', 'value'),
             Input('map-proj-dropdown', 'value'),
             Input('map-group-dropdown', 'value')
         ],
         [State('url', 'pathname')]
     )
-    def map_data(map_type, loc_mode, loc, lat, lon, map_val, scope, proj, group, pathname):
+    def map_data(map_type, loc_mode, loc, lat, lon, map_val, scope, style, proj, group, pathname):
         data_id = get_data_id(pathname)
         map_type = map_type or 'choropleth'
         if map_type == 'choropleth':
             map_data = dict(map_type=map_type, loc_mode=loc_mode, loc=loc, map_val=map_val)
+        elif map_type == 'mapbox':
+            map_data = dict(map_type=map_type, lat=lat, lon=lon, map_val=map_val, mapbox_style=style)
         else:
             map_data = dict(map_type=map_type, lat=lat, lon=lon, map_val=map_val, scope=scope, proj=proj)
 
@@ -230,16 +235,26 @@ def init_callbacks(dash_app):
         loc_options, lat_options, lon_options, map_val_options = build_map_options(df, type=map_type, loc=loc,
                                                                                    lat=lat, lon=lon, map_val=map_val)
         choro_style = {} if map_type == 'choropleth' else {'display': 'none'}
+        coord_style = {} if map_type in ['scattergeo', 'mapbox'] else {'display': 'none'}
         scatt_style = {} if map_type == 'scattergeo' else {'display': 'none'}
+        mapbox_style = {} if map_type == 'mapbox' else {'display': 'none'}
         proj_hover_style = {'display': 'none'} if proj is None else dict(borderBottom='none')
         proj_hopver_children = build_proj_hover_children(proj)
         loc_mode_hover_style = {'display': 'none'} if loc_mode is None else dict(borderBottom='none')
         loc_mode_children = build_loc_mode_hover_children(loc_mode)
         return (
-            map_data, loc_options, lat_options, lon_options, map_val_options, choro_style, choro_style, scatt_style,
-            scatt_style, scatt_style, scatt_style, proj_hover_style, proj_hopver_children, loc_mode_hover_style,
-            loc_mode_children
+            map_data, loc_options, lat_options, lon_options, map_val_options, choro_style, choro_style, coord_style,
+            coord_style, scatt_style, mapbox_style, scatt_style, proj_hover_style, proj_hopver_children,
+            loc_mode_hover_style, loc_mode_children
         )
+
+    @dash_app.callback(Output('map-mapbox-style-dropdown', 'options'), [Input('mapbox-token-input', 'value')])
+    def update_mapbox_token(token):
+        from dtale.charts.utils import set_mapbox_token
+
+        if token:
+            set_mapbox_token(token)
+        return build_mapbox_style_options()
 
     @dash_app.callback(
         [

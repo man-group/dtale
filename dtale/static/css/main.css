@@ -4551,7 +4551,8 @@ button.close {
   }
 }
 
-div.build-modal > div.modal-lg {
+div.build-modal > div.modal-lg,
+div.replacement-modal > div.modal-lg {
   min-width: 720px;
 }
 
@@ -4567,7 +4568,8 @@ div.filter-modal > div.modal-lg {
   .modal-lg {
     max-width: 800px;
   }
-  div.build-modal > div.modal-lg {
+  div.build-modal > div.modal-lg,
+  div.replacement-modal > div.modal-lg {
     max-width: 720px;
   }
   div.reshape-modal > div.modal-lg {
@@ -10603,6 +10605,7 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
 
 @media (min-height: 330px) {
   div.container-fluid.build > div#popup-content > div.modal-footer,
+  div.container-fluid.replacement > div#popup-content > div.modal-footer,
   div.container-fluid.reshape > div#popup-content > div.modal-footer {
     position: absolute;
     bottom: 0;
@@ -10641,6 +10644,30 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
   border-radius: 50%;
   opacity: 0.9;
   float: left;
+}
+
+.bg-range-icon {
+  height: 18px;
+  width: 18px;
+  box-sizing: border-box;
+  border: 1px solid #565b68;
+  background-color: #FFF59D;
+  border-radius: 50%;
+  opacity: 0.9;
+  float: left;
+}
+
+.bg-range-bouncer .bouncer {
+  height: 18px;
+  width: 18px;
+  margin: unset;
+  float: left;
+}
+
+.bg-range-bouncer .double-bounce1,
+.bg-range-bouncer .double-bounce2 {
+  background-color: #FFF59D;
+  border: 1px solid #565b68;
 }
 
 

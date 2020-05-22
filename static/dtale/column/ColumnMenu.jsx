@@ -8,8 +8,8 @@ import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
-import menuFuncs from "../dataViewerMenuUtils";
 import { exports as gu } from "../gridUtils";
+import menuFuncs from "../menu/dataViewerMenuUtils";
 import serverState from "../serverStateManagement";
 
 const { ROW_HEIGHT, SORT_PROPS } = gu;
@@ -235,6 +235,14 @@ class ReactColumnMenu extends React.Component {
               <button className="btn btn-plain" onClick={renameCol}>
                 <i className="ico-edit" />
                 <span className="font-weight-bold">Rename</span>
+              </button>
+            </span>
+          </li>
+          <li>
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={openPopup("replacement", 400, 770)}>
+                <i className="fas fa-backspace mr-3" />
+                <span className="font-weight-bold">Replacements</span>
               </button>
             </span>
           </li>

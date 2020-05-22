@@ -4,8 +4,8 @@ import React from "react";
 import { components } from "react-select";
 
 import { buildURLString, saveColFilterUrl } from "../actions/url-utils";
+import Descriptions from "../dtale/column/column-menu-descriptions.json";
 import { exports as gu } from "../dtale/gridUtils";
-import Descriptions from "../dtale/iframe/column-menu-descriptions.json";
 import { fetchJson } from "../fetcher";
 import { DateFilter } from "./DateFilter";
 import { NumericFilter } from "./NumericFilter";

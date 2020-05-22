@@ -3,7 +3,7 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import { positionMenu } from "../../dtale/iframe/ColumnMenu";
+import { positionMenu } from "../../dtale/column/ColumnMenu";
 import { buildInnerHTML } from "../test-utils";
 
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");

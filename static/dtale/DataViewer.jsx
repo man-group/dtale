@@ -15,12 +15,12 @@ import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
 import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
-import { DataViewerMenu } from "./DataViewerMenu";
 import { GridCell } from "./GridCell";
 import { MeasureText } from "./MeasureText";
+import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
-import { ColumnMenu } from "./iframe/ColumnMenu";
 import Descriptions from "./menu-descriptions.json";
+import { DataViewerMenu } from "./menu/DataViewerMenu";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];

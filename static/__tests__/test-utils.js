@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 import actions from "../actions/dtale";
-import { DataViewerMenu } from "../dtale/DataViewerMenu";
+import { DataViewerMenu } from "../dtale/menu/DataViewerMenu";
 
 function withGlobalJquery(callback) {
   global.jQuery = require("jquery");

@@ -526,13 +526,19 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
     min-width: 10em;
 }
 
-#map-inputs > div.col-auto + div.col-auto {
-    padding-left: 0;
+#map-inputs > div.col-auto {
+    padding-right: 0;
 }
 
 div#non-map-inputs > div,
 div#chart-inputs > div {
   padding-top: 0.25rem !important;
   padding-bottom: 0.25rem !important;
+}
+
+#mapbox-token-input {
+  width: 100%;
+  border-top-left-radius: .25rem;
+  border-bottom-left-radius: .25rem;
 }
 

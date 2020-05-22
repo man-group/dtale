@@ -37,12 +37,14 @@ def base_layout(github_fork, app_root, **kwargs):
                 <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
             </span>
         '''
+    favicon_path = '../../images/favicon.png'
     if is_app_root_defined(app_root):
         webroot_html = '''
         <script type="text/javascript">
             window.resourceBaseUrl = '{app_root}';
         </script>
         '''.format(app_root=app_root)
+        favicon_path = '{}/images/favicon.png'.format(app_root)
     return '''
         <!DOCTYPE html>
         <html>
@@ -50,7 +52,7 @@ def base_layout(github_fork, app_root, **kwargs):
                 {webroot_html}
                 {metas}
                 <title>D-Tale Charts</title>
-                <link rel="shortcut icon" href="{app_root}/images/favicon.png">
+                <link rel="shortcut icon" href="{favicon_path}">
                 {css}
             </head>
             <body>
@@ -97,7 +99,8 @@ def base_layout(github_fork, app_root, **kwargs):
         back_to_data_padding=back_to_data_padding,
         webroot_html=webroot_html,
         github_fork_html=github_fork_html,
-        app_root=app_root or ''
+        app_root=app_root if is_app_root_defined(app_root) else '',
+        favicon_path=favicon_path
     )
 
 
@@ -189,7 +192,11 @@ AGGS = dict(
 FREQS = ['H', 'H2', 'WD', 'D', 'W', 'M', 'Q', 'Y']
 FREQ_LABELS = dict(H='Hourly', H2='Hour', WD='Weekday', W='Weekly', M='Monthly', Q='Quarterly', Y='Yearly')
 
-MAP_TYPES = [dict(value='choropleth'), dict(value='scattergeo', label='ScatterGeo')]
+MAP_TYPES = [
+    dict(value='choropleth', image=True),
+    dict(value='scattergeo', label='ScatterGeo', image=True),
+    dict(value='mapbox')
+]
 SCOPES = ['world', 'usa', 'europe', 'asia', 'africa', 'north america', 'south america']
 PROJECTIONS = ['equirectangular', 'mercator', 'orthographic', 'natural earth', 'kavrayskiy7', 'miller', 'robinson',
                'eckert4', 'azimuthal equal area', 'azimuthal equidistant', 'conic equal area', 'conic conformal',
@@ -223,6 +230,40 @@ def build_proj_hover(proj):
                 className='ml-3 hoverable',
                 style=dict(display='none') if proj is None else dict(borderBottom='none'),
                 id='proj-hover'
+            )
+        ],
+        className='input-group-addon'
+    )
+
+
+def build_mapbox_token_children():
+    from dtale.charts.utils import get_mapbox_token
+    msg = 'To access additional styles enter a token here...'
+    if get_mapbox_token() is None:
+        msg = 'Change your token here...'
+    return [
+        html.I(className='ico-help-outline', style=dict(color='white')),
+        html.Div(
+            [
+                html.Span('Mapbox Access Token:'),
+                dcc.Input(id='mapbox-token-input', type='text', placeholder=msg, className='form-control',
+                          value='', style={'lineHeight': 'inherit'})
+            ],
+            className='hoverable__content',
+            style=dict(width='20em', right='-1.45em')
+        )
+    ]
+
+
+def build_mapbox_token_hover():
+    return html.Span(
+        [
+            'Style',
+            html.Div(
+                build_mapbox_token_children(),
+                className='ml-3 hoverable',
+                style=dict(borderBottom='none'),
+                id='token-hover'
             )
         ],
         className='input-group-addon'
@@ -412,6 +453,17 @@ def build_map_options(df, type='choropleth', loc=None, lat=None, lon=None, map_v
     return loc_options, lat_options, lon_options, val_options
 
 
+def build_mapbox_style_options():
+    from dtale.charts.utils import get_mapbox_token
+    free_styles = ['open-street-map', 'carto-positron', 'carto-darkmatter', 'stamen-terrain', 'stamen-toner',
+                   'stamen-watercolor']
+    token_styles = ['basic', 'streets', 'outdoors', 'light', 'dark', 'satellite', 'satellite-streets']
+    styles = free_styles
+    if get_mapbox_token() is not None:
+        styles += token_styles
+    return [build_option(v) for v in styles]
+
+
 def bar_input_style(**inputs):
     """
     Sets display CSS property for bar chart inputs
@@ -478,10 +530,11 @@ def build_group_val_options(df, group_cols):
 def build_map_type_tabs(map_type):
     def _build_hoverable():
         for t in MAP_TYPES:
-            yield html.Div([
-                html.Span(t.get('label', t['value'].capitalize())),
-                html.Img(src=build_img_src(t['value'], img_type='map_type'))
-            ], className='col-md-6')
+            if t.get('image', False):
+                yield html.Div([
+                    html.Span(t.get('label', t['value'].capitalize())),
+                    html.Img(src=build_img_src(t['value'], img_type='map_type'))
+                ], className='col-md-6')
 
     return html.Div(
         [dcc.Tabs(
@@ -493,7 +546,7 @@ def build_map_type_tabs(map_type):
             html.Div(list(_build_hoverable()), className='row'),
             className='hoverable__content map-types'
         )],
-        style=dict(paddingLeft=15, borderBottom='none'), className="pr-5 hoverable"
+        style=dict(paddingLeft=15, borderBottom='none', width='20em'), className="hoverable"
     )
 
 
@@ -544,11 +597,11 @@ def charts_layout(df, settings, **inputs):
     show_map = chart_type == 'maps'
     map_props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val']
     map_type, loc_mode, loc, lat, lon, map_val = (inputs.get(p) for p in map_props)
-    map_scope, proj = (inputs.get(p) for p in ['scope', 'proj'])
+    map_scope, proj, mapbox_style = (inputs.get(p) for p in ['scope', 'proj', 'mapbox_style'])
     loc_options, lat_options, lon_options, map_val_options = build_map_options(df, type=map_type, loc=loc, lat=lat,
                                                                                lon=lon, map_val=map_val)
     cscale_style = colorscale_input_style(**inputs)
-    default_cscale = 'Greens' if chart_type == 'heatmap' else 'Reds'
+    default_cscale = 'Jet' if chart_type == 'heatmap' else 'Reds'
 
     group_val_style, main_input_class = main_inputs_and_group_val_display(inputs)
     group_val = [json.dumps(gv) for gv in inputs.get('group_val') or []]
@@ -698,7 +751,7 @@ def charts_layout(df, settings, **inputs):
                             ),
                             id='map-lat-input',
                             label_class='input-group-addon d-block pt-1 pb-0',
-                            style=show_map_style(map_type == 'scattergeo')
+                            style=show_map_style(map_type in ['scattergeo', 'mapbox'])
                         ),
                         build_input(
                             [html.Div('Lon'), html.Small('(Agg By)')],
@@ -711,7 +764,7 @@ def charts_layout(df, settings, **inputs):
                             ),
                             id='map-lon-input',
                             label_class='input-group-addon d-block pt-1 pb-0',
-                            style=show_map_style(map_type == 'scattergeo')
+                            style=show_map_style(map_type in ['scattergeo', 'mapbox'])
                         ),
                         build_input('Scope', dcc.Dropdown(
                             id='map-scope-dropdown',
@@ -719,6 +772,24 @@ def charts_layout(df, settings, **inputs):
                             style=dict(width='inherit'),
                             value=map_scope or 'world'
                         ), id='map-scope-input', style=show_map_style(map_type == 'scattergeo')),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        build_mapbox_token_hover(),
+                                        dcc.Dropdown(
+                                            id='map-mapbox-style-dropdown',
+                                            options=build_mapbox_style_options(),
+                                            style=dict(width='inherit'),
+                                            value=mapbox_style or 'open-street-map'
+                                        )
+                                    ],
+                                    className='input-group mr-3',
+                                )
+                            ],
+                            id='map-mapbox-style-input', className='col-auto',
+                            style=show_map_style(map_type == 'mapbox')
+                        ),
                         html.Div(
                             [
                                 html.Div(

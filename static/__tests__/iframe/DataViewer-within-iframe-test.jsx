@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
-import { DataViewerMenu } from "../../dtale/DataViewerMenu";
+import { DataViewerMenu } from "../../dtale/menu/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, withGlobalJquery } from "../test-utils";
@@ -67,7 +67,7 @@ describe("DataViewer within iframe tests", () => {
     window.self = self;
   });
 
-  it("DataViewer: iframe menu rendering...", async () => {
+  it("DataViewer: column menu rendering...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
@@ -89,8 +89,8 @@ describe("DataViewer within iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Instances 1", "Code Export", "Export"],
-        ["Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
+        ["Code Export", "Export", "Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
       )
     );
     clickMainMenuButton(result, "Open In New Tab");

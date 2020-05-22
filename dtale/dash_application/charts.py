@@ -89,8 +89,11 @@ def chart_url_querystring(params, data=None, group_filter=None):
     if chart_type == 'bar':
         base_props += ['barmode', 'barsort']
     elif chart_type == 'maps':
-        if params.get('map_type') == 'scattergeo':
+        map_type = params.get('map_type')
+        if map_type == 'scattergeo':
             base_props += ['map_type', 'lat', 'lon', 'map_val', 'scope', 'proj']
+        elif map_type == 'mapbox':
+            base_props += ['map_type', 'lat', 'lon', 'map_val', 'mapbox_style']
         else:
             base_props += ['map_type', 'loc_mode', 'loc', 'map_val']
         base_props += ['map_group']
@@ -1013,8 +1016,9 @@ def map_builder(data_id, export=False, **inputs):
     try:
         if not valid_chart(**inputs):
             return None, None
-        props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val', 'scope', 'proj', 'agg', 'animate_by']
-        map_type, loc_mode, loc, lat, lon, map_val, scope, proj, agg, animate_by = (inputs.get(p) for p in props)
+        props = ['map_type', 'loc_mode', 'loc', 'lat', 'lon', 'map_val', 'scope', 'proj', 'mapbox_style', 'agg',
+                 'animate_by']
+        map_type, loc_mode, loc, lat, lon, map_val, scope, proj, style, agg, animate_by = (inputs.get(p) for p in props)
         map_group, group_val = (inputs.get(p) for p in ['map_group', 'group_val'])
         raw_data = run_query(
             global_state.get_data(data_id),
@@ -1065,6 +1069,46 @@ def map_builder(data_id, export=False, **inputs):
                 update_cfg_w_frames(figure_cfg, *build_map_frames(data, animate_by, build_frame))
             chart = graph_wrapper(
                 id='scattergeo-graph',
+                style={'margin-right': 'auto', 'margin-left': 'auto', 'height': '95%'},
+                config=dict(topojsonURL='/maps/'),
+                figure=figure_cfg
+            )
+        elif map_type == 'mapbox':
+            from dtale.charts.utils import get_mapbox_token
+            data, code = retrieve_chart_data(raw_data, lat, lon, map_val, animate_by, map_group, group_val=group_val)
+            if agg is not None:
+                data, agg_code = build_agg_data(raw_data, lat, lon, {}, agg, z=map_val, animate_by=animate_by)
+                code += agg_code
+
+            mapbox_layout = {'style': style}
+            mapbox_token = get_mapbox_token()
+            if mapbox_token is not None:
+                mapbox_layout['accesstoken'] = mapbox_token
+            # if test_plotly_version('4.5.0') and animate_by is None:
+            #     geo_layout['fitbounds'] = 'locations'
+            if len(mapbox_layout):
+                layout['mapbox'] = mapbox_layout
+
+            chart_kwargs = dict(lon=data[lon], lat=data[lat], mode='markers', marker=dict(color='darkblue'))
+            if map_val is not None:
+                chart_kwargs['text'] = data[map_val]
+                chart_kwargs['marker'] = dict(
+                    color=data[map_val], cmin=data[map_val].min(), cmax=data[map_val].max(),
+                    colorscale=inputs.get('colorscale') or 'Jet',
+                    colorbar_title=map_val
+                )
+            figure_cfg = dict(data=[go.Scattermapbox(**chart_kwargs)], layout=layout)
+            if animate_by is not None:
+                def build_frame(df):
+                    frame = dict(lon=df[lon], lat=df[lat], mode='markers')
+                    if map_val is not None:
+                        frame['text'] = df[map_val]
+                        frame['marker'] = dict(color=df[map_val])
+                    return frame
+
+                update_cfg_w_frames(figure_cfg, *build_map_frames(data, animate_by, build_frame))
+            chart = graph_wrapper(
+                id='scattermapbox-graph',
                 style={'margin-right': 'auto', 'margin-left': 'auto', 'height': '95%'},
                 config=dict(topojsonURL='/maps/'),
                 figure=figure_cfg
