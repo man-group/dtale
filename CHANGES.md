@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.15 (2020-5-31)
+ * [#202](https://github.com/man-group/dtale/issues/202): maximum recursion errors when using Pyzo IDE
+
 ### 1.8.14 (2020-5-31)
  * [#168](https://github.com/man-group/dtale/issues/168): updated default colorscale for heatmaps to be Jet
  * [#152](https://github.com/man-group/dtale/issues/152): added scattermapbox as a valid map type

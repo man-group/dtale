@@ -35,10 +35,19 @@ def setup_logging(logfile, log_level, verbose=False):
     else:
         log_level = LOG_LEVELS['info']
 
+    # for pkg in ['_plotly_utils', 'asyncio', 'concurrent', 'matplotlib', 'parso', 'past', 'prompt_toolkit', 'requests',
+    #             'tornado', 'urllib3']:
+    #     logging.getLogger(pkg).propagate = True
+
     logging.getLogger().handlers = []
 
     fmt = "%(asctime)s - %(levelname)-8s - %(message)s"
-    logging.basicConfig(format=fmt, level=log_level)
+    try:
+        logging.basicConfig(format=fmt, level=log_level)
+    except BaseException:
+        # #202: when using Pyzo IDE the basicConfig has already been set and if you try to set it again
+        # then it will cause a maximum recursion exception
+        logging.getLogger().setLevel(log_level)
 
     if logfile:
         fh = logging.FileHandler(logfile, mode='w')
@@ -47,6 +56,7 @@ def setup_logging(logfile, log_level, verbose=False):
 
     for handler in logging.getLogger().handlers:
         handler.setLevel(log_level)
+        handler.setFormatter(logging.Formatter(fmt))
 
     logger.debug("{}".format(' '.join(sys.argv)))
     try:
