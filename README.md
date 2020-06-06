@@ -47,7 +47,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Header](#header)
   - [Editing Cells](#editing-cells)
   - [Main Menu Functions](#main-menu-functions)
-    - [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
@@ -405,6 +405,16 @@ Here's a quick demo:
 [![](http://img.youtube.com/vi/MY5w0m_4IAc/0.jpg)](http://www.youtube.com/watch?v=MY5w0m_4IAc "Editing Cells")
 
 ### Main Menu Functions
+
+#### XArray Operations
+
+* **Convert To XArray**: If you have are currently viewing a pandas dataframe in D-Tale you will be given this option to convert your data to an `xarray.Dataset`.  It is as simple as selecting one or many columns as an index and then your dataframe will be converted to a dataset (`df.set_index([...]).to_xarray()`) which makes toggling between indexes slices much easier.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/xarray_indexes.png)
+
+* **XArray Dimensions**: If you are currently viewing data associated with an `xarray.Dataset` you will be given the ability to toggle which dimension coordinates you're viewing by clicking this button.  You can select values for all, some or none (all data - no filter) of your coordinates and the data displayed in your grid will match your selections.  Under the hood the code being executed is as follows: `ds.sel(dim1=coord1,...).to_dataframe()`
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/xarray_dimensions.png)
 
 #### Describe
 View all the columns & their data types as well as individual details of each column

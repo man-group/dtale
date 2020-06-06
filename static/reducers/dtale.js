@@ -15,6 +15,10 @@ function toBool(value) {
   return _.lowerCase(value) === "true";
 }
 
+function toJson(value) {
+  return _.isNull(value) ? {} : JSON.parse(value);
+}
+
 function dataId(state = null, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -87,6 +91,30 @@ function selectedToggle(state = null, action = {}) {
   }
 }
 
+function xarray(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("xarray"));
+    case "convert-to-xarray":
+      return true;
+    default:
+      return state;
+  }
+}
+
+function xarrayDim(state = {}, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toJson(getHiddenValue("xarray_dim"));
+    case "update-xarray-dim":
+      return action.xarrayDim;
+    case "convert-to-xarray":
+      return {};
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -96,6 +124,8 @@ const dtaleStore = combineReducers({
   columnMenuOpen,
   selectedCol,
   selectedToggle,
+  xarray,
+  xarrayDim,
 });
 
 export default { store: dtaleStore, getHiddenValue };

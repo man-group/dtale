@@ -23,6 +23,20 @@ function closeColumnMenu() {
   return (dispatch, getState) => dispatch({ type: "hide-column-menu", colName: getState().selectedCol });
 }
 
+function updateXArrayDim(xarrayDim, callback) {
+  return dispatch => {
+    dispatch({ type: "update-xarray-dim", xarrayDim });
+    callback();
+  };
+}
+
+function convertToXArray(callback) {
+  return dispatch => {
+    dispatch({ type: "convert-to-xarray" });
+    callback();
+  };
+}
+
 function isPopup() {
   return _.startsWith(window.location.pathname, "/dtale/popup");
 }
@@ -55,6 +69,8 @@ export default {
   toggleColumnMenu,
   hideColumnMenu,
   closeColumnMenu,
+  updateXArrayDim,
+  convertToXArray,
   isPopup,
   getParams,
 };

@@ -729,18 +729,33 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
     settings = global_state.get_settings(data_id) or {}
     ctxt_vars = global_state.get_context_variables(data_id)
 
-    startup_code = settings.get('startup_code')
-    startup_code = '# Data Re-shaping\n{}\n\n'.format(startup_code) if startup_code else ''
+    startup_code = settings.get('startup_code') or ''
+    xarray_setup = ''
+    if data_id in global_state.DATASETS:
+        xarray_dims = global_state.get_dataset_dim(data_id)
+        if len(xarray_dims):
+            xarray_setup = (
+                'df = ds.sel({selectors}).to_dataframe()\n'
+                "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
+                'df = df.set_index(list(ds.dims.keys()))\n'
+            ).format(selectors=', '.join("{}='{}'".format(k, v) for k, v in xarray_dims.items()))
+        else:
+            xarray_setup = (
+                'df = ds.to_dataframe()\n'
+                "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
+                'df = df.set_index(list(ds.dims.keys()))\n'
+            )
     startup_str = (
         "# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'\n\n"
         '{imports}'
+        '{xarray_setup}'
         '{startup}'
         'if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):\n'
         '\tdf = df.to_frame(index=False)\n\n'
         '# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required\n'
         "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
         'df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers\n'
-    ).format(imports=imports, startup=startup_code)
+    ).format(imports=imports, xarray_setup=xarray_setup, startup=startup_code)
     final_history = [startup_str] + history
     final_query = query
     if final_query is None:

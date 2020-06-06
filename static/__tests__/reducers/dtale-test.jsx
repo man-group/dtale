@@ -24,6 +24,8 @@ describe("reducer tests", () => {
       selectedToggle: null,
       dataId: null,
       editedCell: null,
+      xarray: false,
+      xarrayDim: {},
     };
     expect(state).toEqual(store.getState());
   });

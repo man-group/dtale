@@ -4564,6 +4564,14 @@ div.filter-modal > div.modal-lg {
   min-width: 1100px;
 }
 
+div.xarray-dimensions-modal > div.modal-lg {
+  width: 600px;
+}
+
+div.xarray-indexes-modal > div.modal-lg{
+  width: 500px;
+}
+
 @media (min-width: 992px) {
   .modal-lg {
     max-width: 800px;

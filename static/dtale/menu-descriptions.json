@@ -16,5 +16,6 @@
   "widths": "Auto-Resize the column widths",
   "about": "Link to the source code repository, documentation",
   "shutdown": "Close D-Tale and all other open datasets without save. Do you want to export DataFrame?",
-  "editing": "Update cells to anything you'd like. Press \"Enter\" to confirm or \"Esc\" to exit. Invalid types will throw errors. Protected values are \"nan\" & \"inf\"."
+  "editing": "Update cells to anything you'd like. Press \"Enter\" to confirm or \"Esc\" to exit. Invalid types will throw errors. Protected values are \"nan\" & \"inf\".",
+  "xarray_conversion": "Convert your pandas.Dataframe to an xarray.Dataset by selecting columns as an index. Once this is complete you'll be able to view different slices of your data by choosing index values."
 }
