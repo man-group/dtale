@@ -16,6 +16,8 @@ import { Filter } from "./Filter";
 import Instances from "./Instances";
 import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
+import { XArrayDimensions } from "./XArrayDimensions";
+import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
@@ -126,6 +128,24 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <RangeHighlight {...this.props} />;
+        break;
+      case "xarray-dimensions":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-key" />
+            <strong>XArray Dimensions</strong>
+          </ModalTitle>
+        );
+        body = <XArrayDimensions {...this.props} />;
+        break;
+      case "xarray-indexes":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-tune" />
+            <strong>Convert to XArray</strong>
+          </ModalTitle>
+        );
+        body = <XArrayIndexes {...this.props} />;
         break;
       case "rename":
         modalTitle = (

@@ -12,3 +12,4 @@ future
 Flask
 scipy
 scikit-learn
+xarray

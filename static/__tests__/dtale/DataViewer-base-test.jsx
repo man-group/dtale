@@ -76,8 +76,8 @@ describe("DataViewer tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
+        ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts"],
+        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
         ["Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
       )
     );

@@ -80,7 +80,6 @@ describe("DataViewer within iframe tests", () => {
       }
     );
     await tick();
-    //result.update();
     expect(
       result
         .find(DataViewerMenu)
@@ -88,8 +87,8 @@ describe("DataViewer within iframe tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
+        ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts"],
+        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
         ["Code Export", "Export", "Refresh Widths", "About", "Reload Data", "Open In New Tab", "Shutdown"]
       )
     );

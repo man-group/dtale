@@ -26,7 +26,7 @@ const IFRAME = "False";
 const DATA_ID = 1;
 
 function buildInnerHTML(props = {}, store = null) {
-  const { settings, hideShutdown, processes, iframe, dataId } = props;
+  const { settings, hideShutdown, processes, iframe, dataId, xarray, xarrayDim } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   let innerHTML = `<input type="hidden" id="settings" value="${settings || BASE_SETTINGS}" />`;
@@ -35,6 +35,8 @@ function buildInnerHTML(props = {}, store = null) {
   innerHTML += `<input type="hidden" id="processes" value=${processes || PROCESSES} />`;
   innerHTML += `<input type="hidden" id="iframe" value="${iframe || IFRAME}" />`;
   innerHTML += `<input type="hidden" id="data_id" value="${dataId || DATA_ID}" />`;
+  innerHTML += `<input type="hidden" id="xarray" value="${xarray || "False"}" />`;
+  innerHTML += `<input type="hidden" id="xarray_dim" value="${xarrayDim || "{}"}" />`;
   innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
   innerHTML += `<span id="code-title" />`;
   body.innerHTML = innerHTML;

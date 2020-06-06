@@ -50,7 +50,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.8.15",
+    version="1.8.16",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -72,7 +72,8 @@ setup(
         "requests",
         "scikit-learn >= '0.21.0",
         "scipy",
-        "six"
+        "six",
+        "xarray",
     ],
     extras_require={
         'arctic': ["arctic"],

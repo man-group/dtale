@@ -7,14 +7,16 @@ import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import bu from "../backgroundUtils";
 import Descriptions from "../menu-descriptions.json";
+import DescribeOption from "./DescribeOption";
+import InstancesOption from "./InstancesOption";
 import RangeHighlightOption from "./RangeHighlightOption";
+import { XArrayOption } from "./XArrayOption";
 import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
     const { hideShutdown, dataId } = this.props;
     const iframe = global.top !== global.self;
-    const processCt = document.getElementById("processes").value;
     const openPopup = (type, height = 450, width = 500) => () => {
       if (menuFuncs.shouldOpenPopup(height, width)) {
         menuFuncs.open(`/dtale/popup/${type}`, dataId, height, width);
@@ -54,15 +56,8 @@ class ReactDataViewerMenu extends React.Component {
         style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
         <header className="title-font">D-TALE</header>
         <ul>
-          <li className="hoverable">
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openTab("describe")}>
-                <i className="ico-view-column" />
-                <span className="font-weight-bold">Describe</span>
-              </button>
-            </span>
-            <div className="hoverable__content menu-description">{Descriptions.describe}</div>
-          </li>
+          <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
+          <DescribeOption open={openTab("describe")} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("filter", 500, 1100)}>
@@ -169,20 +164,7 @@ class ReactDataViewerMenu extends React.Component {
             <div className="hoverable__content menu-description">{Descriptions.highlight_outliers}</div>
           </li>
           <RangeHighlightOption {...this.props} />
-          <li className="hoverable">
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("instances", 450, 750)}>
-                <i className="ico-apps" />
-                <span className="font-weight-bold">
-                  {"Instances "}
-                  <span className="badge badge-secondary">{processCt}</span>
-                </span>
-              </button>
-            </span>
-            <div className="hoverable__content menu-description">
-              <span>{Descriptions.instances}</span>
-            </div>
-          </li>
+          <InstancesOption open={openPopup("instances", 450, 750)} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openCodeExport}>

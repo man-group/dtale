@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.16 (2020-6-7)
+ * [#200](https://github.com/man-group/dtale/issues/200): support for xarray
+
 ### 1.8.15 (2020-5-31)
  * [#202](https://github.com/man-group/dtale/issues/202): maximum recursion errors when using Pyzo IDE
 

@@ -5,6 +5,8 @@ function chartData(state = { visible: false }, action = {}) {
     case "open-chart":
       return _.assign({ visible: true }, action.chartData);
     case "loaded-report-data":
+    case "update-xarray-dim":
+    case "convert-to-xarray":
     case "close-chart":
       return _.assign({ visible: false }, action.chartData);
   }

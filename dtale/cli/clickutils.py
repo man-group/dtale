@@ -35,10 +35,6 @@ def setup_logging(logfile, log_level, verbose=False):
     else:
         log_level = LOG_LEVELS['info']
 
-    # for pkg in ['_plotly_utils', 'asyncio', 'concurrent', 'matplotlib', 'parso', 'past', 'prompt_toolkit', 'requests',
-    #             'tornado', 'urllib3']:
-    #     logging.getLogger(pkg).propagate = True
-
     logging.getLogger().handlers = []
 
     fmt = "%(asctime)s - %(levelname)-8s - %(message)s"

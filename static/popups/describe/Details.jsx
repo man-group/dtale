@@ -128,7 +128,12 @@ class Details extends React.Component {
             {`Unique Values${uniques.top ? " (top 100 most common)" : ""}:`}
           </span>
           <br />
-          <span>{_.join(uniques.top ? uniques.data : _.sortBy(uniques.data), ", ")}</span>
+          <span>
+            {_.join(
+              _.map(uniques.data, u => `${u.value} (${u.count})`),
+              ", "
+            )}
+          </span>
         </div>
       </div>
     );

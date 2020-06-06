@@ -2,6 +2,8 @@ from six import PY3
 from six.moves.collections_abc import MutableMapping
 
 DATA = {}
+DATASETS = {}
+DATASET_DIM = {}
 DTYPES = {}
 SETTINGS = {}
 METADATA = {}
@@ -15,6 +17,22 @@ def get_data(data_id=None):
     if data_id is None:
         return _as_dict(DATA)
     return DATA.get(data_id)
+
+
+def get_dataset(data_id=None):
+    global DATASETS
+
+    if data_id is None:
+        return _as_dict(DATASETS)
+    return DATASETS.get(data_id)
+
+
+def get_dataset_dim(data_id=None):
+    global DATASET_DIM
+
+    if data_id is None:
+        return _as_dict(DATASET_DIM)
+    return DATASET_DIM.get(data_id)
 
 
 def get_dtypes(data_id=None):
@@ -63,6 +81,18 @@ def set_data(data_id, val):
     DATA[data_id] = val
 
 
+def set_dataset(data_id, val):
+    global DATASETS
+
+    DATASETS[data_id] = val
+
+
+def set_dataset_dim(data_id, val):
+    global DATASET_DIM
+
+    DATASET_DIM[data_id] = val
+
+
 def set_dtypes(data_id, val):
     global DTYPES
 
@@ -100,17 +130,19 @@ def cleanup(data_id=None):
     :param port: integer string for a D-Tale process's port
     :type port: str
     """
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY
+    global DATA, DATASETS, DATASET_DIM, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY
 
     if data_id is None:
         DATA.clear()
+        DATASETS.clear()
+        DATASET_DIM.clear()
         SETTINGS.clear()
         DTYPES.clear()
         METADATA.clear()
         CONTEXT_VARIABLES.clear()
         HISTORY.clear()
     else:
-        for store in [DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY]:
+        for store in [DATA, DATASETS, DATASET_DIM, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY]:
             if data_id in store:
                 del store[data_id]
 
