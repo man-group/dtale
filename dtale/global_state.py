@@ -142,7 +142,16 @@ def cleanup(data_id=None):
         CONTEXT_VARIABLES.clear()
         HISTORY.clear()
     else:
-        for store in [DATA, DATASETS, DATASET_DIM, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY]:
+        for store in [
+            DATA,
+            DATASETS,
+            DATASET_DIM,
+            DTYPES,
+            SETTINGS,
+            METADATA,
+            CONTEXT_VARIABLES,
+            HISTORY,
+        ]:
             if data_id in store:
                 del store[data_id]
 
@@ -173,17 +182,31 @@ def use_store(store_class, create_store):
     """
     import inspect
 
-    assert inspect.isclass(store_class), 'Must be a class'
-    assert all(hasattr(store_class, a) for a in (
-        'get', 'clear', '__setitem__', '__delitem__', '__len__', '__contains__')), 'Missing required methods'
-    assert (issubclass(store_class, MutableMapping)
-            or hasattr(store_class, 'to_dict')), 'Must subclass MutableMapping or implement "to_dict"'
+    assert inspect.isclass(store_class), "Must be a class"
+    assert all(
+        hasattr(store_class, a)
+        for a in (
+            "get",
+            "clear",
+            "__setitem__",
+            "__delitem__",
+            "__len__",
+            "__contains__",
+        )
+    ), "Missing required methods"
+    assert issubclass(store_class, MutableMapping) or hasattr(
+        store_class, "to_dict"
+    ), 'Must subclass MutableMapping or implement "to_dict"'
 
-    assert inspect.isfunction(create_store), 'Must be a function'
+    assert inspect.isfunction(create_store), "Must be a function"
     if PY3:
-        assert list(inspect.signature(create_store).parameters) == ['name'], 'Must take "name" as the only parameter'
+        assert list(inspect.signature(create_store).parameters) == [
+            "name"
+        ], 'Must take "name" as the only parameter'
     else:
-        assert inspect.getargspec(create_store).args == ['name'], 'Must take "name" as the only parameter'
+        assert inspect.getargspec(create_store).args == [
+            "name"
+        ], 'Must take "name" as the only parameter'
 
     def convert(old_store, name):
         """Convert a data store to the new type
@@ -202,16 +225,17 @@ def use_store(store_class, create_store):
 
     global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY
 
-    DATA = convert(DATA, 'DATA')
-    DTYPES = convert(DTYPES, 'DTYPES')
-    SETTINGS = convert(SETTINGS, 'SETTINGS')
-    METADATA = convert(METADATA, 'METADATA')
-    CONTEXT_VARIABLES = convert(CONTEXT_VARIABLES, 'CONTEXT_VARIABLES')
-    HISTORY = convert(HISTORY, 'HISTORY')
+    DATA = convert(DATA, "DATA")
+    DTYPES = convert(DTYPES, "DTYPES")
+    SETTINGS = convert(SETTINGS, "SETTINGS")
+    METADATA = convert(METADATA, "METADATA")
+    CONTEXT_VARIABLES = convert(CONTEXT_VARIABLES, "CONTEXT_VARIABLES")
+    HISTORY = convert(HISTORY, "HISTORY")
 
 
 def use_default_store():
     """Use the default global data store, which is dictionaries in memory."""
+
     def create_dict(name):
         return dict()
 
@@ -235,6 +259,7 @@ def use_shelve_store(directory):
         Factory for creating decorators that will handle opening the database file
         with the given access and then close it after executing the method.
         """
+
         def decorator(func):
             @wraps(func)
             def wrapper(self, *args, **kwargs):
@@ -242,17 +267,20 @@ def use_shelve_store(directory):
                 result = func(self, *args, **kwargs)
                 self.db.close()
                 return result
+
             return wrapper
+
         return decorator
 
-    read = with_db_access('r')
-    write = with_db_access('w')
+    read = with_db_access("r")
+    write = with_db_access("w")
 
     class DtaleShelf:
         """Interface allowing dtale to use 'shelf' databases for global data storage."""
+
         def __init__(self, filename):
             self.filename = filename
-            self.db = shelve.open(self.filename, flag='n')
+            self.db = shelve.open(self.filename, flag="n")
             self.db.close()
 
         @read
@@ -301,13 +329,15 @@ def use_redis_store(directory, *args, **kwargs):
     """
     import pickle
     from os.path import join
+
     try:
         from redislite import Redis
     except ImportError:
-        raise Exception('redislite must be installed')
+        raise Exception("redislite must be installed")
 
     class DtaleRedis(Redis):
         """Wrapper class around Redis() to make it work as a global data store in dtale."""
+
         def get(self, name, *args, **kwargs):
             value = super(DtaleRedis, self).get(name, *args, **kwargs)
             if value is not None:
@@ -321,13 +351,13 @@ def use_redis_store(directory, *args, **kwargs):
             self.flushdb()
 
         def to_dict(self):
-            return {k.decode('utf-8'): self.get(k) for k in self.keys()}
+            return {k.decode("utf-8"): self.get(k) for k in self.keys()}
 
         def __len__(self):
             return len(self.keys())
 
     def create_redis(name):
-        file_path = join(directory, name + '.db')
+        file_path = join(directory, name + ".db")
         return DtaleRedis(file_path, *args, **kwargs)
 
     use_store(DtaleRedis, create_redis)

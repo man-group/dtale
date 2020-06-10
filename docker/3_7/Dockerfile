@@ -27,11 +27,11 @@ WORKDIR /workspace
 RUN set -eux \
   ; pip install six \
   ; pip install lxml \
-  ; pip install isort \
+  ; pip install black \
   ; pip install -r docs/source/requirements.txt \
   ; python setup.py develop \
   ; python setup.py build_sphinx \
-  ; isort --recursive -c -vb setup.py dtale tests \
+  ; black --check setup.py dtale tests \
   ; export TZ=America/New_York \
   ; python setup.py test \
   ; python setup.py bdist_egg

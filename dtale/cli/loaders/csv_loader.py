@@ -5,15 +5,18 @@ from six import PY3, BytesIO, StringIO
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options, loader_prop_keys
 
-'''
+"""
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
   When build_loaders runs startup it will search for any modules containing the global variable LOADER_KEY.
-'''
-LOADER_KEY = 'csv'
+"""
+LOADER_KEY = "csv"
 LOADER_PROPS = [
-    dict(name='path', help='path to CSV file'),
-    dict(name='proxy', help="proxy URL if you're passing in a URL for --csv-path"),
-    dict(name='parse_dates', help='comma-separated string of column names which should be parsed as dates')
+    dict(name="path", help="path to CSV file"),
+    dict(name="proxy", help="proxy URL if you're passing in a URL for --csv-path"),
+    dict(
+        name="parse_dates",
+        help="comma-separated string of column names which should be parsed as dates",
+    ),
 ]
 
 
@@ -23,16 +26,20 @@ def show_loader(**kwargs):
 
 
 def loader_func(**kwargs):
-    path = kwargs.pop('path')
-    if path.startswith('http://') or path.startswith('https://'):  # add support for URLs
-        proxy = kwargs.pop('proxy', None)
+    path = kwargs.pop("path")
+    if path.startswith("http://") or path.startswith(
+        "https://"
+    ):  # add support for URLs
+        proxy = kwargs.pop("proxy", None)
         req_kwargs = {}
         if proxy is not None:
-            req_kwargs['proxies'] = dict(http=proxy, https=proxy)
+            req_kwargs["proxies"] = dict(http=proxy, https=proxy)
         resp = requests.get(path, **req_kwargs)
         assert resp.status_code == 200
-        path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode('utf-8'))
-    return pd.read_csv(path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)})
+        path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
+    return pd.read_csv(
+        path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)}
+    )
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.
@@ -46,11 +53,15 @@ def find_loader(kwargs):
     """
     csv_opts = get_loader_options(LOADER_KEY, kwargs)
     if len([f for f in csv_opts.values() if f]):
+
         def _csv_loader():
             csv_arg_parsers = {  # TODO: add additional arg parsers
-                'parse_dates': lambda v: v.split(',') if v else None
+                "parse_dates": lambda v: v.split(",") if v else None
             }
-            kwargs = {k: csv_arg_parsers.get(k, lambda v: v)(v) for k, v in csv_opts.items()}
+            kwargs = {
+                k: csv_arg_parsers.get(k, lambda v: v)(v) for k, v in csv_opts.items()
+            }
             return loader_func(**kwargs)
+
         return _csv_loader
     return None

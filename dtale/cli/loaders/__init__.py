@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 
 def build_custom_module_loader_args(fname, path):
-    return 'dtale.cli.loaders.{}'.format(fname), '{}/{}.py'.format(path, fname)
+    return "dtale.cli.loaders.{}".format(fname), "{}/{}.py".format(path, fname)
 
 
 def get_py35_loader(fname, path):
@@ -20,7 +20,9 @@ def get_py35_loader(fname, path):
     """
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location(*build_custom_module_loader_args(fname, path))
+    spec = importlib.util.spec_from_file_location(
+        *build_custom_module_loader_args(fname, path)
+    )
     custom_loader = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(custom_loader)
     return custom_loader
@@ -32,6 +34,7 @@ def get_py33_loader(fname, path):
 
     """
     from importlib.machinery import SourceFileLoader
+
     return SourceFileLoader(*build_custom_module_loader_args(fname, path)).load_module()
 
 
@@ -41,13 +44,14 @@ def get_py2_loader(fname, path):
 
     """
     import imp
+
     return imp.load_source(*build_custom_module_loader_args(fname, path))
 
 
 def unsupported_python_version(version_tuple):
     return (
-        'Unsupported version of python used for custom CLI loaders, {}. If you do not plan on using any custom '
-        'CLI loaders please remove your DTALE_CLI_LOADERS environment variable.'
+        "Unsupported version of python used for custom CLI loaders, {}. If you do not plan on using any custom "
+        "CLI loaders please remove your DTALE_CLI_LOADERS environment variable."
     ).format(version_tuple)
 
 
@@ -86,14 +90,16 @@ def build_loaders():
     """
     global LOADERS
 
-    custom_loader_path = os.environ.get('DTALE_CLI_LOADERS')
+    custom_loader_path = os.environ.get("DTALE_CLI_LOADERS")
     if custom_loader_path is not None:
         custom_loader_func = custom_module_loader()
         for full_filename in os.listdir(custom_loader_path):
             filename, file_extension = os.path.splitext(full_filename)
-            if file_extension == '.py':
+            if file_extension == ".py":
                 custom_loader = custom_loader_func(filename, custom_loader_path)
-                if hasattr(custom_loader, 'LOADER_KEY') and hasattr(custom_loader, 'LOADER_PROPS'):
+                if hasattr(custom_loader, "LOADER_KEY") and hasattr(
+                    custom_loader, "LOADER_PROPS"
+                ):
                     LOADERS[custom_loader.LOADER_KEY] = custom_loader
 
 
@@ -109,31 +115,33 @@ def setup_loader_options():
         for cli_loader in LOADERS.values():
             if len(cli_loader.LOADER_PROPS):
                 for p in cli_loader.LOADER_PROPS:
-                    prop_name = '--{}'.format(cli_loader.LOADER_KEY)
+                    prop_name = "--{}".format(cli_loader.LOADER_KEY)
                     if isinstance(p, str):
                         if len(p):
-                            prop_name = '{}-{}'.format(prop_name, p)
+                            prop_name = "{}-{}".format(prop_name, p)
                         f = click.option(
-                            prop_name, help='Override {}'.format(prop_name)
+                            prop_name, help="Override {}".format(prop_name)
                         )(f)
                     elif isinstance(p, dict):
-                        p_name = p.get('name')
+                        p_name = p.get("name")
                         if len(p_name):
-                            prop_name = '{}-{}'.format(prop_name, p_name)
-                        opt_kwargs = {k: v for k, v in p.items() if k != 'name'}
+                            prop_name = "{}-{}".format(prop_name, p_name)
+                        opt_kwargs = {k: v for k, v in p.items() if k != "name"}
                         f = click.option(prop_name, **opt_kwargs)(f)
                     else:
                         raise NotImplementedError(
-                            'You have specified an unknown type for a value in {} LOADER_PROPS: {}'.format(
+                            "You have specified an unknown type for a value in {} LOADER_PROPS: {}".format(
                                 cli_loader.LOADER_KEY, type(p)
                             )
                         )
             else:
                 f = click.option(
-                    '--{}'.format(cli_loader.LOADER_KEY), is_flag=True,
-                    help='Use {} loader'.format(cli_loader.LOADER_KEY)
+                    "--{}".format(cli_loader.LOADER_KEY),
+                    is_flag=True,
+                    help="Use {} loader".format(cli_loader.LOADER_KEY),
                 )(f)
         return f
+
     return decorator
 
 

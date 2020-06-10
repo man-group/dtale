@@ -23,9 +23,16 @@ from six import PY3
 import dtale.global_state as global_state
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
-from dtale.utils import (DuplicateDataError, build_shutdown_url, build_url,
-                         dict_merge, fix_url_path, get_host,
-                         is_app_root_defined, running_with_flask_debug)
+from dtale.utils import (
+    DuplicateDataError,
+    build_shutdown_url,
+    build_url,
+    dict_merge,
+    fix_url_path,
+    get_host,
+    is_app_root_defined,
+    running_with_flask_debug,
+)
 from dtale.views import DtaleData, head_data_id, is_up, kill, startup
 
 if PY3:
@@ -40,7 +47,7 @@ JUPYTER_SERVER_PROXY = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
 
-SHORT_LIFE_PATHS = ['dist', 'dash']
+SHORT_LIFE_PATHS = ["dist", "dash"]
 SHORT_LIFE_TIMEOUT = 60
 
 REAPER_TIMEOUT = 60.0 * 60.0  # one-hour
@@ -63,18 +70,22 @@ class DtaleFlaskTesting(FlaskClient):
         """
         Constructor method
         """
-        self.host = kwargs.pop('hostname', 'localhost')
-        self.port = kwargs.pop('port', str(random.randint(0, 65535))) or str(random.randint(0, 65535))
+        self.host = kwargs.pop("hostname", "localhost")
+        self.port = kwargs.pop("port", str(random.randint(0, 65535))) or str(
+            random.randint(0, 65535)
+        )
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
-        self.application.config['SERVER_NAME'] = '{host}:{port}'.format(host=self.host, port=self.port)
-        self.application.config['SESSION_COOKIE_DOMAIN'] = 'localhost.localdomain'
+        self.application.config["SERVER_NAME"] = "{host}:{port}".format(
+            host=self.host, port=self.port
+        )
+        self.application.config["SESSION_COOKIE_DOMAIN"] = "localhost.localdomain"
 
     def get(self, *args, **kwargs):
         """
         :param args: Optional arguments to be passed to :meth:`flask:flask.FlaskClient.get`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.FlaskClient.get`
         """
-        return super(DtaleFlaskTesting, self).get(url_scheme='http', *args, **kwargs)
+        return super(DtaleFlaskTesting, self).get(url_scheme="http", *args, **kwargs)
 
 
 class DtaleFlask(Flask):
@@ -89,7 +100,9 @@ class DtaleFlask(Flask):
     :param kwargs: Optional keyword arguments to be passed to :class:`flask:flask.Flask`
     """
 
-    def __init__(self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs):
+    def __init__(
+        self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs
+    ):
         """
         Constructor method
         :param reaper_on: whether to run auto-reaper subprocess
@@ -106,13 +119,13 @@ class DtaleFlask(Flask):
     def update_template_context(self, context):
         super(DtaleFlask, self).update_template_context(context)
         if self.app_root is not None:
-            context['url_for'] = self.url_for
+            context["url_for"] = self.url_for
 
     def url_for(self, endpoint, *args, **kwargs):
-        if self.app_root is not None and endpoint == 'static':
-            if 'filename' in kwargs:
-                return fix_url_path('{}/{}'.format(self.app_root, kwargs["filename"]))
-            return fix_url_path('{}/{}'.format(self.app_root, args[0]))
+        if self.app_root is not None and endpoint == "static":
+            if "filename" in kwargs:
+                return fix_url_path("{}/{}".format(self.app_root, kwargs["filename"]))
+            return fix_url_path("{}/{}".format(self.app_root, args[0]))
         return url_for(endpoint, *args, **kwargs)
 
     def run(self, *args, **kwargs):
@@ -120,11 +133,13 @@ class DtaleFlask(Flask):
         :param args: Optional arguments to be passed to :meth:`flask:flask.run`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
-        self.port = str(kwargs.get('port') or '')
-        if kwargs.get('debug', False):
+        self.port = str(kwargs.get("port") or "")
+        if kwargs.get("debug", False):
             self.reaper_on = False
         self.build_reaper()
-        super(DtaleFlask, self).run(use_reloader=kwargs.get('debug', False), *args, **kwargs)
+        super(DtaleFlask, self).run(
+            use_reloader=kwargs.get("debug", False), *args, **kwargs
+        )
 
     def test_client(self, reaper_on=False, port=None, app_root=None, *args, **kwargs):
         """
@@ -143,10 +158,12 @@ class DtaleFlask(Flask):
         self.reaper_on = reaper_on
         self.app_root = app_root
         if app_root is not None:
-            self.config['APPLICATION_ROOT'] = app_root
-            self.jinja_env.globals['url_for'] = self.url_for
+            self.config["APPLICATION_ROOT"] = app_root
+            self.jinja_env.globals["url_for"] = self.url_for
         self.test_client_class = DtaleFlaskTesting
-        return super(DtaleFlask, self).test_client(*args, **dict_merge(kwargs, dict(port=port)))
+        return super(DtaleFlask, self).test_client(
+            *args, **dict_merge(kwargs, dict(port=port))
+        )
 
     def clear_reaper(self):
         """
@@ -167,7 +184,7 @@ class DtaleFlask(Flask):
         self.clear_reaper()
 
         def _func():
-            logger.info('Executing shutdown due to inactivity...')
+            logger.info("Executing shutdown due to inactivity...")
             if is_up(self.base_url):  # make sure the Flask process is still running
                 requests.get(self.shutdown_url)
             sys.exit()  # kill off the reaper thread
@@ -192,7 +209,14 @@ class DtaleFlask(Flask):
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
-def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=False, app_root=None):
+def build_app(
+    url,
+    host=None,
+    reaper_on=True,
+    hide_shutdown=False,
+    github_fork=False,
+    app_root=None,
+):
     """
     Builds :class:`flask:flask.Flask` application encapsulating endpoints for D-Tale's front-end
 
@@ -200,52 +224,60 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
     :rtype: :class:`dtale.app.DtaleFlask`
     """
 
-    app = DtaleFlask('dtale', reaper_on=reaper_on, static_url_path='', url=url, instance_relative_config=False,
-                     app_root=app_root)
-    app.config['SECRET_KEY'] = 'Dtale'
-    app.config['HIDE_SHUTDOWN'] = hide_shutdown
-    app.config['GITHUB_FORK'] = github_fork
+    app = DtaleFlask(
+        "dtale",
+        reaper_on=reaper_on,
+        static_url_path="",
+        url=url,
+        instance_relative_config=False,
+        app_root=app_root,
+    )
+    app.config["SECRET_KEY"] = "Dtale"
+    app.config["HIDE_SHUTDOWN"] = hide_shutdown
+    app.config["GITHUB_FORK"] = github_fork
 
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
 
     if app_root is not None:
-        app.config['APPLICATION_ROOT'] = app_root
-        app.jinja_env.globals['url_for'] = app.url_for
-    app.jinja_env.globals['is_app_root_defined'] = is_app_root_defined
+        app.config["APPLICATION_ROOT"] = app_root
+        app.jinja_env.globals["url_for"] = app.url_for
+    app.jinja_env.globals["is_app_root_defined"] = is_app_root_defined
 
     app.register_blueprint(dtale)
 
     compress = Compress()
     compress.init_app(app)
 
-    @app.route('/')
-    @app.route('/dtale')
+    @app.route("/")
+    @app.route("/dtale")
     def root():
         """
         :class:`flask:flask.Flask` routes which redirect to dtale/main
 
         :return: 302 - flask.redirect('/dtale/main')
         """
-        return redirect('/dtale/main/{}'.format(head_data_id()))
+        return redirect("/dtale/main/{}".format(head_data_id()))
 
-    @app.route('/favicon.ico')
+    @app.route("/favicon.ico")
     def favicon():
         """
         :class:`flask:flask.Flask` routes which returns favicon
 
         :return: image/png
         """
-        return redirect(app.url_for('static', filename='images/favicon.ico'))
+        return redirect(app.url_for("static", filename="images/favicon.ico"))
 
-    @app.route('/missing-js')
+    @app.route("/missing-js")
     def missing_js():
         missing_js_commands = (
-            '>> cd [location of your local dtale repo]\n'
-            '>> yarn install\n'
+            ">> cd [location of your local dtale repo]\n"
+            ">> yarn install\n"
             ">> yarn run build  # or 'yarn run watch' if you're trying to develop"
         )
-        return render_template('dtale/errors/missing_js.html', missing_js_commands=missing_js_commands)
+        return render_template(
+            "dtale/errors/missing_js.html", missing_js_commands=missing_js_commands
+        )
 
     @app.errorhandler(404)
     def page_not_found(e=None):
@@ -255,8 +287,15 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         :param e: exception
         :return: text/html with exception information
         """
-        return render_template('dtale/errors/404.html', page='', error=e,
-                               stacktrace=str(traceback.format_exc())), 404
+        return (
+            render_template(
+                "dtale/errors/404.html",
+                page="",
+                error=e,
+                stacktrace=str(traceback.format_exc()),
+            ),
+            404,
+        )
 
     @app.errorhandler(500)
     def internal_server_error(e=None):
@@ -266,8 +305,15 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         :param e: exception
         :return: text/html with exception information
         """
-        return render_template('dtale/errors/500.html', page='', error=e,
-                               stacktrace=str(traceback.format_exc())), 500
+        return (
+            render_template(
+                "dtale/errors/500.html",
+                page="",
+                error=e,
+                stacktrace=str(traceback.format_exc()),
+            ),
+            500,
+        )
 
     def shutdown_server():
         global ACTIVE_HOST, ACTIVE_PORT
@@ -275,16 +321,16 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         This function that checks if flask.request.environ['werkzeug.server.shutdown'] exists and
         if so, executes that function
         """
-        logger.info('Executing shutdown...')
-        func = request.environ.get('werkzeug.server.shutdown')
+        logger.info("Executing shutdown...")
+        func = request.environ.get("werkzeug.server.shutdown")
         if func is None:
-            raise RuntimeError('Not running with the Werkzeug Server')
+            raise RuntimeError("Not running with the Werkzeug Server")
         func()
         global_state.cleanup()
         ACTIVE_PORT = None
         ACTIVE_HOST = None
 
-    @app.route('/shutdown')
+    @app.route("/shutdown")
     def shutdown():
         """
         :class:`flask:flask.Flask` route for initiating server shutdown
@@ -293,7 +339,7 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         """
         app.clear_reaper()
         shutdown_server()
-        return 'Server shutting down...'
+        return "Server shutting down..."
 
     @app.before_request
     def before_request():
@@ -304,7 +350,7 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
         """
         app.build_reaper()
 
-    @app.route('/site-map')
+    @app.route("/site-map")
     def site_map():
         """
         :class:`flask:flask.Flask` route listing all available flask endpoints
@@ -330,28 +376,29 @@ def build_app(url, host=None, reaper_on=True, hide_shutdown=False, github_fork=F
                 links.append((url, rule.endpoint))
         return jsonify(links)
 
-    @app.route('/version-info')
+    @app.route("/version-info")
     def version_info():
         """
         :class:`flask:flask.Flask` route for retrieving version information about D-Tale
 
         :return: text/html version information
         """
-        _, version = retrieve_meta_info_and_version('dtale')
+        _, version = retrieve_meta_info_and_version("dtale")
         return str(version)
 
-    @app.route('/health')
+    @app.route("/health")
     def health_check():
         """
         :class:`flask:flask.Flask` route for checking if D-Tale is up and running
 
         :return: text/html 'ok'
         """
-        return 'ok'
+        return "ok"
 
     with app.app_context():
 
         from .dash_application import views as dash_views
+
         app = dash_views.add_dash(app)
         return app
 
@@ -381,10 +428,12 @@ def initialize_process_props(host=None, port=None, force=False):
                 try:
                     kill(new_base)  # kill the original process
                 except BaseException:
-                    raise IOError((
-                        'Could not kill process at {}, possibly something else is running at port {}. Please try '
-                        'another port.'
-                    ).format(new_base, port))
+                    raise IOError(
+                        (
+                            "Could not kill process at {}, possibly something else is running at port {}. Please try "
+                            "another port."
+                        ).format(new_base, port)
+                    )
                 while is_up(new_base):
                     time.sleep(0.01)
             ACTIVE_HOST = final_host
@@ -415,17 +464,17 @@ def find_free_port():
 
     def is_port_in_use(port):
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            return s.connect_ex(('localhost', port)) == 0
+            return s.connect_ex(("localhost", port)) == 0
 
-    min_port = int(os.environ.get('DTALE_MIN_PORT') or 40000)
-    max_port = int(os.environ.get('DTALE_MAX_PORT') or 49000)
+    min_port = int(os.environ.get("DTALE_MIN_PORT") or 40000)
+    max_port = int(os.environ.get("DTALE_MAX_PORT") or 49000)
     base = min_port
     while is_port_in_use(base):
         base += 1
         if base > max_port:
             msg = (
-                'D-Tale could not find an open port from {} to {}, please increase your range by altering the '
-                'environment variables DTALE_MIN_PORT & DTALE_MAX_PORT.'
+                "D-Tale could not find an open port from {} to {}, please increase your range by altering the "
+                "environment variables DTALE_MIN_PORT & DTALE_MAX_PORT."
             ).format(min_port, max_port)
             raise IOError(msg)
     return base
@@ -435,19 +484,33 @@ def build_startup_url_and_app_root(app_root=None):
     url = build_url(ACTIVE_PORT, ACTIVE_HOST)
     final_app_root = app_root
     if final_app_root is None and JUPYTER_SERVER_PROXY:
-        final_app_root = '/user/{}/proxy/'.format(getpass.getuser())
+        final_app_root = "/user/{}/proxy/".format(getpass.getuser())
     if final_app_root is not None:
         if JUPYTER_SERVER_PROXY:
-            final_app_root = fix_url_path('{}/{}'.format(final_app_root, ACTIVE_PORT))
+            final_app_root = fix_url_path("{}/{}".format(final_app_root, ACTIVE_PORT))
             return final_app_root, final_app_root
         else:
-            return fix_url_path('{}/{}'.format(url, final_app_root)), final_app_root
+            return fix_url_path("{}/{}".format(url, final_app_root)), final_app_root
     return url, final_app_root
 
 
-def show(data=None, host=None, port=None, name=None, debug=False, subprocess=True, data_loader=None,
-         reaper_on=True, open_browser=False, notebook=False, force=False, context_vars=None, ignore_duplicate=False,
-         app_root=None, **kwargs):
+def show(
+    data=None,
+    host=None,
+    port=None,
+    name=None,
+    debug=False,
+    subprocess=True,
+    data_loader=None,
+    reaper_on=True,
+    open_browser=False,
+    notebook=False,
+    force=False,
+    context_vars=None,
+    ignore_duplicate=False,
+    app_root=None,
+    **kwargs
+):
     """
     Entry point for kicking off D-Tale :class:`flask:flask.Flask` process from python process
 
@@ -496,12 +559,16 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
     global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK, JUPYTER_SERVER_PROXY
 
     try:
-        logfile, log_level, verbose = map(kwargs.get, ['logfile', 'log_level', 'verbose'])
-        setup_logging(logfile, log_level or 'info', verbose)
+        logfile, log_level, verbose = map(
+            kwargs.get, ["logfile", "log_level", "verbose"]
+        )
+        setup_logging(logfile, log_level or "info", verbose)
 
         if USE_NGROK:
             if not PY3:
-                raise Exception('In order to use ngrok you must be using Python 3 or higher!')
+                raise Exception(
+                    "In order to use ngrok you must be using Python 3 or higher!"
+                )
 
             from flask_ngrok import _run_ngrok
 
@@ -512,13 +579,21 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
 
         app_url = build_url(ACTIVE_PORT, ACTIVE_HOST)
         startup_url, final_app_root = build_startup_url_and_app_root(app_root)
-        instance = startup(startup_url, data=data, data_loader=data_loader, name=name, context_vars=context_vars,
-                           ignore_duplicate=ignore_duplicate)
+        instance = startup(
+            startup_url,
+            data=data,
+            data_loader=data_loader,
+            name=name,
+            context_vars=context_vars,
+            ignore_duplicate=ignore_duplicate,
+        )
         is_active = not running_with_flask_debug() and is_up(app_url)
         if is_active:
+
             def _start():
                 if open_browser:
                     instance.open_browser()
+
         else:
             if USE_NGROK:
                 thread = Timer(1, _run_ngrok)
@@ -526,11 +601,15 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                 thread.start()
 
             def _start():
-                app = build_app(app_url, reaper_on=reaper_on, host=ACTIVE_HOST,
-                                app_root=final_app_root)
+                app = build_app(
+                    app_url,
+                    reaper_on=reaper_on,
+                    host=ACTIVE_HOST,
+                    app_root=final_app_root,
+                )
                 if debug and not USE_NGROK:
                     app.jinja_env.auto_reload = True
-                    app.config['TEMPLATES_AUTO_RELOAD'] = True
+                    app.config["TEMPLATES_AUTO_RELOAD"] = True
                 else:
                     getLogger("werkzeug").setLevel(LOG_ERROR)
 
@@ -538,14 +617,16 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
                     instance.open_browser()
 
                 # hide banner message in production environments
-                cli = sys.modules.get('flask.cli')
+                cli = sys.modules.get("flask.cli")
                 if cli is not None:
                     cli.show_server_banner = lambda *x: None
 
                 if USE_NGROK:
                     app.run(threaded=True)
                 else:
-                    app.run(host='0.0.0.0', port=ACTIVE_PORT, debug=debug, threaded=True)
+                    app.run(
+                        host="0.0.0.0", port=ACTIVE_PORT, debug=debug, threaded=True
+                    )
 
         if subprocess:
             if is_active:
@@ -556,15 +637,15 @@ def show(data=None, host=None, port=None, name=None, debug=False, subprocess=Tru
             if notebook:
                 instance.notebook()
         else:
-            logger.info('D-Tale started at: {}'.format(app_url))
+            logger.info("D-Tale started at: {}".format(app_url))
             _start()
 
         return instance
     except DuplicateDataError as ex:
         print(
-            'It looks like this data may have already been loaded to D-Tale based on shape and column names. Here is '
-            'URL of the data that seems to match it:\n\n{}\n\nIf you still want to load this data please use the '
-            'following command:\n\ndtale.show(df, ignore_duplicate=True)'.format(
+            "It looks like this data may have already been loaded to D-Tale based on shape and column names. Here is "
+            "URL of the data that seems to match it:\n\n{}\n\nIf you still want to load this data please use the "
+            "following command:\n\ndtale.show(df, ignore_duplicate=True)".format(
                 DtaleData(ex.data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url()
             )
         )
@@ -578,12 +659,16 @@ def instances():
     curr_data = global_state.get_data()
 
     if len(curr_data):
+
         def _instance_msg(data_id):
             url = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url()
-            return '{}:\t{}'.format(data_id, url)
-        print('\n'.join(['ID\tURL'] + [_instance_msg(data_id) for data_id in curr_data]))
+            return "{}:\t{}".format(data_id, url)
+
+        print(
+            "\n".join(["ID\tURL"] + [_instance_msg(data_id) for data_id in curr_data])
+        )
     else:
-        print('currently no running instances...')
+        print("currently no running instances...")
 
 
 def get_instance(data_id):
@@ -602,8 +687,23 @@ def get_instance(data_id):
     return None
 
 
-def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group=None, agg=None, window=None,
-                  rolling_comp=None, barmode=None, barsort=None, yaxis=None, filepath=None, **kwargs):
+def offline_chart(
+    df,
+    chart_type=None,
+    query=None,
+    x=None,
+    y=None,
+    z=None,
+    group=None,
+    agg=None,
+    window=None,
+    rolling_comp=None,
+    barmode=None,
+    barsort=None,
+    yaxis=None,
+    filepath=None,
+    **kwargs
+):
     """
     Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
 
@@ -644,8 +744,21 @@ def offline_chart(df, chart_type=None, query=None, x=None, y=None, z=None, group
              - otherwise it will return the HTML output as a string
     """
     instance = startup(url=None, data=df, data_id=999)
-    output = instance.offline_chart(chart_type=chart_type, query=query, x=x, y=y, z=z, group=group, agg=agg,
-                                    window=window, rolling_comp=rolling_comp, barmode=barmode, barsort=barsort,
-                                    yaxis=yaxis, filepath=filepath, **kwargs)
+    output = instance.offline_chart(
+        chart_type=chart_type,
+        query=query,
+        x=x,
+        y=y,
+        z=z,
+        group=group,
+        agg=agg,
+        window=window,
+        rolling_comp=rolling_comp,
+        barmode=barmode,
+        barsort=barsort,
+        yaxis=yaxis,
+        filepath=filepath,
+        **kwargs
+    )
     global_state.cleanup()
     return output

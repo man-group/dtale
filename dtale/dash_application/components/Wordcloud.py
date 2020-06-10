@@ -15,23 +15,30 @@ class Wordcloud(Component):
     - group (list of strings; optional): List of properties to use as groups.
     - height (number; default 400): Height of wordcloud in pixels (default: 400).
     """
+
     @_explicitize_args
-    def __init__(self, id=Component.REQUIRED, data=Component.UNDEFINED, y=Component.UNDEFINED,
-                 group=Component.UNDEFINED, height=Component.UNDEFINED, **kwargs):
-        self._prop_names = ['id', 'data', 'y', 'group', 'height']
-        self._type = 'Wordcloud'
-        self._namespace = 'components'
+    def __init__(
+        self,
+        id=Component.REQUIRED,
+        data=Component.UNDEFINED,
+        y=Component.UNDEFINED,
+        group=Component.UNDEFINED,
+        height=Component.UNDEFINED,
+        **kwargs
+    ):
+        self._prop_names = ["id", "data", "y", "group", "height"]
+        self._type = "Wordcloud"
+        self._namespace = "components"
         self._valid_wildcard_attributes = []
-        self.available_properties = ['id', 'data', 'y', 'group', 'height']
+        self.available_properties = ["id", "data", "y", "group", "height"]
         self.available_wildcard_properties = []
 
-        _explicit_args = kwargs.pop('_explicit_args')
+        _explicit_args = kwargs.pop("_explicit_args")
         _locals = locals()
         _locals.update(kwargs)  # For wildcard attrs
-        args = {k: _locals[k] for k in _explicit_args if k != 'children'}
+        args = {k: _locals[k] for k in _explicit_args if k != "children"}
 
-        for k in ['id']:
+        for k in ["id"]:
             if k not in args:
-                raise TypeError(
-                    'Required argument `' + k + '` was not specified.')
+                raise TypeError("Required argument `" + k + "` was not specified.")
         super(Wordcloud, self).__init__(**args)
