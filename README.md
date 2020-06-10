@@ -34,6 +34,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 
 ## Contents
 
+- [Where To Get It](#where-to-get-it)
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
   - [Jupyter Notebook](#jupyter-notebook)
@@ -60,23 +61,33 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [Global State/Data Storage](https://github.com/man-group/dtale/blob/master/docs/GLOBAL_STATE.md)
 - [Startup Behavior](#startup-behavior)
 - [Documentation](#documentation)
-- [Requirements](#requirements)
+- [Dependencies](#dependencies)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
+
+## Where To get It
+The source code is currently hosted on GitHub at:
+https://github.com/man-group/dtale
+
+Binary installers for the latest released version are available at the [Python
+package index](https://pypi.org/project/dtale) and on conda using [conda-forge](https://github.com/conda-forge/dtale-feedstock).
+
+```sh
+# conda
+conda config --add channels conda-forge
+conda install dtale
+```
+
+```sh
+# or PyPI
+pip install dtale
+```
 
 ## Getting Started
 
 |PyCharm|jupyter|
 |:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_demo_mini.gif)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_ipython.gif)|
-
-Installing the egg
-
-```bash
-# install dtale egg (important to use the "--upgrade" every time you install so it will grab the latest version)
-$ pip install --upgrade dtale
-```
-Now you will have the ability to use D-Tale from the command-line or within a python-enabled terminal
 
 ### Python Terminal
 This comes courtesy of PyCharm
@@ -1062,23 +1073,25 @@ Here's a little background on how the `dtale.show()` function works:
 
 Have a look at the [detailed documentation](https://dtale.readthedocs.io).
 
-## Requirements
+## Dependencies
 
-D-Tale works with:
-  
-  * Back-end
-    * arctic [extra]
-    * dash
-    * dash_daq
-    * Flask
-    * Flask-Compress
-    * Pandas
-    * plotly
-    * scipy
-    * six
-  * Front-end
-    * react-virtualized
-    * chart.js
+* Back-end
+  * dash
+  * dash_daq
+  * Flask
+  * Flask-Compress
+  * flask-ngrok
+  * Pandas
+  * plotly
+  * scikit-learn
+  * scipy
+  * xarray
+  * arctic [extra]
+  * redis [extra]
+  * rpy2 [extra]
+* Front-end
+  * react-virtualized
+  * chart.js
 
 ## Acknowledgements
 
