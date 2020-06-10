@@ -1,5 +1,5 @@
 [flake8]
 max_line_length = 120
 select = E, W, F
-ignore = W503
+ignore = W503,E203
 exclude = node_modules,ci,build,docs,custom_loaders

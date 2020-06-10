@@ -29,7 +29,7 @@ def running_with_pytest():
     :return: `True` if executed from test, `False` otherwise
     :rtype: bool
     """
-    return hasattr(sys, '_called_from_test')
+    return hasattr(sys, "_called_from_test")
 
 
 def running_with_flask_debug():
@@ -39,7 +39,7 @@ def running_with_flask_debug():
     :return: `True` if executed from test, `False` otherwise
     :rtype: bool
     """
-    return os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+    return os.environ.get("WERKZEUG_RUN_MAIN") == "true"
 
 
 def get_host(host=None):
@@ -53,7 +53,7 @@ def get_host(host=None):
 
     def is_valid_host(host):
         try:
-            socket.gethostbyname(host.split('://')[-1])
+            socket.gethostbyname(host.split("://")[-1])
             return True
         except BaseException:
             return False
@@ -62,10 +62,10 @@ def get_host(host=None):
         socket_host = socket.gethostname()
         if is_valid_host(socket_host):
             return socket_host
-        return 'localhost'
+        return "localhost"
     if is_valid_host(host):
         return host
-    raise Exception('Hostname ({}) is not recognized'.format(host))
+    raise Exception("Hostname ({}) is not recognized".format(host))
 
 
 def build_url(port, host):
@@ -78,10 +78,10 @@ def build_url(port, host):
     :type host: str, optional
     :return: str
     """
-    final_port = ':{}'.format(port) if port is not None else ''
-    if (host or '').startswith('http'):
-        return '{}{}'.format(host, final_port)
-    return 'http://{}{}'.format(host, final_port)
+    final_port = ":{}".format(port) if port is not None else ""
+    if (host or "").startswith("http"):
+        return "{}{}".format(host, final_port)
+    return "http://{}{}".format(host, final_port)
 
 
 def build_shutdown_url(base):
@@ -92,7 +92,7 @@ def build_shutdown_url(base):
     :type port: str
     :return: URL string of the shutdown endpoint for the current server and port passed
     """
-    return '{}/shutdown'.format(base)
+    return "{}/shutdown".format(base)
 
 
 def get_str_arg(r, name, default=None):
@@ -106,7 +106,7 @@ def get_str_arg(r, name, default=None):
     :return: string argument value
     """
     val = r.args.get(name)
-    if val is None or val == '':
+    if val is None or val == "":
         return default
     else:
         try:
@@ -126,7 +126,7 @@ def get_json_arg(r, name, default=None):
     :return: parsed JSON
     """
     val = r.args.get(name)
-    if val is None or val == '':
+    if val is None or val == "":
         return default
     else:
         return json.loads(val)
@@ -143,7 +143,7 @@ def get_int_arg(r, name, default=None):
     :return: integer argument value
     """
     val = r.args.get(name)
-    if val is None or val == '':
+    if val is None or val == "":
         return default
     else:
         try:
@@ -163,7 +163,7 @@ def get_float_arg(r, name, default=None):
     :return: float argument value
     """
     val = r.args.get(name)
-    if val is None or val == '':
+    if val is None or val == "":
         return default
     else:
         try:
@@ -181,10 +181,10 @@ def get_bool_arg(r, name):
     :type: str
     :return: `True` if lowercase value equals 'true', `False` otherwise
     """
-    return r.args.get(name, 'false').lower() == 'true'
+    return r.args.get(name, "false").lower() == "true"
 
 
-def json_string(x, nan_display='', **kwargs):
+def json_string(x, nan_display="", **kwargs):
     """
     convert value to string to be used within JSON output
 
@@ -199,13 +199,13 @@ def json_string(x, nan_display='', **kwargs):
         try:
             return str(x)
         except UnicodeEncodeError:
-            return x.encode('utf-8')
+            return x.encode("utf-8")
         except BaseException as ex:
             logger.exception(ex)
     return nan_display
 
 
-def json_int(x, nan_display='', as_string=False, fmt='{:,d}'):
+def json_int(x, nan_display="", as_string=False, fmt="{:,d}"):
     """
     Convert value to integer to be used within JSON output
 
@@ -229,7 +229,7 @@ DECIMAL_CTX = decimal.Context()
 DECIMAL_CTX.prec = 20
 
 
-def json_float(x, precision=2, nan_display='nan', inf_display='inf', as_string=False):
+def json_float(x, precision=2, nan_display="nan", inf_display="inf", as_string=False):
     """
     Convert value to float to be used within JSON output
 
@@ -247,16 +247,18 @@ def json_float(x, precision=2, nan_display='nan', inf_display='inf', as_string=F
         if not np.isnan(x):
             output = float(round(x, precision))
             if as_string:
-                str_output = format(DECIMAL_CTX.create_decimal(repr(x)), ',.{}f'.format(str(precision)))
+                str_output = format(
+                    DECIMAL_CTX.create_decimal(repr(x)), ",.{}f".format(str(precision))
+                )
                 # drop trailing zeroes off & trailing decimal points if necessary
-                return str_output.rstrip('0').rstrip('.')
+                return str_output.rstrip("0").rstrip(".")
             return output
         return nan_display
     except BaseException:
         return nan_display
 
 
-def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display='', **kwargs):
+def json_date(x, fmt="%Y-%m-%d %H:%M:%S", nan_display="", **kwargs):
     """
     Convert value to date string to be used within JSON output
 
@@ -269,15 +271,15 @@ def json_date(x, fmt='%Y-%m-%d %H:%M:%S', nan_display='', **kwargs):
     try:
         # calling unique on a pandas datetime column returns numpy datetime64
         output = (pd.Timestamp(x) if isinstance(x, np.datetime64) else x).strftime(fmt)
-        empty_time = ' 00:00:00'
+        empty_time = " 00:00:00"
         if output.endswith(empty_time):
-            return output[:-1 * len(empty_time)]
+            return output[: -1 * len(empty_time)]
         return output
     except BaseException:
         return nan_display
 
 
-def json_timestamp(x, nan_display='', **kwargs):
+def json_timestamp(x, nan_display="", **kwargs):
     """
     Convert value to timestamp (milliseconds) to be used within JSON output
 
@@ -287,8 +289,11 @@ def json_timestamp(x, nan_display='', **kwargs):
     :rtype: bigint
     """
     try:
-        output = (pd.Timestamp(x) if isinstance(x, np.datetime64) else x)
-        output = int((time.mktime(output.timetuple()) + (old_div(output.microsecond, 1000000.0))) * 1000)
+        output = pd.Timestamp(x) if isinstance(x, np.datetime64) else x
+        output = int(
+            (time.mktime(output.timetuple()) + (old_div(output.microsecond, 1000000.0)))
+            * 1000
+        )
         return output
     except BaseException:
         return nan_display
@@ -308,7 +313,7 @@ class JSONFormatter(object):
         >>> jsonify(f.format_dicts([dict(a=1, b=2.0, c='c')]))
     """
 
-    def __init__(self, nan_display=''):
+    def __init__(self, nan_display=""):
         self.fmts = []
         self.nan_display = nan_display
 
@@ -318,19 +323,24 @@ class JSONFormatter(object):
     def add_int(self, idx, name=None, as_string=False):
         def f(x, nan_display):
             return json_int(x, nan_display=nan_display, as_string=as_string)
+
         self.fmts.append([idx, name, f])
 
     def add_float(self, idx, name=None, precision=6, as_string=False):
         def f(x, nan_display):
-            return json_float(x, precision, nan_display=nan_display, as_string=as_string)
+            return json_float(
+                x, precision, nan_display=nan_display, as_string=as_string
+            )
+
         self.fmts.append([idx, name, f])
 
     def add_timestamp(self, idx, name=None):
         self.fmts.append([idx, name, json_timestamp])
 
-    def add_date(self, idx, name=None, fmt='%Y-%m-%d %H:%M:%S'):
+    def add_date(self, idx, name=None, fmt="%Y-%m-%d %H:%M:%S"):
         def f(x, nan_display):
             return json_date(x, fmt=fmt, nan_display=nan_display)
+
         self.fmts.append([idx, name, f])
 
     def add_json(self, idx, name=None):
@@ -338,10 +348,14 @@ class JSONFormatter(object):
             if x is None or pd.isnull(x):
                 return None
             return x
+
         self.fmts.append([idx, name, f])
 
     def format_dict(self, lst):
-        return {name: f(lst[idx], nan_display=self.nan_display) for idx, name, f in self.fmts}
+        return {
+            name: f(lst[idx], nan_display=self.nan_display)
+            for idx, name, f in self.fmts
+        }
 
     def format_dicts(self, lsts):
         return list(map(self.format_dict, lsts))
@@ -357,7 +371,13 @@ class JSONFormatter(object):
         formatters = {col: f for _idx, col, f in self.fmts}
         cols = [col for col in df.columns if col in formatters]
         return pd.concat(
-            [df[col].apply(lambda v: formatters[col](v, nan_display=self.nan_display)) for col in cols], axis=1
+            [
+                df[col].apply(
+                    lambda v: formatters[col](v, nan_display=self.nan_display)
+                )
+                for col in cols
+            ],
+            axis=1,
         )
 
 
@@ -374,20 +394,20 @@ def classify_type(type_name):
         TD = timedelta
     :rtype: str
     """
-    lower_type_name = (type_name or '').lower()
-    if lower_type_name.startswith('str'):
-        return 'S'
-    if lower_type_name.startswith('bool'):
-        return 'B'
-    if lower_type_name.startswith('float'):
-        return 'F'
-    if lower_type_name.startswith('int'):
-        return 'I'
-    if any([t for t in ['timestamp', 'datetime'] if lower_type_name.startswith(t)]):
-        return 'D'
-    if lower_type_name.startswith('timedelta'):
-        return 'TD'
-    return 'S'
+    lower_type_name = (type_name or "").lower()
+    if lower_type_name.startswith("str"):
+        return "S"
+    if lower_type_name.startswith("bool"):
+        return "B"
+    if lower_type_name.startswith("float"):
+        return "F"
+    if lower_type_name.startswith("int"):
+        return "I"
+    if any([t for t in ["timestamp", "datetime"] if lower_type_name.startswith(t)]):
+        return "D"
+    if lower_type_name.startswith("timedelta"):
+        return "TD"
+    return "S"
 
 
 def retrieve_grid_params(req, props=None):
@@ -401,11 +421,11 @@ def retrieve_grid_params(req, props=None):
     :rtype: dict
     """
     params = dict()
-    params['sort_column'] = get_str_arg(req, 'sortColumn')
-    params['sort_direction'] = get_str_arg(req, 'sortDirection')
-    sort = get_str_arg(req, 'sort')
+    params["sort_column"] = get_str_arg(req, "sortColumn")
+    params["sort_direction"] = get_str_arg(req, "sortDirection")
+    sort = get_str_arg(req, "sort")
     if sort:
-        params['sort'] = json.loads(sort)
+        params["sort"] = json.loads(sort)
     return params
 
 
@@ -428,11 +448,11 @@ def sort_df_for_grid(df, params):
     :return: sorted dataframe
     :rtype: :class:`pandas:pandas.DataFrame`
     """
-    if 'sort' in params:
+    if "sort" in params:
         cols, dirs = [], []
-        for col, dir in params['sort']:
+        for col, dir in params["sort"]:
             cols.append(col)
-            dirs.append(dir == 'ASC')
+            dirs.append(dir == "ASC")
         return df.sort_values(cols, ascending=dirs)
     return df.sort_index()
 
@@ -441,7 +461,7 @@ def find_dtype(s):
     """
     Helper function to determine the dtype of a :class:`pandas:pandas.Series`
     """
-    if s.dtype.name == 'object':
+    if s.dtype.name == "object":
         return pd.api.types.infer_dtype(s, skipna=True)
     else:
         return s.dtype.name
@@ -451,6 +471,7 @@ def get_dtypes(df):
     """
     Build dictionary of column/dtype name pairs from :class:`pandas:pandas.DataFrame`
     """
+
     def _load():
         for col in df.columns:
             yield col, find_dtype(df[col])
@@ -467,10 +488,10 @@ def grid_columns(df):
 
 
 DF_MAPPINGS = {
-    'I': lambda f, i, c: f.add_int(i, c),
-    'D': lambda f, i, c: f.add_date(i, c),
-    'F': lambda f, i, c: f.add_float(i, c),
-    'S': lambda f, i, c: f.add_string(i, c)
+    "I": lambda f, i, c: f.add_int(i, c),
+    "D": lambda f, i, c: f.add_date(i, c),
+    "F": lambda f, i, c: f.add_float(i, c),
+    "S": lambda f, i, c: f.add_string(i, c),
 }
 
 
@@ -478,25 +499,25 @@ def find_dtype_formatter(dtype, overrides=None):
     type_classification = classify_type(dtype)
     if type_classification in (overrides or {}):
         return overrides[type_classification]
-    if type_classification == 'I':
+    if type_classification == "I":
         return json_int
-    if type_classification == 'D':
+    if type_classification == "D":
         return json_date
-    if type_classification == 'F':
+    if type_classification == "F":
         return json_float
     return json_string
 
 
-def grid_formatter(col_types, nan_display='', overrides=None):
+def grid_formatter(col_types, nan_display="", overrides=None):
     """
     Build :class:`dtale.utils.JSONFormatter` from :class:`pandas:pandas.DataFrame`
     """
     f = JSONFormatter(nan_display)
     mappings = dict_merge(DF_MAPPINGS, overrides or {})
     for i, ct in enumerate(col_types, 1):
-        c, dtype = map(ct.get, ['name', 'dtype'])
+        c, dtype = map(ct.get, ["name", "dtype"])
         type_classification = classify_type(dtype)
-        mappings.get(type_classification, DF_MAPPINGS['S'])(f, i, c)
+        mappings.get(type_classification, DF_MAPPINGS["S"])(f, i, c)
     return f
 
 
@@ -522,17 +543,18 @@ def format_grid(df):
     """
     col_types = grid_columns(df)
     f = grid_formatter(col_types)
-    return {
-        'results': f.format_dicts(df.itertuples()),
-        'columns': col_types
-    }
+    return {"results": f.format_dicts(df.itertuples()), "columns": col_types}
 
 
 def handle_error(error_info):
     """
     Boilerplate exception messaging
     """
-    logger.exception("Exception occurred while processing request: {}".format(error_info.get('error')))
+    logger.exception(
+        "Exception occurred while processing request: {}".format(
+            error_info.get("error")
+        )
+    )
 
 
 def jsonify(return_data={}, **kwargs):
@@ -543,9 +565,11 @@ def jsonify(return_data={}, **kwargs):
     :param kwargs: Optional keyword arguments merged into return_data
     :return: output of :meth:`flask:flask.jsonify`
     """
-    if isinstance(return_data, dict) and return_data.get('error'):
+    if isinstance(return_data, dict) and return_data.get("error"):
         handle_error(return_data)
-        return _jsonify(dict_merge(dict(success=False), dict_merge(kwargs, return_data)))
+        return _jsonify(
+            dict_merge(dict(success=False), dict_merge(kwargs, return_data))
+        )
     if len(kwargs):
         return _jsonify(dict_merge(kwargs, return_data))
     return _jsonify(return_data)
@@ -555,8 +579,9 @@ class ChartBuildingError(Exception):
     """
     Exception for signalling there was an issue constructing the data for your chart.
     """
+
     def __init__(self, error, details=None):
-        super(ChartBuildingError, self).__init__('Chart Error')
+        super(ChartBuildingError, self).__init__("Chart Error")
         self.error = error
         self.details = details
 
@@ -613,12 +638,14 @@ def dict_merge(d1, d2, *args):
     :return: new dictionary with the contents of d2 overlaying the contents of d1
     :rtype: dict
     """
+
     def _dict_merge(d11, d12):
         if not d11:
             return d12 or {}
         elif not d12:
             return d11 or {}
         return dict(list(d11.items()) + list(d12.items()))
+
     ret = _dict_merge(d1, d2)
     for d in args:
         ret = _dict_merge(ret, d)
@@ -639,7 +666,7 @@ def divide_chunks(lst, n):
     """
     # looping till length l
     for i in range(0, len(lst), n):
-        yield lst[i:i + n]
+        yield lst[i : i + n]
 
 
 def build_query(data_id, query=None):
@@ -649,13 +676,13 @@ def build_query(data_id, query=None):
 
 def inner_build_query(settings, query=None):
     query_segs = []
-    for p in ['columnFilters', 'outlierFilters']:
+    for p in ["columnFilters", "outlierFilters"]:
         curr_filters = settings.get(p) or {}
         for col, filter_cfg in curr_filters.items():
-            query_segs.append(filter_cfg['query'])
-    if query not in [None, '']:
+            query_segs.append(filter_cfg["query"])
+    if query not in [None, ""]:
         query_segs.append(query)
-    return ' and '.join(query_segs)
+    return " and ".join(query_segs)
 
 
 def run_query(df, query, context_vars=None, ignore_empty=False):
@@ -674,7 +701,7 @@ def run_query(df, query, context_vars=None, ignore_empty=False):
     :type context_vars: dict, optional
     :return: filtered dataframe
     """
-    if (query or '') == '':
+    if (query or "") == "":
         return df
 
     # https://stackoverflow.com/a/40083013/12616360 only supporting filter cleanup for python 3+
@@ -686,7 +713,7 @@ def run_query(df, query, context_vars=None, ignore_empty=False):
         replacements = dict()
         final_query = str(query)
         for cn in invalid_column_names:
-            r = 'REPL_{}'.format(str(invalid_column_names.index(cn)))
+            r = "REPL_{}".format(str(invalid_column_names.index(cn)))
             final_query = final_query.replace(cn, r)
             replacements[cn] = r
 
@@ -707,12 +734,13 @@ class DuplicateDataError(Exception):
     """
     Exception for signalling that similar data is trying to be loaded to D-Tale again.  Is this correct?
     """
+
     def __init__(self, data_id):
         super(DuplicateDataError, self).__init__("Duplicate Data")
         self.data_id = data_id
 
 
-def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
+def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     """
     Helper function for building a string representing the code that was run to get the data you are viewing to that
     point.
@@ -729,67 +757,75 @@ def build_code_export(data_id, imports='import pandas as pd\n\n', query=None):
     settings = global_state.get_settings(data_id) or {}
     ctxt_vars = global_state.get_context_variables(data_id)
 
-    startup_code = settings.get('startup_code') or ''
-    xarray_setup = ''
+    startup_code = settings.get("startup_code") or ""
+    xarray_setup = ""
     if data_id in global_state.DATASETS:
         xarray_dims = global_state.get_dataset_dim(data_id)
         if len(xarray_dims):
             xarray_setup = (
-                'df = ds.sel({selectors}).to_dataframe()\n'
+                "df = ds.sel({selectors}).to_dataframe()\n"
                 "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-                'df = df.set_index(list(ds.dims.keys()))\n'
-            ).format(selectors=', '.join("{}='{}'".format(k, v) for k, v in xarray_dims.items()))
+                "df = df.set_index(list(ds.dims.keys()))\n"
+            ).format(
+                selectors=", ".join(
+                    "{}='{}'".format(k, v) for k, v in xarray_dims.items()
+                )
+            )
         else:
             xarray_setup = (
-                'df = ds.to_dataframe()\n'
+                "df = ds.to_dataframe()\n"
                 "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-                'df = df.set_index(list(ds.dims.keys()))\n'
+                "df = df.set_index(list(ds.dims.keys()))\n"
             )
     startup_str = (
         "# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'\n\n"
-        '{imports}'
-        '{xarray_setup}'
-        '{startup}'
-        'if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):\n'
-        '\tdf = df.to_frame(index=False)\n\n'
-        '# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required\n'
+        "{imports}"
+        "{xarray_setup}"
+        "{startup}"
+        "if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):\n"
+        "\tdf = df.to_frame(index=False)\n\n"
+        "# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required\n"
         "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-        'df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers\n'
+        "df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers\n"
     ).format(imports=imports, xarray_setup=xarray_setup, startup=startup_code)
     final_history = [startup_str] + history
     final_query = query
     if final_query is None:
-        final_query = settings.get('query')
+        final_query = settings.get("query")
 
     if final_query is not None:
         if len(ctxt_vars or {}):
-            final_history.append((
-                "\n# this is injecting any context variables you may have passed into 'dtale.show'\n"
-                "import dtale.global_state as dtale_global_state\n"
-                "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
-                "#             differing results\n"
-                "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
-                'df = df.query("{query}", local_dict=ctxt_vars)\n'
-            ).format(query=final_query, data_id=data_id))
+            final_history.append(
+                (
+                    "\n# this is injecting any context variables you may have passed into 'dtale.show'\n"
+                    "import dtale.global_state as dtale_global_state\n"
+                    "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
+                    "#             differing results\n"
+                    "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
+                    'df = df.query("{query}", local_dict=ctxt_vars)\n'
+                ).format(query=final_query, data_id=data_id)
+            )
         else:
             final_history.append("df = df.query('{}')\n".format(final_query))
-    elif 'query' in settings:
-        final_history.append("df = df.query('{}')\n".format(settings['query']))
-    if 'sort' in settings:
+    elif "query" in settings:
+        final_history.append("df = df.query('{}')\n".format(settings["query"]))
+    if "sort" in settings:
         cols, dirs = [], []
-        for col, dir in settings['sort']:
+        for col, dir in settings["sort"]:
             cols.append(col)
-            dirs.append('True' if dir == 'ASC' else 'False')
-        final_history.append("df = df.sort_values(['{cols}'], ascending=[{dirs}])\n".format(
-            cols=', '.join(cols), dirs="', '".join(dirs)
-        ))
+            dirs.append("True" if dir == "ASC" else "False")
+        final_history.append(
+            "df = df.sort_values(['{cols}'], ascending=[{dirs}])\n".format(
+                cols=", ".join(cols), dirs="', '".join(dirs)
+            )
+        )
     return final_history
 
 
 def export_to_csv_buffer(data, tsv=False):
-    kwargs = dict(encoding='utf-8', index=False)
+    kwargs = dict(encoding="utf-8", index=False)
     if tsv:
-        kwargs['sep'] = '\t'
+        kwargs["sep"] = "\t"
     csv_buffer = StringIO()
     data.to_csv(csv_buffer, **kwargs)
     csv_buffer.seek(0)
@@ -797,10 +833,10 @@ def export_to_csv_buffer(data, tsv=False):
 
 
 def is_app_root_defined(app_root):
-    return app_root is not None and app_root != '/'
+    return app_root is not None and app_root != "/"
 
 
 def fix_url_path(path):
-    while '//' in path:
-        path = path.replace('//', '/')
+    while "//" in path:
+        path = path.replace("//", "/")
     return path

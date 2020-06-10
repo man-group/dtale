@@ -59,15 +59,16 @@ javascript: &javascript
           path: /tmp/circleci-test-results
       - store_artifacts:
           path: /tmp/circleci-test-results
+python_variables: &python_variables
+  CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+  CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+  CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
+  VERSION: 1.8.16
+  PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
+  RUN_BLACK: true
 python: &python
     parallelism: 1
     shell: /bin/bash --login
-    environment:
-      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
-      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
-      CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-      VERSION: 1.8.16
-      PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
     steps:
       - attach_workspace:
           at: /tmp
@@ -100,8 +101,6 @@ python: &python
            . ci/bin/activate
            pip install six
            pip install lxml
-           pip install flake8
-           pip install isort
            pip install -r docs/source/requirements.txt
            python setup.py develop
       # Save dependency cache
@@ -120,12 +119,16 @@ python: &python
           name: Run Flake8
           command: |
             . ci/bin/activate
+            pip install flake8
             flake8
       - run:
-          name: Run isort
+          name: Run black
           command: |
-            . ci/bin/activate
-            isort --recursive -c -vb setup.py dtale tests
+            if [ "$RUN_BLACK" = "true" ]; then
+              . ci/bin/activate
+              pip install black
+              black --check setup.py dtale tests
+            fi
       # Test
       - run:
          name: Run all tests
@@ -209,21 +212,30 @@ jobs:
     working_directory: ~/man-group/dtale_2_7
     docker:
     - image: circleci/python:2.7-buster
+    environment:
+      <<: *python_variables
+      RUN_BLACK: false
     <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
     docker:
     - image: circleci/python:3.6-buster
+    environment:
+      <<: *python_variables
     <<: *python
   build_3_7:
     working_directory: ~/man-group/dtale_3_7
     docker:
       - image: circleci/python:3.7-buster
+    environment:
+      <<: *python_variables
     <<: *python
   build_3_8:
     working_directory: ~/man-group/dtale_3_8
     docker:
       - image: circleci/python:3.8-buster
+    environment:
+      <<: *python_variables
     <<: *python
 workflows:
   version: 2

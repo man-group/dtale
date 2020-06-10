@@ -12,15 +12,16 @@ from setuptools.command.test import test as TestCommand
 # http://stackoverflow.com/a/26737672
 try:
     import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
-    changelog = pypandoc.convert('CHANGES.md', 'rst')
+
+    long_description = pypandoc.convert("README.md", "rst")
+    changelog = pypandoc.convert("CHANGES.md", "rst")
 except (IOError, ImportError, OSError):
-    long_description = open('README.md').read()
-    changelog = open('CHANGES.md').read()
+    long_description = open("README.md").read()
+    changelog = open("CHANGES.md").read()
 
 
 class PyTest(TestCommand):
-    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
@@ -32,18 +33,31 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s', level='DEBUG')
+        logging.basicConfig(
+            format="%(asctime)s %(levelname)s %(name)s %(message)s", level="DEBUG"
+        )
 
         # import here, cause outside the eggs aren't loaded
         import pytest
 
-        args = [self.pytest_args] if isinstance(self.pytest_args, six.string_types) else list(self.pytest_args)
-        args.extend(['--cov', 'dtale',
-                     '--cov-report', 'xml',
-                     '--cov-report', 'html',
-                     '--junitxml', 'junit.xml',
-                     '-v'
-                     ])
+        args = (
+            [self.pytest_args]
+            if isinstance(self.pytest_args, six.string_types)
+            else list(self.pytest_args)
+        )
+        args.extend(
+            [
+                "--cov",
+                "dtale",
+                "--cov-report",
+                "xml",
+                "--cov-report",
+                "html",
+                "--junitxml",
+                "junit.xml",
+                "-v",
+            ]
+        )
         errno = pytest.main(args)
         sys.exit(errno)
 
@@ -55,7 +69,7 @@ setup(
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
     license="LGPL",
-    long_description='\n'.join((long_description, changelog)),
+    long_description="\n".join((long_description, changelog)),
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
     install_requires=[
@@ -76,19 +90,10 @@ setup(
         "xarray",
     ],
     extras_require={
-        'arctic': ["arctic"],
-        'r': [
-            "rpy2<=2.8.6; python_version < '3.0'",
-            "rpy2; python_version > '3.0'",
-        ],
-        'redis': ["redislite"],
-        'tests': [
-            "ipython",
-            "mock",
-            "pytest",
-            "pytest-cov",
-            "pytest-server-fixtures",
-        ]
+        "arctic": ["arctic"],
+        "r": ["rpy2<=2.8.6; python_version < '3.0'", "rpy2; python_version > '3.0'"],
+        "redis": ["redislite"],
+        "tests": ["ipython", "mock", "pytest", "pytest-cov", "pytest-server-fixtures"],
     },
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -102,20 +107,22 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    cmdclass={
-        "test": PyTest,
-    },
+    cmdclass={"test": PyTest},
     packages=find_packages(exclude=["tests*", "script*"]),
-    package_data={"dtale": ["dash_application/components/*",
-                            "static/dist/*",
-                            "static/dash/*",
-                            "static/css/*",
-                            "static/fonts/*",
-                            "static/images/*",
-                            "static/images/**/*",
-                            "static/maps/*",
-                            "templates/**/*",
-                            "templates/**/**/*"]},
+    package_data={
+        "dtale": [
+            "dash_application/components/*",
+            "static/dist/*",
+            "static/dash/*",
+            "static/css/*",
+            "static/fonts/*",
+            "static/images/*",
+            "static/images/**/*",
+            "static/maps/*",
+            "templates/**/*",
+            "templates/**/**/*",
+        ]
+    },
     entry_points={"console_scripts": ["dtale = dtale.cli.script:main"]},
-    zip_safe=False
+    zip_safe=False,
 )

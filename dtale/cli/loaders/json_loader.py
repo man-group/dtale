@@ -5,15 +5,18 @@ from pkg_resources import parse_version
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options, loader_prop_keys
 
-'''
+"""
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
   When build_loaders runs startup it will search for any modules containing the global variable LOADER_KEY.
-'''
-LOADER_KEY = 'json'
+"""
+LOADER_KEY = "json"
 LOADER_PROPS = [
-    dict(name='path', help='path to JSON file or URL to JSON endpoint'),
-    dict(name='proxy', help="proxy URL if you're passing in a URL for --json-path"),
-    dict(name='convert_dates', help='comma-separated string of column names which should be parsed as dates')
+    dict(name="path", help="path to JSON file or URL to JSON endpoint"),
+    dict(name="proxy", help="proxy URL if you're passing in a URL for --json-path"),
+    dict(
+        name="convert_dates",
+        help="comma-separated string of column names which should be parsed as dates",
+    ),
 ]
 
 
@@ -23,24 +26,30 @@ def show_loader(**kwargs):
 
 
 def is_pandas1():
-    return parse_version(pd.__version__) >= parse_version('1.0.0')
+    return parse_version(pd.__version__) >= parse_version("1.0.0")
 
 
 def loader_func(**kwargs):
-    path = kwargs.pop('path')
-    normalize = kwargs.pop('normalize', False)
-    if path.startswith('http://') or path.startswith('https://'):  # add support for URLs
-        proxy = kwargs.pop('proxy', None)
+    path = kwargs.pop("path")
+    normalize = kwargs.pop("normalize", False)
+    if path.startswith("http://") or path.startswith(
+        "https://"
+    ):  # add support for URLs
+        proxy = kwargs.pop("proxy", None)
         req_kwargs = {}
         if proxy is not None:
-            req_kwargs['proxies'] = dict(http=proxy, https=proxy)
+            req_kwargs["proxies"] = dict(http=proxy, https=proxy)
         resp = requests.get(path, **req_kwargs)
         assert resp.status_code == 200
         path = resp.json() if normalize else resp.text
     if normalize:
-        normalize_func = pd.json_normalize if is_pandas1() else pd.io.json.json_normalize
+        normalize_func = (
+            pd.json_normalize if is_pandas1() else pd.io.json.json_normalize
+        )
         return normalize_func(path, **kwargs)
-    return pd.read_json(path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)})
+    return pd.read_json(
+        path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)}
+    )
 
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.
@@ -54,11 +63,15 @@ def find_loader(kwargs):
     """
     json_opts = get_loader_options(LOADER_KEY, kwargs)
     if len([f for f in json_opts.values() if f]):
+
         def _json_loader():
             json_arg_parsers = {  # TODO: add additional arg parsers
-                'parse_dates': lambda v: v.split(',') if v else None
+                "parse_dates": lambda v: v.split(",") if v else None
             }
-            kwargs = {k: json_arg_parsers.get(k, lambda v: v)(v) for k, v in json_opts.items()}
+            kwargs = {
+                k: json_arg_parsers.get(k, lambda v: v)(v) for k, v in json_opts.items()
+            }
             return loader_func(**kwargs)
+
         return _json_loader
     return None

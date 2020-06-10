@@ -11,7 +11,11 @@ from six import string_types
 logger = logging.getLogger(__name__)
 
 LOG_LEVELS = dict(
-    debug=logging.DEBUG, info=logging.INFO, warning=logging.WARNING, error=logging.ERROR, critical=logging.CRITICAL
+    debug=logging.DEBUG,
+    info=logging.INFO,
+    warning=logging.WARNING,
+    error=logging.ERROR,
+    critical=logging.CRITICAL,
 )
 
 
@@ -28,12 +32,12 @@ def setup_logging(logfile, log_level, verbose=False):
     :return:
     """
 
-    if log_level == 'verbose' or verbose:
-        log_level = LOG_LEVELS['debug']
+    if log_level == "verbose" or verbose:
+        log_level = LOG_LEVELS["debug"]
     elif log_level:
         log_level = LOG_LEVELS[log_level]
     else:
-        log_level = LOG_LEVELS['info']
+        log_level = LOG_LEVELS["info"]
 
     logging.getLogger().handlers = []
 
@@ -46,7 +50,7 @@ def setup_logging(logfile, log_level, verbose=False):
         logging.getLogger().setLevel(log_level)
 
     if logfile:
-        fh = logging.FileHandler(logfile, mode='w')
+        fh = logging.FileHandler(logfile, mode="w")
         fh.setFormatter(logging.Formatter(fmt))
         logging.getLogger().addHandler(fh)
 
@@ -54,7 +58,7 @@ def setup_logging(logfile, log_level, verbose=False):
         handler.setLevel(log_level)
         handler.setFormatter(logging.Formatter(fmt))
 
-    logger.debug("{}".format(' '.join(sys.argv)))
+    logger.debug("{}".format(" ".join(sys.argv)))
     try:
         logger.debug("Hostname: {}".format(socket.gethostname()))
     except Exception as e:
@@ -75,10 +79,14 @@ def loader_options(key, params):
     :return: filter
     :rtype: func
     """
+
     def decorator(f):
         for p in params:
-            f = click.option('--' + key + '-' + p, help='Override {} {}'.format(key, p))(f)
+            f = click.option(
+                "--" + key + "-" + p, help="Override {} {}".format(key, p)
+            )(f)
         return f
+
     return decorator
 
 
@@ -95,18 +103,26 @@ def get_loader_options(key, options):
     """
 
     def _build_key(option):
-        segs = option.split('_')
+        segs = option.split("_")
         if len(segs) == 1:
-            return ''
-        return '_'.join(segs[1:])
-    return dict(((_build_key(k), v) for k, v in options.items() if k.startswith(key) if v is not None))
+            return ""
+        return "_".join(segs[1:])
+
+    return dict(
+        (
+            (_build_key(k), v)
+            for k, v in options.items()
+            if k.startswith(key)
+            if v is not None
+        )
+    )
 
 
 def get_log_options(options):
     """
     Click logging options (logfile, log_level, verbose)
     """
-    names = ['logfile', 'log_level', 'verbose']
+    names = ["logfile", "log_level", "verbose"]
     return get_named_options(names, options)
 
 
@@ -124,11 +140,11 @@ def retrieve_meta_info_and_version(name):
     try:
         dist = pkg_resources.get_distribution(name)
     except BaseException:
-        return None, 'unknown'
+        return None, "unknown"
     try:
         for line in dist._get_metadata(dist.PKG_INFO):
-            if line.startswith('Description:'):
-                return line[len('Description:'):].strip(), dist.version
+            if line.startswith("Description:"):
+                return line[len("Description:") :].strip(), dist.version
     except BaseException:
         pass
     return None, dist.version
@@ -172,12 +188,12 @@ def run(click_wrapper):
     t1 = datetime.now()
     try:
         try:
-            dtale_name = 'dtale'
+            dtale_name = "dtale"
             bld_info, ver_info = retrieve_meta_info_and_version(dtale_name)
-            logger.debug('{} bld: {}'.format(dtale_name, bld_info))
-            logger.debug('{} ver: {}'.format(dtale_name, ver_info))
+            logger.debug("{} bld: {}".format(dtale_name, bld_info))
+            logger.debug("{} ver: {}".format(dtale_name, ver_info))
         except BaseException:
-            logger.debug('failure to retrieve metadata for: {}'.format(dtale_name))
+            logger.debug("failure to retrieve metadata for: {}".format(dtale_name))
 
         args = get_args(click_wrapper)
         click_wrapper(args)
@@ -190,4 +206,4 @@ def run(click_wrapper):
 
 
 def loader_prop_keys(prop_cfgs):
-    return [p if isinstance(p, string_types) else p['name'] for p in prop_cfgs]
+    return [p if isinstance(p, string_types) else p["name"] for p in prop_cfgs]
