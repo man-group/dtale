@@ -15,6 +15,7 @@ from plotly.io import write_html
 from six import PY3, StringIO, string_types
 
 import dtale.dash_application.components as dash_components
+import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
 from dtale.charts.utils import (
     YAXIS_CHARTS,
@@ -31,7 +32,7 @@ from dtale.charts.utils import (
     valid_chart,
     weekday_tick_handler,
 )
-from dtale.dash_application.layout import (
+from dtale.dash_application.layout.layout import (
     AGGS,
     ANIMATE_BY_CHARTS,
     ANIMATION_CHARTS,
@@ -122,6 +123,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
             base_props += ["map_type", "lat", "lon", "map_val", "mapbox_style"]
         else:
             base_props += ["map_type", "loc_mode", "loc", "map_val"]
+            if params.get("loc_mode") == "geojson-id":
+                base_props += ["geojson", "featureidkey"]
         base_props += ["map_group"]
 
     if chart_type in ["maps", "heatmap"]:
@@ -1439,6 +1442,7 @@ def map_builder(data_id, export=False, **inputs):
             data, code = retrieve_chart_data(
                 raw_data, loc, map_val, map_group, animate_by, group_val=group_val
             )
+            choropleth_kwargs = {}
             if agg is not None:
                 data, agg_code = build_agg_data(
                     data, loc, map_val, {}, agg, animate_by=animate_by
@@ -1446,6 +1450,18 @@ def map_builder(data_id, export=False, **inputs):
                 code += agg_code
             if loc_mode == "USA-states":
                 layout["geo"] = dict(scope="usa")
+            elif loc_mode == "geojson-id":
+                geojson_id, featureidkey = (
+                    inputs.get(p) for p in ["geojson", "featureidkey"]
+                )
+                geojson_data = custom_geojson.get_custom_geojson(geojson_id)
+                choropleth_kwargs["geojson"] = geojson_data["data"]
+                if geojson_data["type"] == "FeatureCollection":
+                    choropleth_kwargs["featureidkey"] = "properties.{}".format(
+                        featureidkey
+                    )
+                else:
+                    choropleth_kwargs["featureidkey"] = "id"
             figure_cfg = dict(
                 data=[
                     go.Choropleth(
@@ -1456,6 +1472,7 @@ def map_builder(data_id, export=False, **inputs):
                         colorbar_title=map_val,
                         zmin=data[map_val].min(),
                         zmax=data[map_val].max(),
+                        **choropleth_kwargs
                     )
                 ],
                 layout=layout,

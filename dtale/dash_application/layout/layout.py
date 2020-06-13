@@ -6,7 +6,9 @@ import dash_html_components as html
 import plotly
 from pkg_resources import parse_version
 
+import dtale.dash_application.custom_geojson as custom_geojson
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, find_group_vals
+from dtale.dash_application.layout.utils import build_input, build_option
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
@@ -113,34 +115,6 @@ def base_layout(github_fork, app_root, **kwargs):
     )
 
 
-def build_input(
-    label, input, className="col-auto", label_class="input-group-addon", **kwargs
-):
-    """
-    Helper function to build a standard label/input component in dash.
-
-    :param label: name of the input you are displaying
-    :type label: str
-    :param input: dash component for storing state
-    :param className: style class to be applied to encapsulating div
-    :type className: str
-    :param kwargs: Optional keyword arguments to be applied to encapsulating div (style, title, id...)
-    :type kwargs: dict
-    :return: dash components for label/input
-    :rtype: :dash:`dash_html_components.Div <dash-html-components/div>`
-    """
-    return html.Div(
-        [
-            html.Div(
-                [html.Span(label, className=label_class), input],
-                className="input-group mr-3",
-            )
-        ],
-        className=className,
-        **kwargs
-    )
-
-
 def build_tab(label, value, additional_style=None, **kwargs):
     """
     Builds a :dash:`dash_core_components.Tab <dash-core-components/tab>` with standard styling settings.
@@ -171,14 +145,6 @@ def build_tab(label, value, additional_style=None, **kwargs):
         ),
         **kwargs
     )
-
-
-def build_option(value, label=None):
-    """
-    Returns value/label inputs in a dictionary for use in
-    :dash:`dash_core_components.Dropdown <dash-core-components/Dropdown>`
-    """
-    return {"label": label or value, "value": value}
 
 
 CHARTS = [
@@ -412,6 +378,7 @@ LOC_MODE_INFO = {
         ),
         examples=["United States", "United Kingdom", "Germany"],
     ),
+    "geojson-id": dict(label="Custom GeoJSON", desc="Load custom geojson into D-Tale"),
 }
 
 
@@ -419,19 +386,28 @@ def build_loc_mode_hover_children(loc_mode):
     if loc_mode is None:
         return None
     loc_mode_cfg = LOC_MODE_INFO[loc_mode]
+    url, examples, desc = (loc_mode_cfg.get(p) for p in ["url", "examples", "desc"])
+    body = []
+    if url is not None:
+        body.append(
+            html.Div([html.Span("View", className="mr-3"), loc_mode_cfg["url"]])
+        )
+    if examples is not None:
+        body.append(
+            html.Ul(
+                [
+                    html.Li(e, style={"listStyleType": "disc"}, className="mb-3")
+                    for e in loc_mode_cfg["examples"]
+                ],
+                className="pt-3 mb-0",
+            )
+        )
+    if desc is not None:
+        body.append(html.Span(desc))
     return [
         html.I(className="ico-help-outline", style=dict(color="white")),
         html.Div(
-            [
-                html.Div([html.Span("View", className="mr-3"), loc_mode_cfg["url"]]),
-                html.Ul(
-                    [
-                        html.Li(e, style={"listStyleType": "disc"}, className="mb-3")
-                        for e in loc_mode_cfg["examples"]
-                    ],
-                    className="pt-3 mb-0",
-                ),
-            ],
+            body,
             className="hoverable__content build-code",
             style=dict(width="auto", whiteSpace="nowrap", left="-2em", top="auto"),
         ),
@@ -890,6 +866,7 @@ def charts_layout(df, settings, **inputs):
                     in [
                         "map_type",
                         "map_code",
+                        "loc_mode",
                         "lat",
                         "lon",
                         "map_val",
@@ -1033,11 +1010,17 @@ def charts_layout(df, settings, **inputs):
                                                     dcc.Dropdown(
                                                         id="map-loc-mode-dropdown",
                                                         options=[
-                                                            build_option(v)
+                                                            build_option(
+                                                                v,
+                                                                LOC_MODE_INFO[v].get(
+                                                                    "label"
+                                                                ),
+                                                            )
                                                             for v in [
                                                                 "ISO-3",
                                                                 "USA-states",
                                                                 "country names",
+                                                                "geojson-id",
                                                             ]
                                                         ],
                                                         style=dict(width="inherit"),
@@ -1051,6 +1034,7 @@ def charts_layout(df, settings, **inputs):
                                         style=show_map_style(map_type == "choropleth"),
                                         className="col-auto",
                                     ),
+                                    custom_geojson.build_modal(map_type, loc_mode),
                                     build_input(
                                         [html.Div("Locations"), html.Small("(Agg By)")],
                                         dcc.Dropdown(
@@ -1172,7 +1156,7 @@ def charts_layout(df, settings, **inputs):
                                     ),
                                 ],
                                 id="map-inputs",
-                                className="row pt-3 pb-3 charts-filters",
+                                className="row charts-filters",
                                 style={} if show_map else {"display": "none"},
                             ),
                             html.Div(

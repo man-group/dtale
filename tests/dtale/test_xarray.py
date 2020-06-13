@@ -93,6 +93,23 @@ def test_view(unittest):
             assert resp.status_code == 200
             assert list(data[c.port].location.unique()) == ["IA", "IN", "IL"]
 
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data, dtypes, datasets, dataset_dim = {}, {}, {}, {}
+            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            stack.enter_context(mock.patch("dtale.global_state.DATASETS", datasets))
+            stack.enter_context(
+                mock.patch("dtale.global_state.DATASET_DIM", dataset_dim)
+            )
+            zero_dim_xarray = xarray_data().sel(location="IA", time="2000-01-01")
+            startup(URL, data=zero_dim_xarray, data_id=c.port)
+            assert c.port in datasets
+
+            response = c.get("/dtale/main/{}".format(c.port))
+            assert 'input id="xarray" value="True"' not in str(response.data)
+            assert 'input id="xarray_dim" value="{}"' not in str(response.data)
+
 
 @pytest.mark.unit
 def test_convert():

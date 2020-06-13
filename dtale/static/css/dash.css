@@ -484,9 +484,17 @@ div.tab-container > div.tab:last-child {
 }
 #cpg-input .input-group-addon,
 #animate-input .input-group-addon,
-#map-loc-mode-input .input-group-addon {
+#map-loc-mode-input .input-group-addon,
+#custom-geojson-input .input-group-addon,
+#upload-geojson-btn .input-group-addon {
     height: 36px;
     white-space: pre-line;
+}
+#custom-geojson-input {
+  width: 7em;
+}
+#upload-geojson-btn {
+  width: 5em;
 }
 #cpg-input > div.input-group div:last-child,
 #animate-input > div.input-group div:last-child{
@@ -526,12 +534,13 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
     min-width: 10em;
 }
 
-#map-inputs > div.col-auto {
+div#map-inputs > div.col-auto {
     padding-right: 0;
 }
 
 div#non-map-inputs > div,
-div#chart-inputs > div {
+div#chart-inputs > div,
+div#map-inputs > div {
   padding-top: 0.25rem !important;
   padding-bottom: 0.25rem !important;
 }
@@ -540,5 +549,9 @@ div#chart-inputs > div {
   width: 100%;
   border-top-left-radius: .25rem;
   border-bottom-left-radius: .25rem;
+}
+
+#geojson-modal .Select--single {
+  min-width: unset;
 }
 
