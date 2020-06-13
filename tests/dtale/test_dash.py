@@ -16,7 +16,7 @@ from dtale.dash_application.charts import (
     get_url_parser,
 )
 from dtale.dash_application.components import Wordcloud
-from dtale.dash_application.layout import update_label_for_freq
+from dtale.dash_application.layout.layout import update_label_for_freq
 
 if PY3:
     from contextlib import ExitStack
@@ -67,7 +67,7 @@ def test_display_page(unittest):
 
 
 @pytest.mark.unit
-def test_query_changes(unittest):
+def test_query_changes():
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -204,7 +204,7 @@ def test_map_data(unittest):
                     "map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style..."
                     "map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style..."
                     "map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children..."
-                    "loc-mode-hover.style...loc-mode-hover.children.."
+                    "loc-mode-hover.style...loc-mode-hover.children...custom-geojson-input.style.."
                 ),
                 "changedPropIds": ["map-type-tabs.value"],
                 "inputs": [
@@ -222,6 +222,8 @@ def test_map_data(unittest):
                     },
                     {"id": "map-proj-dropdown", "property": "value", "value": None},
                     {"id": "map-group-dropdown", "property": "value", "value": None},
+                    {"id": "geojson-dropdown", "property": "value", "value": None},
+                    {"id": "featureidkey-dropdown", "property": "value", "value": None},
                 ],
                 "state": [pathname],
             }
@@ -255,8 +257,8 @@ def test_map_data(unittest):
             unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
 
             params["inputs"][0]["value"] = "choropleth"
-            params["inputs"][-1]["value"] = "foo"
-            params["inputs"][-2]["value"] = "hammer"
+            params["inputs"][-3]["value"] = "foo"
+            params["inputs"][-4]["value"] = "hammer"
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             unittest.assertEqual(resp_data["map-loc-mode-input"]["style"], {})
@@ -1335,6 +1337,17 @@ def test_chart_building_3D_scatter(unittest, test_data):
             unittest.assertEqual(
                 chart_markup["props"]["figure"]["layout"]["title"],
                 {"text": "security_id by date weighted by bar (Mean)"},
+            )
+
+            inputs["agg"] = "pctsum"
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/charts/_dash-update-component", json=params)
+            chart_markup = response.get_json()["response"]["chart-content"]["children"][
+                0
+            ]["props"]["children"][1]
+            unittest.assertEqual(
+                chart_markup["props"]["figure"]["layout"]["title"],
+                {"text": "security_id by date weighted by bar (Percentage Sum)"},
             )
 
 

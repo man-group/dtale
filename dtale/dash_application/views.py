@@ -7,10 +7,11 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
+import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
-from dtale.dash_application.layout import (
+from dtale.dash_application.layout.layout import (
     animate_styles,
     bar_input_style,
     base_layout,
@@ -272,6 +273,7 @@ def init_callbacks(dash_app):
             Output("proj-hover", "children"),
             Output("loc-mode-hover", "style"),
             Output("loc-mode-hover", "children"),
+            Output("custom-geojson-input", "style"),
         ],
         [
             Input("map-type-tabs", "value"),
@@ -284,11 +286,25 @@ def init_callbacks(dash_app):
             Input("map-mapbox-style-dropdown", "value"),
             Input("map-proj-dropdown", "value"),
             Input("map-group-dropdown", "value"),
+            Input("geojson-dropdown", "value"),
+            Input("featureidkey-dropdown", "value"),
         ],
         [State("url", "pathname")],
     )
     def map_data(
-        map_type, loc_mode, loc, lat, lon, map_val, scope, style, proj, group, pathname
+        map_type,
+        loc_mode,
+        loc,
+        lat,
+        lon,
+        map_val,
+        scope,
+        style,
+        proj,
+        group,
+        geojson,
+        featureidkey,
+        pathname,
     ):
         data_id = get_data_id(pathname)
         map_type = map_type or "choropleth"
@@ -296,6 +312,9 @@ def init_callbacks(dash_app):
             map_data = dict(
                 map_type=map_type, loc_mode=loc_mode, loc=loc, map_val=map_val
             )
+            if loc_mode == "geojson-id":
+                map_data["geojson"] = geojson
+                map_data["featureidkey"] = featureidkey
         elif map_type == "mapbox":
             map_data = dict(
                 map_type=map_type, lat=lat, lon=lon, map_val=map_val, mapbox_style=style
@@ -330,6 +349,11 @@ def init_callbacks(dash_app):
             {"display": "none"} if loc_mode is None else dict(borderBottom="none")
         )
         loc_mode_children = build_loc_mode_hover_children(loc_mode)
+        custom_geojson_link = (
+            {}
+            if map_type == "choropleth" and loc_mode == "geojson-id"
+            else {"display": "none"}
+        )
         return (
             map_data,
             loc_options,
@@ -347,6 +371,7 @@ def init_callbacks(dash_app):
             proj_hopver_children,
             loc_mode_hover_style,
             loc_mode_children,
+            custom_geojson_link,
         )
 
     @dash_app.callback(
@@ -691,3 +716,5 @@ def init_callbacks(dash_app):
         df = global_state.get_data(data_id)
         settings = global_state.get_settings(data_id) or {}
         return charts_layout(df, settings, **params)
+
+    custom_geojson.init_callbacks(dash_app)

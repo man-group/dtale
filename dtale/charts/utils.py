@@ -56,6 +56,10 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         if map_type == "choropleth" and all(
             inputs.get(p) is not None for p in ["loc_mode", "loc", "map_val"]
         ):
+            if inputs.get("loc_mode") == "geojson-id" and any(
+                inputs.get(p) is None for p in ["geojson", "featureidkey"]
+            ):
+                return False
             return True
         elif map_type in ["scattergeo", "mapbox"] and all(
             inputs.get(p) is not None for p in ["lat", "lon"]
