@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.8.17 (2020-6-18)
+ * [#151](https://github.com/man-group/dtale/issues/151): allow users to load custom topojson into choropleth maps
+
 ### 1.8.16 (2020-6-7)
  * [#200](https://github.com/man-group/dtale/issues/200): support for xarray
 
