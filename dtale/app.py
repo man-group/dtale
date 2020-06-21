@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import getpass
 import os
+import pandas as pd
 import random
 import socket
 import sys
@@ -395,6 +396,11 @@ def build_app(
         """
         return "ok"
 
+    @app.url_value_preprocessor
+    def handle_data_id(_endpoint, values):
+        if values and "data_id" in values:
+            values["data_id"] = global_state.find_data_id(values["data_id"])
+
     with app.app_context():
 
         from .dash_application import views as dash_views
@@ -660,12 +666,26 @@ def instances():
 
     if len(curr_data):
 
-        def _instance_msg(data_id):
-            url = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST)).main_url()
-            return "{}:\t{}".format(data_id, url)
+        def _instance_msgs():
+            for data_id in curr_data:
+                data_obj = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST))
+                metadata = global_state.get_metadata(data_id)
+                name = metadata.get("name")
+                yield [data_id, name or "", data_obj.build_main_url(data_id=data_id)]
+                if name is not None:
+                    yield [
+                        global_state.convert_name_to_url_path(name),
+                        name,
+                        data_obj.build_main_url(),
+                    ]
 
+        data = pd.DataFrame(
+            list(_instance_msgs()), columns=["ID", "Name", "URL"]
+        ).to_string(index=False)
         print(
-            "\n".join(["ID\tURL"] + [_instance_msg(data_id) for data_id in curr_data])
+            (
+                "To gain access to an instance object simply pass the value from 'ID' to dtale.get_instance(ID)\n\n{}"
+            ).format(data)
         )
     else:
         print("currently no running instances...")
@@ -680,8 +700,8 @@ def get_instance(data_id):
     :type data_id: str
     :return: :class:`dtale.views.DtaleData`
     """
-    data_id_str = str(data_id)
-    if global_state.get_data(data_id_str) is not None:
+    data_id_str = global_state.find_data_id(str(data_id))
+    if data_id_str is not None:
         startup_url, _ = build_startup_url_and_app_root()
         return DtaleData(data_id_str, startup_url)
     return None

@@ -114,7 +114,7 @@ def get_data_id(pathname):
     """
     Parses data ID from query path (ex: 'foo/bar/1' => '1')
     """
-    return pathname.split("/")[-1]
+    return global_state.find_data_id(pathname.split("/")[-1])
 
 
 def init_callbacks(dash_app):

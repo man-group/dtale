@@ -607,6 +607,7 @@ def test_update_visibility(unittest):
     with app.test_client() as c:
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
             c.post(
                 "/dtale/update-visibility/{}".format(c.port),
@@ -2773,6 +2774,7 @@ def test_get_filter_info(unittest):
             expected_return_value = [
                 dict(name=k, value=str(v)[:1000]) for k, v in context_vars.items()
             ]
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: None}))
             stack.enter_context(
                 mock.patch(
                     "dtale.global_state.CONTEXT_VARIABLES", {data_id: context_vars}

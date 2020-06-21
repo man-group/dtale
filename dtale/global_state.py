@@ -1,3 +1,5 @@
+import string
+
 from six import PY3
 from six.moves.collections_abc import MutableMapping
 
@@ -9,6 +11,30 @@ SETTINGS = {}
 METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
+
+
+def drop_punctuation(val):
+    if PY3:
+        return val.translate(str.maketrans(dict.fromkeys(string.punctuation)))
+    return val.translate(string.maketrans("", ""), string.punctuation)
+
+
+def convert_name_to_url_path(name):
+    if name is None:
+        return None
+    url_name = drop_punctuation(name)
+    url_name = url_name.lower()
+    return "_".join(url_name.split(" "))
+
+
+def find_data_id(data_id_or_name):
+    if data_id_or_name in get_data():
+        return data_id_or_name
+    for data_id, metadata in get_metadata().items():
+        url_name = convert_name_to_url_path(metadata.get("name"))
+        if data_id_or_name == url_name:
+            return data_id
+    return None
 
 
 def get_data(data_id=None):

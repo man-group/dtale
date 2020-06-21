@@ -34,6 +34,7 @@ def test_update_geojson():
     with app.test_client() as c:
         with ExitStack() as stack:
             custom_geojson_data = []
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: None}))
             stack.enter_context(
                 mock.patch(
                     "dtale.dash_application.custom_geojson.CUSTOM_GEOJSON",

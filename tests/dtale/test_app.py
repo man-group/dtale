@@ -144,7 +144,9 @@ def test_show(unittest, builtin_pkg):
         instance = show(
             data=test_data, subprocess=False, name="foo", ignore_duplicate=True
         )
+        print(instance.main_url())
         assert "http://localhost:9999" == instance._url
+        assert "http://localhost:9999/dtale/main/foo" == instance.main_url()
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
 
@@ -160,6 +162,10 @@ def test_show(unittest, builtin_pkg):
 
         instance2 = get_instance(instance._data_id)
         assert instance2._url == instance._url
+        instance2 = get_instance("foo")
+        assert instance2._url == instance._url
+        pdt.assert_frame_equal(instance2.data, tmp)
+
         instances()
 
         assert get_instance(20) is None  # should return None for invalid data ids
@@ -168,6 +174,12 @@ def test_show(unittest, builtin_pkg):
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://localhost:9999/shutdown"
         assert global_state.METADATA["1"]["name"] == "foo"
+
+        instance3 = show(
+            data=test_data, subprocess=False, name="It's Here", ignore_duplicate=True
+        )
+        assert instance3.main_url() == "http://localhost:9999/dtale/main/its_here"
+        pdt.assert_frame_equal(instance3.data, test_data)
 
     with ExitStack() as stack:
         mock_run = stack.enter_context(
@@ -222,12 +234,12 @@ def test_show(unittest, builtin_pkg):
         mock_run.assert_not_called()
         webbrowser_instance = mock_webbrowser.return_value
         assert (
-            "http://localhost:9999/dtale/main/3"
+            "http://localhost:9999/dtale/main/4"
             == webbrowser_instance.open.call_args[0][0]
         )
         instance.open_browser()
         assert (
-            "http://localhost:9999/dtale/main/3"
+            "http://localhost:9999/dtale/main/4"
             == webbrowser_instance.open.mock_calls[1][1][0]
         )
 
@@ -292,7 +304,7 @@ def test_show(unittest, builtin_pkg):
         )
         mock_display.assert_called_once()
         mock_iframe.assert_called_once()
-        assert mock_iframe.call_args[0][0] == "http://localhost:9999/dtale/iframe/5"
+        assert mock_iframe.call_args[0][0] == "http://localhost:9999/dtale/iframe/6"
 
         assert type(instance.__str__()).__name__ == "str"
         assert type(instance.__repr__()).__name__ == "str"

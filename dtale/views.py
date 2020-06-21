@@ -155,8 +155,16 @@ class DtaleData(object):
     def __init__(self, data_id, url):
         self._data_id = data_id
         self._url = url
-        self._main_url = "{}/dtale/main/{}".format(self._url, self._data_id)
+        self._name_or_data_id = global_state.convert_name_to_url_path(
+            (global_state.get_metadata(self._data_id) or {}).get("name")
+        )
+        if self._name_or_data_id is None:
+            self._name_or_data_id = self._data_id
+        self._main_url = self.build_main_url()
         self._notebook_handle = None
+
+    def build_main_url(self, data_id=None):
+        return "{}/dtale/main/{}".format(self._url, data_id or self._name_or_data_id)
 
     @property
     def data(self):
