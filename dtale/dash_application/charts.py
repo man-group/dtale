@@ -10,6 +10,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objs as go
 from plotly.io import write_html
 from six import PY3, StringIO, string_types
@@ -468,8 +469,22 @@ def cpg_chunker(charts, columns=2):
     ]
 
 
+def build_scatter_trendline(x, y, trendline):
+    fig = px.scatter(x=x, y=y, trendline=trendline)
+    return fig.data[1]
+
+
 def scatter_builder(
-    data, x, y, axes_builder, wrapper, group=None, z=None, agg=None, animate_by=None
+    data,
+    x,
+    y,
+    axes_builder,
+    wrapper,
+    group=None,
+    z=None,
+    agg=None,
+    animate_by=None,
+    trendline=None,
 ):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
@@ -519,9 +534,12 @@ def scatter_builder(
     scatter_func = go.Scatter3d if z is not None else go.Scattergl
 
     def _build_final_scatter(y_val):
-        figure_cfg = {
-            "data": [
-                scatter_func(
+        def _build_data():
+            for series_key, d in data["data"].items():
+                valid = y_val in d and (group is None or group == series_key)
+                if not valid:
+                    continue
+                yield scatter_func(
                     **dict_merge(
                         dict(
                             x=d["x"],
@@ -534,9 +552,11 @@ def scatter_builder(
                         dict(z=d[z]) if z is not None else dict(),
                     )
                 )
-                for series_key, d in data["data"].items()
-                if y_val in d and (group is None or group == series_key)
-            ],
+                if trendline:
+                    yield build_scatter_trendline(d["x"], d[y_val], trendline)
+
+        figure_cfg = {
+            "data": list(_build_data()),
             "layout": build_layout(
                 dict_merge(
                     build_title(x, y_val, group, z=z, agg=agg),
@@ -1719,8 +1739,9 @@ def build_chart(data_id=None, **inputs):
         range_data = dict(min=data["min"], max=data["max"])
         axis_inputs = inputs.get("yaxis") or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
-        x, y, z, agg, group, animate_by = (
-            inputs.get(p) for p in ["x", "y", "z", "agg", "group", "animate_by"]
+        x, y, z, agg, group, animate_by, trendline = (
+            inputs.get(p)
+            for p in ["x", "y", "z", "agg", "group", "animate_by", "trendline"]
         )
         z = z if chart_type in ZAXIS_CHARTS else None
         chart_inputs = {
@@ -1750,6 +1771,8 @@ def build_chart(data_id=None, **inputs):
         )
         if chart_type in ["scatter", "3d_scatter"]:
             kwargs = dict(agg=agg)
+            if chart_type == "scatter":
+                kwargs["trendline"] = trendline
             if chart_type == "3d_scatter":
                 kwargs["z"] = z
                 kwargs["animate_by"] = animate_by
@@ -1845,8 +1868,8 @@ def build_raw_chart(data_id=None, **inputs):
         if data is None:
             return None
 
-        chart_type, x, y, z, agg = (
-            inputs.get(p) for p in ["chart_type", "x", "y", "z", "agg"]
+        chart_type, x, y, z, agg, trendline = (
+            inputs.get(p) for p in ["chart_type", "x", "y", "z", "agg", "trendline"]
         )
         z = z if chart_type in ZAXIS_CHARTS else None
 
@@ -1867,7 +1890,9 @@ def build_raw_chart(data_id=None, **inputs):
             data_id, x, axis_inputs, data["min"], data["max"], z=z, agg=agg
         )
         if chart_type == "scatter":
-            return scatter_builder(data, x, y, axes_builder, chart_builder, agg=agg)
+            return scatter_builder(
+                data, x, y, axes_builder, chart_builder, agg=agg, trendline=trendline
+            )
 
         if chart_type == "3d_scatter":
             return scatter_builder(

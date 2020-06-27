@@ -390,7 +390,8 @@ def test_chart_type_changes(unittest):
             fig_data_outputs = (
                 "..y-multi-input.style...y-single-input.style...z-input.style...group-input.style..."
                 "rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style..."
-                "yaxis-input.style...animate-input.style...animate-by-input.style...animate-by-dropdown.options.."
+                "yaxis-input.style...animate-input.style...animate-by-input.style...animate-by-dropdown.options..."
+                "trendline-input.style.."
             )
             inputs = {
                 "id": "input-data",
@@ -638,6 +639,7 @@ def test_chart_input_updates(unittest):
                 {"id": "colorscale-dropdown", "property": "value"},
                 {"id": "animate-toggle", "property": "on"},
                 {"id": "animate-by-dropdown", "property": "value"},
+                {"id": "trendline-dropdown", "property": "value"},
             ],
         }
 
@@ -652,6 +654,7 @@ def test_chart_input_updates(unittest):
                 "colorscale": None,
                 "animate": None,
                 "animate_by": None,
+                "trendline": None,
             },
         )
 
@@ -836,16 +839,36 @@ def test_chart_building_scatter(unittest):
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            assert (
-                resp_data["chart-content"]["children"][0]["props"]["children"][1][
-                    "props"
-                ]["id"]
-                == "scatter-all-b"
-            )
+            plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
+                1
+            ]["props"]
+            assert plot_data["id"] == "scatter-all-b"
+            assert len(plot_data["figure"]["data"]) == 1
+
+            chart_inputs["trendline"] = "ols"
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
+                1
+            ]["props"]
+            assert plot_data["id"] == "scatter-all-b"
+            assert len(plot_data["figure"]["data"]) == 2
+
+            chart_inputs["trendline"] = "lowess"
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
+                1
+            ]["props"]
+            assert plot_data["id"] == "scatter-all-b"
+            assert len(plot_data["figure"]["data"]) == 2
 
             inputs["y"] = ["b"]
             inputs["group"] = ["c"]
             chart_inputs["cpg"] = True
+            chart_inputs["trendline"] = None
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]

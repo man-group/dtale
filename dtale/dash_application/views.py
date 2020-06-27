@@ -399,6 +399,7 @@ def init_callbacks(dash_app):
             Output("animate-input", "style"),
             Output("animate-by-input", "style"),
             Output("animate-by-dropdown", "options"),
+            Output("trendline-input", "style"),
         ],
         [Input("input-data", "modified_timestamp")],
         [State("input-data", "data"), State("url", "pathname")],
@@ -423,7 +424,7 @@ def init_callbacks(dash_app):
         data_id = get_data_id(pathname)
         df = global_state.get_data(data_id)
         animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
-
+        trendline_style = dict(display="block" if chart_type == "scatter" else "none")
         return (
             y_multi_style,
             y_single_style,
@@ -437,6 +438,7 @@ def init_callbacks(dash_app):
             animate_style,
             animate_by_style,
             animate_opts,
+            trendline_style,
         )
 
     @dash_app.callback(
@@ -448,9 +450,12 @@ def init_callbacks(dash_app):
             Input("colorscale-dropdown", "value"),
             Input("animate-toggle", "on"),
             Input("animate-by-dropdown", "value"),
+            Input("trendline-dropdown", "value"),
         ],
     )
-    def chart_input_data(cpg, barmode, barsort, colorscale, animate, animate_by):
+    def chart_input_data(
+        cpg, barmode, barsort, colorscale, animate, animate_by, trendline
+    ):
         """
         dash callback for maintaining selections in chart-formatting inputs
             - chart per group flag
@@ -464,6 +469,7 @@ def init_callbacks(dash_app):
             colorscale=colorscale,
             animate=animate,
             animate_by=animate_by,
+            trendline=trendline,
         )
 
     @dash_app.callback(
