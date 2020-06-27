@@ -195,7 +195,7 @@ def init_callbacks(dash_app):
     def update_featureidkey_options(geojson):
         geojson_data = get_custom_geojson(geojson)
         placeholder = "Select uploaded data"
-        if geojson_data is None:
+        if geojson_data is None or isinstance(geojson_data, list):
             return [], False, placeholder
         disabled = geojson_data["type"] != "FeatureCollection"
         placeholder = "id" if disabled else placeholder

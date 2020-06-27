@@ -444,7 +444,8 @@ div.tab-container > div.tab:last-child {
 #barsort-dropdown .Select-menu-outer,
 #yaxis-dropdown .Select-menu-outer,
 #colorscale-dropdown .Select-menu-outer,
-#animate-by-dropdown .Select-menu-outer {
+#animate-by-dropdown .Select-menu-outer,
+#trendline-dropdown .Select-menu-outer{
     z-index: 7;
 }
 #yaxis-type-div {

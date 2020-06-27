@@ -783,6 +783,7 @@ def charts_layout(df, settings, **inputs):
     show_input = show_input_handler(chart_type)
     show_cpg = show_chart_per_group(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
+    scatter_input = dict(display="block" if chart_type == "scatter" else "none")
     bar_style, barsort_input_style = bar_input_style(**inputs)
     animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
 
@@ -1260,6 +1261,20 @@ def charts_layout(df, settings, **inputs):
                                         id="cpg-input",
                                         style=show_style(show_cpg),
                                         className="col-auto",
+                                    ),
+                                    build_input(
+                                        "Trendline",
+                                        dcc.Dropdown(
+                                            id="trendline-dropdown",
+                                            options=[
+                                                build_option("ols"),
+                                                build_option("lowess"),
+                                            ],
+                                            value=inputs.get("trendline"),
+                                        ),
+                                        className="col-auto addon-min-width",
+                                        style=scatter_input,
+                                        id="trendline-input",
                                     ),
                                     build_input(
                                         "Barmode",
