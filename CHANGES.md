@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.8.18 (2020-6-28)
+ * [#150](https://github.com/man-group/dtale/issues/150): replace colorscale dropdown with component from dash-colorscales
+ * added the ability to choose been ols & lowess trendlines in scatter charts
+ * [#83](https://github.com/man-group/dtale/issues/83): allow for names to be used in url strings for data_id
+ 
 ### 1.8.17 (2020-6-18)
  * [#151](https://github.com/man-group/dtale/issues/151): allow users to load custom topojson into choropleth maps
 
