@@ -448,6 +448,20 @@ div.tab-container > div.tab:last-child {
 #trendline-dropdown .Select-menu-outer{
     z-index: 7;
 }
+#colorscale-picker {
+  border: 1px solid #a7b3b7;
+  border-radius: 0 .25rem .25rem 0;
+  height: 36px;
+}
+.colorscale-block {
+  margin: 5px 10px !important;
+}
+.colorscaleButton {
+  color: #fff !important;
+}
+.colorscalePickerContainer input[type='checkbox'] {
+  vertical-align: text-top !important;
+}
 #yaxis-type-div {
     min-width: fit-content;
     border: 1px solid #a7b3b7;

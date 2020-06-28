@@ -77,6 +77,7 @@ setup(
         "lz4; python_version > '3.0'",
         "dash>=1.5.0",
         "dash-bootstrap-components",
+        "dash-colorscales",
         "dash_daq",
         "Flask>=1.0",
         "Flask-Compress",

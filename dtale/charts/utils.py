@@ -250,11 +250,20 @@ def check_all_nan(df, cols=None):
             raise Exception('All data for column "{}" is NaN!'.format(col))
 
 
+DUPES_MSG = (
+    "{} contains duplicates, please specify group or additional filtering or select 'No Aggregation' from"
+    " Aggregation drop-down."
+)
 LIMIT_MSG = "Dataset exceeds {} records, cannot render. Please apply filter..."
 
 
 def check_exceptions(
-    df, allow_duplicates, unlimited_data=False, data_limit=15000, limit_msg=LIMIT_MSG
+    df,
+    allow_duplicates,
+    unlimited_data=False,
+    data_limit=15000,
+    limit_msg=LIMIT_MSG,
+    dupes_msg=DUPES_MSG,
 ):
     """
     Checker function to test the output of any chart aggregations to see if it is one of the following:
@@ -273,12 +282,7 @@ def check_exceptions(
     :raises Exception: if any failure condition is met
     """
     if not allow_duplicates and any(df.duplicated()):
-        raise ChartBuildingError(
-            (
-                "{} contains duplicates, please specify group or additional filtering or select 'No Aggregation' from"
-                " Aggregation drop-down."
-            ).format(", ".join(df.columns))
-        )
+        raise ChartBuildingError(dupes_msg.format(", ".join(df.columns)))
     if not unlimited_data and len(df) > data_limit:
         raise ChartBuildingError(limit_msg.format(data_limit))
 

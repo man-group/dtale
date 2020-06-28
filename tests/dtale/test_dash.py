@@ -16,7 +16,7 @@ from dtale.dash_application.charts import (
     get_url_parser,
 )
 from dtale.dash_application.components import Wordcloud
-from dtale.dash_application.layout.layout import update_label_for_freq
+from dtale.dash_application.layout.layout import REDS, update_label_for_freq
 
 if PY3:
     from contextlib import ExitStack
@@ -1433,7 +1433,7 @@ def test_chart_building_surface(unittest, test_data):
 
 
 @pytest.mark.unit
-def test_chart_building_map(unittest, state_data, scattergeo_data):
+def test_chart_building_map_choropleth(unittest, state_data):
     import dtale.views as views
 
     with app.test_client() as c:
@@ -1447,7 +1447,7 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
                 "loc_mode": "USA-states",
                 "loc": "Code",
             }
-            chart_inputs = {"colorscale": "Reds"}
+            chart_inputs = {"colorscale": REDS}
             params = build_chart_params(
                 pathname, inputs, chart_inputs, map_inputs=map_inputs
             )
@@ -1479,6 +1479,41 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
                 ]["figure"]
             )
 
+    # test duplicate data
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(
+                pd.concat([state_data, state_data], ignore_index=True)
+            )
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {"chart_type": "maps", "agg": "raw"}
+            map_inputs = {
+                "map_type": "choropleth",
+                "loc_mode": "USA-states",
+                "loc": "Code",
+                "map_val": "val",
+            }
+            chart_inputs = {"colorscale": REDS}
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, map_inputs=map_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            content = resp_data["chart-content"]["children"]["props"]["children"][1][
+                "props"
+            ]["children"]
+            error_msg = (
+                "'No Aggregation' is not a valid aggregation for a choropleth map!  Code contains duplicates, please "
+                "select a different aggregation or additional filtering."
+            )
+            assert content == error_msg
+
+
+@pytest.mark.unit
+def test_chart_building_map_scattergeo(unittest, scattergeo_data):
+    import dtale.views as views
+
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(scattergeo_data)
@@ -1493,73 +1528,7 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
                 "scope": "world",
                 "proj": "mercator",
             }
-            chart_inputs = {"colorscale": "Reds"}
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "Map of val (No Aggregation)"},
-            )
-
-            map_inputs["map_group"] = "cat"
-            group_val = str(df["cat"].values[0])
-            inputs["group_val"] = [dict(cat=group_val)]
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            title = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]["layout"]["title"]
-            assert title["text"] == "Map of val (No Aggregation) (cat == {})".format(
-                group_val
-            )
-
-            map_inputs["map_group"] = None
-            inputs["group_val"] = None
-            chart_inputs["animate_by"] = "cat"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
-
-            map_inputs["map_val"] = "foo"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            error = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["children"]
-            assert "'foo'" in error
-
-    with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(scattergeo_data)
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
-            pathname = path_builder(c.port)
-            inputs = {"chart_type": "maps", "agg": "raw"}
-            map_inputs = {
-                "map_type": "mapbox",
-                "lat": "lat",
-                "lon": "lon",
-                "map_val": "val",
-            }
-            chart_inputs = {"colorscale": "Reds"}
+            chart_inputs = {"colorscale": REDS}
             params = build_chart_params(
                 pathname, inputs, chart_inputs, map_inputs=map_inputs
             )
@@ -1615,7 +1584,78 @@ def test_chart_building_map(unittest, state_data, scattergeo_data):
 
 
 @pytest.mark.unit
-def test_load_chart_error(unittest):
+def test_chart_building_map_mapbox(unittest, scattergeo_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(scattergeo_data)
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {"chart_type": "maps", "agg": "raw"}
+            map_inputs = {
+                "map_type": "mapbox",
+                "lat": "lat",
+                "lon": "lon",
+                "map_val": "val",
+            }
+            chart_inputs = {"colorscale": REDS}
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, map_inputs=map_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            chart_markup = response.get_json()["response"]["chart-content"]["children"][
+                "props"
+            ]["children"][1]
+            unittest.assertEqual(
+                chart_markup["props"]["figure"]["layout"]["title"],
+                {"text": "Map of val (No Aggregation)"},
+            )
+
+            map_inputs["map_group"] = "cat"
+            group_val = str(df["cat"].values[0])
+            inputs["group_val"] = [dict(cat=group_val)]
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, map_inputs=map_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            title = resp_data["chart-content"]["children"]["props"]["children"][1][
+                "props"
+            ]["figure"]["layout"]["title"]
+            assert title["text"] == "Map of val (No Aggregation) (cat == {})".format(
+                group_val
+            )
+
+            map_inputs["map_group"] = None
+            inputs["group_val"] = None
+            chart_inputs["animate_by"] = "cat"
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, map_inputs=map_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert (
+                "frames"
+                in resp_data["chart-content"]["children"]["props"]["children"][1][
+                    "props"
+                ]["figure"]
+            )
+
+            map_inputs["map_val"] = "foo"
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, map_inputs=map_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            error = resp_data["chart-content"]["children"]["props"]["children"][1][
+                "props"
+            ]["children"]
+            assert "'foo'" in error
+
+
+@pytest.mark.unit
+def test_load_chart_error():
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
