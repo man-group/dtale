@@ -1374,7 +1374,7 @@ def charts_layout(df, settings, **inputs):
                                             value=inputs.get("animate_by"),
                                         ),
                                         className="col-auto addon-min-width",
-                                        style=animate_style,
+                                        style=animate_by_style,
                                         id="animate-by-input",
                                     ),
                                 ],

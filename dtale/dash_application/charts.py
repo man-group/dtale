@@ -90,9 +90,17 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip("?")))
     else:
         params = search
-    for gp in ["y", "group", "map_group", "group_val", "yaxis", "colorscale"]:
+    for gp in ["y", "group", "map_group", "group_val", "yaxis"]:
         if gp in params:
             params[gp] = json.loads(params[gp])
+    if "colorscale" in params:
+        try:
+            params["colorscale"] = json.loads(params["colorscale"])
+        except BaseException:
+            logger.debug(
+                "could not parse colorscale, removing it for backwards compatibility purposes"
+            )
+            del params["colorscale"]
     params["cpg"] = "true" == params.get("cpg")
     if params.get("chart_type") in ANIMATION_CHARTS:
         params["animate"] = "true" == params.get("animate")
@@ -1483,6 +1491,13 @@ def map_builder(data_id, export=False, **inputs):
                     "'No Aggregation' is not a valid aggregation for a choropleth map!  {} contains duplicates, please "
                     "select a different aggregation or additional filtering."
                 )
+
+            data = data.dropna(subset=dupe_cols)
+            code.append(
+                "chart_data = chart_data.dropna(subset=['{}']".format(
+                    ",".join(dupe_cols)
+                )
+            )
             check_exceptions(data[dupe_cols], False, unlimited_data=True, **kwargs)
 
             if loc_mode == "USA-states":
