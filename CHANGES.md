@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.8.19 (2020-6-28)
+ * backwards compatibility of 'colorscale' URL parameters in charts
+ * dropping of NaN locations/groups in choropleth maps
+
 ### 1.8.18 (2020-6-28)
  * [#150](https://github.com/man-group/dtale/issues/150): replace colorscale dropdown with component from dash-colorscales
  * added the ability to choose been ols & lowess trendlines in scatter charts
