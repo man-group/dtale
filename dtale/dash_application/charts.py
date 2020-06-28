@@ -90,7 +90,7 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip("?")))
     else:
         params = search
-    for gp in ["y", "group", "map_group", "group_val", "yaxis"]:
+    for gp in ["y", "group", "map_group", "group_val", "yaxis", "colorscale"]:
         if gp in params:
             params[gp] = json.loads(params[gp])
     params["cpg"] = "true" == params.get("cpg")
@@ -128,16 +128,16 @@ def chart_url_querystring(params, data=None, group_filter=None):
                 base_props += ["geojson", "featureidkey"]
         base_props += ["map_group"]
 
-    if chart_type in ["maps", "heatmap"]:
-        base_props += ["colorscale"]
-
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
     if chart_type in ANIMATION_CHARTS:
         final_params["animate"] = "true" if params.get("animate") is True else "false"
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
         final_params["animate_by"] = params.get("animate_by")
-    for gp in ["y", "group", "map_group", "group_val"]:
+    list_props = ["y", "group", "map_group", "group_val"]
+    if chart_type in ["maps", "heatmap"]:
+        list_props += ["colorscale"]
+    for gp in list_props:
         list_param = [val for val in params.get(gp) or [] if val is not None]
         if len(list_param):
             final_params[gp] = json.dumps(list_param)
@@ -159,6 +159,12 @@ def chart_url_querystring(params, data=None, group_filter=None):
         if y_val:
             final_params["y"] = json.dumps([y_val])
     return url_encode_func()(final_params)
+
+
+def build_colorscale(colorscale):
+    if isinstance(colorscale, string_types):
+        return colorscale
+    return [[i / (len(colorscale) - 1), rgb] for i, rgb in enumerate(colorscale)]
 
 
 def graph_wrapper(**kwargs):
@@ -1166,7 +1172,7 @@ def heatmap_builder(data_id, export=False, **inputs):
         )
         wrapper = chart_wrapper(data_id, raw_data, inputs)
         hm_kwargs = dict(
-            colorscale=inputs.get("colorscale") or "Greens",
+            colorscale=build_colorscale(inputs.get("colorscale") or "Greens"),
             showscale=True,
             hoverinfo="x+y+z",
         )
@@ -1381,7 +1387,7 @@ def map_builder(data_id, export=False, **inputs):
                     color=data[map_val],
                     cmin=data[map_val].min(),
                     cmax=data[map_val].max(),
-                    colorscale=inputs.get("colorscale") or "Reds",
+                    colorscale=build_colorscale(inputs.get("colorscale") or "Reds"),
                     colorbar_title=map_val,
                 )
             figure_cfg = dict(data=[go.Scattergeo(**chart_kwargs)], layout=layout)
@@ -1419,8 +1425,6 @@ def map_builder(data_id, export=False, **inputs):
             mapbox_token = get_mapbox_token()
             if mapbox_token is not None:
                 mapbox_layout["accesstoken"] = mapbox_token
-            # if test_plotly_version('4.5.0') and animate_by is None:
-            #     geo_layout['fitbounds'] = 'locations'
             if len(mapbox_layout):
                 layout["mapbox"] = mapbox_layout
 
@@ -1436,7 +1440,7 @@ def map_builder(data_id, export=False, **inputs):
                     color=data[map_val],
                     cmin=data[map_val].min(),
                     cmax=data[map_val].max(),
-                    colorscale=inputs.get("colorscale") or "Jet",
+                    colorscale=build_colorscale(inputs.get("colorscale") or "Jet"),
                     colorbar_title=map_val,
                 )
             figure_cfg = dict(data=[go.Scattermapbox(**chart_kwargs)], layout=layout)
@@ -1468,6 +1472,19 @@ def map_builder(data_id, export=False, **inputs):
                     data, loc, map_val, {}, agg, animate_by=animate_by
                 )
                 code += agg_code
+            if not len(data):
+                raise Exception("No data returned for this computation!")
+            dupe_cols = [loc]
+            if animate_by is not None:
+                dupe_cols = [animate_by, loc]
+            kwargs = {}
+            if agg == "raw":
+                kwargs["dupes_msg"] = (
+                    "'No Aggregation' is not a valid aggregation for a choropleth map!  {} contains duplicates, please "
+                    "select a different aggregation or additional filtering."
+                )
+            check_exceptions(data[dupe_cols], False, unlimited_data=True, **kwargs)
+
             if loc_mode == "USA-states":
                 layout["geo"] = dict(scope="usa")
             elif loc_mode == "geojson-id":
@@ -1488,7 +1505,7 @@ def map_builder(data_id, export=False, **inputs):
                         locations=data[loc],
                         locationmode=loc_mode,
                         z=data[map_val],
-                        colorscale=inputs.get("colorscale") or "Reds",
+                        colorscale=build_colorscale(inputs.get("colorscale") or "Reds"),
                         colorbar_title=map_val,
                         zmin=data[map_val].min(),
                         zmax=data[map_val].max(),

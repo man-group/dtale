@@ -26,6 +26,7 @@ from dtale.dash_application.layout.layout import (
     get_yaxis_type_tabs,
     main_inputs_and_group_val_display,
     show_chart_per_group,
+    show_group_input,
     show_input_handler,
     show_yaxis_ranges,
 )
@@ -447,7 +448,7 @@ def init_callbacks(dash_app):
             Input("cpg-toggle", "on"),
             Input("barmode-dropdown", "value"),
             Input("barsort-dropdown", "value"),
-            Input("colorscale-dropdown", "value"),
+            Input("colorscale-picker", "colorscale"),
             Input("animate-toggle", "on"),
             Input("animate-by-dropdown", "value"),
             Input("trendline-dropdown", "value"),
@@ -683,13 +684,9 @@ def init_callbacks(dash_app):
     def group_values(
         chart_type, group_cols, map_group_cols, pathname, inputs, prev_group_vals
     ):
-        group_cols = make_list(group_cols)
-        if show_input_handler(chart_type or "line")("group") and not len(group_cols):
+        group_cols = make_list(map_group_cols if chart_type == "maps" else group_cols)
+        if not show_group_input(inputs, group_cols):
             return [], None
-        elif chart_type == "maps":  # all maps have a group input
-            group_cols = make_list(map_group_cols)
-            if not len(group_cols):
-                return [], None
         data_id = get_data_id(pathname)
         group_vals = run_query(
             global_state.get_data(data_id),

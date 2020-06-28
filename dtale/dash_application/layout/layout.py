@@ -1,5 +1,6 @@
 import json
 
+import dash_colorscales as dcs
 import dash_core_components as dcc
 import dash_daq as daq
 import dash_html_components as html
@@ -431,26 +432,8 @@ def build_loc_mode_hover(loc_mode):
     )
 
 
-COLORSCALES = [
-    "Blackbody",
-    "Bluered",
-    "Blues",
-    "Earth",
-    "Electric",
-    "Greens",
-    "Greys",
-    "Hot",
-    "Jet",
-    "Picnic",
-    "Portland",
-    "Rainbow",
-    "RdBu",
-    "Reds",
-    "Viridis",
-    "YlGnBu",
-    "YlOrRd",
-]
-
+JET = ["#000083", "#003CAA", "#05FFFF", "#FFFF00", "#FA0000", "#800000"]
+REDS = ["#fff5f0", "#fdcab4", "#fc8a6a", "#f24632", "#bc141a", "#67000d"]
 ANIMATION_CHARTS = ["line"]
 ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "maps"]
 
@@ -463,6 +446,15 @@ def show_input_handler(chart_type):
         return cfg.get("display", True) and cfg.get("type", "single") == input_type
 
     return _show_input
+
+
+def show_group_input(inputs, group_cols=None):
+    chart_type = inputs.get("chart_type")
+    if show_input_handler(chart_type)("group"):
+        return len(group_cols or make_list(inputs.get("group")))
+    elif show_input_handler(chart_type)("map_group"):
+        return len(group_cols or make_list(inputs.get("map_group")))
+    return False
 
 
 def update_label_for_freq(val):
@@ -755,13 +747,9 @@ def build_map_type_tabs(map_type):
 
 
 def main_inputs_and_group_val_display(inputs):
-    chart_type = inputs.get("chart_type")
-    show_group = show_input_handler(inputs.get("chart_type", "line"))("group")
-    if chart_type == "maps" and not len(make_list(inputs.get("map_group"))):
-        return dict(display="none"), "col-md-12"
-    elif show_group and not len(make_list(inputs.get("group"))):
-        return dict(display="none"), "col-md-12"
-    return dict(display="block"), "col-md-8"
+    if show_group_input(inputs):
+        return dict(display="block"), "col-md-8"
+    return dict(display="none"), "col-md-12"
 
 
 def charts_layout(df, settings, **inputs):
@@ -828,7 +816,7 @@ def charts_layout(df, settings, **inputs):
         df, type=map_type, loc=loc, lat=lat, lon=lon, map_val=map_val
     )
     cscale_style = colorscale_input_style(**inputs)
-    default_cscale = "Jet" if chart_type == "heatmap" else "Reds"
+    default_cscale = JET if chart_type == "heatmap" else REDS
 
     group_val_style, main_input_class = main_inputs_and_group_val_display(inputs)
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]
@@ -1356,12 +1344,9 @@ def charts_layout(df, settings, **inputs):
                                     ),
                                     build_input(
                                         "Colorscale",
-                                        dcc.Dropdown(
-                                            id="colorscale-dropdown",
-                                            options=[
-                                                build_option(o) for o in COLORSCALES
-                                            ],
-                                            value=inputs.get("colorscale")
+                                        dcs.DashColorscales(
+                                            id="colorscale-picker",
+                                            colorscale=inputs.get("colorscale")
                                             or default_cscale,
                                         ),
                                         className="col-auto addon-min-width",
