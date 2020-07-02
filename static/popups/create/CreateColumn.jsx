@@ -12,11 +12,13 @@ import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
+import { CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
+import Descriptions from "./creation-descriptions.json";
 
 require("./CreateColumn.css");
 
-const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion"];
+const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion", "transform"];
 
 function buildLabel(v) {
   return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
@@ -78,6 +80,9 @@ class ReactCreateColumn extends React.Component {
       case "type_conversion":
         error = validateTypeConversionCfg(cfg);
         break;
+      case "transform":
+        error = validateTransformCfg(cfg);
+        break;
       case "numeric":
       default:
         error = validateNumericCfg(cfg);
@@ -134,6 +139,9 @@ class ReactCreateColumn extends React.Component {
       case "type_conversion":
         body = <CreateTypeConversion columns={this.state.columns} updateState={updateState} />;
         break;
+      case "transform":
+        body = <CreateTransform columns={this.state.columns} updateState={updateState} />;
+        break;
     }
     return (
       <div key="body" className="modal-body">
@@ -171,6 +179,9 @@ class ReactCreateColumn extends React.Component {
                 );
               })}
             </div>
+            <label className="col-auto col-form-label pl-3 pr-3" style={{ fontSize: "85%" }}>
+              {_.get(Descriptions, this.state.type, "")}
+            </label>
           </div>
         </div>
         {body}

@@ -1,0 +1,8 @@
+{
+  "numeric": "Add, subtract, multiply or divide two columns of numeric data or static numeric values.",
+  "bins":  "Convert numeric data into bins using pandas cut or qcut functions.",
+  "datetime":  "Pull out properties (minute, hour, time...) or convert to date representations (month-end, month-start, year-end...) using datatime columns.",
+  "random":  "Build a column of random data for different data types using range rules.",
+  "type_conversion":  "Convert columns of one type to another.",
+  "transform": "Transform numeric data of one column by grouping on others and applying an aggregation (sum, mean, count...)."
+}

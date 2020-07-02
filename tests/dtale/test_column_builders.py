@@ -12,12 +12,13 @@ else:
     from contextlib2 import ExitStack
 
 
+def verify_builder(builder, checker):
+    assert checker(builder.build_column())
+    assert builder.build_code()
+
+
 @pytest.mark.unit
 def test_type_conversion(unittest):
-    def verify_builder(builder, checker):
-        assert checker(builder.build_column())
-        assert builder.build_code()
-
     df = pd.DataFrame(
         [
             {
@@ -147,3 +148,45 @@ def test_type_conversion(unittest):
         cfg = {"col": "cat_str", "to": "str", "from": "category"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "a")
+
+
+@pytest.mark.unit
+def test_transform(unittest):
+    def _data():
+        for i in range(100):
+            a = i % 5
+            b = i % 3
+            c = i % 4
+            yield dict(a=a, b=b, c=c, i=i)
+
+    df = pd.DataFrame(list(_data()))
+
+    aggs = [
+        "count",
+        "nunique",
+        "sum",
+        "first",
+        "last",
+        "median",
+        "min",
+        "max",
+        "std",
+        "var",
+        "mad",
+        "prod",
+    ]
+    data_id, column_type = "1", "transform"
+    i = 0
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "i", "group": ["a"], "agg": "mean"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(
+            builder, lambda col: col.values[0] == 47.5 and col.values[-1] == 51.5
+        )
+
+        for agg in aggs:
+            cfg["agg"] = agg
+            builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+            verify_builder(builder, lambda col: len(col[col.isnull()]) == 0)

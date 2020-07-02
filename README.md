@@ -25,7 +25,10 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 ## In The News
  - [Man Institute](https://www.man.com/maninstitute/d-tale) (warning: contains deprecated functionality)
  - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
- - [towards data science](https://towardsdatascience.com/introduction-to-d-tale-5eddd81abe3f)
+ - [Medium: towards data science](https://towardsdatascience.com/introduction-to-d-tale-5eddd81abe3f)
+ - [Medium: Exploratory Data Analysis – Using D-Tale](https://medium.com/da-tum/exploratory-data-analysis-1-4-using-d-tale-99a2c267db79)
+ - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
+
 
 
 ## Tutorials
