@@ -5,7 +5,7 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateTypeConversion } from "../../../popups/create/CreateTypeConversion";
+import { CreateTransform } from "../../../popups/create/CreateTransform";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -83,7 +83,7 @@ describe("DataViewer tests", () => {
       .find("input")
       .first()
       .simulate("change", { target: { value: "conv_col" } });
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(4).simulate("click");
+    result.find(CreateColumn).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
   });
 
@@ -94,104 +94,44 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: build int conversion column", async () => {
-    expect(result.find(CreateTypeConversion).length).toBe(1);
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
+  it("DataViewer: build transform column", async () => {
+    expect(result.find(CreateTransform).length).toBe(1);
+    result
+      .find(CreateTransform)
+      .find(Select)
+      .first()
+      .instance()
+      .onChange([{ value: "col1" }]);
     result.update();
-    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.find(CreateTransform).find(Select).at(1).instance().onChange({ value: "col2" });
     result.update();
-    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
-    submit(result);
-    await tick();
-    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
-      to: "date",
-      from: "int64",
-      col: "col1",
-      unit: "YYYYMMDD",
-      fmt: null,
-    });
-  });
-
-  it("DataViewer: build float conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
+    result.find(CreateTransform).find(Select).last().instance().onChange({ value: "mean" });
     result.update();
-    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     submit(result);
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col2",
-      to: "int",
-      from: "float64",
-      fmt: null,
-      unit: null,
+      group: ["col1"],
+      agg: "mean",
     });
   });
 
-  it("DataViewer: build string conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col3" });
-    result.update();
-    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-    result
-      .find(CreateTypeConversion)
-      .find("div.form-group")
-      .at(2)
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "%d/%m/%Y" } });
-    submit(result);
-    await tick();
-    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
-      col: "col3",
-      to: "date",
-      from: "object",
-      fmt: "%d/%m/%Y",
-      unit: null,
-    });
-  });
-
-  it("DataViewer: build date conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col4" });
-    result.update();
-    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
-    result.update();
-    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "ms" });
-    submit(result);
-    await tick();
-    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
-      col: "col4",
-      to: "int",
-      from: "datetime64[ns]",
-      unit: "ms",
-      fmt: null,
-    });
-  });
-
-  it("DataViewer: build conversion cfg validation", () => {
-    const { validateTypeConversionCfg } = require("../../../popups/create/CreateTypeConversion");
-    expect(validateTypeConversionCfg({ col: null })).toBe("Missing a column selection!");
-    expect(validateTypeConversionCfg({ col: "col1", to: null })).toBe("Missing a conversion selection!");
+  it("DataViewer: build transform cfg validation", () => {
+    const { validateTransformCfg } = require("../../../popups/create/CreateTransform");
+    expect(validateTransformCfg({ group: null })).toBe("Please select a group!");
+    expect(validateTransformCfg({ col: null, group: ["col1"] })).toBe("Please select a column to transform!");
     expect(
-      validateTypeConversionCfg({
-        col: "col2",
-        to: "date",
-        from: "int64",
-        unit: null,
+      validateTransformCfg({
+        col: "col1",
+        group: ["col2"],
+        agg: null,
       })
-    ).toBe("Missing a unit selection!");
+    ).toBe("Please select an aggregation!");
     expect(
-      validateTypeConversionCfg({
-        col: "col2",
-        to: "int",
-        from: "datetime64[ns]",
-        unit: "D",
-      })
-    ).toBe("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'");
-    expect(
-      validateTypeConversionCfg({
-        col: "col2",
-        to: "int",
-        from: "datetime64[ns]",
-        unit: "ms",
+      validateTransformCfg({
+        col: "col1",
+        group: ["col2"],
+        agg: "mean",
       })
     ).toBe(null);
   });

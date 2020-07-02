@@ -22,6 +22,8 @@ class ColumnBuilder(object):
             self.builder = RandomColumnBuilder(name, cfg)
         elif column_type == "type_conversion":
             self.builder = TypeConversionColumnBuilder(name, cfg)
+        elif column_type == "transform":
+            self.builder = TransformColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -446,3 +448,21 @@ class TypeConversionColumnBuilder(object):
     def build_code(self):
         code = self.build_inner_code()
         return "df.loc[:, '{name}'] = {code}".format(name=self.name, code=code)
+
+
+class TransformColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        group, col, agg = (self.cfg.get(p) for p in ["group", "col", "agg"])
+        return pd.Series(
+            data.groupby(group)[col].transform(agg), index=data.index, name=self.name
+        )
+
+    def build_code(self):
+        group, col, agg = (self.cfg.get(p) for p in ["group", "col", "agg"])
+        return (
+            "pd.Series(data.groupby(['{group}'])['{col}'].transform('{agg}'), index=data.index, name='{name}')"
+        ).format(name=self.name, col=col, agg=agg, group="','".join(group))
