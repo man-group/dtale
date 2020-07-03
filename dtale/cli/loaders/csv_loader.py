@@ -17,6 +17,7 @@ LOADER_PROPS = [
         name="parse_dates",
         help="comma-separated string of column names which should be parsed as dates",
     ),
+    dict(name="index_col", help="Column(s) to use as the row labels or the Datafame"),
 ]
 
 

@@ -43,7 +43,8 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Jupyter Notebook](#jupyter-notebook)
   - [Jupyterhub w/ Jupyter Server Proxy](#jupyterhub-w-jupyter-server-proxy)
   - [Jupyterhub w/ Kubernetes](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
-  - [Google Colab & Kaggle](#google-colab--kaggle)
+  - [Google Colab](#google-colab)
+  - [Kaggle](#kaggle)
   - [R with Reticulate](#r-with-reticulate)
   - [Command-line](#command-line)
 - [UI](#ui)
@@ -51,9 +52,10 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Header](#header)
   - [Editing Cells](#editing-cells)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Charts](#charts), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+  - [Charts](#charts)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -218,11 +220,30 @@ Using this parameter will only apply the application root to that specific insta
 
 Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
 
-### Google Colab & Kaggle
+### Google Colab
 
-These are hosted notebook sites and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.
+This is a hosted notebook site and thanks to Colab's internal function `google.colab.output.eval_js` & the JS function `google.colab.kernel.proexyPort` users can run D-Tale within their notebooks.
 
-**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within these two services.  Here is an example:
+**DISCLAIMER:** It is import that you set `USE_COLAB` to true when using D-Tale within this service.  Here is an example:
+
+```python
+import pandas as pd
+
+import dtale
+import dtale.app as dtale_app
+
+dtale_app.USE_COLAB = True
+
+dtale.show(pd.DataFrame([1,2,3]))
+```
+
+IFfthis does not work for you try using `USE_NGROK` which is described in the next section.
+
+### Kaggle
+
+This is yet another hosted notebook site and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.
+
+**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within this service.  Here is an example:
 
 ```python
 import pandas as pd
@@ -241,6 +262,13 @@ Here are some video tutorials of each:
 |:------:|:------:|:------:|
 |Google Colab|[![](http://img.youtube.com/vi/pOYl2M1clIw/0.jpg)](http://www.youtube.com/watch?v=pOYl2M1clIw "Google Colab")||
 |Kaggle|[![](http://img.youtube.com/vi/8Il-2HHs2Mg/0.jpg)](http://www.youtube.com/watch?v=8Il-2HHs2Mg "Kaggle")|make sure you switch the "Internet" toggle to "On" under settings of your notebook so you can install the egg from pip|
+
+It is important to note that using NGROK will limit you to 20 connections per mintue so if you see this error:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ngrok_limit.png)
+
+Wait a little while and it should allow you to do work again.  I am actively working on finding a more sustainable solution similar to what I did for google colab. :pray:
+
 
 ### R with Reticulate
 
@@ -362,8 +390,9 @@ DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata
 ```
 
 ### Accessing CLI Loaders in Notebook or Console
-I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples:
+I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples (the last working if you've installed `dtale[arctic]`):
 - `dtale.show_csv(path='test.csv', parse_dates=['date'])`
+- `dtale.show_csv(path='http://csv-endpoint', index_col=0)`
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
