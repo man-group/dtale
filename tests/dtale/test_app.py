@@ -473,6 +473,8 @@ def test_show_colab(unittest, builtin_pkg):
             mock.patch("{}.__import__".format(builtin_pkg), side_effect=import_mock)
         )
         stack.enter_context(mock.patch("dtale.app.USE_COLAB", True))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_PORT", 40000))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_HOST", "localhost"))
         mock_run = stack.enter_context(
             mock.patch("dtale.app.DtaleFlask.run", mock.Mock())
         )
@@ -528,7 +530,6 @@ def test_failing_show_colab():
 @pytest.mark.unit
 def test_show_jupyter_server_proxy(unittest):
     from dtale.app import show, get_instance, instances
-    import dtale.app as dtale_app
     import dtale.views as views
     import dtale.global_state as global_state
 
@@ -541,14 +542,13 @@ def test_show_jupyter_server_proxy(unittest):
         stack.enter_context(
             mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
         )
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_PORT", 40000))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_HOST", "localhost"))
         mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
         instance = show(
             data=test_data, subprocess=False, name="foo", ignore_duplicate=True
         )
-        assert (
-            "/user/{}/proxy/{}".format(getpass.getuser(), dtale_app.ACTIVE_PORT)
-            == instance._url
-        )
+        assert "/user/{}/proxy/40000".format(getpass.getuser()) == instance._url
         mock_run.assert_called_once()
 
         pdt.assert_frame_equal(instance.data, test_data)
@@ -569,8 +569,8 @@ def test_show_jupyter_server_proxy(unittest):
 
         instance.kill()
         mock_requests.assert_called_once()
-        assert mock_requests.call_args[0][0] == "/user/{}/proxy/{}/shutdown".format(
-            getpass.getuser(), dtale_app.ACTIVE_PORT
+        assert mock_requests.call_args[0][0] == "/user/{}/proxy/40000/shutdown".format(
+            getpass.getuser()
         )
         assert global_state.METADATA["1"]["name"] == "foo"
 
@@ -589,7 +589,7 @@ def test_show_jupyter_server_proxy(unittest):
             ignore_duplicate=True,
             app_root="/custom_root/",
         )
-        assert "/custom_root/{}".format(dtale_app.ACTIVE_PORT) == instance._url
+        assert "/custom_root/40000" == instance._url
         mock_run.assert_called_once()
 
         instance2 = get_instance(instance._data_id)
@@ -598,9 +598,7 @@ def test_show_jupyter_server_proxy(unittest):
         instances()
         instance.kill()
         mock_requests.assert_called_once()
-        assert mock_requests.call_args[0][0] == "/custom_root/{}/shutdown".format(
-            dtale_app.ACTIVE_PORT
-        )
+        assert mock_requests.call_args[0][0] == "/custom_root/40000/shutdown"
 
 
 @pytest.mark.unit
