@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.9.0 (2020-7-3)
+ * added the ability to build columns using transform
+ * added USE_COLAB for accessing D-Tale within google colab using their proxy
+ * [#211](https://github.com/man-group/dtale/issues/211): Code export doesnt work on google colab
+ 
 ### 1.8.19 (2020-6-28)
  * backwards compatibility of 'colorscale' URL parameters in charts
  * dropping of NaN locations/groups in choropleth maps
