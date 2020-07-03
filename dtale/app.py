@@ -489,6 +489,10 @@ def find_free_port():
 
 
 def build_startup_url_and_app_root(app_root=None):
+    if USE_COLAB:
+        colab_host = use_colab(ACTIVE_PORT)
+        if colab_host:
+            return colab_host, None
     url = build_url(ACTIVE_PORT, ACTIVE_HOST)
     final_app_root = app_root
     if final_app_root is None and JUPYTER_SERVER_PROXY:
@@ -506,7 +510,10 @@ def use_colab(port):
     try:
         from google.colab.output import eval_js
 
-        return eval_js('google.colab.kernel.proxyPort(%d, {"cache": false})' % port)
+        colab_host = eval_js(
+            'google.colab.kernel.proxyPort(%d, {"cache": false})' % port
+        )
+        return colab_host[:-1] if colab_host.endswith("/") else colab_host
     except BaseException:
         return None
 
@@ -591,12 +598,6 @@ def show(
 
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
-        elif USE_COLAB:
-            initialize_process_props(host, port, force)
-            colab_host = use_colab(ACTIVE_PORT)
-            if colab_host:
-                ACTIVE_HOST = colab_host
-                ACTIVE_PORT = None
         else:
             initialize_process_props(host, port, force)
 

@@ -460,7 +460,7 @@ def test_show_colab(unittest, builtin_pkg):
 
     orig_import = __import__
     mock_eval_js = mock.Mock()
-    mock_eval_js.eval_js = lambda _port: "colab_host"
+    mock_eval_js.eval_js = lambda _port: "http://colab_host"
 
     def import_mock(name, *args, **kwargs):
         if name == "google.colab.output":
@@ -576,6 +576,8 @@ def test_show_jupyter_server_proxy(unittest):
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_PORT", 40000))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_HOST", "localhost"))
         mock_run = stack.enter_context(
             mock.patch("dtale.app.DtaleFlask.run", mock.Mock())
         )
