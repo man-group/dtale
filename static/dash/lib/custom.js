@@ -10,7 +10,7 @@ function openCodeSnippet(e) {
   if (window.resourceBaseUrl) {
     path = `${window.resourceBaseUrl}/${path}`;
   }
-  window.open(`${window.location.origin}${path}`, "_blank", `titlebar=1,location=1,status=1,width=700,height=450`);
+  window.open(`${window.location.origin}/${path}`, "_blank", `titlebar=1,location=1,status=1,width=700,height=450`);
 }
 
 function copy(e) {
@@ -21,7 +21,7 @@ function copy(e) {
   if (webRoot) {
     chartLink = `${webRoot}/${chartLink}`;
   }
-  textCmp.value = `${window.location.origin}${chartLink}`;
+  textCmp.value = `${window.location.origin}/${chartLink}`;
   textCmp.select();
   document.execCommand("copy");
   e.target.focus();
