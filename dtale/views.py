@@ -643,6 +643,28 @@ def convert_xarray_to_dataset(dataset, **indexers):
         return _convert_zero_dim_dataset(ds_sel)
 
 
+def handle_koalas(data):
+    """
+    Helper function to check if koalas is installed and also if incoming data is a koalas dataframe, if so convert it
+    to :class:`pandas:pandas.DataFrame`, otherwise simply return the original data structure.
+
+    :param data: data we want to check if its a koalas dataframe and if so convert to :class:`pandas:pandas.DataFrame`
+    :return: :class:`pandas:pandas.DataFrame`
+    """
+    if is_koalas(data):
+        return data.to_pandas()
+    return data
+
+
+def is_koalas(data):
+    try:
+        from databricks.koalas import frame
+
+        return isinstance(data, frame.DataFrame)
+    except BaseException:
+        return False
+
+
 def startup(
     url,
     data=None,
@@ -673,6 +695,7 @@ def startup(
         data = data_loader()
 
     if data is not None:
+        data = handle_koalas(data)
         if not isinstance(
             data, (pd.DataFrame, pd.Series, pd.DatetimeIndex, pd.MultiIndex, xr.Dataset)
         ):
