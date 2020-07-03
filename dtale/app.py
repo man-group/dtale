@@ -44,6 +44,7 @@ else:
 logger = getLogger(__name__)
 
 USE_NGROK = False
+USE_COLAB = False
 JUPYTER_SERVER_PROXY = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
@@ -453,6 +454,11 @@ def initialize_process_props(host=None, port=None, force=False):
         ACTIVE_PORT = int(port or find_free_port())
 
 
+def is_port_in_use(port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        return s.connect_ex(("localhost", port)) == 0
+
+
 def find_free_port():
     """
     Searches for free port on executing server to run the :class:`flask:flask.Flask` process. Checks ports in range
@@ -467,10 +473,6 @@ def find_free_port():
     :return: port number
     :rtype: int
     """
-
-    def is_port_in_use(port):
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            return s.connect_ex(("localhost", port)) == 0
 
     min_port = int(os.environ.get("DTALE_MIN_PORT") or 40000)
     max_port = int(os.environ.get("DTALE_MAX_PORT") or 49000)
@@ -498,6 +500,15 @@ def build_startup_url_and_app_root(app_root=None):
         else:
             return fix_url_path("{}/{}".format(url, final_app_root)), final_app_root
     return url, final_app_root
+
+
+def use_colab(port):
+    try:
+        from google.colab.output import eval_js
+
+        return eval_js('google.colab.kernel.proxyPort(%d, {"cache": false})' % port)
+    except BaseException:
+        return None
 
 
 def show(
@@ -562,7 +573,7 @@ def show(
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK, JUPYTER_SERVER_PROXY
+    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK, USE_COLAB, JUPYTER_SERVER_PROXY
 
     try:
         logfile, log_level, verbose = map(
@@ -580,6 +591,12 @@ def show(
 
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
+        elif USE_COLAB:
+            initialize_process_props(host, port, force)
+            colab_host = use_colab(ACTIVE_PORT)
+            if colab_host:
+                ACTIVE_HOST = colab_host
+                ACTIVE_PORT = None
         else:
             initialize_process_props(host, port, force)
 
