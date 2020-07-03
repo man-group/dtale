@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.9.1 (2020-7-3)
+ * [#213](https://github.com/man-group/dtale/issues/213): Support for koalas dataframes
+ * [#214](https://github.com/man-group/dtale/issues/214): fix for USE_COLAB (colab proxy endpoint injection)
+
+
 ### 1.9.0 (2020-7-3)
  * added the ability to build columns using transform
  * added USE_COLAB for accessing D-Tale within google colab using their proxy
