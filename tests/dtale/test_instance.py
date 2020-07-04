@@ -22,8 +22,6 @@ def test_ipython_import_error(builtin_pkg):
     def import_mock(name, *args, **kwargs):
         if name in ["IPython", "IPython.display"]:
             raise ImportError
-        if name == "requests":
-            raise ImportError
         return orig_import(name, *args, **kwargs)
 
     df = pd.DataFrame([1, 2, 3])
@@ -35,6 +33,10 @@ def test_ipython_import_error(builtin_pkg):
             mock.patch("dtale.views.in_ipython_frontend", return_value=False)
         )
         stack.enter_context(mock.patch("dtale.global_state.DATA", {9999: df}))
+        getter = namedtuple("get", "ok")
+        stack.enter_context(
+            mock.patch("dtale.app.requests.get", return_value=getter(False))
+        )
         instance = DtaleData(9999, "http://localhost:9999")
 
         assert not instance.is_up()
