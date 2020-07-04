@@ -10,6 +10,7 @@
 [![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![PyPI](https://img.shields.io/pypi/v/dtale)](https://pypi.org/project/dtale/)
+[![Conda](https://img.shields.io/conda/v/conda-forge/dtale)](https://anaconda.org/conda-forge/dtale)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
