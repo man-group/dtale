@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { Modal, ModalClose, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 import { connect } from "react-redux";
 
@@ -28,6 +29,7 @@ class ReactPopup extends React.Component {
   constructor(props) {
     super(props);
     this.state = { title: "" };
+    this.renderBody = this.renderBody.bind(this);
   }
 
   shouldComponentUpdate(newProps) {
@@ -39,11 +41,11 @@ class ReactPopup extends React.Component {
     return false;
   }
 
-  render() {
+  renderBody() {
     let modalTitle = null;
     let body = null;
     const { chartData } = this.props;
-    const { type, title, visible, size, backdrop } = chartData;
+    const { type, title } = chartData;
     switch (type) {
       case "filter":
         modalTitle = (
@@ -205,6 +207,13 @@ class ReactPopup extends React.Component {
       default:
         break;
     }
+    return { modalTitle, body };
+  }
+
+  render() {
+    const { chartData } = this.props;
+    const { type, visible, size, backdrop } = chartData;
+    const { modalTitle, body } = this.renderBody();
     const onClose = () => this.props.onClose({ size: size || "modal-lg" });
     return (
       <Modal
@@ -215,6 +224,7 @@ class ReactPopup extends React.Component {
           backdrop: backdrop || false,
           className: `${type}-modal`,
         }}>
+        {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: onClose }} />}
         <ModalHeader>
           {modalTitle}
           <ModalClose onClick={onClose} />

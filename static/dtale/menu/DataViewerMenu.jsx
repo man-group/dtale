@@ -1,6 +1,8 @@
+import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 
 import ConditionalRender from "../../ConditionalRender";
@@ -15,17 +17,10 @@ import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId } = this.props;
+    const { hideShutdown, dataId, menuOpen } = this.props;
     const iframe = global.top !== global.self;
-    const openPopup = (type, height = 450, width = 500) => () => {
-      if (menuFuncs.shouldOpenPopup(height, width)) {
-        menuFuncs.open(`/dtale/popup/${type}`, dataId, height, width);
-      } else {
-        this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
-      }
-    };
-    const openTab = type => () => window.open(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), "_blank");
-    const openCodeExport = () => menuFuncs.open("/dtale/popup/code-export", dataId, 450, 700);
+    const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
+    const { openTab, openPopup } = buttonHandlers;
     const refreshWidths = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
@@ -49,18 +44,23 @@ class ReactDataViewerMenu extends React.Component {
         `${menuFuncs.fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`,
         "_blank"
       );
+    const closeMenu = () => {
+      $(document).unbind("click.gridActions");
+      this.props.propagateState({ menuOpen: false });
+    };
     return (
       <div
         className="column-toggle__dropdown"
-        hidden={!this.props.menuOpen}
+        hidden={!menuOpen}
         style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
+        {menuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <header className="title-font">D-TALE</header>
         <ul>
           <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
-          <DescribeOption open={openTab("describe")} />
+          <DescribeOption open={buttonHandlers.DESCRIBE} />
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("filter", 500, 1100)}>
+              <button className="btn btn-plain" onClick={buttonHandlers.FILTER}>
                 <i className="fa fa-filter ml-2 mr-4" />
                 <span className="font-weight-bold">Custom Filter</span>
               </button>
@@ -69,7 +69,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("build", 400, 770)}>
+              <button className="btn btn-plain" onClick={buttonHandlers.BUILD}>
                 <i className="ico-build" />
                 <span className="font-weight-bold">Build Column</span>
               </button>
@@ -96,9 +96,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button
-                className="btn btn-plain"
-                onClick={() => window.open(menuFuncs.fullPath("/charts", dataId), "_blank")}>
+              <button className="btn btn-plain" onClick={buttonHandlers.CHARTS}>
                 <i className="ico-show-chart" />
                 <span className="font-weight-bold">Charts</span>
               </button>
@@ -167,7 +165,7 @@ class ReactDataViewerMenu extends React.Component {
           <InstancesOption open={openPopup("instances", 450, 750)} />
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openCodeExport}>
+              <button className="btn btn-plain" onClick={buttonHandlers.CODE}>
                 <i className="ico-code" />
                 <span className="font-weight-bold">Code Export</span>
               </button>

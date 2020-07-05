@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 
 import { exports as gu } from "../../dtale/gridUtils";
@@ -122,9 +123,11 @@ class Formatting extends React.Component {
   }
 
   render() {
+    const { visible } = this.props;
     const hide = () => this.props.propagateState({ formattingOpen: false });
     return (
-      <Modal isOpen={this.props.visible} onRequestHide={hide} backdrop={false}>
+      <Modal isOpen={visible} onRequestHide={hide} backdrop={false}>
+        {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: hide }} />}
         <ModalHeader>
           <ModalTitle>
             <i className="ico-palette" />

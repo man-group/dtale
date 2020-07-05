@@ -26,6 +26,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 ## In The News
  - [Man Institute](https://www.man.com/maninstitute/d-tale) (warning: contains deprecated functionality)
  - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
+ - [PyCon 2020](https://www.youtube.com/watch?v=BNgolmUWBp4&t=33s)
  - [Medium: towards data science](https://towardsdatascience.com/introduction-to-d-tale-5eddd81abe3f)
  - [Medium: Exploratory Data Analysis – Using D-Tale](https://medium.com/da-tum/exploratory-data-analysis-1-4-using-d-tale-99a2c267db79)
  - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
@@ -58,6 +59,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Charts](#charts)
+  - [Hotkeys](#hotkeys)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
   - [Cloning](#cloning)
@@ -928,6 +930,22 @@ Based on the data type of a column different charts will be shown.
 )
 
 **Category (Category Breakdown)** when viewing float columns you can also see them broken down by a categorical column (string, date, int, etc...).  This means that when you select a category column this will then display the frequency of each category in a line as well as bars based on the float column you're analyzing grouped by that category and computed by your aggregation (default: mean).
+
+### Hotkeys
+
+These are key combinations you can use in place of clicking actual buttons to save a little time:
+
+| Keymap      | Action         |
+|-------------|----------------|
+|`shift+m`    | Opens main menu*|
+|`shift+d`    | Opens "Describe" page*|
+|`shift+f`    | Opens "Custom Filter"*|
+|`shift+b`    | Opens "Build Column"*|
+|`shift+c`    | Opens "Charts" page*|
+|`shift+x`    | Opens "Code Export"*|
+|`esc`        | Closes any open modal window & exits cell editing|
+
+`*` Does not fire if user is actively editing a cell.
 
 ### Menu Functions Depending on Browser Dimensions
 Depending on the dimensions of your browser window the following buttons will not open modals, but rather separate browser windows:  Correlations, Describe & Instances (see images from [Jupyter Notebook](#jupyter-notebook), also Charts will always open in a separate browser window)

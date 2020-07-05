@@ -1,6 +1,7 @@
 import _ from "lodash";
 
 import { cleanupEndpoint } from "../../actions/url-utils";
+import menuUtils from "../../menuUtils";
 
 function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
   let updatedSortInfo = _.filter(sortInfo, ([col, _dir]) => !_.includes(selectedCols, col));
@@ -54,4 +55,38 @@ function shouldOpenPopup(height, width) {
   return true;
 }
 
-export default { updateSort, buildStyling, fullPath, open, shouldOpenPopup };
+function buildHotkeyHandlers(props) {
+  const { propagateState, openChart, dataId } = props;
+  const openMenu = () => {
+    propagateState({ menuOpen: true });
+    menuUtils.buildClickHandler("gridActions", () => propagateState({ menuOpen: false }));
+  };
+  const openPopup = (type, height = 450, width = 500) => () => {
+    if (shouldOpenPopup(height, width)) {
+      open(`/dtale/popup/${type}`, dataId, height, width);
+    } else {
+      openChart(_.assignIn({ type, title: _.capitalize(type) }, props));
+    }
+  };
+  const openTab = type => () => window.open(fullPath(`/dtale/popup/${type}`, dataId), "_blank");
+  const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700);
+  return {
+    openTab,
+    openPopup,
+    MENU: openMenu,
+    DESCRIBE: openTab("describe"),
+    FILTER: openPopup("filter", 500, 1100),
+    BUILD: openPopup("build", 400, 770),
+    CHARTS: () => window.open(fullPath("/charts", dataId), "_blank"),
+    CODE: openCodeExport,
+  };
+}
+
+export default {
+  updateSort,
+  buildStyling,
+  fullPath,
+  open,
+  shouldOpenPopup,
+  buildHotkeyHandlers,
+};

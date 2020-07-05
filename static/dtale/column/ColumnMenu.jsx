@@ -2,15 +2,18 @@ import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 
 import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
+import actions from "../../actions/dtale";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
 import { exports as gu } from "../gridUtils";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 import serverState from "../serverStateManagement";
+import ColumnMenuOption from "./ColumnMenuOption";
 
 const { ROW_HEIGHT, SORT_PROPS } = gu;
 const MOVE_COLS = [
@@ -83,7 +86,7 @@ class ReactColumnMenu extends React.Component {
   }
 
   render() {
-    const { dataId, selectedCol, openChart } = this.props;
+    const { columnMenuOpen, dataId, selectedCol, openChart } = this.props;
     if (!selectedCol) {
       return null;
     }
@@ -148,13 +151,15 @@ class ReactColumnMenu extends React.Component {
         columns: this.props.columns,
         size: "modal-sm",
       });
+    const closeMenu = () => this.props.hideColumnMenu(selectedCol);
     return (
       <div
         id="column-menu-div"
         className="column-toggle__dropdown"
-        hidden={!this.props.columnMenuOpen}
+        hidden={!columnMenuOpen}
         style={{ minWidth: "11em" }}
         ref={cm => (this._div = cm)}>
+        {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <header>{`Column "${selectedCol}"`}</header>
         <ul>
           <li>
@@ -195,81 +200,34 @@ class ReactColumnMenu extends React.Component {
             </div>
           </li>
           <ConditionalRender display={unlocked}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={serverState.lockCols([selectedCol], this.props)}>
-                  <i className="fa fa-lock ml-3 mr-4" />
-                  <span className="font-weight-bold">Lock</span>
-                </button>
-              </span>
-            </li>
+            <ColumnMenuOption
+              open={serverState.lockCols([selectedCol], this.props)}
+              label="Lock"
+              iconClass="fa fa-lock ml-3 mr-4"
+            />
           </ConditionalRender>
           <ConditionalRender display={!unlocked}>
-            <li>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={serverState.unlockCols([selectedCol], this.props)}>
-                  <i className="fa fa-lock-open ml-2 mr-4" />
-                  <span className="font-weight-bold">Unlock</span>
-                </button>
-              </span>
-            </li>
+            <ColumnMenuOption
+              open={serverState.unlockCols([selectedCol], this.props)}
+              label="Unlock"
+              iconClass="fa fa-lock-open ml-2 mr-4"
+            />
           </ConditionalRender>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={hideCol}>
-                <i className="ico-visibility-off" />
-                <span className="font-weight-bold">Hide</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={deleteCol}>
-                <i className="ico-delete" />
-                <span className="font-weight-bold">Delete</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={renameCol}>
-                <i className="ico-edit" />
-                <span className="font-weight-bold">Rename</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("replacement", 400, 770)}>
-                <i className="fas fa-backspace mr-3" />
-                <span className="font-weight-bold">Replacements</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openDescribe}>
-                <i className="ico-view-column" />
-                <span className="font-weight-bold">Describe</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("column-analysis", 425, 810)}>
-                <i className="ico-equalizer" />
-                <span className="font-weight-bold">Column Analysis</span>
-              </button>
-            </span>
-          </li>
-          <li>
-            <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openFormatting}>
-                <i className="ico-palette" />
-                <span className="font-weight-bold">Formats</span>
-              </button>
-            </span>
-          </li>
+          <ColumnMenuOption open={hideCol} label="Hide" iconClass="ico-visibility-off" />
+          <ColumnMenuOption open={deleteCol} label="Delete" iconClass="ico-delete" />
+          <ColumnMenuOption open={renameCol} label="Rename" iconClass="ico-edit" />
+          <ColumnMenuOption
+            open={openPopup("replacement", 400, 770)}
+            label="Replacements"
+            iconClass="fas fa-backspace mr-3"
+          />
+          <ColumnMenuOption open={openDescribe} label="Describe" iconClass="ico-view-column" />
+          <ColumnMenuOption
+            open={openPopup("column-analysis", 425, 810)}
+            label="Column Analysis"
+            iconClass="ico-equalizer"
+          />
+          <ColumnMenuOption open={openFormatting} label="Formats" iconClass="ico-palette" />
           <ColumnFilter {...this.props} />
         </ul>
       </div>
@@ -287,11 +245,15 @@ ReactColumnMenu.propTypes = {
   dataId: PropTypes.string.isRequired,
   noInfo: PropTypes.bool,
   openChart: PropTypes.func,
+  hideColumnMenu: PropTypes.func,
 };
 
 const ReduxColumnMenu = connect(
   state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle"]),
-  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
+  dispatch => ({
+    openChart: chartProps => dispatch(openChart(chartProps)),
+    hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
+  })
 )(ReactColumnMenu);
 
 export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu, positionMenu, ignoreMenuClicks };
