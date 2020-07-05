@@ -33,7 +33,6 @@ class ReactHeader extends React.Component {
       () => propagateState({ menuOpen: false }),
       "div.menu-toggle"
     );
-
     return (
       <div style={style} className="menu-toggle">
         <div className="crossed">

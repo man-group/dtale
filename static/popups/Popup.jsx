@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { Modal, ModalClose, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 import { connect } from "react-redux";
 
@@ -215,6 +216,7 @@ class ReactPopup extends React.Component {
           backdrop: backdrop || false,
           className: `${type}-modal`,
         }}>
+        <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: onClose }} />
         <ModalHeader>
           {modalTitle}
           <ModalClose onClick={onClose} />

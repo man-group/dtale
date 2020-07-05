@@ -15,6 +15,7 @@ import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
 import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
+import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
 import { MeasureText } from "./MeasureText";
 import { ColumnMenu } from "./column/ColumnMenu";
@@ -222,6 +223,7 @@ class ReactDataViewer extends React.Component {
     const { formattingOpen } = this.state;
     return (
       <div key={1} style={{ height: "100%", width: "100%" }} onClick={this.handleClicks}>
+        <DtaleHotkeys propagateState={this.propagateState} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
           loadMoreRows={_.noop}

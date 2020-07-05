@@ -17,15 +17,8 @@ class ReactDataViewerMenu extends React.Component {
   render() {
     const { hideShutdown, dataId } = this.props;
     const iframe = global.top !== global.self;
-    const openPopup = (type, height = 450, width = 500) => () => {
-      if (menuFuncs.shouldOpenPopup(height, width)) {
-        menuFuncs.open(`/dtale/popup/${type}`, dataId, height, width);
-      } else {
-        this.props.openChart(_.assignIn({ type, title: _.capitalize(type) }, this.props));
-      }
-    };
-    const openTab = type => () => window.open(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), "_blank");
-    const openCodeExport = () => menuFuncs.open("/dtale/popup/code-export", dataId, 450, 700);
+    const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
+    const { openTab, openPopup } = buttonHandlers;
     const refreshWidths = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
@@ -57,10 +50,10 @@ class ReactDataViewerMenu extends React.Component {
         <header className="title-font">D-TALE</header>
         <ul>
           <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
-          <DescribeOption open={openTab("describe")} />
+          <DescribeOption open={buttonHandlers.DESCRIBE} />
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("filter", 500, 1100)}>
+              <button className="btn btn-plain" onClick={buttonHandlers.FILTER}>
                 <i className="fa fa-filter ml-2 mr-4" />
                 <span className="font-weight-bold">Custom Filter</span>
               </button>
@@ -69,7 +62,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openPopup("build", 400, 770)}>
+              <button className="btn btn-plain" onClick={buttonHandlers.BUILD}>
                 <i className="ico-build" />
                 <span className="font-weight-bold">Build Column</span>
               </button>
@@ -96,9 +89,7 @@ class ReactDataViewerMenu extends React.Component {
           </li>
           <li className="hoverable">
             <span className="toggler-action">
-              <button
-                className="btn btn-plain"
-                onClick={() => window.open(menuFuncs.fullPath("/charts", dataId), "_blank")}>
+              <button className="btn btn-plain" onClick={buttonHandlers.CHARTS}>
                 <i className="ico-show-chart" />
                 <span className="font-weight-bold">Charts</span>
               </button>
@@ -167,7 +158,7 @@ class ReactDataViewerMenu extends React.Component {
           <InstancesOption open={openPopup("instances", 450, 750)} />
           <li className="hoverable">
             <span className="toggler-action">
-              <button className="btn btn-plain" onClick={openCodeExport}>
+              <button className="btn btn-plain" onClick={buttonHandlers.CODE}>
                 <i className="ico-code" />
                 <span className="font-weight-bold">Code Export</span>
               </button>
