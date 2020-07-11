@@ -15,7 +15,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 describe("DataViewer tests", () => {
   const { post } = $;
   const { close, opener } = window;
-  let result, DtypesGrid, Details, Describe;
+  let result, DtypesGrid, Details, Describe, DescribeFilters, DetailsCharts, ColumnAnalysisChart;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -64,6 +64,9 @@ describe("DataViewer tests", () => {
     DtypesGrid = require("../../popups/describe/DtypesGrid").DtypesGrid;
     Details = require("../../popups/describe/Details").Details;
     Describe = require("../../popups/Describe").Describe;
+    DescribeFilters = require("../../popups/analysis/filters/DescribeFilters").DescribeFilters;
+    DetailsCharts = require("../../popups/describe/DetailsCharts").default;
+    ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
   });
 
   beforeEach(async () => {
@@ -89,12 +92,19 @@ describe("DataViewer tests", () => {
   const details = result => result.find(Details).first();
 
   it("DataViewer: describe base grid operations", async () => {
-    details(result).find("div.row").at(2).find("button").last().simulate("click");
+    details(result)
+      .find("button")
+      .findWhere(btn => btn.text() === "Outliers")
+      .first()
+      .simulate("click");
     await tickUpdate(result);
-    expect(details(result).find("div.row").at(3).find("span.font-weight-bold").first().text()).toBe(
-      "3 Outliers Found (top 100):"
-    );
-    details(result).find("div.row").at(3).find("a").simulate("click");
+    expect(result.find(DetailsCharts)).toHaveLength(1);
+    expect(
+      details(result)
+        .find("span.font-weight-bold")
+        .findWhere(span => span.text() === "3 Outliers Found (top 100):")
+    ).not.toHaveLength(0);
+    details(result).find("a").last().simulate("click");
     await tick();
     expect(dtypesGrid(result).find("div[role='row']").length).toBe(5);
     dtypesGrid(result).find("div[role='columnheader']").first().simulate("click");
@@ -111,6 +121,22 @@ describe("DataViewer tests", () => {
     expect(
       dtypesGrid(result).find("div.headerCell").first().find("svg.ReactVirtualized__Table__sortableHeaderIcon").length
     ).toBe(0);
+    result
+      .find(DescribeFilters)
+      .find("button")
+      .findWhere(btn => btn.text() === "Histogram")
+      .first()
+      .simulate("click");
+    await tickUpdate(result);
+    expect(result.find(ColumnAnalysisChart)).toHaveLength(1);
+    result
+      .find(DescribeFilters)
+      .find("button")
+      .findWhere(btn => btn.text() === "Categories")
+      .first()
+      .simulate("click");
+    await tickUpdate(result);
+    expect(result.find(ColumnAnalysisChart)).toHaveLength(1);
   });
 
   it("DataViewer: showing/hiding columns from Describe popup & jumping sessions", async () => {
@@ -123,7 +149,7 @@ describe("DataViewer tests", () => {
     expect(dtypesGrid(result).find("div[role='row']").length).toBe(2);
     dtypesGrid(result).find("div[title='col1']").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Describe).first().find("h1").first().text()).toBe("col1");
+    expect(result.find(Details).find("div.row").first().find("span").first().text()).toBe("col1");
     dtypesGrid(result).find("div.headerCell").at(1).find("i.ico-check-box").simulate("click");
     dtypesGrid(result).find("div.headerCell").at(1).find("i.ico-check-box-outline-blank").simulate("click");
     dtypesGrid(result).find("i.ico-check-box").last().simulate("click");

@@ -6,11 +6,10 @@ import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
 import { buildURLString, saveColFilterUrl } from "../../actions/url-utils";
-import chartUtils from "../../chartUtils";
 import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
-import { renderCodePopupAnchor } from "../CodePopup";
+import DetailsCharts from "./DetailsCharts";
 
 const BASE_DESCRIBE_URL = "/dtale/describe";
 
@@ -25,7 +24,6 @@ class Details extends React.Component {
       loadingOutliers: false,
     };
     this.loadDetails = this.loadDetails.bind(this);
-    this.createBoxplot = this.createBoxplot.bind(this);
     this.renderUniques = this.renderUniques.bind(this);
     this.renderDeepDataToggle = this.renderDeepDataToggle.bind(this);
     this.loadOutliers = this.loadOutliers.bind(this);
@@ -53,64 +51,15 @@ class Details extends React.Component {
             <RemovableError {...detailData} />
           </div>
         );
-        this.setState(newState, () => this.createBoxplot);
+        this.setState(newState);
         return;
       }
       newState.details = _.pick(detailData, ["describe", "uniques"]);
       newState.details.name = this.props.selected.name;
       newState.details.dtype = this.props.selected.dtype;
       newState.code = detailData.code;
-      this.setState(newState, this.createBoxplot);
+      this.setState(newState);
     });
-  }
-
-  createBoxplot() {
-    const builder = ctx => {
-      const { details } = this.state;
-      const { describe, name } = details || {};
-      const chartData = _(describe || {})
-        .pickBy((v, k) => _.includes(["25%", "50%", "75%", "min", "max"], k) && !_.includes(["nan", "inf"], v))
-        .mapKeys((_v, k) => _.get({ "25%": "q1", "50%": "median", "75%": "q3" }, k, k))
-        .mapValues(v => parseFloat(_.replace(v, /,/g, "")))
-        .value();
-      if (_.size(chartData) == 0) {
-        return null;
-      }
-      _.forEach(["min", "max"], p => {
-        if (!_.isUndefined(chartData[p])) {
-          chartData[`whisker${p}`] = chartData[p];
-        }
-      });
-      if (!_.isUndefined(describe.mean) && !_.includes(["nan", "inf"], describe.mean)) {
-        chartData.outliers = [parseFloat(_.replace(describe.mean, /,/g, ""))];
-      }
-      return chartUtils.createChart(ctx, {
-        type: "boxplot",
-        data: {
-          labels: [name],
-          datasets: [
-            {
-              label: name,
-              backgroundColor: "rgba(54, 162, 235, 0.5)",
-              borderColor: "rgb(54, 162, 235)",
-              borderWidth: 1,
-              data: [chartData],
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          legend: { display: false },
-          title: { display: false },
-          tooltips: { enabled: false },
-          scales: {
-            yAxes: [{ ticks: { min: chartData.min - 1, max: chartData.max + 1 } }],
-          },
-        },
-      });
-    };
-    const chart = chartUtils.chartWrapper("boxplot", this.state.boxplot, builder);
-    this.setState({ boxplot: chart });
   }
 
   renderUniques() {
@@ -122,7 +71,7 @@ class Details extends React.Component {
       return null;
     }
     return (
-      <div key={3} className="row">
+      <div className="row">
         <div className="col-sm-12">
           <span className="font-weight-bold" style={{ fontSize: "120%" }}>
             {`Unique Values${uniques.top ? " (top 100 most common)" : ""}:`}
@@ -154,7 +103,7 @@ class Details extends React.Component {
         this.setState({ deepData: val }, outliersCallback);
       };
       return (
-        <div key="toggle" className="row pb-5">
+        <div className="row pb-5">
           <div className="col-auto pl-0">
             <div className="btn-group compact col-auto">
               <button {...buildButton(deepData == "uniques", toggle("uniques"))}>Uniques</button>
@@ -172,7 +121,7 @@ class Details extends React.Component {
       return null;
     }
     if (this.state.loadingOutliers) {
-      return <Bouncer key={3} />;
+      return <Bouncer />;
     }
     const { outliers } = this.state;
     const outlierValues = _.get(outliers, "outliers", []);
@@ -205,7 +154,7 @@ class Details extends React.Component {
       );
     };
     return [
-      <div key={3} className="row">
+      <div key={1} className="row">
         <div className="col">
           <span className="font-weight-bold" style={{ fontSize: "120%" }}>
             {`${_.size(outlierValues)} Outliers Found${outliers.top ? " (top 100)" : ""}:`}
@@ -225,7 +174,7 @@ class Details extends React.Component {
           </div>
         </div>
       </div>,
-      <div key={4} className="row">
+      <div key={2} className="row">
         <div className="col-sm-12">
           <span>{_.join(_.sortBy(outlierValues), ", ")}</span>
         </div>
@@ -241,48 +190,41 @@ class Details extends React.Component {
         </div>
       );
     }
-    const { details } = this.state;
+    const { details, code } = this.state;
     if (_.isEmpty(details)) {
       return null;
     }
-
-    return [
-      <div key={1} className="row">
-        <div className="col-auto">
-          <h1>{details.name}</h1>
-          <span className="pl-3">({details.dtype})</span>
-        </div>
-        <div className="col text-right">{renderCodePopupAnchor(this.state.code, "Describe")}</div>
-      </div>,
-      <div key={2} className="row">
-        <div className="col-md-6">
-          <ul>
-            {_.map(_.get(details, "describe", {}), (v, k) => (
-              <li key={k}>
-                <div>
-                  <h4 className="d-inline pr-5">{`${k}:`}</h4>
-                  <span className="d-inline">{v}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="col-md-6">
-          <div style={{ height: 300 }}>
-            <canvas id="boxplot" />
+    const { dtypes, selected, dataId } = this.props;
+    return (
+      <React.Fragment>
+        <div className="row">
+          <div className="col">
+            <span className="mb-0 font-weight-bold" style={{ fontSize: "2em" }}>
+              {details.name}
+            </span>
+            <span className="pl-3">({details.dtype})</span>
           </div>
         </div>
-      </div>,
-      this.renderDeepDataToggle(),
-      this.renderUniques(),
-      this.renderOutliers(),
-    ];
+        <DetailsCharts
+          details={details}
+          detailCode={code}
+          dtype={details.dtype}
+          cols={dtypes}
+          col={selected.name}
+          dataId={dataId}
+        />
+        {this.renderDeepDataToggle()}
+        {this.renderUniques()}
+        {this.renderOutliers()}
+      </React.Fragment>
+    );
   }
 }
 Details.displayName = "Details";
 Details.propTypes = {
   selected: PropTypes.object,
   dataId: PropTypes.string,
+  dtypes: PropTypes.array,
 };
 
 export { Details };

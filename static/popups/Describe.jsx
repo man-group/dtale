@@ -72,7 +72,7 @@ class Describe extends React.Component {
             </BouncerWrapper>
           </div>
           <div className="col-md-7 describe-details-col">
-            <Details selected={this.state.selected} dataId={this.props.dataId} />
+            <Details selected={this.state.selected} dataId={this.props.dataId} dtypes={this.state.dtypes} />
           </div>
         </div>
       </div>,
