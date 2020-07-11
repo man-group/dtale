@@ -1,21 +1,13 @@
-import qs from "querystring";
-
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
 
-import { RemovableError } from "../../RemovableError";
 import actions from "../../actions/dtale";
-import { buildURLParams } from "../../actions/url-utils";
-import chartUtils from "../../chartUtils";
-import { fetchJson } from "../../fetcher";
-import { ColumnAnalysisFilters } from "./ColumnAnalysisFilters";
-import { createChart } from "./columnAnalysisUtils";
+import { dataLoader } from "./columnAnalysisUtils";
+import { ColumnAnalysisFilters } from "./filters/ColumnAnalysisFilters";
 
 require("./ColumnAnalysis.css");
-
-const BASE_ANALYSIS_URL = "/dtale/column-analysis";
 
 class ReactColumnAnalysis extends React.Component {
   constructor(props) {
@@ -33,11 +25,6 @@ class ReactColumnAnalysis extends React.Component {
       return true;
     }
 
-    if (this.state.chart != newState.chart) {
-      // Don't re-render if we've only changed the chart.
-      return false;
-    }
-
     // Otherwise, use the default react behavior.
     return false;
   }
@@ -47,37 +34,8 @@ class ReactColumnAnalysis extends React.Component {
   }
 
   buildAnalysis(chartParams) {
-    const finalParams = chartParams || this.state.chartParams;
-    const { selectedCol } = this.props.chartData;
-    const paramProps = ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol", "categoryAgg"];
-    const params = _.assignIn({}, this.props.chartData, _.pick(finalParams, ["bins", "top"]));
-    params.type = _.get(finalParams, "type");
-    if (params.type === "categories" && _.isNull(finalParams.categoryCol)) {
-      return;
-    }
-    const subProps = params.type === "value_counts" ? ["ordinalCol", "ordinalAgg"] : ["categoryCol", "categoryAgg"];
-    _.forEach(subProps, p => (params[p] = _.get(finalParams, [p, "value"])));
-    const url = `${BASE_ANALYSIS_URL}/${this.props.dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
-    fetchJson(url, fetchedChartData => {
-      const newState = { error: null, chartParams: finalParams };
-      if (_.get(fetchedChartData, "error")) {
-        newState.error = <RemovableError {...fetchedChartData} />;
-      }
-      newState.code = _.get(fetchedChartData, "code", "");
-      newState.dtype = _.get(fetchedChartData, "dtype", "");
-      newState.type = _.get(fetchedChartData, "chart_type", "histogram");
-      newState.query = _.get(fetchedChartData, "query");
-      newState.cols = _.get(fetchedChartData, "cols", []);
-      newState.top = _.get(fetchedChartData, "top", null);
-      const builder = ctx => {
-        if (!_.get(fetchedChartData, "data", []).length) {
-          return null;
-        }
-        return createChart(ctx, fetchedChartData, _.assignIn(finalParams, { selectedCol, type: newState.type }));
-      };
-      newState.chart = chartUtils.chartWrapper("columnAnalysisChart", this.state.chart, builder);
-      this.setState(newState);
-    });
+    const propagateState = state => this.setState(state);
+    dataLoader(this.props, this.state, propagateState, chartParams);
   }
 
   render() {
@@ -113,7 +71,7 @@ class ReactColumnAnalysis extends React.Component {
       filters,
       <div key="body" className="modal-body">
         {this.state.error || null}
-        <canvas id="columnAnalysisChart" height={this.props.height} />
+        {this.state.chart}
       </div>,
     ];
   }

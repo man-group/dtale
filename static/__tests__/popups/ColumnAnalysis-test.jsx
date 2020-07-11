@@ -8,7 +8,7 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
-import { ColumnAnalysisFilters } from "../../popups/analysis/ColumnAnalysisFilters";
+import { ColumnAnalysisFilters } from "../../popups/analysis/filters/ColumnAnalysisFilters";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
@@ -62,7 +62,7 @@ const props = {
 };
 
 describe("ColumnAnalysis tests", () => {
-  let result;
+  let result, ColumnAnalysisChart;
 
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
@@ -138,6 +138,8 @@ describe("ColumnAnalysis tests", () => {
 
   beforeEach(async () => {
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
+    ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
+
     buildInnerHTML();
     result = mount(<ColumnAnalysis {...props} />, {
       attachTo: document.getElementById("content"),
@@ -146,7 +148,7 @@ describe("ColumnAnalysis tests", () => {
   });
 
   const input = () => result.find("input");
-  const chart = () => result.state("chart");
+  const chart = () => result.find(ColumnAnalysisChart).instance().state.chart;
   const updateProps = newProps => {
     result.setProps(newProps);
     result.update();
@@ -166,11 +168,11 @@ describe("ColumnAnalysis tests", () => {
     input().simulate("keyPress", { key: "Enter" });
     input().simulate("change", { target: { value: "a" } });
     input().simulate("keyPress", { key: "Enter" });
-    input().simulate("change", { target: { value: 50 } });
+    input().simulate("change", { target: { value: "50" } });
     input().simulate("keyPress", { key: "Enter" });
     await tickUpdate(result);
     expect(currChart.destroyed).toBe(true);
-    expect(result.find(ColumnAnalysisFilters).instance().state.bins).toBe(50);
+    expect(result.find(ColumnAnalysisFilters).instance().state.bins).toBe("50");
   });
 
   it("ColumnAnalysis chart functionality", async () => {
@@ -184,7 +186,7 @@ describe("ColumnAnalysis tests", () => {
       ...props,
       chartData: _.assignIn(props.chartData, { visible: false }),
     });
-    expect(currChart).toEqual(result.state("chart"));
+    expect(currChart).toEqual(chart());
     updateProps({
       ...props,
       chartData: _.assignIn(props.chartData, { visible: true }),
@@ -196,7 +198,7 @@ describe("ColumnAnalysis tests", () => {
     filters()
       .find("input")
       .first()
-      .simulate("change", { target: { value: 50 } });
+      .simulate("change", { target: { value: "50" } });
     filters().find("input").first().simulate("keyPress", { key: "Enter" });
     await tickUpdate(result);
   });
