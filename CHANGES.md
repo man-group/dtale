@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.9.2 (2020-7-12)
+ * [#127](https://github.com/man-group/dtale/issues/127): add "Column Analysis" to "Describe"
+ * [#85](https://github.com/man-group/dtale/issues/85): hotkeys
+
 ### 1.9.1 (2020-7-3)
  * [#213](https://github.com/man-group/dtale/issues/213): Support for koalas dataframes
  * [#214](https://github.com/man-group/dtale/issues/214): fix for USE_COLAB (colab proxy endpoint injection)
