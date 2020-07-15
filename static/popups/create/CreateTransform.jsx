@@ -66,7 +66,7 @@ class CreateTransform extends React.Component {
               getOptionLabel={_.property("value")}
               getOptionValue={_.property("value")}
               value={this.state[prop]}
-              onChange={selected => this.setState({ [prop]: selected })}
+              onChange={selected => this.updateState({ [prop]: selected })}
               isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
             />

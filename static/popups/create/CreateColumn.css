@@ -13,3 +13,12 @@ input[type='number'].numeric-input {
   white-space: normal;
   padding: 0.35rem 0.3rem;
 }
+
+div.builders > .btn-group.row:first-child > .btn:first-child {
+  border-radius: 0.25rem 0 0 0;
+}
+
+div.builders > .btn-group.row:last-of-type > .btn {
+  border-radius: 0 0 0.25rem 0.25rem;
+  border-top-width: 0;
+}

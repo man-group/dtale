@@ -4,5 +4,6 @@
   "datetime":  "Pull out properties (minute, hour, time...) or convert to date representations (month-end, month-start, year-end...) using datatime columns.",
   "random":  "Build a column of random data for different data types using range rules.",
   "type_conversion":  "Convert columns of one type to another.",
-  "transform": "Transform numeric data of one column by grouping on others and applying an aggregation (sum, mean, count...)."
+  "transform": "Transform numeric data of one column by grouping on others and applying an aggregation (sum, mean, count...).",
+  "winsorize": "Remove outliers in your column by replacing values that fall at or below the lowest percentile with the maximum value in that group and replacing values that fall at or above highest percentile with the minimum value of that group."
 }

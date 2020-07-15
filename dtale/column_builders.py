@@ -4,6 +4,7 @@ import time
 
 import numpy as np
 import pandas as pd
+from scipy.stats import mstats
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type
@@ -24,6 +25,8 @@ class ColumnBuilder(object):
             self.builder = TypeConversionColumnBuilder(name, cfg)
         elif column_type == "transform":
             self.builder = TransformColumnBuilder(name, cfg)
+        elif column_type == "winsorize":
+            self.builder = WinsorizeColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -466,3 +469,47 @@ class TransformColumnBuilder(object):
         return (
             "pd.Series(data.groupby(['{group}'])['{col}'].transform('{agg}'), index=data.index, name='{name}')"
         ).format(name=self.name, col=col, agg=agg, group="','".join(group))
+
+
+class WinsorizeColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        group, col, limits, inclusive = (self.cfg.get(p) for p in ["group", "col", "limits", "inclusive"])
+        kwargs = {k: self.cfg[k] for k in ["limits", "inclusive"] if self.cfg.get(k) is not None}
+        if len(group or []):
+            def winsorize_series(group):
+                return mstats.winsorize(group, **kwargs)
+
+            winsorized_data = data.groupby(group)[col].transform(winsorize_series)
+        else:
+            winsorized_data = mstats.winsorize(data[col], **kwargs)
+        return pd.Series(winsorized_data, index=data.index, name=self.name)
+
+    def build_code(self):
+        group, col, limits, inclusive = (self.cfg.get(p) for p in ["group", "col", "limits", "inclusive"])
+        winsorize_params = []
+        if limits is not None:
+            winsorize_params.append("limits=[{}]".format(', '.join(map(str, limits))))
+        if inclusive is not None:
+            winsorize_params.append("inclusive=[{}]".format(', '.join(map(str, inclusive))))
+        if len(winsorize_params):
+            winsorize_params = ", {}".format(', '.join(winsorize_params))
+        else:
+            winsorize_params = ''
+        if len(group or []):
+            return (
+                "from scipy.stats import mstats\n\n"
+                "def winsorize_series(group):\n"
+                "\treturn mstats.winsorize(group{params})\n\n"
+                "winsorized_data = data.groupby(['{group}'])['{col}'].transform(winsorize_series)\n"
+                "pd.Series(winsorized_data, index=data.index, name='{name}')"
+            ).format(params=winsorize_params, col=col, group="', '".join(group), name=self.name)
+
+        return (
+            "from scipy.stats import mstats\n\n"
+            "winsorized_data = mstats.winsorize(data['{col}']{params})\n"
+            "pd.Series(winsorized_data, index=data.index, name='{name}')"
+        ).format(params=winsorize_params, col=col, name=self.name)
