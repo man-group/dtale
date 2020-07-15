@@ -146,6 +146,7 @@
     "react-motion": "0.5.2",
     "react-redux": "7.2.0",
     "react-select": "3.1.0",
+    "react-slider": "^1.0.8",
     "react-syntax-highlighter": "12.2.1",
     "react-virtualized": "9.21.2",
     "react-wordcloud": "1.2.2",
@@ -153,6 +154,7 @@
     "redux-thunk": "2.3.0",
     "serialize-javascript": "3.0.0",
     "string.prototype.startswith": "0.2.0",
+    "styled-components": "^5.1.1",
     "uuid": "8.0.0"
   }
 }

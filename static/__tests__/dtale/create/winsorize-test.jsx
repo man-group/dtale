@@ -2,10 +2,11 @@ import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
 import Select from "react-select";
+import ReactSlider from "react-slider";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateTransform } from "../../../popups/create/CreateTransform";
+import { CreateWinsorize } from "../../../popups/create/CreateWinsorize";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -83,7 +84,7 @@ describe("DataViewer tests", () => {
       .find("input")
       .first()
       .simulate("change", { target: { value: "conv_col" } });
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(6).simulate("click");
+    result.find(CreateColumn).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
   });
 
@@ -94,44 +95,41 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: build transform column", async () => {
-    expect(result.find(CreateTransform).length).toBe(1);
-    result
-      .find(CreateTransform)
+  const findWinsorize = () => result.find(CreateWinsorize);
+
+  it("DataViewer: build winsorize column", async () => {
+    expect(result.find(CreateWinsorize).length).toBe(1);
+    findWinsorize().find(Select).first().instance().onChange({ value: "col1" });
+    result.update();
+    findWinsorize()
       .find(Select)
-      .first()
+      .last()
       .instance()
-      .onChange([{ value: "col1" }]);
+      .onChange([{ value: "col2" }]);
     result.update();
-    result.find(CreateTransform).find(Select).at(1).instance().onChange({ value: "col2" });
+    findWinsorize().find(ReactSlider).prop("onAfterChange")([20, 80]);
     result.update();
-    result.find(CreateTransform).find(Select).last().instance().onChange({ value: "mean" });
+    findWinsorize().find("i").last().simulate("click");
     result.update();
     submit(result);
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
-      col: "col2",
-      group: ["col1"],
-      agg: "mean",
+      col: "col1",
+      group: ["col2"],
+      limits: [0.2, 0.2],
+      inclusive: [true, false],
     });
   });
 
-  it("DataViewer: build transform cfg validation", () => {
-    const { validateTransformCfg } = require("../../../popups/create/CreateTransform");
-    expect(validateTransformCfg({ group: null })).toBe("Please select a group!");
-    expect(validateTransformCfg({ col: null, group: ["col1"] })).toBe("Please select a column to transform!");
+  it("DataViewer: build winsorize cfg validation", () => {
+    const { validateWinsorizeCfg } = require("../../../popups/create/CreateWinsorize");
+    expect(validateWinsorizeCfg({ col: null })).toBe("Please select a column to winsorize!");
     expect(
-      validateTransformCfg({
+      validateWinsorizeCfg({
         col: "col1",
         group: ["col2"],
-        agg: null,
-      })
-    ).toBe("Please select an aggregation!");
-    expect(
-      validateTransformCfg({
-        col: "col1",
-        group: ["col2"],
-        agg: "mean",
+        limits: [0.1, 0.1],
+        inclusive: [true, false],
       })
     ).toBe(null);
   });

@@ -1,0 +1,6 @@
+.input-group .form-control.slider-input {
+    width: 2em;
+    border-radius: 0.25rem !important;
+    padding: .25em;
+    text-align: center;
+}

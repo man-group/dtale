@@ -14,11 +14,12 @@ import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
 import { CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
+import { CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
 import Descriptions from "./creation-descriptions.json";
 
 require("./CreateColumn.css");
 
-const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion", "transform"];
+const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion", "transform", "winsorize"];
 
 function buildLabel(v) {
   return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
@@ -83,6 +84,9 @@ class ReactCreateColumn extends React.Component {
       case "transform":
         error = validateTransformCfg(cfg);
         break;
+      case "winsorize":
+        error = validateWinsorizeCfg(cfg);
+        break;
       case "numeric":
       default:
         error = validateNumericCfg(cfg);
@@ -142,6 +146,9 @@ class ReactCreateColumn extends React.Component {
       case "transform":
         body = <CreateTransform columns={this.state.columns} updateState={updateState} />;
         break;
+      case "winsorize":
+        body = <CreateWinsorize columns={this.state.columns} updateState={updateState} />;
+        break;
     }
     return (
       <div key="body" className="modal-body">
@@ -158,28 +165,30 @@ class ReactCreateColumn extends React.Component {
         </div>
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Column Type</label>
-          <div className="col-md-8">
-            <div className="btn-group">
-              {_.map(TYPES, (type, i) => {
-                const buttonProps = { className: "btn" };
-                if (type === this.state.type) {
-                  buttonProps.className += " btn-primary active";
-                } else {
-                  buttonProps.className += " btn-primary inactive";
-                  const updatedState = { type };
-                  if (type === "random") {
-                    updatedState.cfg = { type: "float" };
+          <div className="col-md-8 builders">
+            {_.map(_.chunk(TYPES, 6), (typeRow, i) => (
+              <div key={i} className="btn-group row ml-0">
+                {_.map(typeRow, (type, j) => {
+                  const buttonProps = { className: "btn" };
+                  if (type === this.state.type) {
+                    buttonProps.className += " btn-primary active";
+                  } else {
+                    buttonProps.className += " btn-primary inactive";
+                    const updatedState = { type };
+                    if (type === "random") {
+                      updatedState.cfg = { type: "float" };
+                    }
+                    buttonProps.onClick = () => this.setState(updatedState);
                   }
-                  buttonProps.onClick = () => this.setState(updatedState);
-                }
-                return (
-                  <button key={i} {...buttonProps}>
-                    {buildLabel(type)}
-                  </button>
-                );
-              })}
-            </div>
-            <label className="col-auto col-form-label pl-3 pr-3" style={{ fontSize: "85%" }}>
+                  return (
+                    <button key={`${i}-${j}`} {...buttonProps}>
+                      {buildLabel(type)}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+            <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
               {_.get(Descriptions, this.state.type, "")}
             </label>
           </div>

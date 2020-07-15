@@ -151,7 +151,7 @@ def test_type_conversion(unittest):
 
 
 @pytest.mark.unit
-def test_transform(unittest):
+def test_transform():
     def _data():
         for i in range(100):
             a = i % 5
@@ -190,3 +190,27 @@ def test_transform(unittest):
             cfg["agg"] = agg
             builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
             verify_builder(builder, lambda col: len(col[col.isnull()]) == 0)
+
+
+@pytest.mark.unit
+def test_winsorize():
+    def _data():
+        for i in range(100):
+            a = i % 5
+            b = i % 3
+            c = i % 4
+            yield dict(a=a, b=b, c=c, i=i)
+
+    df = pd.DataFrame(list(_data()))
+    data_id, column_type = "1", "winsorize"
+    i = 0
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "i", "inclusive": [True, False], "limits": [0.1, 0.1]}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.sum() == 4950)
+
+        cfg = {"col": "i", "group": ["b"], "limits": [0.1, 0.1]}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.sum() == 4950)
