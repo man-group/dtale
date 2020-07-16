@@ -5,6 +5,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
+import bu from "../../dtale/backgroundUtils";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
@@ -80,7 +81,7 @@ describe("DataViewer iframe tests", () => {
     validateHeaders(result, ["col1", "col2", "col3", "col4"]);
     await openColMenu(result, 1);
     expect(result.find("#column-menu-div").length).toBe(1);
-    expect(result.find(ColumnMenu).first().find("header").first().text()).toBe('Column "col2"');
+    expect(result.find(ColumnMenu).first().find("header").first().text()).toBe(`Column "col2" ${bu.flagIcon}`);
     clickColMenuButton(result, "Column Analysis");
     await tickUpdate(result);
     expect(result.find(ColumnAnalysis).length).toBe(1);

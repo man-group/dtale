@@ -77,8 +77,8 @@ describe("DataViewer tests", () => {
     ).toEqual(
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts"],
-        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Instances 1"],
-        ["Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
+        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
+        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Shutdown"]
       )
     );
     await tick();

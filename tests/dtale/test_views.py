@@ -4,6 +4,7 @@ from builtins import str
 
 import mock
 import numpy as np
+import os
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -120,8 +121,9 @@ def test_startup(unittest):
             "dtype": "float64",
             "index": 3,
             "visible": True,
-            "hasMissing": False,
-            "hasOutliers": False,
+            "hasMissing": 0,
+            "hasOutliers": 0,
+            "lowVariance": False,
         },
         next(
             (
@@ -1112,6 +1114,44 @@ def test_dtypes(test_data):
 
 
 @pytest.mark.unit
+def test_variance(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    with open(
+        "/../".join([os.path.dirname(__file__), "data/test_variance.json"]), "r"
+    ) as f:
+        expected = f.read()
+        expected = json.loads(expected)
+
+    def _df():
+        for i in range(2500):
+            yield dict(i=i, x=i % 5)
+
+    df = pd.DataFrame(list(_df()))
+    df.loc[:, "low_var"] = 2500
+    df.loc[0, "low_var"] = 1
+    df, _ = format_data(df)
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            dtypes = build_dtypes_state(df)
+            assert next((dt for dt in dtypes if dt["name"] == "low_var"), None)[
+                "lowVariance"
+            ]
+            stack.enter_context(
+                mock.patch("dtale.global_state.DTYPES", {c.port: dtypes})
+            )
+            response = c.get("/dtale/variance/{}/{}".format(c.port, "x"))
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data, expected["x"])
+
+            response = c.get("/dtale/variance/{}/{}".format(c.port, "low_var"))
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data, expected["low_var"])
+
+
+@pytest.mark.unit
 def test_test_filter(test_data):
     with app.test_client() as c:
         with mock.patch("dtale.global_state.DATA", {c.port: test_data}):
@@ -1229,8 +1269,8 @@ def test_get_data(unittest, test_data):
                         name="date",
                         index=0,
                         visible=True,
-                        hasMissing=False,
-                        hasOutliers=False,
+                        hasMissing=0,
+                        hasOutliers=0,
                     ),
                     dict(
                         dtype="int64",
@@ -1239,8 +1279,9 @@ def test_get_data(unittest, test_data):
                         min=0,
                         index=1,
                         visible=True,
-                        hasMissing=False,
-                        hasOutliers=False,
+                        hasMissing=0,
+                        hasOutliers=0,
+                        lowVariance=False,
                         outlierRange={"lower": -24.5, "upper": 73.5},
                     ),
                     dict(
@@ -1250,8 +1291,9 @@ def test_get_data(unittest, test_data):
                         max=1,
                         index=2,
                         visible=True,
-                        hasMissing=False,
-                        hasOutliers=False,
+                        hasMissing=0,
+                        hasOutliers=0,
+                        lowVariance=False,
                         outlierRange={"lower": 1.0, "upper": 1.0},
                     ),
                     dict(
@@ -1261,8 +1303,9 @@ def test_get_data(unittest, test_data):
                         max=1.5,
                         index=3,
                         visible=True,
-                        hasMissing=False,
-                        hasOutliers=False,
+                        hasMissing=0,
+                        hasOutliers=0,
+                        lowVariance=False,
                         outlierRange={"lower": 1.5, "upper": 1.5},
                     ),
                     dict(
@@ -1270,8 +1313,8 @@ def test_get_data(unittest, test_data):
                         name="baz",
                         index=4,
                         visible=True,
-                        hasMissing=False,
-                        hasOutliers=False,
+                        hasMissing=0,
+                        hasOutliers=0,
                     ),
                 ],
             )
@@ -1492,8 +1535,9 @@ def test_get_data(unittest, test_data):
                     min=2.5,
                     max=2.5,
                     visible=True,
-                    hasMissing=False,
-                    hasOutliers=False,
+                    hasMissing=0,
+                    hasOutliers=0,
+                    lowVariance=False,
                     outlierRange={"lower": 2.5, "upper": 2.5},
                 ),
                 "should update dtypes on data structure change",

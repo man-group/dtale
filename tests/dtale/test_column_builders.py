@@ -53,7 +53,7 @@ def test_type_conversion(unittest):
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == 1.5)
 
-        cfg = {"col": "str_date", "to": "date", "from": "object"}
+        cfg = {"col": "str_date", "to": "date", "from": "object", "fmt": "%Y%m%d"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(
             builder,
@@ -212,5 +212,9 @@ def test_winsorize():
         verify_builder(builder, lambda col: col.sum() == 4950)
 
         cfg = {"col": "i", "group": ["b"], "limits": [0.1, 0.1]}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.sum() == 4950)
+
+        cfg = {"col": "i"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.sum() == 4950)

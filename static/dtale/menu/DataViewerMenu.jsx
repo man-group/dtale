@@ -11,13 +11,14 @@ import bu from "../backgroundUtils";
 import Descriptions from "../menu-descriptions.json";
 import DescribeOption from "./DescribeOption";
 import InstancesOption from "./InstancesOption";
+import LowVarianceOption from "./LowVarianceOption";
 import RangeHighlightOption from "./RangeHighlightOption";
 import { XArrayOption } from "./XArrayOption";
 import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId, menuOpen } = this.props;
+    const { hideShutdown, dataId, menuOpen, backgroundMode } = this.props;
     const iframe = global.top !== global.self;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup } = buttonHandlers;
@@ -27,8 +28,8 @@ class ReactDataViewerMenu extends React.Component {
       });
     const resizeBgs = ["outliers", "missing"];
     const bgState = bgType => ({
-      backgroundMode: this.props.backgroundMode === bgType ? null : bgType,
-      triggerBgResize: _.includes(resizeBgs, this.props.backgroundMode) || _.includes(resizeBgs, bgType),
+      backgroundMode: backgroundMode === bgType ? null : bgType,
+      triggerBgResize: _.includes(resizeBgs, backgroundMode) || _.includes(resizeBgs, bgType),
     });
     const toggleBackground = bgType => () => this.props.propagateState(bgState(bgType));
     const toggleOutlierBackground = () => {
@@ -38,7 +39,7 @@ class ReactDataViewerMenu extends React.Component {
       }
       this.props.propagateState(updatedState);
     };
-    const heatmapActive = _.startsWith(this.props.backgroundMode, "heatmap");
+    const heatmapActive = _.startsWith(backgroundMode, "heatmap");
     const exportFile = tsv => () =>
       window.open(
         `${menuFuncs.fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`,
@@ -120,8 +121,8 @@ class ReactDataViewerMenu extends React.Component {
                     style={{ color: "#565b68" }}
                     className="btn btn-primary font-weight-bold"
                     onClick={toggleBackground(mode)}>
-                    {mode === this.props.backgroundMode && <span className="flames">{label}</span>}
-                    {mode !== this.props.backgroundMode && label}
+                    {mode === backgroundMode && <span className="flames">{label}</span>}
+                    {mode !== backgroundMode && label}
                   </button>
                 )
               )}
@@ -132,7 +133,7 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={toggleBackground("dtypes")}>
                 <div style={{ display: "inherit" }}>
-                  <div className={`bg-icon dtype-bg${this.props.backgroundMode === "dtypes" ? " spin" : ""}`} />
+                  <div className={`bg-icon dtype-bg${backgroundMode === "dtypes" ? " spin" : ""}`} />
                   <span className="font-weight-bold pl-4">Highlight Dtypes</span>
                 </div>
               </button>
@@ -143,7 +144,7 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={toggleBackground("missing")}>
                 <div style={{ display: "inherit" }}>
-                  <div className={`bg-icon missing-bg${this.props.backgroundMode === "missing" ? " spin" : ""}`} />
+                  <div className={`bg-icon missing-bg${backgroundMode === "missing" ? " spin" : ""}`} />
                   <span className="font-weight-bold pl-4">Highlight Missing</span>
                 </div>
               </button>
@@ -154,7 +155,7 @@ class ReactDataViewerMenu extends React.Component {
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={toggleOutlierBackground}>
                 <div style={{ display: "inherit" }}>
-                  <div className={`bg-icon outliers-bg${this.props.backgroundMode === "outliers" ? " spin" : ""}`} />
+                  <div className={`bg-icon outliers-bg${backgroundMode === "outliers" ? " spin" : ""}`} />
                   <span className="font-weight-bold pl-4">Highlight Outliers</span>
                 </div>
               </button>
@@ -162,6 +163,10 @@ class ReactDataViewerMenu extends React.Component {
             <div className="hoverable__content menu-description">{Descriptions.highlight_outliers}</div>
           </li>
           <RangeHighlightOption {...this.props} />
+          <LowVarianceOption
+            toggleLowVarianceBackground={toggleBackground("lowVariance")}
+            backgroundMode={backgroundMode}
+          />
           <InstancesOption open={openPopup("instances", 450, 750)} />
           <li className="hoverable">
             <span className="toggler-action">

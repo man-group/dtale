@@ -74,6 +74,9 @@ class ReactHeader extends React.Component {
     if (this.props.backgroundMode === "outliers" && colCfg.hasOutliers) {
       colNameMarkup = <div title={`Outliers: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
     }
+    if (this.props.backgroundMode === "lowVariance" && colCfg.lowVariance) {
+      colNameMarkup = <div title={`Low Variance: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
+    }
     return (
       <div className={`headerCell ${toggleId}`} style={headerStyle} onClick={menuHandler}>
         <div className="text-nowrap">
