@@ -83,7 +83,7 @@ describe("DataViewer tests", () => {
       .find("input")
       .first()
       .simulate("change", { target: { value: "conv_col" } });
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(6).simulate("click");
+    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(5).simulate("click");
     result.update();
   });
 

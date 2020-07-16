@@ -131,7 +131,11 @@ class CreateWinsorize extends React.Component {
                 type="text"
                 className="form-control mr-3 slider-input"
                 value={this.state.limits[0]}
-                onChange={e => this.updateState({ limits: [parseInt(e.target.value), this.state.limits[1]] })}
+                onChange={e =>
+                  this.updateState({
+                    limits: [parseInt(e.target.value), this.state.limits[1]],
+                  })
+                }
               />
               <StyledSlider
                 defaultValue={this.state.limits}
@@ -144,7 +148,11 @@ class CreateWinsorize extends React.Component {
                 type="text"
                 className="form-control ml-3 slider-input"
                 value={this.state.limits[1]}
-                onChange={e => this.updateState({ limits: [this.state.limits[0], parseInt(e.target.value)] })}
+                onChange={e =>
+                  this.updateState({
+                    limits: [this.state.limits[0], parseInt(e.target.value)],
+                  })
+                }
               />
             </div>
           </div>

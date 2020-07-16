@@ -2,13 +2,13 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { BouncerWrapper } from "../BouncerWrapper";
-import { RemovableError } from "../RemovableError";
-import { dtypesUrl } from "../actions/url-utils";
-import serverState from "../dtale/serverStateManagement";
-import { fetchJson } from "../fetcher";
-import { Details } from "./describe/Details";
-import { DtypesGrid } from "./describe/DtypesGrid";
+import { BouncerWrapper } from "../../BouncerWrapper";
+import { RemovableError } from "../../RemovableError";
+import { dtypesUrl } from "../../actions/url-utils";
+import serverState from "../../dtale/serverStateManagement";
+import { fetchJson } from "../../fetcher";
+import { Details } from "./Details";
+import { DtypesGrid } from "./DtypesGrid";
 
 class Describe extends React.Component {
   constructor(props) {

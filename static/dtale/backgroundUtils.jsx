@@ -108,6 +108,13 @@ const rangeHighlighting = (state, { name, dtype }, { raw }) => {
   return {};
 };
 
+const lowVarianceHighlighting = ({ name, lowVariance }) => {
+  if (name === gu.IDX || !lowVariance) {
+    return {};
+  }
+  return { background: "rgb(255, 128, 128)" };
+};
+
 const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
   switch (state.backgroundMode) {
     case "heatmap-col":
@@ -122,6 +129,8 @@ const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
       return _.assignIn(outlierHighlighting(colCfg, rec), valueStyle);
     case "range":
       return _.assign(rangeHighlighting(state, colCfg, rec), valueStyle);
+    case "lowVariance":
+      return _.assign(lowVarianceHighlighting(colCfg), valueStyle);
     default:
       return valueStyle;
   }
@@ -130,6 +139,7 @@ const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
 export default {
   missingIcon: String.fromCodePoint(10071), // "!" emoji
   outlierIcon: String.fromCodePoint(11088), // star emoji
+  flagIcon: String.fromCodePoint(128681), // flag emoji
   dtypeHighlighting,
   updateBackgroundStyles,
   buildOutlierScales,

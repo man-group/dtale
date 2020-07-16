@@ -57,7 +57,7 @@ describe("Describe tests", () => {
   });
 
   beforeEach(async () => {
-    const { Describe } = require("../../../popups/Describe");
+    const { Describe } = require("../../../popups/describe/Describe");
     buildInnerHTML({ settings: "" });
     result = mount(<Describe chartData={chartData} dataId={"" + testIdx++} />, {
       attachTo: document.getElementById("content"),

@@ -10577,6 +10577,10 @@ div.container-fluid.describe > div#popup-content > div.modal-body {
   height: 450px;
 }
 
+div.container-fluid.variance > div#popup-content > div.modal-body {
+  height: 500px;
+}
+
 div.container-fluid.describe {
     height: calc(100vh);
 }
@@ -10592,7 +10596,7 @@ div.container-fluid.describe div.describe-dtypes-grid-col {
 }
 div.modal-dialog div.modal-body.describe-body {
   height: 500px;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 

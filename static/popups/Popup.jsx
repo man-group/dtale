@@ -11,7 +11,6 @@ import About from "./About";
 import { CodeExport } from "./CodeExport";
 import { Confirmation } from "./Confirmation";
 import { Correlations } from "./Correlations";
-import { Describe } from "./Describe";
 import { Error } from "./ErrorPopup";
 import { Filter } from "./Filter";
 import Instances from "./Instances";
@@ -22,8 +21,10 @@ import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { Charts } from "./charts/Charts";
 import { CreateColumn } from "./create/CreateColumn";
+import { Describe } from "./describe/Describe";
 import { CreateReplacement } from "./replacement/CreateReplacement";
 import { Reshape } from "./reshape/Reshape";
+import { Variance } from "./variance/Variance";
 
 class ReactPopup extends React.Component {
   constructor(props) {
@@ -203,6 +204,17 @@ class ReactPopup extends React.Component {
           </ModalTitle>
         );
         body = <CodeExport {...this.props} />;
+        break;
+      case "variance":
+        modalTitle = (
+          <ModalTitle>
+            <i className="fas fa-chart-bar" />
+            {` Variance Report for "`}
+            <strong>{chartData.selectedCol}</strong>
+            {`"`}
+          </ModalTitle>
+        );
+        body = <Variance {...this.props} />;
         break;
       default:
         break;

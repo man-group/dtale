@@ -97,7 +97,10 @@ EXPORTS.getRanges = array => {
   return ranges;
 };
 
-EXPORTS.calcColWidth = ({ name, dtype, hasMissing, hasOutliers }, { data, rowCount, sortInfo, backgroundMode }) => {
+EXPORTS.calcColWidth = (
+  { name, dtype, hasMissing, hasOutliers, lowVariance },
+  { data, rowCount, sortInfo, backgroundMode }
+) => {
   let w;
   if (name === EXPORTS.IDX) {
     w = measureText(rowCount - 1 + "");
@@ -108,6 +111,8 @@ EXPORTS.calcColWidth = ({ name, dtype, hasMissing, hasOutliers }, { data, rowCou
     if (backgroundMode === "missing" && hasMissing) {
       headerWidth += 10; // "!" emoji
     } else if (backgroundMode === "outliers" && hasOutliers) {
+      headerWidth += 15; // star emoji
+    } else if (backgroundMode === "lowVariance" && lowVariance) {
       headerWidth += 15; // star emoji
     }
     switch (EXPORTS.findColType((dtype || "").toLowerCase())) {

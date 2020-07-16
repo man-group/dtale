@@ -149,4 +149,13 @@ describe("DataViewer highlighting tests", () => {
       lessThan: 3,
     });
   });
+
+  it("DataViewer: low variance highlighting", async () => {
+    clickMainMenuButton(result, "Low Variance Flag");
+    result.update();
+    expect(dataViewer().instance().state.backgroundMode).toBe("lowVariance");
+    clickMainMenuButton(result, "Low Variance Flag");
+    result.update();
+    expect(dataViewer().instance().state.backgroundMode).toBeNull();
+  });
 });

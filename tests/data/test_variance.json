@@ -1,0 +1,60 @@
+{
+    "x": {
+        "check1": {
+            "result": true,
+            "size": 2500,
+            "unique": 5
+        },
+        "check2": {
+            "result": false,
+            "val1": {
+                "ct": 500,
+                "val": 3
+            },
+            "val2": {
+                "ct": 500,
+                "val": 1
+            }
+        },
+        "jarqueBera": {
+            "pvalue": 0.0,
+            "statistic": 176.04166666666663
+        },
+        "missingCt": 0,
+        "outlierCt": 0,
+        "shapiroWilk": {
+            "pvalue": 2.823088116093456e-39,
+            "statistic": 0.8878896236419678
+        },
+        "size": 2500
+    },
+    "low_var": {
+        "check1": {
+            "result": true,
+            "size": 2500,
+            "unique": 2
+        },
+        "check2": {
+            "result": true,
+            "val1": {
+                "ct": 2499,
+                "val": 2500
+            },
+            "val2": {
+                "ct": 1,
+                "val": 1
+            }
+        },
+        "jarqueBera": {
+            "pvalue": 0.0,
+            "statistic": 649480728.9999514
+        },
+        "missingCt": 0,
+        "outlierCt": 1,
+        "shapiroWilk": {
+            "pvalue": 0.0,
+            "statistic": 0.005482077598571777
+        },
+        "size": 2500
+    }
+}

@@ -9,14 +9,15 @@ import { DataViewer } from "./dtale/DataViewer";
 import { CodeExport } from "./popups/CodeExport";
 import { CodePopup } from "./popups/CodePopup";
 import { Correlations } from "./popups/Correlations";
-import { Describe } from "./popups/Describe";
 import { ReactFilter as Filter } from "./popups/Filter";
 import Instances from "./popups/Instances";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnAnalysis";
 import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
+import { Describe } from "./popups/describe/Describe";
 import { ReactCreateReplacement as CreateReplacement } from "./popups/replacement/CreateReplacement";
 import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
+import { Variance } from "./popups/variance/Variance";
 import app from "./reducers/dtale";
 import { createStore } from "./reducers/store";
 
@@ -47,6 +48,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       break;
     case "describe":
       rootNode = <Describe {...{ dataId, chartData }} />;
+      break;
+    case "variance":
+      rootNode = <Variance {...{ dataId, chartData }} />;
       break;
     case "build":
       rootNode = <CreateColumn {...{ dataId, chartData }} />;
