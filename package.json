@@ -129,7 +129,7 @@
     "immutable": "4.0.0-rc.12",
     "jquery": "3.5.0",
     "json-loader": "0.5.7",
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "moment": "2.24.0",
     "ntee": "2.0.0",
     "numeral": "2.0.6",
