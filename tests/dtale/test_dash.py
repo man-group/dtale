@@ -35,6 +35,15 @@ def path_builder(port):
     return {"id": "url", "property": "pathname", "value": "/charts/{}".format(port)}
 
 
+def print_traceback(resp):
+    content = resp.get_json()["response"]["chart-content"]
+    items = content["children"]["props"]["children"]
+    if len(items) == 3:
+        print(items[2]["props"]["children"]["props"]["children"])
+    else:
+        print("No Exception...")
+
+
 @pytest.mark.unit
 def test_display_page(unittest):
     import dtale.views as views

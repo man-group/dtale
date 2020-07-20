@@ -1,6 +1,9 @@
+from collections import namedtuple
+
 import json
 import math
 import os
+import pprint
 import re
 import traceback
 import urllib
@@ -58,6 +61,16 @@ from dtale.utils import (
 )
 
 logger = getLogger(__name__)
+
+GROUP_WARNING = (
+    "# WARNING: This is not taking into account grouping of any kind, please apply filter associated with\n"
+    "#          the group in question in order to replicate chart. For this we're using '{series_key}'\n"
+    "chart_data = chart_data.query('{series_key}')"
+)
+Y_AXIS_WARNING = (
+    "# WARNING: This is not taking into account all the y-axes you've specified.  For this example we'll\n"
+    "           use the first one you've selected, '{}'"
+)
 
 
 def get_url_parser():
@@ -488,6 +501,28 @@ def build_scatter_trendline(x, y, trendline):
     return fig.data[1]
 
 
+def build_scatter_marker(series, z):
+    if z is not None:
+        return {
+            "size": 8,
+            "color": series[z],
+            "colorscale": "Blackbody",
+            "opacity": 0.8,
+            "showscale": True,
+            "colorbar": {"thickness": 15, "len": 0.5, "x": 0.8, "y": 0.6},
+        }
+    return {"size": 15, "line": {"width": 0.5, "color": "white"}}
+
+
+def build_scatter_layout(axes, z):
+    if z is not None:
+        return {
+            "margin": {"l": 0, "r": 0, "b": 0},
+            "scene": dict_merge(axes, dict(aspectmode="data")),
+        }
+    return axes
+
+
 def scatter_builder(
     data,
     x,
@@ -525,26 +560,6 @@ def scatter_builder(
     :rtype: :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
     """
 
-    def layout(axes):
-        if z is not None:
-            return {
-                "margin": {"l": 0, "r": 0, "b": 0},
-                "scene": dict_merge(axes, dict(aspectmode="data")),
-            }
-        return axes
-
-    def marker(series):
-        if z is not None:
-            return {
-                "size": 8,
-                "color": series[z],
-                "colorscale": "Blackbody",
-                "opacity": 0.8,
-                "showscale": True,
-                "colorbar": {"thickness": 15, "len": 0.5, "x": 0.8, "y": 0.6},
-            }
-        return {"size": 15, "line": {"width": 0.5, "color": "white"}}
-
     scatter_func = go.Scatter3d if z is not None else go.Scattergl
 
     def _build_final_scatter(y_val):
@@ -561,7 +576,7 @@ def scatter_builder(
                             mode="markers",
                             opacity=0.7,
                             name=series_key,
-                            marker=marker(d),
+                            marker=build_scatter_marker(d, z),
                         ),
                         dict(z=d[z]) if z is not None else dict(),
                     )
@@ -574,7 +589,7 @@ def scatter_builder(
             "layout": build_layout(
                 dict_merge(
                     build_title(x, y_val, group, z=z, agg=agg),
-                    layout(axes_builder([y_val])[0]),
+                    build_scatter_layout(axes_builder([y_val])[0], z),
                 )
             ),
         }
@@ -590,7 +605,7 @@ def scatter_builder(
                                 mode="markers",
                                 opacity=0.7,
                                 name=series_key,
-                                marker=marker(series),
+                                marker=build_scatter_marker(series, z),
                             )
                         )
 
@@ -606,6 +621,73 @@ def scatter_builder(
         )
 
     return [_build_final_scatter(y2) for y2 in y]
+
+
+def scatter_code_builder(
+    data, x, y, axes_builder, z=None, agg=None, trendline=None, **kwargs
+):
+    scatter_func = "go.Scatter3d" if z is not None else "go.Scattergl"
+    pp = pprint.PrettyPrinter(indent=4)
+
+    for series_key in data["data"]:
+        series = data["data"][series_key]
+        y_val = next((y2 for y2 in y if y2 in series), None)
+        if y_val is not None:
+            break
+    title = build_title(x, y, group=None, z=z, agg=agg)
+    code = []
+    if len(data["data"]) > 1:
+        code.append(GROUP_WARNING.format(series_key=series_key))
+        title = build_title(x, y, series_key, z=z, agg=agg)
+
+    if len(y) > 1:
+        code.append(Y_AXIS_WARNING.format(y_val))
+
+    if z is not None:
+        marker = (
+            "{\n"
+            "\t\t'size': 8, 'color': chart_data['%s'], 'colorscale': 'Blackbody', 'opacity': 0.8, 'showscale': True,\n"
+            "\t\t'colorbar': {'thickness': 15, 'len': 0.5, 'x': 0.8, 'y': 0.6},\n"
+            "\t}"
+        ) % z
+    else:
+        marker = "{'size': 15, 'line': {'width': 0.5, 'color': 'white'}}"
+
+    z_code = "" if z is None else " z=chart_data['{z}'],".format(z=z)
+    code.append(
+        (
+            "\nimport plotly.graph_objects as go\n\n"
+            "chart = {scatter_func}(\n"
+            "\tx=chart_data['x'], y=chart_data['{y}'],{z} , mode='markers', opacity=0.7, name='{series_key}',\n"
+            "\tmarker={marker}\n"
+            ")\n"
+        ).format(
+            scatter_func=scatter_func,
+            y=y_val,
+            z=z_code,
+            series_key=series_key,
+            marker=marker,
+        )
+    )
+
+    data = "chart"
+    if trendline:
+        code.append(
+            "trendline = px.scatter(x=chart_data['x'], y='{y}', trendline='{trendline}').data[1]".format(
+                y=y_val, trendline=trendline
+            )
+        )
+        data = "chart, trendline"
+
+    layout_cfg = build_layout(
+        dict_merge(title, build_scatter_layout(axes_builder([y_val])[0], z),)
+    )
+    code.append(
+        "figure = go.Figure(data=[{data}], layout=go.{layout})".format(
+            data=data, layout=pp.pformat(layout_cfg)
+        )
+    )
+    return code
 
 
 def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
@@ -639,6 +721,11 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
         {k: v for k, v in data["data"]["all"].items() if k in ["x", y[0], z]}
     )
     df = df.set_index(["x", y[0]]).unstack(0)[z]
+    code = [
+        "chart_data = chart_data.set_index(['x', '{y}']).unstack(0)['{z}']".format(
+            y=y[0], z=z
+        )
+    ]
     x_vals = df.columns
     y_vals = df.index.values
     z_data = df.values
@@ -649,37 +736,59 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
         "margin": {"l": 0, "r": 0, "b": 0},
         "scene": dict_merge(axes, scene),
     }
-    return [
-        wrapper(
-            graph_wrapper(
-                id="surface-{}".format(y2),
-                figure={
-                    "data": [
-                        go.Surface(
-                            x=x_vals,
-                            y=y_vals,
-                            z=z_data,
-                            opacity=0.8,
-                            name="all",
-                            colorscale="YlGnBu",
-                            colorbar={
-                                "title": layout["scene"]["zaxis"]["title"],
-                                "thickness": 15,
-                                "len": 0.5,
-                                "x": 0.8,
-                                "y": 0.6,
-                            },
-                        )
-                    ],
-                    "layout": build_layout(
-                        dict_merge(build_title(x, y2, z=z, agg=agg), layout)
-                    ),
-                },
-            ),
-            group_filter=dict(y=y2),
+    colorbar_cfg = {
+        "title": layout["scene"]["zaxis"]["title"],
+        "thickness": 15,
+        "len": 0.5,
+        "x": 0.8,
+        "y": 0.6,
+    }
+    pp = pprint.PrettyPrinter(indent=4)
+    code.append(
+        (
+            "\nimport plotly.graph_objects as go\n\n"
+            "chart = go.Surface(\n"
+            "\tx=chart_data.columns, y=chart_data.index.values, z=chart_data.values, opacity=0.8, \n"
+            "\t colorscale='YlGnBu', colorbar={colorbar}\n"
+            ")\n"
+        ).format(colorbar=pp.pformat(colorbar_cfg))
+    )
+    layout_cfg = build_layout(dict_merge(build_title(x, y[0], z=z, agg=agg), layout))
+    code.append(
+        "figure = go.Figure(data=[chart], layout=go.{layout})".format(
+            layout=pp.pformat(layout_cfg)
         )
-        for y2 in y
-    ]
+    )
+    return (
+        [
+            wrapper(
+                graph_wrapper(
+                    id="surface-{}".format(y2),
+                    figure={
+                        "data": [
+                            go.Surface(
+                                x=x_vals,
+                                # TODO: add support for multiple y-axes, this requires updating:
+                                #       df = df.set_index(["x", y[0]]).unstack(0)[z]
+                                y=y_vals,
+                                z=z_data,
+                                opacity=0.8,
+                                name="all",
+                                colorscale="YlGnBu",
+                                colorbar=colorbar_cfg,
+                            )
+                        ],
+                        "layout": build_layout(
+                            dict_merge(build_title(x, y2, z=z, agg=agg), layout)
+                        ),
+                    },
+                ),
+                group_filter=dict(y=y2),
+            )
+            for y2 in y
+        ],
+        code,
+    )
 
 
 def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
@@ -949,6 +1058,64 @@ def bar_builder(
     return wrapper(graph_wrapper(id="bar-graph", figure=figure_cfg))
 
 
+def bar_code_builder(
+    data, x, y, axes_builder, cpg=False, barmode="group", barsort=None, **kwargs
+):
+    code = []
+    base_chart_cfg = []
+    allow_multiaxis = barmode is None or barmode == "group"
+    axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
+    name_builder = build_series_name(y, cpg)
+    series_key = next(iter(data["data"]))
+    series = data["data"][series_key]
+    title = build_title(x, y, agg=kwargs.get("agg"))
+    if len(data["data"]) > 1:
+        code.append(GROUP_WARNING.format(series_key=series_key))
+        title = build_title(x, y, group=series_key, agg=kwargs.get("agg"))
+
+    barsort_col = "x" if barsort == x or barsort not in series else barsort
+    x_data = "chart_data['x']"
+    if barsort_col != "x" or kwargs.get("agg") == "raw":
+        code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
+        x_data = "list(range(len(chart_data['x'])))"
+        base_chart_cfg = ["hovertext=chart_data['x'].values", "hoverinfo='y_text'"]
+        axes["xaxis"] = dict_merge(
+            axes.get("xaxis", {}), {"tickmode": "auto", "nticks": len(series["x"])}
+        )
+
+    pp = pprint.PrettyPrinter(indent=4)
+    code.append(("\nimport plotly.graph_objects as go\n\n" "charts = []"))
+    for i, y2 in enumerate(y, 1):
+        name = name_builder(y2, series_key)
+        chart_cfg = ["x={}".format(x_data), "y=chart_data['{}']".format(y2)]
+        if len(name):
+            chart_cfg.append("name='{}'".format(name["name"]))
+        if i > 1 and allow_multiaxis:
+            chart_cfg.append("yaxis=y{}".format(i))
+            if barmode == "group":
+                chart_cfg += ["hoverinfo=none", "showlegend=False", "y=[0]"]
+            else:
+                chart_cfg += base_chart_cfg
+        else:
+            chart_cfg += base_chart_cfg
+        chart_cfg = ",\n".join(map(lambda cc: "\t{}".format(cc), chart_cfg))
+        code.append("charts.append(go.Bar(\n{chart_cfg}\n)".format(chart_cfg=chart_cfg))
+
+    layout_cfg = build_layout(dict_merge(title, axes, dict(barmode=barmode or "group")))
+    code.append(
+        "figure = go.Figure(data=charts, layout=go.{layout})".format(
+            layout=pp.pformat(layout_cfg)
+        )
+    )
+    return code
+
+
+def build_line_cfg(series):
+    if len(series["x"]) > 15000:
+        return {"mode": "lines", "line": {"shape": "linear"}}
+    return {"mode": "lines", "line": {"shape": "spline", "smoothing": 0.3}}
+
+
 def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter(mode='lines') <plotly.graph_objects.Scatter>`
@@ -977,11 +1144,6 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     def line_func(s):
         return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
 
-    def line_cfg(s):
-        if len(s["x"]) > 15000:
-            return {"mode": "lines", "line": {"shape": "linear"}}
-        return {"mode": "lines", "line": {"shape": "spline", "smoothing": 0.3}}
-
     if cpg:
         charts = [
             wrapper(
@@ -991,7 +1153,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                         "data": [
                             line_func(series)(
                                 **dict_merge(
-                                    line_cfg(series),
+                                    build_line_cfg(series),
                                     {"x": series["x"], "y": series[y2]},
                                     name_builder(y2, series_key),
                                     {}
@@ -1022,7 +1184,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
             [
                 line_func(series)(
                     **dict_merge(
-                        line_cfg(series),
+                        build_line_cfg(series),
                         {"x": series["x"], "y": series[y2]},
                         name_builder(y2, series_key),
                         {} if i == 1 or not multi_yaxis else {"yaxis": "y{}".format(i)},
@@ -1047,7 +1209,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                 for j, y2 in enumerate(y, 1):
                     yield line_func(series)(
                         **dict_merge(
-                            line_cfg(series),
+                            build_line_cfg(series),
                             {"x": series["x"][:i], "y": series[y2][:i]},
                             name_builder(y2, series_key),
                             {}
@@ -1065,6 +1227,37 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
         update_cfg_w_frames(figure_cfg, frames, slider_steps)
 
     return wrapper(graph_wrapper(id="line-graph", figure=figure_cfg))
+
+
+def line_code_builder(data, x, y, axes_builder, **inputs):
+    axes, multi_yaxis = axes_builder(y)
+
+    series_key = next(iter(data["data"]))
+    series = data["data"][series_key]
+    line_func = "go.Scattergl" if len(series["x"]) > 15000 else "go.Scatter"
+    code = []
+    if len(data["data"]) > 1:
+        code.append(GROUP_WARNING.format(series_key=series_key))
+
+    code.append("\nimport plotly.graph_objects as go\n\n" "charts = []")
+    pp = pprint.PrettyPrinter(indent=4)
+    code.append("line_cfg = {}".format(pp.pformat(build_line_cfg(series))))
+    for i, y2 in enumerate(y, 1):
+        yaxis = "" if i == 1 else ", yaxis='y{}'".format(i)
+        code.append(
+            (
+                "charts.append({line_func}(\n"
+                "\tx=chart_data['x'], y=chart_data['{y}'], name='{y}'{yaxis}, **line_cfg\n"
+                "))"
+            ).format(line_func=line_func, y=y2, yaxis=yaxis)
+        )
+    layout_cfg = build_layout(
+        dict_merge(build_title(x, y, agg=inputs.get("agg")), axes)
+    )
+    code.append(
+        "figure = go.Figure(data=charts, layout=go.{})".format(pp.pformat(layout_cfg))
+    )
+    return code
 
 
 def pie_builder(data, x, y, wrapper, export=False, **inputs):
@@ -1086,6 +1279,39 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
     """
 
     name_builder = build_series_name(y, True)
+
+    def build_pie_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"][series_key]
+        title = build_title(x, y[0], agg=inputs.get("agg"))
+        code = []
+        if len(data["data"]) > 1:
+            code.append(GROUP_WARNING.format(series_key=series_key))
+            title = build_title(x, y[0], group=series_key, agg=inputs.get("agg"))
+
+        if len(y) > 1:
+            code.append(Y_AXIS_WARNING.format(y[0]))
+
+        code.append(
+            "chart_data = chart_data[chart_data['{}'] > 0]  # can't represent negatives in a pie".format(
+                y[0]
+            )
+        )
+        layout_cfg = build_layout(title)
+        if len(series["x"]) > 5:
+            layout_cfg.pop("legend", None)
+            layout_cfg["showlegend"] = False
+        name = name_builder(y[0], series_key)
+        name = ", name='{}'".format(name["name"]) if len(name) else ""
+        pp = pprint.PrettyPrinter(indent=4)
+        code.append(
+            (
+                "\nimport plotly.graph_objects as go\n\n"
+                "chart = go.Pie(labels=chart_data['x'], y=chart_data['{y}']{name})\n"
+                "figure = go.Figure(data=[chart], layout=go.{layout})"
+            ).format(y=y[0], name=name, layout=pp.pformat(layout_cfg))
+        )
+        return code
 
     def build_pies():
         for series_key, series in data["data"].items():
@@ -1151,7 +1377,8 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
 
     if export:
         return next(build_pies())
-    return cpg_chunker(list(build_pies()))
+    pies = cpg_chunker(list(build_pies()))
+    return pies, build_pie_code()
 
 
 def heatmap_builder(data_id, export=False, **inputs):
@@ -1173,11 +1400,13 @@ def heatmap_builder(data_id, export=False, **inputs):
     try:
         if not valid_chart(**inputs):
             return None, None
+        query = inputs.get("query")
         raw_data = run_query(
             global_state.get_data(data_id),
-            inputs.get("query"),
+            query,
             global_state.get_context_variables(data_id),
         )
+        code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
         hm_kwargs = dict(
             colorscale=build_colorscale(inputs.get("colorscale") or "Greens"),
@@ -1186,13 +1415,15 @@ def heatmap_builder(data_id, export=False, **inputs):
         )
         x, y, z, agg = (inputs.get(p) for p in ["x", "y", "z", "agg"])
         y = y[0]
-        data, code = retrieve_chart_data(raw_data, x, y, z)
+
+        data, chart_code = retrieve_chart_data(raw_data, x, y, z)
+        code += chart_code
         x_title = update_label_for_freq(x)
         y_title = update_label_for_freq(y)
         z_title = z
         data = data.sort_values([x, y])
         code.append(
-            "chart_data = chart_data.sort_values(['{x}, '{y}'])".format(x=x, y=y)
+            "chart_data = chart_data.sort_values(['{x}', '{y}'])".format(x=x, y=y)
         )
         check_all_nan(data)
         dupe_cols = [x, y]
@@ -1249,7 +1480,7 @@ def heatmap_builder(data_id, export=False, **inputs):
             (
                 "chart_data = data.sort_values(['{x}', '{y}'])\n"
                 "chart_data = chart_data.set_index(['{x}', '{y}'])\n"
-                "chart_data == unstack(0)['{z}']"
+                "chart_data = unstack(0)['{z}']"
             ).format(x=x, y=y, z=z)
         )
 
@@ -1270,32 +1501,39 @@ def heatmap_builder(data_id, export=False, **inputs):
             y_axis["tickformat"] = ".0f"
 
         hm_kwargs = dict_merge(
-            hm_kwargs,
-            dict(
-                x=x_data,
-                y=y_data,
-                z=heat_data,
-                colorbar={"title": z_title},
-                hoverinfo="x+y+z",
-            ),
+            hm_kwargs, dict(colorbar={"title": z_title}, hoverinfo="x+y+z",),
+        )
+        pp = pprint.PrettyPrinter(indent=4)
+        code.append(
+            (
+                "\nimport plotly.graph_objects as go\n\n"
+                "hm_kwargs = {hm_kwargs_str}\n"
+                "chart = go.Heatmapgl(x=chart_data.columns, y=chart_data.index.values, z=chart_data.values, **hm_kwargs"
+                ")"
+            ).format(hm_kwargs_str=pp.pformat(hm_kwargs))
+        )
+
+        hm_kwargs = dict_merge(hm_kwargs, dict(x=x_data, y=y_data, z=heat_data))
+        layout_cfg = build_layout(
+            dict_merge(
+                dict(
+                    xaxis=x_axis,
+                    yaxis=y_axis,
+                    xaxis_zeroline=False,
+                    yaxis_zeroline=False,
+                ),
+                build_title(x, y, z=z, agg=agg),
+            )
+        )
+        code.append(
+            "figure = go.Figure(data=[chart], layout=go.{layout})".format(
+                layout=pp.pformat(layout_cfg)
+            )
         )
         chart = graph_wrapper(
             id="heatmap-graph-{}".format(y),
             style={"margin-right": "auto", "margin-left": "auto"},
-            figure=dict(
-                data=[go.Heatmapgl(**hm_kwargs)],
-                layout=build_layout(
-                    dict_merge(
-                        dict(
-                            xaxis=x_axis,
-                            yaxis=y_axis,
-                            xaxis_zeroline=False,
-                            yaxis_zeroline=False,
-                        ),
-                        build_title(x, y, z=z, agg=agg),
-                    )
-                ),
-            ),
+            figure=dict(data=[go.Heatmapgl(**hm_kwargs)], layout=layout_cfg,),
         )
         if export:
             return chart
@@ -1319,241 +1557,381 @@ def map_builder(data_id, export=False, **inputs):
     try:
         if not valid_chart(**inputs):
             return None, None
-        props = [
-            "map_type",
-            "loc_mode",
-            "loc",
-            "lat",
-            "lon",
-            "map_val",
-            "scope",
-            "proj",
-            "mapbox_style",
-            "agg",
-            "animate_by",
-        ]
-        (
-            map_type,
-            loc_mode,
-            loc,
-            lat,
-            lon,
-            map_val,
-            scope,
-            proj,
-            style,
-            agg,
-            animate_by,
-        ) = (inputs.get(p) for p in props)
-        map_group, group_val = (inputs.get(p) for p in ["map_group", "group_val"])
+        props = get_map_props(inputs)
+        query = inputs.get("query")
         raw_data = run_query(
             global_state.get_data(data_id),
-            inputs.get("query"),
+            query,
             global_state.get_context_variables(data_id),
         )
+        code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
-        title = "Map of {}".format(map_val or "lat/lon")
-        if agg:
-            agg_title = AGGS[agg]
+        title = "Map of {}".format(props.map_val or "lat/lon")
+        if props.agg:
+            agg_title = AGGS[props.agg]
             title = "{} ({})".format(title, agg_title)
-        if group_val is not None:
+        if props.group_val is not None:
             title = "{} {}".format(
-                title, build_group_inputs_filter(raw_data, group_val)
+                title, build_group_inputs_filter(raw_data, props.group_val)
             )
         layout = build_layout(
             dict(title=title, autosize=True, margin={"l": 0, "r": 0, "b": 0})
         )
-        if map_type == "scattergeo":
-            data, code = retrieve_chart_data(
-                raw_data, lat, lon, map_val, animate_by, map_group, group_val=group_val
-            )
-            if agg is not None:
-                data, agg_code = build_agg_data(
-                    raw_data, lat, lon, {}, agg, z=map_val, animate_by=animate_by
-                )
-                code += agg_code
-
-            geo_layout = {}
-            if test_plotly_version("4.5.0") and animate_by is None:
-                geo_layout["fitbounds"] = "locations"
-            if scope is not None:
-                geo_layout["scope"] = scope
-            if proj is not None:
-                geo_layout["projection_type"] = proj
-            if len(geo_layout):
-                layout["geo"] = geo_layout
-
-            chart_kwargs = dict(
-                lon=data[lon],
-                lat=data[lat],
-                mode="markers",
-                marker=dict(color="darkblue"),
-            )
-            if map_val is not None:
-                chart_kwargs["text"] = data[map_val]
-                chart_kwargs["marker"] = dict(
-                    color=data[map_val],
-                    cmin=data[map_val].min(),
-                    cmax=data[map_val].max(),
-                    colorscale=build_colorscale(inputs.get("colorscale") or "Reds"),
-                    colorbar_title=map_val,
-                )
-            figure_cfg = dict(data=[go.Scattergeo(**chart_kwargs)], layout=layout)
-            if animate_by is not None:
-
-                def build_frame(df):
-                    frame = dict(lon=df[lon], lat=df[lat], mode="markers")
-                    if map_val is not None:
-                        frame["text"] = df[map_val]
-                        frame["marker"] = dict(color=df[map_val])
-                    return frame
-
-                update_cfg_w_frames(
-                    figure_cfg, *build_map_frames(data, animate_by, build_frame)
-                )
-            chart = graph_wrapper(
-                id="scattergeo-graph",
-                style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
-                config=dict(topojsonURL="/maps/"),
-                figure=figure_cfg,
-            )
-        elif map_type == "mapbox":
-            from dtale.charts.utils import get_mapbox_token
-
-            data, code = retrieve_chart_data(
-                raw_data, lat, lon, map_val, animate_by, map_group, group_val=group_val
-            )
-            if agg is not None:
-                data, agg_code = build_agg_data(
-                    raw_data, lat, lon, {}, agg, z=map_val, animate_by=animate_by
-                )
-                code += agg_code
-
-            mapbox_layout = {"style": style}
-            mapbox_token = get_mapbox_token()
-            if mapbox_token is not None:
-                mapbox_layout["accesstoken"] = mapbox_token
-            if len(mapbox_layout):
-                layout["mapbox"] = mapbox_layout
-
-            chart_kwargs = dict(
-                lon=data[lon],
-                lat=data[lat],
-                mode="markers",
-                marker=dict(color="darkblue"),
-            )
-            if map_val is not None:
-                chart_kwargs["text"] = data[map_val]
-                chart_kwargs["marker"] = dict(
-                    color=data[map_val],
-                    cmin=data[map_val].min(),
-                    cmax=data[map_val].max(),
-                    colorscale=build_colorscale(inputs.get("colorscale") or "Jet"),
-                    colorbar_title=map_val,
-                )
-            figure_cfg = dict(data=[go.Scattermapbox(**chart_kwargs)], layout=layout)
-            if animate_by is not None:
-
-                def build_frame(df):
-                    frame = dict(lon=df[lon], lat=df[lat], mode="markers")
-                    if map_val is not None:
-                        frame["text"] = df[map_val]
-                        frame["marker"] = dict(color=df[map_val])
-                    return frame
-
-                update_cfg_w_frames(
-                    figure_cfg, *build_map_frames(data, animate_by, build_frame)
-                )
-            chart = graph_wrapper(
-                id="scattermapbox-graph",
-                style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
-                config=dict(topojsonURL="/maps/"),
-                figure=figure_cfg,
-            )
+        if props.map_type == "scattergeo":
+            chart, chart_code = build_scattergeo(inputs, raw_data, layout)
+        elif props.map_type == "mapbox":
+            chart, chart_code = build_mapbox(inputs, raw_data, layout)
         else:
-            data, code = retrieve_chart_data(
-                raw_data, loc, map_val, map_group, animate_by, group_val=group_val
-            )
-            choropleth_kwargs = {}
-            if agg is not None:
-                data, agg_code = build_agg_data(
-                    data, loc, map_val, {}, agg, animate_by=animate_by
-                )
-                code += agg_code
-            if not len(data):
-                raise Exception("No data returned for this computation!")
-            dupe_cols = [loc]
-            if animate_by is not None:
-                dupe_cols = [animate_by, loc]
-            kwargs = {}
-            if agg == "raw":
-                kwargs["dupes_msg"] = (
-                    "'No Aggregation' is not a valid aggregation for a choropleth map!  {} contains duplicates, please "
-                    "select a different aggregation or additional filtering."
-                )
-
-            data = data.dropna(subset=dupe_cols)
-            code.append(
-                "chart_data = chart_data.dropna(subset=['{}']".format(
-                    ",".join(dupe_cols)
-                )
-            )
-            check_exceptions(data[dupe_cols], False, unlimited_data=True, **kwargs)
-
-            if loc_mode == "USA-states":
-                layout["geo"] = dict(scope="usa")
-            elif loc_mode == "geojson-id":
-                geojson_id, featureidkey = (
-                    inputs.get(p) for p in ["geojson", "featureidkey"]
-                )
-                geojson_data = custom_geojson.get_custom_geojson(geojson_id)
-                choropleth_kwargs["geojson"] = geojson_data["data"]
-                if geojson_data["type"] == "FeatureCollection":
-                    choropleth_kwargs["featureidkey"] = "properties.{}".format(
-                        featureidkey
-                    )
-                else:
-                    choropleth_kwargs["featureidkey"] = "id"
-            figure_cfg = dict(
-                data=[
-                    go.Choropleth(
-                        locations=data[loc],
-                        locationmode=loc_mode,
-                        z=data[map_val],
-                        colorscale=build_colorscale(inputs.get("colorscale") or "Reds"),
-                        colorbar_title=map_val,
-                        zmin=data[map_val].min(),
-                        zmax=data[map_val].max(),
-                        **choropleth_kwargs
-                    )
-                ],
-                layout=layout,
-            )
-            if animate_by is not None:
-
-                def build_frame(df):
-                    return dict(
-                        locations=df[loc],
-                        locationmode=loc_mode,
-                        z=df[map_val],
-                        text=df[loc],
-                    )
-
-                update_cfg_w_frames(
-                    figure_cfg, *build_map_frames(data, animate_by, build_frame)
-                )
-
-            chart = graph_wrapper(
-                id="choropleth-graph",
-                style={"margin-right": "auto", "margin-left": "auto"},
-                config=dict(topojsonURL="/maps/"),
-                figure=figure_cfg,
-            )
+            chart, chart_code = build_choropleth(inputs, raw_data, layout)
+        code += chart_code
         if export:
             return chart
         return wrapper(chart), code
     except BaseException as e:
         return build_error(e, traceback.format_exc()), code
+
+
+def get_map_props(inputs):
+    props = [
+        "map_type",
+        "loc_mode",
+        "loc",
+        "lat",
+        "lon",
+        "map_val",
+        "scope",
+        "proj",
+        "mapbox_style",
+        "agg",
+        "animate_by",
+        "map_group",
+        "group_val",
+    ]
+    MapProps = namedtuple("MapProps", " ".join(props))
+    return MapProps(**{p: inputs.get(p) for p in props})
+
+
+def build_scattergeo(inputs, raw_data, layout):
+    props = get_map_props(inputs)
+    data, code = retrieve_chart_data(
+        raw_data,
+        props.lat,
+        props.lon,
+        props.map_val,
+        props.animate_by,
+        props.map_group,
+        group_val=props.group_val,
+    )
+    if props.agg is not None:
+        data, agg_code = build_agg_data(
+            raw_data,
+            props.lat,
+            props.lon,
+            {},
+            props.agg,
+            z=props.map_val,
+            animate_by=props.animate_by,
+        )
+        code += agg_code
+
+    geo_layout = {}
+    if test_plotly_version("4.5.0") and props.animate_by is None:
+        geo_layout["fitbounds"] = "locations"
+    if props.scope is not None:
+        geo_layout["scope"] = props.scope
+    if props.proj is not None:
+        geo_layout["projection_type"] = props.proj
+    if len(geo_layout):
+        layout["geo"] = geo_layout
+
+    chart_kwargs = dict(
+        lon=data[props.lon],
+        lat=data[props.lat],
+        mode="markers",
+        marker=dict(color="darkblue"),
+    )
+    code_kwargs = [
+        "lon=chart_data['{lon}']".format(lon=props.lon),
+        "lat=chart_data['{lat}']".format(lat=props.lat),
+        "mode='markers'",
+        "marker=dict(color='darkblue')",
+    ]
+    pp = pprint.PrettyPrinter(indent=4)
+
+    if props.map_val is not None:
+        colorscale = build_colorscale(inputs.get("colorscale") or "Reds")
+        chart_kwargs["text"] = data[props.map_val]
+        chart_kwargs["marker"] = dict(
+            color=data[props.map_val],
+            cmin=data[props.map_val].min(),
+            cmax=data[props.map_val].max(),
+            colorscale=colorscale,
+            colorbar_title=props.map_val,
+        )
+        code_kwargs[-1] = (
+            "marker=dict(\n"
+            "\tcolor=chart_data['{map_val}'],\n"
+            "\tcmin=chart_data['{map_val}'].min(),\n"
+            "\tcmax=chart_data['{map_val}'].max(),\n"
+            "\tcolorbar_title='{map_val}',\n"
+            "\tcolorscale={colorscale},\n"
+            ")"
+        ).format(map_val=props.map_val, colorscale=pp.pformat(colorscale))
+        code_kwargs.append("text=chart_data['{map_val}']".format(map_val=props.map_val))
+    figure_cfg = dict(data=[go.Scattergeo(**chart_kwargs)], layout=layout)
+
+    code.append(
+        (
+            "\nimport plotly.graph_objects as go\n\n"
+            "chart = go.Scattergeo(\n"
+            "{code_kwargs}\n"
+            ")\n"
+            "figure = go.Figure(data=[chart], layout={layout})"
+        ).format(
+            code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
+            layout=pp.pformat(layout),
+        )
+    )
+
+    if props.animate_by is not None:
+
+        def build_frame(df):
+            frame = dict(lon=df[props.lon], lat=df[props.lat], mode="markers")
+            if props.map_val is not None:
+                frame["text"] = df[props.map_val]
+                frame["marker"] = dict(color=df[props.map_val])
+            return frame
+
+        update_cfg_w_frames(
+            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+        )
+    chart = graph_wrapper(
+        id="scattergeo-graph",
+        style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
+        config=dict(topojsonURL="/maps/"),
+        figure=figure_cfg,
+    )
+    return chart, code
+
+
+def build_mapbox(inputs, raw_data, layout):
+    from dtale.charts.utils import get_mapbox_token
+
+    props = get_map_props(inputs)
+    data, code = retrieve_chart_data(
+        raw_data,
+        props.lat,
+        props.lon,
+        props.map_val,
+        props.animate_by,
+        props.map_group,
+        group_val=props.group_val,
+    )
+    if props.agg is not None:
+        data, agg_code = build_agg_data(
+            raw_data,
+            props.lat,
+            props.lon,
+            {},
+            props.agg,
+            z=props.map_val,
+            animate_by=props.animate_by,
+        )
+        code += agg_code
+
+    mapbox_layout = {"style": props.mapbox_style}
+    mapbox_token = get_mapbox_token()
+    if mapbox_token is not None:
+        mapbox_layout["accesstoken"] = mapbox_token
+    if len(mapbox_layout):
+        layout["mapbox"] = mapbox_layout
+
+    chart_kwargs = dict(
+        lon=data[props.lon],
+        lat=data[props.lat],
+        mode="markers",
+        marker=dict(color="darkblue"),
+    )
+    code_kwargs = [
+        "lon=chart_data['{lon}']".format(lon=props.lon),
+        "lat=chart_data['{lat}']".format(lat=props.lat),
+        "mode='markers'",
+        "marker=dict(color='darkblue')",
+    ]
+    pp = pprint.PrettyPrinter(indent=4)
+    if props.map_val is not None:
+        colorscale = build_colorscale(inputs.get("colorscale") or "Jet")
+        chart_kwargs["text"] = data[props.map_val]
+        chart_kwargs["marker"] = dict(
+            color=data[props.map_val],
+            cmin=data[props.map_val].min(),
+            cmax=data[props.map_val].max(),
+            colorscale=colorscale,
+            colorbar_title=props.map_val,
+        )
+        code_kwargs[-1] = (
+            "marker=dict(\n"
+            "\tcolor=chart_data['{map_val}'],\n"
+            "\tcmin=chart_data['{map_val}'].min(),\n"
+            "\tcmax=chart_data['{map_val}'].max(),\n"
+            "\tcolorbar_title='{map_val}',\n"
+            "\tcolorscale={colorscale},\n"
+            ")"
+        ).format(map_val=props.map_val, colorscale=pp.pformat(colorscale))
+        code_kwargs.append("text=chart_data['{map_val}']".format(map_val=props.map_val))
+    figure_cfg = dict(data=[go.Scattermapbox(**chart_kwargs)], layout=layout)
+
+    code.append(
+        (
+            "\nimport plotly.graph_objects as go\n\n"
+            "chart = go.Scattergeo(\n"
+            "{code_kwargs}\n"
+            ")\n"
+            "figure = go.Figure(data=[chart], layout={layout})"
+        ).format(
+            code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
+            layout=pp.pformat(layout),
+        )
+    )
+
+    if props.animate_by is not None:
+
+        def build_frame(df):
+            frame = dict(lon=df[props.lon], lat=df[props.lat], mode="markers")
+            if props.map_val is not None:
+                frame["text"] = df[props.map_val]
+                frame["marker"] = dict(color=df[props.map_val])
+            return frame
+
+        update_cfg_w_frames(
+            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+        )
+    chart = graph_wrapper(
+        id="scattermapbox-graph",
+        style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
+        config=dict(topojsonURL="/maps/"),
+        figure=figure_cfg,
+    )
+    return chart, code
+
+
+def build_choropleth(inputs, raw_data, layout):
+    props = get_map_props(inputs)
+    data, code = retrieve_chart_data(
+        raw_data,
+        props.loc,
+        props.map_val,
+        props.map_group,
+        props.animate_by,
+        group_val=props.group_val,
+    )
+    choropleth_kwargs = {}
+    if props.agg is not None:
+        data, agg_code = build_agg_data(
+            data, props.loc, props.map_val, {}, props.agg, animate_by=props.animate_by
+        )
+        code += agg_code
+    if not len(data):
+        raise Exception("No data returned for this computation!")
+    dupe_cols = [props.loc]
+    if props.animate_by is not None:
+        dupe_cols = [props.animate_by, props.loc]
+    kwargs = {}
+    if props.agg == "raw":
+        kwargs["dupes_msg"] = (
+            "'No Aggregation' is not a valid aggregation for a choropleth map!  {} contains duplicates, please "
+            "select a different aggregation or additional filtering."
+        )
+
+    data = data.dropna(subset=dupe_cols)
+    code.append(
+        "chart_data = chart_data.dropna(subset=['{}']".format(",".join(dupe_cols))
+    )
+    check_exceptions(data[dupe_cols], False, unlimited_data=True, **kwargs)
+
+    if props.loc_mode == "USA-states":
+        layout["geo"] = dict(scope="usa")
+    elif props.loc_mode == "geojson-id":
+        geojson_id, featureidkey = (inputs.get(p) for p in ["geojson", "featureidkey"])
+        geojson_data = custom_geojson.get_custom_geojson(geojson_id)
+        if geojson_data["type"] == "FeatureCollection":
+            featureidkey = "properties.{}".format(featureidkey)
+        else:
+            featureidkey = "id"
+        choropleth_kwargs = dict(
+            geojson=geojson_data["data"], featureidkey=featureidkey
+        )
+        code.append(
+            (
+                "\nimport dtale.dash_application.custom_geojson as custom_geojson\n\n"
+                "geojson_data = custom_geojson.get_custom_geojson('{geojson_id}')\n"
+                "choropleth_kwargs = dict(geojson=geojson_data['data'], featureidkey='{featureidkey}')"
+            ).format(geojson_id=geojson_id, featureidkey=featureidkey)
+        )
+
+    colorscale = build_colorscale(inputs.get("colorscale") or "Reds")
+    figure_cfg = dict(
+        data=[
+            go.Choropleth(
+                locations=data[props.loc],
+                locationmode=props.loc_mode,
+                z=data[props.map_val],
+                colorscale=colorscale,
+                colorbar_title=props.map_val,
+                zmin=data[props.map_val].min(),
+                zmax=data[props.map_val].max(),
+                **choropleth_kwargs
+            )
+        ],
+        layout=layout,
+    )
+    pp = pprint.PrettyPrinter(indent=4)
+    code_kwargs = [
+        "locations=chart_data['{}']".format(props.loc),
+        "locationsmode='{}'".format(props.loc_mode),
+        "z=chart_data['{}']".format(props.map_val),
+        "colorscale={}".format(pp.pformat(colorscale)),
+        "colorbar_title='{}'".format(props.map_val),
+        "zmin=chart_data['{}'].min()".format(props.map_val),
+        "zmax=chart_data['{}'].max()".format(props.map_val),
+    ]
+    if len(choropleth_kwargs):
+        code_kwargs.append("**choropleth_kwargs")
+
+    code.append(
+        (
+            "\nimport plotly.graph_objects as go\n\n"
+            "chart = go.Choropleth(\n"
+            "{code_kwargs}\n"
+            ")\n"
+            "figure = go.Figure(data=[chart], layout={layout})"
+        ).format(
+            code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
+            layout=pp.pformat(layout),
+        )
+    )
+
+    if props.animate_by is not None:
+
+        def build_frame(df):
+            return dict(
+                locations=df[props.loc],
+                locationmode=props.loc_mode,
+                z=df[props.map_val],
+                text=df[props.loc],
+            )
+
+        update_cfg_w_frames(
+            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+        )
+
+    chart = graph_wrapper(
+        id="choropleth-graph",
+        style={"margin-right": "auto", "margin-left": "auto"},
+        config=dict(topojsonURL="/maps/"),
+        figure=figure_cfg,
+    )
+    return chart, code
 
 
 def build_figure_data(
@@ -1764,7 +2142,6 @@ def build_chart(data_id=None, **inputs):
         if data is None:
             return None, None, None
 
-        code = "\n".join(code or [])
         if "error" in data:
             return build_error(data["error"], data["traceback"]), None, code
 
@@ -1792,10 +2169,11 @@ def build_chart(data_id=None, **inputs):
             )
 
         if chart_type == "pie":
+            chart, pie_code = pie_builder(data, x, y, chart_builder, **chart_inputs)
             return (
-                pie_builder(data, x, y, chart_builder, **chart_inputs),
+                chart,
                 range_data,
-                code,
+                code + pie_code,
             )
 
         axes_builder = build_axes(
@@ -1827,27 +2205,33 @@ def build_chart(data_id=None, **inputs):
                 scatter_charts = scatter_builder(
                     data, x, y, axes_builder, chart_builder, **kwargs
                 )
-            return cpg_chunker(scatter_charts), range_data, code
+            scatter_code = scatter_code_builder(data, x, y, axes_builder, **kwargs)
+            return cpg_chunker(scatter_charts), range_data, code + scatter_code
 
         if chart_type == "surface":
+            chart, chart_code = surface_builder(
+                data, x, y, z, axes_builder, chart_builder, agg=agg
+            )
             return (
-                surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg),
+                chart,
                 range_data,
-                code,
+                code + chart_code,
             )
 
         if chart_type == "bar":
+            chart_code = bar_code_builder(data, x, y, axes_builder, **chart_inputs)
             return (
                 bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
-                code,
+                code + chart_code,
             )
 
         if chart_type == "line":
+            line_code = line_code_builder(data, x, y, axes_builder, **chart_inputs)
             return (
                 line_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
-                code,
+                code + line_code,
             )
 
         raise NotImplementedError("chart type: {}".format(chart_type))
@@ -1932,7 +2316,10 @@ def build_raw_chart(data_id=None, **inputs):
             )
 
         if chart_type == "surface":
-            return surface_builder(data, x, y, z, axes_builder, chart_builder, agg=agg)
+            chart, _ = surface_builder(
+                data, x, y, z, axes_builder, chart_builder, agg=agg
+            )
+            return chart
 
         if chart_type == "bar":
             return bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs)
