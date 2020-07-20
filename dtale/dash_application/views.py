@@ -529,7 +529,7 @@ def init_callbacks(dash_app):
             charts,
             all_inputs,
             range_data,
-            code,
+            "\n".join(make_list(code)),
             get_yaxis_type_tabs(make_list(inputs.get("y") or [])),
         )
 
