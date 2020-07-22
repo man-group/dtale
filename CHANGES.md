@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.10.0 (2020-7-21)
+ * [#223](https://github.com/man-group/dtale/issues/223): six.collections.abc import errors in Google Colab
+ * [#135](https://github.com/man-group/dtale/issues/135): added plotly chart construction to code exports
+ * [#192](https://github.com/man-group/dtale/issues/192): Variance Report & flag toggle
+ * npm package upgrades
+ * added "winsorize" column builder
+
 ### 1.9.2 (2020-7-12)
  * [#127](https://github.com/man-group/dtale/issues/127): add "Column Analysis" to "Describe"
  * [#85](https://github.com/man-group/dtale/issues/85): hotkeys
@@ -37,6 +44,7 @@
  * [#152](https://github.com/man-group/dtale/issues/152): added scattermapbox as a valid map type
  * [#136](https://github.com/man-group/dtale/issues/136) & [#86](https://github.com/man-group/dtale/issues/86): column replacements for values
  * [#87](https://github.com/man-group/dtale/issues/87): highlight ranges of numeric cells
+
 ### 1.8.13 (2020-5-20)
  * [#193](https://github.com/man-group/dtale/issues/193): Support for JupyterHub Proxy
 
