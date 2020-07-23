@@ -1144,10 +1144,12 @@ def test_variance(unittest):
             )
             response = c.get("/dtale/variance/{}/{}".format(c.port, "x"))
             response_data = json.loads(response.data)
+            del response_data["code"]
             unittest.assertEqual(response_data, expected["x"])
 
             response = c.get("/dtale/variance/{}/{}".format(c.port, "low_var"))
             response_data = json.loads(response.data)
+            del response_data["code"]
             unittest.assertEqual(response_data, expected["low_var"])
 
 
