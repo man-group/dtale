@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import Select, { createFilter } from "react-select";
 import ReactSlider from "react-slider";
 import styled from "styled-components";
+
+import ColumnSelect from "./ColumnSelect";
 
 require("./CreateWinsorize.css");
 
@@ -72,7 +73,6 @@ class CreateWinsorize extends React.Component {
       includeUpper: true,
     };
     this.updateState = this.updateState.bind(this);
-    this.renderSelect = this.renderSelect.bind(this);
   }
 
   updateState(state) {
@@ -87,42 +87,27 @@ class CreateWinsorize extends React.Component {
     this.setState(currState, () => this.props.updateState({ cfg, code }));
   }
 
-  renderSelect(label, prop, otherProps, isMulti = false) {
-    const { columns } = this.props;
-    let finalOptions = _.map(columns, "name");
-    const otherValues = _(this.state).pick(otherProps).values().concat().map("value").compact().value();
-    finalOptions = _.reject(finalOptions, otherValues);
-    return (
-      <div className="form-group row">
-        <label className="col-md-3 col-form-label text-right">{label}</label>
-        <div className="col-md-8">
-          <div className="input-group">
-            <Select
-              isMulti={isMulti}
-              className="Select is-clearable is-searchable Select--single"
-              classNamePrefix="Select"
-              options={_.map(
-                _.sortBy(finalOptions, o => _.toLower(o)),
-                o => ({ value: o })
-              )}
-              getOptionLabel={_.property("value")}
-              getOptionValue={_.property("value")}
-              value={this.state[prop]}
-              onChange={selected => this.updateState({ [prop]: selected })}
-              isClearable
-              filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     return (
       <React.Fragment>
-        {this.renderSelect("Col", "col", "group")}
-        {this.renderSelect("Group By", "group", "col", true)}
+        <ColumnSelect
+          label="Col"
+          prop="col"
+          otherProps={["group"]}
+          parent={this.state}
+          updateState={this.updateState}
+          columns={this.props.columns}
+          dtypes={["int", "float"]}
+        />
+        <ColumnSelect
+          label="Group By"
+          prop="group"
+          otherProps={["col"]}
+          parent={this.state}
+          updateState={this.updateState}
+          columns={this.props.columns}
+          isMulti
+        />
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Limits</label>
           <div className="col-md-8">

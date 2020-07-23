@@ -27,6 +27,8 @@ class ColumnBuilder(object):
             self.builder = TransformColumnBuilder(name, cfg)
         elif column_type == "winsorize":
             self.builder = WinsorizeColumnBuilder(name, cfg)
+        elif column_type == "zscore_normalize":
+            self.builder = ZScoreNormalizeColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -529,3 +531,30 @@ class WinsorizeColumnBuilder(object):
             "winsorized_data = mstats.winsorize(data['{col}']{params})\n"
             "pd.Series(winsorized_data, index=data.index, name='{name}')"
         ).format(params=winsorize_params, col=col, name=self.name)
+
+
+ZERO_STD_ERROR = "Column consists of a constant value and z-score normalization will result in all nans!"
+
+
+class ZScoreNormalizeColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col = self.cfg.get("col")
+        if data[col].std() == 0:
+            raise Exception(ZERO_STD_ERROR)
+        return pd.Series(
+            (data[col] - data[col].mean()) / data[col].std(ddof=0),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        col = self.cfg.get("col")
+        return (
+            "pd.Series(\n"
+            "\t(data['{col}'] - data['{col}'].mean()) / data['{col}'].std(ddof=0), index=data.index, name='{name}'\n"
+            ")"
+        ).format(name=self.name, col=col)

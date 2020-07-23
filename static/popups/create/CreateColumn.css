@@ -19,6 +19,13 @@ div.builders > .btn-group.row:first-child > .btn:first-child {
 }
 
 div.builders > .btn-group.row:last-of-type > .btn {
-  border-radius: 0 0 0.25rem 0.25rem;
   border-top-width: 0;
+}
+
+div.builders > .btn-group.row:last-of-type > .btn:first-of-type {
+  border-radius: 0 0 0 0.25rem;
+}
+
+div.builders > .btn-group.row:last-of-type > .btn:last-of-type {
+  border-radius: 0 0 0.25rem 0;
 }

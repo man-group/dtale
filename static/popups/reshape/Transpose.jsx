@@ -50,8 +50,8 @@ class Transpose extends React.Component {
   renderSelect(prop, otherProps, isMulti = false) {
     const { shape } = this.state;
     let finalOptions = _.map(shape, "name");
-    const otherValues = _(this.state).pick(otherProps).values().concat().map("value").compact().value();
-    finalOptions = _.reject(finalOptions, otherValues);
+    const otherValues = _(this.state).pick(otherProps).values().flatten().map("value").compact().value();
+    finalOptions = _.difference(finalOptions, otherValues);
     return (
       <Select
         isMulti={isMulti}
