@@ -15,13 +15,21 @@ import { CreateRandom, validateRandomCfg } from "./CreateRandom";
 import { CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
 import { CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
+import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
 import Descriptions from "./creation-descriptions.json";
 
 require("./CreateColumn.css");
 
-const TYPES = ["numeric", "bins", "datetime", "random", "type_conversion", "transform", "winsorize"];
+const TYPES = _.concat(
+  ["numeric", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
+  []
+);
+const LABELS = { zscore_normalize: "Z-Score Normalize" };
 
 function buildLabel(v) {
+  if (_.has(LABELS, v)) {
+    return LABELS[v];
+  }
   return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
 }
 
@@ -87,6 +95,9 @@ class ReactCreateColumn extends React.Component {
       case "winsorize":
         error = validateWinsorizeCfg(cfg);
         break;
+      case "zscore_normalize":
+        error = validateZScoreNormalizeCfg(cfg);
+        break;
       case "numeric":
       default:
         error = validateNumericCfg(cfg);
@@ -148,6 +159,9 @@ class ReactCreateColumn extends React.Component {
         break;
       case "winsorize":
         body = <CreateWinsorize columns={this.state.columns} updateState={updateState} />;
+        break;
+      case "zscore_normalize":
+        body = <CreateZScoreNormalize columns={this.state.columns} updateState={updateState} />;
         break;
     }
     return (

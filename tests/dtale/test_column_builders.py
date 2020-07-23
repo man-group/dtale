@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from six import PY3
 
-from dtale.column_builders import ColumnBuilder
+from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
 
 if PY3:
     from contextlib import ExitStack
@@ -218,3 +218,27 @@ def test_winsorize():
         cfg = {"col": "i"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.sum() == 4950)
+
+
+@pytest.mark.unit
+def test_zscore_normalize():
+    def _data():
+        for i in range(100):
+            yield dict(a=1, i=i)
+
+    df = pd.DataFrame(list(_data()))
+
+    data_id, column_type = "1", "zscore_normalize"
+    i = 0
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
+        verify_builder(builder, lambda col: col.sum() == 4.440892098500626e-16)
+
+        with pytest.raises(BaseException) as error:
+            builder = ColumnBuilder(
+                data_id, column_type, "Col{}".format(++i), {"col": "a"}
+            )
+            builder.build_column()
+            assert ZERO_STD_ERROR in str(error.value)

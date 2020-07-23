@@ -42,7 +42,8 @@
 ### 1.8.14 (2020-5-31)
  * [#168](https://github.com/man-group/dtale/issues/168): updated default colorscale for heatmaps to be Jet
  * [#152](https://github.com/man-group/dtale/issues/152): added scattermapbox as a valid map type
- * [#136](https://github.com/man-group/dtale/issues/136) & [#86](https://github.com/man-group/dtale/issues/86): column replacements for values
+ * [#136](https://github.com/man-group/dtale/issues/136): Fill missing values
+ * [#86](https://github.com/man-group/dtale/issues/86): column replacements for values
  * [#87](https://github.com/man-group/dtale/issues/87): highlight ranges of numeric cells
 
 ### 1.8.13 (2020-5-20)
@@ -80,30 +81,30 @@
  * added python 3.7 & 3.8 support
 
 ### 1.8.8 (2020-4-9)
- * [#144](https://github.com/man-group/dtale/issues/144)
+ * [#144](https://github.com/man-group/dtale/issues/144): Changing data type
 
 ### 1.8.7 (2020-4-8)
- * [#137](https://github.com/man-group/dtale/issues/137)
- * [#141](https://github.com/man-group/dtale/issues/141)
- * [#156](https://github.com/man-group/dtale/issues/156)
- * [#160](https://github.com/man-group/dtale/issues/160)
- * [#161](https://github.com/man-group/dtale/issues/161)
- * [#162](https://github.com/man-group/dtale/issues/162)
- * [#163](https://github.com/man-group/dtale/issues/163)
+ * [#137](https://github.com/man-group/dtale/issues/137): Outliers in the description window
+ * [#141](https://github.com/man-group/dtale/issues/141): Currency Symbole for column Format
+ * [#156](https://github.com/man-group/dtale/issues/156): heat map
+ * [#160](https://github.com/man-group/dtale/issues/160): Option to filter out outliers from charts
+ * [#161](https://github.com/man-group/dtale/issues/161): Syntax error in 1.8.6
+ * [#162](https://github.com/man-group/dtale/issues/162): chart map animation errors with aggrigations
+ * [#163](https://github.com/man-group/dtale/issues/163): Fix scale for animation mode in the chart
 
 ### 1.8.6 [hotfix] (2020-4-5)
  * updates to setup.py to include images
 
 ### 1.8.5 [hotfix] (2020-4-5)
  * fixed bug with column calculation for map inputs
- * [#149](https://github.com/man-group/dtale/issues/149)
+ * [#149](https://github.com/man-group/dtale/issues/149): Icon for Map charts
 
 ### 1.8.4 [hotfix] (2020-4-5)
  * update to setup.py to include missing static topojson files
- * [#145](https://github.com/man-group/dtale/issues/145)
+ * [#145](https://github.com/man-group/dtale/issues/145): Choropleth Map
 
 ### 1.8.3 (2020-4-4)
-* [#143](https://github.com/man-group/dtale/issues/143), scattergeo map chart UI changes
+* [#143](https://github.com/man-group/dtale/issues/143): scattergeo map chart UI changes
 * updated offline chart generation of maps to work without loading topojson from the web
 * fix to allow correlations timeseries to handle when date columns jump between rolling & non-rolling
 * added slider to animation and added animation to maps
@@ -112,33 +113,33 @@
 * added grouping to maps
 
 ### 1.8.2 (2020-4-1)
- * [#129](https://github.com/man-group/dtale/issues/129), show dtype when hovering over header in "Highlight Dtypes" mode and description tooltips added to main menu
+ * [#129](https://github.com/man-group/dtale/issues/129): show dtype when hovering over header in "Highlight Dtypes" mode and description tooltips added to main menu
  * made "No Aggregation" the default aggregation in charts
  * bugfix for line charts with more than 15000 points
  * updated "Value Counts" & "Category Breakdown" to return top on initial load
- * [#118](https://github.com/man-group/dtale/issues/118), added scattergeo & choropleth maps
- * [#121](https://github.com/man-group/dtale/issues/121), added "not equal" toggle to filters
- * [#132](https://github.com/man-group/dtale/issues/132), updated resize button to "Refresh Widths"
+ * [#118](https://github.com/man-group/dtale/issues/118): added scattergeo & choropleth maps
+ * [#121](https://github.com/man-group/dtale/issues/121): added "not equal" toggle to filters
+ * [#132](https://github.com/man-group/dtale/issues/132): updated resize button to "Refresh Widths"
  * added "Animate" toggle to scatter, line & bar charts
- * [#131](https://github.com/man-group/dtale/issues/131), changes to "Reshape Data" window
- * [#130](https://github.com/man-group/dtale/issues/130), updates to pivot reshaper
- * [#128](https://github.com/man-group/dtale/issues/128), additional hover display of code snippets for column creation
- * [#112](https://github.com/man-group/dtale/issues/112), updated "Group" selection to give users the ability to select group values
+ * [#131](https://github.com/man-group/dtale/issues/131): changes to "Reshape Data" window
+ * [#130](https://github.com/man-group/dtale/issues/130): updates to pivot reshaper
+ * [#128](https://github.com/man-group/dtale/issues/128): additional hover display of code snippets for column creation
+ * [#112](https://github.com/man-group/dtale/issues/112): updated "Group" selection to give users the ability to select group values
 
 ### 1.8.1 (2020-3-29)
- * [#92](https://github.com/man-group/dtale/issues/92), column builders for random data
- * [#84](https://github.com/man-group/dtale/issues/84), highlight columns based on dtype
- * [#111](https://github.com/man-group/dtale/issues/111), fix for syntax error in charts code export
- * [#113](https://github.com/man-group/dtale/issues/113), updates to "Value Counts" chart in "Column Analysis" for number of values and ordinal entry
- * [#114](https://github.com/man-group/dtale/issues/114), export data to CSV/TSV
- * [#116](https://github.com/man-group/dtale/issues/116), upodated styling for github fork link so "Code Export" is partially clickable
- * [#119](https://github.com/man-group/dtale/issues/119), fixed bug with queries not being passed to functions
- * [#120](https://github.com/man-group/dtale/issues/120), fix to allow duplicate x-axis entries in bar charts
+ * [#92](https://github.com/man-group/dtale/issues/92): column builders for random data
+ * [#84](https://github.com/man-group/dtale/issues/84): highlight columns based on dtype
+ * [#111](https://github.com/man-group/dtale/issues/111): fix for syntax error in charts code export
+ * [#113](https://github.com/man-group/dtale/issues/113): updates to "Value Counts" chart in "Column Analysis" for number of values and ordinal entry
+ * [#114](https://github.com/man-group/dtale/issues/114): export data to CSV/TSV
+ * [#116](https://github.com/man-group/dtale/issues/116): upodated styling for github fork link so "Code Export" is partially clickable
+ * [#119](https://github.com/man-group/dtale/issues/119): fixed bug with queries not being passed to functions
+ * [#120](https://github.com/man-group/dtale/issues/120): fix to allow duplicate x-axis entries in bar charts
  * added "category breakdown" in column analysis popup for float columns
  * fixed bug where previous "show missing only" selection was not being recognized
  
 ### 1.8.0 (2020-3-22)
- * [#102](https://github.com/man-group/dtale/issues/102), interactive column filtering for string, date, int, float & bool
+ * [#102](https://github.com/man-group/dtale/issues/102): interactive column filtering for string, date, int, float & bool
  * better handling for y-axis management in charts.  Now able to toggle between default, single & multi axis
  * increased maximum groups to 30 in charts and updated error messaging when it surpasses that for easier filter creation
  * bugfix for date string width calculation
@@ -146,8 +147,8 @@
  * updated Filter popup to be opened as separate window when needed
 
 ### 1.7.15 (2020-3-9)
- * [#105](https://github.com/man-group/dtale/issues/105), better error handling for when JS files are missing
- * [#103](https://github.com/man-group/dtale/issues/103), pinned Flask to be >= 1.0.0
+ * [#105](https://github.com/man-group/dtale/issues/105): better error handling for when JS files are missing
+ * [#103](https://github.com/man-group/dtale/issues/103): pinned Flask to be >= 1.0.0
  * Updated file exporting to no longer use `flask.send_file` since that doesn't play nice with WSGI
  
 ### 1.7.14 (2020-3-7)
@@ -155,9 +156,9 @@
 
 ### 1.7.13 (2020-3-7)
  * New data storage mechanisms available: Redis, Shelve
- * [#100](https://github.com/man-group/dtale/issues/100), turned off data limits on charts by using WebGL
- * [#99](https://github.com/man-group/dtale/issues/99), graceful handling of issue calculating min/max information for Describe popup
- * [#91](https://github.com/man-group/dtale/issues/91), reshaping of data through usage of aggregations, pivots or transposes
+ * [#100](https://github.com/man-group/dtale/issues/100): turned off data limits on charts by using WebGL
+ * [#99](https://github.com/man-group/dtale/issues/99): graceful handling of issue calculating min/max information for Describe popup
+ * [#91](https://github.com/man-group/dtale/issues/91): reshaping of data through usage of aggregations, pivots or transposes
  * Export chart to HTML
  * Export chart dat to CSV
  * Offline chart display for use within notebooks
@@ -175,25 +176,27 @@
  * hotfix for dash custom.js file missing from production webpack build script
 
 ### 1.7.10 (2020-2-27)
- * [#75](https://github.com/man-group/dtale/issues/75), added code snippet functionality to the following:
+ * [#75](https://github.com/man-group/dtale/issues/75): added code snippet functionality to the following:
    * main grid, histogram, correlations, column building & charts
  * exposed CLI loaders through the following functions dtale.show_csv, dtale.show_json, dtale.show_arctic
    * build in such a way that it is easy for custom loaders to be exposed as well
- * [#82](https://github.com/man-group/dtale/issues/82), pinned `future` package to be >= 0.14.0
+ * [#82](https://github.com/man-group/dtale/issues/82): pinned `future` package to be >= 0.14.0
 
 ### 1.7.9 (2020-2-24)
  * support for google colab
- * bugfixes: [#71](https://github.com/man-group/dtale/issues/71), [#72](https://github.com/man-group/dtale/issues/72), [#73](https://github.com/man-group/dtale/issues/73)
+ * [#71](https://github.com/man-group/dtale/issues/71): Filter & Formats popups no longer have smooth transition from top of screen
+ * [#72](https://github.com/man-group/dtale/issues/72): Column Menu cutoff on last column of wide dataframes
+ * [#73](https://github.com/man-group/dtale/issues/73): Describe popup does full refresh when clicking rows in dtype grid
 
 ### 1.7.8 (2020-2-22)
- * [#77](https://github.com/man-group/dtale/issues/77), removal of multiprocessed timeouts
+ * [#77](https://github.com/man-group/dtale/issues/77): removal of multiprocessed timeouts
 
 ### 1.7.7 (2020-2-22)
  * centralized global state
 
 ### 1.7.6 (2020-2-21)
  * allowing the usage of context variables within filters
- * [#64](https://github.com/man-group/dtale/issues/64), handling for loading duplicate data to dtale.show
+ * [#64](https://github.com/man-group/dtale/issues/64): handling for loading duplicate data to dtale.show
  * updated dtale.instances() to print urls rather than show all instances
  * removal of Dash "Export to png" function
  * passing data grid queries to chart page as default
