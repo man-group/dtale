@@ -5,6 +5,7 @@ import React from "react";
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
 import { fetchJson } from "../../fetcher";
+import { renderCodePopupAnchor } from "../CodePopup";
 import VarianceChart from "./VarianceChart";
 
 class Variance extends React.Component {
@@ -80,7 +81,7 @@ class Variance extends React.Component {
     if (!varianceData) {
       return null;
     }
-    const { check1, check2, size, outlierCt, missingCt, jarqueBera, shapiroWilk } = varianceData;
+    const { code, check1, check2, size, outlierCt, missingCt, jarqueBera, shapiroWilk } = varianceData;
     const check1Pct = _.round(100 * (check1.unique / check1.size), 2);
     const check1Msg = "Check 1: Count of unique values in a feature / sample size < 10%";
     const check2res = _.get(check2, "result", false);
@@ -136,6 +137,14 @@ class Variance extends React.Component {
               </li>
             </ul>
           </ul>
+          <div
+            style={{
+              position: "absolute",
+              right: 25,
+              top: 60,
+            }}>
+            {renderCodePopupAnchor(code, "Variance")}
+          </div>
           <div
             style={{
               position: "absolute",

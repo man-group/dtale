@@ -1448,9 +1448,13 @@ def variance(data_id, column):
 
     """
     s = global_state.get_data(data_id)[column]
+    code = ["s = df['{}']".format(column)]
     unique_ct = int(s.unique().size)
+    code.append("unique_ct = s.unique().size")
     s_size = len(s)
+    code.append("s_size = len(s)")
     check1 = bool((unique_ct / s_size) < 0.1)
+    code.append("check1 = (unique_ct / s_size) < 0.1")
     return_data = dict(check1=dict(unique=unique_ct, size=s_size, result=check1))
     curr_dtypes = global_state.get_dtypes(data_id)
     dtype = next(
@@ -1466,6 +1470,13 @@ def variance(data_id, column):
             val2=dict(val=fmt(val_counts.index[1]), ct=int(val_counts.values[1])),
             result=check2,
         )
+    code += [
+        "check2 = False",
+        "if unique_ct > 1:",
+        "\tval_counts = s.value_counts()",
+        "\tcheck2 = (val_counts.values[0] / val_counts.values[1]) > 20",
+        "low_variance = check1 and check2",
+    ]
 
     return_data["size"] = len(s)
     return_data["outlierCt"] = dtype["hasOutliers"]
@@ -1475,6 +1486,12 @@ def variance(data_id, column):
     return_data["jarqueBera"] = dict(statistic=float(jb_stat), pvalue=float(jb_p))
     sw_stat, sw_p = stats.shapiro(s)
     return_data["shapiroWilk"] = dict(statistic=float(sw_stat), pvalue=float(sw_p))
+    code += [
+        "\nimport scipy.stats as stats\n",
+        "jb_stat, jb_p = stats.jarque_bera(s)",
+        "sw_stat, sw_p = stats.shapiro(s)",
+    ]
+    return_data["code"] = "\n".join(code)
     return jsonify(return_data)
 
 
