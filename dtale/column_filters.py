@@ -115,7 +115,7 @@ class NumericFilter(MissingFilter):
                 fltr["query"] = "{} {} ({})".format(
                     self.column,
                     "in" if cfg_operand == "=" else "not in",
-                    ", ".join(state),
+                    ", ".join(map(str, state)),
                 )
             return super(NumericFilter, self).handle_missing(fltr)
         if cfg_operand in ["<", ">", "<=", ">="]:

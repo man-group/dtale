@@ -1,7 +1,11 @@
 import string
 
 from six import PY3
-from collections import MutableMapping
+
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
 
 DATA = {}
 DATASETS = {}

@@ -25,6 +25,7 @@ const DTYPES = {
       hasMissing: 1,
       hasOutliers: 0,
       lowVariance: false,
+      unique_ct: 1,
     },
     {
       name: "col2",
@@ -37,9 +38,16 @@ const DTYPES = {
       hasOutliers: 0,
       outlierRange: { lower: 3.5, upper: 4.5 },
       lowVariance: true,
+      unique_ct: 1,
     },
-    { name: "col3", index: 2, dtype: "object", visible: true },
-    { name: "col4", index: 3, dtype: "datetime64[ns]", visible: true },
+    { name: "col3", index: 2, dtype: "object", visible: true, unique_ct: 1 },
+    {
+      name: "col4",
+      index: 3,
+      dtype: "datetime64[ns]",
+      visible: true,
+      unique_ct: 1,
+    },
   ],
   success: true,
 };
