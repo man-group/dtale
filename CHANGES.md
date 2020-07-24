@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.11.0 (2020-7-23)
+ * updated column filters so that columns with more than 500 unique values are loaded asynchronously as with AsyncSelect
+ * added code export to Variance report
+ * added z-score normalize column builder
+
 ### 1.10.0 (2020-7-21)
  * [#223](https://github.com/man-group/dtale/issues/223): six.collections.abc import errors in Google Colab
  * [#135](https://github.com/man-group/dtale/issues/135): added plotly chart construction to code exports
