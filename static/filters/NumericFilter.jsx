@@ -1,7 +1,9 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import Select, { createFilter } from "react-select";
+
+import AsyncValueSelect from "./AsyncValueSelect";
+import ValueSelect from "./ValueSelect";
 
 const NE = "\u2260";
 const EQ_TOGGLE = [
@@ -137,22 +139,16 @@ class NumericFilter extends React.Component {
         if (colType === "float") {
           return createValueInput(this.updateState, this.props, this.state, "value");
         }
+        const requiresAsync = this.props.uniqueCt > 500;
         return (
           <div key={2} className="row pt-3">
             <div className="col-md-12">
-              <Select
-                isMulti
-                isDisabled={this.props.missing}
-                className="Select is-clearable is-searchable Select--single m-auto"
-                classNamePrefix="Select"
-                options={_.map(this.props.uniques, o => ({ value: o }))}
-                getOptionLabel={_.property("value")}
-                getOptionValue={_.property("value")}
-                value={this.state.selected}
-                onChange={selected => this.updateState({ selected })}
-                isClearable
-                filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-              />
+              {!requiresAsync && (
+                <ValueSelect {...this.props} selected={this.state.selected} updateState={this.updateState} />
+              )}
+              {requiresAsync && (
+                <AsyncValueSelect {...this.props} selected={this.state.selected} updateState={this.updateState} />
+              )}
             </div>
           </div>
         );
@@ -192,6 +188,7 @@ NumericFilter.propTypes = {
   columnFilters: PropTypes.object, // eslint-disable-line react/no-unused-prop-types
   updateState: PropTypes.func,
   uniques: PropTypes.array,
+  uniqueCt: PropTypes.number,
   colType: PropTypes.string,
   min: PropTypes.number,
   max: PropTypes.number,

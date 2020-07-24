@@ -124,6 +124,7 @@ def test_startup(unittest):
             "hasMissing": 0,
             "hasOutliers": 0,
             "lowVariance": False,
+            "unique_ct": 2,
         },
         next(
             (
@@ -1273,6 +1274,7 @@ def test_get_data(unittest, test_data):
                         visible=True,
                         hasMissing=0,
                         hasOutliers=0,
+                        unique_ct=1,
                     ),
                     dict(
                         dtype="int64",
@@ -1285,6 +1287,7 @@ def test_get_data(unittest, test_data):
                         hasOutliers=0,
                         lowVariance=False,
                         outlierRange={"lower": -24.5, "upper": 73.5},
+                        unique_ct=50,
                     ),
                     dict(
                         dtype="int64",
@@ -1297,6 +1300,7 @@ def test_get_data(unittest, test_data):
                         hasOutliers=0,
                         lowVariance=False,
                         outlierRange={"lower": 1.0, "upper": 1.0},
+                        unique_ct=1,
                     ),
                     dict(
                         dtype="float64",
@@ -1309,6 +1313,7 @@ def test_get_data(unittest, test_data):
                         hasOutliers=0,
                         lowVariance=False,
                         outlierRange={"lower": 1.5, "upper": 1.5},
+                        unique_ct=1,
                     ),
                     dict(
                         dtype="string",
@@ -1317,6 +1322,7 @@ def test_get_data(unittest, test_data):
                         visible=True,
                         hasMissing=0,
                         hasOutliers=0,
+                        unique_ct=1,
                     ),
                 ],
             )
@@ -1541,6 +1547,7 @@ def test_get_data(unittest, test_data):
                     hasOutliers=0,
                     lowVariance=False,
                     outlierRange={"lower": 2.5, "upper": 2.5},
+                    unique_ct=1,
                 ),
                 "should update dtypes on data structure change",
             )
@@ -2909,6 +2916,39 @@ def test_get_column_filter_data(unittest, custom_data):
             )
             response_data = json.loads(response.data)
             assert not response_data["success"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
+def test_get_async_column_filter_data(unittest, custom_data):
+    import dtale.views as views
+
+    df, _ = views.format_data(custom_data)
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+
+            str_val = df.str_val.values[0]
+            response = c.get(
+                "/dtale/async-column-filter-data/{}/{}".format(c.port, "str_val"),
+                query_string=dict(input=df.str_val.values[0]),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data, [dict(value=str_val)])
+
+            int_val = df.int_val.values[0]
+            response = c.get(
+                "/dtale/async-column-filter-data/{}/{}".format(c.port, "int_val"),
+                query_string=dict(input=str(df.int_val.values[0])),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data, [dict(value=int_val)])
 
 
 @pytest.mark.unit

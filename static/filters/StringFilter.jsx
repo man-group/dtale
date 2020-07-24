@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import Select, { createFilter } from "react-select";
 
+import AsyncValueSelect from "./AsyncValueSelect";
 import { EQ_TOGGLE, NE } from "./NumericFilter";
+import ValueSelect from "./ValueSelect";
 
 class StringFilter extends React.Component {
   constructor(props) {
@@ -29,6 +30,7 @@ class StringFilter extends React.Component {
   }
 
   render() {
+    const requiresAsync = this.props.uniqueCt > 500;
     return [
       <div key={0} className="row pb-3">
         <div className="col-md-12 text-center">
@@ -52,19 +54,12 @@ class StringFilter extends React.Component {
       </div>,
       <div key={1} className="row">
         <div className="col-md-12">
-          <Select
-            isMulti
-            isDisabled={this.props.missing}
-            className="Select is-clearable is-searchable Select--single"
-            classNamePrefix="Select"
-            options={_.map(this.props.uniques, o => ({ value: o }))}
-            getOptionLabel={_.property("value")}
-            getOptionValue={_.property("value")}
-            value={this.state.selected}
-            onChange={selected => this.updateState({ selected })}
-            isClearable
-            filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-          />
+          {!requiresAsync && (
+            <ValueSelect {...this.props} selected={this.state.selected} updateState={this.updateState} />
+          )}
+          {requiresAsync && (
+            <AsyncValueSelect {...this.props} selected={this.state.selected} updateState={this.updateState} />
+          )}
         </div>
       </div>,
     ];
@@ -77,6 +72,7 @@ StringFilter.propTypes = {
   updateState: PropTypes.func,
   uniques: PropTypes.array,
   missing: PropTypes.bool,
+  uniqueCt: PropTypes.number,
 };
 
 export { StringFilter };

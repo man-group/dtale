@@ -34,6 +34,7 @@ function buildState({ columns, selectedCol }) {
   const colType = gu.findColType(colCfg.dtype);
   return {
     colType,
+    uniqueCt: colCfg.unique_ct,
     dtype: colCfg.dtype,
     hasMissing: false,
     missing: false,

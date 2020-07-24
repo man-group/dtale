@@ -502,6 +502,15 @@ class DtaleData(object):
             logger.debug("You must ipython>=5.0 installed to use this functionality")
 
 
+def unique_count(s):
+    return int(s.dropna().unique().size)
+
+
+def get_dtype_info(data_id, col):
+    dtypes = global_state.get_dtypes(data_id)
+    return next((c for c in dtypes if c["name"] == col), None)
+
+
 def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     """
     Helper function to build formatter for the descriptive information about each column in the dataframe you
@@ -531,6 +540,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype=dtype,
             index=col_index,
             visible=visible,
+            unique_ct=unique_count(s),
             hasMissing=int(s.isnull().sum()),
             hasOutliers=0,
         )
@@ -552,7 +562,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
 
         if classification in ["F", "I"] and not data[col].isnull().all():
             # build variance flag
-            unique_ct = data[col].dropna().unique().size
+            unique_ct = dtype_data["unique_ct"]
             check1 = (unique_ct / len(data[col])) < 0.1
             check2 = False
             if check1 and unique_ct >= 2:
@@ -998,8 +1008,7 @@ def update_formats(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     updated_formats = {col: col_format}
     if update_all_dtype:
-        dtypes = global_state.get_dtypes(data_id)
-        col_dtype = next((c["dtype"] for c in dtypes if c["name"] == col), None)
+        col_dtype = get_dtype_info(data_id, col)["dtype"]
         updated_formats = {
             c["name"]: col_format
             for c in global_state.get_dtypes(data_id)
@@ -1387,40 +1396,31 @@ def describe(data_id, column):
     """
     data = global_state.get_data(data_id)[[column]]
     additional_aggs = None
-    curr_dtypes = global_state.get_dtypes(data_id)
-    dtype = next(
-        (
-            dtype_info["dtype"]
-            for dtype_info in curr_dtypes
-            if dtype_info["name"] == column
-        ),
-        None,
-    )
-    if classify_type(dtype) in ["I", "F"]:
+    dtype = get_dtype_info(data_id, column)
+    if classify_type(dtype["dtype"]) in ["I", "F"]:
         additional_aggs = ["sum", "median", "mode", "var", "sem", "skew", "kurt"]
     code = build_code_export(data_id)
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
     code += desc_code
     return_data = dict(describe=desc, success=True)
     uniq_vals = data[column].value_counts().sort_values(ascending=False)
-    total_uniq_vals = len(uniq_vals)
     if "unique" not in return_data["describe"]:
-        return_data["describe"]["unique"] = json_int(total_uniq_vals, as_string=True)
+        return_data["describe"]["unique"] = json_int(dtype["unique_ct"], as_string=True)
     uniq_vals.index.name = "value"
     uniq_vals.name = "count"
     uniq_vals = uniq_vals.reset_index()
     uniq_f, _ = build_formatters(uniq_vals)
-    if total_uniq_vals <= 100:
+    if dtype["unique_ct"] <= 100:
         code.append("uniq_vals = data['{}'].unique()".format(column))
         return_data["uniques"] = dict(
             data=uniq_f.format_dicts(uniq_vals.itertuples()),
-            total=total_uniq_vals,
+            total=dtype["unique_ct"],
             top=False,
         )
     else:  # get top 100 most common values
         return_data["uniques"] = dict(
             data=uniq_f.format_dicts(uniq_vals.head(100).itertuples()),
-            total=total_uniq_vals,
+            total=dtype["unique_ct"],
             top=True,
         )
         uniq_code = "uniq_vals = data['{}'].value_counts().sort_values(ascending=False).head(100).index.values"
@@ -1449,18 +1449,14 @@ def variance(data_id, column):
     """
     s = global_state.get_data(data_id)[column]
     code = ["s = df['{}']".format(column)]
-    unique_ct = int(s.unique().size)
+    unique_ct = unique_count(s)
     code.append("unique_ct = s.unique().size")
     s_size = len(s)
     code.append("s_size = len(s)")
     check1 = bool((unique_ct / s_size) < 0.1)
     code.append("check1 = (unique_ct / s_size) < 0.1")
     return_data = dict(check1=dict(unique=unique_ct, size=s_size, result=check1))
-    curr_dtypes = global_state.get_dtypes(data_id)
-    dtype = next(
-        (dtype_info for dtype_info in curr_dtypes if dtype_info["name"] == column),
-        None,
-    )
+    dtype = get_dtype_info(data_id, column)
     if unique_ct >= 2:
         val_counts = s.value_counts()
         check2 = bool((val_counts.values[0] / val_counts.values[1]) > 20)
@@ -1678,9 +1674,27 @@ def get_column_filter_data(data_id, column):
         data_range = {k: fmt(v) for k, v in data_range.items()}
         ret = dict_merge(ret, data_range)
     if classification in ["S", "I", "B"]:
-        vals = [fmt(v) for v in sorted(s.dropna().unique())]
+        dtype_info = get_dtype_info(data_id, column)
+        vals = sorted(s.dropna().unique())
+        if dtype_info["unique_ct"] > 500:
+            # columns with too many unique values will need to use asynchronous loading, so for now we'll give the
+            # first 5 values
+            vals = vals[:5]
+        vals = [fmt(v) for v in vals]
         ret["uniques"] = vals
     return jsonify(ret)
+
+
+@dtale.route("/async-column-filter-data/<data_id>/<column>")
+@exception_decorator
+def get_async_column_filter_data(data_id, column):
+    input = get_str_arg(request, "input")
+    s = global_state.get_data(data_id)[column]
+    dtype = find_dtype(s)
+    fmt = find_dtype_formatter(dtype)
+    vals = s[s.astype("str").str.startswith(input)]
+    vals = [dict(value=fmt(v)) for v in sorted(vals.unique())[:5]]
+    return jsonify(vals)
 
 
 @dtale.route("/save-column-filter/<data_id>/<column>")

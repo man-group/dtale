@@ -1,7 +1,7 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
-import Select from "react-select";
+import AsyncSelect from "react-select/async";
 
 import { expect, it } from "@jest/globals";
 
@@ -10,22 +10,32 @@ import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("ColumnFilter numeric tests", () => {
   let ColumnFilter, NumericFilter;
+  const INITIAL_UNIQUES = [1, 2, 3, 4, 5];
+  const ASYNC_OPTIONS = [{ value: 6 }, { value: 7 }, { value: 8 }];
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
+        const { urlFetcher, DATA, DTYPES } = require("../redux-test-utils").default;
         if (_.startsWith(url, "/dtale/column-filter-data/1/col1")) {
           return {
             success: true,
             hasMissing: true,
-            uniques: [1, 2, 3],
+            uniques: INITIAL_UNIQUES,
             min: 1,
-            max: 3,
+            max: 10,
           };
         }
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col2")) {
-          return { success: true, hasMissing: true, min: 1.0, max: 3.0 };
+        if (_.startsWith(url, "/dtale/data")) {
+          const col1 = _.find(DTYPES, { name: "col1" });
+          const col1Dtype = { ...col1, unique_ct: 1000 };
+          return {
+            ...DATA,
+            columns: _.map(DATA.columns, c => (c.name === "col1" ? col1Dtype : c)),
+          };
         }
-        const { urlFetcher } = require("../redux-test-utils").default;
+        if (_.startsWith(url, "/dtale/async-column-filter-data/1/col1")) {
+          return ASYNC_OPTIONS;
+        }
         return urlFetcher(url);
       })
     );
@@ -44,26 +54,26 @@ describe("ColumnFilter numeric tests", () => {
     await tickUpdate(result);
     return result;
   };
+  const findAsync = result => result.find(AsyncSelect);
 
   it("ColumnFilter int rendering", async () => {
     const result = await buildResult({
       dataId: "1",
       selectedCol: "col1",
-      columns: [{ name: "col1", dtype: "int64", visible: true }],
+      columns: [{ name: "col1", dtype: "int64", visible: true, unique_ct: 1000 }],
     });
     expect(result.find(NumericFilter).length).toBe(1);
     result.find("i.ico-check-box-outline-blank").simulate("click");
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({ type: "int", missing: true });
-    expect(result.find(".Select__control--is-disabled").length).toBeGreaterThan(0);
+    expect(findAsync(result).prop("isDisabled")).toBe(true);
     result.find("i.ico-check-box").simulate("click");
     await tickUpdate(result);
-    expect(result.find(".Select__control--is-disabled").length).toBe(0);
-    const uniqueSelect = result.find(Select);
-    uniqueSelect
-      .first()
-      .instance()
-      .onChange([{ value: 1 }]);
+    expect(findAsync(result).prop("isDisabled")).toBe(false);
+    const asyncOptions = await findAsync(result).prop("loadOptions")("1");
+    expect(asyncOptions).toEqual(ASYNC_OPTIONS);
+    expect(findAsync(result).prop("defaultOptions")).toEqual(_.map(INITIAL_UNIQUES, iu => ({ value: iu })));
+    findAsync(result).prop("onChange")([{ value: 1 }]);
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({
       type: "int",
@@ -91,57 +101,5 @@ describe("ColumnFilter numeric tests", () => {
       .simulate("change", { target: { value: "0" } });
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({ type: "int", operand: ">", value: 0 });
-  });
-
-  it("ColumnFilter float rendering", async () => {
-    const result = await buildResult({
-      dataId: "1",
-      selectedCol: "col2",
-      columns: [{ name: "col2", dtype: "float64", min: 2.5, max: 5.5, visible: true }],
-    });
-    expect(result.find(NumericFilter).length).toBe(1);
-    result.find("i.ico-check-box-outline-blank").simulate("click");
-    await tickUpdate(result);
-    expect(result.find("input").first().props().disabled).toBe(true);
-    result.find("i.ico-check-box").simulate("click");
-    await tickUpdate(result);
-    expect(result.find("input").first().props().disabled).toBe(false);
-    result
-      .find(NumericFilter)
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "1.1" } });
-    await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "float",
-      operand: "=",
-      value: 1.1,
-    });
-    result.find(NumericFilter).find("div.row").first().find("button").last().simulate("click");
-    await tickUpdate(result);
-    result
-      .find(NumericFilter)
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "1.2" } });
-    await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "float",
-      operand: "()",
-      min: 1.2,
-      max: 3,
-    });
-    result
-      .find(NumericFilter)
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "a" } });
-    result
-      .find(NumericFilter)
-      .find("input")
-      .last()
-      .simulate("change", { target: { value: "b" } });
-    await tickUpdate(result);
-    expect(result.state().cfg).toEqual({ type: "float" });
   });
 });
