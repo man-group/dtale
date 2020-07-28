@@ -44,6 +44,7 @@ from dtale.dash_application.layout.layout import (
     test_plotly_version,
     update_label_for_freq,
 )
+from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
 from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.utils import (
     build_code_export,
@@ -188,12 +189,7 @@ def build_colorscale(colorscale):
     return [[i / (len(colorscale) - 1), rgb] for i, rgb in enumerate(colorscale)]
 
 
-def graph_wrapper(**kwargs):
-    curr_style = kwargs.pop("style", None) or {}
-    return dcc.Graph(style=dict_merge({"height": "100%"}, curr_style), **kwargs)
-
-
-def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
+def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None):
     """
     Returns helper function for building axis configurations against a specific y-axis.
 
@@ -215,7 +211,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None):
     :return: handler function to be applied against each y-axis used in chart
     :rtype: func
     """
-    data = global_state.get_data(data_id)
+    data = data if data is not None else global_state.get_data(data_id)
     dtypes = get_dtypes(data)
     axis_type, axis_data = (axis_inputs.get(p) for p in ["type", "data"])
 
@@ -388,7 +384,7 @@ def chart_wrapper(data_id, data, url_params=None):
             style={"position": "absolute", "zIndex": 5},
         )
         return html.Div(
-            [links, chart], style={"position": "relative", "height": "100%"}
+            [links] + make_list(chart), style={"position": "relative", "height": "100%"}
         )
 
     return _chart_wrapper
@@ -534,6 +530,7 @@ def scatter_builder(
     agg=None,
     animate_by=None,
     trendline=None,
+    modal=False,
 ):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
@@ -595,7 +592,7 @@ def scatter_builder(
         }
         if animate_by is not None:
 
-            def build_frame(frame):
+            def build_frame(frame, frame_name):
                 for series_key, series in frame.items():
                     if y_val in series and (group is None or group == series_key):
                         yield scatter_func(
@@ -606,15 +603,14 @@ def scatter_builder(
                                 opacity=0.7,
                                 name=series_key,
                                 marker=build_scatter_marker(series, z),
+                                customdata=[frame_name] * len(series["x"]),
                             )
                         )
 
             update_cfg_w_frames(figure_cfg, *build_frames(data, build_frame))
 
         return wrapper(
-            graph_wrapper(
-                id="scatter-{}-{}".format(group or "all", y_val), figure=figure_cfg
-            ),
+            graph_wrapper(figure=figure_cfg, modal=modal),
             group_filter=dict_merge(
                 dict(y=y_val), {} if group is None else dict(group=group)
             ),
@@ -690,7 +686,7 @@ def scatter_code_builder(
     return code
 
 
-def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
+def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False):
     """
     Builder function for :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
 
@@ -763,7 +759,6 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
         [
             wrapper(
                 graph_wrapper(
-                    id="surface-{}".format(y2),
                     figure={
                         "data": [
                             go.Surface(
@@ -782,6 +777,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None):
                             dict_merge(build_title(x, y2, z=z, agg=agg), layout)
                         ),
                     },
+                    modal=modal,
                 ),
                 group_filter=dict(y=y2),
             )
@@ -819,6 +815,7 @@ def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
 
 
 def update_cfg_w_frames(cfg, frames, slider_steps):
+    cfg["data"][0]["customdata"] = frames[-1]["data"][0]["customdata"]
     cfg["frames"] = frames
     cfg["layout"]["updatemenus"] = [
         {
@@ -886,7 +883,12 @@ def update_cfg_w_frames(cfg, frames, slider_steps):
 def build_frames(data, frame_builder):
     frames, slider_steps = [], []
     for frame in data.get("frames", []):
-        frames.append(dict(data=list(frame_builder(frame["data"])), name=frame["name"]))
+        frames.append(
+            dict(
+                data=list(frame_builder(frame["data"], frame["name"])),
+                name=frame["name"],
+            )
+        )
         slider_steps.append(frame["name"])
     return frames, slider_steps
 
@@ -948,7 +950,6 @@ def bar_builder(
         charts = [
             wrapper(
                 graph_wrapper(
-                    id="bar-{}-graph".format(series_key),
                     figure={
                         "data": [
                             dict_merge(
@@ -969,6 +970,7 @@ def bar_builder(
                             )
                         ),
                     },
+                    modal=kwargs.get("modal", False),
                 ),
                 group_filter=dict(group=series_key),
             )
@@ -1019,6 +1021,7 @@ def bar_builder(
                             "x": list(range(len(df["x"]))),
                             "hovertext": df["x"].values,
                             "hoverinfo": "y+text",
+                            "customdata": [frame["name"]] * len(df["x"]),
                         },
                     )
                     layout["xaxis"] = dict_merge(
@@ -1033,7 +1036,11 @@ def bar_builder(
                                 for k, v in series.items()
                                 if k in ["x", "hovertext", "hoverinfo"]
                             },
-                            {"y": series[y2], "type": "bar"},
+                            {
+                                "y": series[y2],
+                                "type": "bar",
+                                "customdata": [frame["name"]] * len(series["x"]),
+                            },
                             name_builder(y2, series_key),
                             {}
                             if i == 1 or not allow_multiaxis
@@ -1055,7 +1062,7 @@ def bar_builder(
 
         update_cfg_w_frames(figure_cfg, *build_bar_frames(data, build_frame))
 
-    return wrapper(graph_wrapper(id="bar-graph", figure=figure_cfg))
+    return wrapper(graph_wrapper(figure=figure_cfg, modal=kwargs.get("modal", False)))
 
 
 def bar_code_builder(
@@ -1148,7 +1155,6 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
         charts = [
             wrapper(
                 graph_wrapper(
-                    id="line-{}-graph".format(series_key),
                     figure={
                         "data": [
                             line_func(series)(
@@ -1172,6 +1178,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                             )
                         ),
                     },
+                    modal=inputs.get("modal", False),
                 ),
                 group_filter=dict(group=series_key),
             )
@@ -1226,7 +1233,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
 
         update_cfg_w_frames(figure_cfg, frames, slider_steps)
 
-    return wrapper(graph_wrapper(id="line-graph", figure=figure_cfg))
+    return wrapper(graph_wrapper(figure=figure_cfg, modal=inputs.get("modal", False)))
 
 
 def line_code_builder(data, x, y, axes_builder, **inputs):
@@ -1329,7 +1336,6 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                     layout["showlegend"] = False
                 chart = wrapper(
                     graph_wrapper(
-                        id="pie-{}-graph".format(series_key),
                         figure={
                             "data": [
                                 go.Pie(
@@ -1341,6 +1347,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                             ],
                             "layout": layout,
                         },
+                        modal=inputs.get("modal", False),
                     ),
                     group_filter=dict_merge(
                         dict(y=y2),
@@ -1531,9 +1538,9 @@ def heatmap_builder(data_id, export=False, **inputs):
             )
         )
         chart = graph_wrapper(
-            id="heatmap-graph-{}".format(y),
             style={"margin-right": "auto", "margin-left": "auto"},
             figure=dict(data=[go.Heatmapgl(**hm_kwargs)], layout=layout_cfg,),
+            modal=inputs.get("modal", False),
         )
         if export:
             return chart
@@ -1547,7 +1554,7 @@ def build_map_frames(data, animate_by, frame_builder):
     frames, slider_steps = [], []
     for g_name, g in data.groupby(animate_by):
         g_name = formatter(g_name)
-        frames.append(dict(data=[frame_builder(g)], name=g_name))
+        frames.append(dict(data=[frame_builder(g, g_name)], name=g_name))
         slider_steps.append(g_name)
     return frames, slider_steps
 
@@ -1695,8 +1702,13 @@ def build_scattergeo(inputs, raw_data, layout):
 
     if props.animate_by is not None:
 
-        def build_frame(df):
-            frame = dict(lon=df[props.lon], lat=df[props.lat], mode="markers")
+        def build_frame(df, name):
+            frame = dict(
+                lon=df[props.lon],
+                lat=df[props.lat],
+                mode="markers",
+                customdata=[name] * len(df),
+            )
             if props.map_val is not None:
                 frame["text"] = df[props.map_val]
                 frame["marker"] = dict(color=df[props.map_val])
@@ -1706,10 +1718,10 @@ def build_scattergeo(inputs, raw_data, layout):
             figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
         )
     chart = graph_wrapper(
-        id="scattergeo-graph",
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
         config=dict(topojsonURL="/maps/"),
         figure=figure_cfg,
+        modal=inputs.get("modal", False),
     )
     return chart, code
 
@@ -1796,8 +1808,13 @@ def build_mapbox(inputs, raw_data, layout):
 
     if props.animate_by is not None:
 
-        def build_frame(df):
-            frame = dict(lon=df[props.lon], lat=df[props.lat], mode="markers")
+        def build_frame(df, name):
+            frame = dict(
+                lon=df[props.lon],
+                lat=df[props.lat],
+                mode="markers",
+                customdata=[name] * len(df),
+            )
             if props.map_val is not None:
                 frame["text"] = df[props.map_val]
                 frame["marker"] = dict(color=df[props.map_val])
@@ -1807,10 +1824,10 @@ def build_mapbox(inputs, raw_data, layout):
             figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
         )
     chart = graph_wrapper(
-        id="scattermapbox-graph",
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
         config=dict(topojsonURL="/maps/"),
         figure=figure_cfg,
+        modal=inputs.get("modal", False),
     )
     return chart, code
 
@@ -1913,12 +1930,13 @@ def build_choropleth(inputs, raw_data, layout):
 
     if props.animate_by is not None:
 
-        def build_frame(df):
+        def build_frame(df, name):
             return dict(
                 locations=df[props.loc],
                 locationmode=props.loc_mode,
                 z=df[props.map_val],
                 text=df[props.loc],
+                customdata=[name] * len(df),
             )
 
         update_cfg_w_frames(
@@ -1926,10 +1944,10 @@ def build_choropleth(inputs, raw_data, layout):
         )
 
     chart = graph_wrapper(
-        id="choropleth-graph",
         style={"margin-right": "auto", "margin-left": "auto"},
         config=dict(topojsonURL="/maps/"),
         figure=figure_cfg,
+        modal=inputs.get("modal", False),
     )
     return chart, code
 
@@ -1947,6 +1965,7 @@ def build_figure_data(
     window=None,
     rolling_comp=None,
     animate_by=None,
+    data=None,
     **kwargs
 ):
     """
@@ -1992,7 +2011,7 @@ def build_figure_data(
         return None, None
 
     data = run_query(
-        global_state.get_data(data_id),
+        data if data is not None else global_state.get_data(data_id),
         query,
         global_state.get_context_variables(data_id),
     )
@@ -2106,7 +2125,7 @@ def build_raw_figure_data(
     )
 
 
-def build_chart(data_id=None, **inputs):
+def build_chart(data_id=None, data=None, **inputs):
     """
     Factory method that forks off into the different chart building methods (heatmaps are handled separately)
         - line
@@ -2127,6 +2146,8 @@ def build_chart(data_id=None, **inputs):
     :return: plotly chart object(s)
     :rtype: type of (:dash:`dash_core_components.Graph <dash-core-components/graph>`, dict)
     """
+
+    reset_charts()
     code = None
     try:
         chart_type = inputs.get("chart_type")
@@ -2138,7 +2159,7 @@ def build_chart(data_id=None, **inputs):
             chart, code = map_builder(data_id, **inputs)
             return chart, None, code
 
-        data, code = build_figure_data(data_id, **inputs)
+        data, code = build_figure_data(data_id, data=data, **inputs)
         if data is None:
             return None, None, None
 
@@ -2239,6 +2260,10 @@ def build_chart(data_id=None, **inputs):
         return build_error(e, traceback.format_exc()), None, code
 
 
+def chart_builder_passthru(chart, group_filter=None):
+    return chart
+
+
 def build_raw_chart(data_id=None, **inputs):
     """
     Factory method that forks off into the different chart building methods
@@ -2262,14 +2287,11 @@ def build_raw_chart(data_id=None, **inputs):
     """
 
     def clean_output(output):
-        if isinstance(output, list):
+        while isinstance(output, list):
             output = output[0]
         if isinstance(output, dcc.Graph):
             output = output.figure
         return output
-
-    def chart_builder_passthru(chart, group_filter=None):
-        return chart
 
     def _raw_chart_builder():
         if inputs.get("chart_type") == "heatmap":

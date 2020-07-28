@@ -9,7 +9,7 @@ from six import PY3
 
 from dtale.app import build_app
 
-from tests.dtale.test_dash import build_chart_params, path_builder
+from tests.dtale.dash.test_dash import build_chart_params, path_builder
 
 if PY3:
     from contextlib import ExitStack
@@ -20,7 +20,9 @@ URL = "http://localhost:40000"
 app = build_app(url=URL)
 
 
-def build_geojson_data(fname="/../".join([os.path.dirname(__file__), "data/USA.json"])):
+def build_geojson_data(
+    fname="/../../".join([os.path.dirname(__file__), "data/USA.json"])
+):
     with open(fname, "r") as f:
         data = f.read()
     data = json.loads(data)
@@ -78,7 +80,7 @@ def test_update_geojson():
             assert len(custom_geojson_data) == 2
             assert custom_geojson_data[-1]["key"] == "USA2"
 
-            africa_fname = "/../../".join(
+            africa_fname = "/../../../".join(
                 [os.path.dirname(__file__), "dtale/static/maps/africa_110m.json"]
             )
             africa_data = build_geojson_data(fname=africa_fname)

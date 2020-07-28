@@ -473,6 +473,9 @@ class DtaleData(object):
 
             init_notebook_mode(connected=True)
             chart = build_raw_chart(self._data_id, export=True, **params)
+            chart.pop(
+                "id", None
+            )  # for some reason iplot does not like when the 'id' property is populated
             iplot(chart)
             return
 
@@ -546,9 +549,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
         )
         classification = classify_type(dtype)
         if (
-            classification in ["F", "I"]
-            and not data[col].isnull().all()
-            and col in data_ranges
+            classification in ["F", "I"] and not s.isnull().all() and col in data_ranges
         ):  # floats/ints
             col_ranges = data_ranges[col]
             if not any((np.isnan(v) or np.isinf(v) for v in col_ranges.values())):
@@ -560,18 +561,23 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
                 dtype_data["hasOutliers"] += int(((s < o_s) | (s > o_e)).sum())
                 dtype_data["outlierRange"] = dict(lower=o_s, upper=o_e)
 
-        if classification in ["F", "I"] and not data[col].isnull().all():
+        if classification in ["F", "I"] and not s.isnull().all():
             # build variance flag
             unique_ct = dtype_data["unique_ct"]
             check1 = (unique_ct / len(data[col])) < 0.1
             check2 = False
             if check1 and unique_ct >= 2:
-                val_counts = data[col].value_counts()
+                val_counts = s.value_counts()
                 check2 = (val_counts.values[0] / val_counts.values[1]) > 20
             dtype_data["lowVariance"] = bool(check1 and check2)
 
         if classification == "S" and not dtype_data["hasMissing"]:
-            dtype_data["hasMissing"] += int((s.str.strip() == "").sum())
+            if dtype.startswith("category"):
+                dtype_data["hasMissing"] += int(
+                    (s.apply(lambda x: x.strip()) == "").sum()
+                )
+            else:
+                dtype_data["hasMissing"] += int((s.str.strip() == "").sum())
 
         return dtype_data
 
@@ -1935,7 +1941,9 @@ def get_column_analysis(data_id):
     elif data_type == "histogram":
         hist_data, hist_labels = np.histogram(data, bins=bins)
         hist_data = [json_float(h) for h in hist_data]
-        hist_labels = ["{0:.1f}".format(lbl) for lbl in hist_labels]
+        hist_labels = [
+            "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
+        ]  # drop the first bin because of just a minimum
         code.append(
             "chart = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
                 col=selected_col, bins=bins

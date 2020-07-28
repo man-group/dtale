@@ -9,7 +9,7 @@ else:
 
 
 @pytest.mark.unit
-def test_build_file(test_data, state_data, scattergeo_data, builtin_pkg, unittest):
+def test_build_file(test_data, state_data, scattergeo_data):
     from dtale import offline_chart
 
     if PY3:
@@ -63,7 +63,7 @@ def test_build_file(test_data, state_data, scattergeo_data, builtin_pkg, unittes
 
 
 @pytest.mark.unit
-def test_build_notebook(test_data, unittest):
+def test_build_notebook(test_data):
     from dtale import offline_chart
 
     with ExitStack() as stack:

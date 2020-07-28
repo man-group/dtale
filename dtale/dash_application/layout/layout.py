@@ -9,12 +9,20 @@ from pkg_resources import parse_version
 
 import dtale.dash_application.custom_geojson as custom_geojson
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, find_group_vals
-from dtale.dash_application.layout.utils import build_input, build_option
+from dtale.dash_application.layout.utils import (
+    build_input,
+    build_option,
+    build_tab,
+    build_cols,
+    build_selections,
+    show_style,
+    AGGS,
+    FREQS,
+    FREQ_LABELS,
+)
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
-    dict_merge,
-    flatten_lists,
     get_dtypes,
     inner_build_query,
     is_app_root_defined,
@@ -116,38 +124,6 @@ def base_layout(github_fork, app_root, **kwargs):
     )
 
 
-def build_tab(label, value, additional_style=None, **kwargs):
-    """
-    Builds a :dash:`dash_core_components.Tab <dash-core-components/tab>` with standard styling settings.
-    """
-    base_style = {"borderBottom": "1px solid #d6d6d6", "padding": "6px"}
-    return dcc.Tab(
-        label=label,
-        value=value,
-        style=dict_merge(base_style, {"fontWeight": "bold"}, additional_style or {}),
-        disabled_style=dict_merge(
-            base_style,
-            {
-                "fontWeight": "bold",
-                "backgroundColor": "LightGray",
-                "color": "black",
-                "cursor": "not-allowed",
-            },
-            additional_style or {},
-        ),
-        selected_style=dict_merge(
-            base_style,
-            {
-                "borderTop": "1px solid #d6d6d6",
-                "backgroundColor": "#2a91d1",
-                "color": "white",
-            },
-            additional_style or {},
-        ),
-        **kwargs
-    )
-
-
 CHARTS = [
     dict(value="line"),
     dict(value="bar"),
@@ -216,36 +192,6 @@ CHART_INPUT_SETTINGS = {
         map_group=dict(display=True),
     ),
 }
-AGGS = dict(
-    raw="No Aggregation",
-    count="Count",
-    nunique="Unique Count",
-    sum="Sum",
-    mean="Mean",
-    rolling="Rolling",
-    corr="Correlation",
-    first="First",
-    last="Last",
-    median="Median",
-    min="Minimum",
-    max="Maximum",
-    std="Standard Deviation",
-    var="Variance",
-    mad="Mean Absolute Deviation",
-    prod="Product of All Items",
-    pctct="Percentage Count",
-    pctsum="Percentage Sum",
-)
-FREQS = ["H", "H2", "WD", "D", "W", "M", "Q", "Y"]
-FREQ_LABELS = dict(
-    H="Hourly",
-    H2="Hour",
-    WD="Weekday",
-    W="Weekly",
-    M="Monthly",
-    Q="Quarterly",
-    Y="Yearly",
-)
 
 MAP_TYPES = [
     dict(value="choropleth", image=True),
@@ -499,38 +445,6 @@ def build_error(error, tb):
         ],
         className="dtale-alert alert alert-danger",
     )
-
-
-def build_cols(cols, dtypes):
-    """
-    Helper function to add additional column entries for columns of type datetime so that users can make use of
-    different frequencies of dates.  For example, hour, weekday, month, quarter, year
-
-    :param cols: columns in dataframe
-    :type cols: list of strings
-    :param dtypes: datatypes of columns in dataframe
-    :type dtypes: dict
-    :return: generator or columns + any additional (datetime column + frequency) options
-    """
-    for c in cols:
-        if classify_type(dtypes[c]) == "D":
-            for freq in FREQS:
-                if freq in FREQ_LABELS:
-                    yield "{}|{}".format(c, freq), "{} ({})".format(
-                        c, FREQ_LABELS[freq]
-                    )
-                else:
-                    yield c, c
-        else:
-            yield c, c
-
-
-def build_selections(*args):
-    """
-    simple helper function to build a single level list of values based on variable number of inputs which could be
-    equal to None.
-    """
-    return flatten_lists([[] if a is None else make_list(a) for a in args])
 
 
 def build_input_options(df, **inputs):
@@ -820,9 +734,6 @@ def charts_layout(df, settings, **inputs):
 
     group_val_style, main_input_class = main_inputs_and_group_val_display(inputs)
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]
-
-    def show_style(show):
-        return {"display": "block" if show else "none"}
 
     def show_map_style(show):
         return {} if show else {"display": "none"}
@@ -1231,6 +1142,18 @@ def charts_layout(df, settings, **inputs):
                                         ],
                                         id="rolling-inputs",
                                         style=show_style(agg == "rolling"),
+                                    ),
+                                    build_input(
+                                        "Drilldowns",
+                                        html.Div(
+                                            daq.BooleanSwitch(
+                                                id="drilldown-toggle", on=False,
+                                            ),
+                                            className="toggle-wrapper",
+                                        ),
+                                        id="drilldown-input",
+                                        style=show_style((agg or "raw") != "raw"),
+                                        className="col-auto",
                                     ),
                                 ],
                                 className="row pt-3 pb-3 charts-filters",

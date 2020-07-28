@@ -17,6 +17,7 @@ from dtale.dash_application.charts import (
 )
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq
+from dtale.utils import make_list
 
 if PY3:
     from contextlib import ExitStack
@@ -35,13 +36,16 @@ def path_builder(port):
     return {"id": "url", "property": "pathname", "value": "/charts/{}".format(port)}
 
 
-def print_traceback(resp):
-    content = resp.get_json()["response"]["chart-content"]
+def print_traceback(resp, chart_key="chart-content", return_output=True):
+    content = resp.get_json()["response"][chart_key]
     items = content["children"]["props"]["children"]
     if len(items) == 3:
-        print(items[2]["props"]["children"]["props"]["children"])
+        output = items[2]["props"]["children"]["props"]["children"]
     else:
-        print("No Exception...")
+        output = "No Exception..."
+    if return_output:
+        return output
+    print(output)
 
 
 @pytest.mark.unit
@@ -123,7 +127,8 @@ def test_input_changes(unittest):
                 "output": (
                     "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
                     "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options."
-                    "..yaxis-dropdown.options...non-map-inputs.style...map-inputs.style...colorscale-input.style.."
+                    "..yaxis-dropdown.options...non-map-inputs.style...map-inputs.style...colorscale-input.style."
+                    "..drilldown-input.style.."
                 ),
                 "changedPropIds": ["chart-tabs.value"],
                 "inputs": [
@@ -743,20 +748,29 @@ def test_yaxis_data(unittest):
         params["state"][0]["value"] = "Col1"
 
 
+def build_dash_request(output, changed_prop_id, inputs, state):
+    return {
+        "output": output,
+        "changedPropIds": make_list(changed_prop_id),
+        "inputs": make_list(inputs),
+        "state": make_list(state),
+    }
+
+
 def build_chart_params(
     pathname, inputs={}, chart_inputs={}, yaxis={}, last_inputs={}, map_inputs={}
 ):
-    return {
-        "output": (
+    return build_dash_request(
+        (
             "..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..."
             "yaxis-type.children.."
         ),
-        "changedPropIds": ["input-data.modified_timestamp"],
-        "inputs": [
+        "input-data.modified_timestamp",
+        [
             ts_builder(k)
             for k in ["input-data", "chart-input-data", "yaxis-data", "map-input-data"]
         ],
-        "state": [
+        [
             pathname,
             {"id": "input-data", "property": "data", "value": inputs},
             {"id": "chart-input-data", "property": "data", "value": chart_inputs},
@@ -764,7 +778,7 @@ def build_chart_params(
             {"id": "map-input-data", "property": "data", "value": map_inputs},
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
         ],
-    }
+    )
 
 
 @pytest.mark.unit
@@ -795,7 +809,7 @@ def test_chart_building_nones(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_wordcloud(unittest):
+def test_chart_building_wordcloud():
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -825,7 +839,7 @@ def test_chart_building_wordcloud(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_scatter(unittest):
+def test_chart_building_scatter():
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -851,7 +865,7 @@ def test_chart_building_scatter(unittest):
             plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
                 1
             ]["props"]
-            assert plot_data["id"] == "scatter-all-b"
+            assert plot_data["id"] == "chart-1"
             assert len(plot_data["figure"]["data"]) == 1
 
             chart_inputs["trendline"] = "ols"
@@ -861,7 +875,7 @@ def test_chart_building_scatter(unittest):
             plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
                 1
             ]["props"]
-            assert plot_data["id"] == "scatter-all-b"
+            assert plot_data["id"] == "chart-1"
             assert len(plot_data["figure"]["data"]) == 2
 
             chart_inputs["trendline"] = "lowess"
@@ -871,7 +885,7 @@ def test_chart_building_scatter(unittest):
             plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
                 1
             ]["props"]
-            assert plot_data["id"] == "scatter-all-b"
+            assert plot_data["id"] == "chart-1"
             assert len(plot_data["figure"]["data"]) == 2
 
             inputs["y"] = ["b"]

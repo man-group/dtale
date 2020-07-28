@@ -27,6 +27,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
  - [Man Institute](https://www.man.com/maninstitute/d-tale) (warning: contains deprecated functionality)
  - [Python Bytes](https://pythonbytes.fm/episodes/show/169/jupyter-notebooks-natively-on-your-ipad)
  - [PyCon 2020](https://www.youtube.com/watch?v=BNgolmUWBp4&t=33s)
+ - [San Diego Python](https://www.youtube.com/watch?v=fLsGur5YqeE&t=29s)
  - [Medium: towards data science](https://towardsdatascience.com/introduction-to-d-tale-5eddd81abe3f)
  - [Medium: Exploratory Data Analysis – Using D-Tale](https://medium.com/da-tum/exploratory-data-analysis-1-4-using-d-tale-99a2c267db79)
  - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
@@ -50,6 +51,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Kaggle](#kaggle)
   - [R with Reticulate](#r-with-reticulate)
   - [Command-line](#command-line)
+  - [Custom Command-line Loaders](#custom-command-line-loaders)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
@@ -108,7 +110,7 @@ Feel free to invoke `python` or `ipython` directly and use the commands in the s
 If you run into issues with viewing D-Tale in your browser on Windows please try making Python public under "Allowed Apps" in your Firewall configuration.  Here is a nice article:
 [How to Allow Apps to Communicate Through the Windows Firewall](https://www.howtogeek.com/howto/uncategorized/how-to-create-exceptions-in-windows-vista-firewall/)
 
-#### Additional functions available programatically
+#### Additional functions available programmatically
 ```python
 import dtale
 import pandas as pd
@@ -241,7 +243,7 @@ dtale_app.USE_COLAB = True
 dtale.show(pd.DataFrame([1,2,3]))
 ```
 
-IFfthis does not work for you try using `USE_NGROK` which is described in the next section.
+If this does not work for you try using `USE_NGROK` which is described in the next section.
 
 ### Kaggle
 
@@ -328,6 +330,9 @@ or
 ```bash
 dtale --json-path http://json-endpoint --json-parse_dates date
 ```
+
+### Custom Command-line Loaders
+
 Loading data from a **Custom** loader
 - Using the DTALE_CLI_LOADERS environment variable, specify a path to a location containing some python modules
 - Any python module containing the global variables LOADER_KEY & LOADER_PROPS will be picked up as a custom loader

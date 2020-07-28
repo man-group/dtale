@@ -66,6 +66,7 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { xAxes, yAxes };
   baseCfg.options.scales.yAxes[0].ticks = { min: 0 };
+  baseCfg.options.tooltips = { mode: "index", intersect: false };
 }
 
 function createChart(ctx, fetchedData, chartOpts) {
