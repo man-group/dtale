@@ -445,7 +445,8 @@ div.tab-container > div.tab:last-child {
 #yaxis-dropdown .Select-menu-outer,
 #colorscale-dropdown .Select-menu-outer,
 #animate-by-dropdown .Select-menu-outer,
-#trendline-dropdown .Select-menu-outer{
+#trendline-dropdown .Select-menu-outer,
+.drilldown-x-dropdown .Select-menu-outer {
     z-index: 7;
 }
 #colorscale-picker {
@@ -499,6 +500,7 @@ div.tab-container > div.tab:last-child {
 }
 #cpg-input .input-group-addon,
 #animate-input .input-group-addon,
+#drilldown-input .input-group-addon,
 #map-loc-mode-input .input-group-addon,
 #custom-geojson-input .input-group-addon,
 #upload-geojson-btn .input-group-addon {
@@ -512,12 +514,14 @@ div.tab-container > div.tab:last-child {
   width: 5em;
 }
 #cpg-input > div.input-group div:last-child,
-#animate-input > div.input-group div:last-child{
+#animate-input > div.input-group div:last-child,
+#drilldown-input > div.input-group div:last-child {
     min-width: 3.75em;
 }
 #cpg-toggle,
-#animate-toggle {
-    margin-top: 3px;
+#animate-toggle,
+#drilldown-toggle {
+  margin-top: 3px;
 }
 .toggle-wrapper {
     border: 1px solid #a7b3b7;
@@ -568,5 +572,14 @@ div#map-inputs > div {
 
 #geojson-modal .Select--single {
   min-width: unset;
+}
+
+.drilldown-modal .modal-title {
+  width: 100%;
+}
+
+.drilldown-modal .modal-title button {
+  height: 29px;
+  line-height: 29px;
 }
 

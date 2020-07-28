@@ -8,6 +8,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import dtale.dash_application.custom_geojson as custom_geojson
+import dtale.dash_application.drilldown_modal as drilldown_modal
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
@@ -30,6 +31,8 @@ from dtale.dash_application.layout.layout import (
     show_input_handler,
     show_yaxis_ranges,
 )
+from dtale.dash_application.layout.utils import show_style
+from dtale.dash_application.utils import get_data_id
 from dtale.utils import dict_merge, is_app_root_defined, make_list, run_query
 
 logger = getLogger(__name__)
@@ -111,13 +114,6 @@ def add_dash(server):
     return dash_app.server
 
 
-def get_data_id(pathname):
-    """
-    Parses data ID from query path (ex: 'foo/bar/1' => '1')
-    """
-    return global_state.find_data_id(pathname.split("/")[-1])
-
-
 def init_callbacks(dash_app):
     """
     Dynamically adds dash callbacks to dash-wrapped flask server
@@ -177,6 +173,7 @@ def init_callbacks(dash_app):
             Output("non-map-inputs", "style"),
             Output("map-inputs", "style"),
             Output("colorscale-input", "style"),
+            Output("drilldown-input", "style"),
         ],
         [
             Input("query-data", "modified_timestamp"),
@@ -242,6 +239,7 @@ def init_callbacks(dash_app):
         map_style = {} if show_map else {"display": "none"}
         non_map_style = {"display": "none"} if show_map else {}
         cscale_style = colorscale_input_style(chart_type=chart_type)
+        drilldown_toggle_style = show_style((agg or "raw") != "raw")
         return (
             inputs,
             x_options,
@@ -254,6 +252,7 @@ def init_callbacks(dash_app):
             non_map_style,
             map_style,
             cscale_style,
+            drilldown_toggle_style,
         )
 
     @dash_app.callback(
@@ -721,3 +720,4 @@ def init_callbacks(dash_app):
         return charts_layout(df, settings, **params)
 
     custom_geojson.init_callbacks(dash_app)
+    drilldown_modal.init_callbacks(dash_app)

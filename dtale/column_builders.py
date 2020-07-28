@@ -468,9 +468,12 @@ class TransformColumnBuilder(object):
 
     def build_code(self):
         group, col, agg = (self.cfg.get(p) for p in ["group", "col", "agg"])
-        return (
-            "pd.Series(data.groupby(['{group}'])['{col}'].transform('{agg}'), index=data.index, name='{name}')"
+        code = (
+            "pd.Series(\n"
+            "\tdata.groupby(['{group}'])['{col}'].transform('{agg}'), index=data.index, name='{name}'\n"
+            ")"
         ).format(name=self.name, col=col, agg=agg, group="','".join(group))
+        return "df.loc[:, '{name}'] = {code}".format(name=self.name, code=code)
 
 
 class WinsorizeColumnBuilder(object):
@@ -513,24 +516,25 @@ class WinsorizeColumnBuilder(object):
         else:
             winsorize_params = ""
         if len(group or []):
-            return (
+            code = (
                 "from scipy.stats import mstats\n\n"
                 "def winsorize_series(group):\n"
                 "\treturn mstats.winsorize(group{params})\n\n"
                 "winsorized_data = data.groupby(['{group}'])['{col}'].transform(winsorize_series)\n"
-                "pd.Series(winsorized_data, index=data.index, name='{name}')"
+                "winsorized_data = pd.Series(winsorized_data, index=data.index, name='{name}')"
             ).format(
                 params=winsorize_params,
                 col=col,
                 group="', '".join(group),
                 name=self.name,
             )
-
-        return (
-            "from scipy.stats import mstats\n\n"
-            "winsorized_data = mstats.winsorize(data['{col}']{params})\n"
-            "pd.Series(winsorized_data, index=data.index, name='{name}')"
-        ).format(params=winsorize_params, col=col, name=self.name)
+        else:
+            code = (
+                "from scipy.stats import mstats\n\n"
+                "winsorized_data = mstats.winsorize(data['{col}']{params})\n"
+                "winsorized_data = pd.Series(winsorized_data, index=data.index, name='{name}')"
+            ).format(params=winsorize_params, col=col, name=self.name)
+        return [code, "df.loc[:, '{name}'] = winsorized_data".format(name=self.name)]
 
 
 ZERO_STD_ERROR = "Column consists of a constant value and z-score normalization will result in all nans!"
@@ -554,7 +558,7 @@ class ZScoreNormalizeColumnBuilder(object):
     def build_code(self):
         col = self.cfg.get("col")
         return (
-            "pd.Series(\n"
+            "df.loc[:, '{name}'] = pd.Series(\n"
             "\t(data['{col}'] - data['{col}'].mean()) / data['{col}'].std(ddof=0), index=data.index, name='{name}'\n"
             ")"
         ).format(name=self.name, col=col)

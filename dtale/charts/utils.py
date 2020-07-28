@@ -142,6 +142,12 @@ def date_freq_handler(df):
     return _handler
 
 
+def convert_date_val_to_date(group_val):
+    if isinstance(group_val, int):
+        return pd.Timestamp(group_val, unit="ms")
+    return pd.Timestamp(group_val)
+
+
 def group_filter_handler(col_def, group_val, group_classifier):
     col_def_segs = col_def.split("|")
     if len(col_def_segs) > 1:
@@ -158,32 +164,34 @@ def group_filter_handler(col_def, group_val, group_classifier):
                 col=col, day=ts_val.strftime("%Y%m%d"), hour=ts_val.hour
             )
         elif freq == "D":
-            ts_val = pd.Timestamp(group_val)
+            ts_val = convert_date_val_to_date(group_val)
             return "{col}.dt.date == '{day}'".format(
                 col=col, day=ts_val.strftime("%Y%m%d")
             )
         elif freq == "W":
-            ts_val = pd.Timestamp(group_val)
+            ts_val = convert_date_val_to_date(group_val)
             return "{col}.dt.year == {year} and {col}.dt.week == {week}".format(
                 col=col, year=ts_val.year, week=ts_val.week
             )
         elif freq == "M":
-            ts_val = pd.Timestamp(group_val)
+            ts_val = convert_date_val_to_date(group_val)
             return "{col}.dt.year == {year} and {col}.dt.month == {month}".format(
                 col=col, year=ts_val.year, month=ts_val.month
             )
         elif freq == "Q":
-            ts_val = pd.Timestamp(group_val)
+            ts_val = convert_date_val_to_date(group_val)
             return "{col}.dt.year == {year} and {col}.dt.quarter == {quarter}".format(
                 col=col, year=ts_val.year, quarter=ts_val.quarter
             )
         elif freq == "Y":
-            ts_val = pd.Timestamp(group_val)
+            ts_val = convert_date_val_to_date(group_val)
             return "{col}.dt.year == {year}".format(col=col, year=ts_val.year)
     if group_val == "nan":
         return "{col} != {col}".format(col=col_def)
     if group_classifier in ["I", "F"]:
         return "{col} == {val}".format(col=col_def, val=group_val)
+    if group_classifier == "D":
+        group_val = convert_date_val_to_date(group_val).strftime("%Y%m%d")
     return "{col} == '{val}'".format(col=col_def, val=group_val)
 
 
