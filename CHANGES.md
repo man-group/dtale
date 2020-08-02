@@ -1,5 +1,16 @@
 ## Changelog
 
+### 1.12.0 (2020-8-1)
+ * added better notification for when users view Category breakdowns in "Column Analysis" & "Describe"
+ * fixed code snippets in "Numeric" column builder when no operation is selected
+ * fixed code exports for transform, winsorixe & z-score normalize column builders
+ * added colorscale option to 3D Scatter charts
+ * added "Animate By" to Heatmaps
+ * initial chart drilldown functionality (histogram, bar)
+ * fixed bug with code exports on transform, winsorize & z-score normalize column builders
+ * updated labeling & tooltips on histogram charts
+ * npm package upgrades
+
 ### 1.11.0 (2020-7-23)
  * updated column filters so that columns with more than 500 unique values are loaded asynchronously as with AsyncSelect
  * added code export to Variance report

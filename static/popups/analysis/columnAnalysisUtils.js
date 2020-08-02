@@ -101,6 +101,11 @@ function createChart(ctx, fetchedData, chartOpts) {
 }
 
 const BASE_ANALYSIS_URL = "/dtale/column-analysis";
+const EMTPY_CATEGORY = (
+  <div style={{ height: 400 }} className="missing-category">
+    {"Please select a category."}
+  </div>
+);
 
 function dataLoader(props, state, propagateState, chartParams) {
   const { chartData, height, dataId } = props;
@@ -110,6 +115,7 @@ function dataLoader(props, state, propagateState, chartParams) {
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
   if (params.type === "categories" && _.isNull(finalParams.categoryCol)) {
+    propagateState({ chart: EMTPY_CATEGORY, code: null });
     return;
   }
   const subProps = params.type === "value_counts" ? ["ordinalCol", "ordinalAgg"] : ["categoryCol", "categoryAgg"];

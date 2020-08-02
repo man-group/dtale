@@ -380,8 +380,20 @@ def build_loc_mode_hover(loc_mode):
 
 JET = ["#000083", "#003CAA", "#05FFFF", "#FFFF00", "#FA0000", "#800000"]
 REDS = ["#fff5f0", "#fdcab4", "#fc8a6a", "#f24632", "#bc141a", "#67000d"]
+YLORRD = [
+    "#ffffcc",
+    "#ffeda0",
+    "#fed976",
+    "#feb24c",
+    "#fd8d3c",
+    "#fc4e2a",
+    "#e31a1c",
+    "#bd0026",
+    "#800026",
+]
+DEFAULT_CSALES = {"heatmap": JET, "maps": REDS, "3d_Scatter": YLORRD}
 ANIMATION_CHARTS = ["line"]
-ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "maps"]
+ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps"]
 
 
 def show_input_handler(chart_type):
@@ -568,7 +580,9 @@ def bar_input_style(**inputs):
 
 def colorscale_input_style(**inputs):
     return dict(
-        display="block" if inputs.get("chart_type") in ["heatmap", "maps"] else "none"
+        display="block"
+        if inputs.get("chart_type") in ["heatmap", "maps", "3d_scatter"]
+        else "none"
     )
 
 
@@ -730,7 +744,7 @@ def charts_layout(df, settings, **inputs):
         df, type=map_type, loc=loc, lat=lat, lon=lon, map_val=map_val
     )
     cscale_style = colorscale_input_style(**inputs)
-    default_cscale = JET if chart_type == "heatmap" else REDS
+    default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
     group_val_style, main_input_class = main_inputs_and_group_val_display(inputs)
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]

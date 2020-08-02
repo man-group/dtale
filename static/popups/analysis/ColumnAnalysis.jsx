@@ -20,7 +20,7 @@ class ReactColumnAnalysis extends React.Component {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
-    const updateState = ["type", "error", "chartParams"];
+    const updateState = ["type", "error", "chartParams", "chart"];
     if (!_.isEqual(_.pick(this.state, updateState), _.pick(newState, updateState))) {
       return true;
     }

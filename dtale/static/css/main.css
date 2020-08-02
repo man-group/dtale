@@ -10747,4 +10747,11 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
   background: #a7b3b7;
 }
 
+.missing-category {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
 

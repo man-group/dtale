@@ -46,6 +46,9 @@ function buildCode({ left, operation, right }) {
     }
     code += left.val;
   }
+  if (!operation) {
+    return null;
+  }
   code += OPERATION_MAPPING[operation];
   if (right.type === "col") {
     const col = _.get(right, "col.value");

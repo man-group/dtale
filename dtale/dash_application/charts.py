@@ -497,12 +497,12 @@ def build_scatter_trendline(x, y, trendline):
     return fig.data[1]
 
 
-def build_scatter_marker(series, z):
+def build_scatter_marker(series, z, colorscale=None):
     if z is not None:
         return {
             "size": 8,
             "color": series[z],
-            "colorscale": "Blackbody",
+            "colorscale": build_colorscale(colorscale or "Blackbody"),
             "opacity": 0.8,
             "showscale": True,
             "colorbar": {"thickness": 15, "len": 0.5, "x": 0.8, "y": 0.6},
@@ -531,6 +531,7 @@ def scatter_builder(
     animate_by=None,
     trendline=None,
     modal=False,
+    colorscale=None,
 ):
     """
     Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
@@ -573,7 +574,7 @@ def scatter_builder(
                             mode="markers",
                             opacity=0.7,
                             name=series_key,
-                            marker=build_scatter_marker(d, z),
+                            marker=build_scatter_marker(d, z, colorscale),
                         ),
                         dict(z=d[z]) if z is not None else dict(),
                     )
@@ -607,7 +608,9 @@ def scatter_builder(
                             )
                         )
 
-            update_cfg_w_frames(figure_cfg, *build_frames(data, build_frame))
+            update_cfg_w_frames(
+                figure_cfg, animate_by, *build_frames(data, build_frame)
+            )
 
         return wrapper(
             graph_wrapper(figure=figure_cfg, modal=modal),
@@ -814,7 +817,7 @@ def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
                 )
 
 
-def update_cfg_w_frames(cfg, frames, slider_steps):
+def update_cfg_w_frames(cfg, frame_col, frames, slider_steps):
     cfg["data"][0]["customdata"] = frames[-1]["data"][0]["customdata"]
     cfg["frames"] = frames
     cfg["layout"]["updatemenus"] = [
@@ -871,7 +874,7 @@ def update_cfg_w_frames(cfg, frames, slider_steps):
                 "pad": {"t": 50, "b": 10},
                 "currentvalue": {
                     "visible": True,
-                    "prefix": "Year:",
+                    "prefix": "{}:".format(frame_col),
                     "xanchor": "right",
                     "font": {"size": 20, "color": "#666"},
                 },
@@ -1060,7 +1063,9 @@ def bar_builder(
                 slider_steps.append(frame["name"])
             return frames, slider_steps
 
-        update_cfg_w_frames(figure_cfg, *build_bar_frames(data, build_frame))
+        update_cfg_w_frames(
+            figure_cfg, kwargs.get("animate_by"), *build_bar_frames(data, build_frame)
+        )
 
     return wrapper(graph_wrapper(figure=figure_cfg, modal=kwargs.get("modal", False)))
 
@@ -1231,7 +1236,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
             frames.append(dict(data=list(build_frame(i)), name=x))
             slider_steps.append(x)
 
-        update_cfg_w_frames(figure_cfg, frames, slider_steps)
+        update_cfg_w_frames(figure_cfg, "Date", frames, slider_steps)
 
     return wrapper(graph_wrapper(figure=figure_cfg, modal=inputs.get("modal", False)))
 
@@ -1420,20 +1425,27 @@ def heatmap_builder(data_id, export=False, **inputs):
             showscale=True,
             hoverinfo="x+y+z",
         )
-        x, y, z, agg = (inputs.get(p) for p in ["x", "y", "z", "agg"])
+        animate_by, x, y, z, agg = (
+            inputs.get(p) for p in ["animate_by", "x", "y", "z", "agg"]
+        )
         y = y[0]
 
-        data, chart_code = retrieve_chart_data(raw_data, x, y, z)
+        data, chart_code = retrieve_chart_data(raw_data, animate_by, x, y, z)
         code += chart_code
         x_title = update_label_for_freq(x)
         y_title = update_label_for_freq(y)
         z_title = z
-        data = data.sort_values([x, y])
+        sort_cols = [x, y]
+        if animate_by:
+            sort_cols = [animate_by] + sort_cols
+        data = data.sort_values(sort_cols)
         code.append(
             "chart_data = chart_data.sort_values(['{x}', '{y}'])".format(x=x, y=y)
         )
         check_all_nan(data)
         dupe_cols = [x, y]
+        if animate_by:
+            dupe_cols = [animate_by] + dupe_cols
         if agg is not None:
             z_title = "{} ({})".format(z_title, AGGS[agg])
             if agg == "corr":
@@ -1472,17 +1484,27 @@ def heatmap_builder(data_id, export=False, **inputs):
                     ),
                 )
             else:
-                data, agg_code = build_agg_data(data, x, y, inputs, agg, z=z)
+                data, agg_code = build_agg_data(
+                    data, x, y, inputs, agg, z=z, animate_by=animate_by
+                )
                 code += agg_code
         if not len(data):
             raise Exception("No data returned for this computation!")
         check_exceptions(data[dupe_cols], agg in ["corr", "raw"], unlimited_data=True)
+        data = data.dropna(subset=dupe_cols)
         dtypes = {c: classify_type(dtype) for c, dtype in get_dtypes(data).items()}
         data_f, _ = chart_formatters(data)
         data = data_f.format_df(data)
-        data = data.sort_values([x, y])
-        data = data.set_index([x, y])
-        data = data.unstack(0)[z]
+        x_data = weekday_tick_handler(sorted(data[x].unique()), x)
+        y_data = weekday_tick_handler(sorted(data[y].unique()), y)
+        if animate_by:
+            first_frame = sorted(data[animate_by].unique())[-1]
+            heat_data = data[data[animate_by] == first_frame].sort_values([x, y])
+        else:
+            heat_data = data.sort_values([x, y])
+        heat_data = heat_data.set_index([x, y])
+        heat_data = heat_data.unstack(0)[z]
+        heat_data = heat_data.values
         code.append(
             (
                 "chart_data = data.sort_values(['{x}', '{y}'])\n"
@@ -1490,10 +1512,6 @@ def heatmap_builder(data_id, export=False, **inputs):
                 "chart_data = unstack(0)['{z}']"
             ).format(x=x, y=y, z=z)
         )
-
-        x_data = weekday_tick_handler(data.columns, x)
-        y_data = weekday_tick_handler(data.index.values, y)
-        heat_data = data.values
 
         x_axis = dict_merge(
             {"title": x_title, "tickangle": -20}, build_spaced_ticks(x_data)
@@ -1537,9 +1555,25 @@ def heatmap_builder(data_id, export=False, **inputs):
                 layout=pp.pformat(layout_cfg)
             )
         )
+        figure_cfg = {"data": [go.Heatmapgl(**hm_kwargs)], "layout": layout_cfg}
+
+        if animate_by is not None:
+
+            def build_frame(df, name):
+                df = df.sort_values([x, y])
+                df = df.set_index([x, y])
+                df = df.unstack(0)[z]
+                return dict(
+                    x=x_data, y=y_data, z=df.values, customdata=[name] * len(df),
+                )
+
+            update_cfg_w_frames(
+                figure_cfg, animate_by, *build_map_frames(data, animate_by, build_frame)
+            )
+
         chart = graph_wrapper(
             style={"margin-right": "auto", "margin-left": "auto"},
-            figure=dict(data=[go.Heatmapgl(**hm_kwargs)], layout=layout_cfg,),
+            figure=figure_cfg,
             modal=inputs.get("modal", False),
         )
         if export:
@@ -1715,7 +1749,9 @@ def build_scattergeo(inputs, raw_data, layout):
             return frame
 
         update_cfg_w_frames(
-            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+            figure_cfg,
+            props.animate_by,
+            *build_map_frames(data, props.animate_by, build_frame)
         )
     chart = graph_wrapper(
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
@@ -1821,7 +1857,9 @@ def build_mapbox(inputs, raw_data, layout):
             return frame
 
         update_cfg_w_frames(
-            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+            figure_cfg,
+            props.animate_by,
+            *build_map_frames(data, props.animate_by, build_frame)
         )
     chart = graph_wrapper(
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
@@ -1940,7 +1978,9 @@ def build_choropleth(inputs, raw_data, layout):
             )
 
         update_cfg_w_frames(
-            figure_cfg, *build_map_frames(data, props.animate_by, build_frame)
+            figure_cfg,
+            props.animate_by,
+            *build_map_frames(data, props.animate_by, build_frame)
         )
 
     chart = graph_wrapper(
@@ -2207,6 +2247,7 @@ def build_chart(data_id=None, data=None, **inputs):
             if chart_type == "3d_scatter":
                 kwargs["z"] = z
                 kwargs["animate_by"] = animate_by
+                kwargs["colorscale"] = inputs.get("colorscale")
             if inputs["cpg"]:
                 scatter_charts = flatten_lists(
                     [

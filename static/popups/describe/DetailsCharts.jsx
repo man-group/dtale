@@ -56,7 +56,7 @@ class DetailsCharts extends React.Component {
         height: 400,
         dataId: this.props.dataId,
       };
-      dataLoader(props, this.state, propagateState, chartParams);
+      dataLoader(props, this.state, propagateState, finalParams);
     }
   }
 

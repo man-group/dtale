@@ -386,7 +386,7 @@ def test_main_input_styling(unittest):
 
 
 @pytest.mark.unit
-def test_chart_type_changes(unittest):
+def test_chart_type_changes():
     import dtale.views as views
 
     df = pd.DataFrame(
@@ -1204,7 +1204,7 @@ def test_chart_building_pie(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_heatmap(unittest, test_data, rolling_data):
+def test_chart_building_heatmap(unittest, test_data):
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -1263,6 +1263,17 @@ def test_chart_building_heatmap(unittest, test_data, rolling_data):
                 chart_markup["props"]["figure"]["layout"]["title"],
                 {"text": "security_id by date weighted by bar (Mean)"},
             )
+            inputs["animate_by"] = "foo"
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/charts/_dash-update-component", json=params)
+            chart_markup = response.get_json()["response"]["chart-content"]["children"][
+                "props"
+            ]["children"][1]
+            unittest.assertEqual(
+                chart_markup["props"]["figure"]["layout"]["title"],
+                {"text": "security_id by date weighted by bar (Mean)"},
+            )
+            del inputs["animate_by"]
             inputs["agg"] = "corr"
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post("/charts/_dash-update-component", json=params)
@@ -1982,7 +1993,7 @@ def test_build_axes(unittest):
 
 
 @pytest.mark.unit
-def test_build_figure_data(unittest):
+def test_build_figure_data():
     assert build_figure_data("/charts/1", x=None)[0] is None
     assert (
         build_figure_data("/charts/1", x="a", y=["b"], chart_type="heatmap")[0] is None
