@@ -603,7 +603,7 @@ def scatter_builder(
                                 mode="markers",
                                 opacity=0.7,
                                 name=series_key,
-                                marker=build_scatter_marker(series, z),
+                                marker=build_scatter_marker(series, z, colorscale),
                                 customdata=[frame_name] * len(series["x"]),
                             )
                         )
@@ -818,7 +818,11 @@ def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
 
 
 def update_cfg_w_frames(cfg, frame_col, frames, slider_steps):
-    cfg["data"][0]["customdata"] = frames[-1]["data"][0]["customdata"]
+    data = frames[-1]["data"][0]
+    if "customdata" in data:
+        cfg["data"][0]["customdata"] = data["customdata"]
+    elif "text" in data:
+        cfg["data"][0]["text"] = data["text"]
     cfg["frames"] = frames
     cfg["layout"]["updatemenus"] = [
         {
@@ -1423,7 +1427,7 @@ def heatmap_builder(data_id, export=False, **inputs):
         hm_kwargs = dict(
             colorscale=build_colorscale(inputs.get("colorscale") or "Greens"),
             showscale=True,
-            hoverinfo="x+y+z",
+            hoverinfo="text",
         )
         animate_by, x, y, z, agg = (
             inputs.get(p) for p in ["animate_by", "x", "y", "z", "agg"]
@@ -1505,57 +1509,110 @@ def heatmap_builder(data_id, export=False, **inputs):
         heat_data = heat_data.set_index([x, y])
         heat_data = heat_data.unstack(0)[z]
         heat_data = heat_data.values
+
+        def _build_text(z_vals, animate_str=""):
+            return [
+                [
+                    "{}{}: {}<br>{}: {}<br>{}: {}".format(
+                        animate_str,
+                        x,
+                        str(x_data[x_idx]),
+                        y,
+                        str(y_data[y_idx]),
+                        z,
+                        str(z2),
+                    )
+                    for x_idx, z2 in enumerate(z1)
+                ]
+                for y_idx, z1 in enumerate(z_vals)
+            ]
+
+        text = _build_text(heat_data)
+        formatter = "{}: {}<br>{}: {}<br>{}: {}"
         code.append(
             (
                 "chart_data = data.sort_values(['{x}', '{y}'])\n"
                 "chart_data = chart_data.set_index(['{x}', '{y}'])\n"
                 "chart_data = unstack(0)['{z}']"
-            ).format(x=x, y=y, z=z)
+                "text = [\n"
+                "\t[\n"
+                "\t\t'{formatter}'.format(\n"
+                "\t\t\tx, str(chart_data.columns[x_idx]), y, str(chart_data.index.values[y_idx]), z, str(z2)\n"
+                "\t\t)\n"
+                "\t\tfor x_idx, z2 in enumerate(z1)\n"
+                "\t]\n"
+                "\tfor y_idx, z1 in enumerate(chart_data.values)\n"
+                "]"
+            ).format(x=x, y=y, z=z, formatter=formatter)
         )
 
-        x_axis = dict_merge(
-            {"title": x_title, "tickangle": -20}, build_spaced_ticks(x_data)
-        )
-        if dtypes.get(x) == "I":
-            x_axis["tickformat"] = ".0f"
+        def _build_heatmap_axis(col, data, title):
+            axis_cfg = {
+                "title": title,
+                "tickangle": -20,
+                "showticklabels": True,
+                "visible": True,
+                "domain": [0, 1],
+            }
+            if dtypes.get(col) in ["I", "F"]:
+                rng = [data[0], data[-1]]
+                axis_cfg = dict_merge(
+                    axis_cfg,
+                    {
+                        "autorange": True,
+                        "rangemode": "normal",
+                        "tickmode": "auto",
+                        "range": rng,
+                        "type": "linear",
+                    },
+                )
+                if dtypes.get(col) == "I":
+                    axis_cfg["tickformat"] = ".0f" if dtypes.get(col) == "I" else ".3f"
+                return axis_cfg
+            return dict_merge(axis_cfg, {"type": "category", "tickmode": "auto"})
 
-        y_axis = dict_merge(
-            {"title": y_title, "tickangle": -20}, build_spaced_ticks(y_data)
-        )
-        if dtypes.get(y) == "I":
-            y_axis["tickformat"] = ".0f"
+        x_axis = _build_heatmap_axis(x, x_data, x_title)
+        y_axis = _build_heatmap_axis(y, y_data, y_title)
 
-        hm_kwargs = dict_merge(
-            hm_kwargs, dict(colorbar={"title": z_title}, hoverinfo="x+y+z",),
+        hm_kwargs = dict_merge(hm_kwargs, dict(colorbar={"title": z_title}, text=text),)
+
+        hm_kwargs = dict_merge(hm_kwargs, {"z": heat_data})
+        layout_cfg = build_layout(
+            dict_merge(
+                dict(xaxis_zeroline=False, yaxis_zeroline=False),
+                build_title(x, y, z=z, agg=agg),
+            )
         )
+
+        heatmap_func = go.Heatmapgl
+        heatmap_func_str = "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
+        if len(x_data) * len(y_data) < 10000:
+            heatmap_func = go.Heatmap
+            heatmap_func_str = (
+                "go.Heatmap(\n"
+                "\tx=chart_data.columns, y=chart_data.index.values, z=chart_data.values, text=text, **hm_kwargs\n"
+                ")"
+            )
+            layout_cfg["xaxis"] = x_axis
+            layout_cfg["yaxis"] = y_axis
+            hm_kwargs["x"] = x_data
+            hm_kwargs["y"] = y_data
+
         pp = pprint.PrettyPrinter(indent=4)
         code.append(
             (
                 "\nimport plotly.graph_objects as go\n\n"
                 "hm_kwargs = {hm_kwargs_str}\n"
-                "chart = go.Heatmapgl(x=chart_data.columns, y=chart_data.index.values, z=chart_data.values, **hm_kwargs"
-                ")"
-            ).format(hm_kwargs_str=pp.pformat(hm_kwargs))
+                "chart = {chart}"
+            ).format(chart=heatmap_func_str, hm_kwargs_str=pp.pformat(hm_kwargs))
         )
 
-        hm_kwargs = dict_merge(hm_kwargs, dict(x=x_data, y=y_data, z=heat_data))
-        layout_cfg = build_layout(
-            dict_merge(
-                dict(
-                    xaxis=x_axis,
-                    yaxis=y_axis,
-                    xaxis_zeroline=False,
-                    yaxis_zeroline=False,
-                ),
-                build_title(x, y, z=z, agg=agg),
-            )
-        )
         code.append(
             "figure = go.Figure(data=[chart], layout=go.{layout})".format(
                 layout=pp.pformat(layout_cfg)
             )
         )
-        figure_cfg = {"data": [go.Heatmapgl(**hm_kwargs)], "layout": layout_cfg}
+        figure_cfg = {"data": [heatmap_func(**hm_kwargs)], "layout": layout_cfg}
 
         if animate_by is not None:
 
@@ -1564,7 +1621,8 @@ def heatmap_builder(data_id, export=False, **inputs):
                 df = df.set_index([x, y])
                 df = df.unstack(0)[z]
                 return dict(
-                    x=x_data, y=y_data, z=df.values, customdata=[name] * len(df),
+                    z=df.values,
+                    text=_build_text(df.values, "{}: {}<br>".format(animate_by, name)),
                 )
 
             update_cfg_w_frames(
@@ -2332,6 +2390,8 @@ def build_raw_chart(data_id=None, **inputs):
             output = output[0]
         if isinstance(output, dcc.Graph):
             output = output.figure
+            if inputs.get("title"):
+                output["layout"]["title"] = dict(text=inputs.get("title"))
         return output
 
     def _raw_chart_builder():

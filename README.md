@@ -85,8 +85,7 @@ package index](https://pypi.org/project/dtale) and on conda using [conda-forge](
 
 ```sh
 # conda
-conda config --add channels conda-forge
-conda install dtale
+conda install dtale -c conda-forge
 ```
 
 ```sh
@@ -623,7 +622,7 @@ You can now export your dash charts (with the exception of Wordclouds) to static
 
 I've been asked about being able to export the data that is contained within your chart to a CSV for further analysis in tools like Excel.  This button makes that possible.
 
-**OFFLINE CHARTS**
+### OFFLINE CHARTS
 
 Want to run D-Tale in a jupyter notebook and build a chart that will still be displayed even after your D-Tale process has shutdown?  Now you can!  Here's an example code snippet show how to use it:
 

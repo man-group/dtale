@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.12.1 (2020-8-5)
+ * better axis display on heatmaps
+ * handling for column filter data on "mixed" type columns
+ * "title" parameter added for offline charts
+ * heatmap drilldowns on animations
+ * bugfix for refreshing custom geojson charts
+
 ### 1.12.0 (2020-8-1)
  * added better notification for when users view Category breakdowns in "Column Analysis" & "Describe"
  * fixed code snippets in "Numeric" column builder when no operation is selected

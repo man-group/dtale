@@ -51,7 +51,7 @@ def load_geojson(contents, filename):
     if data["type"] == "FeatureCollection":
         data["properties"] = sorted(geojson["features"][0]["properties"].keys())
 
-    geojson_key = add_custom_geojson(geojson_key, data,)
+    geojson_key = add_custom_geojson(geojson_key, data)
     return geojson_key
 
 
@@ -62,7 +62,7 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
     featureidkey_value = featureidkey
     featureidkey_placeholder = "Select uploaded data"
     disabled = False
-    if curr_geojson:
+    if curr_geojson and not isinstance(curr_geojson, list):
         if curr_geojson.get("type") == "FeatureCollection":
             featureidkey_options = [
                 build_option(fik) for fik in curr_geojson["properties"]

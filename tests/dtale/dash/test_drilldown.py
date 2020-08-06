@@ -241,6 +241,24 @@ def test_update_click_data():
                 header == "Drilldown for: date (customdata), a (x), b (y), Mean c (z)"
             )
 
+            # Heatmap Animation
+            params["inputs"][0]["value"] = {
+                "points": [
+                    {
+                        "x": "x",
+                        "y": "y",
+                        "z": "z",
+                        "text": "date: date<br>x: x<br>y: y<br>z: z",
+                    }
+                ]
+            }
+            params["state"][1]["value"]["chart_type"] = "heatmap"
+            response = c.post("/charts/_dash-update-component", json=params)
+            header = response.get_json()["response"]["drilldown-modal-header-1"][
+                "children"
+            ]
+            assert header == "Drilldown for: date (date), x (x), y (y), z (z)"
+
             # Choropleth
             params["inputs"][0]["value"] = {
                 "points": [{"location": "x", "z": "z", "customdata": "customdata"}]
@@ -385,11 +403,36 @@ def test_load_drilldown_content(custom_data):
             params["inputs"][-2]["value"] = "bar"
             response = c.post("/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+
             params["inputs"][-2]["value"] = "histogram"
             params["state"][1]["value"]["chart_type"] = "3d_scatter"
             params["state"][1]["value"]["y"] = "Col4"
             params["state"][1]["value"]["z"] = "Col0"
             params["state"][-2]["value"]["points"][0]["y"] = 4
+            response = c.post("/charts/_dash-update-component", json=params)
+            assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
+            params["inputs"][-2]["value"] = "bar"
+            response = c.post("/charts/_dash-update-component", json=params)
+            assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+
+            params["inputs"][-2]["value"] = "histogram"
+            params["state"][1]["value"]["chart_type"] = "heatmap"
+            date_val = pd.Timestamp(
+                df[(df.security_id == 100000) & (df.Col4 == 4)].date.values[0]
+            ).strftime("%Y%m%d")
+            params["state"][-2]["value"] = {
+                "points": [
+                    {
+                        "x": 100000,
+                        "y": 4,
+                        "z": 1,
+                        "text": "date: {}<br>security_id: 100000<br>Col4: 4<br>Col0: 1".format(
+                            date_val
+                        ),
+                        "customdata": date_val,
+                    }
+                ]
+            }
             response = c.post("/charts/_dash-update-component", json=params)
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"

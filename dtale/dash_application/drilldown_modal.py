@@ -92,6 +92,13 @@ def build_drilldown_title(data_id, all_inputs, click_point, props, val_prop):
             return json_date(convert_date_val_to_date(val))
         return val
 
+    if "text" in click_point:  # Heatmaps
+        strs = []
+        for dim in click_point["text"].split("<br>"):
+            prop, val = dim.split(": ")
+            strs.append("{} ({})".format(prop, val))
+        return "Drilldown for: {}".format(", ".join(strs))
+
     strs = []
     frame_col = all_inputs.get("animate_by")
     if frame_col:
@@ -223,6 +230,14 @@ def init_callbacks(dash_app):
                     x, y, z, frame = (
                         click_point.get(p) for p in ["x", "y", "z", "customdata"]
                     )
+                    if chart_type == "heatmap":
+                        click_point_vals = {}
+                        for dim in click_point["text"].split("<br>"):
+                            prop, val = dim.split(": ")
+                            click_point_vals[prop] = val
+                        x, y, frame = (
+                            click_point_vals.get(p) for p in [x_col, y_col, frame_col]
+                        )
                     point_filter = {x_col: x, y_col: y}
                     if frame_col:
                         point_filter[frame_col] = frame

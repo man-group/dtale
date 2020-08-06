@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+	    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <body>
+        <a href="https://github.com/man-group/dtale">
+            <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Title.png" alt="" style="max-width:100%;">
+        </a>
+        <h1>Bring your Pandas Dataframes to life with D-Tale</h1>
+        <span>By Andrew Schonfeld</span>
+        <p>
+            Tired of running <pre>df.head()</pre> on your dataframes? In this tutorial, we will explore the open-source visualizer for Pandas dataframes, D-Tale. Some of the features we'll touch on are installation, startup, navigating the grid, viewing column statistics, building a chart & code exports.
+        </p>
+        <h2>What is it?</h2>
+        <p>D-Tale is the combination of a Flask back-end and a React front-end to bring you an easy way to view & analyze Pandas data structures. It integrates seamlessly with ipython notebooks & python/ipython terminals. Currently this tool supports such Pandas objects as DataFrame, Series, MultiIndex, DatetimeIndex & RangeIndex.</p>
+        <h2>Step 1: Installation</h2>
+        <span>Installation is available using pip or conda</span>
+        <pre>
+            # conda
+            conda install dtale -c conda-forge
+
+            # pip
+            pip install -U dtale
+        </pre>
+        <span>Source code is available <a href="https://github.com/man-group/dtale">here.</a></span>
+        <h2>Step 2: Opening the Grid</h2>
+        <span>Execute the following code within your Python console or jupyter notebook</span>
+        <pre>
+            import pandas as pd
+            import dtale
+
+            df = pd.DataFrame(dict(a=[1,1,2,2,3,3], b=[1,2,3,4,5,6]))
+            dtale.show(df)
+        </pre>
+        <span>You will be presented with one of the following:</span>
+        <ul>
+            <li>Python console: A link which depending on your terminal settings you can either click or copy into a browser which will bring you to the D-Tale grid.</li>
+            <li>jupyter notebook: An output cell containing the D-Tale grid</li>
+        </ul>
+        <b>Examples</b>
+        <table>
+        <thead>
+        <tr>
+        <th align="center">PyCharm</th>
+        <th align="center">jupyter</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td align="center"><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_demo_mini.gif"><img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_demo_mini.gif" alt="" style="max-width:100%;"></a></td>
+        <td align="center"><a target="_blank" rel="noopener noreferrer" href="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_ipython.gif"><img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/dtale_ipython.gif" alt="" style="max-width:100%;"></a></td>
+        </tr>
+        </tbody>
+        </table>
+        <h2>Step 3: Navigating the Grid</h2>
+        <p>Once inside the grid you have all of the standard grid functionality at your fingertips by clicking column headers.  If your still in the output cell of your jupyter notebook feel free to click the triangle in the upper lefthand corner to open the main menu and then click "Open in New Tab" to give you a larger workspace.</p>
+        <table>
+            <tr>
+                <td>
+                    <ul>
+                        <li>Sorting</li>
+                        <li>Renaming</li>
+                        <li>Filtering</li>
+                        <li>Lock Columns to the Left side (this is handy if you have a very wide dataframe)</li>
+                    </ul>
+                </td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Column_menu.png" alt="" style="max-width:100%;">
+                </td>
+            </tr>
+        </table>
+        <h2>Step 4: Building Columns</h2>
+        <p>If you open the main menu by clicking on the triangle in the upper lefthand corner you'll be presented with many options, one of which is "Build Columns". Click that and you see many options for different ways to build new columns based on your existing data. Here are some examples of a few of them:</p>
+        <table border="1" cellspacing="0">
+            <thead>
+            <tr>
+                <th>Builder</th>
+                <th>Main Menu</th>
+                <th>Column Builder Menu</th>
+                <th>Output</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Transform (Groupby Mean)</td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Main_menu.png" alt="" style="max-width:100%;">
+                </td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Transform.png" alt="" style="max-width:100%;">
+                </td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Transform_output.png" alt="" style="max-width:100%;">
+                </td>
+            </tr>
+            <tr>
+                <td>Mean Adjust (Subtract Columns)</td>
+                <td></td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Mean_adj.png" alt="" style="max-width:100%;">
+                </td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Mean_adj_output.png" alt="" style="max-width:100%;">
+                </td>
+            </tr>
+            <tr>
+                <td>Winsorize</td>
+                <td></td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Winsorize.png" alt="" style="max-width:100%;">
+                </td>
+                <td>
+                    <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Winsorize_output.png" alt="" style="max-width:100%;">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <h2>Step 5: View Column Statistics</h2>
+        <p>Many times you'll want to be able to view a quick overview of the contents of your dataframe. One way to do this is by running <pre>df.describe()</pre>.  We've brought that function to life with the "Describe" menu option. By either opening the main menu or clicking a column header and then clicking the "Describe" button (clicking from a column header will preselect that column for you).</p>
+        <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Describe.png" alt="" style="max-width:100%;">
+        <p>If you take a look you'll notice a listing of different statistics (which will vary based on data type of the column selected). These statistics are the output of calling <pre>df.describe()</pre> on that column as well as some other helpful statistics like percentage of missings & kurtosis. You also have the ability to view other helpful information:</p>
+        <ul>
+            <li>Boxplot of min, q1, median, mean, q3, max</li>
+            <li>Histogram of column values</li>
+            <li>Value counts of unique values</li>
+            <li>Toggle visibility of columns using the grid on the left</li>
+        </ul>
+        <h2>Step 6: Building a Chart With Your Data</h2>
+        <p>By opening the main menu once more and clicking the "Charts" button you will be brought to a new tab with the ability to build the following charts using Plotly Dash:</p>
+        <ul>
+            <li>Line</li>
+            <li>Bar</li>
+            <li>Scatter</li>
+            <li>Pie</li>
+            <li>Wordcloud (this is a custom plugin specific to D-Tale so some features like exporting may not work)</li>
+            <li>Heatmap</li>
+            <li>3D Scatter</li>
+            <li>Surface</li>
+            <li>Maps (Choropleth, Scattergeo & Mapbox)</li>
+        </ul>
+        <span>Here's an example of building a bar chart comparing the raw values (a) to its grouped mean (b_mean).</span>
+        <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Bar_chart.png" alt="" style="max-width:100%;">
+        <span>Now you'll also notice some links at the top of your chart:</span>
+        <ul>
+            <li>Popup Chart: Open your chart in a new tab so you can build another and compare.</li>
+            <li>Copy Link: Copy a link to your chart into your clipboard to show someone else.</li>
+            <li>Export Chart: Export your chart to a static HTML and send it as an attachment in e-mails.</li>
+            <li>Export CSV: Export the underlying data of your chart to CSV.</li>
+            <li>Code Export: Export the underlying code that built your chart so you can make any customizations or just learn how it was built.</li>
+        </ul>
+        <h2>Step 7: Code Export</h2>
+        <p>Let's take a look at the output of clicking the "Code Export" link of you chart that we built in Step 6.</p>
+        <img src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kdnuggets/Code_export.png" alt="" style="max-width:100%;">
+        <p>Now the goal of code export is to help users learn a little bit about what code was run to get them what their looking at, but it is by no means gospel. So feel free to submit suggestions or bugs on the <a href="https://github.com/man-group/dtale/issues">Issues page</a> page of the repo.</p>
+        <br/>
+        <span>Here are some other competitors to D-Tale:</span>
+        <ul>
+            <li><a href="https://bamboolib.8080labs.com/">Bamboolib</a> (this one is not free)</li>
+            <li><a href="https://github.com/quantopian/qgrid">qgrid</a></li>
+        </ul>
+        <p>Thank you for reading this tutorial and I hope it helps you with your data exploration. There's many other features that I haven't touched on here so I urge you to check it out the <a href="https://github.com/man-group/dtale#contents">README</a>, particularly the different UI functions. If you liked this please support open-source and star the <a href="https://github.com/man-group/dtale">repo</a>. :)</p>
+    </body>
+</html>

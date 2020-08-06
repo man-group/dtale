@@ -2517,6 +2517,20 @@ def test_main():
             assert "<title>D-Tale (test_name) - Test (col: foo)</title>" in str(
                 response.data
             )
+            response = c.get(
+                "/dtale/popup/reshape/{}".format(c.port), query_string=dict(col="foo")
+            )
+            assert (
+                "<title>D-Tale (test_name) - Summarize Data (col: foo)</title>"
+                in str(response.data)
+            )
+            response = c.get(
+                "/dtale/popup/filter/{}".format(c.port), query_string=dict(col="foo")
+            )
+            assert (
+                "<title>D-Tale (test_name) - Custom Filter (col: foo)</title>"
+                in str(response.data)
+            )
 
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -2779,7 +2793,7 @@ def test_get_column_filter_data(unittest, custom_data):
                     "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
                 )
             )
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+
             response = c.get(
                 "/dtale/column-filter-data/{}/{}".format(c.port, "bool_val")
             )
@@ -2828,6 +2842,29 @@ def test_get_column_filter_data(unittest, custom_data):
             response_data = json.loads(response.data)
             assert not response_data["success"]
 
+    # mixed data test
+    df = pd.DataFrame.from_dict(
+        {
+            "a": ["a", "UNknown", "b"],
+            "b": ["", " ", " - "],
+            "c": [1, "", 3],
+            "d": [1.1, np.nan, 3],
+            "e": ["a", np.nan, "b"],
+        }
+    )
+    df, _ = views.format_data(df)
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+            response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "c"))
+            response_data = json.loads(response.data)
+            unittest.assertEqual(sorted(response_data["uniques"]), ["", "1", "3"])
+
 
 @pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
@@ -2843,7 +2880,6 @@ def test_get_async_column_filter_data(unittest, custom_data):
                     "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
                 )
             )
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
 
             str_val = df.str_val.values[0]
             response = c.get(

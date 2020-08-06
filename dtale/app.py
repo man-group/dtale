@@ -740,6 +740,7 @@ def offline_chart(
     barsort=None,
     yaxis=None,
     filepath=None,
+    title=None,
     **kwargs
 ):
     """
@@ -773,6 +774,8 @@ def offline_chart(
     :type barsort: str, optional
     :param filepath: location to save HTML output
     :type filepath: str, optional
+    :param title: Title of your chart
+    :type title: str, optional
     :param kwargs: optional keyword arguments, here in case invalid arguments are passed to this function
     :type kwargs: dict
     :return: possible outcomes are:
@@ -796,6 +799,7 @@ def offline_chart(
         barsort=barsort,
         yaxis=yaxis,
         filepath=filepath,
+        title=title,
         **kwargs
     )
     global_state.cleanup()

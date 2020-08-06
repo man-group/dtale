@@ -410,6 +410,7 @@ class DtaleData(object):
         barsort=None,
         yaxis=None,
         filepath=None,
+        title=None,
         **kwargs
     ):
         """
@@ -444,6 +445,8 @@ class DtaleData(object):
         :type yaxis: dict, optional
         :param filepath: location to save HTML output
         :type filepath: str, optional
+        :param title: Title of your chart
+        :type title: str, optional
         :param kwargs: optional keyword arguments, here in case invalid arguments are passed to this function
         :type kwargs: dict
         :return: possible outcomes are:
@@ -465,6 +468,7 @@ class DtaleData(object):
             barmode=barmode,
             barsort=barsort,
             yaxis=yaxis,
+            title=title,
         )
         params = dict_merge(params, kwargs)
 
@@ -1188,7 +1192,7 @@ def build_column(data_id):
     curr_dtypes.append(dtype_f(len(curr_dtypes), name))
     global_state.set_dtypes(data_id, curr_dtypes)
     curr_history = global_state.get_history(data_id) or []
-    curr_history += [builder.build_code()]
+    curr_history += make_list(builder.build_code())
     global_state.set_history(data_id, curr_history)
     return jsonify(success=True)
 
@@ -1552,7 +1556,7 @@ def delete_col(data_id, column):
     data = global_state.get_data(data_id)
     data = data[[c for c in data.columns if c != column]]
     curr_history = global_state.get_history(data_id) or []
-    curr_history += ['df = df[[c for c in df.columns if c != "{}"]]'.format(column)]
+    curr_history += ["df = df[[c for c in df.columns if c != '{}']]".format(column)]
     global_state.set_history(data_id, curr_history)
     dtypes = global_state.get_dtypes(data_id)
     dtypes = [dt for dt in dtypes if dt["name"] != column]
@@ -1667,6 +1671,21 @@ def edit_cell(data_id, column):
     return jsonify(success=True)
 
 
+def build_filter_vals(series, data_id, column, fmt):
+    dtype_info = get_dtype_info(data_id, column)
+    vals = list(series.dropna().unique())
+    try:
+        vals = sorted(vals)
+    except BaseException:
+        pass  # if there are mixed values (EX: strings with ints) this fails
+    if dtype_info["unique_ct"] > 500:
+        # columns with too many unique values will need to use asynchronous loading, so for now we'll give the
+        # first 5 values
+        vals = vals[:5]
+    vals = [fmt(v) for v in vals]
+    return vals
+
+
 @dtale.route("/column-filter-data/<data_id>/<column>")
 @exception_decorator
 def get_column_filter_data(data_id, column):
@@ -1680,14 +1699,7 @@ def get_column_filter_data(data_id, column):
         data_range = {k: fmt(v) for k, v in data_range.items()}
         ret = dict_merge(ret, data_range)
     if classification in ["S", "I", "B"]:
-        dtype_info = get_dtype_info(data_id, column)
-        vals = sorted(s.dropna().unique())
-        if dtype_info["unique_ct"] > 500:
-            # columns with too many unique values will need to use asynchronous loading, so for now we'll give the
-            # first 5 values
-            vals = vals[:5]
-        vals = [fmt(v) for v in vals]
-        ret["uniques"] = vals
+        ret["uniques"] = build_filter_vals(s, data_id, column, fmt)
     return jsonify(ret)
 
 
