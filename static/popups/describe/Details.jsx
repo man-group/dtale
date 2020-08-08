@@ -13,6 +13,35 @@ import DetailsCharts from "./DetailsCharts";
 
 const BASE_DESCRIBE_URL = "/dtale/describe";
 
+function displayUniques(uniques, dtype = null) {
+  if (_.isEmpty(uniques.data)) {
+    return null;
+  }
+  let title = "Unique Values";
+  if (dtype) {
+    title = `${title} of type '${dtype}'`;
+  }
+  if (uniques.top) {
+    title = `${title} (top 100 most common)`;
+  }
+  return (
+    <div key={dtype} className="row">
+      <div className="col-sm-12">
+        <span className="font-weight-bold" style={{ fontSize: "120%" }}>
+          {`${title}:`}
+        </span>
+        <br />
+        <span>
+          {_.join(
+            _.map(uniques.data, u => `${u.value} (${u.count})`),
+            ", "
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 class Details extends React.Component {
   constructor(props) {
     super(props);
@@ -54,7 +83,7 @@ class Details extends React.Component {
         this.setState(newState);
         return;
       }
-      newState.details = _.pick(detailData, ["describe", "uniques"]);
+      newState.details = _.pick(detailData, ["describe", "uniques", "dtype_counts"]);
       newState.details.name = this.props.selected.name;
       newState.details.dtype = this.props.selected.dtype;
       newState.code = detailData.code;
@@ -66,26 +95,10 @@ class Details extends React.Component {
     if (this.state.deepData == "outliers") {
       return null;
     }
+
     const uniques = _.get(this.state, "details.uniques") || {};
-    if (_.isEmpty(uniques.data)) {
-      return null;
-    }
-    return (
-      <div className="row">
-        <div className="col-sm-12">
-          <span className="font-weight-bold" style={{ fontSize: "120%" }}>
-            {`Unique Values${uniques.top ? " (top 100 most common)" : ""}:`}
-          </span>
-          <br />
-          <span>
-            {_.join(
-              _.map(uniques.data, u => `${u.value} (${u.count})`),
-              ", "
-            )}
-          </span>
-        </div>
-      </div>
-    );
+    const dtypeCt = _.size(uniques);
+    return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, dtypeCt > 1 ? dtype : null));
   }
 
   loadOutliers() {

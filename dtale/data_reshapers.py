@@ -54,14 +54,11 @@ class PivotBuilder(object):
         index, columns, values, aggfunc = (
             self.cfg.get(p) for p in ["index", "columns", "values", "aggfunc"]
         )
-        if aggfunc is not None or len(values) > 1:
-            pivot_data = pd.pivot_table(
-                data, values=values, index=index, columns=columns, aggfunc=aggfunc
-            )
-            if len(values) == 1:
-                pivot_data.columns = pivot_data.columns.droplevel(0)
-        else:
-            pivot_data = data.pivot(index=index, columns=columns, values=values[0])
+        pivot_data = pd.pivot_table(
+            data, values=values, index=index, columns=columns, aggfunc=aggfunc
+        )
+        if len(values) == 1:
+            pivot_data.columns = pivot_data.columns.droplevel(0)
         if self.cfg.get("columnNameHeaders", False):
             pivot_data.columns = flatten_columns(pivot_data, columns=columns)
         else:

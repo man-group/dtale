@@ -27,8 +27,15 @@ function getColType(col, columns) {
   return colType;
 }
 
+function isMixed(colType) {
+  return _.startsWith(colType, "mixed");
+}
+
 function getConversions(col, columns) {
   const colType = getColType(col, columns);
+  if (isMixed(colType)) {
+    return [_.without(TYPE_MAP.string, "int"), colType];
+  }
   return [_.get(TYPE_MAP, colType, []), colType];
 }
 
@@ -52,6 +59,19 @@ function validateTypeConversionCfg(cfg) {
   return null;
 }
 
+function buildMixedCode(s, to) {
+  if (to === "float") {
+    return `pd.to_numeric(${s}, errors="coerce")`;
+  } else if (to === "bool") {
+    return [
+      "import numpy as np",
+      "bool_map = dict(true=True, false=False)",
+      `${s}.apply(lambda b: bool_map.get(str(b).lower(), np.nan)`,
+    ];
+  }
+  return null;
+}
+
 function buildCode({ col, from, to, fmt, unit }) {
   if (_.isNull(col) || _.isNull(to)) {
     return null;
@@ -66,6 +86,8 @@ function buildCode({ col, from, to, fmt, unit }) {
       return `pd.to_datetime(${s}, ${kwargs})`;
     } else if (to === "int") {
       return `${s}.astype('float').astype('int')`;
+    } else if (to === "float") {
+      return `pd.to_numeric(${s}, errors="coerce")`;
     }
     return standardConv;
   } else if (classifier === "int") {
@@ -89,6 +111,8 @@ function buildCode({ col, from, to, fmt, unit }) {
     return `pd.Series(${s}.dt.strftime('${fmt}')`;
   } else if (_.includes(["float", "bool"], classifier)) {
     return standardConv;
+  } else if (_.startsWith(from, "mixed")) {
+    return buildMixedCode(s, to);
   }
   return null;
 }
@@ -96,7 +120,13 @@ function buildCode({ col, from, to, fmt, unit }) {
 class CreateTypeConversion extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { col: null, conversion: null, fmt: null, unit: null };
+    this.state = {
+      col: null,
+      conversion: null,
+      fmt: null,
+      unit: null,
+      applyAllType: false,
+    };
     this.updateState = this.updateState.bind(this);
     this.renderConversions = this.renderConversions.bind(this);
     this.renderConversionInputs = this.renderConversionInputs.bind(this);
@@ -109,6 +139,7 @@ class CreateTypeConversion extends React.Component {
     cfg.from = getDtype(cfg.col, this.props.columns);
     cfg.col = _.get(currState, "col.value") || null;
     cfg.unit = _.get(currState, "unit.value") || null;
+    cfg.applyAllType = this.state.applyAllType;
     this.setState(currState, () => this.props.updateState({ cfg, code: buildCode(cfg) }));
   }
 
@@ -144,7 +175,7 @@ class CreateTypeConversion extends React.Component {
         );
       }
       return (
-        <div key={1} className="form-group row">
+        <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Convert To</label>
           <div className="col-md-8">{input}</div>
         </div>
@@ -161,7 +192,7 @@ class CreateTypeConversion extends React.Component {
     const { conversion } = this.state;
     if ((colType === "string" && conversion === "date") || (colType === "date" && conversion == "date")) {
       return (
-        <div key={2} className="form-group row">
+        <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Date Format</label>
           <div className="col-md-8">
             <input
@@ -177,7 +208,7 @@ class CreateTypeConversion extends React.Component {
     if ((colType === "int" && conversion === "date") || (colType === "date" && conversion === "int")) {
       const units = colType === "int" ? ["YYYYMMDD", "D", "s", "ms", "us", "ns"] : ["YYYYMMDD", "ms"];
       return (
-        <div key={2} className="form-group row">
+        <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Unit/Format</label>
           <div className="col-md-8">
             <div className="input-group">
@@ -201,32 +232,49 @@ class CreateTypeConversion extends React.Component {
   }
 
   render() {
-    return [
-      <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Column To Convert</label>
-        <div className="col-md-8">
-          <div className="input-group">
-            <Select
-              className="Select is-clearable is-searchable Select--single"
-              classNamePrefix="Select"
-              options={_.sortBy(
-                _.map(this.props.columns, c => ({ value: c.name })),
-                o => _.toLower(o.value)
-              )}
-              getOptionLabel={_.property("value")}
-              getOptionValue={_.property("value")}
-              value={this.state.col}
-              onChange={selected => this.updateState({ col: selected, conversion: null })}
-              noOptionsText={() => "No columns found"}
-              isClearable
-              filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-            />
+    const colType = getDtype(this.state.col, this.props.columns);
+    return (
+      <React.Fragment>
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">Column To Convert</label>
+          <div className="col-md-8">
+            <div className="input-group">
+              <Select
+                className="Select is-clearable is-searchable Select--single"
+                classNamePrefix="Select"
+                options={_.sortBy(
+                  _.map(this.props.columns, c => ({ value: c.name })),
+                  o => _.toLower(o.value)
+                )}
+                getOptionLabel={_.property("value")}
+                getOptionValue={_.property("value")}
+                value={this.state.col}
+                onChange={selected => this.updateState({ col: selected, conversion: null })}
+                noOptionsText={() => "No columns found"}
+                isClearable
+                filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+              />
+            </div>
           </div>
         </div>
-      </div>,
-      this.renderConversions(),
-      this.renderConversionInputs(),
-    ];
+        {this.renderConversions()}
+        {this.renderConversionInputs()}
+        {isMixed(colType) && (
+          <div className="form-group row">
+            <div className="col-md-3" />
+            <div className="col-md-8 mt-auto mb-auto">
+              <label className="col-form-label text-right pr-3">
+                {`Apply Conversion to all columns of type "${colType}"?`}
+              </label>
+              <i
+                className={`ico-check-box${this.state.applyAllType ? "" : "-outline-blank"} pointer`}
+                onClick={() => this.updateState({ applyAllType: !this.state.applyAllType })}
+              />
+            </div>
+          </div>
+        )}
+      </React.Fragment>
+    );
   }
 }
 CreateTypeConversion.displayName = "CreateTypeConversion";

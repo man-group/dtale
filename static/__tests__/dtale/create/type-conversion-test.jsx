@@ -109,6 +109,7 @@ describe("DataViewer tests", () => {
       col: "col1",
       unit: "YYYYMMDD",
       fmt: null,
+      applyAllType: false,
     });
   });
 
@@ -124,6 +125,7 @@ describe("DataViewer tests", () => {
       from: "float64",
       fmt: null,
       unit: null,
+      applyAllType: false,
     });
   });
 
@@ -146,6 +148,7 @@ describe("DataViewer tests", () => {
       from: "object",
       fmt: "%d/%m/%Y",
       unit: null,
+      applyAllType: false,
     });
   });
 
@@ -163,6 +166,7 @@ describe("DataViewer tests", () => {
       from: "datetime64[ns]",
       unit: "ms",
       fmt: null,
+      applyAllType: false,
     });
   });
 

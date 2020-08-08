@@ -4556,6 +4556,10 @@ div.replacement-modal > div.modal-lg {
   min-width: 720px;
 }
 
+div.upload-modal > div.modal-lg {
+  width: 400px;
+}
+
 div.reshape-modal > div.modal-lg {
   min-width: 800px;
 }
@@ -10753,5 +10757,3 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
   align-items: center;
   font-weight: bold;
 }
-
-

@@ -16,6 +16,7 @@ import { Filter } from "./Filter";
 import Instances from "./Instances";
 import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
+import { Upload } from "./Upload";
 import { XArrayDimensions } from "./XArrayDimensions";
 import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
@@ -216,6 +217,15 @@ class ReactPopup extends React.Component {
         );
         body = <Variance {...this.props} />;
         break;
+      case "upload":
+        modalTitle = (
+          <ModalTitle>
+            <i className="ico-file-upload" />
+            <strong>Upload CSV</strong>
+          </ModalTitle>
+        );
+        body = <Upload {...this.props} />;
+        break;
       default:
         break;
     }
@@ -225,8 +235,8 @@ class ReactPopup extends React.Component {
   render() {
     const { chartData } = this.props;
     const { type, visible, size, backdrop } = chartData;
-    const { modalTitle, body } = this.renderBody();
     const onClose = () => this.props.onClose({ size: size || "modal-lg" });
+    const { modalTitle, body } = this.renderBody(onClose);
     return (
       <Modal
         {...{

@@ -4,7 +4,7 @@ from logging import getLogger
 
 import click
 
-from dtale.cli.loaders import arctic_loader, csv_loader, json_loader
+from dtale.cli.loaders import arctic_loader, csv_loader, json_loader, parquet_loader
 
 logger = getLogger(__name__)
 
@@ -78,6 +78,7 @@ LOADERS = {
     arctic_loader.LOADER_KEY: arctic_loader,
     csv_loader.LOADER_KEY: csv_loader,
     json_loader.LOADER_KEY: json_loader,
+    parquet_loader.LOADER_KEY: parquet_loader,
 }
 
 

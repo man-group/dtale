@@ -78,7 +78,12 @@ const DESCRIBE = {
       "50%": 2.5,
       "75%": 4,
     },
-    uniques: { data: [1, 2, 3, 4], top: true },
+    uniques: {
+      int: {
+        data: _.map([1, 2, 3, 4], i => ({ value: i, count: 1 })),
+        top: true,
+      },
+    },
   },
   col2: {
     describe: {
@@ -95,7 +100,7 @@ const DESCRIBE = {
   },
   col3: {
     describe: { count: 4, freq: 4, top: "foo", unique: 1 },
-    uniques: { data: ["foo"], top: false },
+    uniques: { str: { data: [{ value: "foo", count: 1 }], top: false } },
   },
   col4: {
     describe: {

@@ -553,13 +553,15 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
     min-width: 10em;
 }
 
-div#map-inputs > div.col-auto {
+div#map-inputs > div.col-auto,
+div#candlestick-inputs > div.col-auto {
     padding-right: 0;
 }
 
-div#non-map-inputs > div,
+div#standard-inputs > div,
 div#chart-inputs > div,
-div#map-inputs > div {
+div#map-inputs > div,
+div#candlestick-inputs > div{
   padding-top: 0.25rem !important;
   padding-bottom: 0.25rem !important;
 }

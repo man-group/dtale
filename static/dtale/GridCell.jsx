@@ -61,7 +61,11 @@ class ReactGridCell extends React.Component {
       divProps.cell_idx = cellIdx;
     }
     return (
-      <div className="cell" key={key} style={_.assignIn({}, style, valueStyle)} {...divProps}>
+      <div
+        key={key}
+        className={`cell${this.props.allowCellEdits ? " editable" : ""}`}
+        style={_.assignIn({}, style, valueStyle)}
+        {...divProps}>
         {value}
       </div>
     );
@@ -86,9 +90,14 @@ ReactGridCell.propTypes = {
   propagateState: PropTypes.func,
   dataId: PropTypes.string,
   editedCell: PropTypes.string,
+  allowCellEdits: PropTypes.bool,
 };
 const ReduxGridCell = connect(
-  state => ({ dataId: state.dataId, editedCell: state.editedCell }),
+  state => ({
+    dataId: state.dataId,
+    editedCell: state.editedCell,
+    allowCellEdits: state.allowCellEdits,
+  }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     clearEdit: () => dispatch({ type: "clear-edit" }),

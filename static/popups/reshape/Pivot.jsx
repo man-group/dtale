@@ -21,10 +21,10 @@ const AGGREGATION_OPTS = [
 
 function validatePivotCfg(cfg) {
   const { index, columns, values } = cfg;
-  if (_.isNil(index)) {
+  if (!_.size(index || [])) {
     return "Missing an index selection!";
   }
-  if (_.isNil(columns)) {
+  if (!_.size(columns || [])) {
     return "Missing a columns selection!";
   }
   if (!_.size(values || [])) {
@@ -34,14 +34,12 @@ function validatePivotCfg(cfg) {
 }
 
 function buildCode({ index, columns, values, aggfunc }) {
-  if (_.isNull(index) || _.isNull(columns) || !_.size(values || [])) {
+  if (!_.size(index || []) || !_.size(columns || []) || !_.size(values || [])) {
     return null;
   }
-  let code = "df.pivot(";
-  if (!_.isNull(aggfunc)) {
-    code = "pd.pivot_table(df, ";
-  }
-  code += `index='${index.value}', columns='${columns.value}', values=['${_.join(_.map(values, "value"), "', '")}']`;
+  let code = "pd.pivot_table(df, ";
+  const buildStr = vals => `['${_.join(_.map(vals, "value"), "', '")}']`;
+  code += `index=${buildStr(index)}, columns=${buildStr(columns)}, values=${buildStr(values)}`;
   if (!_.isNull(aggfunc)) {
     code += `, aggfunc='${aggfunc.value}'`;
   }
@@ -57,7 +55,7 @@ class Pivot extends React.Component {
       index: null,
       columns: null,
       values: null,
-      aggfunc: null,
+      aggfunc: _.find(AGGREGATION_OPTS, { value: "mean" }),
       columnNameHeaders: false,
     };
     this.renderSelect = this.renderSelect.bind(this);
@@ -67,13 +65,10 @@ class Pivot extends React.Component {
   updateState(state) {
     const currState = _.assignIn(this.state, state);
     const cfg = _.pick(currState, ["index", "columns", "values", "columnNameHeaders"]);
-    cfg.index = _.get(currState, "index.value") || null;
-    cfg.columns = _.get(currState, "columns.value") || null;
-    if (_.size(currState.values)) {
-      cfg.values = _.map(currState.values, "value");
-    } else {
-      cfg.values = null;
-    }
+    const pickVals = vals => (_.size(vals) ? _.map(vals, "value") : null);
+    cfg.index = pickVals(currState.index);
+    cfg.columns = pickVals(currState.columns);
+    cfg.values = pickVals(currState.values);
     cfg.aggfunc = _.get(currState, "aggfunc.value") || null;
     this.setState(currState, () => this.props.updateState({ cfg, code: buildCode(currState) }));
   }
@@ -104,13 +99,13 @@ class Pivot extends React.Component {
       <div key={0} className="form-group row">
         <label className="col-md-3 col-form-label text-right">Rows</label>
         <div className="col-md-8">
-          <div className="input-group">{this.renderSelect("index", ["columns", "values"])}</div>
+          <div className="input-group">{this.renderSelect("index", ["columns", "values"], true)}</div>
         </div>
       </div>,
       <div key={1} className="form-group row">
         <label className="col-md-3 col-form-label text-right">Columns</label>
         <div className="col-md-8">
-          <div className="input-group">{this.renderSelect("columns", ["index", "values"])}</div>
+          <div className="input-group">{this.renderSelect("columns", ["index", "values"], true)}</div>
           <div className="row mb-0">
             <label className="col-auto col-form-label pr-3" style={{ fontSize: "85%" }}>
               {"Include Column Names in Headers?"}
@@ -146,7 +141,6 @@ class Pivot extends React.Component {
               getOptionValue={_.property("value")}
               value={this.state.aggfunc}
               onChange={aggfunc => this.updateState({ aggfunc })}
-              isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
             />
           </div>

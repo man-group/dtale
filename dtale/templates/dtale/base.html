@@ -35,6 +35,7 @@
         <input type="hidden" id="settings" value="{{settings}}" />
         <input type="hidden" id="version" value="{{version}}" />
         <input type="hidden" id="hide_shutdown" value="{{config.HIDE_SHUTDOWN}}" />
+        <input type="hidden" id="allow_cell_edits" value="{{allow_cell_edits}}" />
         <input type="hidden" id="processes" value={{processes}} />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}

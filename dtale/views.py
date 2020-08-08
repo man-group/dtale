@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division
 
+import base64
 import os
 import time
 import webbrowser
@@ -14,7 +15,7 @@ import pandas as pd
 import requests
 import xarray as xr
 from scipy import stats
-from six import string_types
+from six import string_types, StringIO
 
 import dtale.global_state as global_state
 from dtale import dtale
@@ -607,7 +608,7 @@ def build_dtypes_state(data, prev_state=None):
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
 
-def format_data(data):
+def format_data(data, inplace=False, drop_index=False):
     """
     Helper function to build globally managed state pertaining to a D-Tale instances data.  Some updates being made:
      - convert all column names to strings
@@ -617,6 +618,14 @@ def format_data(data):
 
     :param data: dataframe to build data type information for
     :type data: :class:`pandas:pandas.DataFrame`
+    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
+    :type allow_cell_edits: bool, optional
+    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
+                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
+                    input unchanged.
+    :type inplace: bool, optional
+    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
+    :type drop_index: bool, optional
     :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
              in the index
     """
@@ -630,9 +639,17 @@ def format_data(data):
     if not len(index) and not data.index.equals(pd.RangeIndex(0, len(data))):
         drop = False
         index = ["index"]
-    data = data.reset_index()
+
+    if inplace:
+        data.reset_index(inplace=True, drop=drop_index)
+    else:
+        data = data.reset_index(drop=drop_index)
+
     if drop:
-        data = data.drop("index", axis=1, errors="ignore")
+        if inplace:
+            data.drop("index", axis=1, errors="ignore", inplace=True)
+        else:
+            data = data.drop("index", axis=1, errors="ignore")
     data.columns = [str(c) for c in data.columns]
     return data, index
 
@@ -705,6 +722,9 @@ def startup(
     data_id=None,
     context_vars=None,
     ignore_duplicate=False,
+    allow_cell_edits=True,
+    inplace=False,
+    drop_index=False,
 ):
     """
     Loads and stores data globally
@@ -721,6 +741,14 @@ def startup(
                          such as filters
     :type context_vars: dict, optional
     :param ignore_duplicate: if set to True this will not test whether this data matches any previously loaded to D-Tale
+    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
+    :type allow_cell_edits: bool, optional
+    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
+                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
+                    input unchanged.
+    :type inplace: bool, optional
+    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
+    :type drop_index: bool, optional
     """
 
     if data_loader is not None:
@@ -747,12 +775,13 @@ def startup(
                 data_id=data_id,
                 context_vars=context_vars,
                 ignore_duplicate=ignore_duplicate,
+                allow_cell_edits=allow_cell_edits,
             )
             global_state.set_dataset(instance._data_id, data)
             global_state.set_dataset_dim(instance._data_id, {})
             return instance
 
-        data, curr_index = format_data(data)
+        data, curr_index = format_data(data, inplace=inplace, drop_index=drop_index)
         # check to see if this dataframe has already been loaded to D-Tale
         if data_id is None and not ignore_duplicate:
             check_duplicate_data(data)
@@ -800,7 +829,9 @@ def startup(
             )
 
         # in the case that data has been updated we will drop any sorts or filter for ease of use
-        global_state.set_settings(data_id, dict(locked=curr_locked))
+        global_state.set_settings(
+            data_id, dict(locked=curr_locked, allow_cell_edits=allow_cell_edits)
+        )
         global_state.set_data(data_id, data)
         global_state.set_dtypes(
             data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
@@ -824,6 +855,9 @@ def base_render_template(template, data_id, **kwargs):
         return redirect(current_app.url_for("missing_js"))
     curr_settings = global_state.get_settings(data_id) or {}
     _, version = retrieve_meta_info_and_version("dtale")
+    allow_cell_edits = global_state.ALLOW_CELL_EDITS and curr_settings.get(
+        "allow_cell_edits", True
+    )
     return render_template(
         template,
         data_id=data_id,
@@ -832,6 +866,7 @@ def base_render_template(template, data_id, **kwargs):
         settings=json.dumps(curr_settings),
         version=str(version),
         processes=len(global_state.get_data()),
+        allow_cell_edits=allow_cell_edits,
         **kwargs
     )
 
@@ -1167,33 +1202,61 @@ def build_column(data_id):
     :param cfg: dict from flask.request.args['cfg'] of how to calculate the new column
     :return: JSON {success: True/False}
     """
-    name = get_str_arg(request, "name")
-    if not name:
-        raise Exception("'name' is required for new column!")
-    name = str(name)
     data = global_state.get_data(data_id)
-    if name in data.columns:
-        raise Exception("A column named '{}' already exists!".format(name))
     col_type = get_str_arg(request, "type")
     cfg = json.loads(get_str_arg(request, "cfg"))
+    save_as = get_str_arg(request, "saveAs", "new")
+    if save_as == "inplace":
+        name = cfg["col"]
+    else:
+        name = get_str_arg(request, "name")
+        if not name and col_type != "type_conversion":
+            raise Exception("'name' is required for new column!")
+        # non-type conversions cannot be done inplace and thus need a name and the name needs to be checked that it
+        # won't overwrite something else
+        name = str(name)
+        data = global_state.get_data(data_id)
+        if name in data.columns:
+            raise Exception("A column named '{}' already exists!".format(name))
 
-    builder = ColumnBuilder(data_id, col_type, name, cfg)
-    data.loc[:, name] = builder.build_column()
-    dtype = find_dtype(data[name])
-    data_ranges = {}
-    if classify_type(dtype) == "F" and not data[name].isnull().all():
-        try:
-            data_ranges[name] = data[[name]].agg(["min", "max"]).to_dict()[name]
-        except ValueError:
-            pass
-    dtype_f = dtype_formatter(data, {name: dtype}, data_ranges)
-    global_state.set_data(data_id, data)
-    curr_dtypes = global_state.get_dtypes(data_id)
-    curr_dtypes.append(dtype_f(len(curr_dtypes), name))
-    global_state.set_dtypes(data_id, curr_dtypes)
-    curr_history = global_state.get_history(data_id) or []
-    curr_history += make_list(builder.build_code())
-    global_state.set_history(data_id, curr_history)
+    def _build_column():
+        builder = ColumnBuilder(data_id, col_type, name, cfg)
+        data.loc[:, name] = builder.build_column()
+
+        dtype = find_dtype(data[name])
+        data_ranges = {}
+        if classify_type(dtype) == "F" and not data[name].isnull().all():
+            try:
+                data_ranges[name] = data[[name]].agg(["min", "max"]).to_dict()[name]
+            except ValueError:
+                pass
+        dtype_f = dtype_formatter(data, {name: dtype}, data_ranges)
+        global_state.set_data(data_id, data)
+        curr_dtypes = global_state.get_dtypes(data_id)
+        new_dtype_info = dtype_f(len(curr_dtypes), name)
+        if next((cdt for cdt in curr_dtypes if cdt["name"] == name), None):
+            curr_dtypes = [
+                new_dtype_info if cdt["name"] == name else cdt for cdt in curr_dtypes
+            ]
+        else:
+            curr_dtypes.append(dtype_f(len(curr_dtypes), name))
+        global_state.set_dtypes(data_id, curr_dtypes)
+        curr_history = global_state.get_history(data_id) or []
+        curr_history += make_list(builder.build_code())
+        global_state.set_history(data_id, curr_history)
+
+    if cfg.get("applyAllType", False):
+        cols = [
+            dtype["name"]
+            for dtype in global_state.get_dtypes(data_id)
+            if dtype["dtype"] == cfg["from"]
+        ]
+        for col in cols:
+            cfg = dict_merge(cfg, dict(col=col))
+            name = col
+            _build_column()
+    else:
+        _build_column()
     return jsonify(success=True)
 
 
@@ -1380,6 +1443,7 @@ def load_describe(column_series, additional_aggs=None):
     if "count" in desc:
         # pandas always returns 'count' as a float and it adds useless decimal points
         desc["count"] = desc["count"].split(".")[0]
+    desc["total_count"] = len(column_series)
     missing_ct = column_series.isnull().sum()
     desc["missing_pct"] = json_float((missing_ct / len(column_series) * 100).round(2))
     desc["missing_ct"] = json_int(missing_ct)
@@ -1413,28 +1477,52 @@ def describe(data_id, column):
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
     code += desc_code
     return_data = dict(describe=desc, success=True)
-    uniq_vals = data[column].value_counts().sort_values(ascending=False)
     if "unique" not in return_data["describe"]:
         return_data["describe"]["unique"] = json_int(dtype["unique_ct"], as_string=True)
+
+    uniq_vals = data[column].value_counts().sort_values(ascending=False)
     uniq_vals.index.name = "value"
     uniq_vals.name = "count"
     uniq_vals = uniq_vals.reset_index()
-    uniq_f, _ = build_formatters(uniq_vals)
-    if dtype["unique_ct"] <= 100:
-        code.append("uniq_vals = data['{}'].unique()".format(column))
-        return_data["uniques"] = dict(
-            data=uniq_f.format_dicts(uniq_vals.itertuples()),
-            total=dtype["unique_ct"],
-            top=False,
+
+    code.append(
+        (
+            "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
+            "uniq_vals.index.name = 'value'\n"
+            "uniq_vals.name = 'count'\n"
+            "uniq_vals = uniq_vals.reset_index()"
+        ).format(column)
+    )
+
+    if dtype["dtype"].startswith("mixed"):
+        uniq_vals["type"] = uniq_vals["value"].apply(lambda i: type(i).__name__)
+        dtype_counts = uniq_vals.groupby("type").sum().reset_index()
+        dtype_counts.columns = ["dtype", "count"]
+        return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
+        code.append(
+            (
+                "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
+                "dtype_counts = uniq_vals.groupby('type').sum().reset_index()\n"
+                "dtype_counts.columns = ['dtype', 'count']"
+            )
         )
-    else:  # get top 100 most common values
-        return_data["uniques"] = dict(
-            data=uniq_f.format_dicts(uniq_vals.head(100).itertuples()),
-            total=dtype["unique_ct"],
-            top=True,
+    else:
+        uniq_vals.loc[:, "type"] = find_dtype(uniq_vals["value"])
+        code.append(
+            "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
         )
-        uniq_code = "uniq_vals = data['{}'].value_counts().sort_values(ascending=False).head(100).index.values"
-        code.append(uniq_code.format(column))
+
+    return_data["uniques"] = {}
+    for uniq_type, uniq_grp in uniq_vals.groupby("type"):
+        total = len(uniq_grp)
+        top = total > 100
+        uniq_grp = uniq_grp[["value", "count"]].head(100)
+        uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
+        uniq_f, _ = build_formatters(uniq_grp)
+        return_data["uniques"][uniq_type] = dict(
+            data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top,
+        )
+
     return_data["code"] = "\n".join(code)
     return jsonify(return_data)
 
@@ -2434,3 +2522,25 @@ def chart_csv_export(data_id):
 def run_cleanup(data_id):
     global_state.cleanup(data_id)
     return jsonify(success=True)
+
+
+@dtale.route("/upload", methods=["POST"])
+@exception_decorator
+def upload():
+    contents, filename = (request.form.get(p) for p in ["contents", "filename"])
+    if contents is None:
+        raise Exception("No file data loaded!")
+    _, content_string = contents.split(",")
+    decoded = base64.b64decode(content_string)
+    str_obj = StringIO(decoded.decode("utf-8"))
+    df = pd.read_csv(str_obj)
+    # TODO: handle un-named index columns...
+    instance = startup("", data=df, ignore_duplicate=True)
+    curr_settings = global_state.get_settings(instance._data_id)
+    global_state.set_settings(
+        instance._data_id,
+        dict_merge(
+            curr_settings, dict(startup_code="df = pd.read_csv('{}')".format(filename))
+        ),
+    )
+    return jsonify(success=True, data_id=instance._data_id)

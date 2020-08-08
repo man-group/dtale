@@ -17,7 +17,7 @@
   font-weight: bold;
 }
 
-.cell:hover {
+.cell.editable:hover {
   background: lightblue;
 }
 
@@ -29,6 +29,10 @@
 .headerCell.selected {
   background: black;
   color: white;
+}
+
+.headerCell div.text-nowrap div {
+  display: inline;
 }
 
 html,

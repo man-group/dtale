@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.drilldown_modal as drilldown_modal
+import dtale.dash_application.lock_zoom as lock_zoom
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
 from dtale.dash_application.charts import build_chart, chart_url_params
@@ -20,11 +21,13 @@ from dtale.dash_application.layout.layout import (
     build_input_options,
     build_loc_mode_hover_children,
     build_map_options,
+    build_candlestick_options,
     build_mapbox_style_options,
     build_proj_hover_children,
     charts_layout,
     colorscale_input_style,
     get_yaxis_type_tabs,
+    lock_zoom_style,
     main_inputs_and_group_val_display,
     show_chart_per_group,
     show_group_input,
@@ -170,10 +173,12 @@ def init_callbacks(dash_app):
             Output("group-dropdown", "options"),
             Output("barsort-dropdown", "options"),
             Output("yaxis-dropdown", "options"),
-            Output("non-map-inputs", "style"),
+            Output("standard-inputs", "style"),
             Output("map-inputs", "style"),
+            Output("candlestick-inputs", "style"),
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
+            Output("lock-zoom-btn", "style"),
         ],
         [
             Input("query-data", "modified_timestamp"),
@@ -237,7 +242,9 @@ def init_callbacks(dash_app):
         ) = options
         show_map = chart_type == "maps"
         map_style = {} if show_map else {"display": "none"}
-        non_map_style = {"display": "none"} if show_map else {}
+        show_cs = chart_type == "candlestick"
+        cs_style = {} if show_cs else {"display": "none"}
+        standard_style = {"display": "none"} if show_map or show_cs else {}
         cscale_style = colorscale_input_style(chart_type=chart_type)
         drilldown_toggle_style = show_style((agg or "raw") != "raw")
         return (
@@ -249,10 +256,12 @@ def init_callbacks(dash_app):
             group_options,
             barsort_options,
             yaxis_options,
-            non_map_style,
+            standard_style,
             map_style,
+            cs_style,
             cscale_style,
             drilldown_toggle_style,
+            lock_zoom_style(chart_type),
         )
 
     @dash_app.callback(
@@ -387,6 +396,63 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [
+            Output("candlestick-input-data", "data"),
+            Output("candlestick-x-dropdown", "options"),
+            Output("candlestick-open-dropdown", "options"),
+            Output("candlestick-close-dropdown", "options"),
+            Output("candlestick-high-dropdown", "options"),
+            Output("candlestick-low-dropdown", "options"),
+        ],
+        [
+            Input("candlestick-x-dropdown", "value"),
+            Input("candlestick-open-dropdown", "value"),
+            Input("candlestick-close-dropdown", "value"),
+            Input("candlestick-high-dropdown", "value"),
+            Input("candlestick-low-dropdown", "value"),
+            Input("candlestick-group-dropdown", "value"),
+        ],
+        [State("url", "pathname")],
+    )
+    def cs_data_callback(
+        cs_x, cs_open, cs_close, cs_high, cs_low, group, pathname,
+    ):
+        data_id = get_data_id(pathname)
+        cs_data = dict(
+            cs_x=cs_x,
+            cs_open=cs_open,
+            cs_close=cs_close,
+            cs_high=cs_high,
+            cs_low=cs_low,
+        )
+        if group is not None:
+            cs_data["cs_group"] = group
+        df = global_state.get_data(data_id)
+        (
+            x_options,
+            close_options,
+            open_options,
+            low_options,
+            high_options,
+        ) = build_candlestick_options(
+            df,
+            cs_x=cs_x,
+            cs_open=cs_open,
+            cs_close=cs_close,
+            cs_high=cs_high,
+            cs_low=cs_low,
+        )
+
+        return (
+            cs_data,
+            x_options,
+            open_options,
+            close_options,
+            high_options,
+            low_options,
+        )
+
+    @dash_app.callback(
+        [
             Output("y-multi-input", "style"),
             Output("y-single-input", "style"),
             Output("z-input", "style"),
@@ -491,6 +557,7 @@ def init_callbacks(dash_app):
             Input("chart-input-data", "modified_timestamp"),
             Input("yaxis-data", "modified_timestamp"),
             Input("map-input-data", "modified_timestamp"),
+            Input("candlestick-input-data", "modified_timestamp"),
         ],
         [
             State("url", "pathname"),
@@ -498,6 +565,7 @@ def init_callbacks(dash_app):
             State("chart-input-data", "data"),
             State("yaxis-data", "data"),
             State("map-input-data", "data"),
+            State("candlestick-input-data", "data"),
             State("last-chart-input-data", "data"),
         ],
     )
@@ -506,18 +574,20 @@ def init_callbacks(dash_app):
         _ts2,
         _ts3,
         _ts4,
+        _ts5,
         pathname,
         inputs,
         chart_inputs,
         yaxis_data,
         map_data,
+        cs_data,
         last_chart_inputs,
     ):
         """
         dash callback controlling the building of dash charts
         """
         all_inputs = dict_merge(
-            inputs, chart_inputs, dict(yaxis=yaxis_data or {}), map_data
+            inputs, chart_inputs, dict(yaxis=yaxis_data or {}), map_data, cs_data
         )
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
@@ -658,11 +728,18 @@ def init_callbacks(dash_app):
         [
             Input("input-data", "modified_timestamp"),
             Input("map-input-data", "modified_timestamp"),
+            Input("candlestick-input-data", "modified_timestamp"),
         ],
-        [State("input-data", "data"), State("map-input-data", "data")],
+        [
+            State("input-data", "data"),
+            State("map-input-data", "data"),
+            State("candlestick-input-data", "data"),
+        ],
     )
-    def main_input_class(ts_, ts2_, inputs, map_inputs):
-        return main_inputs_and_group_val_display(dict_merge(inputs, map_inputs))
+    def main_input_class(ts_, ts2_, _ts3, inputs, map_inputs, cs_inputs):
+        return main_inputs_and_group_val_display(
+            dict_merge(inputs, map_inputs, cs_inputs)
+        )
 
     @dash_app.callback(
         [
@@ -673,6 +750,7 @@ def init_callbacks(dash_app):
             Input("chart-tabs", "value"),
             Input("group-dropdown", "value"),
             Input("map-group-dropdown", "value"),
+            Input("candlestick-group-dropdown", "value"),
         ],
         [
             State("url", "pathname"),
@@ -681,9 +759,20 @@ def init_callbacks(dash_app):
         ],
     )
     def group_values(
-        chart_type, group_cols, map_group_cols, pathname, inputs, prev_group_vals
+        chart_type,
+        group_cols,
+        map_group_cols,
+        cs_group_cols,
+        pathname,
+        inputs,
+        prev_group_vals,
     ):
-        group_cols = make_list(map_group_cols if chart_type == "maps" else group_cols)
+        group_cols = group_cols
+        if chart_type == "maps":
+            group_cols = map_group_cols
+        elif chart_type == "candlestick":
+            group_cols = cs_group_cols
+        group_cols = make_list(group_cols)
         if not show_group_input(inputs, group_cols):
             return [], None
         data_id = get_data_id(pathname)
@@ -699,7 +788,6 @@ def init_callbacks(dash_app):
             selections = [pgv for pgv in prev_group_vals if pgv in available_vals]
         if not len(selections) and len(group_vals) <= MAX_GROUPS:
             selections = available_vals
-
         return group_vals, selections
 
     @dash_app.callback(
@@ -721,3 +809,4 @@ def init_callbacks(dash_app):
 
     custom_geojson.init_callbacks(dash_app)
     drilldown_modal.init_callbacks(dash_app)
+    lock_zoom.init_callbacks(dash_app)

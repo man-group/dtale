@@ -24,6 +24,11 @@ logger = getLogger(__name__)
     help="flag to automatically open default web browser on startup",
 )
 @click.option("--name", type=str, help="name to apply to your D-Tale session")
+@click.option(
+    "--no-cell-edits",
+    is_flag=True,
+    help="flag to turn off auto-reaping (process cleanup after period of inactivity)",
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(
@@ -41,6 +46,7 @@ def main(
     no_reaper=False,
     open_browser=False,
     name=None,
+    no_cell_edits=False,
     **kwargs
 ):
     """
@@ -65,6 +71,7 @@ def main(
         reaper_on=not no_reaper,
         open_browser=open_browser,
         name=name,
+        allow_cell_edits=not no_cell_edits,
         **kwargs
     )
 

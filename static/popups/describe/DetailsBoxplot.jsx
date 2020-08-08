@@ -4,6 +4,27 @@ import React from "react";
 
 import chartUtils from "../../chartUtils";
 
+const COUNT_STATS = ["count", "missing_ct", "missing_pct"];
+const LABELS = {
+  total_count: "Total Rows",
+  count: "Count (non-nan)",
+  missing_ct: "Count (missing)",
+  missing_pct: "% Missing",
+  freq: "Frequency",
+};
+
+function buildStat(key, value) {
+  if (value !== undefined) {
+    return (
+      <div>
+        <h4 className="d-inline pr-5">{`${_.get(LABELS, key, key)}:`}</h4>
+        <span className="d-inline">{value}</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 class DetailsBoxplot extends React.Component {
   constructor(props) {
     super(props);
@@ -73,18 +94,39 @@ class DetailsBoxplot extends React.Component {
 
   render() {
     const { details } = this.props;
+    const describe = _.get(details, "describe", {});
+    const describeKeys = _.keys(_.omit(describe, _.concat(["total_count"], COUNT_STATS)));
+    let dtypeCounts = null;
+    if (details.dtype_counts) {
+      dtypeCounts = (
+        <li>
+          <h4>Dtype Counts</h4>
+          <ul>
+            {_.map(details.dtype_counts, ({ count, dtype }) => (
+              <li key={dtype}>
+                {dtype}: {count}
+              </li>
+            ))}
+          </ul>
+        </li>
+      );
+    }
     return (
       <div className="row">
         <div className="col-md-6">
           <ul>
-            {_.map(_.get(details, "describe", {}), (v, k) => (
-              <li key={k}>
-                <div>
-                  <h4 className="d-inline pr-5">{`${k}:`}</h4>
-                  <span className="d-inline">{v}</span>
-                </div>
-              </li>
+            <li>
+              {buildStat("total_count", describe.total_count)}
+              <ul>
+                {_.map(COUNT_STATS, stat => (
+                  <li key={stat}>{buildStat(stat, describe[stat])}</li>
+                ))}
+              </ul>
+            </li>
+            {_.map(describeKeys, k => (
+              <li key={k}>{buildStat("total_count", describe[k])}</li>
             ))}
+            {dtypeCounts}
           </ul>
         </div>
         <div className="col-md-6">

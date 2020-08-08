@@ -67,6 +67,10 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
             return True
         return False
 
+    if chart_type == "candlestick":
+        cs_props = ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low"]
+        return all(inputs.get(p) is not None for p in cs_props)
+
     if x is None or not len(y or []):
         return False
 

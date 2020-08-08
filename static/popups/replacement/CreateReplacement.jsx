@@ -9,6 +9,7 @@ import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
+import ColumnSaveType from "./ColumnSaveType";
 import { Imputer, validateImputerCfg } from "./Imputer";
 import { Spaces, validateSpacesCfg } from "./Spaces";
 import { Strings, validateStringsCfg } from "./Strings";
@@ -21,11 +22,6 @@ const TYPES = [
   ["spaces", "Spaces Only", colType => colType === "string"],
   ["strings", "Contains Char/Substring", colType => colType === "string"],
   ["imputer", "Scikit-Learn Imputer", colType => _.includes(["float", "int"], colType)],
-];
-
-const SAVE_TYPES = [
-  ["inplace", "Inplace"],
-  ["new", "New Column"],
 ];
 
 const TYPE_DESC = {
@@ -159,39 +155,7 @@ class ReactCreateReplacement extends React.Component {
     }
     return (
       <div key="body" className="modal-body">
-        <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Save As</label>
-          <div className="col-md-8">
-            <div className="row">
-              <div className="col-auto btn-group" style={{ height: "fit-content" }}>
-                {_.map(SAVE_TYPES, ([saveAs, label], i) => {
-                  const buttonProps = { className: "btn" };
-                  if (saveAs === this.state.saveAs) {
-                    buttonProps.className += " btn-primary active";
-                  } else {
-                    buttonProps.className += " btn-primary inactive";
-                    buttonProps.onClick = () => this.setState({ saveAs });
-                  }
-                  return (
-                    <button key={i} {...buttonProps}>
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="col">
-                {this.state.saveAs === "new" && (
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={this.state.name || ""}
-                    onChange={e => this.setState({ name: e.target.value })}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Replacement Type</label>
           <div className="col-md-8">

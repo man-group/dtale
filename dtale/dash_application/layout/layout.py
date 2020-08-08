@@ -1,5 +1,6 @@
 import json
 
+import dash_bootstrap_components as dbc
 import dash_colorscales as dcs
 import dash_core_components as dcc
 import dash_daq as daq
@@ -134,6 +135,7 @@ CHARTS = [
     dict(value="3d_scatter", label="3D Scatter"),
     dict(value="surface"),
     dict(value="maps", label="Maps"),
+    dict(value="candlestick"),
 ]
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -190,6 +192,14 @@ CHART_INPUT_SETTINGS = {
         z=dict(display=False),
         group=dict(display=False),
         map_group=dict(display=True),
+    ),
+    "candlestick": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=True),
     ),
 }
 
@@ -412,6 +422,8 @@ def show_group_input(inputs, group_cols=None):
         return len(group_cols or make_list(inputs.get("group")))
     elif show_input_handler(chart_type)("map_group"):
         return len(group_cols or make_list(inputs.get("map_group")))
+    elif show_input_handler(chart_type)("cs_group"):
+        return len(group_cols or make_list(inputs.get("cs_group")))
     return False
 
 
@@ -539,6 +551,44 @@ def build_map_options(
     return loc_options, lat_options, lon_options, val_options
 
 
+def build_candlestick_options(
+    df, cs_x=None, cs_open=None, cs_close=None, cs_high=None, cs_low=None
+):
+    dtypes = get_dtypes(df)
+    cols = sorted(dtypes.keys())
+    num_cols, x_cols = [], []
+    for c in cols:
+        dtype = dtypes[c]
+        classification = classify_type(dtype)
+        if classification in ["S", "D"]:
+            x_cols.append(c)
+        if classification in ["F", "I"]:
+            num_cols.append(c)
+
+    x_options = [build_option(c) for c in x_cols]
+    close_options = [
+        build_option(c)
+        for c in num_cols
+        if c not in build_selections(cs_x, cs_open, cs_low, cs_high)
+    ]
+    open_options = [
+        build_option(c)
+        for c in num_cols
+        if c not in build_selections(cs_x, cs_close, cs_low, cs_high)
+    ]
+    low_options = [
+        build_option(c)
+        for c in num_cols
+        if c not in build_selections(cs_x, cs_open, cs_close, cs_high)
+    ]
+    high_options = [
+        build_option(c)
+        for c in num_cols
+        if c not in build_selections(cs_x, cs_open, cs_close, cs_low)
+    ]
+    return x_options, close_options, open_options, low_options, high_options
+
+
 def build_mapbox_style_options():
     from dtale.charts.utils import get_mapbox_token
 
@@ -598,6 +648,14 @@ def animate_styles(df, **inputs):
     if len(opts):
         return dict(display="none"), dict(display="block"), opts
     return dict(display="none"), dict(display="none"), []
+
+
+def lock_zoom_style(chart_type):
+    return (
+        dict(display="block")
+        if chart_type in ["3d_scatter", "surface"]
+        else dict(display="none")
+    )
 
 
 def show_chart_per_group(**inputs):
@@ -743,6 +801,25 @@ def charts_layout(df, settings, **inputs):
     loc_options, lat_options, lon_options, map_val_options = build_map_options(
         df, type=map_type, loc=loc, lat=lat, lon=lon, map_val=map_val
     )
+    show_candlestick = chart_type == "candlestick"
+    cs_props = ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+    cs_x, cs_open, cs_close, cs_high, cs_low, cs_group = (
+        inputs.get(p) for p in cs_props
+    )
+    (
+        cs_x_options,
+        open_options,
+        close_options,
+        high_options,
+        low_options,
+    ) = build_candlestick_options(
+        df,
+        cs_x=cs_x,
+        cs_open=cs_open,
+        cs_close=cs_close,
+        cs_high=cs_high,
+        cs_low=cs_low,
+    )
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
@@ -787,6 +864,15 @@ def charts_layout(df, settings, **inputs):
                         "scope",
                         "proj",
                     ]
+                },
+            ),
+            dcc.Store(
+                id="candlestick-input-data",
+                data={
+                    k: v
+                    for k, v in inputs.items()
+                    if k
+                    in ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
                 },
             ),
             dcc.Store(id="range-data"),
@@ -909,8 +995,10 @@ def charts_layout(df, settings, **inputs):
                                         style=show_style(show_input("group")),
                                     ),
                                 ],
-                                id="non-map-inputs",
-                                style={} if not show_map else {"display": "none"},
+                                id="standard-inputs",
+                                style={}
+                                if not show_map and not show_candlestick
+                                else {"display": "none"},
                                 className="row p-0 charts-filters",
                             ),
                             html.Div(
@@ -1072,6 +1160,76 @@ def charts_layout(df, settings, **inputs):
                                 id="map-inputs",
                                 className="row charts-filters",
                                 style={} if show_map else {"display": "none"},
+                            ),
+                            html.Div(
+                                [
+                                    build_input(
+                                        "X",
+                                        dcc.Dropdown(
+                                            id="candlestick-x-dropdown",
+                                            options=cs_x_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=cs_x,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Open",
+                                        dcc.Dropdown(
+                                            id="candlestick-open-dropdown",
+                                            options=open_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=cs_open,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "High",
+                                        dcc.Dropdown(
+                                            id="candlestick-high-dropdown",
+                                            options=high_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=cs_high,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Low",
+                                        dcc.Dropdown(
+                                            id="candlestick-low-dropdown",
+                                            options=low_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=cs_low,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Close",
+                                        dcc.Dropdown(
+                                            id="candlestick-close-dropdown",
+                                            options=close_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=cs_close,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Group",
+                                        dcc.Dropdown(
+                                            id="candlestick-group-dropdown",
+                                            options=group_options,
+                                            multi=True,
+                                            placeholder="Select a group(s)",
+                                            value=inputs.get("cs_group"),
+                                            style=dict(width="inherit"),
+                                        ),
+                                        className="col",
+                                        id="candlestick-group-input",
+                                    ),
+                                ],
+                                id="candlestick-inputs",
+                                className="row charts-filters",
+                                style={} if show_candlestick else {"display": "none"},
                             ),
                             html.Div(
                                 [
@@ -1313,6 +1471,12 @@ def charts_layout(df, settings, **inputs):
                                         className="col-auto addon-min-width",
                                         style=animate_by_style,
                                         id="animate-by-input",
+                                    ),
+                                    dbc.Button(
+                                        "Lock Zoom",
+                                        id="lock-zoom-btn",
+                                        className="ml-auto",
+                                        style=lock_zoom_style(chart_type),
                                     ),
                                 ],
                                 className="row pt-3 pb-5 charts-filters",

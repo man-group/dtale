@@ -227,4 +227,4 @@ const ReduxReshape = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
 )(ReactReshape);
-export { ReactReshape, ReduxReshape as Reshape };
+export { buildForwardURL, ReactReshape, ReduxReshape as Reshape };
