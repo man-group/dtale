@@ -104,7 +104,7 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip("?")))
     else:
         params = search
-    for gp in ["y", "group", "map_group", "group_val", "yaxis"]:
+    for gp in ["y", "group", "map_group", "cs_group", "group_val", "yaxis"]:
         if gp in params:
             params[gp] = json.loads(params[gp])
     if "colorscale" in params:
@@ -149,6 +149,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
             if params.get("loc_mode") == "geojson-id":
                 base_props += ["geojson", "featureidkey"]
         base_props += ["map_group"]
+    elif chart_type == "candlestick":
+        base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
@@ -156,8 +158,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
         final_params["animate"] = "true" if params.get("animate") is True else "false"
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
         final_params["animate_by"] = params.get("animate_by")
-    list_props = ["y", "group", "map_group", "group_val"]
-    if chart_type in ["maps", "heatmap"]:
+    list_props = ["y", "group", "map_group", "cs_group", "group_val"]
+    if chart_type in ["maps", "3d_scatter", "heatmap"]:
         list_props += ["colorscale"]
     for gp in list_props:
         list_param = [val for val in params.get(gp) or [] if val is not None]
@@ -682,7 +684,7 @@ def scatter_code_builder(
         dict_merge(title, build_scatter_layout(axes_builder([y_val])[0], z),)
     )
     code.append(
-        "figure = go.Figure(data=[{data}], layout=go.{layout})".format(
+        "figure = go.Figure(data=[{data}], layout={layout})".format(
             data=data, layout=pp.pformat(layout_cfg)
         )
     )
@@ -754,7 +756,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
     )
     layout_cfg = build_layout(dict_merge(build_title(x, y[0], z=z, agg=agg), layout))
     code.append(
-        "figure = go.Figure(data=[chart], layout=go.{layout})".format(
+        "figure = go.Figure(data=[chart], layout={layout})".format(
             layout=pp.pformat(layout_cfg)
         )
     )
@@ -1119,7 +1121,7 @@ def bar_code_builder(
 
     layout_cfg = build_layout(dict_merge(title, axes, dict(barmode=barmode or "group")))
     code.append(
-        "figure = go.Figure(data=charts, layout=go.{layout})".format(
+        "figure = go.Figure(data=charts, layout={layout})".format(
             layout=pp.pformat(layout_cfg)
         )
     )
@@ -1220,13 +1222,26 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     }
     if inputs.get("animate") is True:
 
-        def build_frame(i):
+        def build_frame(i, x):
+            ct = len(x)
             for series_key, series in data["data"].items():
+                series = pd.DataFrame(series)
+                series = series.set_index("x").reindex(x, fill_value=0).reset_index()
                 for j, y2 in enumerate(y, 1):
-                    yield line_func(series)(
+                    y_vals = list(series[y2].values[:i])
+                    y_vals += [np.nan] * (ct - i)
+                    marker_size = [0] * ct
+                    marker_size[i - 1] = 20
+                    yield line_func({"x": x})(
                         **dict_merge(
                             build_line_cfg(series),
-                            {"x": series["x"][:i], "y": series[y2][:i]},
+                            {
+                                "x": x,
+                                "y": y_vals,
+                                "mode": "markers+lines",
+                                "marker": {"size": marker_size},
+                            },
+                            # {"x": x, "y": y_vals},
                             name_builder(y2, series_key),
                             {}
                             if j == 1 or not multi_yaxis
@@ -1234,10 +1249,24 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                         )
                     )
 
-        x_data = next(iter(data["data"].values()), {}).get("x", [])
+        x_data = flatten_lists([series["x"] for series in data["data"].values()])
+        x_data = sorted(set(x_data))
+        figure_cfg["layout"]["xaxis_range"] = [x_data[0], x_data[-1]]
+        figure_cfg["layout"]["xaxis_autorange"] = False
+        min_y, max_y = (0, 0)
+        for series in data["data"].values():
+            for y2 in y:
+                curr_min = min(series[y2])
+                if curr_min < min_y:
+                    min_y = curr_min
+                curr_max = max(series[y2])
+                if curr_max > max_y:
+                    max_y = curr_max
+        figure_cfg["layout"]["yaxis_range"] = [min_y, max_y]
+        figure_cfg["layout"]["yaxis_autorange"] = False
         frames, slider_steps = [], []
         for i, x in enumerate(x_data, 1):
-            frames.append(dict(data=list(build_frame(i)), name=x))
+            frames.append(dict(data=list(build_frame(i, x_data)), name=x))
             slider_steps.append(x)
 
         update_cfg_w_frames(figure_cfg, "Date", frames, slider_steps)
@@ -1296,6 +1325,12 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
 
     name_builder = build_series_name(y, True)
 
+    def build_pie_layout(layout_cfg, series):
+        if len(series["x"]) > 5:
+            layout_cfg.pop("legend", None)
+            layout_cfg["showlegend"] = False
+        return layout_cfg
+
     def build_pie_code():
         series_key = next(iter(data["data"]), None)
         series = data["data"][series_key]
@@ -1313,10 +1348,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                 y[0]
             )
         )
-        layout_cfg = build_layout(title)
-        if len(series["x"]) > 5:
-            layout_cfg.pop("legend", None)
-            layout_cfg["showlegend"] = False
+        layout_cfg = build_pie_layout(build_layout(title), series)
         name = name_builder(y[0], series_key)
         name = ", name='{}'".format(name["name"]) if len(name) else ""
         pp = pprint.PrettyPrinter(indent=4)
@@ -1324,7 +1356,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
             (
                 "\nimport plotly.graph_objects as go\n\n"
                 "chart = go.Pie(labels=chart_data['x'], y=chart_data['{y}']{name})\n"
-                "figure = go.Figure(data=[chart], layout=go.{layout})"
+                "figure = go.Figure(data=[chart], layout={layout})"
             ).format(y=y[0], name=name, layout=pp.pformat(layout_cfg))
         )
         return code
@@ -1340,9 +1372,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                 layout = build_layout(
                     build_title(x, y2, group=series_key, agg=inputs.get("agg"))
                 )
-                if len(series["x"]) > 5:
-                    layout.pop("legend", None)
-                    layout["showlegend"] = False
+                layout = build_pie_layout(layout, series)
                 chart = wrapper(
                     graph_wrapper(
                         figure={
@@ -1406,7 +1436,7 @@ def heatmap_builder(data_id, export=False, **inputs):
     :param inputs: Optional keyword arguments containing the following information:
         - x: column to be used as x-axis of chart
         - y: column to be used as y-axis of chart
-        - z: column to use for the Z-Axis
+        - z: column to use for the z-Axis
         - agg: points to a specific function that can be applied to :func: pandas.core.groupby.DataFrameGroupBy
     :type inputs: dict
     :return: heatmap
@@ -1608,7 +1638,7 @@ def heatmap_builder(data_id, export=False, **inputs):
         )
 
         code.append(
-            "figure = go.Figure(data=[chart], layout=go.{layout})".format(
+            "figure = go.Figure(data=[chart], layout={layout})".format(
                 layout=pp.pformat(layout_cfg)
             )
         )
@@ -1629,6 +1659,140 @@ def heatmap_builder(data_id, export=False, **inputs):
                 figure_cfg, animate_by, *build_map_frames(data, animate_by, build_frame)
             )
 
+        chart = graph_wrapper(
+            style={"margin-right": "auto", "margin-left": "auto"},
+            figure=figure_cfg,
+            modal=inputs.get("modal", False),
+        )
+        if export:
+            return chart
+        return wrapper(chart), code
+    except BaseException as e:
+        return build_error(e, traceback.format_exc()), code
+
+
+def candlestick_builder(data_id, export=False, **inputs):
+    """
+    Builder function for :plotly:`plotly.graph_objects.Candlestick <plotly.graph_objects.Candlestick>`
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param inputs: Optional keyword arguments containing the following information:
+        - x: column to be used as x-axis of chart
+        - open: column to be used as open
+        - close: column to used as close
+        - high: column to used as high
+        - low: column to used as low
+        - agg: points to a specific function that can be applied to :func: pandas.core.groupby.DataFrameGroupBy
+    :type inputs: dict
+    :return: candlestick chart
+    :rtype: :plotly:`plotly.graph_objects.Candlestick <plotly.graph_objects.Candlestick>`
+    """
+    code = None
+    try:
+        if not valid_chart(**inputs):
+            return None, None
+        query = inputs.get("query")
+        raw_data = run_query(
+            global_state.get_data(data_id),
+            query,
+            global_state.get_context_variables(data_id),
+        )
+        code = build_code_export(data_id, query=query)
+        wrapper = chart_wrapper(data_id, raw_data, inputs)
+        x, cs_open, cs_close, high, low, group, agg = (
+            inputs.get(p)
+            for p in [
+                "cs_x",
+                "cs_open",
+                "cs_close",
+                "cs_high",
+                "cs_low",
+                "cs_group",
+                "agg",
+            ]
+        )
+
+        data, chart_code = retrieve_chart_data(
+            raw_data, x, cs_open, cs_close, high, low, group
+        )
+        code += chart_code
+        data = data.sort_values([x])
+        code.append("chart_data = chart_data.sort_values(['{x}'])".format(x=x))
+        check_all_nan(data)
+        dupe_cols = [x] + make_list(group)
+        if agg is not None:
+            data, agg_code = build_agg_data(
+                data, x, [cs_open, cs_close, high, low], inputs, agg, group_col=group,
+            )
+            code += agg_code
+        if not len(data):
+            raise Exception("No data returned for this computation!")
+        check_exceptions(data[dupe_cols], agg in ["corr", "raw"], unlimited_data=True)
+        data = data.dropna(subset=dupe_cols)
+        data_f, _ = chart_formatters(data)
+        data = data_f.format_df(data)
+        x_data = sorted(data[x].unique())
+        if group:  # TODO: add chart-per-group
+            data = [
+                go.Candlestick(
+                    x=g[x],
+                    open=g[cs_open],
+                    close=g[cs_close],
+                    high=g[high],
+                    low=g[low],
+                    name=name,
+                )
+                for name, g in data.groupby(group)
+            ]
+            candlestick_str = (
+                "chart = [\n"
+                "\tgo.Candlestick(\n"
+                "\t\tx=g['{x}'], open=g['{cs_open}'], close=g['{cs_close}'],\n"
+                "\t\thigh=g['{high}'], low=g['{low}], name=name\n"
+                "\t)\n"
+                "for name, g in chart_data.groupby('{group}')\n"
+                "]"
+            ).format(
+                x=x, cs_open=cs_open, cs_close=cs_close, high=high, low=low, group=group
+            )
+        else:
+            data = [
+                go.Candlestick(
+                    x=data[x],
+                    open=data[cs_open],
+                    close=data[cs_close],
+                    high=data[high],
+                    low=data[low],
+                )
+            ]
+            candlestick_str = (
+                "chart = [go.Candlestick(\n"
+                "\tx=chart_data['{x}'], open=chart_data['{cs_open}'], close=chart_data['{cs_close}'],\n"
+                "\thigh=chart_data['{high}'], low=chart_data['{low}],\n"
+                ")]"
+            ).format(x=x, cs_open=cs_open, cs_close=cs_close, high=high, low=low)
+
+        layout_cfg = build_layout(
+            dict(
+                xaxis=dict_merge(
+                    dict(type="category"), build_spaced_ticks(x_data, mode="array")
+                ),
+                legend=dict(
+                    orientation="h", yanchor="top", y=1.1, xanchor="right", x=0.99
+                ),
+            )
+        )
+
+        pp = pprint.PrettyPrinter(indent=4)
+        code.append("\nimport plotly.graph_objects as go\n\n")
+        code.append(candlestick_str)
+        code.append(
+            "figure = go.Figure(data=[chart], layout={layout})".format(
+                layout=pp.pformat(layout_cfg)
+            )
+        )
+        figure_cfg = {"data": data, "layout": layout_cfg}
         chart = graph_wrapper(
             style={"margin-right": "auto", "margin-left": "auto"},
             figure=figure_cfg,
@@ -2233,6 +2397,8 @@ def build_chart(data_id=None, data=None, **inputs):
         - wordcloud
         - 3D scatter
         - surface
+        - maps (choropleth, scattergeo, mapbox)
+        - candlestick
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -2255,6 +2421,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "maps":
             chart, code = map_builder(data_id, **inputs)
+            return chart, None, code
+
+        if chart_type == "candlestick":
+            chart, code = candlestick_builder(data_id, **inputs)
             return chart, None, code
 
         data, code = build_figure_data(data_id, data=data, **inputs)

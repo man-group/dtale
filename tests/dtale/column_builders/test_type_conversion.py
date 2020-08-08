@@ -55,6 +55,32 @@ def test_from_string():
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == 1.5)
 
+    df = pd.DataFrame(
+        dict(
+            a=[1, 2, 3, "", 5, 6, 7, 8, 9, 10],
+            b=[True, True, False, "", "False", True, False, True, False, True],
+            c=["1", "00", "1.05", " ", " ", "", "02", "..", "none", "nan"],
+        )
+    )
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "a", "to": "float", "from": "mixed-integer"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.sum() == 51)
+        assert np.isnan(builder.build_column().values[3])
+
+        cfg = {"col": "b", "to": "bool", "from": "mixed-integer"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.sum() == 5)
+        assert np.isnan(builder.build_column().values[3])
+
+        cfg = {"col": "c", "to": "float", "from": "str"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(
+            builder, lambda col: col.sum() == 4.05 and col.isnull().sum() == 6
+        )
+
 
 @pytest.mark.unit
 def test_from_object():

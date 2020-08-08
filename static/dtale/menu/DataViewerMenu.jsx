@@ -13,6 +13,7 @@ import DescribeOption from "./DescribeOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
 import RangeHighlightOption from "./RangeHighlightOption";
+import UploadOption from "./UploadOption";
 import { XArrayOption } from "./XArrayOption";
 import menuFuncs from "./dataViewerMenuUtils";
 
@@ -201,6 +202,7 @@ class ReactDataViewerMenu extends React.Component {
             </div>
             <div className="hoverable__content menu-description">{Descriptions.export}</div>
           </li>
+          <UploadOption open={openPopup("upload", 450)} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={refreshWidths}>

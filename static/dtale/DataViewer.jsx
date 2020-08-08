@@ -222,7 +222,7 @@ class ReactDataViewer extends React.Component {
   render() {
     const { formattingOpen } = this.state;
     return (
-      <div key={1} style={{ height: "100%", width: "100%" }} onClick={this.handleClicks}>
+      <div key={1} className="h-100 w-100" {...(this.props.allowCellEdits ? { onClick: this.handleClicks } : {})}>
         <DtaleHotkeys propagateState={this.propagateState} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
@@ -284,10 +284,11 @@ ReactDataViewer.propTypes = {
   closeColumnMenu: PropTypes.func,
   openChart: PropTypes.func,
   editCell: PropTypes.func,
+  allowCellEdits: PropTypes.bool,
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe }) => ({ dataId, iframe }),
+  ({ dataId, iframe, allowCellEdits }) => ({ dataId, iframe, allowCellEdits }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),

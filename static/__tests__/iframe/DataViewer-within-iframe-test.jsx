@@ -89,8 +89,8 @@ describe("DataViewer within iframe tests", () => {
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Correlations", "Charts"],
         ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
-        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Refresh Widths", "About", "Reload Data"],
-        ["Open In New Tab", "Shutdown"]
+        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Upload CSV", "Refresh Widths", "About"],
+        ["Reload Data", "Open In New Tab", "Shutdown"]
       )
     );
     clickMainMenuButton(result, "Open In New Tab");

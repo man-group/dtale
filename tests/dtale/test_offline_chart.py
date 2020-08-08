@@ -24,9 +24,10 @@ def test_build_file(test_data, state_data, scattergeo_data):
         stack.enter_context(mock.patch("dtale.views.open", mock_open()))
 
         output = offline_chart(
-            test_data, chart_type="bar", x="date", y="foo", agg="sum"
+            test_data, chart_type="bar", x="date", y="foo", agg="sum", title="My Title"
         )
         assert output is not None
+        assert "My Title" in output
         output = offline_chart(
             test_data, chart_type="bar", x="date", y="foo", agg="sum", filepath="foo"
         )

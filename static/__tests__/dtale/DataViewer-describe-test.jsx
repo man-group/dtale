@@ -15,7 +15,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 describe("DataViewer tests", () => {
   const { post } = $;
   const { close, opener } = window;
-  let result, DtypesGrid, Details, Describe, DescribeFilters, DetailsCharts, ColumnAnalysisChart;
+  let result, DtypesGrid, Details, Describe, DescribeFilters, DetailsCharts, ColumnAnalysisChart, CategoryInputs;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -67,6 +67,7 @@ describe("DataViewer tests", () => {
     DescribeFilters = require("../../popups/analysis/filters/DescribeFilters").DescribeFilters;
     DetailsCharts = require("../../popups/describe/DetailsCharts").default;
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
+    CategoryInputs = require("../../popups/analysis/filters/CategoryInputs").default;
   });
 
   beforeEach(async () => {
@@ -135,6 +136,9 @@ describe("DataViewer tests", () => {
       .findWhere(btn => btn.text() === "Categories")
       .first()
       .simulate("click");
+    await tickUpdate(result);
+    expect(result.find("div.missing-category")).toHaveLength(1);
+    result.find(CategoryInputs).first().instance().props.updateCategory("categoryCol", "foo");
     await tickUpdate(result);
     expect(result.find(ColumnAnalysisChart)).toHaveLength(1);
   });

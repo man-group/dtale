@@ -8,6 +8,7 @@ import { RemovableError } from "../../RemovableError";
 import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
+import ColumnSaveType from "../replacement/ColumnSaveType";
 import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
@@ -16,36 +17,15 @@ import { CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
 import { CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
 import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
+import * as createUtils from "./createUtils";
 import Descriptions from "./creation-descriptions.json";
 
 require("./CreateColumn.css");
 
-const TYPES = _.concat(
-  ["numeric", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  []
-);
-const LABELS = { zscore_normalize: "Z-Score Normalize" };
-
-function buildLabel(v) {
-  if (_.has(LABELS, v)) {
-    return LABELS[v];
-  }
-  return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
-}
-
-const BASE_STATE = {
-  type: "numeric",
-  name: "",
-  cfg: null,
-  code: {},
-  loadingColumns: true,
-  loadingColumn: false,
-};
-
 class ReactCreateColumn extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, BASE_STATE);
+    this.state = _.assign({}, createUtils.BASE_STATE);
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
     this.renderCode = this.renderCode.bind(this);
@@ -64,16 +44,20 @@ class ReactCreateColumn extends React.Component {
   }
 
   save() {
-    const { name, type, cfg } = this.state;
-    if (name === "") {
-      this.setState({ error: <RemovableError error="Name is required!" /> });
-      return;
-    }
-    if (_.find(this.state.columns, { name })) {
-      this.setState({
-        error: <RemovableError error={`The column '${name}' already exists!`} />,
-      });
-      return;
+    const { name, saveAs, type, cfg } = this.state;
+    let createParams = { saveAs };
+    if (saveAs === "new") {
+      if (!name) {
+        this.setState({ error: <RemovableError error="Name is required!" /> });
+        return;
+      }
+      if (_.find(this.state.columns, { name })) {
+        this.setState({
+          error: <RemovableError error={`The column '${name}' already exists!`} />,
+        });
+        return;
+      }
+      createParams.name = name;
     }
     let error = null;
     switch (type) {
@@ -108,7 +92,7 @@ class ReactCreateColumn extends React.Component {
       return;
     }
     this.setState({ loadingColumn: true });
-    const createParams = { name, type, cfg: JSON.stringify(cfg) };
+    createParams = { ...createParams, type, cfg: JSON.stringify(cfg) };
     fetchJson(buildURLString(`/dtale/build-column/${this.props.dataId}?`, createParams), data => {
       if (data.error) {
         this.setState({
@@ -166,21 +150,26 @@ class ReactCreateColumn extends React.Component {
     }
     return (
       <div key="body" className="modal-body">
-        <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Name</label>
-          <div className="col-md-8">
-            <input
-              type="text"
-              className="form-control"
-              value={this.state.name || ""}
-              onChange={e => this.setState({ name: e.target.value })}
-            />
+        {this.state.type !== "type_conversion" && (
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">Name</label>
+            <div className="col-md-8">
+              <input
+                type="text"
+                className="form-control"
+                value={this.state.name || ""}
+                onChange={e => this.setState({ name: e.target.value })}
+              />
+            </div>
           </div>
-        </div>
+        )}
+        {this.state.type === "type_conversion" && (
+          <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
+        )}
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Column Type</label>
           <div className="col-md-8 builders">
-            {_.map(_.chunk(TYPES, 6), (typeRow, i) => (
+            {_.map(_.chunk(createUtils.TYPES, 6), (typeRow, i) => (
               <div key={i} className="btn-group row ml-0">
                 {_.map(typeRow, (type, j) => {
                   const buttonProps = { className: "btn" };
@@ -192,11 +181,14 @@ class ReactCreateColumn extends React.Component {
                     if (type === "random") {
                       updatedState.cfg = { type: "float" };
                     }
+                    if (type !== "type_conversion") {
+                      updatedState.saveAs = "new";
+                    }
                     buttonProps.onClick = () => this.setState(updatedState);
                   }
                   return (
                     <button key={`${i}-${j}`} {...buttonProps}>
-                      {buildLabel(type)}
+                      {createUtils.buildLabel(type)}
                     </button>
                   );
                 })}

@@ -1,3 +1,4 @@
+import base64
 import json
 from builtins import str
 
@@ -62,7 +63,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(locked=["date", "security_id"]),
+        dict(allow_cell_edits=True, locked=["date", "security_id"]),
         "should lock index columns",
     )
 
@@ -70,11 +71,13 @@ def test_startup(unittest):
     with pytest.raises(DuplicateDataError):
         views.startup(URL, data=test_data)
 
-    instance = views.startup(URL, data=test_data, ignore_duplicate=True)
+    instance = views.startup(
+        URL, data=test_data, ignore_duplicate=True, allow_cell_edits=False
+    )
     pdt.assert_frame_equal(instance.data, test_data)
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(locked=[]),
+        dict(allow_cell_edits=False, locked=[]),
         "no index = nothing locked",
     )
 
@@ -84,7 +87,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(locked=["security_id"]),
+        dict(allow_cell_edits=True, locked=["security_id"]),
         "should lock index columns",
     )
 
@@ -93,7 +96,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(locked=[]),
+        dict(allow_cell_edits=True, locked=[]),
         "should lock index columns",
     )
 
@@ -102,7 +105,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(locked=[]),
+        dict(allow_cell_edits=True, locked=[]),
         "should lock index columns",
     )
 
@@ -140,6 +143,11 @@ def test_startup(unittest):
     with pytest.raises(Exception) as error:
         views.startup(URL, data_loader=lambda: test_data)
     assert "data contains duplicated column names: a" in str(error)
+
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+    test_data = test_data.set_index("a")
+    views.startup(URL, data=test_data, inplace=True, drop_index=True)
+    assert "a" not in test_data.columns
 
 
 @pytest.mark.unit
@@ -785,7 +793,9 @@ def test_reshape(custom_data, unittest):
             stack.enter_context(mock.patch("dtale.global_state.DATA", data))
             stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
             stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
-            reshape_cfg = dict(index="date", columns="security_id", values=["Col0"])
+            reshape_cfg = dict(
+                index=["date"], columns=["security_id"], values=["Col0"], aggfunc="mean"
+            )
             resp = c.get(
                 "/dtale/reshape/{}".format(c.port),
                 query_string=dict(
@@ -951,6 +961,10 @@ def test_reshape(custom_data, unittest):
 def test_dtypes(test_data):
     from dtale.views import build_dtypes_state, format_data
 
+    test_data = test_data.copy()
+    test_data.loc[:, "mixed_col"] = 1
+    test_data.loc[0, "mixed_col"] = "x"
+
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(
@@ -988,7 +1002,8 @@ def test_dtypes(test_data):
 
             response = c.get("/dtale/describe/{}/{}".format(c.port, "a"))
             response_data = json.loads(response.data)
-            assert response_data["uniques"]["top"]
+            uniq_key = list(response_data["uniques"].keys())[0]
+            assert response_data["uniques"][uniq_key]["top"]
             assert response_data["success"]
 
     with app.test_client() as c:
@@ -1530,6 +1545,7 @@ def test_get_column_analysis(unittest, test_data):
                     "mean": "1",
                     "missing_ct": 0,
                     "missing_pct": 0.0,
+                    "total_count": 50,
                 },
                 cols=None,
                 chart_type="histogram",
@@ -1562,6 +1578,7 @@ def test_get_column_analysis(unittest, test_data):
                     "mean": "1",
                     "missing_ct": 0,
                     "missing_pct": 0.0,
+                    "total_count": 50,
                 },
                 chart_type="histogram",
                 dtype="int64",
@@ -1593,6 +1610,7 @@ def test_get_column_analysis(unittest, test_data):
                     "mean": "1",
                     "missing_ct": 0,
                     "missing_pct": 0.0,
+                    "total_count": 39,
                 },
                 chart_type="histogram",
                 dtype="int64",
@@ -3096,3 +3114,39 @@ def test_build_dtypes_state(test_data):
 
     state = views.build_dtypes_state(test_data.set_index("security_id").T)
     assert all("min" not in r and "max" not in r for r in state)
+
+
+def build_upload_data(
+    fname="/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+):
+    with open(fname, "r") as f:
+        data = f.read()
+    data = base64.b64encode(data.encode("utf-8"))
+    return "data:text/csv;base64," + data.decode("utf-8")
+
+
+@pytest.mark.unit
+def test_upload():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+
+            resp = c.post("/dtale/upload")
+            assert not resp.get_json()["success"]
+
+            c.post(
+                "/dtale/upload",
+                data={"contents": build_upload_data(), "filename": "test_df.csv"},
+            )
+            assert len(data) == 2
+            new_key = next((k for k in data if k != c.port), None)
+            assert list(data[new_key].columns) == ["a", "b", "c"]

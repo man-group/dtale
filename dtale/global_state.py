@@ -15,6 +15,7 @@ SETTINGS = {}
 METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
+ALLOW_CELL_EDITS = True
 
 
 def drop_punctuation(val):

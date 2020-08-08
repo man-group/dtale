@@ -69,7 +69,7 @@ def test_display_page(unittest):
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-            x_dd = component_defs[10]["props"]["children"][0]
+            x_dd = component_defs[11]["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
@@ -126,9 +126,9 @@ def test_input_changes(unittest):
             params = {
                 "output": (
                     "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
-                    "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options."
-                    "..yaxis-dropdown.options...non-map-inputs.style...map-inputs.style...colorscale-input.style."
-                    "..drilldown-input.style.."
+                    "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
+                    "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...colorscale-input.style."
+                    "..drilldown-input.style...lock-zoom-btn.style.."
                 ),
                 "changedPropIds": ["chart-tabs.value"],
                 "inputs": [
@@ -309,6 +309,11 @@ def test_group_values(unittest):
                     {"id": "chart-tabs", "property": "value", "value": None},
                     {"id": "group-dropdown", "property": "value", "value": None},
                     {"id": "map-group-dropdown", "property": "value", "value": None},
+                    {
+                        "id": "candlestick-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
                 ],
                 "state": [
                     pathname,
@@ -324,21 +329,31 @@ def test_group_values(unittest):
             params["inputs"][0]["value"] = "line"
             params["inputs"][1]["value"] = ["c"]
             params["state"][1]["value"] = dict(chart_type="line")
+            expected = {
+                "group-val-dropdown": {
+                    "options": [
+                        {"label": "7", "value": '{"c": 7}'},
+                        {"label": "8", "value": '{"c": 8}'},
+                        {"label": "9", "value": '{"c": 9}'},
+                    ],
+                    "value": ['{"c": 7}', '{"c": 8}', '{"c": 9}'],
+                }
+            }
 
             response = c.post("/charts/_dash-update-component", json=params)
-            unittest.assertEqual(
-                response.get_json()["response"],
-                {
-                    "group-val-dropdown": {
-                        "options": [
-                            {"label": "7", "value": '{"c": 7}'},
-                            {"label": "8", "value": '{"c": 8}'},
-                            {"label": "9", "value": '{"c": 9}'},
-                        ],
-                        "value": ['{"c": 7}', '{"c": 8}', '{"c": 9}'],
-                    }
-                },
-            )
+            unittest.assertEqual(response.get_json()["response"], expected)
+
+            params["inputs"][0]["value"] = "maps"
+            params["inputs"][1]["value"] = None
+            params["inputs"][2]["value"] = ["c"]
+            response = c.post("/charts/_dash-update-component", json=params)
+            unittest.assertEqual(response.get_json()["response"], expected)
+
+            params["inputs"][0]["value"] = "candlestick"
+            params["inputs"][2]["value"] = None
+            params["inputs"][3]["value"] = ["c"]
+            response = c.post("/charts/_dash-update-component", json=params)
+            unittest.assertEqual(response.get_json()["response"], expected)
 
             params["state"][2]["value"] = ['{"c": 7}']
             response = c.post("/charts/_dash-update-component", json=params)
@@ -355,7 +370,11 @@ def test_main_input_styling(unittest):
         params = {
             "output": "..group-val-input.style...main-inputs.className..",
             "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [ts_builder("input-data"), ts_builder("map-input-data")],
+            "inputs": [
+                ts_builder("input-data"),
+                ts_builder("map-input-data"),
+                ts_builder("candlestick-input-data"),
+            ],
             "state": [
                 {
                     "id": "input-data",
@@ -363,6 +382,7 @@ def test_main_input_styling(unittest):
                     "value": {"chart_type": "maps"},
                 },
                 {"id": "map-input-data", "property": "data", "value": {}},
+                {"id": "candlestick-input-data", "property": "data", "value": {}},
             ],
         }
         response = c.post("/charts/_dash-update-component", json=params)
@@ -758,7 +778,13 @@ def build_dash_request(output, changed_prop_id, inputs, state):
 
 
 def build_chart_params(
-    pathname, inputs={}, chart_inputs={}, yaxis={}, last_inputs={}, map_inputs={}
+    pathname,
+    inputs={},
+    chart_inputs={},
+    yaxis={},
+    last_inputs={},
+    map_inputs={},
+    cs_inputs={},
 ):
     return build_dash_request(
         (
@@ -768,7 +794,13 @@ def build_chart_params(
         "input-data.modified_timestamp",
         [
             ts_builder(k)
-            for k in ["input-data", "chart-input-data", "yaxis-data", "map-input-data"]
+            for k in [
+                "input-data",
+                "chart-input-data",
+                "yaxis-data",
+                "map-input-data",
+                "candlestick-input-data",
+            ]
         ],
         [
             pathname,
@@ -776,6 +808,7 @@ def build_chart_params(
             {"id": "chart-input-data", "property": "data", "value": chart_inputs},
             {"id": "yaxis-data", "property": "data", "value": yaxis},
             {"id": "map-input-data", "property": "data", "value": map_inputs},
+            {"id": "candlestick-input-data", "property": "data", "value": cs_inputs},
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
         ],
     )
@@ -1142,10 +1175,12 @@ def test_chart_building_line(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_pie(unittest):
+def test_chart_building_pie():
     import dtale.views as views
 
-    df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+    df = pd.DataFrame(
+        dict(a=[1, 2, 3, 4, 5, 6], b=[7, 8, 9, 10, 11, 12], c=[13, 14, 15, 16, 17, 18])
+    )
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -1165,7 +1200,7 @@ def test_chart_building_pie(unittest):
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 2
+            assert len(resp_data["chart-content"]["children"]) == 3
 
             inputs["group"] = None
             chart_inputs["cpg"] = False
@@ -1689,6 +1724,135 @@ def test_chart_building_map_mapbox(unittest, scattergeo_data):
 
 
 @pytest.mark.unit
+def test_candlestick_data(unittest):
+    import dtale.views as views
+
+    df = pd.DataFrame(
+        dict(
+            x=[pd.Timestamp("20200101"), pd.Timestamp("20200101")],
+            symbol=["a", "b"],
+            open=[1, 2],
+            close=[1, 2],
+            high=[1, 2],
+            low=[1, 2],
+        )
+    )
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            params = {
+                "output": (
+                    "..candlestick-input-data.data...candlestick-x-dropdown.options."
+                    "..candlestick-open-dropdown.options...candlestick-close-dropdown.options."
+                    "..candlestick-high-dropdown.options...candlestick-low-dropdown.options.."
+                ),
+                "changedPropIds": ["candlestick-x-dropdown.value"],
+                "inputs": [
+                    {"id": "candlestick-x-dropdown", "property": "value", "value": "x"},
+                    {
+                        "id": "candlestick-open-dropdown",
+                        "property": "value",
+                        "value": "open",
+                    },
+                    {
+                        "id": "candlestick-close-dropdown",
+                        "property": "value",
+                        "value": "close",
+                    },
+                    {
+                        "id": "candlestick-high-dropdown",
+                        "property": "value",
+                        "value": "high",
+                    },
+                    {
+                        "id": "candlestick-low-dropdown",
+                        "property": "value",
+                        "value": "low",
+                    },
+                    {
+                        "id": "candlestick-group-dropdown",
+                        "property": "value",
+                        "value": ["symbol"],
+                    },
+                ],
+                "state": [pathname],
+            }
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            unittest.assertEqual(
+                resp_data["candlestick-input-data"]["data"],
+                {
+                    "cs_x": "x",
+                    "cs_open": "open",
+                    "cs_close": "close",
+                    "cs_high": "high",
+                    "cs_low": "low",
+                    "cs_group": ["symbol"],
+                },
+            )
+
+
+@pytest.mark.unit
+def test_chart_building_candlestick():
+    import dtale.views as views
+
+    df = pd.DataFrame(
+        dict(
+            x=[pd.Timestamp("20200101"), pd.Timestamp("20200101")],
+            symbol=["a", "b"],
+            open=[1, 2],
+            close=[1, 2],
+            high=[1, 2],
+            low=[1, 2],
+        )
+    )
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(df)
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                "chart_type": "candlestick",
+                "agg": "mean",
+            }
+            chart_inputs = {}
+            cs_inputs = {
+                "cs_x": "x",
+                "cs_open": "open",
+                "cs_close": "close",
+                "cs_high": "high",
+                "cs_low": "low",
+                "cs_group": ["symbol"],
+            }
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            print_traceback(response)
+            assert len(resp_data["chart-content"]["children"]) == 3
+
+            inputs["query"] = "symbol == 'a'"
+            cs_inputs["cs_group"] = None
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert len(resp_data["chart-content"]["children"]) == 3
+
+            inputs["query"] = "symbol == 'c'"
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            exception = print_traceback(response, return_output=True)
+            assert "found no data" in exception
+
+
+@pytest.mark.unit
 def test_load_chart_error():
     import dtale.views as views
 
@@ -1742,7 +1906,7 @@ def test_load_chart_error():
 
 
 @pytest.mark.unit
-def test_display_error(unittest):
+def test_display_error():
     import dtale.views as views
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
@@ -2144,3 +2308,39 @@ def test_build_series_name():
 
     handler = build_series_name(["foo", "bar"], chart_per_group=False)
     assert handler("foo", "bizz")["name"] == "bizz/foo"
+
+
+@pytest.mark.unit
+def test_build_loc_mode_hover_children():
+    from dtale.dash_application.layout.layout import build_loc_mode_hover_children
+
+    hover = build_loc_mode_hover_children("ISO-3")
+    assert len(hover[1].children) == 2
+    hover = build_loc_mode_hover_children("geojson-id")
+    assert len(hover[1].children) == 1
+
+
+@pytest.mark.unit
+def test_chart_url_params():
+    from dtale.dash_application.charts import chart_url_querystring, chart_url_params
+    from dtale.dash_application.layout.layout import REDS
+
+    def test_parsing(params):
+        search = chart_url_querystring(params)
+        parsed_params = chart_url_params(search)
+        for k in params:
+            assert parsed_params[k] == params[k]
+
+    params = dict(chart_type="3d_scatter", x="x", y=["y"], z="z", colorscale=REDS)
+    test_parsing(params)
+
+    params = dict(
+        chart_type="candlestick",
+        cs_x="x",
+        cs_close="close",
+        cs_open="open",
+        cs_high="high",
+        cs_low="low",
+        cs_group=["group"],
+    )
+    test_parsing(params)

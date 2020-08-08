@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pandas as pd
 from scipy.stats import mstats
+from six import string_types
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type
@@ -351,7 +352,32 @@ class TypeConversionColumnBuilder(object):
                 return pd.Series(
                     s.astype("float").astype("int"), name=self.name, index=s.index
                 )
+            elif to_type == "float":
+                return pd.Series(
+                    pd.to_numeric(s, errors="coerce"), name=self.name, index=s.index
+                )
             else:
+                if from_type.startswith("mixed"):
+                    if to_type == "float":
+                        return pd.Series(
+                            pd.to_numeric(s, errors="coerce"),
+                            name=self.name,
+                            index=s.index,
+                        )
+                    elif to_type == "bool":
+
+                        def _process_mixed_bool(v):
+                            if isinstance(v, bool):
+                                return v
+                            if isinstance(v, string_types):
+                                return dict(true=True, false=False).get(
+                                    v.lower(), np.nan
+                                )
+                            return np.nan
+
+                        return pd.Series(
+                            s.apply(_process_mixed_bool), name=self.name, index=s.index
+                        )
                 return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "I":  # date, float, category, str, bool
             if to_type == "date":
@@ -405,7 +431,27 @@ class TypeConversionColumnBuilder(object):
                 return "pd.Series({s}.astype('float').astype('int'), name='{name}', index={s}.index)".format(
                     s=s, name=self.name
                 )
+            elif to_type == "float":
+                return "pd.Series(pd.to_numeric({s}, errors='coerce'), name='{name}', index={s}.index)".format(
+                    s=s, name=self.name
+                )
             else:
+                if from_type.startswith("mixed"):
+                    if to_type == "float":
+                        return "pd.Series(pd.to_numeric({s}, errors='coerce'), name='{name}', index={s}.index)".format(
+                            s=s, name=self.name
+                        )
+                    elif to_type == "bool":
+                        return (
+                            "def _process_mixed_bool(v):\n"
+                            "from six import string_types\n\n"
+                            "\tif isinstance(v, bool):\n"
+                            "\t\treturn v\n"
+                            "\tif isinstance(v, string_types):\n"
+                            "\t\treturn dict(true=True, false=False).get(v.lower(), np.nan)\n"
+                            "\treturn np.nan\n\n"
+                            "pd.Series({s}.apply(_process_mixed_bool), name='{name}', index={s}.index)"
+                        ).format(s=s, name=self.name)
                 return "pd.Series({s}.astype({to_type}), name='{name}', index={s}.index)".format(
                     s=s, to_type=to_type, name=self.name
                 )

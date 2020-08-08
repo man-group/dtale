@@ -17,14 +17,17 @@ def test_show_csv():
 
     csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
 
-    with mock.patch("dtale.cli.loaders.csv_loader.show", mock.Mock()):
+    mock_show = mock.Mock()
+    with mock.patch("dtale.cli.loaders.csv_loader.show", mock_show):
         dtale.show_csv(path=csv_path)
+        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.reset_mock()
 
     with open(csv_path, "r") as f:
         csv_txt = f.read()
         with ExitStack() as stack:
             stack.enter_context(
-                mock.patch("dtale.cli.loaders.csv_loader.show", mock.Mock())
+                mock.patch("dtale.cli.loaders.csv_loader.show", mock_show)
             )
 
             class MockRequest(object):
@@ -36,7 +39,11 @@ def test_show_csv():
                 mock.patch("requests.get", mock.Mock(return_value=MockRequest()))
             )
             dtale.show_csv(path="http://test-csv")
+            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.reset_mock()
             dtale.show_csv(path="http://test-csv", proxy="http://test-proxy")
+            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.reset_mock()
 
 
 @pytest.mark.unit
@@ -45,14 +52,17 @@ def test_show_json():
 
     json_path = "/../".join([os.path.dirname(__file__), "data/test_df.json"])
 
-    with mock.patch("dtale.cli.loaders.json_loader.show", mock.Mock()):
+    mock_show = mock.Mock()
+    with mock.patch("dtale.cli.loaders.json_loader.show", mock_show):
         dtale.show_json(path=json_path)
+        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.reset_mock()
 
     with open(json_path, "r") as f:
         json_txt = f.read()
         with ExitStack() as stack:
             stack.enter_context(
-                mock.patch("dtale.cli.loaders.json_loader.show", mock.Mock())
+                mock.patch("dtale.cli.loaders.json_loader.show", mock_show)
             )
 
             import dtale
@@ -69,7 +79,25 @@ def test_show_json():
                 mock.patch("requests.get", mock.Mock(return_value=MockRequest()))
             )
             dtale.show_json(path="http://test-json", normalize=True)
+            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.reset_mock()
             dtale.show_json(
                 path="http://test-json", proxy="http://test-proxy", normalize=True
             )
+            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.reset_mock()
             dtale.show_json(path="http://test-json")
+            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.reset_mock()
+
+
+@pytest.mark.unit
+def test_show_parquet():
+    import dtale
+
+    parquet_path = "/../".join([os.path.dirname(__file__), "data/test_df.parquet"])
+    mock_show = mock.Mock()
+    with mock.patch("dtale.cli.loaders.parquet_loader.show", mock_show):
+        dtale.show_parquet(path=parquet_path)
+        df = mock_show.call_args.kwargs["data_loader"]()
+        assert df is not None

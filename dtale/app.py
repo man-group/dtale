@@ -533,6 +533,9 @@ def show(
     context_vars=None,
     ignore_duplicate=False,
     app_root=None,
+    allow_cell_edits=True,
+    inplace=False,
+    drop_index=False,
     **kwargs
 ):
     """
@@ -569,6 +572,17 @@ def show(
     :param ignore_duplicate: if true, this will not check if this data matches any other data previously loaded to
                              D-Tale
     :type ignore_duplicate: bool, optional
+    :param app_root: Optional path to prepend to the routes of D-Tale. This is used when making use of
+                     Jupyterhub server proxy
+    :type app_root: str, optional
+    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
+    :type allow_cell_edits: bool, optional
+    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
+                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
+                    input unchanged.
+    :type inplace: bool, optional
+    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
+    :type drop_index: bool, optional
 
     :Example:
 
@@ -610,6 +624,9 @@ def show(
             name=name,
             context_vars=context_vars,
             ignore_duplicate=ignore_duplicate,
+            allow_cell_edits=allow_cell_edits,
+            inplace=inplace,
+            drop_index=drop_index,
         )
         is_active = not running_with_flask_debug() and is_up(app_url)
         if is_active:

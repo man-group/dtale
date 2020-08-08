@@ -26,6 +26,7 @@ describe("reducer tests", () => {
       editedCell: null,
       xarray: false,
       xarrayDim: {},
+      allowCellEdits: true,
     };
     expect(state).toEqual(store.getState());
   });

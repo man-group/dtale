@@ -58,6 +58,15 @@ function hideShutdown(state = false, action = {}) {
   }
 }
 
+function allowCellEdits(state = true, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("allow_cell_edits"));
+    default:
+      return state;
+  }
+}
+
 function columnMenuOpen(state = false, action = {}) {
   switch (action.type) {
     case "toggle-column-menu":
@@ -118,6 +127,7 @@ function xarrayDim(state = {}, action = {}) {
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
+  allowCellEdits,
   dataId,
   editedCell,
   iframe,
