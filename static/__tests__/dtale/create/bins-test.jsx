@@ -15,7 +15,7 @@ const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
-  let result, CreateColumn, CreateBins;
+  let result, CreateColumn, CreateBins, BinsTester, ColumnAnalysisChart;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -60,6 +60,8 @@ describe("DataViewer tests", () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     CreateBins = require("../../../popups/create/CreateBins").CreateBins;
+    ColumnAnalysisChart = require("../../../popups//analysis/ColumnAnalysisChart").default;
+    BinsTester = require("../../../popups/create/BinsTester").ReactBinsTester;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -106,6 +108,14 @@ describe("DataViewer tests", () => {
       .at(3)
       .find("input")
       .simulate("change", { target: { value: "foo,bar,bin,baz" } });
+    await tickUpdate(result);
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col2",
+      bins: "4",
+      labels: "foo,bar,bin,baz",
+      operation: "cut",
+    });
+    expect(result.find(BinsTester).find(ColumnAnalysisChart)).toHaveLength(1);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
   });

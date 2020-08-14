@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 import Select from "react-select";
@@ -42,7 +43,19 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../../redux-test-utils").default;
+        const { urlFetcher, DTYPES } = require("../../redux-test-utils").default;
+        if (_.startsWith(url, "/dtale/dtypes")) {
+          return {
+            dtypes: _.concat(DTYPES.dtypes, {
+              name: "col5",
+              index: 4,
+              dtype: "mixed-integer",
+              visible: true,
+              unique_ct: 1,
+            }),
+            success: true,
+          };
+        }
         return urlFetcher(url);
       })
     );
@@ -149,6 +162,24 @@ describe("DataViewer tests", () => {
       fmt: "%d/%m/%Y",
       unit: null,
       applyAllType: false,
+    });
+  });
+
+  it("DataViewer: build mixed conversion column", async () => {
+    result.find(CreateColumn).find("div.form-group").first().find("button").first().simulate("click");
+    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col5" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.find(CreateTypeConversion).find("i.ico-check-box-outline-blank").simulate("click");
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col5",
+      fmt: null,
+      unit: null,
+      to: "date",
+      from: "mixed-integer",
+      applyAllType: true,
     });
   });
 

@@ -136,6 +136,22 @@ class BinsColumnBuilder(object):
             cats = {idx: str(cat) for idx, cat in enumerate(bin_data.cat.categories)}
         return pd.Series(bin_data.cat.codes.map(cats), index=data.index, name=self.name)
 
+    def build_test(self, data):
+        col, operation, bins, labels = (
+            self.cfg.get(p) for p in ["col", "operation", "bins", "labels"]
+        )
+        bins = int(bins)
+        if operation == "cut":
+            bin_data = pd.cut(data[col], bins=bins)
+        else:
+            bin_data = pd.qcut(data[col], q=bins)
+        counts = [int(c) for c in bin_data.groupby(bin_data.cat.codes).count().values]
+        if labels:
+            labels = labels.split(",")
+        else:
+            labels = list(map(str, bin_data.cat.categories))
+        return counts, labels
+
     def build_code(self):
         col, operation, bins, labels = (
             self.cfg.get(p) for p in ["col", "operation", "bins", "labels"]

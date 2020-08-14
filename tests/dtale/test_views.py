@@ -549,7 +549,7 @@ def test_update_visibility(unittest):
 
 
 @pytest.mark.unit
-def test_build_column(unittest):
+def test_build_column():
     from dtale.views import build_dtypes_state
 
     df = pd.DataFrame([dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"))])
@@ -720,7 +720,7 @@ def test_build_column(unittest):
 
 
 @pytest.mark.unit
-def test_build_column_bins(unittest):
+def test_build_column_bins():
     from dtale.views import build_dtypes_state
 
     df = pd.DataFrame(np.random.randn(100, 3), columns=["a", "b", "c"])
@@ -731,6 +731,13 @@ def test_build_column_bins(unittest):
             stack.enter_context(mock.patch("dtale.global_state.DATA", data))
             stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
             cfg = dict(col="a", operation="cut", bins=4)
+            resp = c.get(
+                "/dtale/bins-tester/{}".format(c.port),
+                query_string=dict(type="bins", cfg=json.dumps(cfg)),
+            )
+            resp = resp.get_json()
+            assert len(resp["data"]) == 4
+            assert len(resp["labels"]) == 4
             c.get(
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="cut", cfg=json.dumps(cfg)),
@@ -740,6 +747,13 @@ def test_build_column_bins(unittest):
             assert dtypes[c.port][-1]["dtype"] == "string"
 
             cfg = dict(col="a", operation="cut", bins=4, labels="foo,bar,biz,baz")
+            resp = c.get(
+                "/dtale/bins-tester/{}".format(c.port),
+                query_string=dict(type="bins", cfg=json.dumps(cfg)),
+            )
+            resp = resp.get_json()
+            assert len(resp["data"]) == 4
+            assert resp["labels"] == ["foo", "bar", "biz", "baz"]
             c.get(
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="cut2", cfg=json.dumps(cfg)),
@@ -749,6 +763,13 @@ def test_build_column_bins(unittest):
             assert dtypes[c.port][-1]["dtype"] == "string"
 
             cfg = dict(col="a", operation="qcut", bins=4)
+            resp = c.get(
+                "/dtale/bins-tester/{}".format(c.port),
+                query_string=dict(type="bins", cfg=json.dumps(cfg)),
+            )
+            resp = resp.get_json()
+            assert len(resp["data"]) == 4
+            assert len(resp["labels"]) == 4
             c.get(
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="qcut", cfg=json.dumps(cfg)),
@@ -758,6 +779,13 @@ def test_build_column_bins(unittest):
             assert dtypes[c.port][-1]["dtype"] == "string"
 
             cfg = dict(col="a", operation="qcut", bins=4, labels="foo,bar,biz,baz")
+            resp = c.get(
+                "/dtale/bins-tester/{}".format(c.port),
+                query_string=dict(type="bins", cfg=json.dumps(cfg)),
+            )
+            resp = resp.get_json()
+            assert len(resp["data"]) == 4
+            assert resp["labels"] == ["foo", "bar", "biz", "baz"]
             c.get(
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="qcut2", cfg=json.dumps(cfg)),

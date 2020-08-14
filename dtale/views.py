@@ -1260,6 +1260,17 @@ def build_column(data_id):
     return jsonify(success=True)
 
 
+@dtale.route("/bins-tester/<data_id>")
+@exception_decorator
+def build_column_bins_tester(data_id):
+    col_type = get_str_arg(request, "type")
+    cfg = json.loads(get_str_arg(request, "cfg"))
+    builder = ColumnBuilder(data_id, col_type, cfg["col"], cfg)
+    data = global_state.get_data(data_id)
+    data, labels = builder.builder.build_test(data)
+    return jsonify(dict(data=data, labels=labels))
+
+
 @dtale.route("/reshape/<data_id>")
 @exception_decorator
 def reshape_data(data_id):

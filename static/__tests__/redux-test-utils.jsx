@@ -271,6 +271,11 @@ function urlFetcher(url) {
       queryApplied: true,
       top: true,
     };
+  } else if (_.startsWith(url, "/dtale/bins-tester")) {
+    return {
+      data: [1, 2, 3, 2, 1],
+      labels: ["1", "2", "3", "4", "5"],
+    };
   }
   return {};
 }
