@@ -1,5 +1,19 @@
 ## Changelog
 
+### 1.13.0 (2020-8-13)
+* [#231](https://github.com/man-group/dtale/issues/231): "Lock Zoom" button on 3D Scatter & Surface charts for locking camera on animations
+* global & instance-level flag to turn off cell editing
+* added the ability to upload CSVs
+* upgraded prismjs
+* [#234](https://github.com/man-group/dtale/issues/234): update to line animations so that you can lock axes and highlight last point
+* [#233](https://github.com/man-group/dtale/issues/233): add candlestick charts
+* [#241](https://github.com/man-group/dtale/issues/241): total counts vs. count (non-nan) in describe
+* [#240](https://github.com/man-group/dtale/issues/240): force convert to float
+* [#239](https://github.com/man-group/dtale/issues/239): converting mixed columns
+* [#237](https://github.com/man-group/dtale/issues/237): updated "Pivot" reshaper to always using pivot_table
+* [#236](https://github.com/man-group/dtale/issues/236): "inplace" & "drop_index" parameters for memory optimization and parquet loader
+* [#229](https://github.com/man-group/dtale/issues/229): added histogram sample chart to bins column builder
+
 ### 1.12.1 (2020-8-5)
  * better axis display on heatmaps
  * handling for column filter data on "mixed" type columns
