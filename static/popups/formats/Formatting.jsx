@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
 import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
+import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
 import serverState from "../../dtale/serverStateManagement";
@@ -10,13 +11,19 @@ import DateFormatting from "./DateFormatting";
 import NumericFormatting from "./NumericFormatting";
 import StringFormatting from "./StringFormatting";
 
-const BASE_STATE = { fmt: "", style: null, applyToAll: false };
+const BASE_STATE = {
+  fmt: "",
+  style: null,
+  applyToAll: false,
+  nanDisplay: { value: "nan" },
+};
 
-function buildState({ selectedCol, columnFormats }) {
+function buildState({ selectedCol, columnFormats, nanDisplay }) {
   let state = _.assign({}, BASE_STATE);
   if (_.has(columnFormats, selectedCol)) {
     state = _.assignIn(state, columnFormats[selectedCol]);
   }
+  state.nanDisplay = { value: nanDisplay === undefined ? "nan" : nanDisplay };
   return state;
 }
 
@@ -27,6 +34,7 @@ class Formatting extends React.Component {
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
     this.renderApplyAll = this.renderApplyAll.bind(this);
+    this.renderNanDisplay = this.renderNanDisplay.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -36,7 +44,7 @@ class Formatting extends React.Component {
   }
 
   save() {
-    const { fmt, style, applyToAll } = this.state;
+    const { fmt, style, applyToAll, nanDisplay } = this.state;
     const { dataId, data, columns, columnFormats, selectedCol, propagateState } = this.props;
     let selectedCols = [selectedCol];
     if (applyToAll) {
@@ -71,12 +79,17 @@ class Formatting extends React.Component {
     propagateState({
       data: updatedData,
       columnFormats: updatedColumnFormats,
+      nanDisplay: this.state.nanDisplay.value,
       columns: updatedCols,
       formattingOpen: false,
       triggerResize: true,
       formattingUpdate: true,
     });
-    serverState.updateFormats(dataId, selectedCol, { fmt, style }, applyToAll);
+    let callback = _.noop;
+    if (this.props.nanDisplay !== this.state.nanDisplay.value) {
+      callback = () => propagateState({ refresh: true });
+    }
+    serverState.updateFormats(dataId, selectedCol, { fmt, style }, applyToAll, nanDisplay.value, callback);
   }
 
   renderBody() {
@@ -122,6 +135,28 @@ class Formatting extends React.Component {
     );
   }
 
+  renderNanDisplay() {
+    return (
+      <div className="form-group row">
+        <label className="col-md-4 col-form-label text-right">
+          <span>{`Display "nan" values as`}</span>
+        </label>
+        <div className="col-md-6">
+          <Select
+            className="Select is-searchable Select--single"
+            classNamePrefix="Select"
+            options={_.map(["nan", "-", ""], o => ({ value: o }))}
+            getOptionLabel={_.property("value")}
+            getOptionValue={_.property("value")}
+            value={this.state.nanDisplay}
+            onChange={nanDisplay => this.setState({ nanDisplay })}
+            filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+          />
+        </div>
+      </div>
+    );
+  }
+
   render() {
     const { visible } = this.props;
     const hide = () => this.props.propagateState({ formattingOpen: false });
@@ -137,6 +172,7 @@ class Formatting extends React.Component {
         </ModalHeader>
         {this.renderBody()}
         {this.renderApplyAll()}
+        {this.renderNanDisplay()}
         <ModalFooter>
           <button className="btn btn-primary" onClick={this.save}>
             <span>Apply</span>
@@ -152,6 +188,7 @@ Formatting.propTypes = {
   data: PropTypes.object,
   columns: PropTypes.arrayOf(PropTypes.object),
   columnFormats: PropTypes.object,
+  nanDisplay: PropTypes.string,
   selectedCol: PropTypes.string,
   visible: PropTypes.bool,
   propagateState: PropTypes.func,

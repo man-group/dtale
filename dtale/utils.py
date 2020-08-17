@@ -195,6 +195,8 @@ def json_string(x, nan_display="", **kwargs):
     :return: string value
     :rtype: str
     """
+    if pd.isnull(x):
+        return nan_display
     if x or x in ["", False, 0]:
         try:
             return str(x)
@@ -806,9 +808,9 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
                 ).format(query=final_query, data_id=data_id)
             )
         else:
-            final_history.append("df = df.query('{}')\n".format(final_query))
+            final_history.append('df = df.query("{}")\n'.format(final_query))
     elif "query" in settings:
-        final_history.append("df = df.query('{}')\n".format(settings["query"]))
+        final_history.append('df = df.query("{}")\n'.format(settings["query"]))
     if "sort" in settings:
         cols, dirs = [], []
         for col, dir in settings["sort"]:

@@ -74,7 +74,12 @@ describe("main tests", () => {
     testMain("popup/correlations");
   });
 
-  _.forEach(["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter"], popup => {
+  const popupCodes = _.concat(
+    ["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter", "type-conversion"],
+    []
+  );
+
+  _.forEach(popupCodes, popup => {
     it(`${popup} popup rendering`, () => {
       testMain(`popup/${popup}`);
     });

@@ -25,7 +25,7 @@ require("./CreateColumn.css");
 class ReactCreateColumn extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, createUtils.BASE_STATE);
+    this.state = _.assign({}, createUtils.BASE_STATE, props.prePopulated || {});
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
     this.renderCode = this.renderCode.bind(this);
@@ -124,28 +124,36 @@ class ReactCreateColumn extends React.Component {
     let body = null;
     switch (this.state.type) {
       case "numeric":
-        body = <CreateNumeric columns={this.state.columns} updateState={updateState} />;
+        body = <CreateNumeric {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "datetime":
-        body = <CreateDatetime columns={this.state.columns} updateState={updateState} />;
+        body = <CreateDatetime {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "bins":
-        body = <CreateBins columns={this.state.columns} updateState={updateState} />;
+        body = <CreateBins {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "random":
-        body = <CreateRandom updateState={updateState} />;
+        body = <CreateRandom {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "type_conversion":
-        body = <CreateTypeConversion columns={this.state.columns} updateState={updateState} />;
+        body = (
+          <CreateTypeConversion
+            {..._.pick(this.state, ["columns", "namePopulated"])}
+            updateState={updateState}
+            prePopulated={_.get(this.props, "prePopulated.cfg") || {}}
+          />
+        );
         break;
       case "transform":
-        body = <CreateTransform columns={this.state.columns} updateState={updateState} />;
+        body = <CreateTransform {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "winsorize":
-        body = <CreateWinsorize columns={this.state.columns} updateState={updateState} />;
+        body = <CreateWinsorize {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
         break;
       case "zscore_normalize":
-        body = <CreateZScoreNormalize columns={this.state.columns} updateState={updateState} />;
+        body = (
+          <CreateZScoreNormalize {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />
+        );
         break;
     }
     return (
@@ -158,7 +166,12 @@ class ReactCreateColumn extends React.Component {
                 type="text"
                 className="form-control"
                 value={this.state.name || ""}
-                onChange={e => this.setState({ name: e.target.value })}
+                onChange={e =>
+                  this.setState({
+                    name: e.target.value,
+                    namePopulated: _.size(e.target.value) > 0,
+                  })
+                }
               />
             </div>
           </div>
@@ -166,39 +179,41 @@ class ReactCreateColumn extends React.Component {
         {this.state.type === "type_conversion" && (
           <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         )}
-        <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Column Type</label>
-          <div className="col-md-8 builders">
-            {_.map(_.chunk(createUtils.TYPES, 6), (typeRow, i) => (
-              <div key={i} className="btn-group row ml-0">
-                {_.map(typeRow, (type, j) => {
-                  const buttonProps = { className: "btn" };
-                  if (type === this.state.type) {
-                    buttonProps.className += " btn-primary active";
-                  } else {
-                    buttonProps.className += " btn-primary inactive";
-                    const updatedState = { type };
-                    if (type === "random") {
-                      updatedState.cfg = { type: "float" };
+        {!_.has(this.props, "prePopulated.type") && (
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">Column Type</label>
+            <div className="col-md-8 builders">
+              {_.map(_.chunk(createUtils.TYPES, 6), (typeRow, i) => (
+                <div key={i} className="btn-group row ml-0">
+                  {_.map(typeRow, (type, j) => {
+                    const buttonProps = { className: "btn" };
+                    if (type === this.state.type) {
+                      buttonProps.className += " btn-primary active";
+                    } else {
+                      buttonProps.className += " btn-primary inactive";
+                      const updatedState = { type };
+                      if (type === "random") {
+                        updatedState.cfg = { type: "float" };
+                      }
+                      if (type !== "type_conversion") {
+                        updatedState.saveAs = "new";
+                      }
+                      buttonProps.onClick = () => this.setState(updatedState);
                     }
-                    if (type !== "type_conversion") {
-                      updatedState.saveAs = "new";
-                    }
-                    buttonProps.onClick = () => this.setState(updatedState);
-                  }
-                  return (
-                    <button key={`${i}-${j}`} {...buttonProps}>
-                      {createUtils.buildLabel(type)}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-            <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
-              {_.get(Descriptions, this.state.type, "")}
-            </label>
+                    return (
+                      <button key={`${i}-${j}`} {...buttonProps}>
+                        {createUtils.buildLabel(type)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+              <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
+                {_.get(Descriptions, this.state.type, "")}
+              </label>
+            </div>
           </div>
-        </div>
+        )}
         {body}
       </div>
     );
@@ -269,6 +284,7 @@ ReactCreateColumn.propTypes = {
   chartData: PropTypes.shape({
     propagateState: PropTypes.func,
   }),
+  prePopulated: PropTypes.object,
   onClose: PropTypes.func,
 };
 

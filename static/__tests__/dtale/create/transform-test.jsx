@@ -76,13 +76,6 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "conv_col" } });
     result.find(CreateColumn).find("div.form-group").at(1).find("button").at(5).simulate("click");
     result.update();
   });
@@ -103,6 +96,10 @@ describe("DataViewer tests", () => {
       .instance()
       .onChange([{ value: "col1" }]);
     result.update();
+    expect(result.find(CreateTransform).find(Select).first().prop("noOptionsMessage")()).toBe("No columns available!");
+    expect(result.find(CreateTransform).find(Select).at(1).prop("noOptionsMessage")()).toBe(
+      "No columns available for the following dtypes: int, float!"
+    );
     result.find(CreateTransform).find(Select).at(1).instance().onChange({ value: "col2" });
     result.update();
     result.find(CreateTransform).find(Select).last().instance().onChange({ value: "mean" });
@@ -114,6 +111,7 @@ describe("DataViewer tests", () => {
       group: ["col1"],
       agg: "mean",
     });
+    expect(result.find(CreateColumn).instance().state.name).toBe("col2_transform");
   });
 
   it("DataViewer: build transform cfg validation", () => {

@@ -21,4 +21,5 @@ export const BASE_STATE = {
   code: {},
   loadingColumns: true,
   loadingColumn: false,
+  namePopulated: false,
 };

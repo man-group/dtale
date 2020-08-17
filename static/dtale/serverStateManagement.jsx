@@ -130,14 +130,15 @@ function renameColumn(dataId, col, rename, callback) {
   fetchJson(buildURLString(`/dtale/rename-col/${dataId}/${col}`, { rename }), callback);
 }
 
-function updateFormats(dataId, col, format, all) {
+function updateFormats(dataId, col, format, all, nanDisplay, callback = _.noop) {
   fetchJson(
     buildURLString(`/dtale/update-formats/${dataId}`, {
       col,
       format: JSON.stringify(format),
       all,
+      nanDisplay,
     }),
-    _.noop
+    callback
   );
 }
 

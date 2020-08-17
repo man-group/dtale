@@ -3,6 +3,7 @@ import _ from "lodash";
 import React from "react";
 import { ModalClose, ModalFooter } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
+import Select from "react-select";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
@@ -25,7 +26,7 @@ const TEXT_TESTS = [
 
 describe("DataViewer tests", () => {
   const { open } = window;
-  let result, DataViewer, Formatting, NumericFormatting;
+  let result, DataViewer, ReactDataViewer, Formatting, NumericFormatting;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -63,7 +64,9 @@ describe("DataViewer tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-    DataViewer = require("../../../dtale/DataViewer").DataViewer;
+    const dv = require("../../../dtale/DataViewer");
+    DataViewer = dv.DataViewer;
+    ReactDataViewer = dv.ReactDataViewer;
     Formatting = require("../../../popups/formats/Formatting").default;
     NumericFormatting = require("../../../popups/formats/NumericFormatting").default;
   });
@@ -119,9 +122,11 @@ describe("DataViewer tests", () => {
     _.forEach(_.range(1, 6), i => {
       result.find(NumericFormatting).find("div.form-group").at(i).find("button").last().simulate("click");
     });
+    result.find(Formatting).find("div.form-group").last().find(Select).instance().onChange({ value: "-" });
     result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
     await tickUpdate(result);
     const grid = result.find(MultiGrid).first().instance();
     expect(grid.props.data["0"].col2.view).toBe("2.500000");
+    expect(result.find(ReactDataViewer).instance().state.nanDisplay).toBe("-");
   });
 });

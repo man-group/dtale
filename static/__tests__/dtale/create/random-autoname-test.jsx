@@ -1,12 +1,11 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
-import Select from "react-select";
-import ReactSlider from "react-slider";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateWinsorize } from "../../../popups/create/CreateWinsorize";
+import { CreateRandom } from "../../../popups/create/CreateRandom";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -15,10 +14,6 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
-
-function submit(res) {
-  res.find("div.modal-footer").first().find("button").first().simulate("click");
-}
 
 describe("DataViewer tests", () => {
   let result, CreateColumn;
@@ -43,7 +38,19 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../../redux-test-utils").default;
+        const { DTYPES, urlFetcher } = require("../../redux-test-utils").default;
+        if (_.startsWith(url, "/dtale/dtypes")) {
+          return {
+            dtypes: _.concat(DTYPES.dtypes, {
+              name: "random_col1",
+              index: 4,
+              dtype: "mixed-integer",
+              visible: true,
+              unique_ct: 1,
+            }),
+            success: true,
+          };
+        }
         return urlFetcher(url);
       })
     );
@@ -77,7 +84,7 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(6).simulate("click");
+    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(3).simulate("click");
     result.update();
   });
 
@@ -88,65 +95,11 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  const findWinsorize = () => result.find(CreateWinsorize);
-
-  it("DataViewer: build winsorize column", async () => {
-    expect(result.find(CreateWinsorize).length).toBe(1);
-    findWinsorize().find(Select).first().instance().onChange({ value: "col1" });
+  it("DataViewer: creating auto-name", async () => {
+    expect(result.find(CreateRandom).length).toBe(1);
+    const randomInputs = result.find(CreateRandom).first();
+    randomInputs.find("div.form-group").first().find("button").last().simulate("click");
     result.update();
-    findWinsorize().find(Select).first().instance().onChange(null);
-    result.update();
-    findWinsorize().find(Select).first().instance().onChange({ value: "col1" });
-    result.update();
-    findWinsorize()
-      .find(Select)
-      .last()
-      .instance()
-      .onChange([{ value: "col2" }]);
-    result.update();
-    findWinsorize().find(ReactSlider).prop("onAfterChange")([20, 80]);
-    result.update();
-    findWinsorize().find(ReactSlider).prop("onAfterChange")([20, 80]);
-    result.update();
-    findWinsorize()
-      .find("div.form-group")
-      .at(2)
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "30" } });
-    result.update();
-    findWinsorize()
-      .find("div.form-group")
-      .at(2)
-      .find("input")
-      .last()
-      .simulate("change", { target: { value: "70" } });
-    result.update();
-    findWinsorize().find("i").first().simulate("click");
-    result.update();
-    findWinsorize().find("i").last().simulate("click");
-    result.update();
-    submit(result);
-    await tick();
-    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
-      col: "col1",
-      group: ["col2"],
-      limits: [0.3, 0.3],
-      inclusive: [false, false],
-    });
-    expect(result.find(CreateColumn).instance().state.name).toBe("col1_winsorize");
-  });
-
-  it("DataViewer: build winsorize cfg validation", () => {
-    const { validateWinsorizeCfg } = require("../../../popups/create/CreateWinsorize");
-    expect(validateWinsorizeCfg({ col: null })).toBe("Please select a column to winsorize!");
-    expect(
-      validateWinsorizeCfg({
-        col: "col1",
-        group: ["col2"],
-        limits: [0.1, 0.1],
-        inclusive: [true, false],
-      })
-    ).toBe(null);
+    expect(result.find(CreateColumn).instance().state.name).toBe("random_col2");
   });
 });

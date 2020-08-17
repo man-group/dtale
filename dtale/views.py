@@ -1048,6 +1048,9 @@ def update_formats(data_id):
     :return: JSON
     """
     update_all_dtype = get_bool_arg(request, "all")
+    nan_display = get_str_arg(request, "nanDisplay")
+    if nan_display is None:
+        nan_display = "nan"
     col = get_str_arg(request, "col")
     col_format = get_json_arg(request, "format")
     curr_settings = global_state.get_settings(data_id) or {}
@@ -1060,7 +1063,9 @@ def update_formats(data_id):
             if c["dtype"] == col_dtype
         }
     updated_formats = dict_merge(curr_settings.get("formats") or {}, updated_formats)
-    updated_settings = dict_merge(curr_settings, dict(formats=updated_formats))
+    updated_settings = dict_merge(
+        curr_settings, dict(formats=updated_formats, nanDisplay=nan_display)
+    )
     global_state.set_settings(data_id, updated_settings)
     return jsonify(dict(success=True))
 
@@ -1865,8 +1870,8 @@ def get_data(data_id):
         return jsonify({})
 
     col_types = global_state.get_dtypes(data_id)
-    f = grid_formatter(col_types, nan_display="nan")
     curr_settings = global_state.get_settings(data_id) or {}
+    f = grid_formatter(col_types, nan_display=curr_settings.get("nanDisplay", "nan"))
     if curr_settings.get("sort") != params.get("sort"):
         data = sort_df_for_grid(data, params)
         global_state.set_data(data_id, data)

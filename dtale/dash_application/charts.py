@@ -657,7 +657,7 @@ def scatter_code_builder(
     z_code = "" if z is None else " z=chart_data['{z}'],".format(z=z)
     code.append(
         (
-            "\nimport plotly.graph_objects as go\n\n"
+            "\nimport plotly.graph_objs as go\n\n"
             "chart = {scatter_func}(\n"
             "\tx=chart_data['x'], y=chart_data['{y}'],{z} , mode='markers', opacity=0.7, name='{series_key}',\n"
             "\tmarker={marker}\n"
@@ -681,10 +681,10 @@ def scatter_code_builder(
         data = "chart, trendline"
 
     layout_cfg = build_layout(
-        dict_merge(title, build_scatter_layout(axes_builder([y_val])[0], z),)
+        dict_merge(title, build_scatter_layout(axes_builder([y_val])[0], z))
     )
     code.append(
-        "figure = go.Figure(data=[{data}], layout={layout})".format(
+        "figure = go.Figure(data=[{data}], layout=go.{layout})".format(
             data=data, layout=pp.pformat(layout_cfg)
         )
     )
@@ -747,7 +747,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
     pp = pprint.PrettyPrinter(indent=4)
     code.append(
         (
-            "\nimport plotly.graph_objects as go\n\n"
+            "\nimport plotly.graph_objs as go\n\n"
             "chart = go.Surface(\n"
             "\tx=chart_data.columns, y=chart_data.index.values, z=chart_data.values, opacity=0.8, \n"
             "\t colorscale='YlGnBu', colorbar={colorbar}\n"
@@ -756,7 +756,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
     )
     layout_cfg = build_layout(dict_merge(build_title(x, y[0], z=z, agg=agg), layout))
     code.append(
-        "figure = go.Figure(data=[chart], layout={layout})".format(
+        "figure = go.Figure(data=[chart], layout=go.{layout})".format(
             layout=pp.pformat(layout_cfg)
         )
     )
@@ -1102,7 +1102,7 @@ def bar_code_builder(
         )
 
     pp = pprint.PrettyPrinter(indent=4)
-    code.append(("\nimport plotly.graph_objects as go\n\n" "charts = []"))
+    code.append(("\nimport plotly.graph_objs as go\n\n" "charts = []"))
     for i, y2 in enumerate(y, 1):
         name = name_builder(y2, series_key)
         chart_cfg = ["x={}".format(x_data), "y=chart_data['{}']".format(y2)]
@@ -1121,7 +1121,7 @@ def bar_code_builder(
 
     layout_cfg = build_layout(dict_merge(title, axes, dict(barmode=barmode or "group")))
     code.append(
-        "figure = go.Figure(data=charts, layout={layout})".format(
+        "figure = go.Figure(data=charts, layout=go.{layout})".format(
             layout=pp.pformat(layout_cfg)
         )
     )
@@ -1284,7 +1284,7 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
     if len(data["data"]) > 1:
         code.append(GROUP_WARNING.format(series_key=series_key))
 
-    code.append("\nimport plotly.graph_objects as go\n\n" "charts = []")
+    code.append("\nimport plotly.graph_objs as go\n\n" "charts = []")
     pp = pprint.PrettyPrinter(indent=4)
     code.append("line_cfg = {}".format(pp.pformat(build_line_cfg(series))))
     for i, y2 in enumerate(y, 1):
@@ -1354,9 +1354,9 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
         pp = pprint.PrettyPrinter(indent=4)
         code.append(
             (
-                "\nimport plotly.graph_objects as go\n\n"
+                "\nimport plotly.graph_objs as go\n\n"
                 "chart = go.Pie(labels=chart_data['x'], y=chart_data['{y}']{name})\n"
-                "figure = go.Figure(data=[chart], layout={layout})"
+                "figure = go.Figure(data=[chart], layout=go.{layout})"
             ).format(y=y[0], name=name, layout=pp.pformat(layout_cfg))
         )
         return code
@@ -1631,14 +1631,14 @@ def heatmap_builder(data_id, export=False, **inputs):
         pp = pprint.PrettyPrinter(indent=4)
         code.append(
             (
-                "\nimport plotly.graph_objects as go\n\n"
+                "\nimport plotly.graph_objs as go\n\n"
                 "hm_kwargs = {hm_kwargs_str}\n"
                 "chart = {chart}"
             ).format(chart=heatmap_func_str, hm_kwargs_str=pp.pformat(hm_kwargs))
         )
 
         code.append(
-            "figure = go.Figure(data=[chart], layout={layout})".format(
+            "figure = go.Figure(data=[chart], layout=go.{layout})".format(
                 layout=pp.pformat(layout_cfg)
             )
         )
@@ -1785,10 +1785,10 @@ def candlestick_builder(data_id, export=False, **inputs):
         )
 
         pp = pprint.PrettyPrinter(indent=4)
-        code.append("\nimport plotly.graph_objects as go\n\n")
+        code.append("\nimport plotly.graph_objs as go\n\n")
         code.append(candlestick_str)
         code.append(
-            "figure = go.Figure(data=[chart], layout={layout})".format(
+            "figure = go.Figure(data=[chart], layout=go.{layout})".format(
                 layout=pp.pformat(layout_cfg)
             )
         )
@@ -1945,11 +1945,11 @@ def build_scattergeo(inputs, raw_data, layout):
 
     code.append(
         (
-            "\nimport plotly.graph_objects as go\n\n"
+            "\nimport plotly.graph_objs as go\n\n"
             "chart = go.Scattergeo(\n"
             "{code_kwargs}\n"
             ")\n"
-            "figure = go.Figure(data=[chart], layout={layout})"
+            "figure = go.Figure(data=[chart], layout=go.{layout})"
         ).format(
             code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
             layout=pp.pformat(layout),
@@ -2053,11 +2053,11 @@ def build_mapbox(inputs, raw_data, layout):
 
     code.append(
         (
-            "\nimport plotly.graph_objects as go\n\n"
+            "\nimport plotly.graph_objs as go\n\n"
             "chart = go.Scattergeo(\n"
             "{code_kwargs}\n"
             ")\n"
-            "figure = go.Figure(data=[chart], layout={layout})"
+            "figure = go.Figure(data=[chart], layout=go.{layout})"
         ).format(
             code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
             layout=pp.pformat(layout),
@@ -2122,7 +2122,7 @@ def build_choropleth(inputs, raw_data, layout):
 
     data = data.dropna(subset=dupe_cols)
     code.append(
-        "chart_data = chart_data.dropna(subset=['{}']".format(",".join(dupe_cols))
+        "chart_data = chart_data.dropna(subset=['{}'])".format(",".join(dupe_cols))
     )
     check_exceptions(data[dupe_cols], False, unlimited_data=True, **kwargs)
 
@@ -2165,7 +2165,7 @@ def build_choropleth(inputs, raw_data, layout):
     pp = pprint.PrettyPrinter(indent=4)
     code_kwargs = [
         "locations=chart_data['{}']".format(props.loc),
-        "locationsmode='{}'".format(props.loc_mode),
+        "locationmode='{}'".format(props.loc_mode),
         "z=chart_data['{}']".format(props.map_val),
         "colorscale={}".format(pp.pformat(colorscale)),
         "colorbar_title='{}'".format(props.map_val),
@@ -2177,11 +2177,11 @@ def build_choropleth(inputs, raw_data, layout):
 
     code.append(
         (
-            "\nimport plotly.graph_objects as go\n\n"
+            "\nimport plotly.graph_objs as go\n\n"
             "chart = go.Choropleth(\n"
             "{code_kwargs}\n"
             ")\n"
-            "figure = go.Figure(data=[chart], layout={layout})"
+            "figure = go.Figure(data=[chart], layout=go.{layout})"
         ).format(
             code_kwargs=",\n".join(map(lambda ck: "\t{}".format(ck), code_kwargs)),
             layout=pp.pformat(layout),

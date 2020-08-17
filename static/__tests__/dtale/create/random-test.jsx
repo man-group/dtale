@@ -76,13 +76,6 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "rando_col" } });
     result.find(CreateColumn).find("div.form-group").at(1).find("button").at(3).simulate("click");
     result.update();
   });
@@ -115,6 +108,7 @@ describe("DataViewer tests", () => {
       low: "-2",
       high: "2",
     });
+    expect(result.find(CreateColumn).instance().state.name).toBe("random_col1");
   });
 
   it("DataViewer: build random int column", async () => {

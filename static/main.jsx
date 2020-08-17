@@ -55,6 +55,15 @@ if (_.startsWith(pathname, "/dtale/popup")) {
     case "build":
       rootNode = <CreateColumn {...{ dataId, chartData }} />;
       break;
+    case "type-conversion": {
+      const prePopulated = {
+        type: "type_conversion",
+        saveAs: "inplace",
+        cfg: { col: chartData.selectedCol },
+      };
+      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      break;
+    }
     case "replacement":
       rootNode = <CreateReplacement {...{ dataId, chartData }} />;
       break;

@@ -161,7 +161,33 @@ class ReactColumnMenu extends React.Component {
         style={{ minWidth: "11em" }}
         ref={cm => (this._div = cm)}>
         {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
-        <header>{`Column "${selectedCol}"${colCfg.lowVariance ? ` ${bu.flagIcon}` : ""}`}</header>
+        <header>
+          <span>{`Column "${selectedCol}"`}</span>
+          <ul className="col-menu-descriptors">
+            <li>
+              {"Data Type:"}
+              <span>{colCfg.dtype}</span>
+            </li>
+            {colCfg.hasMissing > 0 && (
+              <li>
+                {"# Missing:"}
+                <span>{colCfg.hasMissing}</span>
+              </li>
+            )}
+            {colCfg.hasOutliers > 0 && (
+              <li>
+                {"# Outliers:"}
+                <span>{colCfg.hasOutliers}</span>
+              </li>
+            )}
+            {colCfg.lowVariance && (
+              <li>
+                {`${bu.flagIcon}Low Variance:`}
+                <span>True</span>
+              </li>
+            )}
+          </ul>
+        </header>
         <ul>
           <li>
             <span className="toggler-action">
@@ -221,6 +247,11 @@ class ReactColumnMenu extends React.Component {
             open={openPopup("replacement", 400, 770)}
             label="Replacements"
             iconClass="fas fa-backspace mr-3"
+          />
+          <ColumnMenuOption
+            open={openPopup("type-conversion", 400, 770)}
+            label="Type Conversion"
+            iconClass="ico-swap-horiz"
           />
           <ColumnMenuOption open={openDescribe} label="Describe" iconClass="ico-view-column" />
           <ColumnMenuOption
