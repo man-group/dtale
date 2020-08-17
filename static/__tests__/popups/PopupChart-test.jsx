@@ -62,7 +62,6 @@ describe("Popup tests", () => {
       chartData: {
         visible: true,
         type: "column-analysis",
-        title: "ColumnAnalysis Test",
         selectedCol: "foo",
       },
     };
@@ -97,25 +96,5 @@ describe("Popup tests", () => {
     ).trim();
     expect(title).toBe("Correlations Test");
     expect(result.find("Correlations").length).toBeGreaterThan(0);
-  });
-
-  it("Popup w/ Charts initial rendering", () => {
-    const props = {
-      dataId: "1",
-      chartData: {
-        visible: true,
-        type: "charts",
-      },
-    };
-    const result = buildResult(props);
-    const title = _.join(
-      result
-        .find("ModalTitle")
-        .children()
-        .map(n => n.text()),
-      ""
-    ).trim();
-    expect(title).toBe("Chart Builder");
-    expect(result.find("Charts").length).toBeGreaterThan(0);
   });
 });

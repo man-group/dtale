@@ -77,14 +77,19 @@ class CreateWinsorize extends React.Component {
 
   updateState(state) {
     const currState = _.assignIn(this.state, state);
-    const cfg = {
-      col: _.get(currState, "col.value") || null,
-      group: _.map(currState.group, "value") || null,
-      limits: [_.round(currState.limits[0] / 100.0, 2), _.round(1.0 - currState.limits[1] / 100.0, 2)],
-      inclusive: [currState.includeLower, currState.includeUpper],
+    const updatedState = {
+      cfg: {
+        col: _.get(currState, "col.value") || null,
+        group: _.map(currState.group, "value") || null,
+        limits: [_.round(currState.limits[0] / 100.0, 2), _.round(1.0 - currState.limits[1] / 100.0, 2)],
+        inclusive: [currState.includeLower, currState.includeUpper],
+      },
     };
-    const code = buildCode(cfg);
-    this.setState(currState, () => this.props.updateState({ cfg, code }));
+    updatedState.code = buildCode(updatedState.cfg);
+    if (_.get(state, "col") && !this.props.namePopulated) {
+      updatedState.name = `${updatedState.cfg.col}_winsorize`;
+    }
+    this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
@@ -165,6 +170,7 @@ CreateWinsorize.displayName = "CreateWinsorize";
 CreateWinsorize.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  namePopulated: PropTypes.bool,
 };
 
 export { CreateWinsorize, validateWinsorizeCfg, buildCode };

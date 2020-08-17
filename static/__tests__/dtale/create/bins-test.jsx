@@ -85,13 +85,13 @@ describe("DataViewer tests", () => {
   });
 
   it("DataViewer: build bins cut column", async () => {
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "cut_col" } });
+    // result
+    //   .find(CreateColumn)
+    //   .find("div.form-group")
+    //   .first()
+    //   .find("input")
+    //   .first()
+    //   .simulate("change", { target: { value: "cut_col" } });
     result.find(CreateColumn).find("div.form-group").at(1).find("button").at(1).simulate("click");
     result.update();
     expect(result.find(CreateBins).length).toBe(1);

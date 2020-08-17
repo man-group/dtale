@@ -36,13 +36,18 @@ class CreateTransform extends React.Component {
 
   updateState(state) {
     const currState = _.assignIn(this.state, state);
-    const cfg = {
-      agg: _.get(currState, "agg.value") || null,
-      col: _.get(currState, "col.value") || null,
-      group: _.map(currState.group, "value") || null,
+    const updatedState = {
+      cfg: {
+        agg: _.get(currState, "agg.value") || null,
+        col: _.get(currState, "col.value") || null,
+        group: _.map(currState.group, "value") || null,
+      },
     };
-    const code = buildCode(cfg);
-    this.setState(currState, () => this.props.updateState({ cfg, code }));
+    updatedState.code = buildCode(updatedState.cfg);
+    if (_.get(state, "col") && !this.props.namePopulated) {
+      updatedState.name = `${updatedState.cfg.col}_transform`;
+    }
+    this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
@@ -92,6 +97,7 @@ CreateTransform.displayName = "CreateTransform";
 CreateTransform.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  namePopulated: PropTypes.bool,
 };
 
 export { CreateTransform, validateTransformCfg, buildCode };

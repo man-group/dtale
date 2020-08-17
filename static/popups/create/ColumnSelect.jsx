@@ -19,8 +19,10 @@ class ColumnSelect extends React.Component {
   render() {
     const { dtypes, isMulti, label, otherProps, parent, prop } = this.props;
     let columns = this.props.columns;
+    let dtypesStr = "";
     if (dtypes) {
       columns = _.filter(columns || [], c => _.includes(dtypes, gu.findColType(c.dtype)));
+      dtypesStr = ` for the following dtypes: ${_.join(dtypes, ", ")}`;
     }
     let finalOptions = _.map(columns, "name");
     const otherValues = _(parent).pick(otherProps).values().flatten().map("value").compact().value();
@@ -44,6 +46,7 @@ class ColumnSelect extends React.Component {
               onChange={selected => this.updateState({ [prop]: selected })}
               isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+              noOptionsMessage={() => `No columns available${dtypesStr}!`}
             />
           </div>
         </div>

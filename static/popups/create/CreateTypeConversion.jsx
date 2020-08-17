@@ -59,7 +59,7 @@ function validateTypeConversionCfg(cfg) {
   return null;
 }
 
-function buildMixedCode(s, to) {
+function buildMixedCode(s, to, standardConv) {
   if (to === "float") {
     return `pd.to_numeric(${s}, errors="coerce")`;
   } else if (to === "bool") {
@@ -69,7 +69,7 @@ function buildMixedCode(s, to) {
       `${s}.apply(lambda b: bool_map.get(str(b).lower(), np.nan)`,
     ];
   }
-  return null;
+  return standardConv;
 }
 
 function buildCode({ col, from, to, fmt, unit }) {
@@ -112,7 +112,7 @@ function buildCode({ col, from, to, fmt, unit }) {
   } else if (_.includes(["float", "bool"], classifier)) {
     return standardConv;
   } else if (_.startsWith(from, "mixed")) {
-    return buildMixedCode(s, to);
+    return buildMixedCode(s, to, standardConv);
   }
   return null;
 }
@@ -130,6 +130,13 @@ class CreateTypeConversion extends React.Component {
     this.updateState = this.updateState.bind(this);
     this.renderConversions = this.renderConversions.bind(this);
     this.renderConversionInputs = this.renderConversionInputs.bind(this);
+  }
+
+  componentDidMount() {
+    const prePopulatedCol = _.get(this.props, "prePopulated.col");
+    if (prePopulatedCol) {
+      this.updateState({ col: { value: prePopulatedCol } });
+    }
   }
 
   updateState(state) {
@@ -233,36 +240,39 @@ class CreateTypeConversion extends React.Component {
 
   render() {
     const colType = getDtype(this.state.col, this.props.columns);
+    const prePopulatedCol = _.get(this.props, "prePopulated.col");
     return (
       <React.Fragment>
-        <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Column To Convert</label>
-          <div className="col-md-8">
-            <div className="input-group">
-              <Select
-                className="Select is-clearable is-searchable Select--single"
-                classNamePrefix="Select"
-                options={_.sortBy(
-                  _.map(this.props.columns, c => ({ value: c.name })),
-                  o => _.toLower(o.value)
-                )}
-                getOptionLabel={_.property("value")}
-                getOptionValue={_.property("value")}
-                value={this.state.col}
-                onChange={selected => this.updateState({ col: selected, conversion: null })}
-                noOptionsText={() => "No columns found"}
-                isClearable
-                filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-              />
+        {!prePopulatedCol && (
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">Column To Convert</label>
+            <div className="col-md-8">
+              <div className="input-group">
+                <Select
+                  className="Select is-clearable is-searchable Select--single"
+                  classNamePrefix="Select"
+                  options={_.sortBy(
+                    _.map(this.props.columns, c => ({ value: c.name })),
+                    o => _.toLower(o.value)
+                  )}
+                  getOptionLabel={_.property("value")}
+                  getOptionValue={_.property("value")}
+                  value={this.state.col}
+                  onChange={selected => this.updateState({ col: selected, conversion: null })}
+                  noOptionsText={() => "No columns found"}
+                  isClearable
+                  filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
         {this.renderConversions()}
         {this.renderConversionInputs()}
         {isMixed(colType) && (
           <div className="form-group row">
-            <div className="col-md-3" />
-            <div className="col-md-8 mt-auto mb-auto">
+            <div className={`col-md-${prePopulatedCol ? "1" : "3"}`} />
+            <div className={`col-md-${prePopulatedCol ? "10" : "8"} mt-auto mb-auto`}>
               <label className="col-form-label text-right pr-3">
                 {`Apply Conversion to all columns of type "${colType}"?`}
               </label>
@@ -281,6 +291,7 @@ CreateTypeConversion.displayName = "CreateTypeConversion";
 CreateTypeConversion.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  prePopulated: PropTypes.object,
 };
 
 export { CreateTypeConversion, validateTypeConversionCfg, buildCode };

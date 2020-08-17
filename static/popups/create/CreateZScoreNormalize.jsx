@@ -28,11 +28,16 @@ class CreateZScoreNormalize extends React.Component {
 
   updateState(state) {
     const currState = _.assignIn(this.state, state);
-    const cfg = {
-      col: _.get(currState, "col.value") || null,
+    const updatedState = {
+      cfg: {
+        col: _.get(currState, "col.value") || null,
+      },
     };
-    const code = buildCode(cfg);
-    this.setState(currState, () => this.props.updateState({ cfg, code }));
+    updatedState.code = buildCode(updatedState.cfg);
+    if (_.get(state, "col") && !this.props.namePopulated) {
+      updatedState.name = `${updatedState.cfg.col}_normalize`;
+    }
+    this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
@@ -52,6 +57,7 @@ CreateZScoreNormalize.displayName = "CreateZScoreNormalize";
 CreateZScoreNormalize.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  namePopulated: PropTypes.bool,
 };
 
 export { CreateZScoreNormalize, validateZScoreNormalizeCfg, buildCode };

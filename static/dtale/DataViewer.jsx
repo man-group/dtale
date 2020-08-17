@@ -257,7 +257,7 @@ class ReactDataViewer extends React.Component {
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
         <Popup propagateState={this.propagateState} />
         <Formatting
-          {..._.pick(this.state, ["data", "columns", "columnFormats"])}
+          {..._.pick(this.state, ["data", "columns", "columnFormats", "nanDisplay"])}
           selectedCol={_.get(this.state.selectedCols, "0")}
           dataId={this.props.dataId}
           visible={formattingOpen}

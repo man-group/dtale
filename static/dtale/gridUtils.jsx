@@ -36,7 +36,7 @@ EXPORTS.findColType = dtype => {
 };
 
 function buildNumeral(val, fmt) {
-  return _.includes(["nan", "inf"], val) ? val : numeral(val).format(fmt);
+  return _.includes(["nan", "inf", "-", ""], val) ? val : numeral(val).format(fmt);
 }
 
 function buildValue({ name, dtype }, rawValue, { columnFormats }) {
@@ -199,6 +199,7 @@ EXPORTS.buildToggleId = colName => `col-${_.join(_.split(colName, " "), "_")}-to
 EXPORTS.buildState = props => ({
   ...EXPORTS.buildGridStyles(),
   columnFormats: _.get(props, "settings.formats", {}),
+  nanDisplay: _.get(props, "settings.nanDisplay"),
   overscanColumnCount: 0,
   overscanRowCount: 5,
   rowHeight: ({ index }) => (index == 0 ? EXPORTS.HEADER_HEIGHT : EXPORTS.ROW_HEIGHT),

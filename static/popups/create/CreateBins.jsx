@@ -1,10 +1,9 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import Select, { createFilter } from "react-select";
 
-import { exports as gu } from "../../dtale/gridUtils";
 import { BinsTester } from "./BinsTester";
+import ColumnSelect from "./ColumnSelect";
 
 function validateBinsCfg(cfg) {
   const { col, bins, labels } = cfg;
@@ -54,42 +53,29 @@ class CreateBins extends React.Component {
 
   updateState(state) {
     const currState = _.assignIn(this.state, state);
-    this.setState(currState, () =>
-      this.props.updateState({
-        cfg: buildCfg(currState),
-        code: buildCode(currState),
-      })
-    );
+    const updatedState = {
+      cfg: buildCfg(currState),
+      code: buildCode(currState),
+    };
+    if (_.get(state, "col") && !this.props.namePopulated) {
+      updatedState.name = `${updatedState.cfg.col}_bins`;
+    }
+    this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
-    const columnOptions = _.map(
-      _.filter(this.props.columns || [], c => _.includes(["int", "float"], gu.findColType(c.dtype))),
-      ({ name }) => ({ value: name })
-    );
     const cfg = buildCfg(this.state);
     return (
       <div className="row">
         <div className="col-md-8 pr-0">
-          <div key={0} className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Column</label>
-            <div className="col-md-8">
-              <div className="input-group">
-                <Select
-                  className="Select is-clearable is-searchable Select--single"
-                  classNamePrefix="Select"
-                  options={_.sortBy(columnOptions, o => _.toLower(o.value))}
-                  getOptionLabel={_.property("value")}
-                  getOptionValue={_.property("value")}
-                  value={this.state.col}
-                  onChange={selected => this.updateState({ col: selected })}
-                  noOptionsText={() => "No columns found"}
-                  isClearable
-                  filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-                />
-              </div>
-            </div>
-          </div>
+          <ColumnSelect
+            label="Column"
+            prop="col"
+            parent={this.state}
+            updateState={this.updateState}
+            columns={this.props.columns}
+            dtypes={["int", "float"]}
+          />
           <div key={1} className="form-group row">
             <label className="col-md-3 col-form-label text-right">Operation</label>
             <div className="col-md-8">
@@ -151,6 +137,7 @@ CreateBins.displayName = "CreateBins";
 CreateBins.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  namePopulated: PropTypes.bool,
 };
 
 export { CreateBins, validateBinsCfg, buildCode };

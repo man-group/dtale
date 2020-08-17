@@ -351,7 +351,7 @@ def build_agg_data(df, x, y, inputs, agg, z=None, group_col=None, animate_by=Non
         return agg_df, code
 
     idx_cols = make_list(animate_by) + make_list(group_col) + [x]
-    agg_cols = y
+    agg_cols = make_list(y)
     if z_exists:
         idx_cols += make_list(y)
         agg_cols = make_list(z)
@@ -374,7 +374,7 @@ def build_agg_data(df, x, y, inputs, agg, z=None, group_col=None, animate_by=Non
         code = code.format(
             cols="', '".join(idx_cols),
             subidx_cols="', '".join(subidx_cols),
-            agg_cols="', '".join(agg_cols),
+            agg_cols="', '".join(make_list(agg_cols)),
             agg=func,
         )
         code = [code]

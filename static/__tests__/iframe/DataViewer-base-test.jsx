@@ -129,12 +129,27 @@ describe("DataViewer iframe tests", () => {
     result.update();
     expect(result.find("#column-menu-div").length).toBe(0);
     await openColMenu(result, 3);
-    expect(colMenu().find("header").first().text()).toBe('Column "col4"');
+    expect(colMenu().find("header").first().text()).toBe('Column "col4"Data Type:datetime64[ns]');
     expect(
       colMenu()
         .find("ul li span.font-weight-bold")
         .map(s => s.text())
-    ).toEqual(["Lock", "Hide", "Delete", "Rename", "Replacements", "Describe", "Column Analysis", "Formats"]);
+    ).toEqual(
+      _.concat(
+        [
+          "Lock",
+          "Hide",
+          "Delete",
+          "Rename",
+          "Replacements",
+          "Type Conversion",
+          "Describe",
+          "Column Analysis",
+          "Formats",
+        ],
+        []
+      )
+    );
   });
 
   it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
@@ -143,7 +158,7 @@ describe("DataViewer iframe tests", () => {
     expect(result.find("div.row div.col").first().text()).toBe("Sort:col4 (ASC)");
     await tickUpdate(result);
     await openColMenu(result, 2);
-    expect(colMenu().find("header").first().text()).toBe('Column "col3"');
+    expect(colMenu().find("header").first().text()).toBe('Column "col3"Data Type:object');
     result.find(Header).at(2).instance().props.hideColumnMenu("col3");
     await openColMenu(result, 3);
     clickColMenuSubButton(result, "fa-step-backward", 1);

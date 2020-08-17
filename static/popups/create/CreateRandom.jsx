@@ -72,7 +72,17 @@ class CreateRandom extends React.Component {
       cfg.start = _.isNull(cfg.start) ? null : moment(cfg.start).format("YYYYMMDD");
       cfg.end = _.isNull(cfg.end) ? null : moment(cfg.end).format("YYYYMMDD");
     }
-    this.setState(currState, () => this.props.updateState({ cfg, code: buildCode(currState) }));
+    const updatedState = { cfg, code: buildCode(currState) };
+    if (!this.props.namePopulated) {
+      let nameIdx = 1;
+      let name = `random_col${nameIdx}`;
+      while (_.find(this.props.columns, { name })) {
+        nameIdx++;
+        name = `random_col${nameIdx}`;
+      }
+      updatedState.name = name;
+    }
+    this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   renderNumericInputs() {
@@ -260,6 +270,7 @@ CreateRandom.displayName = "CreateRandom";
 CreateRandom.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  namePopulated: PropTypes.bool,
 };
 
 export { CreateRandom, validateRandomCfg, buildCode };

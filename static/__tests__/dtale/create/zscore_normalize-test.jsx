@@ -76,13 +76,13 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "conv_col" } });
+    // result
+    //   .find(CreateColumn)
+    //   .find("div.form-group")
+    //   .first()
+    //   .find("input")
+    //   .first()
+    //   .simulate("change", { target: { value: "conv_col" } });
     result.find(CreateColumn).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
   });
@@ -103,6 +103,7 @@ describe("DataViewer tests", () => {
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col1",
     });
+    expect(result.find(CreateColumn).instance().state.name).toBe("col1_normalize");
   });
 
   it("DataViewer: build z-score normalize cfg validation", () => {

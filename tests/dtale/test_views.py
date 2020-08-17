@@ -329,10 +329,14 @@ def test_update_formats():
             c.get(
                 "/dtale/update-formats/{}".format(c.port),
                 query_string=dict(
-                    all=True, col="a", format=json.dumps(dict(fmt="", style={}))
+                    all=True,
+                    col="a",
+                    format=json.dumps(dict(fmt="", style={})),
+                    nanDisplay=None,
                 ),
             )
             assert "b" in settings[c.port]["formats"]
+            assert "nan" in settings[c.port]["nanDisplay"]
 
     with app.test_client() as c:
         with ExitStack() as stack:

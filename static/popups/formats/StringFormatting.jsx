@@ -37,11 +37,11 @@ class StringFormatting extends React.Component {
           </div>
         </div>
         <div className="row text-left" style={{ fontSize: "80%" }}>
-          <div className="col-md-12">
+          <div className="col-md-12 text-center">
             <span className="font-weight-bold pr-3">Raw:</span>
             <span>{exampleStr}</span>
           </div>
-          <div className="col-md-12">
+          <div className="col-md-12 text-center">
             <span className="font-weight-bold pr-3">Truncated:</span>
             <span>{exampleOutput}</span>
           </div>
