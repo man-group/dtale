@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.14.0 (2020-8-19)
+* [#243](https://github.com/man-group/dtale/issues/243): column menu descriptions
+* [#247](https://github.com/man-group/dtale/issues/247): code export compilation error fixes
+* [#242](https://github.com/man-group/dtale/issues/242): type conversion column menu option & auto-column names on "Build Column"
+* [#235](https://github.com/man-group/dtale/issues/235): nan formatting
+
 ### 1.13.0 (2020-8-13)
 * [#231](https://github.com/man-group/dtale/issues/231): "Lock Zoom" button on 3D Scatter & Surface charts for locking camera on animations
 * global & instance-level flag to turn off cell editing
