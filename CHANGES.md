@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.14.1 (2020-8-20)
+* [#252](https://github.com/man-group/dtale/issues/252): Describe shows proper values, but repeats 'Total Rows:' heading instead of proper headings
+
 ### 1.14.0 (2020-8-19)
 * [#243](https://github.com/man-group/dtale/issues/243): column menu descriptions
 * [#247](https://github.com/man-group/dtale/issues/247): code export compilation error fixes

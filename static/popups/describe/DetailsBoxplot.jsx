@@ -100,7 +100,7 @@ class DetailsBoxplot extends React.Component {
     if (details.dtype_counts) {
       dtypeCounts = (
         <li>
-          <h4>Dtype Counts</h4>
+          <h4 className="mb-0">Dtype Counts</h4>
           <ul>
             {_.map(details.dtype_counts, ({ count, dtype }) => (
               <li key={dtype}>
@@ -124,7 +124,7 @@ class DetailsBoxplot extends React.Component {
               </ul>
             </li>
             {_.map(describeKeys, k => (
-              <li key={k}>{buildStat("total_count", describe[k])}</li>
+              <li key={k}>{buildStat(k, describe[k])}</li>
             ))}
             {dtypeCounts}
           </ul>
