@@ -1,4 +1,4 @@
-import plotly.graph_objects as go
+import plotly.graph_objs as go
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 

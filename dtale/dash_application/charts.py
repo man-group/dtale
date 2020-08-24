@@ -5,6 +5,7 @@ import math
 import os
 import pprint
 import re
+import squarify
 import traceback
 import urllib
 from logging import getLogger
@@ -72,6 +73,13 @@ Y_AXIS_WARNING = (
     "# WARNING: This is not taking into account all the y-axes you've specified.  For this example we'll\n"
     "           use the first one you've selected, '{}'"
 )
+CHART_EXPORT_CODE = (
+    "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n\n"
+    "# from plotly.offline import iplot, init_notebook_mode\n\n"
+    "# init_notebook_mode(connected=True)\n"
+    "# chart.pop('id', None) # for some reason iplot does not like 'id'\n"
+    "# iplot(chart)"
+)
 
 
 def get_url_parser():
@@ -104,7 +112,16 @@ def chart_url_params(search):
         params = dict(get_url_parser()(search.lstrip("?")))
     else:
         params = search
-    for gp in ["y", "group", "map_group", "cs_group", "group_val", "yaxis"]:
+    for gp in [
+        "y",
+        "group",
+        "map_group",
+        "cs_group",
+        "group_val",
+        "candlestick_group",
+        "treemap_group",
+        "yaxis",
+    ]:
         if gp in params:
             params[gp] = json.loads(params[gp])
     if "colorscale" in params:
@@ -122,7 +139,11 @@ def chart_url_params(search):
         params["window"] = int(params["window"])
     if "group_filter" in params:
         params["query"] = " and ".join(
-            [params[p] for p in ["query", "group_filter"] if params.get(p) is not None]
+            [
+                params[p]
+                for p in ["query", "group_filter"]
+                if (params.get(p) or "") != ""
+            ]
         )
         del params["group_filter"]
         params["cpg"] = False
@@ -151,6 +172,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
         base_props += ["map_group"]
     elif chart_type == "candlestick":
         base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+    elif chart_type == "treemap":
+        base_props += ["treemap_value", "treemap_label", "treemap_group"]
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
@@ -158,7 +181,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         final_params["animate"] = "true" if params.get("animate") is True else "false"
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
         final_params["animate_by"] = params.get("animate_by")
-    list_props = ["y", "group", "map_group", "cs_group", "group_val"]
+    list_props = ["y", "group", "map_group", "cs_group", "treemap_group", "group_val"]
     if chart_type in ["maps", "3d_scatter", "heatmap"]:
         list_props += ["colorscale"]
     for gp in list_props:
@@ -460,12 +483,12 @@ def build_series_name(y, chart_per_group=False):
 
 def build_layout(cfg):
     """
-    Wrapper function for :plotly:`plotly.graph_objects.Layout <plotly.graph_objects.Layout>`
+    Wrapper function for :plotly:`plotly.graph_objs.Layout <plotly.graph_objs.Layout>`
 
     :param cfg: layout configuration
     :type cfg: dict
     :return: layout object
-    :rtype: :plotly:`plotly.graph_objects.Layout <plotly.graph_objects.Layout>`
+    :rtype: :plotly:`plotly.graph_objs.Layout <plotly.graph_objs.Layout>`
     """
     return go.Layout(**dict_merge(dict(legend=dict(orientation="h")), cfg))
 
@@ -536,7 +559,7 @@ def scatter_builder(
     colorscale=None,
 ):
     """
-    Builder function for :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
+    Builder function for :plotly:`plotly.graph_objs.Scatter <plotly.graph_objs.Scatter>`
 
     :param data: raw data to be represented within scatter chart
     :type data: dict
@@ -557,7 +580,7 @@ def scatter_builder(
                 median, min, max, std, var, mad, prod, sum
     :type agg: str
     :return: scatter chart
-    :rtype: :plotly:`plotly.graph_objects.Scatter <plotly.graph_objects.Scatter>`
+    :rtype: :plotly:`plotly.graph_objs.Scatter <plotly.graph_objs.Scatter>`
     """
 
     scatter_func = go.Scatter3d if z is not None else go.Scattergl
@@ -693,7 +716,7 @@ def scatter_code_builder(
 
 def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False):
     """
-    Builder function for :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
+    Builder function for :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
 
     :param data: raw data to be represented within surface chart
     :type data: dict
@@ -714,7 +737,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
                 median, min, max, std, var, mad, prod, sum
     :type agg: str
     :return: surface chart
-    :rtype: :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
+    :rtype: :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
     """
     scene = dict(aspectmode="data", camera={"eye": {"x": 2, "y": 1, "z": 1.25}})
 
@@ -795,7 +818,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
 def build_grouped_bars_with_multi_yaxis(series_cfgs, y):
     """
     This generator is a hack for the lack of support plotly has for sorting
-    :plotly:`plotly.graph_objects.Bar <plotly.graph_objects.Bar>` charts by an axis other than 'y'.  This
+    :plotly:`plotly.graph_objs.Bar <plotly.graph_objs.Bar>` charts by an axis other than 'y'.  This
     also helps with issues around displaying multiple y-axis.
 
     :param series_cfgs: configurations for all the series within a bar chart
@@ -914,7 +937,7 @@ def bar_builder(
     **kwargs
 ):
     """
-    Builder function for :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
+    Builder function for :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
 
     :param data: raw data to be represented within surface chart
     :type data: dict
@@ -933,7 +956,7 @@ def bar_builder(
                 median, min, max, std, var, mad, prod, sum
     :type agg: str
     :return: surface chart
-    :rtype: :plotly:`plotly.graph_objects.Surface <plotly.graph_objects.Surface>`
+    :rtype: :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
     """
     hover_text = dict()
     allow_multiaxis = barmode is None or barmode == "group"
@@ -1136,7 +1159,7 @@ def build_line_cfg(series):
 
 def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     """
-    Builder function for :plotly:`plotly.graph_objects.Scatter(mode='lines') <plotly.graph_objects.Scatter>`
+    Builder function for :plotly:`plotly.graph_objs.Scatter(mode='lines') <plotly.graph_objs.Scatter>`
 
     :param data: raw data to be represented within line chart
     :type data: dict
@@ -1153,7 +1176,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     :param inputs: Optional keyword arguments containing information about which aggregation (if any) has been used
     :type inputs: dict
     :return: line chart
-    :rtype: :plotly:`plotly.graph_objects.Scatter(mode='lines') <plotly.graph_objects.Scatter>`
+    :rtype: :plotly:`plotly.graph_objs.Scatter(mode='lines') <plotly.graph_objs.Scatter>`
     """
 
     axes, multi_yaxis = axes_builder(y)
@@ -1307,7 +1330,7 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
 
 def pie_builder(data, x, y, wrapper, export=False, **inputs):
     """
-    Builder function for :plotly:`plotly.graph_objects.Pie <plotly.graph_objects.Pie>`
+    Builder function for :plotly:`plotly.graph_objs.Pie <plotly.graph_objs.Pie>`
 
     :param data: raw data to be represented within surface chart
     :type data: dict
@@ -1320,7 +1343,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
     :param inputs: Optional keyword arguments containing information about which aggregation (if any) has been used
     :type inputs: dict
     :return: pie chart
-    :rtype: :plotly:`plotly.graph_objects.Pie <plotly.graph_objects.Pie>`
+    :rtype: :plotly:`plotly.graph_objs.Pie <plotly.graph_objs.Pie>`
     """
 
     name_builder = build_series_name(y, True)
@@ -1429,7 +1452,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
 
 def heatmap_builder(data_id, export=False, **inputs):
     """
-    Builder function for :plotly:`plotly.graph_objects.Heatmap <plotly.graph_objects.Heatmap>`
+    Builder function for :plotly:`plotly.graph_objs.Heatmap <plotly.graph_objs.Heatmap>`
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
@@ -1440,7 +1463,7 @@ def heatmap_builder(data_id, export=False, **inputs):
         - agg: points to a specific function that can be applied to :func: pandas.core.groupby.DataFrameGroupBy
     :type inputs: dict
     :return: heatmap
-    :rtype: :plotly:`plotly.graph_objects.Heatmap <plotly.graph_objects.Heatmap>`
+    :rtype: :plotly:`plotly.graph_objs.Heatmap <plotly.graph_objs.Heatmap>`
     """
     code = None
     try:
@@ -1673,7 +1696,7 @@ def heatmap_builder(data_id, export=False, **inputs):
 
 def candlestick_builder(data_id, export=False, **inputs):
     """
-    Builder function for :plotly:`plotly.graph_objects.Candlestick <plotly.graph_objects.Candlestick>`
+    Builder function for :plotly:`plotly.graph_objs.Candlestick <plotly.graph_objs.Candlestick>`
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
@@ -1686,7 +1709,7 @@ def candlestick_builder(data_id, export=False, **inputs):
         - agg: points to a specific function that can be applied to :func: pandas.core.groupby.DataFrameGroupBy
     :type inputs: dict
     :return: candlestick chart
-    :rtype: :plotly:`plotly.graph_objects.Candlestick <plotly.graph_objects.Candlestick>`
+    :rtype: :plotly:`plotly.graph_objs.Candlestick <plotly.graph_objs.Candlestick>`
     """
     code = None
     try:
@@ -1801,6 +1824,159 @@ def candlestick_builder(data_id, export=False, **inputs):
         if export:
             return chart
         return wrapper(chart), code
+    except BaseException as e:
+        return build_error(e, traceback.format_exc()), code
+
+
+def treemap_builder(data_id, export=False, **inputs):
+    """
+    Builder function for :plotly:`plotly.graph_objs.Treemap <plotly.graph_objs.Treemap>`
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param inputs: Optional keyword arguments containing the following information:
+        - value: column to be used to drive the size of the shapes in the chart
+        - label: column to be used for labels
+        - agg: points to a specific function that can be applied to :func: pandas.core.groupby.DataFrameGroupBy
+    :type inputs: dict
+    :return: treemap chart
+    :rtype: :plotly:`plotly.graph_objs.Treemap <plotly.graph_objs.Treemap>`
+    """
+    code = None
+    try:
+        treemap_value, treemap_label, group = (
+            inputs.get(p) for p in ["treemap_value", "treemap_label", "treemap_group"]
+        )
+        data, code = build_figure_data(data_id, **inputs)
+        if data is None:
+            return None, None
+        chart_builder = chart_wrapper(data_id, data, inputs)
+
+        code.append("\nimport plotly.graph_objs as go")
+        code.append("import plotly.express as px")
+        code.append("import squarify\n")
+        code.append(
+            (
+                "def _build_treemap_data(values, labels, name=None):\n"
+                "\tx, y, width, height = (0., 0., 100., 100.)\n"
+                "\tnormed = squarify.normalize_sizes(values, width, height)\n"
+                "\trects = squarify.squarify(normed, x, y, width, height)\n"
+                "\tcolors = px.colors.qualitative.Dark24 + px.colors.qualitative.Light24\n"
+                "\tshapes, annotations = ([], [])\n"
+                "\tfor i, (r, val, label) in enumerate(zip(rects, values, labels)):\n"
+                "\t\tshapes.append(dict(\n"
+                "\t\t\ttype='rect', x0=r['x'], y0=r['y'], x1=r['x'] + r['dx'],\n"
+                "\t\t\ty1=r['y'] + r['dy'], line=dict(width=1),\n"
+                "\t\t\tfillcolor=colors[i % len(colors)]\n"
+                "\t\t))\n"
+                "\t\tannotations.append(dict(\n"
+                "\t\t\tx=r['x'] + (r['dx'] / 2),\n"
+                "\t\t\ty=r['y'] + (r['dy'] / 2),\n"
+                "\t\t\ttext='{}-{}'.format(label, val),\n"
+                "\t\t\tshowarrow=False,\n"
+                "\t\t\tfont=dict(color='#FFFFFF')\n"
+                "\t\t))\n"
+                "\ttrace = go.Scatter(\n"
+                "\t\tx=[r['x'] + (r['dx'] / 2) for r in rects],\n"
+                "\t\ty=[r['y'] + (r['dy'] / 2) for r in rects],\n"
+                "\t\ttext=[str(v) for v in values],\n"
+                "\t\tmode='text'\n"
+                "\t)\n"
+                "\tlayout = dict(\n"
+                "\t\txaxis=dict(showgrid=False, zeroline=False, tickfont=dict(color='#FFFFFF')),\n"
+                "\t\tyaxis=dict(showgrid=False, zeroline=False, tickfont=dict(color='#FFFFFF')),\n"
+                "\t\tshapes=shapes,\n"
+                "\t\tannotations=annotations,\n"
+                "\t\thovermode='closest'\n"
+                "\t)\n"
+                "\tif name is not None:\n"
+                "\t\tlayout['title'] = name\n"
+                "\treturn dict(data=[trace], layout=layout)"
+            )
+        )
+
+        def _build_treemap_data(values, labels, name):
+            x, y, width, height = 0.0, 0.0, 100.0, 100.0
+            normed = squarify.normalize_sizes(values, width, height)
+            rects = squarify.squarify(normed, x, y, width, height)
+            colors = px.colors.qualitative.Dark24 + px.colors.qualitative.Light24
+            shapes, annotations = ([], [])
+            for i, (r, val, label) in enumerate(zip(rects, values, labels)):
+                shapes.append(
+                    dict(
+                        type="rect",
+                        x0=r["x"],
+                        y0=r["y"],
+                        x1=r["x"] + r["dx"],
+                        y1=r["y"] + r["dy"],
+                        line=dict(width=1),
+                        fillcolor=colors[i % len(colors)],
+                    )
+                )
+                annotations.append(
+                    dict(
+                        x=r["x"] + (r["dx"] / 2),
+                        y=r["y"] + (r["dy"] / 2),
+                        text="{}-{}".format(label, val),
+                        showarrow=False,
+                        font=dict(color="#FFFFFF"),
+                    )
+                )
+
+            # For hover text
+            trace = go.Scatter(
+                x=[r["x"] + (r["dx"] / 2) for r in rects],
+                y=[r["y"] + (r["dy"] / 2) for r in rects],
+                text=[str(v) for v in values],
+                mode="text",
+            )
+
+            layout = dict(
+                xaxis=dict(
+                    showgrid=False, zeroline=False, tickfont=dict(color="#FFFFFF")
+                ),
+                yaxis=dict(
+                    showgrid=False, zeroline=False, tickfont=dict(color="#FFFFFF")
+                ),
+                shapes=shapes,
+                annotations=annotations,
+                hovermode="closest",
+            )
+            group_filter = None
+            if name != "all":
+                layout["title"] = name
+                group_filter = dict(group=name)
+            figure_cfg = dict(data=[trace], layout=layout)
+            base_fig = graph_wrapper(
+                style={"margin-right": "auto", "margin-left": "auto"},
+                figure=figure_cfg,
+                modal=inputs.get("modal", False),
+            )
+            if export:
+                return base_fig
+            return chart_builder(base_fig, group_filter=group_filter)
+
+        chart = [
+            _build_treemap_data(series[treemap_value], series["x"], series_key)
+            for series_key, series in data["data"].items()
+        ]
+        code.append(
+            (
+                "charts = [\n"
+                "\t_build_treemap_data(g['{treemap_value}'].values, g['{treemap_label}'].values, name)\n"
+                "\tfor name, g in chart_data.groupby(['{group}'])\n"
+                "]\n"
+                "chart = go.Figure(charts[0])"
+            ).format(
+                treemap_value=treemap_value,
+                treemap_label=treemap_label,
+                group="','".join(make_list(group)),
+            )
+        )
+
+        if export:
+            return make_list(chart)[0]
+        return cpg_chunker(make_list(chart)), code
     except BaseException as e:
         return build_error(e, traceback.format_exc()), code
 
@@ -2260,14 +2436,17 @@ def build_figure_data(
     :rtype: dict
     """
     if not valid_chart(
-        **dict(
-            x=x,
-            y=y,
-            z=z,
-            chart_type=chart_type,
-            agg=agg,
-            window=window,
-            rolling_comp=rolling_comp,
+        **dict_merge(
+            dict(
+                x=x,
+                y=y,
+                z=z,
+                chart_type=chart_type,
+                agg=agg,
+                window=window,
+                rolling_comp=rolling_comp,
+            ),
+            {k: kwargs.get(k) for k in ["treemap_value", "treemap_label"]},
         )
     ):
         return None, None
@@ -2280,6 +2459,11 @@ def build_figure_data(
     if data is None or not len(data):
         return None, None
 
+    if chart_type == "treemap":
+        y, x, group = (
+            kwargs.get(p) for p in ["treemap_value", "treemap_label", "treemap_group"]
+        )
+        y = [y]
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
@@ -2399,6 +2583,7 @@ def build_chart(data_id=None, data=None, **inputs):
         - surface
         - maps (choropleth, scattergeo, mapbox)
         - candlestick
+        - treemap
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -2425,6 +2610,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "candlestick":
             chart, code = candlestick_builder(data_id, **inputs)
+            return chart, None, code
+
+        if chart_type == "treemap":
+            chart, code = treemap_builder(data_id, **inputs)
             return chart, None, code
 
         data, code = build_figure_data(data_id, data=data, **inputs)
@@ -2565,12 +2754,21 @@ def build_raw_chart(data_id=None, **inputs):
         return output
 
     def _raw_chart_builder():
-        if inputs.get("chart_type") == "heatmap":
+        chart_type = inputs.get("chart_type")
+        if chart_type == "heatmap":
             chart = heatmap_builder(data_id, **inputs)
             return chart
 
-        if inputs.get("chart_type") == "maps":
+        if chart_type == "maps":
             chart = map_builder(data_id, **inputs)
+            return chart
+
+        if chart_type == "candlestick":
+            chart = candlestick_builder(data_id, **inputs)
+            return chart
+
+        if chart_type == "treemap":
+            chart = treemap_builder(data_id, **inputs)
             return chart
 
         data, _ = build_figure_data(data_id, **inputs)
