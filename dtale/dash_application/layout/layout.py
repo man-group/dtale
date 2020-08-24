@@ -136,6 +136,7 @@ CHARTS = [
     dict(value="surface"),
     dict(value="maps", label="Maps"),
     dict(value="candlestick"),
+    dict(value="treemap"),
 ]
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -200,6 +201,15 @@ CHART_INPUT_SETTINGS = {
         group=dict(display=False),
         map_group=dict(display=False),
         cs_group=dict(display=True),
+    ),
+    "treemap": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=False),
+        treemap_group=dict(display=True),
     ),
 }
 
@@ -424,6 +434,8 @@ def show_group_input(inputs, group_cols=None):
         return len(group_cols or make_list(inputs.get("map_group")))
     elif show_input_handler(chart_type)("cs_group"):
         return len(group_cols or make_list(inputs.get("cs_group")))
+    elif show_input_handler(chart_type)("treemap_group"):
+        return len(group_cols or make_list(inputs.get("treemap_group")))
     return False
 
 
@@ -587,6 +599,25 @@ def build_candlestick_options(
         if c not in build_selections(cs_x, cs_open, cs_close, cs_low)
     ]
     return x_options, close_options, open_options, low_options, high_options
+
+
+def build_treemap_options(df, treemap_value=None, treemap_label=None):
+    dtypes = get_dtypes(df)
+    cols = sorted(dtypes.keys())
+    num_cols = []
+    for c in cols:
+        dtype = dtypes[c]
+        classification = classify_type(dtype)
+        if classification in ["F", "I"]:
+            num_cols.append(c)
+
+    value_options = [
+        build_option(c) for c in num_cols if c not in build_selections(treemap_label)
+    ]
+    label_options = [
+        build_option(c) for c in cols if c not in build_selections(treemap_value)
+    ]
+    return value_options, label_options
 
 
 def build_mapbox_style_options():
@@ -820,6 +851,12 @@ def charts_layout(df, settings, **inputs):
         cs_high=cs_high,
         cs_low=cs_low,
     )
+    show_treemap = chart_type == "treemap"
+    treemap_props = ["treemap_value", "treemap_label", "treemap_group"]
+    treemap_value, treemap_label, treemap_group = (inputs.get(p) for p in treemap_props)
+    (treemap_value_options, treemap_label_options,) = build_treemap_options(
+        df, treemap_value=treemap_value, treemap_label=treemap_label,
+    )
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
@@ -873,6 +910,14 @@ def charts_layout(df, settings, **inputs):
                     for k, v in inputs.items()
                     if k
                     in ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+                },
+            ),
+            dcc.Store(
+                id="treemap-input-data",
+                data={
+                    k: v
+                    for k, v in inputs.items()
+                    if k in ["treemap_value", "treemap_label", "treemap_group"]
                 },
             ),
             dcc.Store(id="range-data"),
@@ -997,7 +1042,9 @@ def charts_layout(df, settings, **inputs):
                                 ],
                                 id="standard-inputs",
                                 style={}
-                                if not show_map and not show_candlestick
+                                if not show_map
+                                and not show_candlestick
+                                and not show_treemap
                                 else {"display": "none"},
                                 className="row p-0 charts-filters",
                             ),
@@ -1230,6 +1277,46 @@ def charts_layout(df, settings, **inputs):
                                 id="candlestick-inputs",
                                 className="row charts-filters",
                                 style={} if show_candlestick else {"display": "none"},
+                            ),
+                            html.Div(
+                                [
+                                    build_input(
+                                        "Value",
+                                        dcc.Dropdown(
+                                            id="treemap-value-dropdown",
+                                            options=treemap_value_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=treemap_value,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Labels",
+                                        dcc.Dropdown(
+                                            id="treemap-label-dropdown",
+                                            options=treemap_label_options,
+                                            placeholder="Select a column",
+                                            style=dict(width="inherit"),
+                                            value=treemap_label,
+                                        ),
+                                    ),
+                                    build_input(
+                                        "Group",
+                                        dcc.Dropdown(
+                                            id="treemap-group-dropdown",
+                                            options=group_options,
+                                            multi=True,
+                                            placeholder="Select a group(s)",
+                                            value=inputs.get("treemap_group"),
+                                            style=dict(width="inherit"),
+                                        ),
+                                        className="col",
+                                        id="treemap-group-input",
+                                    ),
+                                ],
+                                id="treemap-inputs",
+                                className="row charts-filters",
+                                style={} if show_treemap else {"display": "none"},
                             ),
                             html.Div(
                                 [

@@ -88,6 +88,7 @@ setup(
         "requests",
         "scikit-learn >= '0.21.0",
         "scipy",
+        "squarify",
         "statsmodels",
         "six",
         "xarray",

@@ -12,7 +12,11 @@ import dtale.dash_application.drilldown_modal as drilldown_modal
 import dtale.dash_application.lock_zoom as lock_zoom
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
-from dtale.dash_application.charts import build_chart, chart_url_params
+from dtale.dash_application.charts import (
+    build_chart,
+    chart_url_params,
+    CHART_EXPORT_CODE,
+)
 from dtale.dash_application.layout.layout import (
     animate_styles,
     bar_input_style,
@@ -24,6 +28,7 @@ from dtale.dash_application.layout.layout import (
     build_candlestick_options,
     build_mapbox_style_options,
     build_proj_hover_children,
+    build_treemap_options,
     charts_layout,
     colorscale_input_style,
     get_yaxis_type_tabs,
@@ -176,6 +181,7 @@ def init_callbacks(dash_app):
             Output("standard-inputs", "style"),
             Output("map-inputs", "style"),
             Output("candlestick-inputs", "style"),
+            Output("treemap-inputs", "style"),
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
@@ -244,7 +250,11 @@ def init_callbacks(dash_app):
         map_style = {} if show_map else {"display": "none"}
         show_cs = chart_type == "candlestick"
         cs_style = {} if show_cs else {"display": "none"}
-        standard_style = {"display": "none"} if show_map or show_cs else {}
+        show_treemap = chart_type == "treemap"
+        treemap_style = {} if show_treemap else {"display": "none"}
+        standard_style = (
+            {"display": "none"} if show_map or show_cs or show_treemap else {}
+        )
         cscale_style = colorscale_input_style(chart_type=chart_type)
         drilldown_toggle_style = show_style((agg or "raw") != "raw")
         return (
@@ -259,6 +269,7 @@ def init_callbacks(dash_app):
             standard_style,
             map_style,
             cs_style,
+            treemap_style,
             cscale_style,
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
@@ -453,6 +464,32 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [
+            Output("treemap-input-data", "data"),
+            Output("treemap-value-dropdown", "options"),
+            Output("treemap-label-dropdown", "options"),
+        ],
+        [
+            Input("treemap-value-dropdown", "value"),
+            Input("treemap-label-dropdown", "value"),
+            Input("treemap-group-dropdown", "value"),
+        ],
+        [State("url", "pathname")],
+    )
+    def treemap_data_callback(
+        treemap_value, treemap_label, group, pathname,
+    ):
+        data_id = get_data_id(pathname)
+        treemap_data = dict(treemap_value=treemap_value, treemap_label=treemap_label,)
+        if group is not None:
+            treemap_data["treemap_group"] = group
+        df = global_state.get_data(data_id)
+        value_options, label_options = build_treemap_options(
+            df, treemap_value=treemap_value, treemap_label=treemap_label,
+        )
+        return treemap_data, value_options, label_options
+
+    @dash_app.callback(
+        [
             Output("y-multi-input", "style"),
             Output("y-single-input", "style"),
             Output("z-input", "style"),
@@ -558,6 +595,7 @@ def init_callbacks(dash_app):
             Input("yaxis-data", "modified_timestamp"),
             Input("map-input-data", "modified_timestamp"),
             Input("candlestick-input-data", "modified_timestamp"),
+            Input("treemap-input-data", "modified_timestamp"),
         ],
         [
             State("url", "pathname"),
@@ -566,6 +604,7 @@ def init_callbacks(dash_app):
             State("yaxis-data", "data"),
             State("map-input-data", "data"),
             State("candlestick-input-data", "data"),
+            State("treemap-input-data", "data"),
             State("last-chart-input-data", "data"),
         ],
     )
@@ -575,19 +614,26 @@ def init_callbacks(dash_app):
         _ts3,
         _ts4,
         _ts5,
+        _ts6,
         pathname,
         inputs,
         chart_inputs,
         yaxis_data,
         map_data,
         cs_data,
+        treemap_data,
         last_chart_inputs,
     ):
         """
         dash callback controlling the building of dash charts
         """
         all_inputs = dict_merge(
-            inputs, chart_inputs, dict(yaxis=yaxis_data or {}), map_data, cs_data
+            inputs,
+            chart_inputs,
+            dict(yaxis=yaxis_data or {}),
+            map_data,
+            cs_data,
+            treemap_data,
         )
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
@@ -598,7 +644,7 @@ def init_callbacks(dash_app):
             charts,
             all_inputs,
             range_data,
-            "\n".join(make_list(code)),
+            "\n".join(make_list(code) + [CHART_EXPORT_CODE]),
             get_yaxis_type_tabs(make_list(inputs.get("y") or [])),
         )
 
@@ -729,16 +775,20 @@ def init_callbacks(dash_app):
             Input("input-data", "modified_timestamp"),
             Input("map-input-data", "modified_timestamp"),
             Input("candlestick-input-data", "modified_timestamp"),
+            Input("treemap-input-data", "modified_timestamp"),
         ],
         [
             State("input-data", "data"),
             State("map-input-data", "data"),
             State("candlestick-input-data", "data"),
+            State("treemap-input-data", "data"),
         ],
     )
-    def main_input_class(ts_, ts2_, _ts3, inputs, map_inputs, cs_inputs):
+    def main_input_class(
+        ts_, ts2_, _ts3, _ts4, inputs, map_inputs, cs_inputs, treemap_inputs
+    ):
         return main_inputs_and_group_val_display(
-            dict_merge(inputs, map_inputs, cs_inputs)
+            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs)
         )
 
     @dash_app.callback(
@@ -751,6 +801,7 @@ def init_callbacks(dash_app):
             Input("group-dropdown", "value"),
             Input("map-group-dropdown", "value"),
             Input("candlestick-group-dropdown", "value"),
+            Input("treemap-group-dropdown", "value"),
         ],
         [
             State("url", "pathname"),
@@ -763,6 +814,7 @@ def init_callbacks(dash_app):
         group_cols,
         map_group_cols,
         cs_group_cols,
+        treemap_group_cols,
         pathname,
         inputs,
         prev_group_vals,
@@ -772,6 +824,8 @@ def init_callbacks(dash_app):
             group_cols = map_group_cols
         elif chart_type == "candlestick":
             group_cols = cs_group_cols
+        elif chart_type == "treemap":
+            group_cols = treemap_group_cols
         group_cols = make_list(group_cols)
         if not show_group_input(inputs, group_cols):
             return [], None

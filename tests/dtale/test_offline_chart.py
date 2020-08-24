@@ -9,7 +9,9 @@ else:
 
 
 @pytest.mark.unit
-def test_build_file(test_data, state_data, scattergeo_data):
+def test_build_file(
+    test_data, state_data, scattergeo_data, candlestick_data, treemap_data
+):
     from dtale import offline_chart
 
     if PY3:
@@ -59,6 +61,29 @@ def test_build_file(test_data, state_data, scattergeo_data):
             map_val="val",
             scope="world",
             proj="mercator",
+        )
+        assert output is not None
+
+        output = offline_chart(
+            candlestick_data,
+            chart_type="candlestick",
+            cs_x="x",
+            cs_open="open",
+            cs_close="close",
+            cs_high="high",
+            cs_low="low",
+            cs_group=["symbol"],
+            query="symbol == 'a'",
+        )
+        assert output is not None
+
+        output = offline_chart(
+            treemap_data,
+            chart_type="treemap",
+            treemap_value="volume",
+            treemap_label="label",
+            treemap_group=["group"],
+            query="group == 'group1'",
         )
         assert output is not None
 

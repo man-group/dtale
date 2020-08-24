@@ -84,6 +84,36 @@ def rolling_data():
 
 
 @pytest.fixture(scope="module")
+def treemap_data():
+    volume = [350, 220, 170, 150, 50]
+    labels = [
+        "Liquid\n volume: 350k",
+        "Savoury\n volume: 220k",
+        "Sugar\n volume: 170k",
+        "Frozen\n volume: 150k",
+        "Non-food\n volume: 50k",
+    ]
+    dfs = []
+    for g in ["group1", "group2"]:
+        dfs.append(pd.DataFrame(dict(group=g, volume=volume, label=labels)))
+    return pd.concat(dfs, ignore_index=True)
+
+
+@pytest.fixture(scope="module")
+def candlestick_data():
+    return pd.DataFrame(
+        dict(
+            x=[pd.Timestamp("20200101"), pd.Timestamp("20200101")],
+            symbol=["a", "b"],
+            open=[1, 2],
+            close=[1, 2],
+            high=[1, 2],
+            low=[1, 2],
+        )
+    )
+
+
+@pytest.fixture(scope="module")
 def custom_data(request):
     rows = request.param.get("rows", 100)
     columns = request.param.get("cols", 10)

@@ -721,7 +721,6 @@ def run_query(df, query, context_vars=None, ignore_empty=False):
 
         inv_replacements = {replacements[k]: k for k in replacements.keys()}
         df = df.rename(columns=replacements)
-
         df = df.query(final_query, local_dict=context_vars or {})
         df = df.rename(columns=inv_replacements)
     else:
@@ -795,7 +794,7 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     if final_query is None:
         final_query = settings.get("query")
 
-    if final_query is not None:
+    if final_query is not None and final_query != "":
         if len(ctxt_vars or {}):
             final_history.append(
                 (
@@ -809,7 +808,7 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
             )
         else:
             final_history.append('df = df.query("{}")\n'.format(final_query))
-    elif "query" in settings:
+    elif settings.get("query"):
         final_history.append('df = df.query("{}")\n'.format(settings["query"]))
     if "sort" in settings:
         cols, dirs = [], []

@@ -71,6 +71,10 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         cs_props = ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low"]
         return all(inputs.get(p) is not None for p in cs_props)
 
+    if chart_type == "treemap":
+        treemap_props = ["treemap_value", "treemap_label"]
+        return all(inputs.get(p) is not None for p in treemap_props)
+
     if x is None or not len(y or []):
         return False
 

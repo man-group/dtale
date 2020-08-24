@@ -69,7 +69,7 @@ def test_display_page(unittest):
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-            x_dd = component_defs[11]["props"]["children"][0]
+            x_dd = component_defs[12]["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
@@ -127,8 +127,8 @@ def test_input_changes(unittest):
                 "output": (
                     "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
                     "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
-                    "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...colorscale-input.style."
-                    "..drilldown-input.style...lock-zoom-btn.style.."
+                    "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
+                    "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style.."
                 ),
                 "changedPropIds": ["chart-tabs.value"],
                 "inputs": [
@@ -314,6 +314,11 @@ def test_group_values(unittest):
                         "property": "value",
                         "value": None,
                     },
+                    {
+                        "id": "treemap-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
                 ],
                 "state": [
                     pathname,
@@ -374,6 +379,7 @@ def test_main_input_styling(unittest):
                 ts_builder("input-data"),
                 ts_builder("map-input-data"),
                 ts_builder("candlestick-input-data"),
+                ts_builder("treemap-input-data"),
             ],
             "state": [
                 {
@@ -383,6 +389,7 @@ def test_main_input_styling(unittest):
                 },
                 {"id": "map-input-data", "property": "data", "value": {}},
                 {"id": "candlestick-input-data", "property": "data", "value": {}},
+                {"id": "treemap-input-data", "property": "data", "value": {}},
             ],
         }
         response = c.post("/charts/_dash-update-component", json=params)
@@ -785,6 +792,7 @@ def build_chart_params(
     last_inputs={},
     map_inputs={},
     cs_inputs={},
+    treemap_inputs={},
 ):
     return build_dash_request(
         (
@@ -800,6 +808,7 @@ def build_chart_params(
                 "yaxis-data",
                 "map-input-data",
                 "candlestick-input-data",
+                "treemap-input-data",
             ]
         ],
         [
@@ -809,13 +818,14 @@ def build_chart_params(
             {"id": "yaxis-data", "property": "data", "value": yaxis},
             {"id": "map-input-data", "property": "data", "value": map_inputs},
             {"id": "candlestick-input-data", "property": "data", "value": cs_inputs},
+            {"id": "treemap-input-data", "property": "data", "value": treemap_inputs},
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
         ],
     )
 
 
 @pytest.mark.unit
-def test_chart_building_nones(unittest):
+def test_chart_building_nones():
 
     with app.test_client() as c:
         pathname = path_builder(c.port)
@@ -1724,22 +1734,12 @@ def test_chart_building_map_mapbox(unittest, scattergeo_data):
 
 
 @pytest.mark.unit
-def test_candlestick_data(unittest):
+def test_candlestick_data(candlestick_data, unittest):
     import dtale.views as views
 
-    df = pd.DataFrame(
-        dict(
-            x=[pd.Timestamp("20200101"), pd.Timestamp("20200101")],
-            symbol=["a", "b"],
-            open=[1, 2],
-            close=[1, 2],
-            high=[1, 2],
-            low=[1, 2],
-        )
-    )
     with app.test_client() as c:
         with ExitStack() as stack:
-            df, _ = views.format_data(df)
+            df, _ = views.format_data(candlestick_data)
             stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             pathname = path_builder(c.port)
             params = {
@@ -1795,22 +1795,12 @@ def test_candlestick_data(unittest):
 
 
 @pytest.mark.unit
-def test_chart_building_candlestick():
+def test_chart_building_candlestick(candlestick_data):
     import dtale.views as views
 
-    df = pd.DataFrame(
-        dict(
-            x=[pd.Timestamp("20200101"), pd.Timestamp("20200101")],
-            symbol=["a", "b"],
-            open=[1, 2],
-            close=[1, 2],
-            high=[1, 2],
-            low=[1, 2],
-        )
-    )
     with app.test_client() as c:
         with ExitStack() as stack:
-            df, _ = views.format_data(df)
+            df, _ = views.format_data(candlestick_data)
             stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             pathname = path_builder(c.port)
             inputs = {
@@ -1831,7 +1821,6 @@ def test_chart_building_candlestick():
             )
             response = c.post("/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            print_traceback(response)
             assert len(resp_data["chart-content"]["children"]) == 3
 
             inputs["query"] = "symbol == 'a'"
@@ -1846,6 +1835,98 @@ def test_chart_building_candlestick():
             inputs["query"] = "symbol == 'c'"
             params = build_chart_params(
                 pathname, inputs, chart_inputs, cs_inputs=cs_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            exception = print_traceback(response, return_output=True)
+            assert "found no data" in exception
+
+
+@pytest.mark.unit
+def test_treemap_data(treemap_data, unittest):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(treemap_data)
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            params = {
+                "output": (
+                    "..treemap-input-data.data...treemap-value-dropdown.options...treemap-label-dropdown.options.."
+                ),
+                "changedPropIds": ["candlestick-value-dropdown.value"],
+                "inputs": [
+                    {
+                        "id": "treemap-value-dropdown",
+                        "property": "value",
+                        "value": "volume",
+                    },
+                    {
+                        "id": "treemap-label-dropdown",
+                        "property": "value",
+                        "value": "label",
+                    },
+                    {
+                        "id": "treemap-group-dropdown",
+                        "property": "value",
+                        "value": ["group"],
+                    },
+                ],
+                "state": [pathname],
+            }
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            unittest.assertEqual(
+                resp_data["treemap-input-data"]["data"],
+                {
+                    "treemap_value": "volume",
+                    "treemap_label": "label",
+                    "treemap_group": ["group"],
+                },
+            )
+
+
+@pytest.mark.unit
+def test_chart_building_treemap(treemap_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            df, _ = views.format_data(treemap_data)
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            pathname = path_builder(c.port)
+            inputs = {
+                "chart_type": "treemap",
+                "agg": "mean",
+            }
+            chart_inputs = {}
+            treemap_inputs = {
+                "treemap_value": "volume",
+                "treemap_label": "label",
+                "treemap_group": ["group"],
+            }
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert (
+                len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
+            )
+
+            inputs["query"] = "group == 'group1'"
+            treemap_inputs["treemap_group"] = None
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+            )
+            response = c.post("/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            print(resp_data["chart-content"])
+            assert len(resp_data["chart-content"]["children"]) == 1
+
+            inputs["query"] = "group == 'group3'"
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
             )
             response = c.post("/charts/_dash-update-component", json=params)
             exception = print_traceback(response, return_output=True)
@@ -2342,5 +2423,13 @@ def test_chart_url_params():
         cs_high="high",
         cs_low="low",
         cs_group=["group"],
+    )
+    test_parsing(params)
+
+    params = dict(
+        chart_type="treemap",
+        treemap_value="x",
+        treemap_label="y",
+        treemap_group=["group"],
     )
     test_parsing(params)

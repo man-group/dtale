@@ -554,14 +554,16 @@ div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
 }
 
 div#map-inputs > div.col-auto,
-div#candlestick-inputs > div.col-auto {
+div#candlestick-inputs > div.col-auto,
+div#treemap-inputs > div.col-auto {
     padding-right: 0;
 }
 
 div#standard-inputs > div,
 div#chart-inputs > div,
 div#map-inputs > div,
-div#candlestick-inputs > div{
+div#candlestick-inputs > div,
+div#treemap-inputs > div {
   padding-top: 0.25rem !important;
   padding-bottom: 0.25rem !important;
 }
