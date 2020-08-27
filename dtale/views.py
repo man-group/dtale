@@ -725,6 +725,8 @@ def startup(
     allow_cell_edits=True,
     inplace=False,
     drop_index=False,
+    hide_shutdown=False,
+    github_fork=False,
 ):
     """
     Loads and stores data globally
@@ -749,6 +751,11 @@ def startup(
     :type inplace: bool, optional
     :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
     :type drop_index: bool, optional
+    :param hide_shutdown: If true, this will hide the "Shutdown" button from users
+    :type hide_shutdown: bool, optional
+    :param github_fork: If true, this will display a "Fork Me On GitHub" ribbon in the upper right-hand corner of the
+                        app
+    :type github_fork: bool, optional
     """
 
     if data_loader is not None:
@@ -776,6 +783,8 @@ def startup(
                 context_vars=context_vars,
                 ignore_duplicate=ignore_duplicate,
                 allow_cell_edits=allow_cell_edits,
+                hide_shutdown=hide_shutdown,
+                github_fork=github_fork,
             )
             global_state.set_dataset(instance._data_id, data)
             global_state.set_dataset_dim(instance._data_id, {})
@@ -829,9 +838,13 @@ def startup(
             )
 
         # in the case that data has been updated we will drop any sorts or filter for ease of use
-        global_state.set_settings(
-            data_id, dict(locked=curr_locked, allow_cell_edits=allow_cell_edits)
+        base_settings = dict(
+            locked=curr_locked,
+            allow_cell_edits=allow_cell_edits,
+            hide_shutdown=hide_shutdown,
+            github_fork=github_fork,
         )
+        global_state.set_settings(data_id, base_settings)
         global_state.set_data(data_id, data)
         global_state.set_dtypes(
             data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
@@ -855,9 +868,6 @@ def base_render_template(template, data_id, **kwargs):
         return redirect(current_app.url_for("missing_js"))
     curr_settings = global_state.get_settings(data_id) or {}
     _, version = retrieve_meta_info_and_version("dtale")
-    allow_cell_edits = global_state.ALLOW_CELL_EDITS and curr_settings.get(
-        "allow_cell_edits", True
-    )
     return render_template(
         template,
         data_id=data_id,
@@ -866,7 +876,9 @@ def base_render_template(template, data_id, **kwargs):
         settings=json.dumps(curr_settings),
         version=str(version),
         processes=len(global_state.get_data()),
-        allow_cell_edits=allow_cell_edits,
+        allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
+        hide_shutdown=global_state.load_flag(data_id, "hide_shutdown", False),
+        github_fork=global_state.load_flag(data_id, "github_fork", False),
         **kwargs
     )
 
@@ -1536,7 +1548,9 @@ def describe(data_id, column):
         uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
         uniq_f, _ = build_formatters(uniq_grp)
         return_data["uniques"][uniq_type] = dict(
-            data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top,
+            data=uniq_f.format_dicts(uniq_grp.itertuples()),
+            total=total,
+            top=top,
         )
 
     return_data["code"] = "\n".join(code)

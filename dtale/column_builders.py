@@ -476,7 +476,8 @@ class TypeConversionColumnBuilder(object):
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
                     return "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
-                        s=s, name=self.name,
+                        s=s,
+                        name=self.name,
                     )
                 return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
                     s=s, name=self.name, unit=unit

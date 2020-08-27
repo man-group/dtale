@@ -23,7 +23,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
     <body>
-        {% if config.GITHUB_FORK %}
+        {% if github_fork %}
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/github_fork.css') }}" />
         <span id="forkongithub">
             <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
@@ -34,7 +34,7 @@
         <input type="hidden" id="xarray_dim" value="{{xarray_dim}}" />
         <input type="hidden" id="settings" value="{{settings}}" />
         <input type="hidden" id="version" value="{{version}}" />
-        <input type="hidden" id="hide_shutdown" value="{{config.HIDE_SHUTDOWN}}" />
+        <input type="hidden" id="hide_shutdown" value="{{hide_shutdown}}" />
         <input type="hidden" id="allow_cell_edits" value="{{allow_cell_edits}}" />
         <input type="hidden" id="processes" value={{processes}} />
         {% block full_content %}{% endblock %}

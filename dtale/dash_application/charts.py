@@ -84,7 +84,7 @@ CHART_EXPORT_CODE = (
 
 def get_url_parser():
     """
-     Returns URL parser based on whether Python 2 or 3 is being used.
+    Returns URL parser based on whether Python 2 or 3 is being used.
     """
     if PY3:
         return urllib.parse.parse_qsl
@@ -267,10 +267,14 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None)
                         pos = axis_ct / 20.0
                         value["position"] = (1 - pos) if right else pos
                         positions.append(value["position"])
-                if y2 in axis_data and not (
-                    axis_data[y2]["min"],
-                    axis_data[y2]["max"],
-                ) == (mins[y2], maxs[y2]):
+                if (
+                    y2 in axis_data
+                    and not (
+                        axis_data[y2]["min"],
+                        axis_data[y2]["max"],
+                    )
+                    == (mins[y2], maxs[y2])
+                ):
                     value["range"] = [axis_data[y2]["min"], axis_data[y2]["max"]]
                 if classify_type(dtypes.get(y2)) == "I":
                     value["tickformat"] = ".0f"
@@ -1627,7 +1631,10 @@ def heatmap_builder(data_id, export=False, **inputs):
         x_axis = _build_heatmap_axis(x, x_data, x_title)
         y_axis = _build_heatmap_axis(y, y_data, y_title)
 
-        hm_kwargs = dict_merge(hm_kwargs, dict(colorbar={"title": z_title}, text=text),)
+        hm_kwargs = dict_merge(
+            hm_kwargs,
+            dict(colorbar={"title": z_title}, text=text),
+        )
 
         hm_kwargs = dict_merge(hm_kwargs, {"z": heat_data})
         layout_cfg = build_layout(
@@ -1746,7 +1753,12 @@ def candlestick_builder(data_id, export=False, **inputs):
         dupe_cols = [x] + make_list(group)
         if agg is not None:
             data, agg_code = build_agg_data(
-                data, x, [cs_open, cs_close, high, low], inputs, agg, group_col=group,
+                data,
+                x,
+                [cs_open, cs_close, high, low],
+                inputs,
+                agg,
+                group_col=group,
             )
             code += agg_code
         if not len(data):

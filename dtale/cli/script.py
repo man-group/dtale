@@ -27,7 +27,15 @@ logger = getLogger(__name__)
 @click.option(
     "--no-cell-edits",
     is_flag=True,
-    help="flag to turn off auto-reaping (process cleanup after period of inactivity)",
+    help="flag to turn off auto-reaping (process cleanup after period of inactivity",
+)
+@click.option(
+    "--hide-shutdown", is_flag=True, help='flag to hide "Shutdown" button from users'
+)
+@click.option(
+    "--github-fork",
+    is_flag=True,
+    help='flag to show "Fork Me On GitHub" link in upper right-hand corner of the app',
 )
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
@@ -47,6 +55,8 @@ def main(
     open_browser=False,
     name=None,
     no_cell_edits=False,
+    hide_shutdown=False,
+    github_fork=False,
     **kwargs
 ):
     """
@@ -72,6 +82,8 @@ def main(
         open_browser=open_browser,
         name=name,
         allow_cell_edits=not no_cell_edits,
+        hide_shutdown=hide_shutdown,
+        github_fork=github_fork,
         **kwargs
     )
 

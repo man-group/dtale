@@ -251,7 +251,8 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         xy_query = build_group_inputs_filter(
-                            global_state.get_data(data_id), [point_filter],
+                            global_state.get_data(data_id),
+                            [point_filter],
                         )
                         if not query:
                             query = xy_query
@@ -285,7 +286,8 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         map_query = build_group_inputs_filter(
-                            global_state.get_data(data_id), [point_filter],
+                            global_state.get_data(data_id),
+                            [point_filter],
                         )
                         if not query:
                             query = map_query
@@ -322,7 +324,8 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         x_query = build_group_inputs_filter(
-                            global_state.get_data(data_id), [point_filter],
+                            global_state.get_data(data_id),
+                            [point_filter],
                         )
                         if not query:
                             query = x_query

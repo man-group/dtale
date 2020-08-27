@@ -1,8 +1,14 @@
 import mock
 import pytest
+from six import PY3
 
 import dtale.global_state as global_state
 from dtale.views import build_dtypes_state
+
+if PY3:
+    from contextlib import ExitStack
+else:
+    from contextlib2 import ExitStack
 
 
 def setup_module(module):
@@ -91,6 +97,26 @@ def test_cleanup(unittest, test_data):
     unittest.assertNotEqual(
         without_one, without_any, "first should still have some data"
     )
+
+
+@pytest.mark.unit
+def test_load_flag():
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=True)})
+        )
+        assert global_state.load_flag("1", "hide_shutdown", False)
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.HIDE_SHUTDOWN", True))
+        stack.enter_context(
+            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=False)})
+        )
+        assert global_state.load_flag("1", "hide_shutdown", False)
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=False)})
+        )
+        assert not global_state.load_flag("1", "hide_shutdown", False)
 
 
 @pytest.mark.unit
