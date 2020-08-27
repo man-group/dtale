@@ -37,25 +37,16 @@ def test_plotly_version(version_num):
     return parse_version(plotly.__version__) >= parse_version(version_num)
 
 
-def base_layout(github_fork, app_root, **kwargs):
+def base_layout(app_root, **kwargs):
     """
     Base layout to be returned by :meth:`dtale.dash_application.views.DtaleDash.interpolate_index`
 
-    :param github_fork: `True` if "Fork me on Github" banner should be displayed, `False` otherwise
-    :type github_fork: bool
     :param kwargs: Optional keyword arguments to be passed to 'dash.Dash.interplolate_index'
     :type kwargs: dict
     :return: HTML
     :rtype: str
     """
-    back_to_data_padding, github_fork_html, webroot_html = ("", "", "")
-    if github_fork:
-        back_to_data_padding = "padding-right: 125px"
-        github_fork_html = """
-            <span id="forkongithub">
-                <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
-            </span>
-        """
+    webroot_html = ""
     favicon_path = "../../images/favicon.png"
     if is_app_root_defined(app_root):
         webroot_html = """
@@ -77,7 +68,6 @@ def base_layout(github_fork, app_root, **kwargs):
                 {css}
             </head>
             <body>
-                {github_fork_html}
                 <div class="container-fluid charts">
                     <div class="row" style="margin: 0">
                         <div class="col-auto">
@@ -87,7 +77,7 @@ def base_layout(github_fork, app_root, **kwargs):
                             </header>
                         </div>
                         <div class="col"></div>
-                        <div class="col-auto mt-4" style="{back_to_data_padding}">
+                        <div class="col-auto mt-4">
                             <a href="#" onclick="javascript:backToData()">
                                 <i class="fas fa-th mr-4"></i>
                                 <span>Back To Data</span>
@@ -117,9 +107,7 @@ def base_layout(github_fork, app_root, **kwargs):
         config=kwargs["config"],
         scripts=kwargs["scripts"],
         renderer=kwargs["renderer"],
-        back_to_data_padding=back_to_data_padding,
         webroot_html=webroot_html,
-        github_fork_html=github_fork_html,
         app_root=app_root if is_app_root_defined(app_root) else "",
         favicon_path=favicon_path,
     )
@@ -855,7 +843,9 @@ def charts_layout(df, settings, **inputs):
     treemap_props = ["treemap_value", "treemap_label", "treemap_group"]
     treemap_value, treemap_label, treemap_group = (inputs.get(p) for p in treemap_props)
     (treemap_value_options, treemap_label_options,) = build_treemap_options(
-        df, treemap_value=treemap_value, treemap_label=treemap_label,
+        df,
+        treemap_value=treemap_value,
+        treemap_label=treemap_label,
     )
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
@@ -866,733 +856,724 @@ def charts_layout(df, settings, **inputs):
     def show_map_style(show):
         return {} if show else {"display": "none"}
 
-    return html.Div(
-        [
-            dcc.Store(id="query-data", data=inputs.get("query")),
-            dcc.Store(
-                id="input-data",
-                data={
-                    k: v
-                    for k, v in inputs.items()
-                    if k not in ["cpg", "barmode", "barsort"]
-                },
-            ),
-            dcc.Store(
-                id="chart-input-data",
-                data={
-                    k: v
-                    for k, v in inputs.items()
-                    if k in ["cpg", "barmode", "barsort"]
-                },
-            ),
-            dcc.Store(
-                id="map-input-data",
-                data={
-                    k: v
-                    for k, v in inputs.items()
-                    if k
-                    in [
-                        "map_type",
-                        "map_code",
-                        "loc_mode",
-                        "lat",
-                        "lon",
-                        "map_val",
-                        "scope",
-                        "proj",
-                    ]
-                },
-            ),
-            dcc.Store(
-                id="candlestick-input-data",
-                data={
-                    k: v
-                    for k, v in inputs.items()
-                    if k
-                    in ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
-                },
-            ),
-            dcc.Store(
-                id="treemap-input-data",
-                data={
-                    k: v
-                    for k, v in inputs.items()
-                    if k in ["treemap_value", "treemap_label", "treemap_group"]
-                },
-            ),
-            dcc.Store(id="range-data"),
-            dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
-            dcc.Store(id="last-chart-input-data", data=inputs),
-            dcc.Input(id="chart-code", type="hidden"),
+    body_items = [
+        dcc.Store(id="query-data", data=inputs.get("query")),
+        dcc.Store(
+            id="input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k not in ["cpg", "barmode", "barsort"]
+            },
+        ),
+        dcc.Store(
+            id="chart-input-data",
+            data={
+                k: v for k, v in inputs.items() if k in ["cpg", "barmode", "barsort"]
+            },
+        ),
+        dcc.Store(
+            id="map-input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k
+                in [
+                    "map_type",
+                    "map_code",
+                    "loc_mode",
+                    "lat",
+                    "lon",
+                    "map_val",
+                    "scope",
+                    "proj",
+                ]
+            },
+        ),
+        dcc.Store(
+            id="candlestick-input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k in ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+            },
+        ),
+        dcc.Store(
+            id="treemap-input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k in ["treemap_value", "treemap_label", "treemap_group"]
+            },
+        ),
+        dcc.Store(id="range-data"),
+        dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
+        dcc.Store(id="last-chart-input-data", data=inputs),
+        dcc.Input(id="chart-code", type="hidden"),
+        html.Div(
             html.Div(
-                html.Div(
-                    dcc.Tabs(
-                        id="chart-tabs",
-                        value=chart_type or "line",
-                        children=[
-                            build_tab(
-                                t.get("label", t["value"].capitalize()), t["value"]
-                            )
-                            for t in CHARTS
-                        ],
-                        style=dict(height="36px"),
-                    ),
-                    className="col-md-12",
-                ),
-                className="row pt-3 pb-3 charts-filters",
-            ),
-            html.Div(
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                query_label,
-                                dcc.Input(
-                                    id="query-input",
-                                    type="text",
-                                    placeholder=query_placeholder,
-                                    className="form-control",
-                                    value=query_value,
-                                    style={"lineHeight": "inherit"},
-                                ),
-                            ],
-                            className="input-group mr-3",
-                        )
+                dcc.Tabs(
+                    id="chart-tabs",
+                    value=chart_type or "line",
+                    children=[
+                        build_tab(t.get("label", t["value"].capitalize()), t["value"])
+                        for t in CHARTS
                     ],
-                    className="col",
+                    style=dict(height="36px"),
                 ),
-                className="row pt-3 pb-3 charts-filters",
+                className="col-md-12",
             ),
+            className="row pt-3 pb-3 charts-filters",
+        ),
+        html.Div(
             html.Div(
                 [
                     html.Div(
                         [
-                            html.Div(
-                                [
-                                    build_input(
-                                        [html.Div("X"), html.Small("(Agg By)")],
-                                        dcc.Dropdown(
-                                            id="x-dropdown",
-                                            options=x_options,
-                                            placeholder="Select a column",
-                                            value=x,
-                                            style=dict(width="inherit"),
-                                        ),
-                                        label_class="input-group-addon d-block pt-1 pb-0",
-                                    ),
-                                    build_input(
-                                        "Y",
-                                        dcc.Dropdown(
-                                            id="y-multi-dropdown",
-                                            options=y_multi_options,
-                                            multi=True,
-                                            placeholder="Select a column(s)",
-                                            style=dict(width="inherit"),
-                                            value=y
-                                            if show_input("y", "multi")
-                                            else None,
-                                        ),
-                                        className="col",
-                                        id="y-multi-input",
-                                        style=show_style(show_input("y", "multi")),
-                                    ),
-                                    build_input(
-                                        [html.Div("Y"), html.Small("(Agg By)")],
-                                        dcc.Dropdown(
-                                            id="y-single-dropdown",
-                                            options=y_single_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=y[0]
-                                            if show_input("y") and len(y)
-                                            else None,
-                                        ),
-                                        className="col",
-                                        label_class="input-group-addon d-block pt-1 pb-0",
-                                        id="y-single-input",
-                                        style=show_style(show_input("y")),
-                                    ),
-                                    build_input(
-                                        "Z",
-                                        dcc.Dropdown(
-                                            id="z-dropdown",
-                                            options=z_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=z,
-                                        ),
-                                        className="col",
-                                        id="z-input",
-                                        style=show_style(show_input("z")),
-                                    ),
-                                    build_input(
-                                        "Group",
-                                        dcc.Dropdown(
-                                            id="group-dropdown",
-                                            options=group_options,
-                                            multi=True,
-                                            placeholder="Select a group(s)",
-                                            value=group,
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="col",
-                                        id="group-input",
-                                        style=show_style(show_input("group")),
-                                    ),
-                                ],
-                                id="standard-inputs",
-                                style={}
-                                if not show_map
-                                and not show_candlestick
-                                and not show_treemap
-                                else {"display": "none"},
-                                className="row p-0 charts-filters",
-                            ),
-                            html.Div(
-                                [
-                                    build_map_type_tabs(map_type),
-                                    html.Div(
-                                        [
-                                            html.Div(
-                                                [
-                                                    build_loc_mode_hover(loc_mode),
-                                                    dcc.Dropdown(
-                                                        id="map-loc-mode-dropdown",
-                                                        options=[
-                                                            build_option(
-                                                                v,
-                                                                LOC_MODE_INFO[v].get(
-                                                                    "label"
-                                                                ),
-                                                            )
-                                                            for v in [
-                                                                "ISO-3",
-                                                                "USA-states",
-                                                                "country names",
-                                                                "geojson-id",
-                                                            ]
-                                                        ],
-                                                        style=dict(width="inherit"),
-                                                        value=loc_mode,
-                                                    ),
-                                                ],
-                                                className="input-group mr-3",
-                                            )
-                                        ],
-                                        id="map-loc-mode-input",
-                                        style=show_map_style(map_type == "choropleth"),
-                                        className="col-auto",
-                                    ),
-                                    custom_geojson.build_modal(map_type, loc_mode),
-                                    build_input(
-                                        [html.Div("Locations"), html.Small("(Agg By)")],
-                                        dcc.Dropdown(
-                                            id="map-loc-dropdown",
-                                            options=loc_options,
-                                            placeholder="Select a column",
-                                            value=loc,
-                                            style=dict(width="inherit"),
-                                        ),
-                                        id="map-loc-input",
-                                        label_class="input-group-addon d-block pt-1 pb-0",
-                                        style=show_map_style(map_type == "choropleth"),
-                                    ),
-                                    build_input(
-                                        [html.Div("Lat"), html.Small("(Agg By)")],
-                                        dcc.Dropdown(
-                                            id="map-lat-dropdown",
-                                            options=lat_options,
-                                            placeholder="Select a column",
-                                            value=lat,
-                                            style=dict(width="inherit"),
-                                        ),
-                                        id="map-lat-input",
-                                        label_class="input-group-addon d-block pt-1 pb-0",
-                                        style=show_map_style(
-                                            map_type in ["scattergeo", "mapbox"]
-                                        ),
-                                    ),
-                                    build_input(
-                                        [html.Div("Lon"), html.Small("(Agg By)")],
-                                        dcc.Dropdown(
-                                            id="map-lon-dropdown",
-                                            options=lon_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=lon,
-                                        ),
-                                        id="map-lon-input",
-                                        label_class="input-group-addon d-block pt-1 pb-0",
-                                        style=show_map_style(
-                                            map_type in ["scattergeo", "mapbox"]
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Scope",
-                                        dcc.Dropdown(
-                                            id="map-scope-dropdown",
-                                            options=[build_option(v) for v in SCOPES],
-                                            style=dict(width="inherit"),
-                                            value=map_scope or "world",
-                                        ),
-                                        id="map-scope-input",
-                                        style=show_map_style(map_type == "scattergeo"),
-                                    ),
-                                    html.Div(
-                                        [
-                                            html.Div(
-                                                [
-                                                    build_mapbox_token_hover(),
-                                                    dcc.Dropdown(
-                                                        id="map-mapbox-style-dropdown",
-                                                        options=build_mapbox_style_options(),
-                                                        style=dict(width="inherit"),
-                                                        value=mapbox_style
-                                                        or "open-street-map",
-                                                    ),
-                                                ],
-                                                className="input-group mr-3",
-                                            )
-                                        ],
-                                        id="map-mapbox-style-input",
-                                        className="col-auto",
-                                        style=show_map_style(map_type == "mapbox"),
-                                    ),
-                                    html.Div(
-                                        [
-                                            html.Div(
-                                                [
-                                                    build_proj_hover(proj),
-                                                    dcc.Dropdown(
-                                                        id="map-proj-dropdown",
-                                                        options=[
-                                                            build_option(v)
-                                                            for v in PROJECTIONS
-                                                        ],
-                                                        style=dict(width="inherit"),
-                                                        value=proj,
-                                                    ),
-                                                ],
-                                                className="input-group mr-3",
-                                            )
-                                        ],
-                                        id="map-proj-input",
-                                        style=show_map_style(map_type == "scattergeo"),
-                                        className="col-auto",
-                                    ),
-                                    build_input(
-                                        "Value",
-                                        dcc.Dropdown(
-                                            id="map-val-dropdown",
-                                            options=map_val_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=map_val,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Group",
-                                        dcc.Dropdown(
-                                            id="map-group-dropdown",
-                                            options=group_options,
-                                            multi=True,
-                                            placeholder="Select a group(s)",
-                                            value=inputs.get("map_group"),
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="col",
-                                        id="map-group-input",
-                                    ),
-                                ],
-                                id="map-inputs",
-                                className="row charts-filters",
-                                style={} if show_map else {"display": "none"},
-                            ),
-                            html.Div(
-                                [
-                                    build_input(
-                                        "X",
-                                        dcc.Dropdown(
-                                            id="candlestick-x-dropdown",
-                                            options=cs_x_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=cs_x,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Open",
-                                        dcc.Dropdown(
-                                            id="candlestick-open-dropdown",
-                                            options=open_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=cs_open,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "High",
-                                        dcc.Dropdown(
-                                            id="candlestick-high-dropdown",
-                                            options=high_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=cs_high,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Low",
-                                        dcc.Dropdown(
-                                            id="candlestick-low-dropdown",
-                                            options=low_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=cs_low,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Close",
-                                        dcc.Dropdown(
-                                            id="candlestick-close-dropdown",
-                                            options=close_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=cs_close,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Group",
-                                        dcc.Dropdown(
-                                            id="candlestick-group-dropdown",
-                                            options=group_options,
-                                            multi=True,
-                                            placeholder="Select a group(s)",
-                                            value=inputs.get("cs_group"),
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="col",
-                                        id="candlestick-group-input",
-                                    ),
-                                ],
-                                id="candlestick-inputs",
-                                className="row charts-filters",
-                                style={} if show_candlestick else {"display": "none"},
-                            ),
-                            html.Div(
-                                [
-                                    build_input(
-                                        "Value",
-                                        dcc.Dropdown(
-                                            id="treemap-value-dropdown",
-                                            options=treemap_value_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=treemap_value,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Labels",
-                                        dcc.Dropdown(
-                                            id="treemap-label-dropdown",
-                                            options=treemap_label_options,
-                                            placeholder="Select a column",
-                                            style=dict(width="inherit"),
-                                            value=treemap_label,
-                                        ),
-                                    ),
-                                    build_input(
-                                        "Group",
-                                        dcc.Dropdown(
-                                            id="treemap-group-dropdown",
-                                            options=group_options,
-                                            multi=True,
-                                            placeholder="Select a group(s)",
-                                            value=inputs.get("treemap_group"),
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="col",
-                                        id="treemap-group-input",
-                                    ),
-                                ],
-                                id="treemap-inputs",
-                                className="row charts-filters",
-                                style={} if show_treemap else {"display": "none"},
-                            ),
-                            html.Div(
-                                [
-                                    build_input(
-                                        "Aggregation",
-                                        dcc.Dropdown(
-                                            id="agg-dropdown",
-                                            options=[
-                                                build_option(v, AGGS[v])
-                                                for v in [
-                                                    "raw",
-                                                    "count",
-                                                    "nunique",
-                                                    "sum",
-                                                    "mean",
-                                                    "rolling",
-                                                    "corr",
-                                                    "first",
-                                                    "last",
-                                                    "median",
-                                                    "min",
-                                                    "max",
-                                                    "std",
-                                                    "var",
-                                                    "mad",
-                                                    "prod",
-                                                    "pctsum",
-                                                    "pctct",
-                                                ]
-                                            ],
-                                            placeholder="Select an aggregation",
-                                            style=dict(width="inherit"),
-                                            value=agg or "raw",
-                                        ),
-                                    ),
-                                    html.Div(
-                                        [
-                                            build_input(
-                                                "Window",
-                                                dcc.Input(
-                                                    id="window-input",
-                                                    type="number",
-                                                    placeholder="Enter days",
-                                                    className="form-control text-center",
-                                                    style={"lineHeight": "inherit"},
-                                                    value=inputs.get("window"),
-                                                ),
-                                            ),
-                                            build_input(
-                                                "Computation",
-                                                dcc.Dropdown(
-                                                    id="rolling-comp-dropdown",
-                                                    options=[
-                                                        build_option(
-                                                            "corr", "Correlation"
-                                                        ),
-                                                        build_option("count", "Count"),
-                                                        build_option(
-                                                            "cov", "Covariance"
-                                                        ),
-                                                        build_option(
-                                                            "kurt", "Kurtosis"
-                                                        ),
-                                                        build_option("max", "Maximum"),
-                                                        build_option("mean", "Mean"),
-                                                        build_option(
-                                                            "median", "Median"
-                                                        ),
-                                                        build_option("min", "Minimum"),
-                                                        build_option("skew", "Skew"),
-                                                        build_option(
-                                                            "std", "Standard Deviation"
-                                                        ),
-                                                        build_option("sum", "Sum"),
-                                                        build_option("var", "Variance"),
-                                                    ],
-                                                    placeholder="Select an computation",
-                                                    style=dict(width="inherit"),
-                                                    value=inputs.get("rolling_comp"),
-                                                ),
-                                            ),
-                                        ],
-                                        id="rolling-inputs",
-                                        style=show_style(agg == "rolling"),
-                                    ),
-                                    build_input(
-                                        "Drilldowns",
-                                        html.Div(
-                                            daq.BooleanSwitch(
-                                                id="drilldown-toggle", on=False,
-                                            ),
-                                            className="toggle-wrapper",
-                                        ),
-                                        id="drilldown-input",
-                                        style=show_style((agg or "raw") != "raw"),
-                                        className="col-auto",
-                                    ),
-                                ],
-                                className="row pt-3 pb-3 charts-filters",
-                            ),
-                            html.Div(
-                                [
-                                    build_input(
-                                        "Chart Per\nGroup",
-                                        html.Div(
-                                            daq.BooleanSwitch(
-                                                id="cpg-toggle",
-                                                on=inputs.get("cpg") or False,
-                                            ),
-                                            className="toggle-wrapper",
-                                        ),
-                                        id="cpg-input",
-                                        style=show_style(show_cpg),
-                                        className="col-auto",
-                                    ),
-                                    build_input(
-                                        "Trendline",
-                                        dcc.Dropdown(
-                                            id="trendline-dropdown",
-                                            options=[
-                                                build_option("ols"),
-                                                build_option("lowess"),
-                                            ],
-                                            value=inputs.get("trendline"),
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        style=scatter_input,
-                                        id="trendline-input",
-                                    ),
-                                    build_input(
-                                        "Barmode",
-                                        dcc.Dropdown(
-                                            id="barmode-dropdown",
-                                            options=[
-                                                build_option("group", "Group"),
-                                                build_option("stack", "Stack"),
-                                                build_option("relative", "Relative"),
-                                            ],
-                                            value=inputs.get("barmode") or "group",
-                                            placeholder="Select a mode",
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        style=bar_style,
-                                        id="barmode-input",
-                                    ),
-                                    build_input(
-                                        "Barsort",
-                                        dcc.Dropdown(
-                                            id="barsort-dropdown",
-                                            options=barsort_options,
-                                            value=inputs.get("barsort"),
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        style=barsort_input_style,
-                                        id="barsort-input",
-                                    ),
-                                    html.Div(
-                                        html.Div(
-                                            [
-                                                html.Span(
-                                                    "Y-Axis",
-                                                    className="input-group-addon",
-                                                ),
-                                                html.Div(
-                                                    dcc.Tabs(
-                                                        id="yaxis-type",
-                                                        value=yaxis_type,
-                                                        children=get_yaxis_type_tabs(y),
-                                                    ),
-                                                    id="yaxis-type-div",
-                                                    className="form-control col-auto pt-3",
-                                                    style=yaxis_type_style,
-                                                ),
-                                                dcc.Dropdown(
-                                                    id="yaxis-dropdown",
-                                                    options=yaxis_options,
-                                                ),
-                                                html.Span(
-                                                    "Min:",
-                                                    className="input-group-addon col-auto",
-                                                    id="yaxis-min-label",
-                                                ),
-                                                dcc.Input(
-                                                    id="yaxis-min-input",
-                                                    type="number",
-                                                    className="form-control col-auto",
-                                                    style={"lineHeight": "inherit"},
-                                                ),
-                                                html.Span(
-                                                    "Max:",
-                                                    className="input-group-addon col-auto",
-                                                    id="yaxis-max-label",
-                                                ),
-                                                dcc.Input(
-                                                    id="yaxis-max-input",
-                                                    type="number",
-                                                    className="form-control col-auto",
-                                                    style={"lineHeight": "inherit"},
-                                                ),
-                                            ],
-                                            className="input-group",
-                                            id="yaxis-min-max-options",
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        id="yaxis-input",
-                                        style=show_style(show_yaxis),
-                                    ),
-                                    build_input(
-                                        "Colorscale",
-                                        dcs.DashColorscales(
-                                            id="colorscale-picker",
-                                            colorscale=inputs.get("colorscale")
-                                            or default_cscale,
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        style=cscale_style,
-                                        id="colorscale-input",
-                                    ),
-                                    build_input(
-                                        "Animate",
-                                        html.Div(
-                                            daq.BooleanSwitch(
-                                                id="animate-toggle",
-                                                on=inputs.get("animate") or False,
-                                            ),
-                                            className="toggle-wrapper",
-                                        ),
-                                        id="animate-input",
-                                        style=animate_style,
-                                        className="col-auto",
-                                    ),
-                                    build_input(
-                                        "Animate By",
-                                        dcc.Dropdown(
-                                            id="animate-by-dropdown",
-                                            options=animate_opts,
-                                            value=inputs.get("animate_by"),
-                                        ),
-                                        className="col-auto addon-min-width",
-                                        style=animate_by_style,
-                                        id="animate-by-input",
-                                    ),
-                                    dbc.Button(
-                                        "Lock Zoom",
-                                        id="lock-zoom-btn",
-                                        className="ml-auto",
-                                        style=lock_zoom_style(chart_type),
-                                    ),
-                                ],
-                                className="row pt-3 pb-5 charts-filters",
-                                id="chart-inputs",
+                            query_label,
+                            dcc.Input(
+                                id="query-input",
+                                type="text",
+                                placeholder=query_placeholder,
+                                className="form-control",
+                                value=query_value,
+                                style={"lineHeight": "inherit"},
                             ),
                         ],
-                        id="main-inputs",
-                        className=main_input_class,
-                    ),
-                    build_input(
-                        "Group(s)",
-                        dcc.Dropdown(
-                            id="group-val-dropdown",
-                            multi=True,
-                            placeholder="Select a group value(s)",
-                            value=group_val,
-                            style=dict(width="inherit"),
-                        ),
-                        className="col-md-4 pt-3 pb-5",
-                        id="group-val-input",
-                        style=group_val_style,
-                    ),
+                        className="input-group mr-3",
+                    )
                 ],
-                className="row",
+                className="col",
             ),
-            dcc.Loading(
-                html.Div(id="chart-content", style={"height": "69vh"}), type="circle"
-            ),
-            dcc.Textarea(id="copy-text", style=dict(position="absolute", left="-110%")),
-        ],
-        className="charts-body",
-    )
+            className="row pt-3 pb-3 charts-filters",
+        ),
+        html.Div(
+            [
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                build_input(
+                                    [html.Div("X"), html.Small("(Agg By)")],
+                                    dcc.Dropdown(
+                                        id="x-dropdown",
+                                        options=x_options,
+                                        placeholder="Select a column",
+                                        value=x,
+                                        style=dict(width="inherit"),
+                                    ),
+                                    label_class="input-group-addon d-block pt-1 pb-0",
+                                ),
+                                build_input(
+                                    "Y",
+                                    dcc.Dropdown(
+                                        id="y-multi-dropdown",
+                                        options=y_multi_options,
+                                        multi=True,
+                                        placeholder="Select a column(s)",
+                                        style=dict(width="inherit"),
+                                        value=y if show_input("y", "multi") else None,
+                                    ),
+                                    className="col",
+                                    id="y-multi-input",
+                                    style=show_style(show_input("y", "multi")),
+                                ),
+                                build_input(
+                                    [html.Div("Y"), html.Small("(Agg By)")],
+                                    dcc.Dropdown(
+                                        id="y-single-dropdown",
+                                        options=y_single_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=y[0]
+                                        if show_input("y") and len(y)
+                                        else None,
+                                    ),
+                                    className="col",
+                                    label_class="input-group-addon d-block pt-1 pb-0",
+                                    id="y-single-input",
+                                    style=show_style(show_input("y")),
+                                ),
+                                build_input(
+                                    "Z",
+                                    dcc.Dropdown(
+                                        id="z-dropdown",
+                                        options=z_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=z,
+                                    ),
+                                    className="col",
+                                    id="z-input",
+                                    style=show_style(show_input("z")),
+                                ),
+                                build_input(
+                                    "Group",
+                                    dcc.Dropdown(
+                                        id="group-dropdown",
+                                        options=group_options,
+                                        multi=True,
+                                        placeholder="Select a group(s)",
+                                        value=group,
+                                        style=dict(width="inherit"),
+                                    ),
+                                    className="col",
+                                    id="group-input",
+                                    style=show_style(show_input("group")),
+                                ),
+                            ],
+                            id="standard-inputs",
+                            style={}
+                            if not show_map
+                            and not show_candlestick
+                            and not show_treemap
+                            else {"display": "none"},
+                            className="row p-0 charts-filters",
+                        ),
+                        html.Div(
+                            [
+                                build_map_type_tabs(map_type),
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            [
+                                                build_loc_mode_hover(loc_mode),
+                                                dcc.Dropdown(
+                                                    id="map-loc-mode-dropdown",
+                                                    options=[
+                                                        build_option(
+                                                            v,
+                                                            LOC_MODE_INFO[v].get(
+                                                                "label"
+                                                            ),
+                                                        )
+                                                        for v in [
+                                                            "ISO-3",
+                                                            "USA-states",
+                                                            "country names",
+                                                            "geojson-id",
+                                                        ]
+                                                    ],
+                                                    style=dict(width="inherit"),
+                                                    value=loc_mode,
+                                                ),
+                                            ],
+                                            className="input-group mr-3",
+                                        )
+                                    ],
+                                    id="map-loc-mode-input",
+                                    style=show_map_style(map_type == "choropleth"),
+                                    className="col-auto",
+                                ),
+                                custom_geojson.build_modal(map_type, loc_mode),
+                                build_input(
+                                    [html.Div("Locations"), html.Small("(Agg By)")],
+                                    dcc.Dropdown(
+                                        id="map-loc-dropdown",
+                                        options=loc_options,
+                                        placeholder="Select a column",
+                                        value=loc,
+                                        style=dict(width="inherit"),
+                                    ),
+                                    id="map-loc-input",
+                                    label_class="input-group-addon d-block pt-1 pb-0",
+                                    style=show_map_style(map_type == "choropleth"),
+                                ),
+                                build_input(
+                                    [html.Div("Lat"), html.Small("(Agg By)")],
+                                    dcc.Dropdown(
+                                        id="map-lat-dropdown",
+                                        options=lat_options,
+                                        placeholder="Select a column",
+                                        value=lat,
+                                        style=dict(width="inherit"),
+                                    ),
+                                    id="map-lat-input",
+                                    label_class="input-group-addon d-block pt-1 pb-0",
+                                    style=show_map_style(
+                                        map_type in ["scattergeo", "mapbox"]
+                                    ),
+                                ),
+                                build_input(
+                                    [html.Div("Lon"), html.Small("(Agg By)")],
+                                    dcc.Dropdown(
+                                        id="map-lon-dropdown",
+                                        options=lon_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=lon,
+                                    ),
+                                    id="map-lon-input",
+                                    label_class="input-group-addon d-block pt-1 pb-0",
+                                    style=show_map_style(
+                                        map_type in ["scattergeo", "mapbox"]
+                                    ),
+                                ),
+                                build_input(
+                                    "Scope",
+                                    dcc.Dropdown(
+                                        id="map-scope-dropdown",
+                                        options=[build_option(v) for v in SCOPES],
+                                        style=dict(width="inherit"),
+                                        value=map_scope or "world",
+                                    ),
+                                    id="map-scope-input",
+                                    style=show_map_style(map_type == "scattergeo"),
+                                ),
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            [
+                                                build_mapbox_token_hover(),
+                                                dcc.Dropdown(
+                                                    id="map-mapbox-style-dropdown",
+                                                    options=build_mapbox_style_options(),
+                                                    style=dict(width="inherit"),
+                                                    value=mapbox_style
+                                                    or "open-street-map",
+                                                ),
+                                            ],
+                                            className="input-group mr-3",
+                                        )
+                                    ],
+                                    id="map-mapbox-style-input",
+                                    className="col-auto",
+                                    style=show_map_style(map_type == "mapbox"),
+                                ),
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            [
+                                                build_proj_hover(proj),
+                                                dcc.Dropdown(
+                                                    id="map-proj-dropdown",
+                                                    options=[
+                                                        build_option(v)
+                                                        for v in PROJECTIONS
+                                                    ],
+                                                    style=dict(width="inherit"),
+                                                    value=proj,
+                                                ),
+                                            ],
+                                            className="input-group mr-3",
+                                        )
+                                    ],
+                                    id="map-proj-input",
+                                    style=show_map_style(map_type == "scattergeo"),
+                                    className="col-auto",
+                                ),
+                                build_input(
+                                    "Value",
+                                    dcc.Dropdown(
+                                        id="map-val-dropdown",
+                                        options=map_val_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=map_val,
+                                    ),
+                                ),
+                                build_input(
+                                    "Group",
+                                    dcc.Dropdown(
+                                        id="map-group-dropdown",
+                                        options=group_options,
+                                        multi=True,
+                                        placeholder="Select a group(s)",
+                                        value=inputs.get("map_group"),
+                                        style=dict(width="inherit"),
+                                    ),
+                                    className="col",
+                                    id="map-group-input",
+                                ),
+                            ],
+                            id="map-inputs",
+                            className="row charts-filters",
+                            style={} if show_map else {"display": "none"},
+                        ),
+                        html.Div(
+                            [
+                                build_input(
+                                    "X",
+                                    dcc.Dropdown(
+                                        id="candlestick-x-dropdown",
+                                        options=cs_x_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=cs_x,
+                                    ),
+                                ),
+                                build_input(
+                                    "Open",
+                                    dcc.Dropdown(
+                                        id="candlestick-open-dropdown",
+                                        options=open_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=cs_open,
+                                    ),
+                                ),
+                                build_input(
+                                    "High",
+                                    dcc.Dropdown(
+                                        id="candlestick-high-dropdown",
+                                        options=high_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=cs_high,
+                                    ),
+                                ),
+                                build_input(
+                                    "Low",
+                                    dcc.Dropdown(
+                                        id="candlestick-low-dropdown",
+                                        options=low_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=cs_low,
+                                    ),
+                                ),
+                                build_input(
+                                    "Close",
+                                    dcc.Dropdown(
+                                        id="candlestick-close-dropdown",
+                                        options=close_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=cs_close,
+                                    ),
+                                ),
+                                build_input(
+                                    "Group",
+                                    dcc.Dropdown(
+                                        id="candlestick-group-dropdown",
+                                        options=group_options,
+                                        multi=True,
+                                        placeholder="Select a group(s)",
+                                        value=inputs.get("cs_group"),
+                                        style=dict(width="inherit"),
+                                    ),
+                                    className="col",
+                                    id="candlestick-group-input",
+                                ),
+                            ],
+                            id="candlestick-inputs",
+                            className="row charts-filters",
+                            style={} if show_candlestick else {"display": "none"},
+                        ),
+                        html.Div(
+                            [
+                                build_input(
+                                    "Value",
+                                    dcc.Dropdown(
+                                        id="treemap-value-dropdown",
+                                        options=treemap_value_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=treemap_value,
+                                    ),
+                                ),
+                                build_input(
+                                    "Labels",
+                                    dcc.Dropdown(
+                                        id="treemap-label-dropdown",
+                                        options=treemap_label_options,
+                                        placeholder="Select a column",
+                                        style=dict(width="inherit"),
+                                        value=treemap_label,
+                                    ),
+                                ),
+                                build_input(
+                                    "Group",
+                                    dcc.Dropdown(
+                                        id="treemap-group-dropdown",
+                                        options=group_options,
+                                        multi=True,
+                                        placeholder="Select a group(s)",
+                                        value=inputs.get("treemap_group"),
+                                        style=dict(width="inherit"),
+                                    ),
+                                    className="col",
+                                    id="treemap-group-input",
+                                ),
+                            ],
+                            id="treemap-inputs",
+                            className="row charts-filters",
+                            style={} if show_treemap else {"display": "none"},
+                        ),
+                        html.Div(
+                            [
+                                build_input(
+                                    "Aggregation",
+                                    dcc.Dropdown(
+                                        id="agg-dropdown",
+                                        options=[
+                                            build_option(v, AGGS[v])
+                                            for v in [
+                                                "raw",
+                                                "count",
+                                                "nunique",
+                                                "sum",
+                                                "mean",
+                                                "rolling",
+                                                "corr",
+                                                "first",
+                                                "last",
+                                                "median",
+                                                "min",
+                                                "max",
+                                                "std",
+                                                "var",
+                                                "mad",
+                                                "prod",
+                                                "pctsum",
+                                                "pctct",
+                                            ]
+                                        ],
+                                        placeholder="Select an aggregation",
+                                        style=dict(width="inherit"),
+                                        value=agg or "raw",
+                                    ),
+                                ),
+                                html.Div(
+                                    [
+                                        build_input(
+                                            "Window",
+                                            dcc.Input(
+                                                id="window-input",
+                                                type="number",
+                                                placeholder="Enter days",
+                                                className="form-control text-center",
+                                                style={"lineHeight": "inherit"},
+                                                value=inputs.get("window"),
+                                            ),
+                                        ),
+                                        build_input(
+                                            "Computation",
+                                            dcc.Dropdown(
+                                                id="rolling-comp-dropdown",
+                                                options=[
+                                                    build_option("corr", "Correlation"),
+                                                    build_option("count", "Count"),
+                                                    build_option("cov", "Covariance"),
+                                                    build_option("kurt", "Kurtosis"),
+                                                    build_option("max", "Maximum"),
+                                                    build_option("mean", "Mean"),
+                                                    build_option("median", "Median"),
+                                                    build_option("min", "Minimum"),
+                                                    build_option("skew", "Skew"),
+                                                    build_option(
+                                                        "std", "Standard Deviation"
+                                                    ),
+                                                    build_option("sum", "Sum"),
+                                                    build_option("var", "Variance"),
+                                                ],
+                                                placeholder="Select an computation",
+                                                style=dict(width="inherit"),
+                                                value=inputs.get("rolling_comp"),
+                                            ),
+                                        ),
+                                    ],
+                                    id="rolling-inputs",
+                                    style=show_style(agg == "rolling"),
+                                ),
+                                build_input(
+                                    "Drilldowns",
+                                    html.Div(
+                                        daq.BooleanSwitch(
+                                            id="drilldown-toggle",
+                                            on=False,
+                                        ),
+                                        className="toggle-wrapper",
+                                    ),
+                                    id="drilldown-input",
+                                    style=show_style((agg or "raw") != "raw"),
+                                    className="col-auto",
+                                ),
+                            ],
+                            className="row pt-3 pb-3 charts-filters",
+                        ),
+                        html.Div(
+                            [
+                                build_input(
+                                    "Chart Per\nGroup",
+                                    html.Div(
+                                        daq.BooleanSwitch(
+                                            id="cpg-toggle",
+                                            on=inputs.get("cpg") or False,
+                                        ),
+                                        className="toggle-wrapper",
+                                    ),
+                                    id="cpg-input",
+                                    style=show_style(show_cpg),
+                                    className="col-auto",
+                                ),
+                                build_input(
+                                    "Trendline",
+                                    dcc.Dropdown(
+                                        id="trendline-dropdown",
+                                        options=[
+                                            build_option("ols"),
+                                            build_option("lowess"),
+                                        ],
+                                        value=inputs.get("trendline"),
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    style=scatter_input,
+                                    id="trendline-input",
+                                ),
+                                build_input(
+                                    "Barmode",
+                                    dcc.Dropdown(
+                                        id="barmode-dropdown",
+                                        options=[
+                                            build_option("group", "Group"),
+                                            build_option("stack", "Stack"),
+                                            build_option("relative", "Relative"),
+                                        ],
+                                        value=inputs.get("barmode") or "group",
+                                        placeholder="Select a mode",
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    style=bar_style,
+                                    id="barmode-input",
+                                ),
+                                build_input(
+                                    "Barsort",
+                                    dcc.Dropdown(
+                                        id="barsort-dropdown",
+                                        options=barsort_options,
+                                        value=inputs.get("barsort"),
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    style=barsort_input_style,
+                                    id="barsort-input",
+                                ),
+                                html.Div(
+                                    html.Div(
+                                        [
+                                            html.Span(
+                                                "Y-Axis",
+                                                className="input-group-addon",
+                                            ),
+                                            html.Div(
+                                                dcc.Tabs(
+                                                    id="yaxis-type",
+                                                    value=yaxis_type,
+                                                    children=get_yaxis_type_tabs(y),
+                                                ),
+                                                id="yaxis-type-div",
+                                                className="form-control col-auto pt-3",
+                                                style=yaxis_type_style,
+                                            ),
+                                            dcc.Dropdown(
+                                                id="yaxis-dropdown",
+                                                options=yaxis_options,
+                                            ),
+                                            html.Span(
+                                                "Min:",
+                                                className="input-group-addon col-auto",
+                                                id="yaxis-min-label",
+                                            ),
+                                            dcc.Input(
+                                                id="yaxis-min-input",
+                                                type="number",
+                                                className="form-control col-auto",
+                                                style={"lineHeight": "inherit"},
+                                            ),
+                                            html.Span(
+                                                "Max:",
+                                                className="input-group-addon col-auto",
+                                                id="yaxis-max-label",
+                                            ),
+                                            dcc.Input(
+                                                id="yaxis-max-input",
+                                                type="number",
+                                                className="form-control col-auto",
+                                                style={"lineHeight": "inherit"},
+                                            ),
+                                        ],
+                                        className="input-group",
+                                        id="yaxis-min-max-options",
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    id="yaxis-input",
+                                    style=show_style(show_yaxis),
+                                ),
+                                build_input(
+                                    "Colorscale",
+                                    dcs.DashColorscales(
+                                        id="colorscale-picker",
+                                        colorscale=inputs.get("colorscale")
+                                        or default_cscale,
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    style=cscale_style,
+                                    id="colorscale-input",
+                                ),
+                                build_input(
+                                    "Animate",
+                                    html.Div(
+                                        daq.BooleanSwitch(
+                                            id="animate-toggle",
+                                            on=inputs.get("animate") or False,
+                                        ),
+                                        className="toggle-wrapper",
+                                    ),
+                                    id="animate-input",
+                                    style=animate_style,
+                                    className="col-auto",
+                                ),
+                                build_input(
+                                    "Animate By",
+                                    dcc.Dropdown(
+                                        id="animate-by-dropdown",
+                                        options=animate_opts,
+                                        value=inputs.get("animate_by"),
+                                    ),
+                                    className="col-auto addon-min-width",
+                                    style=animate_by_style,
+                                    id="animate-by-input",
+                                ),
+                                dbc.Button(
+                                    "Lock Zoom",
+                                    id="lock-zoom-btn",
+                                    className="ml-auto",
+                                    style=lock_zoom_style(chart_type),
+                                ),
+                            ],
+                            className="row pt-3 pb-5 charts-filters",
+                            id="chart-inputs",
+                        ),
+                    ],
+                    id="main-inputs",
+                    className=main_input_class,
+                ),
+                build_input(
+                    "Group(s)",
+                    dcc.Dropdown(
+                        id="group-val-dropdown",
+                        multi=True,
+                        placeholder="Select a group value(s)",
+                        value=group_val,
+                        style=dict(width="inherit"),
+                    ),
+                    className="col-md-4 pt-3 pb-5",
+                    id="group-val-input",
+                    style=group_val_style,
+                ),
+            ],
+            className="row",
+        ),
+        dcc.Loading(
+            html.Div(id="chart-content", style={"height": "69vh"}), type="circle"
+        ),
+        dcc.Textarea(id="copy-text", style=dict(position="absolute", left="-110%")),
+    ]
+    if settings.get("github_fork", False):
+        body_items.append(
+            html.Span(
+                html.A("Fork me on Github", href="https://github.com/man-group/dtale"),
+                id="forkongithub",
+            )
+        )
+    return html.Div(body_items, className="charts-body")

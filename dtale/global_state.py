@@ -16,6 +16,8 @@ METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
 ALLOW_CELL_EDITS = True
+HIDE_SHUTDOWN = False
+GITHUB_FORK = False
 
 
 def drop_punctuation(val):
@@ -185,6 +187,14 @@ def cleanup(data_id=None):
         ]:
             if data_id in store:
                 del store[data_id]
+
+
+def load_flag(data_id, flag_name, default):
+    curr_settings = get_settings(data_id) or {}
+    global_flag = globals()[flag_name.upper()]
+    if global_flag != default:
+        return global_flag
+    return curr_settings.get(flag_name, default)
 
 
 def _as_dict(store):

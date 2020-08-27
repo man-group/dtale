@@ -63,7 +63,12 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, locked=["date", "security_id"]),
+        dict(
+            allow_cell_edits=True,
+            github_fork=False,
+            hide_shutdown=False,
+            locked=["date", "security_id"],
+        ),
         "should lock index columns",
     )
 
@@ -72,12 +77,17 @@ def test_startup(unittest):
         views.startup(URL, data=test_data)
 
     instance = views.startup(
-        URL, data=test_data, ignore_duplicate=True, allow_cell_edits=False
+        URL,
+        data=test_data,
+        ignore_duplicate=True,
+        allow_cell_edits=False,
+        github_fork=False,
+        hide_shutdown=False,
     )
     pdt.assert_frame_equal(instance.data, test_data)
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=False, locked=[]),
+        dict(allow_cell_edits=False, github_fork=False, hide_shutdown=False, locked=[]),
         "no index = nothing locked",
     )
 
@@ -87,7 +97,12 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, locked=["security_id"]),
+        dict(
+            allow_cell_edits=True,
+            github_fork=False,
+            hide_shutdown=False,
+            locked=["security_id"],
+        ),
         "should lock index columns",
     )
 
@@ -96,7 +111,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, locked=[]),
+        dict(allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]),
         "should lock index columns",
     )
 
@@ -105,7 +120,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, locked=[]),
+        dict(allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]),
         "should lock index columns",
     )
 
@@ -2724,7 +2739,7 @@ def test_jinja_output():
             response = c.get("/charts/{}".format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
 
-    with build_app(url=url, github_fork=True).test_client() as c:
+    with build_app(url=url).test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             stack.enter_context(
@@ -2732,10 +2747,13 @@ def test_jinja_output():
                     "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
                 )
             )
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.SETTINGS",
+                    {c.port: {"locked": [], "github_fork": True}},
+                )
+            )
             response = c.get("/dtale/main/{}".format(c.port))
-            assert 'span id="forkongithub"' in str(response.data)
-            response = c.get("/charts/{}".format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
 
 

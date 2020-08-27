@@ -54,9 +54,11 @@ class DtaleDash(dash.Dash):
 
     def __init__(self, *args, **kwargs):
         server = kwargs.get("server")
-        kwargs["external_stylesheets"] = ["/css/main.css", "/css/dash.css"]
-        if server.config["GITHUB_FORK"]:
-            kwargs["external_stylesheets"].append("/css/github_fork.css")
+        kwargs["external_stylesheets"] = [
+            "/css/main.css",
+            "/css/dash.css",
+            "/css/github_fork.css",
+        ]
         kwargs["external_scripts"] = [
             "/dash/components_bundle.js",
             "/dash/custom_bundle.js",
@@ -84,11 +86,8 @@ class DtaleDash(dash.Dash):
         super(DtaleDash, self).__init__(*args, **kwargs)
 
     def interpolate_index(self, **kwargs):
-        return base_layout(
-            self.server.config["GITHUB_FORK"],
-            self.server.config.get("APPLICATION_ROOT"),
-            **kwargs
-        )
+        print(kwargs)
+        return base_layout(self.server.config.get("APPLICATION_ROOT"), **kwargs)
 
 
 def add_dash(server):
@@ -425,7 +424,13 @@ def init_callbacks(dash_app):
         [State("url", "pathname")],
     )
     def cs_data_callback(
-        cs_x, cs_open, cs_close, cs_high, cs_low, group, pathname,
+        cs_x,
+        cs_open,
+        cs_close,
+        cs_high,
+        cs_low,
+        group,
+        pathname,
     ):
         data_id = get_data_id(pathname)
         cs_data = dict(
@@ -476,15 +481,23 @@ def init_callbacks(dash_app):
         [State("url", "pathname")],
     )
     def treemap_data_callback(
-        treemap_value, treemap_label, group, pathname,
+        treemap_value,
+        treemap_label,
+        group,
+        pathname,
     ):
         data_id = get_data_id(pathname)
-        treemap_data = dict(treemap_value=treemap_value, treemap_label=treemap_label,)
+        treemap_data = dict(
+            treemap_value=treemap_value,
+            treemap_label=treemap_label,
+        )
         if group is not None:
             treemap_data["treemap_group"] = group
         df = global_state.get_data(data_id)
         value_options, label_options = build_treemap_options(
-            df, treemap_value=treemap_value, treemap_label=treemap_label,
+            df,
+            treemap_value=treemap_value,
+            treemap_label=treemap_label,
         )
         return treemap_data, value_options, label_options
 

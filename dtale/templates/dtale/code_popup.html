@@ -20,7 +20,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
     <body>
-        {% if config.GITHUB_FORK %}
+        {% if github_fork %}
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/github_fork.css') }}" />
         <span id="forkongithub">
             <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>

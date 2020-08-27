@@ -215,8 +215,6 @@ def build_app(
     url,
     host=None,
     reaper_on=True,
-    hide_shutdown=False,
-    github_fork=False,
     app_root=None,
 ):
     """
@@ -235,8 +233,6 @@ def build_app(
         app_root=app_root,
     )
     app.config["SECRET_KEY"] = "Dtale"
-    app.config["HIDE_SHUTDOWN"] = hide_shutdown
-    app.config["GITHUB_FORK"] = github_fork
 
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
@@ -536,6 +532,8 @@ def show(
     allow_cell_edits=True,
     inplace=False,
     drop_index=False,
+    hide_shutdown=False,
+    github_fork=False,
     **kwargs
 ):
     """
@@ -583,6 +581,11 @@ def show(
     :type inplace: bool, optional
     :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
     :type drop_index: bool, optional
+    :param hide_shutdown: If true, this will hide the "Shutdown" buton from users
+    :type hide_shutdown: bool, optional
+    :param github_fork: If true, this will display a "Fork me on GitHub" ribbon in the upper right-hand corner of the
+                        app
+    :type github_fork: bool, optional
 
     :Example:
 
@@ -627,6 +630,8 @@ def show(
             allow_cell_edits=allow_cell_edits,
             inplace=inplace,
             drop_index=drop_index,
+            hide_shutdown=hide_shutdown,
+            github_fork=github_fork,
         )
         is_active = not running_with_flask_debug() and is_up(app_url)
         if is_active:

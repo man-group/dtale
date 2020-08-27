@@ -360,6 +360,13 @@ def test_group_values(unittest):
             response = c.post("/charts/_dash-update-component", json=params)
             unittest.assertEqual(response.get_json()["response"], expected)
 
+            params["inputs"][0]["value"] = "treemap"
+            params["inputs"][2]["value"] = None
+            params["inputs"][3]["value"] = None
+            params["inputs"][4]["value"] = ["c"]
+            response = c.post("/charts/_dash-update-component", json=params)
+            unittest.assertEqual(response.get_json()["response"], expected)
+
             params["state"][2]["value"] = ['{"c": 7}']
             response = c.post("/charts/_dash-update-component", json=params)
             unittest.assertEqual(
