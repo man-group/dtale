@@ -44,11 +44,15 @@ class CorrelationsCell extends React.Component {
     const props = {};
     if (!corrOnItself) {
       if (hasDate) {
-        if (this.props.rolling) {
-          props.onClick = () => this.props.buildTs([row.column, prop], selectedDate, true, this.props.window);
-        } else {
-          props.onClick = () => this.props.buildTs([row.column, prop], selectedDate, false);
-        }
+        props.onClick = () =>
+          this.props.buildTs(
+            [row.column, prop],
+            selectedDate,
+            this.props.rolling,
+            this.props.useRolling,
+            this.props.window,
+            this.props.minPeriods
+          );
       } else {
         props.onClick = () => this.props.buildScatter([row.column, prop]);
       }
@@ -83,7 +87,9 @@ CorrelationsCell.propTypes = {
   buildScatter: PropTypes.func,
   col2: PropTypes.object,
   rolling: PropTypes.bool,
+  useRolling: PropTypes.bool,
   window: PropTypes.number,
+  minPeriods: PropTypes.number,
   selectedCols: PropTypes.arrayOf(PropTypes.string),
 };
 

@@ -7,7 +7,11 @@ import { renderCodePopupAnchor } from "../CodePopup";
 class CorrelationsTsOptions extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { window: props.window };
+    this.state = {
+      window: props.window,
+      minPeriods: props.minPeriods,
+      useRolling: props.useRolling,
+    };
     this.changeDate = this.changeDate.bind(this);
     this.renderDescription = this.renderDescription.bind(this);
     this.renderRollingWindow = this.renderRollingWindow.bind(this);
@@ -17,7 +21,9 @@ class CorrelationsTsOptions extends React.Component {
 
   changeDate(evt) {
     const rolling = _.get(_.find(this.props.dates, { name: evt.target.value }, {}), "rolling", false);
-    this.props.buildTs(this.props.selectedCols, evt.target.value, rolling, rolling ? this.state.window : null);
+    const { useRolling } = this.state;
+    const { window, minPeriods } = this.props;
+    this.props.buildTs(this.props.selectedCols, evt.target.value, rolling, useRolling, window, minPeriods);
   }
 
   renderDescription() {
@@ -43,33 +49,87 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   renderRollingWindow() {
-    const updateWindow = e => {
+    const updateWindowAndMinPeriods = e => {
       if (e.key === "Enter") {
-        if (this.state.window && parseInt(this.state.window)) {
-          const { selectedCols, selectedDate, rolling } = this.props;
-          this.props.buildTs(selectedCols, selectedDate, rolling, parseInt(this.state.window));
+        let { window, minPeriods } = this.state;
+        window = window && parseInt(window) ? parseInt(window) : null;
+        minPeriods = minPeriods && parseInt(minPeriods) ? parseInt(minPeriods) : null;
+        if (window !== null || minPeriods !== null) {
+          const { buildTs, selectedCols, selectedDate, rolling } = this.props;
+          const { useRolling } = this.state;
+          buildTs(selectedCols, selectedDate, rolling, useRolling, window, minPeriods);
         }
       }
     };
-    return [
-      <div key="rolling-label" className="col text-right">
-        <div>
-          <b>Rolling Window</b>
+    const updateUseRolling = () => {
+      const { buildTs, selectedCols, selectedDate, rolling, window, minPeriods } = this.props;
+      const { useRolling } = this.state;
+      this.setState(
+        { useRolling: !useRolling },
+        buildTs(selectedCols, selectedDate, rolling, !useRolling, window, minPeriods)
+      );
+    };
+    const { useRolling } = this.state;
+    const { rolling } = this.props;
+    return (
+      <React.Fragment>
+        {!rolling && (
+          <React.Fragment>
+            <div className="col text-center pr-0">
+              <div>
+                <b>Use Rolling?</b>
+              </div>
+              <div style={{ marginTop: "-.5em" }}>
+                <small>(Rolling Mean)</small>
+              </div>
+            </div>
+            <div style={{ marginTop: ".3em" }}>
+              <i className={`ico-check-box${useRolling ? "" : "-outline-blank"} pointer`} onClick={updateUseRolling} />
+            </div>
+          </React.Fragment>
+        )}
+        <div className="col text-center">
+          <div>
+            <b>
+              Rolling
+              <br />
+              Window
+            </b>
+          </div>
+          <div style={{ marginTop: "-.5em" }}>
+            <small>(Please edit)</small>
+          </div>
         </div>
-        <div style={{ marginTop: "-.5em" }}>
-          <small>(Please edit)</small>
+        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+          <input
+            type="text"
+            className="form-control text-center"
+            value={this.state.window}
+            onChange={e => this.setState({ window: e.target.value })}
+            onKeyPress={updateWindowAndMinPeriods}
+            disabled={!rolling && !useRolling}
+          />
         </div>
-      </div>,
-      <div key="rolling-input" style={{ width: "3em" }} data-tip="Press ENTER to submit">
-        <input
-          type="text"
-          className="form-control text-center"
-          value={this.state.window}
-          onChange={e => this.setState({ window: e.target.value })}
-          onKeyPress={updateWindow}
-        />
-      </div>,
-    ];
+        <div className="col text-center">
+          <div>
+            <b>Min Periods</b>
+          </div>
+          <div style={{ marginTop: "-.5em" }}>
+            <small>(Please edit)</small>
+          </div>
+        </div>
+        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+          <input
+            type="text"
+            className="form-control text-center"
+            value={this.state.minPeriods}
+            onChange={e => this.setState({ minPeriods: e.target.value })}
+            onKeyPress={updateWindowAndMinPeriods}
+            disabled={!rolling && !useRolling}
+          />
+        </div>
+      </React.Fragment>
+    );
   }
 
   renderDateDropdown() {
@@ -102,10 +162,10 @@ class CorrelationsTsOptions extends React.Component {
         <div className="col-auto">
           <div className="form-group row small-gutters float-right pr-3">
             {_.size(this.props.dates) > 1 && this.renderDateDropdown()}
-            {this.props.rolling && this.renderRollingWindow()}
+            {this.renderRollingWindow()}
           </div>
         </div>
-        <div className="col-auto pl-0 text-right">
+        <div className="col-auto pl-0 text-right" style={{ marginTop: ".3em" }}>
           {renderCodePopupAnchor(this.props.tsCode, "Correlations Timeseries")}
         </div>
       </div>
@@ -116,10 +176,12 @@ CorrelationsTsOptions.displayName = "CorrelationsTsOptions";
 CorrelationsTsOptions.propTypes = {
   hasDate: PropTypes.bool,
   rolling: PropTypes.bool,
+  useRolling: PropTypes.bool,
   dates: PropTypes.arrayOf(PropTypes.object),
   selectedCols: PropTypes.arrayOf(PropTypes.string),
   selectedDate: PropTypes.string,
   window: PropTypes.number,
+  minPeriods: PropTypes.number,
   buildTs: PropTypes.func,
   tsCode: PropTypes.string,
 };
