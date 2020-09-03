@@ -56,7 +56,9 @@ class CorrelationsGrid extends React.Component {
       "hasDate",
       "selectedDate",
       "rolling",
+      "useRolling",
       "window",
+      "minPeriods",
       "buildTs",
       "buildScatter",
       "selectedCols",
@@ -143,7 +145,9 @@ CorrelationsGrid.propTypes = {
   buildTs: PropTypes.func,
   buildScatter: PropTypes.func,
   rolling: PropTypes.bool,
+  useRolling: PropTypes.bool,
   window: PropTypes.number,
+  minPeriods: PropTypes.number,
   gridCode: PropTypes.string,
 };
 

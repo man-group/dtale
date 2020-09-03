@@ -26,7 +26,7 @@ function buildURLParams(state, props = null, required = null) {
       return {};
     }
   }
-  return _.pickBy(params, _.identity);
+  return _.pickBy(params, v => !_.isNil(v));
 }
 
 function buildURLString(base, params) {

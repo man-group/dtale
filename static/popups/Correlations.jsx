@@ -16,30 +16,10 @@ import CorrelationsGrid from "./correlations/CorrelationsGrid";
 import CorrelationsTsOptions from "./correlations/CorrelationsTsOptions";
 import corrUtils from "./correlations/correlationsUtils";
 
-const BASE_SCATTER_URL = "/dtale/scatter";
-const BASE_CORRELATIONS_URL = "/dtale/correlations";
-const BASE_CORRELATIONS_TS_URL = "/dtale/correlations-ts";
-
-function buildState() {
-  return {
-    chart: null,
-    error: null,
-    scatterError: null,
-    correlations: null,
-    selectedCols: [],
-    tsUrl: null,
-    selectedDate: null,
-    tsType: "date",
-    scatterUrl: null,
-    rolling: false,
-    window: 4,
-  };
-}
-
 class Correlations extends React.Component {
   constructor(props) {
     super(props);
-    this.state = buildState();
+    this.state = corrUtils.buildState();
     _.forEach(["buildTs", "buildScatter", "viewScatter", "viewScatterRow"], f => (this[f] = this[f].bind(this)));
   }
 
@@ -47,7 +27,10 @@ class Correlations extends React.Component {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
-    const stateProps = ["error", "scatterError", "stats", "correlations", "selectedCols", "selectedDate", "window"];
+    const stateProps = _.concat(
+      ["error", "scatterError", "stats", "correlations", "selectedCols", "selectedDate", "window", "minPeriods"],
+      ["useRolling"]
+    );
     if (!_.isEqual(_.pick(this.state, stateProps), _.pick(newState, stateProps))) {
       return true;
     }
@@ -59,61 +42,88 @@ class Correlations extends React.Component {
   }
 
   componentDidMount() {
-    fetchJson(buildURL(`${BASE_CORRELATIONS_URL}/${this.props.dataId}`, this.props.chartData, ["query"]), gridData => {
-      if (gridData.error) {
-        this.setState({ error: <RemovableError {...gridData} /> });
-        return;
-      }
-      const { data, dates, code } = gridData;
-      const columns = _.map(data, "column");
-      const rolling = _.get(dates, "0.rolling", false);
-      const state = {
-        correlations: data,
-        columns,
-        dates,
-        hasDate: _.size(dates) > 0,
-        selectedDate: _.get(dates, "0.name", null),
-        rolling,
-        gridCode: code,
-      };
-      this.setState(state, () => {
-        let { col1, col2 } = this.props.chartData || {};
-        if (_.isUndefined(col1)) {
-          if (_.isUndefined(col2)) {
-            [col1, col2] = _.take(columns, 2);
-          } else {
-            col1 = _.find(columns, c => c !== col2);
-          }
-        } else if (_.isUndefined(col2)) {
-          col2 = _.find(columns, c => c !== col1);
+    fetchJson(
+      buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, this.props.chartData, ["query"]),
+      gridData => {
+        if (gridData.error) {
+          this.setState({ error: <RemovableError {...gridData} /> });
+          return;
         }
-        if (col1 && col2) {
-          if (state.hasDate) {
-            if (rolling) {
-              this.buildTs([col1, col2], state.selectedDate, true, 4);
+        const { data, dates, code } = gridData;
+        const columns = _.map(data, "column");
+        const rolling = _.get(dates, "0.rolling", false);
+        const state = {
+          correlations: data,
+          columns,
+          dates,
+          hasDate: _.size(dates) > 0,
+          selectedDate: _.get(dates, "0.name", null),
+          rolling,
+          gridCode: code,
+        };
+        this.setState(state, () => {
+          let { col1, col2 } = this.props.chartData || {};
+          if (_.isUndefined(col1)) {
+            if (_.isUndefined(col2)) {
+              [col1, col2] = _.take(columns, 2);
             } else {
-              this.buildTs([col1, col2], state.selectedDate, false);
+              col1 = _.find(columns, c => c !== col2);
             }
-          } else {
-            this.buildScatter([col1, col2]);
+          } else if (_.isUndefined(col2)) {
+            col2 = _.find(columns, c => c !== col1);
           }
-        }
-      });
-    });
+          if (col1 && col2) {
+            if (state.hasDate) {
+              if (rolling) {
+                this.buildTs([col1, col2], state.selectedDate, true, true);
+              } else {
+                this.buildTs([col1, col2], state.selectedDate, false, this.state.useRolling);
+              }
+            } else {
+              this.buildScatter([col1, col2]);
+            }
+          }
+        });
+      }
+    );
   }
 
-  buildTs(selectedCols, selectedDate, rolling, rollingWindow = null) {
+  buildTs(selectedCols, selectedDate, rolling, useRolling, window = null, minPeriods = null) {
     const query = _.get(this.props, "chartData.query");
-    const path = `${BASE_CORRELATIONS_TS_URL}/${this.props.dataId}`;
-    const tsUrl = buildURL(path, { query, selectedCols, dateCol: selectedDate, rollingWindow }, [
+    const path = `${corrUtils.BASE_CORRELATIONS_TS_URL}/${this.props.dataId}`;
+    let urlParams = {
+      query,
+      selectedCols,
+      dateCol: selectedDate,
+      rolling,
+    };
+    if (useRolling) {
+      urlParams = {
+        ...urlParams,
+        rollingWindow: window ?? this.state.window,
+        minPeriods: minPeriods ?? this.state.minPeriods,
+      };
+    }
+    const tsUrl = buildURL(path, urlParams, [
       "query",
       "selectedCols",
       "dateCol",
+      "rolling",
       "rollingWindow",
+      "minPeriods",
     ]);
-    const updatedState = { selectedCols, selectedDate, tsUrl, rolling };
-    if (rolling && !_.isNull(rollingWindow)) {
-      updatedState.window = rollingWindow;
+    const updatedState = {
+      selectedCols,
+      selectedDate,
+      tsUrl,
+      rolling,
+      useRolling,
+    };
+    if (useRolling && !_.isNull(window)) {
+      updatedState.window = window;
+    }
+    if (useRolling && !_.isNull(minPeriods)) {
+      updatedState.minPeriods = minPeriods;
     }
     this.setState(updatedState);
   }
@@ -147,7 +157,7 @@ class Correlations extends React.Component {
       params.rolling = this.state.rolling;
       params.window = this.state.window;
     }
-    const path = `${BASE_SCATTER_URL}/${this.props.dataId}`;
+    const path = `${corrUtils.BASE_SCATTER_URL}/${this.props.dataId}`;
     const scatterUrl = buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
     if (this.state.scatterUrl === scatterUrl) {
       return;

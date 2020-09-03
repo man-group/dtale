@@ -212,7 +212,15 @@ describe("Correlations tests", () => {
       .find(CorrelationsTsOptions)
       .find("input")
       .findWhere(i => i.prop("type") === "text")
+      .first()
       .simulate("change", { target: { value: "5" } });
+    const minPeriods = result
+      .find(CorrelationsTsOptions)
+      .find("input")
+      .findWhere(i => i.prop("type") === "text")
+      .first();
+    minPeriods.simulate("change", { target: { value: "5" } });
+    minPeriods.simulate("keyPress", { key: "Enter" });
     await tickUpdate(result);
   });
 

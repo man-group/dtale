@@ -3,6 +3,24 @@ import _ from "lodash";
 
 import chartUtils from "../../chartUtils";
 
+function buildState() {
+  return {
+    chart: null,
+    error: null,
+    scatterError: null,
+    correlations: null,
+    selectedCols: [],
+    tsUrl: null,
+    selectedDate: null,
+    tsType: "date",
+    scatterUrl: null,
+    rolling: false,
+    useRolling: false,
+    window: 4,
+    minPeriods: 1,
+  };
+}
+
 const colorScale = chroma.scale(["red", "yellow", "green"]).domain([-1, 0, 1]);
 const percent = num => (num === "N/A" ? num : `${_.round(num * 100, 2)}%`);
 
@@ -36,6 +54,10 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
 }
 
 export default {
+  BASE_SCATTER_URL: "/dtale/scatter",
+  BASE_CORRELATIONS_URL: "/dtale/correlations",
+  BASE_CORRELATIONS_TS_URL: "/dtale/correlations-ts",
+  buildState,
   colorScale,
   createScatter,
   percent,

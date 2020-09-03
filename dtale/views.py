@@ -2248,19 +2248,29 @@ def get_correlations_ts(data_id):
     cols = json.loads(cols)
     [col1, col2] = cols
     date_col = get_str_arg(request, "dateCol")
+    rolling = get_bool_arg(request, "rolling")
     rolling_window = get_int_arg(request, "rollingWindow")
+    min_periods = get_int_arg(request, "minPeriods")
     code = build_code_export(data_id)
 
-    if rolling_window:
+    if rolling:
         data = data[[date_col, col1, col2]].set_index(date_col)
-        data = data[[col1, col2]].rolling(rolling_window).corr().reset_index()
+        rolling_kwargs = {}
+        if min_periods is not None:
+            rolling_kwargs["min_periods"] = min_periods
+        data = (
+            data[[col1, col2]]
+            .rolling(rolling_window, **rolling_kwargs)
+            .corr()
+            .reset_index()
+        )
         data = data.dropna()
         data = data[data["level_1"] == col1][[date_col, col2]]
         code.append(
             (
                 "corr_ts = df[['{date_col}', '{col1}', '{col2}']].set_index('{date_col}')\n"
-                "corr_ts = corr_ts[['{col1}', '{col2}']].rolling({rolling_window}).corr().reset_index()\n"
-                "corr_ts = corr_ts.dropna()\n"
+                "corr_ts = corr_ts[['{col1}', '{col2}']].rolling({rolling_window}, min_periods=min_periods).corr()\n"
+                "corr_ts = corr_ts.reset_index().dropna()\n"
                 "corr_ts = corr_ts[corr_ts['level_1'] == '{col1}'][['{date_col}', '{col2}']]"
             ).format(
                 col1=col1, col2=col2, date_col=date_col, rolling_window=rolling_window
@@ -2278,6 +2288,28 @@ def get_correlations_ts(data_id):
                 "corr_ts = corr_ts[corr_ts.column == '{col1}'][['date', '{col2}']]\n"
             ).format(col1=col1, col2=col2, date_col=date_col, cols="', '".join(cols))
         )
+        if rolling_window:
+            data = data.set_index("date")
+            rolling_kwargs = {}
+            if min_periods is not None:
+                rolling_kwargs["min_periods"] = min_periods
+            data = (
+                data[[col2]]
+                .rolling(rolling_window, **rolling_kwargs)
+                .mean()
+                .reset_index()
+            )
+            data = data.dropna()
+            code.append(
+                (
+                    "corr_ts = corr_ts.set_index('date')\n"
+                    "corr_ts = corr_ts[['{col}']].rolling({rolling_window}, min_periods={min_periods}).mean()\n"
+                    "corr_ts = corr_ts.reset_index().dropna()"
+                ).format(
+                    col=col2, rolling_window=rolling_window, min_periods=min_periods
+                )
+            )
+
     data.columns = ["date", "corr"]
     code.append("corr_ts.columns = ['date', 'corr']")
     return_data, _code = build_base_chart(data.fillna(0), "date", "corr")

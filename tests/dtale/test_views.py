@@ -1930,6 +1930,17 @@ def test_get_correlations_ts(unittest, rolling_data):
             )
             unittest.assertEqual(response_data["code"], CORRELATIONS_TS_CODE)
 
+            params["rolling"] = False
+            params["rollingWindow"] = 4
+            params["minPeriods"] = 4
+            response = c.get(
+                "/dtale/correlations-ts/{}".format(c.port), query_string=params
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                response_data["data"]["all"]["x"], ["2000-01-04", "2000-01-05"]
+            )
+
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -1940,7 +1951,10 @@ def test_get_correlations_ts(unittest, rolling_data):
                 )
             )
             params = dict(
-                dateCol="date", cols=json.dumps(["0", "1"]), rollingWindow="4"
+                dateCol="date",
+                cols=json.dumps(["0", "1"]),
+                rolling=True,
+                rollingWindow="4",
             )
             response = c.get(
                 "/dtale/correlations-ts/{}".format(c.port), query_string=params

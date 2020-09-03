@@ -149,7 +149,8 @@ describe("Correlations tests", () => {
     const windowInput = result
       .find(CorrelationsTsOptions)
       .find("input")
-      .findWhere(i => i.prop("type") === "text");
+      .findWhere(i => i.prop("type") === "text")
+      .first();
     windowInput.simulate("change", { target: { value: "" } });
     windowInput.simulate("keyPress", { key: "Shift" });
     windowInput.simulate("keyPress", { key: "Enter" });
