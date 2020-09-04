@@ -5,7 +5,10 @@ dtale = Blueprint("dtale", __name__, url_prefix="/dtale")
 # flake8: NOQA
 from dtale.app import show, get_instance, instances, offline_chart  # isort:skip
 from dtale.cli.loaders import LOADERS  # isort:skip
-from dtale.global_state import ALLOW_CELL_EDITS, HIDE_SHUTDOWN, GITHUB_FORK
+
+ALLOW_CELL_EDITS = True
+HIDE_SHUTDOWN = False
+GITHUB_FORK = False
 
 for loader_name, loader in LOADERS.items():
     if hasattr(loader, "show_loader"):

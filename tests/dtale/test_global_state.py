@@ -107,7 +107,7 @@ def test_load_flag():
         )
         assert global_state.load_flag("1", "hide_shutdown", False)
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.HIDE_SHUTDOWN", True))
+        stack.enter_context(mock.patch("dtale.HIDE_SHUTDOWN", True))
         stack.enter_context(
             mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=False)})
         )

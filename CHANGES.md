@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.15.2 (2020-9-4)
+*  hotfix to move HIDE_SHUTDOWN & GITHUB_FORK to `dtale` module
+
 ### 1.15.1 (2020-9-3)
 *  hotfix to expose HIDE_SHUTDOWN & GITHUB_FORK from `dtale.global_state`
 

@@ -15,9 +15,6 @@ SETTINGS = {}
 METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
-ALLOW_CELL_EDITS = True
-HIDE_SHUTDOWN = False
-GITHUB_FORK = False
 
 
 def drop_punctuation(val):
@@ -190,8 +187,10 @@ def cleanup(data_id=None):
 
 
 def load_flag(data_id, flag_name, default):
+    import dtale
+
     curr_settings = get_settings(data_id) or {}
-    global_flag = globals()[flag_name.upper()]
+    global_flag = getattr(dtale, flag_name.upper())
     if global_flag != default:
         return global_flag
     return curr_settings.get(flag_name, default)
