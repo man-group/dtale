@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.15.1 (2020-9-3)
+*  hotfix to expose HIDE_SHUTDOWN & GITHUB_FORK from `dtale.global_state`
+
 ### 1.15.0 (2020-9-3)
 * [#248](https://github.com/man-group/dtale/issues/248): Added 'minPeriods' & the rolling means (multi-value per date) dateframes for Correlations popup
 * [#254](https://github.com/man-group/dtale/issues/254): Options to hide shutdown and turn off cell editing
