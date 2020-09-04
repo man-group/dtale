@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.15.0 (2020-9-3)
+* [#248](https://github.com/man-group/dtale/issues/248): Added 'minPeriods' & the rolling means (multi-value per date) dateframes for Correlations popup
+* [#254](https://github.com/man-group/dtale/issues/254): Options to hide shutdown and turn off cell editing
+* [#244](https://github.com/man-group/dtale/issues/244): Treemap charts
+
 ### 1.14.1 (2020-8-20)
 * [#252](https://github.com/man-group/dtale/issues/252): Describe shows proper values, but repeats 'Total Rows:' heading instead of proper headings
 
