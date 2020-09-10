@@ -90,6 +90,7 @@ function createChart(ctx, fetchedData, chartOpts) {
       infoBuilder = buildHistogramAxes;
       break;
     case "value_counts":
+    case "word_value_counts":
       infoBuilder = buildValueCountsAxes;
       break;
     case "categories":
@@ -118,7 +119,10 @@ function dataLoader(props, state, propagateState, chartParams) {
     propagateState({ chart: EMTPY_CATEGORY, code: null });
     return;
   }
-  const subProps = params.type === "value_counts" ? ["ordinalCol", "ordinalAgg"] : ["categoryCol", "categoryAgg"];
+  let subProps = ["categoryCol", "categoryAgg"];
+  if (_.includes(["value_counts", "word_value_counts"], params.type)) {
+    subProps = ["ordinalCol", "ordinalAgg"];
+  }
   _.forEach(subProps, p => (params[p] = _.get(finalParams, [p, "value"])));
   const url = `${BASE_ANALYSIS_URL}/${dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
   fetchJson(url, fetchedChartData => {

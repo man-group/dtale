@@ -33,7 +33,7 @@ function buildFilter() {
 function buildColumnAnalysis(props) {
   const title = (
     <React.Fragment>
-      <i className="ico-swap-horiz" />
+      <i className="ico-equalizer" />
       {" Column Analysis for "}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
       <div id="describe" />

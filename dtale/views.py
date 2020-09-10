@@ -2006,7 +2006,64 @@ def get_column_analysis(data_id):
     classifier = classify_type(dtype)
     if data_type is None:
         data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
-    if data_type == "value_counts":
+    if data_type == "word_value_counts":
+        hist = (
+            pd.value_counts(data[selected_col].str.split(expand=True).stack())
+            .to_frame(name="data")
+            .sort_index()
+        )
+        code.append(
+            "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'].str.split(expand=True).stack())".format(
+                col=selected_col
+            )
+        )
+        if ordinal_col is not None:
+            expanded_words = data[selected_col].str.split(expand=True).stack()
+            expanded_words.name = "label"
+            expanded_words = expanded_words.reset_index()[["level_0", "label"]]
+            expanded_words.columns = ["index", "label"]
+            expanded_words = pd.merge(
+                data[[ordinal_col]],
+                expanded_words.set_index("index"),
+                how="inner",
+                left_index=True,
+                right_index=True,
+            )
+
+            if ordinal_agg == "pctsum":
+                ordinal_data = expanded_words.groupby("label")[[ordinal_col]].sum()
+                ordinal_data = ordinal_data / ordinal_data.sum()
+                code.append(
+                    (
+                        "ordinal_data = df.groupby('{col}')[['{ordinal}']].sum()\n"
+                        "ordinal_data = ordinal_data / ordinal_data.sum()"
+                    ).format(col=selected_col, ordinal=ordinal_col)
+                )
+            else:
+                ordinal_data = getattr(
+                    expanded_words.groupby("label")[[ordinal_col]], ordinal_agg
+                )()
+                code.append(
+                    "ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()".format(
+                        col=selected_col, ordinal=ordinal_col, agg=ordinal_agg
+                    )
+                )
+            hist["ordinal"] = ordinal_data
+            hist = hist.sort_values("ordinal")
+            code.append(
+                (
+                    "chart['ordinal'] = ordinal_data\n"
+                    "chart = chart.sort_values('ordinal')"
+                )
+            )
+        hist.index.name = "labels"
+        hist = hist.reset_index()
+        hist, top = handle_top(hist, get_int_arg(request, "top"))
+        col_types = grid_columns(hist)
+        f = grid_formatter(col_types, nan_display=None)
+        return_data = f.format_lists(hist)
+        return_data["top"] = top
+    elif data_type == "value_counts":
         hist = pd.value_counts(data[selected_col]).to_frame(name="data").sort_index()
         code.append(
             "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(

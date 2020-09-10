@@ -1742,6 +1742,32 @@ def test_get_column_analysis(unittest, test_data):
             )
 
 
+@pytest.mark.unit
+def test_get_column_analysis_word_value_count(unittest):
+    df = pd.DataFrame(dict(a=["a b c", "d e f", "g h i"], b=[3, 4, 5]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="a", type="word_value_counts"),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                response_data["labels"], ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
+            )
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(
+                    col="a", type="word_value_counts", ordinalCol="b", ordinalAgg="mean"
+                ),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data["ordinal"], [3, 3, 3, 4, 4, 4, 5, 5, 5])
+
+
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 
 import numpy as np

@@ -7,4 +7,5 @@ export const TITLES = {
   value_counts: "Value Counts",
   boxplot: "Describe",
   categories: "Categories",
+  word_value_counts: "Word Value Counts",
 };
