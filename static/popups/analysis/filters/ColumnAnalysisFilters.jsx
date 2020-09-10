@@ -30,22 +30,33 @@ class ColumnAnalysisFilters extends React.Component {
   }
 
   shouldComponentUpdate(newProps, newState) {
-    const props = ["cols", "dtype", "code"];
+    const props = ["cols", "dtype", "code", "top"];
     if (!_.isEqual(_.pick(this.props, props), _.pick(newProps, props))) {
       return true;
     }
     return !_.isEqual(this.state, newState);
   }
 
+  componentDidUpdate(prevProps) {
+    if (this.props.top !== prevProps.top) {
+      this.setState({ top: (this.props.top || 100) + "" });
+    }
+  }
+
   buildChartTypeToggle() {
     const colType = gu.findColType(this.props.dtype);
-    const options = [{ label: TITLES.histogram, value: "histogram" }];
-    if (colType === "float") {
+    let options = [{ label: TITLES.histogram, value: "histogram" }];
+    if (colType == "string") {
+      options = [
+        { label: TITLES.value_counts, value: "value_counts" },
+        { label: TITLES.word_value_counts, value: "word_value_counts" },
+      ];
+    } else if (colType === "float") {
       options.push({ label: TITLES.categories, value: "categories" });
     } else {
       options.push({ label: TITLES.value_counts, value: "value_counts" });
     }
-    const update = value => this.setState({ type: value }, this.buildChart);
+    const update = value => this.setState({ type: value, top: null }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
   }
 
@@ -134,6 +145,7 @@ class ColumnAnalysisFilters extends React.Component {
       // date, string, bool -> Value Counts
       filterMarkup = (
         <div className="col row">
+          {this.buildChartTypeToggle()}
           <h4 className="pl-5 pt-3 modal-title font-weight-bold">{title}</h4>
           {this.buildFilter("top")}
           <OrdinalInputs updateOrdinal={this.updateOrdinal} {...this.props} />
