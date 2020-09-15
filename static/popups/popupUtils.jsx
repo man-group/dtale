@@ -15,6 +15,7 @@ import { XArrayDimensions } from "./XArrayDimensions";
 import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { CreateColumn } from "./create/CreateColumn";
+import { Duplicates } from "./duplicates/Duplicates";
 import { CreateReplacement } from "./replacement/CreateReplacement";
 import { Reshape } from "./reshape/Reshape";
 import { Variance } from "./variance/Variance";
@@ -232,6 +233,17 @@ function buildUpload(props) {
   return { title, body };
 }
 
+function buildDuplicates() {
+  const title = (
+    <React.Fragment>
+      <i className="fas fa-clone" />
+      <strong>{"Duplicates"}</strong>
+    </React.Fragment>
+  );
+  const body = <Duplicates />;
+  return { title, body };
+}
+
 export function buildBodyAndTitle(props) {
   switch (_.get(props, "chartData.type")) {
     case "filter":
@@ -270,6 +282,8 @@ export function buildBodyAndTitle(props) {
       return buildVariance(props);
     case "upload":
       return buildUpload(props);
+    case "duplicates":
+      return buildDuplicates();
   }
   return { body: null, title: null };
 }

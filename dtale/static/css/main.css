@@ -4552,7 +4552,8 @@ button.close {
 }
 
 div.build-modal > div.modal-lg,
-div.replacement-modal > div.modal-lg {
+div.replacement-modal > div.modal-lg,
+div.duplicates-modal > div.modal-lg {
   min-width: 720px;
 }
 
@@ -4585,7 +4586,8 @@ div.xarray-indexes-modal > div.modal-lg{
     max-width: 800px;
   }
   div.build-modal > div.modal-lg,
-  div.replacement-modal > div.modal-lg {
+  div.replacement-modal > div.modal-lg,
+  div.duplicates-modal > div.modal-lg {
     max-width: 720px;
   }
   div.reshape-modal > div.modal-lg {

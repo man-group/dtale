@@ -1767,6 +1767,31 @@ def test_get_column_analysis_word_value_count(unittest):
             response_data = json.loads(response.data)
             unittest.assertEqual(response_data["ordinal"], [3, 3, 3, 4, 4, 4, 5, 5, 5])
 
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(
+                    col="a",
+                    type="word_value_counts",
+                    ordinalCol="b",
+                    ordinalAgg="pctsum",
+                ),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(
+                response_data["ordinal"],
+                [
+                    0.083333,
+                    0.083333,
+                    0.083333,
+                    0.111111,
+                    0.111111,
+                    0.111111,
+                    0.138889,
+                    0.138889,
+                    0.138889,
+                ],
+            )
+
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 

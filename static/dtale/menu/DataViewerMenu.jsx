@@ -10,6 +10,7 @@ import { openChart } from "../../actions/charts";
 import bu from "../backgroundUtils";
 import Descriptions from "../menu-descriptions.json";
 import DescribeOption from "./DescribeOption";
+import DuplicatesOption from "./DuplicatesOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
 import RangeHighlightOption from "./RangeHighlightOption";
@@ -87,6 +88,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.reshape}</div>
           </li>
+          <DuplicatesOption open={openPopup("duplicates", 450)} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openTab("correlations")}>
