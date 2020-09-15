@@ -8,16 +8,13 @@ import sklearn as skl
 from pkg_resources import parse_version
 from six import PY3
 
-from dtale.app import build_app
 from dtale.column_replacements import ColumnReplacement
+from tests.dtale.test_views import app
 
 if PY3:
     from contextlib import ExitStack
 else:
     from contextlib2 import ExitStack
-
-URL = "http://localhost:40000"
-app = build_app(url=URL)
 
 
 def replacements_data():
