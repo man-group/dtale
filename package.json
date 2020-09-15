@@ -160,6 +160,7 @@
   },
   "resolutions": {
     "elliptic": "^6.5.3",
+    "node-fetch": "^2.6.1",
     "prismjs": "^1.21.0"
   }
 }
