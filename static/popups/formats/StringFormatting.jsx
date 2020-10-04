@@ -3,36 +3,48 @@ import PropTypes from "prop-types";
 import React from "react";
 import { ModalBody } from "react-modal-bootstrap";
 
-const BASE_STATE = { fmt: null };
+const BASE_FMT = { truncate: null, link: false };
 
 class StringFormatting extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, _.get(this.props.columnFormats, this.props.selectedCol, BASE_STATE));
+    const currFormat = _.get(this.props.columnFormats, this.props.selectedCol, {});
+    this.state = { fmt: { ...BASE_FMT, ...currFormat.fmt } };
     this.updateState = this.updateState.bind(this);
   }
 
   updateState(fmt) {
-    const mainState = { fmt: null };
-    if (fmt && parseInt(fmt)) {
-      mainState.fmt = fmt;
+    const localFmt = { ...this.state.fmt, ...fmt };
+    const parentFmt = { ...localFmt };
+    if (parentFmt.truncate && !parseInt(parentFmt.truncate)) {
+      parentFmt.truncate = null;
     }
-    this.setState({ fmt }, () => this.props.updateState(mainState));
+    this.setState({ fmt: localFmt }, () => this.props.updateState({ fmt: parentFmt }));
   }
 
   render() {
+    const { fmt } = this.state;
     const exampleStr = "I am a long piece of text, please truncate me.";
-    const exampleOutput = _.isNull(this.state.fmt) ? exampleStr : _.truncate(exampleStr, { length: this.state.fmt });
+    const exampleOutput = _.isNull(fmt.truncate) ? exampleStr : _.truncate(exampleStr, { length: fmt.truncate });
     return (
       <ModalBody>
+        <div className="form-group row">
+          <label className="col-md-4 col-form-label text-right">Render as Hyperlink?</label>
+          <div className="col-md-8 mt-auto mb-auto">
+            <i
+              className={`ico-check-box${fmt.link ? "" : "-outline-blank"} pointer`}
+              onClick={() => this.updateState({ link: !fmt.link })}
+            />
+          </div>
+        </div>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">Truncation</label>
           <div className="col-md-6">
             <input
               type="number"
               className="form-control"
-              value={this.state.fmt || ""}
-              onChange={event => this.updateState(event.target.value)}
+              value={this.state.fmt.truncate || ""}
+              onChange={event => this.updateState({ truncate: event.target.value })}
             />
           </div>
         </div>

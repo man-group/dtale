@@ -59,6 +59,13 @@ class ReactGridCell extends React.Component {
         divProps.title = rec.raw;
       }
       divProps.cell_idx = cellIdx;
+      if (_.get(gridState, ["columnFormats", colCfg.name, "fmt", "link"])) {
+        value = (
+          <a href={rec.raw} target="_blank" rel="noopener noreferrer">
+            {value}
+          </a>
+        );
+      }
     }
     return (
       <div
@@ -79,6 +86,7 @@ ReactGridCell.propTypes = {
   style: PropTypes.object,
   gridState: PropTypes.shape({
     columns: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
+    columnFormats: PropTypes.object,
     sortInfo: PropTypes.arrayOf(PropTypes.array),
     menuOpen: PropTypes.bool,
     rowCount: PropTypes.number,
