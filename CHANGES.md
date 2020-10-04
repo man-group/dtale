@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.16.0 (2020-10-4)
+* [#263](https://github.com/man-group/dtale/issues/263): word value counts
+* [#262](https://github.com/man-group/dtale/issues/262): duplicate values
+* [#274](https://github.com/man-group/dtale/issues/274): URL linkouts
+
 ### 1.15.2 (2020-9-4)
 *  hotfix to move HIDE_SHUTDOWN & GITHUB_FORK to `dtale` module
 
