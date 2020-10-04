@@ -39,6 +39,10 @@ function buildNumeral(val, fmt) {
   return _.includes(["nan", "inf", "-", ""], val) ? val : numeral(val).format(fmt);
 }
 
+function buildString(val, { truncate }) {
+  return truncate ? _.truncate(val, { length: truncate }) : val;
+}
+
 function buildValue({ name, dtype }, rawValue, { columnFormats }) {
   if (!_.isUndefined(rawValue)) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
@@ -51,7 +55,7 @@ function buildValue({ name, dtype }, rawValue, { columnFormats }) {
         return fmt ? moment(new Date(rawValue)).format(fmt) : rawValue;
       case "string":
       default:
-        return fmt ? _.truncate(rawValue, { length: fmt }) : rawValue;
+        return buildString(rawValue, fmt ?? {});
     }
   }
   return "";
