@@ -583,7 +583,9 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
                     (s.apply(lambda x: x.strip()) == "").sum()
                 )
             else:
-                dtype_data["hasMissing"] += int((s.str.strip() == "").sum())
+                dtype_data["hasMissing"] += int(
+                    (s.astype("str").str.strip() == "").sum()
+                )
 
         return dtype_data
 

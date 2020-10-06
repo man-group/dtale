@@ -400,7 +400,9 @@ class TypeConversionColumnBuilder(object):
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
                     return pd.Series(
-                        s.astype(str).apply(pd.Timestamp), name=self.name, index=s.index
+                        s.astype("str").apply(pd.Timestamp),
+                        name=self.name,
+                        index=s.index,
                     )
                 return pd.Series(
                     pd.to_datetime(s, unit=unit), name=self.name, index=s.index
