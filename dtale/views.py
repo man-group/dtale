@@ -1487,10 +1487,10 @@ def load_describe(column_series, additional_aggs=None):
     if "count" in desc:
         # pandas always returns 'count' as a float and it adds useless decimal points
         desc["count"] = desc["count"].split(".")[0]
-    desc["total_count"] = len(column_series)
+    desc["total_count"] = json_int(len(column_series), as_string=True)
     missing_ct = column_series.isnull().sum()
     desc["missing_pct"] = json_float((missing_ct / len(column_series) * 100).round(2))
-    desc["missing_ct"] = json_int(missing_ct)
+    desc["missing_ct"] = json_int(missing_ct, as_string=True)
     return desc, code
 
 

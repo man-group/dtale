@@ -5,6 +5,7 @@ import React from "react";
 import chartUtils from "../../chartUtils";
 
 const COUNT_STATS = ["count", "missing_ct", "missing_pct"];
+const POSITION_STATS = ["first", "last", "top"];
 const LABELS = {
   total_count: "Total Rows",
   count: "Count (non-nan)",
@@ -95,7 +96,7 @@ class DetailsBoxplot extends React.Component {
   render() {
     const { details } = this.props;
     const describe = _.get(details, "describe", {});
-    const describeKeys = _.keys(_.omit(describe, _.concat(["total_count"], COUNT_STATS)));
+    const describeKeys = _.keys(_.omit(describe, _.concat(["total_count", "freq"], COUNT_STATS, POSITION_STATS)));
     let dtypeCounts = null;
     if (details.dtype_counts) {
       dtypeCounts = (
@@ -123,6 +124,12 @@ class DetailsBoxplot extends React.Component {
                 ))}
               </ul>
             </li>
+            {_.map(POSITION_STATS, k => describe[k] !== undefined && <li key={k}>{buildStat(k, describe[k])}</li>)}
+            {describe.freq !== undefined && (
+              <ul>
+                <li>{buildStat("freq", describe.freq)}</li>
+              </ul>
+            )}
             {_.map(describeKeys, k => (
               <li key={k}>{buildStat(k, describe[k])}</li>
             ))}
