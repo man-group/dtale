@@ -3,9 +3,15 @@ import { expect, it } from "@jest/globals";
 import { buildCode as buildBinsCode } from "../../../popups/create/CreateBins";
 import { buildCode as buildDatetimeCode } from "../../../popups/create/CreateDatetime";
 import { buildCode as buildNumericCode } from "../../../popups/create/CreateNumeric";
+import { buildCode as buildStringCode } from "../../../popups/create/CreateString";
 import { buildCode as buildTypeConversionCode } from "../../../popups/create/CreateTypeConversion";
 
 describe("CreateColumn buildCode tests", () => {
+  it("String buildCode tests", () => {
+    const code = buildStringCode({ cols: [], joinChar: "-" });
+    expect(code).toBeNull();
+  });
+
   it("Numeric buildCode test", () => {
     let code = buildNumericCode({
       left: { type: "col", col: { value: "col1" } },

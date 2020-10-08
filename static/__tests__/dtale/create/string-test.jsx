@@ -5,6 +5,7 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
+import { CreateString } from "../../../popups/create/CreateString";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -15,8 +16,12 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
+function submit(res) {
+  res.find("div.modal-footer").first().find("button").first().simulate("click");
+}
+
 describe("DataViewer tests", () => {
-  let result, CreateColumn, CreateDatetime;
+  let result, CreateColumn;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -58,9 +63,8 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateDatetime = require("../../../popups/create/CreateDatetime").CreateDatetime;
+    const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -70,10 +74,10 @@ describe("DataViewer tests", () => {
       </Provider>,
       { attachTo: document.getElementById("content") }
     );
-
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
+    clickBuilder(result, "String");
   });
 
   afterAll(() => {
@@ -83,43 +87,32 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: build datetime property column", async () => {
+  it("DataViewer: build transform column", async () => {
+    expect(result.find(CreateString).length).toBe(1);
     result
-      .find(CreateColumn)
-      .find("div.form-group")
+      .find(CreateString)
+      .find(Select)
       .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "datetime_col" } });
-    clickBuilder(result, "Datetime");
-    expect(result.find(CreateDatetime).length).toBe(1);
-    const dateInputs = result.find(CreateDatetime).first();
-    dateInputs.find(Select).first().instance().onChange({ value: "col4" });
-    dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
+      .instance()
+      .onChange([{ value: "col1" }, { value: "col2" }]);
+    result.update();
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      cols: ["col1", "col2"],
+      joinChar: "_",
+    });
+    expect(result.find(CreateColumn).instance().state.name).toBe("col1_col2_concat");
   });
 
-  it("DataViewer: build datetime conversion column", async () => {
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "datetime_col" } });
-    clickBuilder(result, "Datetime");
-    expect(result.find(CreateDatetime).length).toBe(1);
-    const dateInputs = result.find(CreateDatetime).first();
-    dateInputs.find(Select).first().instance().onChange({ value: "col4" });
-    dateInputs.find("div.form-group").at(1).find("button").last().simulate("click");
-    dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
-  });
-
-  it("DataViewer: build datetime cfg validation", () => {
-    const { validateDatetimeCfg } = require("../../../popups/create/CreateDatetime");
-    expect(validateDatetimeCfg({ col: null })).toBe("Missing a column selection!");
+  it("DataViewer: build string cfg validation", () => {
+    const { validateStringCfg } = require("../../../popups/create/CreateString");
+    expect(validateStringCfg({ cols: null })).toBe("Please select at least 2 columns to concatenate!");
+    expect(
+      validateStringCfg({
+        cols: ["col1", "col2"],
+        joinChar: "_",
+      })
+    ).toBeNull();
   });
 });

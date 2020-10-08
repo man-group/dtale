@@ -10,6 +10,7 @@ import { CreateTypeConversion } from "../../../popups/create/CreateTypeConversio
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { clickBuilder } from "./create-test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -96,8 +97,7 @@ describe("DataViewer tests", () => {
       .find("input")
       .first()
       .simulate("change", { target: { value: "conv_col" } });
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(4).simulate("click");
-    result.update();
+    clickBuilder(result, "Type Conversion");
   });
 
   afterAll(() => {
@@ -228,6 +228,6 @@ describe("DataViewer tests", () => {
         from: "datetime64[ns]",
         unit: "ms",
       })
-    ).toBe(null);
+    ).toBeNull();
   });
 });

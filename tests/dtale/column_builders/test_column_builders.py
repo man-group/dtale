@@ -108,3 +108,15 @@ def test_zscore_normalize():
             )
             builder.build_column()
             assert ZERO_STD_ERROR in str(error.value)
+
+
+@pytest.mark.unit
+def test_string():
+    df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
+    data_id, column_type = "1", "string"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"cols": list(df.columns), "joinChar": "-"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == "1-2-a-True")
