@@ -9,14 +9,6 @@ import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import ColumnSaveType from "../replacement/ColumnSaveType";
-import { CreateBins, validateBinsCfg } from "./CreateBins";
-import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
-import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
-import { CreateRandom, validateRandomCfg } from "./CreateRandom";
-import { CreateTransform, validateTransformCfg } from "./CreateTransform";
-import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
-import { CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
-import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
 import * as createUtils from "./createUtils";
 import Descriptions from "./creation-descriptions.json";
 
@@ -59,34 +51,7 @@ class ReactCreateColumn extends React.Component {
       }
       createParams.name = name;
     }
-    let error = null;
-    switch (type) {
-      case "datetime":
-        error = validateDatetimeCfg(cfg);
-        break;
-      case "bins":
-        error = validateBinsCfg(cfg);
-        break;
-      case "random":
-        error = validateRandomCfg(cfg);
-        break;
-      case "type_conversion":
-        error = validateTypeConversionCfg(cfg);
-        break;
-      case "transform":
-        error = validateTransformCfg(cfg);
-        break;
-      case "winsorize":
-        error = validateWinsorizeCfg(cfg);
-        break;
-      case "zscore_normalize":
-        error = validateZScoreNormalizeCfg(cfg);
-        break;
-      case "numeric":
-      default:
-        error = validateNumericCfg(cfg);
-        break;
-    }
+    const error = createUtils.validateCfg(type, cfg);
     if (!_.isNull(error)) {
       this.setState({ error: <RemovableError error={error} /> });
       return;
@@ -121,41 +86,7 @@ class ReactCreateColumn extends React.Component {
       }
       this.setState(state);
     };
-    let body = null;
-    switch (this.state.type) {
-      case "numeric":
-        body = <CreateNumeric {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "datetime":
-        body = <CreateDatetime {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "bins":
-        body = <CreateBins {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "random":
-        body = <CreateRandom {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "type_conversion":
-        body = (
-          <CreateTypeConversion
-            {..._.pick(this.state, ["columns", "namePopulated"])}
-            updateState={updateState}
-            prePopulated={_.get(this.props, "prePopulated.cfg") || {}}
-          />
-        );
-        break;
-      case "transform":
-        body = <CreateTransform {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "winsorize":
-        body = <CreateWinsorize {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />;
-        break;
-      case "zscore_normalize":
-        body = (
-          <CreateZScoreNormalize {..._.pick(this.state, ["columns", "namePopulated"])} updateState={updateState} />
-        );
-        break;
-    }
+    const body = createUtils.getBody(this.state, this.props, updateState);
     return (
       <div key="body" className="modal-body">
         {this.state.type !== "type_conversion" && (

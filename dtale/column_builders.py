@@ -16,6 +16,8 @@ class ColumnBuilder(object):
         self.data_id = data_id
         if column_type == "numeric":
             self.builder = NumericColumnBuilder(name, cfg)
+        elif column_type == "string":
+            self.builder = StringColumnBuilder(name, cfg)
         elif column_type == "datetime":
             self.builder = DatetimeColumnBuilder(name, cfg)
         elif column_type == "bins":
@@ -75,6 +77,31 @@ class NumericColumnBuilder(object):
             left="df['{}']".format(left["col"]) if "col" in left else left["val"],
             right="df['{}']".format(right["col"]) if "col" in right else right["val"],
         )
+
+
+class StringColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        cols, join_char = (self.cfg.get(p) for p in ["cols", "joinChar"])
+        return pd.Series(
+            data[cols].astype("str").agg(join_char.join, axis=1),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        cols, join_char = (self.cfg.get(p) for p in ["cols", "joinChar"])
+        data_str = (
+            "data[['{cols}']].astype('str').agg('{join_char}'.join, axis=1)".format(
+                cols="', '".join(cols), join_char=join_char
+            )
+        )
+        return (
+            "df.loc[:, '{name}'] = pd.Series({data_str}, index=df.index, name='{name}')"
+        ).format(name=self.name, data_str=data_str)
 
 
 FREQ_MAPPING = dict(month="M", quarter="Q", year="Y")

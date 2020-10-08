@@ -10,6 +10,7 @@ import { CreateWinsorize } from "../../../popups/create/CreateWinsorize";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { clickBuilder } from "./create-test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -77,8 +78,7 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(6).simulate("click");
-    result.update();
+    clickBuilder(result, "Winsorize");
   });
 
   afterAll(() => {
@@ -147,6 +147,6 @@ describe("DataViewer tests", () => {
         limits: [0.1, 0.1],
         inclusive: [true, false],
       })
-    ).toBe(null);
+    ).toBeNull();
   });
 });

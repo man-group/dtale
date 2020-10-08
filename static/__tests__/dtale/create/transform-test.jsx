@@ -9,6 +9,7 @@ import { CreateTransform } from "../../../popups/create/CreateTransform";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { clickBuilder } from "./create-test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -76,8 +77,7 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    result.find(CreateColumn).find("div.form-group").at(1).find("button").at(5).simulate("click");
-    result.update();
+    clickBuilder(result, "Transform");
   });
 
   afterAll(() => {
@@ -131,6 +131,6 @@ describe("DataViewer tests", () => {
         group: ["col2"],
         agg: "mean",
       })
-    ).toBe(null);
+    ).toBeNull();
   });
 });
