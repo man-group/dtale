@@ -202,7 +202,7 @@ class ReactCreateColumn extends React.Component {
         {this.renderCode()}
         <button className="btn btn-primary" onClick={this.state.loadingColumn ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingColumn}>
-            <span>Create</span>
+            <span>{this.state.saveAs === "new" ? "Create" : "Apply"}</span>
           </BouncerWrapper>
         </button>
       </div>,
