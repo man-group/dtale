@@ -753,6 +753,10 @@ class DuplicateDataError(Exception):
         self.data_id = data_id
 
 
+def triple_quote(val):
+    return '"""{}"""'.format(val)
+
+
 def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     """
     Helper function for building a string representing the code that was run to get the data you are viewing to that
@@ -817,13 +821,17 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
                     "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
                     "#             differing results\n"
                     "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
-                    'df = df.query("{query}", local_dict=ctxt_vars)\n'
-                ).format(query=final_query, data_id=data_id)
+                    "df = df.query({query}, local_dict=ctxt_vars)\n"
+                ).format(query=triple_quote(final_query), data_id=data_id)
             )
         else:
-            final_history.append('df = df.query("{}")\n'.format(final_query))
+            final_history.append(
+                "df = df.query({})\n".format(triple_quote(final_query))
+            )
     elif settings.get("query"):
-        final_history.append('df = df.query("{}")\n'.format(settings["query"]))
+        final_history.append(
+            "df = df.query({})\n".format(triple_quote(settings["query"]))
+        )
     if "sort" in settings:
         cols, dirs = [], []
         for col, dir in settings["sort"]:

@@ -1,7 +1,7 @@
 import pandas as pd
 
 import dtale.global_state as global_state
-from dtale.utils import dict_merge, grid_columns, grid_formatter
+from dtale.utils import dict_merge, grid_columns, grid_formatter, triple_quote
 from dtale.charts.utils import build_group_inputs_filter
 
 
@@ -216,8 +216,8 @@ class ShowDuplicates(object):
         group = self.cfg.get("group")
         group_filter_str = ""
         if group_filter:
-            group_filter_str = "\ndf = df.query('{filter}')".format(
-                filter=group_filter_str
+            group_filter_str = "\ndf = df.query({filter})".format(
+                filter=triple_quote(group_filter_str)
             )
         return (
             "df = pd.concat(g for _, g in df.groupby(['{group}']) if len(g) > 1)"

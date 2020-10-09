@@ -14,6 +14,7 @@ from dtale.utils import (
     json_int,
     make_list,
     run_query,
+    triple_quote,
 )
 
 YAXIS_CHARTS = ["line", "bar", "scatter"]
@@ -247,7 +248,9 @@ def retrieve_chart_data(df, *args, **kwargs):
     if len(make_list(kwargs.get("group_val"))):
         filters = build_group_inputs_filter(all_data, kwargs["group_val"])
         all_data = run_query(all_data, filters)
-        all_code.append("chart_data = chart_data.query({})".format(filters))
+        all_code.append(
+            "chart_data = chart_data.query({})".format(triple_quote(filters))
+        )
     return all_data, all_code
 
 
