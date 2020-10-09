@@ -60,6 +60,7 @@ from dtale.utils import (
     get_dtypes,
     make_list,
     run_query,
+    triple_quote,
 )
 
 logger = getLogger(__name__)
@@ -67,7 +68,7 @@ logger = getLogger(__name__)
 GROUP_WARNING = (
     "# WARNING: This is not taking into account grouping of any kind, please apply filter associated with\n"
     "#          the group in question in order to replicate chart. For this we're using '{series_key}'\n"
-    "chart_data = chart_data.query('{series_key}')"
+    "chart_data = chart_data.query({series_key})"
 )
 Y_AXIS_WARNING = (
     "# WARNING: This is not taking into account all the y-axes you've specified.  For this example we'll\n"
@@ -665,7 +666,7 @@ def scatter_code_builder(
     title = build_title(x, y, group=None, z=z, agg=agg)
     code = []
     if len(data["data"]) > 1:
-        code.append(GROUP_WARNING.format(series_key=series_key))
+        code.append(GROUP_WARNING.format(series_key=triple_quote(series_key)))
         title = build_title(x, y, series_key, z=z, agg=agg)
 
     if len(y) > 1:
