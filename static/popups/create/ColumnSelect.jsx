@@ -8,7 +8,7 @@ import { exports as gu } from "../../dtale/gridUtils";
 class ColumnSelect extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { [props.prop]: null };
+    this.state = { [props.prop]: _.get(props.parent, props.prop, null) };
     this.updateState = this.updateState.bind(this);
   }
 
@@ -38,9 +38,9 @@ class ColumnSelect extends React.Component {
               classNamePrefix="Select"
               options={_.map(
                 _.sortBy(finalOptions, o => _.toLower(o)),
-                o => ({ value: o })
+                o => ({ value: o, label: _.find(columns, { name: o }).label })
               )}
-              getOptionLabel={_.property("value")}
+              getOptionLabel={o => o.label ?? o.value}
               getOptionValue={_.property("value")}
               value={this.state[prop]}
               onChange={selected => this.updateState({ [prop]: selected })}
