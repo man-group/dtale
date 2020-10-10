@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.17.0 (2020-10-10)
+* [#269](https://github.com/man-group/dtale/issues/269): column based range highlighting
+* [#268](https://github.com/man-group/dtale/issues/268): better button labels for inplace vs. new column
+* [#283](https://github.com/man-group/dtale/issues/283): triple-quote formatting around queries in code exports
+* [#266](https://github.com/man-group/dtale/issues/266): string concatenation string builder
+* [#267](https://github.com/man-group/dtale/issues/267): Column discretion UI
+
+
 ### 1.16.0 (2020-10-4)
 * [#263](https://github.com/man-group/dtale/issues/263): word value counts
 * [#262](https://github.com/man-group/dtale/issues/262): duplicate values
