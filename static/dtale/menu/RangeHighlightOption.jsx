@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { Bouncer } from "../../Bouncer";
-import { MODES } from "../../popups/RangeHighlight";
 import Descriptions from "../menu-descriptions.json";
 
 class RangeHighlightOption extends React.Component {
@@ -15,10 +14,8 @@ class RangeHighlightOption extends React.Component {
     const openRangeHightlight = () => this.props.openChart(_.assignIn({ type: "range", size: "modal-sm" }, this.props));
     const turnOffRangeHighlight = () => {
       const rangeHighlight = { ...this.props.rangeHighlight };
-      _.forEach(MODES, ([_label, flag, _value, _filter]) => {
-        if (_.has(rangeHighlight, flag)) {
-          rangeHighlight[flag] = false;
-        }
+      _.forEach(rangeHighlight, range => {
+        range.active = false;
       });
       this.props.propagateState({ rangeHighlight, backgroundMode: null });
     };

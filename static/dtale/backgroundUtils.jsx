@@ -94,12 +94,22 @@ const rangeHighlighting = (state, { name, dtype }, { raw }) => {
   if (name === gu.IDX || !rangeHighlight) {
     return {};
   }
+  let range = _.get(rangeHighlight, name);
+  if (range === undefined || !range.active) {
+    range = _.get(rangeHighlight, "all");
+    if (range === undefined || !range.active) {
+      range = undefined;
+    }
+  }
+  if (range === undefined) {
+    return {};
+  }
   const lowerDtype = (dtype || "").toLowerCase();
   const colType = gu.findColType(lowerDtype);
   if (_.includes(["float", "int"], colType)) {
     let styles = {};
     _.forEach(MODES, ([_label, flag, value, filter]) => {
-      if (rangeHighlight[flag] && !_.isNil(rangeHighlight[value]) && filter(raw, rangeHighlight[value])) {
+      if (range[flag] && !_.isNil(range[value]) && filter(raw, range[value])) {
         styles = { background: "#FFF59D" };
       }
     });

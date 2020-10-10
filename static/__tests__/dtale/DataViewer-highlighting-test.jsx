@@ -14,7 +14,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer highlighting tests", () => {
-  let result, DataViewer, ReactDataViewer;
+  let result, DataViewer, ReactDataViewer, RangeHighlight;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -35,6 +35,7 @@ describe("DataViewer highlighting tests", () => {
     const dv = require("../../dtale/DataViewer");
     DataViewer = dv.DataViewer;
     ReactDataViewer = dv.ReactDataViewer;
+    RangeHighlight = require("../../popups/RangeHighlight").RangeHighlight;
   });
 
   beforeEach(async () => {
@@ -56,6 +57,7 @@ describe("DataViewer highlighting tests", () => {
 
   const heatMapBtn = () => findMainMenuButton(result, "By Col", "div.btn-group");
   const dataViewer = () => result.find(ReactDataViewer);
+  const allRange = () => result.find(RangeHighlight).find("div.form-group").last();
 
   it("DataViewer: heatmap", async () => {
     heatMapBtn().find("button").first().simulate("click");
@@ -117,37 +119,56 @@ describe("DataViewer highlighting tests", () => {
   });
 
   it("DataViewer: range highlighting", async () => {
-    const RangeHighlight = require("../../popups/RangeHighlight").RangeHighlight;
     const RangeHighlightOption = require("../../dtale/menu/RangeHighlightOption").default;
     clickMainMenuButton(result, "Highlight Range");
     result.update();
     result
       .find(RangeHighlight)
       .find("div.form-group")
-      .forEach(input => {
-        input.find("i").simulate("click");
-        input.find("input").simulate("change", { target: { value: "3" } });
+      .forEach((input, idx) => {
+        if (idx > 0 && idx < 4) {
+          input.find("i").simulate("click");
+          input.find("input").simulate("change", { target: { value: "3" } });
+        }
       });
+    result.find(RangeHighlight).find("div.form-group").at(4).find("button").simulate("click");
     expect(dataViewer().instance().state.backgroundMode).toBe("range");
     expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
-      isEquals: true,
-      equals: 3,
-      isGreaterThan: true,
-      greaterThan: 3,
-      isLessThan: true,
-      lessThan: 3,
+      all: {
+        active: true,
+        isEquals: true,
+        equals: 3,
+        isGreaterThan: true,
+        greaterThan: 3,
+        isLessThan: true,
+        lessThan: 3,
+      },
     });
     result.find(RangeHighlightOption).find("i").simulate("click");
     result.update();
     expect(dataViewer().instance().state.backgroundMode).toBeNull();
     expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
-      isEquals: false,
-      equals: 3,
-      isGreaterThan: false,
-      greaterThan: 3,
-      isLessThan: false,
-      lessThan: 3,
+      all: {
+        active: false,
+        isEquals: true,
+        equals: 3,
+        isGreaterThan: true,
+        greaterThan: 3,
+        isLessThan: true,
+        lessThan: 3,
+      },
     });
+    clickMainMenuButton(result, "Highlight Range");
+    result.update();
+    allRange().find("i.ico-check-box-outline-blank").simulate("click");
+    result.update();
+    expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(true);
+    allRange().find("i.ico-check-box").simulate("click");
+    result.update();
+    expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(false);
+    allRange().find("i.ico-remove-circle").simulate("click");
+    result.update();
+    expect(_.size(dataViewer().instance().state.rangeHighlight)).toBe(0);
   });
 
   it("DataViewer: low variance highlighting", async () => {
