@@ -250,4 +250,27 @@ EXPORTS.updateColWidths = (currState, newState) =>
     })
   );
 
+function buildColMap(columns) {
+  return _.reduce(columns, (res, c) => _.assign(res, { [c.name]: c }), {});
+}
+
+EXPORTS.refreshColumns = (data, columns, state) => {
+  const currColumns = buildColMap(columns);
+  const newCols = _.map(
+    _.filter(data.columns, ({ name }) => !_.has(currColumns, name)),
+    c => _.assignIn({ locked: false, width: EXPORTS.calcColWidth(c, state) }, c)
+  );
+  const updatedColumns = buildColMap(data.columns);
+  const finalColumns = _.concat(
+    _.map(columns, c => {
+      if (c.dtype !== updatedColumns[c.name].dtype) {
+        return { ...c, ...updatedColumns[c.name] };
+      }
+      return c;
+    }),
+    newCols
+  );
+  return _.assignIn({ ...state, columns: finalColumns }, EXPORTS.getTotalRange(finalColumns));
+};
+
 export { EXPORTS as exports };
