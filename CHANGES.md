@@ -6,7 +6,7 @@
 * [#283](https://github.com/man-group/dtale/issues/283): triple-quote formatting around queries in code exports
 * [#266](https://github.com/man-group/dtale/issues/266): string concatenation string builder
 * [#267](https://github.com/man-group/dtale/issues/267): Column discretion UI
-
+* Fix: Pandas throws error when converting numeric column names to string.
 
 ### 1.16.0 (2020-10-4)
 * [#263](https://github.com/man-group/dtale/issues/263): word value counts

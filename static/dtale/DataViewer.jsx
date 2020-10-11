@@ -174,12 +174,7 @@ class ReactDataViewer extends React.Component {
           );
           newState = _.assignIn(newState, gu.getTotalRange(newState.columns));
         } else {
-          const newCols = _.map(
-            _.filter(data.columns, ({ name }) => !_.find(columns, { name })),
-            c => _.assignIn({ locked: false, width: gu.calcColWidth(c, newState) }, c)
-          );
-          newState.columns = _.concat(columns, newCols);
-          newState = _.assignIn(newState, gu.getTotalRange(newState.columns));
+          newState = gu.refreshColumns(data, columns, newState);
         }
         let callback = _.noop;
         if (refresh) {
