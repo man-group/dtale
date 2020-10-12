@@ -50,7 +50,7 @@ class CreateString extends React.Component {
           parent={this.state}
           updateState={this.updateState}
           columns={this.props.columns}
-          isMulti={true}
+          isMulti
         />
         <div key={3} className="form-group row">
           <label className="col-md-3 col-form-label text-right">Join Character</label>

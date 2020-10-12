@@ -82,7 +82,7 @@ class Rows extends React.Component {
           parent={this.state}
           updateState={this.updateState}
           columns={this.props.columns}
-          isMulti={true}
+          isMulti
         />
         <div className="form-group row">
           <div className="col-md-3" />

@@ -102,7 +102,7 @@ class ShowDuplicates extends React.Component {
           parent={this.state}
           updateState={state => this.updateState({ ...state, filter: null })}
           columns={this.props.columns}
-          isMulti={true}
+          isMulti
         />
         <div className="form-group row">
           <div className="col-md-3" />

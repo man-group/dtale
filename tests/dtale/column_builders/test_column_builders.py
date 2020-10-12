@@ -120,3 +120,27 @@ def test_string():
         cfg = {"cols": list(df.columns), "joinChar": "-"}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == "1-2-a-True")
+
+
+@pytest.mark.unit
+def test_similarity():
+    df = pd.DataFrame(dict(a=["a", "b", "c"], b=["d", "d", "d"]))
+    data_id, column_type = "1", "similarity"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"left": "a", "right": "b", "algo": "levenshtein"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)
+
+        cfg = {"left": "a", "right": "b", "algo": "damerau-leveneshtein"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)
+
+        cfg = {"left": "a", "right": "b", "algo": "jaro-winkler"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)
+
+        cfg = {"left": "a", "right": "b", "algo": "jaccard", "k": "4"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)

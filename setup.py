@@ -91,6 +91,7 @@ setup(
         "scipy",
         "squarify",
         "statsmodels",
+        "strsimpy",
         "six",
         "xarray",
     ],
