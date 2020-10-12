@@ -1,11 +1,13 @@
 import random
 import string
+import strsimpy
 import time
 
 import numpy as np
 import pandas as pd
 from scipy.stats import mstats
 from six import string_types
+from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type
@@ -32,6 +34,8 @@ class ColumnBuilder(object):
             self.builder = WinsorizeColumnBuilder(name, cfg)
         elif column_type == "zscore_normalize":
             self.builder = ZScoreNormalizeColumnBuilder(name, cfg)
+        elif column_type == "similarity":
+            self.builder = SimilarityColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -654,3 +658,52 @@ class ZScoreNormalizeColumnBuilder(object):
             "\t(data['{col}'] - data['{col}'].mean()) / data['{col}'].std(ddof=0), index=data.index, name='{name}'\n"
             ")"
         ).format(name=self.name, col=col)
+
+
+class SimilarityColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        left_col, right_col, algo = (self.cfg.get(p) for p in ["left", "right", "algo"])
+        if algo == "levenshtein":
+            similarity = strsimpy.levenshtein.Levenshtein()
+        elif algo == "damerau-leveneshtein":
+            similarity = strsimpy.damerau.Damerau()
+        elif algo == "jaro-winkler":
+            similarity = JaroWinkler()
+        elif algo == "jaccard":
+            similarity = strsimpy.jaccard.Jaccard(int(self.cfg.get("k", 3)))
+        distances = data[[left_col, right_col]].apply(
+            lambda rec: similarity.distance(*rec), axis=1
+        )
+        return pd.Series(distances, index=data.index, name=self.name)
+
+    def build_code(self):
+        left_col, right_col, algo = (self.cfg.get(p) for p in ["left", "right", "algo"])
+        import_str = ""
+        if algo == "levenshtein":
+            import_str = (
+                "\nfrom strsimpy.levenshtein import Levenshtein\n"
+                "similarity = Levenshtein()"
+            )
+        elif algo == "damerau-leveneshtein":
+            import_str = (
+                "\nfrom strsimpy.damerau import Damerau\n" "similarity = Damerau()"
+            )
+        elif algo == "jaro-winkler":
+            import_str = (
+                "\nfrom strsimpy.jaro_winkler import JaroWinkler\n"
+                "similarity = JaroWinkler()"
+            )
+        elif algo == "jaccard":
+            import_str = (
+                "\nfrom strsimpy.jaccard import Jaccard\n" "similarity = Jaccard({k})"
+            ).format(k=str(self.cfg.get("k", "")))
+
+        return (
+            "{import_str}\n"
+            "distances = data[['{l}', '{r}']].apply(lambda rec: similarity.distance(*rec))\n"
+            "df.loc[:, '{name}'] = pd.Series(distances, index=data.index, name='{name}')"
+        ).format(name=self.name, l=left_col, r=right_col, import_str=import_str)
