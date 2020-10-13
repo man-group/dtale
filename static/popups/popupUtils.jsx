@@ -226,7 +226,7 @@ function buildUpload(props) {
   const title = (
     <React.Fragment>
       <i className="ico-file-upload" />
-      <strong>Upload CSV</strong>
+      <strong>Upload Data (CSV/TSV)</strong>
     </React.Fragment>
   );
   const body = <Upload {...props} />;

@@ -24,20 +24,19 @@ app = build_app(url=URL)
 
 
 @pytest.mark.unit
-def test_head_data_id():
+def test_head_endpoint():
     import dtale.views as views
 
     with ExitStack() as stack:
         stack.enter_context(
             mock.patch("dtale.global_state.DATA", {"1": None, "2": None})
         )
-        assert views.head_data_id() == "1"
+        assert views.head_endpoint() == "main/1"
+        assert views.head_endpoint("test_popup") == "popup/test_popup/1"
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
-        with pytest.raises(Exception) as error:
-            views.head_data_id()
-            assert error.startswith("No data associated with this D-Tale session")
+        assert views.head_endpoint() == "popup/upload"
 
 
 @pytest.mark.unit
@@ -45,124 +44,148 @@ def test_startup(unittest):
     import dtale.views as views
     import dtale.global_state as global_state
 
-    with pytest.raises(BaseException) as error:
-        views.startup(URL)
-    assert "data loaded is None!" in str(error.value)
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
+        instance = views.startup(URL)
+        assert instance._data_id == "1"
 
-    with pytest.raises(BaseException) as error:
-        views.startup(URL, dict())
-    assert (
-        "data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex"
-        in str(error.value)
-    )
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
+        with pytest.raises(views.NoDataLoadedException) as error:
+            views.startup(URL, data_loader=lambda: None)
+        assert "No data has been loaded into this D-Tale session!" in str(
+            error.value.args[0]
+        )
 
-    test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)])
-    test_data = test_data.set_index(["date", "security_id"])
-    instance = views.startup(URL, data_loader=lambda: test_data)
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
+        with pytest.raises(BaseException) as error:
+            views.startup(URL, dict())
+        assert (
+            "data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex"
+            in str(error.value)
+        )
 
-    pdt.assert_frame_equal(instance.data, test_data.reset_index())
-    unittest.assertEqual(
-        global_state.SETTINGS[instance._data_id],
-        dict(
-            allow_cell_edits=True,
-            github_fork=False,
-            hide_shutdown=False,
-            locked=["date", "security_id"],
-        ),
-        "should lock index columns",
-    )
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
+        test_data = pd.DataFrame(
+            [dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)]
+        )
+        test_data = test_data.set_index(["date", "security_id"])
+        instance = views.startup(URL, data_loader=lambda: test_data)
 
-    test_data = test_data.reset_index()
-    with pytest.raises(DuplicateDataError):
-        views.startup(URL, data=test_data)
-
-    instance = views.startup(
-        URL,
-        data=test_data,
-        ignore_duplicate=True,
-        allow_cell_edits=False,
-        github_fork=False,
-        hide_shutdown=False,
-    )
-    pdt.assert_frame_equal(instance.data, test_data)
-    unittest.assertEqual(
-        global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=False, github_fork=False, hide_shutdown=False, locked=[]),
-        "no index = nothing locked",
-    )
-
-    test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1)])
-    test_data = test_data.set_index("security_id").date
-    instance = views.startup(URL, data_loader=lambda: test_data)
-    pdt.assert_frame_equal(instance.data, test_data.reset_index())
-    unittest.assertEqual(
-        global_state.SETTINGS[instance._data_id],
-        dict(
-            allow_cell_edits=True,
-            github_fork=False,
-            hide_shutdown=False,
-            locked=["security_id"],
-        ),
-        "should lock index columns",
-    )
-
-    test_data = pd.DatetimeIndex([pd.Timestamp("now")], name="date")
-    instance = views.startup(URL, data_loader=lambda: test_data)
-    pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
-    unittest.assertEqual(
-        global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]),
-        "should lock index columns",
-    )
-
-    test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=("a", "b"))
-    instance = views.startup(URL, data_loader=lambda: test_data)
-    pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
-    unittest.assertEqual(
-        global_state.SETTINGS[instance._data_id],
-        dict(allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]),
-        "should lock index columns",
-    )
-
-    test_data = pd.DataFrame(
-        [
-            dict(date=pd.Timestamp("now"), security_id=1, foo=1.0, bar=2.0),
-            dict(date=pd.Timestamp("now"), security_id=1, foo=2.0, bar=np.inf),
-        ],
-        columns=["date", "security_id", "foo", "bar"],
-    )
-    instance = views.startup(URL, data_loader=lambda: test_data)
-    unittest.assertEqual(
-        {
-            "name": "bar",
-            "dtype": "float64",
-            "index": 3,
-            "visible": True,
-            "hasMissing": 0,
-            "hasOutliers": 0,
-            "lowVariance": False,
-            "unique_ct": 2,
-        },
-        next(
-            (
-                dt
-                for dt in global_state.DTYPES[instance._data_id]
-                if dt["name"] == "bar"
+        pdt.assert_frame_equal(instance.data, test_data.reset_index())
+        unittest.assertEqual(
+            global_state.SETTINGS[instance._data_id],
+            dict(
+                allow_cell_edits=True,
+                github_fork=False,
+                hide_shutdown=False,
+                locked=["date", "security_id"],
             ),
-            None,
-        ),
-    )
+            "should lock index columns",
+        )
 
-    test_data = pd.DataFrame([dict(a=1, b=2)])
-    test_data = test_data.rename(columns={"b": "a"})
-    with pytest.raises(Exception) as error:
-        views.startup(URL, data_loader=lambda: test_data)
-    assert "data contains duplicated column names: a" in str(error)
+        test_data = test_data.reset_index()
+        with pytest.raises(DuplicateDataError):
+            views.startup(URL, data=test_data)
 
-    test_data = pd.DataFrame([dict(a=1, b=2)])
-    test_data = test_data.set_index("a")
-    views.startup(URL, data=test_data, inplace=True, drop_index=True)
-    assert "a" not in test_data.columns
+        instance = views.startup(
+            URL,
+            data=test_data,
+            ignore_duplicate=True,
+            allow_cell_edits=False,
+            github_fork=False,
+            hide_shutdown=False,
+        )
+        pdt.assert_frame_equal(instance.data, test_data)
+        unittest.assertEqual(
+            global_state.SETTINGS[instance._data_id],
+            dict(
+                allow_cell_edits=False,
+                github_fork=False,
+                hide_shutdown=False,
+                locked=[],
+            ),
+            "no index = nothing locked",
+        )
+
+        test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1)])
+        test_data = test_data.set_index("security_id").date
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        pdt.assert_frame_equal(instance.data, test_data.reset_index())
+        unittest.assertEqual(
+            global_state.SETTINGS[instance._data_id],
+            dict(
+                allow_cell_edits=True,
+                github_fork=False,
+                hide_shutdown=False,
+                locked=["security_id"],
+            ),
+            "should lock index columns",
+        )
+
+        test_data = pd.DatetimeIndex([pd.Timestamp("now")], name="date")
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
+        unittest.assertEqual(
+            global_state.SETTINGS[instance._data_id],
+            dict(
+                allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]
+            ),
+            "should lock index columns",
+        )
+
+        test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=("a", "b"))
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
+        unittest.assertEqual(
+            global_state.SETTINGS[instance._data_id],
+            dict(
+                allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]
+            ),
+            "should lock index columns",
+        )
+
+        test_data = pd.DataFrame(
+            [
+                dict(date=pd.Timestamp("now"), security_id=1, foo=1.0, bar=2.0),
+                dict(date=pd.Timestamp("now"), security_id=1, foo=2.0, bar=np.inf),
+            ],
+            columns=["date", "security_id", "foo", "bar"],
+        )
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        unittest.assertEqual(
+            {
+                "name": "bar",
+                "dtype": "float64",
+                "index": 3,
+                "visible": True,
+                "hasMissing": 0,
+                "hasOutliers": 0,
+                "lowVariance": False,
+                "unique_ct": 2,
+            },
+            next(
+                (
+                    dt
+                    for dt in global_state.DTYPES[instance._data_id]
+                    if dt["name"] == "bar"
+                ),
+                None,
+            ),
+        )
+
+        test_data = pd.DataFrame([dict(a=1, b=2)])
+        test_data = test_data.rename(columns={"b": "a"})
+        with pytest.raises(Exception) as error:
+            views.startup(URL, data_loader=lambda: test_data)
+        assert "data contains duplicated column names: a" in str(error)
+
+        test_data = pd.DataFrame([dict(a=1, b=2)])
+        test_data = test_data.set_index("a")
+        views.startup(URL, data=test_data, inplace=True, drop_index=True)
+        assert "a" not in test_data.columns
 
 
 @pytest.mark.unit
@@ -2741,6 +2764,14 @@ def test_302():
                 assert (
                     response.status_code == 302
                 ), "{} should return 302 response".format(path)
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            for path in ["/"]:
+                response = c.get(path)
+                assert (
+                    response.status_code == 302
+                ), "{} should return 302 response".format(path)
 
 
 @pytest.mark.unit
@@ -2769,16 +2800,23 @@ def test_404():
 @pytest.mark.unit
 def test_500():
     with app.test_client() as c:
-        with mock.patch(
-            "dtale.views.render_template", mock.Mock(side_effect=Exception("Test"))
-        ):
+        with ExitStack() as stack:
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DATA", {"1": pd.DataFrame([1, 2, 3, 4, 5])}
+                )
+            )
+            stack.enter_context(
+                mock.patch(
+                    "dtale.views.render_template",
+                    mock.Mock(side_effect=Exception("Test")),
+                )
+            )
             for path in [
                 "/dtale/main/1",
-                "/dtale/main",
-                "/dtale/iframe",
-                "/dtale/popup/test",
             ]:
                 response = c.get(path)
+                print(path)
                 assert response.status_code == 500
                 assert "<h1>Internal Server Error</h1>" in str(response.data)
 
