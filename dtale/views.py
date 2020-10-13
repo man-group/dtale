@@ -1661,6 +1661,19 @@ def calc_outlier_range(s):
     return iqr_lower, iqr_upper
 
 
+def build_outlier_query(iqr_lower, iqr_upper, min_val, max_val, column):
+    queries = []
+    if iqr_lower > min_val:
+        queries.append(
+            "{column} < {lower}".format(column=column, lower=json_float(iqr_lower))
+        )
+    if iqr_upper < max_val:
+        queries.append(
+            "{column} > {upper}".format(column=column, upper=json_float(iqr_upper))
+        )
+    return "(({}))".format(") or (".join(queries)) if len(queries) > 1 else queries[0]
+
+
 @dtale.route("/outliers/<data_id>/<column>")
 @exception_decorator
 def outliers(data_id, column):
@@ -1673,17 +1686,7 @@ def outliers(data_id, column):
         return jsonify(outliers=[])
     top = len(outliers) > 100
     outliers = [formatter(v) for v in outliers[:100]]
-    queries = []
-    if iqr_lower > s.min():
-        queries.append(
-            "{column} < {lower}".format(column=column, lower=json_float(iqr_lower))
-        )
-    if iqr_upper < s.max():
-        queries.append(
-            "{column} > {upper}".format(column=column, upper=json_float(iqr_upper))
-        )
-    query = "(({}))".format(") or (".join(queries)) if len(queries) > 1 else queries[0]
-
+    query = build_outlier_query(iqr_lower, iqr_upper, s.min(), s.max(), column)
     code = (
         "s = df['{column}']\n"
         "q1 = s.quantile(0.25)\n"
@@ -1699,6 +1702,29 @@ def outliers(data_id, column):
     return jsonify(
         outliers=outliers, query=query, code=code, queryApplied=queryApplied, top=top
     )
+
+
+@dtale.route("/toggle-outlier-filter/<data_id>/<column>")
+@exception_decorator
+def toggle_outlier_filter(data_id, column):
+    settings = global_state.get_settings(data_id) or {}
+    outlierFilters = settings.get("outlierFilters") or {}
+    if column in outlierFilters:
+        settings["outlierFilters"] = {
+            k: v for k, v in outlierFilters.items() if k != column
+        }
+    else:
+        dtype_info = get_dtype_info(data_id, column)
+        outlier_range, min_val, max_val = (
+            dtype_info.get(p) for p in ["outlierRange", "min", "max"]
+        )
+        iqr_lower, iqr_upper = (outlier_range.get(p) for p in ["lower", "upper"])
+        query = build_outlier_query(iqr_lower, iqr_upper, min_val, max_val, column)
+        settings["outlierFilters"] = dict_merge(
+            outlierFilters, {column: {"query": query}}
+        )
+    global_state.set_settings(data_id, settings)
+    return jsonify(dict(success=True, outlierFilters=settings["outlierFilters"]))
 
 
 @dtale.route("/delete-col/<data_id>/<column>")
