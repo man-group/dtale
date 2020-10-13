@@ -47,8 +47,13 @@ class ReactUpload extends React.Component {
                 return;
               }
               if (_.startsWith(window.location.pathname, "/dtale/popup/upload")) {
-                window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
-                window.close();
+                if (window.opener) {
+                  window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
+                  window.close();
+                } else {
+                  // when we've started D-Tale with no data
+                  window.location.assign(window.location.origin);
+                }
                 return;
               }
               const newLoc = buildForwardURL(window.location.href, data.data_id);
@@ -94,7 +99,7 @@ class ReactUpload extends React.Component {
                     <div data-filetype=".csv" className="filepicker-file-icon"></div>
                     <div data-filetype=".tsv" className="filepicker-file-icon"></div>
                     <div className="dz-default dz-message">
-                      <span>Drop files here to upload, or click to select files</span>
+                      <span>Drop data files here to upload, or click to select files</span>
                     </div>
                   </div>
                   <aside className="dropzone-aside">
@@ -124,7 +129,6 @@ ReactUpload.propTypes = {
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
   }),
-  onClose: PropTypes.func,
 };
 
 const ReduxUpload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);

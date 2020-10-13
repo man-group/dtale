@@ -11,6 +11,7 @@ import { CodePopup } from "./popups/CodePopup";
 import { Correlations } from "./popups/Correlations";
 import { ReactFilter as Filter } from "./popups/Filter";
 import Instances from "./popups/Instances";
+import { ReactUpload as Upload } from "./popups/Upload";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnAnalysis";
 import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
@@ -78,6 +79,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       break;
     case "code-export":
       rootNode = <CodeExport dataId={dataId} />;
+      break;
+    case "upload":
+      rootNode = <Upload chartData={{ visible: true }} />;
       break;
     case "charts":
     default:

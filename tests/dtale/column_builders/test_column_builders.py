@@ -141,6 +141,7 @@ def test_similarity():
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == 1)
 
-        cfg = {"left": "a", "right": "b", "algo": "jaccard", "k": "4"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
+        if PY3:
+            cfg = {"left": "a", "right": "b", "algo": "jaccard", "k": "4"}
+            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+            verify_builder(builder, lambda col: col.values[-1] == 1)

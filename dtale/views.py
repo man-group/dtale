@@ -82,11 +82,21 @@ def exception_decorator(func):
     return _handle_exceptions
 
 
-def head_data_id():
+class NoDataLoadedException(Exception):
+    """Container class for any scenario where no data has been loaded into D-Tale.
+
+    This will usually force the user to load data using the CSV/TSV loader UI.
+    """
+
+
+def head_endpoint(popup_type=None):
     data_keys = global_state.get_data().keys()
     if not len(data_keys):
-        raise Exception("No data associated with this D-Tale session")
-    return sorted(data_keys)[0]
+        return "popup/upload"
+    head_id = sorted(data_keys)[0]
+    if popup_type:
+        return "popup/{}/{}".format(popup_type, head_id)
+    return "main/{}".format(head_id)
 
 
 def in_ipython_frontend():
@@ -761,6 +771,11 @@ def startup(
     :type github_fork: bool, optional
     """
 
+    if (
+        data_loader is None and data is None
+    ):  # scenario where we'll force users to upload a CSV/TSV
+        return DtaleData("1", url)
+
     if data_loader is not None:
         data = data_loader()
 
@@ -857,7 +872,7 @@ def startup(
         )
         return DtaleData(data_id, url)
     else:
-        raise Exception("data loaded is None!")
+        raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
 
 
 def base_render_template(template, data_id, **kwargs):
@@ -914,7 +929,7 @@ def view_main(data_id=None):
     :return: HTML
     """
     if data_id is None or data_id not in global_state.get_data().keys():
-        return redirect("/dtale/main/{}".format(head_data_id()))
+        return redirect("/dtale/{}".format(head_endpoint()))
     return _view_main(data_id)
 
 
@@ -929,7 +944,7 @@ def view_iframe(data_id=None):
     :return: HTML
     """
     if data_id is None:
-        return redirect("/dtale/iframe/{}".format(head_data_id()))
+        return redirect("/dtale/iframe/{}".format(head_endpoint()))
     return _view_main(data_id, iframe=True)
 
 
@@ -946,8 +961,8 @@ def view_popup(popup_type, data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None:
-        return redirect("/dtale/popup/{}/{}".format(popup_type, head_data_id()))
+    if data_id is None and popup_type != "upload":
+        return redirect("/dtale/{}".format(head_endpoint(popup_type)))
     curr_metadata = global_state.get_metadata(data_id) or {}
     title = "D-Tale"
     if curr_metadata.get("name"):
@@ -956,6 +971,8 @@ def view_popup(popup_type, data_id=None):
         popup_title = "Summarize Data"
     elif popup_type == "filter":
         popup_title = "Custom Filter"
+    elif popup_type == "upload":
+        popup_title = "Upload Data (CSV/TSV)"
     else:
         popup_title = " ".join([pt.capitalize() for pt in popup_type.split("-")])
     title = "{} - {}".format(title, popup_title)

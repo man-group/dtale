@@ -34,7 +34,7 @@ from dtale.utils import (
     is_app_root_defined,
     running_with_flask_debug,
 )
-from dtale.views import DtaleData, head_data_id, is_up, kill, startup
+from dtale.views import DtaleData, head_endpoint, is_up, kill, startup
 
 if PY3:
     import _thread
@@ -255,7 +255,7 @@ def build_app(
 
         :return: 302 - flask.redirect('/dtale/main')
         """
-        return redirect("/dtale/main/{}".format(head_data_id()))
+        return redirect("/dtale/{}".format(head_endpoint()))
 
     @app.route("/favicon.ico")
     def favicon():
