@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { components } from "react-select";
 
-import { buildURLString, saveColFilterUrl } from "../actions/url-utils";
+import { buildURLString, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
 import Descriptions from "../dtale/column/column-menu-descriptions.json";
 import { exports as gu } from "../dtale/gridUtils";
 import { fetchJson } from "../fetcher";
@@ -29,13 +29,15 @@ function getStyles() {
   };
 }
 
-function buildState({ columns, selectedCol }) {
+function buildState({ columns, selectedCol, outlierFilters }) {
   const colCfg = _.find(columns, { name: selectedCol }) || {};
   const colType = gu.findColType(colCfg.dtype);
   return {
     colType,
     uniqueCt: colCfg.unique_ct,
     dtype: colCfg.dtype,
+    hasOutliers: colCfg.hasOutliers > 0,
+    queryApplied: _.has(outlierFilters, selectedCol),
     hasMissing: false,
     missing: false,
     loadingState: true,
@@ -49,6 +51,7 @@ class ColumnFilter extends React.Component {
     this.fetchData = this.fetchData.bind(this);
     this.updateState = this.updateState.bind(this);
     this.renderMissingToggle = this.renderMissingToggle.bind(this);
+    this.renderOutlierToggle = this.renderOutlierToggle.bind(this);
   }
 
   fetchData(state) {
@@ -90,12 +93,37 @@ class ColumnFilter extends React.Component {
       const toggleMissing = () =>
         this.updateState(_.assignIn({}, this.state.cfg, { type: colType, missing: !missing }));
       return (
-        <li key={1}>
+        <li>
           <span className="toggler-action">{showIcon && <i className="fa fa-filter align-bottom" />}</span>
           <div className="m-auto">
             <div className="column-filter m-2">
               <span className="font-weight-bold pr-3">Show Only Missing</span>
               <i className={`ico-check-box${missing ? "" : "-outline-blank"} pointer`} onClick={toggleMissing} />
+            </div>
+          </div>
+        </li>
+      );
+    }
+    return null;
+  }
+
+  renderOutlierToggle(showIcon) {
+    const { hasOutliers, queryApplied } = this.state;
+    if (hasOutliers) {
+      const toggleFilter = () => {
+        const url = toggleOutlierFilterUrl(this.props.dataId, this.props.selectedCol);
+        this.setState(
+          { queryApplied: !queryApplied },
+          fetchJson(url, data => this.props.propagateState(data))
+        );
+      };
+      return (
+        <li>
+          <span className="toggler-action">{showIcon && <i className="fa fa-filter align-bottom" />}</span>
+          <div className="m-auto">
+            <div className="column-filter m-2">
+              <span className="font-weight-bold pr-3">Filter Outliers</span>
+              <i className={`ico-check-box${queryApplied ? "" : "-outline-blank"} pointer`} onClick={toggleFilter} />
             </div>
           </div>
         </li>
@@ -137,9 +165,6 @@ class ColumnFilter extends React.Component {
       case "float":
         markup = <NumericFilter {..._.assignIn({}, this.props, this.state)} updateState={this.updateState} />;
         break;
-      default:
-        markup = null;
-        break;
     }
     let missingToggle = null;
     if (_.isNull(markup)) {
@@ -149,7 +174,7 @@ class ColumnFilter extends React.Component {
       missingToggle = this.renderMissingToggle(true);
     } else {
       markup = (
-        <li key={0} className="hoverable">
+        <li className="hoverable">
           <span className="toggler-action">
             <i className="fa fa-filter" />
           </span>
@@ -161,7 +186,13 @@ class ColumnFilter extends React.Component {
       );
       missingToggle = this.renderMissingToggle(false);
     }
-    return [markup, missingToggle];
+    return (
+      <React.Fragment>
+        {markup}
+        {missingToggle}
+        {this.renderOutlierToggle(_.isNull(markup) && _.isNull(missingToggle))}
+      </React.Fragment>
+    );
   }
 }
 ColumnFilter.displayName = "ColumnFilter";
@@ -171,6 +202,7 @@ ColumnFilter.propTypes = {
   selectedCol: PropTypes.string,
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,
+  outlierFilters: PropTypes.object,
 };
 
 export default ColumnFilter;

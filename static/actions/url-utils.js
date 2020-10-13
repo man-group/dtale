@@ -46,6 +46,10 @@ function saveColFilterUrl(dataId, column) {
   return `/dtale/save-column-filter/${dataId}/${column}`;
 }
 
+function toggleOutlierFilterUrl(dataId, column) {
+  return `/dtale/toggle-outlier-filter/${dataId}/${column}`;
+}
+
 function cleanupEndpoint(endpoint) {
   while (_.includes(endpoint, "//")) {
     endpoint = _.replace(endpoint, "//", "/");
@@ -53,4 +57,12 @@ function cleanupEndpoint(endpoint) {
   return endpoint;
 }
 
-export { buildURLParams, buildURLString, buildURL, dtypesUrl, saveColFilterUrl, cleanupEndpoint };
+export {
+  buildURLParams,
+  buildURLString,
+  buildURL,
+  dtypesUrl,
+  saveColFilterUrl,
+  toggleOutlierFilterUrl,
+  cleanupEndpoint,
+};

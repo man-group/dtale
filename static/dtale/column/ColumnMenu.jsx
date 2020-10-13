@@ -285,6 +285,7 @@ ReactColumnMenu.propTypes = {
   noInfo: PropTypes.bool,
   openChart: PropTypes.func,
   hideColumnMenu: PropTypes.func,
+  outlierFilters: PropTypes.object,
 };
 
 const ReduxColumnMenu = connect(
