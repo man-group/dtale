@@ -112,11 +112,14 @@ class DtaleFlask(Flask):
         """
         self.reaper_on = reaper_on
         self.reaper = None
-        self.base_url = url
-        self.shutdown_url = build_shutdown_url(url)
+        self._setup_url_props(url)
         self.port = None
         self.app_root = app_root
         super(DtaleFlask, self).__init__(import_name, *args, **kwargs)
+
+    def _setup_url_props(self, url):
+        self.base_url = url
+        self.shutdown_url = build_shutdown_url(url)
 
     def update_template_context(self, context):
         super(DtaleFlask, self).update_template_context(context)
@@ -130,12 +133,41 @@ class DtaleFlask(Flask):
             return fix_url_path("{}/{}".format(self.app_root, args[0]))
         return url_for(endpoint, *args, **kwargs)
 
+    def _override_routes(self, override_routes=None):
+        def _contains_route(routes, route):
+            return any(
+                (r.rule == route.rule and r.endpoint == route.endpoint) for r in routes
+            )
+
+        final_override_routes = ["/"] + (override_routes or [])
+        for override_route in final_override_routes:
+            routes_to_remove = [
+                r for r in self.url_map._rules if r.rule == override_route
+            ]
+            if len(routes_to_remove) > 1:
+                routes_to_remove = routes_to_remove[:-1]
+                self.url_map._rules = [
+                    r
+                    for r in self.url_map._rules
+                    if not _contains_route(routes_to_remove, r)
+                ]
+
+        self.url_map._remap = True
+        self.url_map.update()
+
     def run(self, *args, **kwargs):
         """
         :param args: Optional arguments to be passed to :meth:`flask:flask.run`
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
-        self.port = str(kwargs.get("port") or "")
+        port_num = kwargs.get("port")
+        self.port = str(port_num or "")
+        if not self.base_url:
+            host = kwargs.get("host")
+            initialize_process_props(host, port_num)
+            app_url = build_url(host, self.port)
+            self._setup_url_props(app_url)
+            self._override_routes()
         if kwargs.get("debug", False):
             self.reaper_on = False
         self.build_reaper()
@@ -212,7 +244,7 @@ class DtaleFlask(Flask):
 
 
 def build_app(
-    url,
+    url=None,
     host=None,
     reaper_on=True,
     app_root=None,
@@ -247,15 +279,21 @@ def build_app(
     compress = Compress()
     compress.init_app(app)
 
+    def _root():
+        return redirect("/dtale/{}".format(head_endpoint()))
+
     @app.route("/")
-    @app.route("/dtale")
     def root():
+        return _root()
+
+    @app.route("/dtale")
+    def dtale_base():
         """
         :class:`flask:flask.Flask` routes which redirect to dtale/main
 
         :return: 302 - flask.redirect('/dtale/main')
         """
-        return redirect("/dtale/{}".format(head_endpoint()))
+        return _root()
 
     @app.route("/favicon.ico")
     def favicon():
