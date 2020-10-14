@@ -565,6 +565,35 @@ def test_outliers(unittest):
 
 
 @pytest.mark.unit
+def test_toggle_outlier_filter(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame.from_dict(
+        {
+            "a": [1, 2, 3, 4, 1000, 5, 3, 5, 55, 12, 13, 10000, 221, 12, 2000],
+            "b": list(range(15)),
+            "c": ["a"] * 15,
+        }
+    )
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            settings = {c.port: {"locked": ["a"]}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            dtypes = {c.port: build_dtypes_state(df)}
+            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
+            resp = resp.get_json()
+            assert resp["outlierFilters"]["a"]["query"] == "a > 339.75"
+            assert settings[c.port]["outlierFilters"]["a"]["query"] == "a > 339.75"
+            resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
+            resp = resp.get_json()
+            assert "a" not in resp["outlierFilters"]
+            assert "a" not in settings[c.port]["outlierFilters"]
+
+
+@pytest.mark.unit
 def test_update_visibility(unittest):
     from dtale.views import build_dtypes_state
 
