@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mstats
 from six import string_types
+from sklearn.preprocessing import PowerTransformer, QuantileTransformer, RobustScaler
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
@@ -36,6 +37,8 @@ class ColumnBuilder(object):
             self.builder = ZScoreNormalizeColumnBuilder(name, cfg)
         elif column_type == "similarity":
             self.builder = SimilarityColumnBuilder(name, cfg)
+        elif column_type == "standardized":
+            self.builder = StandardizedColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -707,3 +710,45 @@ class SimilarityColumnBuilder(object):
             "distances = data[['{l}', '{r}']].apply(lambda rec: similarity.distance(*rec))\n"
             "df.loc[:, '{name}'] = pd.Series(distances, index=data.index, name='{name}')"
         ).format(name=self.name, l=left_col, r=right_col, import_str=import_str)
+
+
+class StandardizedColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, algo = (self.cfg.get(p) for p in ["col", "algo"])
+        if algo == "robust":
+            transformer = RobustScaler()
+        elif algo == "quantile":
+            transformer = QuantileTransformer()
+        elif algo == "power":
+            transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+        standardized = transformer.fit_transform(data[[col]]).reshape(-1)
+        return pd.Series(standardized, index=data.index, name=self.name)
+
+    def build_code(self):
+        col, algo = (self.cfg.get(p) for p in ["col", "algo"])
+        import_str = ""
+        if algo == "robust":
+            import_str = (
+                "\nfrom sklearn.preprocessing import RobustScaler\n"
+                "transformer = RobustScaler()"
+            )
+        elif algo == "quantile":
+            import_str = (
+                "\nfrom sklearn.preprocessing import QuantileTransformer\n"
+                "transformer = QuantileTransformer()"
+            )
+        elif algo == "power":
+            import_str = (
+                "\nfrom sklearn.preprocessing import PowerTransformer\n"
+                "transformer = PowerTransformer(method='yeo-johnson', standardize=True)"
+            )
+
+        return (
+            "{import_str}\n"
+            "standardized = transformer.fit_transform(data[['{col}']]).reshape(-1)\n"
+            "df.loc[:, '{name}'] = pd.Series(standardized, index=data.index, name='{name}')"
+        ).format(name=self.name, col=col, import_str=import_str)

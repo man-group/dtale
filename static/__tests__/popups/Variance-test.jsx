@@ -100,22 +100,23 @@ describe("Variance tests", () => {
       attachTo: document.getElementById("content"),
     });
     await tickUpdate(result);
-    await tickUpdate(result);
   });
 
   const input = () => result.find("input");
   const chart = () => result.find(ColumnAnalysisChart).instance().state.chart;
-  const updateProps = newProps => {
+  const updateProps = async newProps => {
     result.setProps(newProps);
-    result.update();
+    await tickUpdate(result);
+    result.unmount();
+    result.mount();
+    await tickUpdate(result);
   };
 
   it("Variance rendering variance report", async () => {
     expect(result.find("h1").text()).toBe(`Based on checks 1 & 2 "bar" does not have Low Variance`);
-    updateProps({ chartData: { visible: true, selectedCol: "lowVariance" } });
-    result.unmount();
-    result.mount();
-    await tickUpdate(result);
+    await updateProps({
+      chartData: { visible: true, selectedCol: "lowVariance" },
+    });
     expect(result.find("h1").text()).toBe(`Based on checks 1 & 2 "lowVariance" has Low Variance`);
   });
 
@@ -138,13 +139,10 @@ describe("Variance tests", () => {
   });
 
   it("Variance error", async () => {
-    updateProps({
+    await updateProps({
       ...props,
       chartData: { ...props.chartData, selectedCol: "error" },
     });
-    result.unmount();
-    result.mount();
-    await tickUpdate(result);
     expect(result.find(RemovableError).text()).toBe("variance error");
   });
 });
