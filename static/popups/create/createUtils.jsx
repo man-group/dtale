@@ -6,6 +6,7 @@ import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
 import { CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
+import { CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
 import { CreateString, validateStringCfg } from "./CreateString";
 import { CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
@@ -14,7 +15,7 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity"]
+  ["similarity", "standardize"]
 );
 export const LABELS = { zscore_normalize: "Z-Score Normalize" };
 
@@ -37,6 +38,8 @@ export function validateCfg(type, cfg) {
       return validateRandomCfg(cfg);
     case "similarity":
       return validateSimilarityCfg(cfg);
+    case "standardize":
+      return validateStandardizedCfg(cfg);
     case "type_conversion":
       return validateTypeConversionCfg(cfg);
     case "transform":
@@ -65,6 +68,8 @@ export function getBody(state, props, updateState) {
       return <CreateRandom {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "similarity":
       return <CreateSimilarity {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "standardize":
+      return <CreateStandardized {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "type_conversion":
       return (
         <CreateTypeConversion

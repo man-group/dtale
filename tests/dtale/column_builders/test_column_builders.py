@@ -1,6 +1,7 @@
 import mock
 import pandas as pd
 import pytest
+from numpy.random import randn
 from six import PY3
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
@@ -145,3 +146,23 @@ def test_similarity():
             cfg = {"left": "a", "right": "b", "algo": "jaccard", "k": "4"}
             builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
             verify_builder(builder, lambda col: col.values[-1] == 1)
+
+
+@pytest.mark.unit
+def test_standardized():
+    df = pd.DataFrame(dict(a=randn(1000)))
+    data_id, column_type = "1", "standardized"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "a", "algo": "power"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+
+        cfg = {"col": "a", "algo": "quantile"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+
+        cfg = {"col": "a", "algo": "robust"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
