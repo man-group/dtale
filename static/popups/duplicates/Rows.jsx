@@ -28,7 +28,7 @@ class Rows extends React.Component {
     super(props);
     this.state = {
       keep: "first",
-      subset: null,
+      subset: props.selectedCol ? [{ value: props.selectedCol }] : null,
       testOutput: null,
       loadingTest: false,
     };
@@ -60,12 +60,21 @@ class Rows extends React.Component {
       let testOutput = `No duplicate rows exist for the column(s): ${_.join(cfg.subset, ", ")}`;
       if (testData.results) {
         testOutput = (
-          <ul>
-            <li>
-              <b>{testData.results}</b>
-              {" duplicate rows will be removed"}
-            </li>
-          </ul>
+          <React.Fragment>
+            <span className="pr-3">{"From"}</span>
+            <b>{testData.results.total}</b>
+            <span className="pl-3">{` rows:`}</span>
+            <ul>
+              <li>
+                <b>{testData.results.removed}</b>
+                {" duplicate rows will be removed"}
+              </li>
+              <li>
+                <b>{testData.results.remaining}</b>
+                {" rows will remain"}
+              </li>
+            </ul>
+          </React.Fragment>
         );
       }
       this.setState({ testOutput, loadingTest: false });
@@ -95,7 +104,7 @@ class Rows extends React.Component {
         <div className="form-group row">
           <div className="col-md-3" />
           <div className="col-md-8">
-            <div className="input-group">
+            <div className="input-group d-block">
               <BouncerWrapper showBouncer={this.state.loadingTest}>{this.state.testOutput || ""}</BouncerWrapper>
             </div>
           </div>
@@ -109,6 +118,7 @@ Rows.propTypes = {
   dataId: PropTypes.string,
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  selectedCol: PropTypes.string,
 };
 
 export { Rows, validateRowsCfg };

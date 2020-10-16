@@ -39,6 +39,11 @@ class ReactDuplicates extends React.Component {
       executing: false,
       output: "this",
     };
+    const selectedCol = _.get(props, "chartData.selectedCol");
+    if (selectedCol) {
+      this.state.type = "rows";
+      this.state.cfg = { subset: [selectedCol], keep: "first" };
+    }
     this.execute = this.execute.bind(this);
     this.updateState = this.updateState.bind(this);
     this.renderBody = this.renderBody.bind(this);
@@ -92,6 +97,11 @@ class ReactDuplicates extends React.Component {
         return;
       }
       this.setState({ executing: false }, () => {
+        if (_.startsWith(window.location.pathname, "/dtale/popup/duplicates")) {
+          window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
+          window.close();
+          return;
+        }
         const newLoc = buildForwardURL(window.location.href, data.data_id);
         if (this.state.output === "new") {
           this.props.onClose();
@@ -121,7 +131,9 @@ class ReactDuplicates extends React.Component {
         body = <ColumnNames {...bodyProps} />;
         break;
       case "rows":
-        body = <Rows columns={this.state.columns} {...bodyProps} />;
+        body = (
+          <Rows selectedCol={_.get(this.props, "chartData.selectedCol")} columns={this.state.columns} {...bodyProps} />
+        );
         break;
       case "show":
         body = <ShowDuplicates columns={this.state.columns} {...bodyProps} />;
@@ -186,6 +198,7 @@ ReactDuplicates.displayName = "ReactDuplicates";
 ReactDuplicates.propTypes = {
   dataId: PropTypes.string.isRequired,
   chartData: PropTypes.shape({
+    selectedCol: PropTypes.string,
     propagateState: PropTypes.func,
   }),
   onClose: PropTypes.func,

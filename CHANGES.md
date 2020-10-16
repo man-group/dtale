@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.18.1 (2020-10-16)
+* [#299](https://github.com/man-group/dtale/issues/299): Value counts not matching top unique values in Column Analysis
+* [#298](https://github.com/man-group/dtale/issues/298): Standardize column builder bug
+* [#297](https://github.com/man-group/dtale/issues/297): Similarity bugs
+* [#290](https://github.com/man-group/dtale/issues/290): show top 5 values with highest frequency in describe details
+* [#288](https://github.com/man-group/dtale/issues/288): Add Duplicates popup to Column Menu
+
 ### 1.18.0 (2020-10-15)
 * [#282](https://github.com/man-group/dtale/issues/282): additional exception handling for overriding routes
 * [#271](https://github.com/man-group/dtale/issues/271): standardized column builder

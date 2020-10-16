@@ -149,7 +149,9 @@ class RemoveDuplicateRows(object):
         subset, keep = (self.cfg.get(p) for p in ["subset", "keep"])
         dupe_args = {"keep": False if keep == "none" else keep}
         duplicates = df.duplicated(subset, **dupe_args)
-        return int(duplicates.sum())
+        removed = int(duplicates.sum())
+        total = len(df)
+        return dict(removed=removed, total=total, remaining=total - removed)
 
     def remove(self, df):
         subset, keep = (self.cfg.get(p) for p in ["subset", "keep"])

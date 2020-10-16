@@ -47,7 +47,7 @@ function buildCode({ left, right, algo, k }) {
     code.push(`similarity = Jaccard(${k})`);
   }
 
-  code.push(`df[['${left}', '${right}']].apply(lambda rec: similarity.distance(*rec), axis=1)`);
+  code.push(`df[['${left}', '${right}']].fillna('').apply(lambda rec: similarity.distance(*rec), axis=1)`);
   return code;
 }
 
@@ -118,7 +118,7 @@ class CreateSimilarity extends React.Component {
         />
         {_.get(this.state, "algo.value") === "jaccard" && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">K</label>
+            <label className="col-md-3 col-form-label text-right">n-gram</label>
             <div className="col-md-8">
               <input
                 type="number"

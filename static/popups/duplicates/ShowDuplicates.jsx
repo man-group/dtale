@@ -69,6 +69,9 @@ class ShowDuplicates extends React.Component {
       return (
         <React.Fragment>
           <span>{`Duplicates exist for the following (${_.join(cfg.group, ", ")}) groups:`}</span>
+          <br />
+          <b>Total Duplicates</b>
+          {`: ${_.sum(_.map(testOutput.results, "count"))}`}
           <ul>
             {_.map(_.keys(testOutput.results), (group, i) => (
               <li key={i}>

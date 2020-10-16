@@ -1546,6 +1546,14 @@ def describe(data_id, column):
     uniq_vals.name = "count"
     uniq_vals = uniq_vals.reset_index()
 
+    # build top
+    top_freq = uniq_vals["count"].values[0]
+    top_vals = uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
+    top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
+    top_vals = top_vals_f.format_lists(top_vals)
+    return_data["describe"]["top"] = ", ".join(top_vals["value"])
+    return_data["describe"]["freq"] = int(top_freq)
+
     code.append(
         (
             "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
@@ -2120,14 +2128,16 @@ def get_column_analysis(data_id):
                 )
             )
         hist.index.name = "labels"
-        hist = hist.reset_index()
+        hist = hist.reset_index().sort_values(
+            ["data", "labels"], ascending=[False, True]
+        )
         hist, top = handle_top(hist, get_int_arg(request, "top"))
         col_types = grid_columns(hist)
         f = grid_formatter(col_types, nan_display=None)
         return_data = f.format_lists(hist)
         return_data["top"] = top
     elif data_type == "value_counts":
-        hist = pd.value_counts(data[selected_col]).to_frame(name="data").sort_index()
+        hist = pd.value_counts(data[selected_col]).to_frame(name="data")
         code.append(
             "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(
                 col=selected_col
@@ -2157,7 +2167,9 @@ def get_column_analysis(data_id):
                 )
             )
         hist.index.name = "labels"
-        hist = hist.reset_index()
+        hist = hist.reset_index().sort_values(
+            ["data", "labels"], ascending=[False, True]
+        )
         hist, top = handle_top(hist, get_int_arg(request, "top"))
         col_types = grid_columns(hist)
         f = grid_formatter(col_types, nan_display=None)

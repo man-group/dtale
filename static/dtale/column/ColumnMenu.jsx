@@ -152,6 +152,7 @@ class ReactColumnMenu extends React.Component {
         columns: this.props.columns,
         size: "modal-sm",
       });
+    const openAction = action => openPopup(action, 400, 770);
     const closeMenu = () => this.props.hideColumnMenu(selectedCol);
     return (
       <div
@@ -243,16 +244,9 @@ class ReactColumnMenu extends React.Component {
           <ColumnMenuOption open={hideCol} label="Hide" iconClass="ico-visibility-off" />
           <ColumnMenuOption open={deleteCol} label="Delete" iconClass="ico-delete" />
           <ColumnMenuOption open={renameCol} label="Rename" iconClass="ico-edit" />
-          <ColumnMenuOption
-            open={openPopup("replacement", 400, 770)}
-            label="Replacements"
-            iconClass="fas fa-backspace mr-3"
-          />
-          <ColumnMenuOption
-            open={openPopup("type-conversion", 400, 770)}
-            label="Type Conversion"
-            iconClass="ico-swap-horiz"
-          />
+          <ColumnMenuOption open={openAction("replacement")} label="Replacements" iconClass="fas fa-backspace mr-3" />
+          <ColumnMenuOption open={openAction("type-conversion")} label="Type Conversion" iconClass="ico-swap-horiz" />
+          <ColumnMenuOption open={openAction("duplicates")} label="Duplicates" iconClass="fas fa-clone ml-2 mr-4" />
           <ColumnMenuOption open={openDescribe} label="Describe" iconClass="ico-view-column" />
           <ColumnMenuOption
             open={openPopup("column-analysis", 425, 810)}

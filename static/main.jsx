@@ -16,6 +16,7 @@ import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnA
 import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
 import { Describe } from "./popups/describe/Describe";
+import { ReactDuplicates as Duplicates } from "./popups/duplicates/Duplicates";
 import { ReactCreateReplacement as CreateReplacement } from "./popups/replacement/CreateReplacement";
 import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
 import { Variance } from "./popups/variance/Variance";
@@ -55,6 +56,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       break;
     case "build":
       rootNode = <CreateColumn {...{ dataId, chartData }} />;
+      break;
+    case "duplicates":
+      rootNode = <Duplicates {...{ dataId, chartData }} />;
       break;
     case "type-conversion": {
       const prePopulated = {

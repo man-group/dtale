@@ -143,6 +143,7 @@ describe("DataViewer iframe tests", () => {
           "Rename",
           "Replacements",
           "Type Conversion",
+          "Duplicates",
           "Describe",
           "Column Analysis",
           "Formats",

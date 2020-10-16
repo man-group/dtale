@@ -37,7 +37,7 @@ class ColumnBuilder(object):
             self.builder = ZScoreNormalizeColumnBuilder(name, cfg)
         elif column_type == "similarity":
             self.builder = SimilarityColumnBuilder(name, cfg)
-        elif column_type == "standardized":
+        elif column_type == "standardize":
             self.builder = StandardizedColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
@@ -678,8 +678,10 @@ class SimilarityColumnBuilder(object):
             similarity = JaroWinkler()
         elif algo == "jaccard":
             similarity = strsimpy.jaccard.Jaccard(int(self.cfg.get("k", 3)))
-        distances = data[[left_col, right_col]].apply(
-            lambda rec: similarity.distance(*rec), axis=1
+        distances = (
+            data[[left_col, right_col]]
+            .fillna("")
+            .apply(lambda rec: similarity.distance(*rec), axis=1)
         )
         return pd.Series(distances, index=data.index, name=self.name)
 
@@ -707,7 +709,7 @@ class SimilarityColumnBuilder(object):
 
         return (
             "{import_str}\n"
-            "distances = data[['{l}', '{r}']].apply(lambda rec: similarity.distance(*rec))\n"
+            "distances = data[['{l}', '{r}']].fillna('').apply(lambda rec: similarity.distance(*rec))\n"
             "df.loc[:, '{name}'] = pd.Series(distances, index=data.index, name='{name}')"
         ).format(name=self.name, l=left_col, r=right_col, import_str=import_str)
 

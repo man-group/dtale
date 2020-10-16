@@ -88,7 +88,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.reshape}</div>
           </li>
-          <DuplicatesOption open={openPopup("duplicates", 450)} />
+          <DuplicatesOption open={buttonHandlers.DUPLICATES} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openTab("correlations")}>

@@ -10598,7 +10598,8 @@ div#popup-content > div.modal-body > div.row {
 }
 
 div.container-fluid.build > div#popup-content > div.modal-body,
-div.container-fluid.reshape > div#popup-content > div.modal-body{
+div.container-fluid.reshape > div#popup-content > div.modal-body,
+div.container-fluid.duplicates > div#popup-content > div.modal-body {
   height: 260px;
 }
 
@@ -10647,7 +10648,8 @@ div.container-fluid.code-export > div#popup-content > div.modal-footer {
 @media (min-height: 330px) {
   div.container-fluid.build > div#popup-content > div.modal-footer,
   div.container-fluid.replacement > div#popup-content > div.modal-footer,
-  div.container-fluid.reshape > div#popup-content > div.modal-footer {
+  div.container-fluid.reshape > div#popup-content > div.modal-footer,
+  div.container-fluid.duplicates > div#popup-content > div.modal-footer {
     position: absolute;
     bottom: 0;
     width: 100%;

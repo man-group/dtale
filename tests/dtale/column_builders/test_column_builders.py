@@ -149,9 +149,9 @@ def test_similarity():
 
 
 @pytest.mark.unit
-def test_standardized():
+def test_standardize():
     df = pd.DataFrame(dict(a=randn(1000)))
-    data_id, column_type = "1", "standardized"
+    data_id, column_type = "1", "standardize"
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
 

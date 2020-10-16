@@ -143,7 +143,7 @@ def test_rows(unittest):
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "first", "subset": "foo"}
         )
-        unittest.assertEquals(builder.test(), 0)
+        unittest.assertEquals(builder.test(), dict(removed=0, total=5, remaining=5))
         pre_length = len(data[data_id])
         new_data_id = builder.execute()
         assert pre_length == len(data[new_data_id])
@@ -155,7 +155,7 @@ def test_rows(unittest):
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "first", "subset": ["foO", "bar"]}
         )
-        unittest.assertEquals(builder.test(), 3)
+        unittest.assertEquals(builder.test(), dict(removed=3, total=5, remaining=2))
         new_data_id = builder.execute()
         assert len(data[new_data_id]) == 2
         unittest.assertEquals(data[new_data_id]["Foo"].tolist(), [1, 4])
@@ -167,7 +167,7 @@ def test_rows(unittest):
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "last", "subset": ["foO", "bar"]}
         )
-        unittest.assertEquals(builder.test(), 3)
+        unittest.assertEquals(builder.test(), dict(removed=3, total=5, remaining=2))
         new_data_id = builder.execute()
         assert len(data[new_data_id]) == 2
         unittest.assertEquals(data[new_data_id]["Foo"].tolist(), [3, 5])
@@ -179,7 +179,7 @@ def test_rows(unittest):
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "none", "subset": ["foO", "bar"]}
         )
-        unittest.assertEquals(builder.test(), 5)
+        unittest.assertEquals(builder.test(), dict(removed=5, total=5, remaining=0))
         with pytest.raises(RemoveAllDataException):
             builder.execute()
 
