@@ -90,6 +90,10 @@ class DtaleFlaskTesting(FlaskClient):
         return super(DtaleFlaskTesting, self).get(url_scheme="http", *args, **kwargs)
 
 
+def contains_route(routes, route):
+    return any((r.rule == route.rule and r.endpoint == route.endpoint) for r in routes)
+
+
 class DtaleFlask(Flask):
     """
     Overriding Flask's implementation of
@@ -134,26 +138,26 @@ class DtaleFlask(Flask):
         return url_for(endpoint, *args, **kwargs)
 
     def _override_routes(self, override_routes=None):
-        def _contains_route(routes, route):
-            return any(
-                (r.rule == route.rule and r.endpoint == route.endpoint) for r in routes
-            )
-
-        final_override_routes = ["/"] + (override_routes or [])
-        for override_route in final_override_routes:
-            routes_to_remove = [
-                r for r in self.url_map._rules if r.rule == override_route
-            ]
-            if len(routes_to_remove) > 1:
-                routes_to_remove = routes_to_remove[:-1]
-                self.url_map._rules = [
-                    r
-                    for r in self.url_map._rules
-                    if not _contains_route(routes_to_remove, r)
+        try:
+            final_override_routes = ["/"] + (override_routes or [])
+            for override_route in final_override_routes:
+                routes_to_remove = [
+                    r for r in self.url_map._rules if r.rule == override_route
                 ]
+                if len(routes_to_remove) > 1:
+                    routes_to_remove = routes_to_remove[:-1]
+                    self.url_map._rules = [
+                        r
+                        for r in self.url_map._rules
+                        if not contains_route(routes_to_remove, r)
+                    ]
 
-        self.url_map._remap = True
-        self.url_map.update()
+            self.url_map._remap = True
+            self.url_map.update()
+        except BaseException:
+            logger.exception(
+                "Could not override routes, if you're trying to specify a route for '/' then it will be ignored..."
+            )
 
     def run(self, *args, **kwargs):
         """
