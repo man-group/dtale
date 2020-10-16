@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.18.0 (2020-10-15)
+* [#282](https://github.com/man-group/dtale/issues/282): additional exception handling for overriding routes
+* [#271](https://github.com/man-group/dtale/issues/271): standardized column builder
+* [#282](https://github.com/man-group/dtale/issues/282): better support for using D-Tale within another Flask application
+* [#270](https://github.com/man-group/dtale/issues/270): filter outliers from column menu
+* allow users to start D-Tale without loading data
+* [#264](https://github.com/man-group/dtale/issues/264): similarity column builder: string concatenation string builder
+* [#286](https://github.com/man-group/dtale/issues/286): column description lag after type conversion
+
 ### 1.17.0 (2020-10-10)
 * [#269](https://github.com/man-group/dtale/issues/269): column based range highlighting
 * [#268](https://github.com/man-group/dtale/issues/268): better button labels for inplace vs. new column
