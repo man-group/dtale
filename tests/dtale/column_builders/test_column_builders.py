@@ -130,11 +130,29 @@ def test_similarity():
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
 
-        cfg = {"left": "a", "right": "b", "algo": "levenshtein"}
+        cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": False}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == 1)
 
-        cfg = {"left": "a", "right": "b", "algo": "damerau-leveneshtein"}
+        cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": True}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)
+
+        cfg = {
+            "left": "a",
+            "right": "b",
+            "algo": "damerau-leveneshtein",
+            "normalized": False,
+        }
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.values[-1] == 1)
+
+        cfg = {
+            "left": "a",
+            "right": "b",
+            "algo": "damerau-leveneshtein",
+            "normalized": True,
+        }
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == 1)
 
@@ -143,7 +161,23 @@ def test_similarity():
         verify_builder(builder, lambda col: col.values[-1] == 1)
 
         if PY3:
-            cfg = {"left": "a", "right": "b", "algo": "jaccard", "k": "4"}
+            cfg = {
+                "left": "a",
+                "right": "b",
+                "algo": "jaccard",
+                "k": "4",
+                "normalized": False,
+            }
+            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+            verify_builder(builder, lambda col: col.values[-1] == 1)
+
+            cfg = {
+                "left": "a",
+                "right": "b",
+                "algo": "jaccard",
+                "k": "4",
+                "normalized": True,
+            }
             builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
             verify_builder(builder, lambda col: col.values[-1] == 1)
 

@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.18.2 (2020-10-17)
+* [#305](https://github.com/man-group/dtale/issues/305): Show Duplicates column(s) label
+* [#304](https://github.com/man-group/dtale/issues/304): Link to Custom Filter from Column Menu
+* [#301](https://github.com/man-group/dtale/issues/301): Normalized Similarity
+* [#289](https://github.com/man-group/dtale/issues/289): Show Duplicates query bug & scrollable duplicate groups
+
+
 ### 1.18.1 (2020-10-16)
 * [#299](https://github.com/man-group/dtale/issues/299): Value counts not matching top unique values in Column Analysis
 * [#298](https://github.com/man-group/dtale/issues/298): Standardize column builder bug

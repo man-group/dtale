@@ -56,7 +56,7 @@ def build_histogram(data_id, col, query, point_filter):
         query,
         global_state.get_context_variables(data_id),
     )
-    data = data.query(build_group_inputs_filter(data, [point_filter]))
+    data = run_query(data, build_group_inputs_filter(data, [point_filter]))
     s = data[~pd.isnull(data[col])][col]
     hist_data, hist_labels = np.histogram(s, bins=10)
     hist_labels = list(map(lambda x: json_float(x, precision=3), hist_labels[1:]))

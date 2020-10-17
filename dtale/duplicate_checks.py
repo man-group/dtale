@@ -1,7 +1,13 @@
 import pandas as pd
 
 import dtale.global_state as global_state
-from dtale.utils import dict_merge, grid_columns, grid_formatter, triple_quote
+from dtale.utils import (
+    dict_merge,
+    grid_columns,
+    grid_formatter,
+    run_query,
+    triple_quote,
+)
 from dtale.charts.utils import build_group_inputs_filter
 
 
@@ -209,7 +215,7 @@ class ShowDuplicates(object):
             group_filter = build_group_inputs_filter(
                 df, [{col: val for col, val in zip(group, self.cfg["filter"])}]
             )
-            duplicates = duplicates.query(group_filter)
+            duplicates = run_query(duplicates, group_filter)
         code = self._build_code(group_filter)
         self.startup_kwargs["name"] = "{group}_duplicates".format(group="_".join(group))
         return duplicates, code

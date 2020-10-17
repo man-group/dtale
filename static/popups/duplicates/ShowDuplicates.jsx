@@ -72,24 +72,26 @@ class ShowDuplicates extends React.Component {
           <br />
           <b>Total Duplicates</b>
           {`: ${_.sum(_.map(testOutput.results, "count"))}`}
-          <ul>
-            {_.map(_.keys(testOutput.results), (group, i) => (
-              <li key={i}>
-                {_.size(testOutput.results) > 1 && (
-                  <i
-                    className={`ico-check-box${this.state.filter == group ? "" : "-outline-blank"} pointer pb-2 pr-3`}
-                    onClick={() =>
-                      this.updateState({
-                        filter: this.state.filter === group ? null : group,
-                      })
-                    }
-                  />
-                )}
-                <b>{group}</b>
-                {`: ${testOutput.results[group].count}`}
-              </li>
-            ))}
-          </ul>
+          <div style={{ maxHeight: 300, overflowY: "auto" }}>
+            <ul>
+              {_.map(_.keys(testOutput.results), (group, i) => (
+                <li key={i}>
+                  {_.size(testOutput.results) > 1 && (
+                    <i
+                      className={`ico-check-box${this.state.filter == group ? "" : "-outline-blank"} pointer pb-2 pr-3`}
+                      onClick={() =>
+                        this.updateState({
+                          filter: this.state.filter === group ? null : group,
+                        })
+                      }
+                    />
+                  )}
+                  <b>{group}</b>
+                  {`: ${testOutput.results[group].count}`}
+                </li>
+              ))}
+            </ul>
+          </div>
         </React.Fragment>
       );
     }
@@ -100,7 +102,7 @@ class ShowDuplicates extends React.Component {
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Group By"
+          label="Column(s)"
           prop="group"
           parent={this.state}
           updateState={state => this.updateState({ ...state, filter: null })}

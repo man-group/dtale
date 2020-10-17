@@ -6,6 +6,7 @@ import { components } from "react-select";
 import { buildURLString, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
 import Descriptions from "../dtale/column/column-menu-descriptions.json";
 import { exports as gu } from "../dtale/gridUtils";
+import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
 import { fetchJson } from "../fetcher";
 import { DateFilter } from "./DateFilter";
 import { NumericFilter } from "./NumericFilter";
@@ -52,6 +53,7 @@ class ColumnFilter extends React.Component {
     this.updateState = this.updateState.bind(this);
     this.renderMissingToggle = this.renderMissingToggle.bind(this);
     this.renderOutlierToggle = this.renderOutlierToggle.bind(this);
+    this.renderIcon = this.renderIcon.bind(this);
   }
 
   fetchData(state) {
@@ -87,6 +89,15 @@ class ColumnFilter extends React.Component {
     );
   }
 
+  renderIcon(showIcon = true) {
+    const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
+    return (
+      <span className="toggler-action">
+        {showIcon && <i className="fa fa-filter align-bottom pointer" onClick={buttonHandlers.FILTER} />}
+      </span>
+    );
+  }
+
   renderMissingToggle(showIcon) {
     const { hasMissing, missing, colType } = this.state;
     if (hasMissing) {
@@ -94,7 +105,7 @@ class ColumnFilter extends React.Component {
         this.updateState(_.assignIn({}, this.state.cfg, { type: colType, missing: !missing }));
       return (
         <li>
-          <span className="toggler-action">{showIcon && <i className="fa fa-filter align-bottom" />}</span>
+          {this.renderIcon(showIcon)}
           <div className="m-auto">
             <div className="column-filter m-2">
               <span className="font-weight-bold pr-3">Show Only Missing</span>
@@ -119,7 +130,7 @@ class ColumnFilter extends React.Component {
       };
       return (
         <li>
-          <span className="toggler-action">{showIcon && <i className="fa fa-filter align-bottom" />}</span>
+          {this.renderIcon(showIcon)}
           <div className="m-auto">
             <div className="column-filter m-2">
               <span className="font-weight-bold pr-3">Filter Outliers</span>
@@ -136,9 +147,7 @@ class ColumnFilter extends React.Component {
     if (this.state.loadingState) {
       return (
         <li className="hoverable">
-          <span className="toggler-action">
-            <i className="fa fa-filter" />
-          </span>
+          {this.renderIcon()}
           <div className="m-auto">
             <div className="column-filter m-2">
               <components.LoadingIndicator getStyles={getStyles} cx={() => ""} />
@@ -175,9 +184,7 @@ class ColumnFilter extends React.Component {
     } else {
       markup = (
         <li className="hoverable">
-          <span className="toggler-action">
-            <i className="fa fa-filter" />
-          </span>
+          {this.renderIcon()}
           <div className="m-auto">
             <div className="column-filter m-2">{markup}</div>
           </div>

@@ -663,6 +663,23 @@ class ZScoreNormalizeColumnBuilder(object):
         ).format(name=self.name, col=col)
 
 
+class SimilarityNormalizeWrapper(object):
+    def __init__(self, algo):
+        self.algo = algo
+
+    def distance(self, s0, s1):
+        if s0 is None:
+            raise TypeError("Argument s0 is NoneType.")
+        if s1 is None:
+            raise TypeError("Argument s1 is NoneType.")
+        if s0 == s1:
+            return 0.0
+        m_len = max(len(s0), len(s1))
+        if m_len == 0:
+            return 0.0
+        return self.algo.distance(s0, s1) / m_len
+
+
 class SimilarityColumnBuilder(object):
     def __init__(self, name, cfg):
         self.name = name
@@ -670,14 +687,22 @@ class SimilarityColumnBuilder(object):
 
     def build_column(self, data):
         left_col, right_col, algo = (self.cfg.get(p) for p in ["left", "right", "algo"])
+        normalized = self.cfg.get("normalized", False)
         if algo == "levenshtein":
-            similarity = strsimpy.levenshtein.Levenshtein()
+            if normalized:
+                similarity = strsimpy.normalized_levenshtein.NormalizedLevenshtein()
+            else:
+                similarity = strsimpy.levenshtein.Levenshtein()
         elif algo == "damerau-leveneshtein":
             similarity = strsimpy.damerau.Damerau()
+            if normalized:
+                similarity = SimilarityNormalizeWrapper(similarity)
         elif algo == "jaro-winkler":
             similarity = JaroWinkler()
         elif algo == "jaccard":
             similarity = strsimpy.jaccard.Jaccard(int(self.cfg.get("k", 3)))
+            if normalized:
+                similarity = SimilarityNormalizeWrapper(similarity)
         distances = (
             data[[left_col, right_col]]
             .fillna("")
@@ -687,12 +712,18 @@ class SimilarityColumnBuilder(object):
 
     def build_code(self):
         left_col, right_col, algo = (self.cfg.get(p) for p in ["left", "right", "algo"])
+        normalized = self.cfg.get("normalized", False)
         import_str = ""
         if algo == "levenshtein":
             import_str = (
                 "\nfrom strsimpy.levenshtein import Levenshtein\n"
                 "similarity = Levenshtein()"
             )
+            if normalized:
+                import_str = (
+                    "\nfrom strsimpy.normalized_levenshtein import NormalizedLevenshtein\n"
+                    "similarity = NormalizedLevenshtein()"
+                )
         elif algo == "damerau-leveneshtein":
             import_str = (
                 "\nfrom strsimpy.damerau import Damerau\n" "similarity = Damerau()"

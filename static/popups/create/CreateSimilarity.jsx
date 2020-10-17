@@ -25,7 +25,7 @@ function validateSimilarityCfg({ left, right, k, algo }) {
   return null;
 }
 
-function buildCode({ left, right, algo, k }) {
+function buildCode({ left, right, algo, k, normalized }) {
   if (!left || !right) {
     return null;
   }
@@ -34,8 +34,13 @@ function buildCode({ left, right, algo, k }) {
   }
   const code = [];
   if (algo === "levenshtein") {
-    code.push("from strsimpy.levenshtein import Levenshtein");
-    code.push("similarity = Levenshtein()");
+    if (normalized) {
+      code.push("from strsimpy.normalized_levenshtein import NormalizedLevenshtein");
+      code.push("similarity = NormalizedLevenshtein()");
+    } else {
+      code.push("from strsimpy.levenshtein import Levenshtein");
+      code.push("similarity = Levenshtein()");
+    }
   } else if (algo === "damerau-leveneshtein") {
     code.push("from strsimpy.damerau import Damerau");
     code.push("similarity = Damerau()");
@@ -54,7 +59,13 @@ function buildCode({ left, right, algo, k }) {
 class CreateSimilarity extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { left: null, right: null, algo: ALGOS[0], k: "3" };
+    this.state = {
+      left: null,
+      right: null,
+      algo: ALGOS[0],
+      k: "3",
+      normalized: false,
+    };
     this.updateState = this.updateState.bind(this);
   }
 
@@ -69,6 +80,9 @@ class CreateSimilarity extends React.Component {
     };
     if (updatedState.cfg.algo === "jaccard") {
       updatedState.cfg.k = currState.k;
+    }
+    if (updatedState.cfg.algo !== "jaro-winkler") {
+      updatedState.cfg.normalized = currState.normalized;
     }
     updatedState.code = buildCode(updatedState.cfg);
     if (validateSimilarityCfg(updatedState.cfg) === null && !this.props.namePopulated) {
@@ -116,6 +130,17 @@ class CreateSimilarity extends React.Component {
           columns={this.props.columns}
           dtypes={["string"]}
         />
+        {_.get(this.state, "algo.value") !== "jaro-winkler" && (
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">Normalized</label>
+            <div className="col-md-8 mt-auto mb-auto">
+              <i
+                className={`ico-check-box${this.state.normalized ? "" : "-outline-blank"} pointer`}
+                onClick={() => this.updateState({ normalized: !this.state.normalized })}
+              />
+            </div>
+          </div>
+        )}
         {_.get(this.state, "algo.value") === "jaccard" && (
           <div className="form-group row">
             <label className="col-md-3 col-form-label text-right">n-gram</label>
