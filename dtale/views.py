@@ -1258,25 +1258,40 @@ def build_column(data_id):
 
     def _build_column():
         builder = ColumnBuilder(data_id, col_type, name, cfg)
-        data.loc[:, name] = builder.build_column()
+        new_col_data = builder.build_column()
+        new_cols = []
+        if isinstance(new_col_data, pd.Series):
+            data.loc[:, name] = new_col_data
+            new_cols.append(name)
+        else:
+            for i in range(len(new_col_data.columns)):
+                new_col = new_col_data.iloc[:, i]
+                data.loc[:, str(new_col.name)] = new_col
 
-        dtype = find_dtype(data[name])
+        new_types = {}
         data_ranges = {}
-        if classify_type(dtype) == "F" and not data[name].isnull().all():
-            try:
-                data_ranges[name] = data[[name]].agg(["min", "max"]).to_dict()[name]
-            except ValueError:
-                pass
-        dtype_f = dtype_formatter(data, {name: dtype}, data_ranges)
+        for new_col in new_cols:
+            dtype = find_dtype(data[new_col])
+            if classify_type(dtype) == "F" and not data[new_col].isnull().all():
+                try:
+                    data_ranges[new_col] = (
+                        data[[new_col]].agg(["min", "max"]).to_dict()[new_col]
+                    )
+                except ValueError:
+                    pass
+            new_types[new_col] = dtype
+        dtype_f = dtype_formatter(data, new_types, data_ranges)
         global_state.set_data(data_id, data)
         curr_dtypes = global_state.get_dtypes(data_id)
-        new_dtype_info = dtype_f(len(curr_dtypes), name)
-        if next((cdt for cdt in curr_dtypes if cdt["name"] == name), None):
+        if next((cdt for cdt in curr_dtypes if cdt["name"] in new_cols), None):
             curr_dtypes = [
-                new_dtype_info if cdt["name"] == name else cdt for cdt in curr_dtypes
+                dtype_f(len(curr_dtypes), cdt["name"])
+                if cdt["name"] in new_cols
+                else cdt
+                for cdt in curr_dtypes
             ]
         else:
-            curr_dtypes.append(dtype_f(len(curr_dtypes), name))
+            curr_dtypes += [dtype_f(len(curr_dtypes), new_col) for new_col in new_cols]
         global_state.set_dtypes(data_id, curr_dtypes)
         curr_history = global_state.get_history(data_id) or []
         curr_history += make_list(builder.build_code())

@@ -3,6 +3,7 @@ import React from "react";
 
 import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
+import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
 import { CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
@@ -15,9 +16,9 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize"]
+  ["similarity", "standardize", "encoder"]
 );
-export const LABELS = { zscore_normalize: "Z-Score Normalize" };
+export const LABELS = { zscore_normalize: "Z-Score\nNormalize" };
 
 export function buildLabel(v) {
   if (_.has(LABELS, v)) {
@@ -30,6 +31,8 @@ export function validateCfg(type, cfg) {
   switch (type) {
     case "datetime":
       return validateDatetimeCfg(cfg);
+    case "encoder":
+      return validateEncoderCfg(cfg);
     case "string":
       return validateStringCfg(cfg);
     case "bins":
@@ -62,6 +65,8 @@ export function getBody(state, props, updateState) {
       return <CreateString {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "datetime":
       return <CreateDatetime {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "encoder":
+      return <CreateEncoder {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "bins":
       return <CreateBins {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "random":
@@ -86,6 +91,21 @@ export function getBody(state, props, updateState) {
       return <CreateZScoreNormalize {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
   }
   return null;
+}
+
+export function renderNameInput({ type, cfg }) {
+  if (type === "type_conversion") {
+    return "name_inplace";
+  } else if (type === "encoder") {
+    const algo = _.get(cfg, "algo");
+    if (algo === "feature_hasher" || algo === "one_hot") {
+      return "none";
+    } else {
+      return "name_inplace";
+    }
+  } else {
+    return "name";
+  }
 }
 
 export const BASE_STATE = {

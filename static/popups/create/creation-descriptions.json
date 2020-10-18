@@ -3,6 +3,7 @@
   "string": "Concatenate columns together to form a string.",
   "bins":  "Convert numeric data into bins using pandas cut or qcut functions.",
   "datetime":  "Pull out properties (minute, hour, time...) or convert to date representations (month-end, month-start, year-end...) using datatime columns.",
+  "encoder": "Encode categorical data as indicators using OneHotEncoder, OrdinalEncoder, LabelEncoder or FeatureHasher.",
   "random":  "Build a column of random data for different data types using range rules.",
   "similarity": "Calculate string similarity distances between two columns using one of the following  algorithms: Levenshtein, Damerau-Leveneshtein, Jaro-Winkler, Jaccard Index.",
   "standardize": "Standardize a numeric column for outliers using one of the following scalars from sklearn: RobustScalar, QuantileTransformer, PowerTransformer.",

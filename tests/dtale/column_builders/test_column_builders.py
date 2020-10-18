@@ -200,3 +200,36 @@ def test_standardize():
         cfg = {"col": "a", "algo": "robust"}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.isnull().sum() == 0)
+
+
+@pytest.mark.unit
+def test_encoder(unittest):
+    df = pd.DataFrame(
+        {
+            "car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford"],
+        }
+    )
+    data_id, column_type = "1", "encoder"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "car", "algo": "one_hot"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(
+            builder,
+            lambda col: all(
+                [col[c].isnull().sum() == 0 for c in ["car_Ford", "car_Honda"]]
+            ),
+        )
+
+        cfg = {"col": "car", "algo": "ordinal"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+
+        cfg = {"col": "car", "algo": "label"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+
+        cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)

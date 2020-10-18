@@ -12,9 +12,15 @@ class ColumnSaveType extends React.Component {
     super(props);
     this.state = {
       saveAs: props.saveAs || "inplace",
-      name: null,
+      name: props.name || null,
     };
     this.updateState = this.updateState.bind(this);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.name !== prevProps.name) {
+      this.setState({ name: this.props.name });
+    }
   }
 
   updateState(state) {

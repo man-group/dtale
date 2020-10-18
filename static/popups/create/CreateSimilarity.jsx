@@ -25,6 +25,15 @@ function validateSimilarityCfg({ left, right, k, algo }) {
   return null;
 }
 
+function buildNormalizedCode(code, normalized) {
+  if (normalized) {
+    return _.concat(["from dtale.column_builders import SimilarityNormalizeWrapper"], code, [
+      "similarity = SimilarityNormalizeWrapper(similarity)",
+    ]);
+  }
+  return code;
+}
+
 function buildCode({ left, right, algo, k, normalized }) {
   if (!left || !right) {
     return null;
@@ -32,24 +41,25 @@ function buildCode({ left, right, algo, k, normalized }) {
   if (algo === "jaccard" && (_.isNull(k) || k === "" || parseInt(k) < 1)) {
     return null;
   }
-  const code = [];
+  let code = [];
   if (algo === "levenshtein") {
-    if (normalized) {
-      code.push("from strsimpy.normalized_levenshtein import NormalizedLevenshtein");
-      code.push("similarity = NormalizedLevenshtein()");
-    } else {
-      code.push("from strsimpy.levenshtein import Levenshtein");
-      code.push("similarity = Levenshtein()");
-    }
+    const packageName = normalized ? "normalized_levenshtein" : "levenshtein";
+    const className = normalized ? "NormalizedLevenshtein" : "Levenshtein";
+    code.push(`from strsimpy.${packageName} import ${className}`);
+    code.push(`similarity = ${className}()`);
   } else if (algo === "damerau-leveneshtein") {
-    code.push("from strsimpy.damerau import Damerau");
-    code.push("similarity = Damerau()");
+    code = _.concat(
+      code,
+      buildNormalizedCode(["from strsimpy.damerau import Damerau", "similarity = Damerau()"], normalized)
+    );
   } else if (algo === "jaro-winkler") {
     code.push("from strsimpy.jaro_winkler import JaroWinkler");
     code.push("similarity = JaroWinkler()");
   } else if (algo === "jaccard") {
-    code.push("from strsimpy.jaccard import Jaccard");
-    code.push(`similarity = Jaccard(${k})`);
+    code = _.concat(
+      code,
+      buildNormalizedCode(["from strsimpy.jaccard import Jaccard", `similarity = Jaccard(${k})`], normalized)
+    );
   }
 
   code.push(`df[['${left}', '${right}']].fillna('').apply(lambda rec: similarity.distance(*rec), axis=1)`);
