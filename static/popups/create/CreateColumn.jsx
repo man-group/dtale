@@ -35,6 +35,12 @@ class ReactCreateColumn extends React.Component {
     });
   }
 
+  componentDidUpdate(_prevProps, prevState) {
+    if (this.state.type !== prevState.type && !this.state.namePopulated) {
+      this.setState({ name: null });
+    }
+  }
+
   save() {
     const { name, saveAs, type, cfg } = this.state;
     let createParams = { saveAs };
@@ -89,7 +95,7 @@ class ReactCreateColumn extends React.Component {
     const body = createUtils.getBody(this.state, this.props, updateState);
     return (
       <div key="body" className="modal-body">
-        {this.state.type !== "type_conversion" && (
+        {createUtils.renderNameInput(this.state) === "name" && (
           <div className="form-group row">
             <label className="col-md-3 col-form-label text-right">Name</label>
             <div className="col-md-8">
@@ -107,38 +113,40 @@ class ReactCreateColumn extends React.Component {
             </div>
           </div>
         )}
-        {this.state.type === "type_conversion" && (
+        {createUtils.renderNameInput(this.state) === "name_inplace" && (
           <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         )}
         {!_.has(this.props, "prePopulated.type") && (
           <div className="form-group row">
             <label className="col-md-3 col-form-label text-right">Column Type</label>
             <div className="col-md-8 builders">
-              {_.map(_.chunk(createUtils.TYPES, 6), (typeRow, i) => (
-                <div key={i} className="btn-group row ml-0">
-                  {_.map(typeRow, (type, j) => {
-                    const buttonProps = { className: "btn" };
-                    if (type === this.state.type) {
-                      buttonProps.className += " btn-primary active";
-                    } else {
-                      buttonProps.className += " btn-primary inactive";
-                      const updatedState = { type };
-                      if (type === "random") {
-                        updatedState.cfg = { type: "float" };
-                      }
-                      if (type !== "type_conversion") {
-                        updatedState.saveAs = "new";
-                      }
-                      buttonProps.onClick = () => this.setState(updatedState);
+              <div className="row">
+                {_.map(createUtils.TYPES, (type, i) => {
+                  const buttonProps = {
+                    className: "btn w-100",
+                    style: { padding: "0.45rem 0.3rem" },
+                  };
+                  if (type === this.state.type) {
+                    buttonProps.className += " btn-primary active";
+                  } else {
+                    buttonProps.className += " btn-light inactive pointer";
+                    buttonProps.style.border = "solid 1px #a7b3b7";
+                    const updatedState = { type };
+                    if (type === "random") {
+                      updatedState.cfg = { type: "float" };
                     }
-                    return (
-                      <button key={`${i}-${j}`} {...buttonProps}>
-                        {createUtils.buildLabel(type)}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
+                    if (type !== "type_conversion") {
+                      updatedState.saveAs = "new";
+                    }
+                    buttonProps.onClick = () => this.setState(updatedState);
+                  }
+                  return (
+                    <div key={i} className="col-md-3 p-1">
+                      <button {...buttonProps}>{createUtils.buildLabel(type)}</button>
+                    </div>
+                  );
+                })}
+              </div>
               <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
                 {_.get(Descriptions, this.state.type, "")}
               </label>

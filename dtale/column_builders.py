@@ -7,7 +7,14 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mstats
 from six import string_types
-from sklearn.preprocessing import PowerTransformer, QuantileTransformer, RobustScaler
+from sklearn.preprocessing import (
+    LabelEncoder,
+    OrdinalEncoder,
+    PowerTransformer,
+    QuantileTransformer,
+    RobustScaler,
+)
+from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
@@ -39,6 +46,8 @@ class ColumnBuilder(object):
             self.builder = SimilarityColumnBuilder(name, cfg)
         elif column_type == "standardize":
             self.builder = StandardizedColumnBuilder(name, cfg)
+        elif column_type == "encoder":
+            self.builder = EncoderColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -725,18 +734,30 @@ class SimilarityColumnBuilder(object):
                     "similarity = NormalizedLevenshtein()"
                 )
         elif algo == "damerau-leveneshtein":
-            import_str = (
-                "\nfrom strsimpy.damerau import Damerau\n" "similarity = Damerau()"
-            )
+            base_import = "from strsimpy.damerau import Damerau\nsimilarity = Damerau()"
+            if normalized:
+                import_str = (
+                    "\nfrom dtale.column_builders import SimilarityNormalizeWrapper\n"
+                    "{base_import}\nsimilarity = SimilarityNormalizeWrapper(similarity)"
+                ).format(base_import=base_import)
+            else:
+                import_str = "\n{}".format(base_import)
         elif algo == "jaro-winkler":
             import_str = (
                 "\nfrom strsimpy.jaro_winkler import JaroWinkler\n"
                 "similarity = JaroWinkler()"
             )
         elif algo == "jaccard":
-            import_str = (
+            base_import = (
                 "\nfrom strsimpy.jaccard import Jaccard\n" "similarity = Jaccard({k})"
             ).format(k=str(self.cfg.get("k", "")))
+            if normalized:
+                import_str = (
+                    "\nfrom dtale.column_builders import SimilarityNormalizeWrapper\n"
+                    "{base_import}\nsimilarity = SimilarityNormalizeWrapper(similarity)"
+                ).format(base_import=base_import)
+            else:
+                import_str = "\n{}".format(base_import)
 
         return (
             "{import_str}\n"
@@ -785,3 +806,71 @@ class StandardizedColumnBuilder(object):
             "standardized = transformer.fit_transform(data[['{col}']]).reshape(-1)\n"
             "df.loc[:, '{name}'] = pd.Series(standardized, index=data.index, name='{name}')"
         ).format(name=self.name, col=col, import_str=import_str)
+
+
+class EncoderColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, algo = (self.cfg.get(p) for p in ["col", "algo"])
+        if algo == "one_hot":
+            return pd.get_dummies(data, columns=[col], drop_first=True)
+        elif algo == "ordinal":
+            return pd.Series(
+                OrdinalEncoder().fit_transform(data[[col]]).reshape(-1),
+                index=data.index,
+                name=self.name,
+            )
+        elif algo == "label":
+            return pd.Series(
+                LabelEncoder().fit_transform(data[col]),
+                index=data.index,
+                name=self.name,
+            )
+        elif algo == "feature_hasher":
+            n = int(self.cfg.get("n"))
+            features = (
+                FeatureHasher(n_features=n, input_type="string")
+                .transform(data[col].astype("str"))
+                .toarray()
+            )
+            features = pd.DataFrame(features, index=data.index)
+            features.columns = ["{}_{}".format(col, col2) for col2 in features.columns]
+            return features
+        raise NotImplementedError("{} not implemented yet!".format(algo))
+
+    def build_code(self):
+        col, algo = (self.cfg.get(p) for p in ["col", "algo"])
+        if algo == "one_hot":
+            return (
+                "dummies = pd.get_dummies(data, columns=['{col}'], drop_first=True)\n"
+                "for i in range(len(dummies.columns)):\n"
+                "\tnew_col = dummies.iloc[:, i]\n"
+                "\tdf.loc[:, str(new_col.name)] = new_col"
+            ).format(col=col)
+        elif algo == "ordinal":
+            return (
+                "\nfrom sklearn.preprocessing import OrdinalEncoder\n"
+                "ordinals = OrdinalEncoder().fit_transform(data[['{col}']]).reshape(-1)\n"
+                "df.loc[:, '{name}'] = pd.Series(ordinals, index=df.index, name='{name}')"
+            ).format(col=col, name=self.name)
+        elif algo == "label":
+            return (
+                "\nfrom sklearn.preprocessing import LabelEncoder\n"
+                "labels = OrdinalEncoder().fit_transform(data['{col}'])\n"
+                "df.loc[:, '{name}'] = pd.Series(labels, index=df.index, name='{name}')"
+            ).format(col=col, name=self.name)
+        elif algo == "feature_hasher":
+            return (
+                "\nfrom sklearn.feature_extraction import FeatureHasher\n"
+                "hasher = FeatureHasher(n_features={n}, input_type='string')\n"
+                "features = hasher.transform(data['{col}'].astype('str')).toarray()\n"
+                "features = pd.DataFrame(features, index=df.index)\n"
+                "features.columns = ['{col}_' + col2 for col2 in features.columns]\n"
+                "for i in range(len(features.columns)):\n"
+                "\tnew_col = features.iloc[:, i]\n"
+                "\tdf.loc[:, str(new_col.name)] = new_col"
+            ).format(n=self.cfg.get("n"), col=col)
+        return ""
