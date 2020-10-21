@@ -86,7 +86,6 @@ class DtaleDash(dash.Dash):
         super(DtaleDash, self).__init__(*args, **kwargs)
 
     def interpolate_index(self, **kwargs):
-        print(kwargs)
         return base_layout(self.server.config.get("APPLICATION_ROOT"), **kwargs)
 
 

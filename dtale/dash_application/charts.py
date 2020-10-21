@@ -286,7 +286,9 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None)
             all_range = [
                 all_range.get(p) for p in ["min", "max"] if all_range.get(p) is not None
             ]
-            if len(all_range) and all_range != (min(mins.values()), max(maxs.values())):
+            all_mins = [v for k, v in mins.items() if k != "x"]
+            all_maxs = [v for k, v in maxs.items() if k != "x"]
+            if len(all_range) and all_range != (min(all_mins), max(all_maxs)):
                 yaxis_cfg["range"] = [all_range[0], all_range[1]]
             if classify_type(dtypes.get(y[0])) == "I":
                 yaxis_cfg["tickformat"] = ".0f"
