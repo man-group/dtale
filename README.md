@@ -24,6 +24,7 @@ D-Tale is the combination of a Flask back-end and a React front-end to bring you
 D-Tale was the product of a SAS to Python conversion.  What was originally a perl script wrapper on top of SAS's `insight` function is now a lightweight web client on top of Pandas data structures.
 
 ## In The News
+
  - [4 Libraries that can perform EDA in one line of python code](https://towardsdatascience.com/4-libraries-that-can-perform-eda-in-one-line-of-python-code-b13938a06ae)
  - [React Status](https://react.statuscode.com/issues/204)
  - [KDNuggets](https://www.kdnuggets.com/2020/08/bring-pandas-dataframes-life-d-tale.html)
@@ -36,10 +37,12 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
  - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
 
 ## Tutorials
+
  - [Pip Install Python YouTube Channel](https://m.youtube.com/watch?v=0RihZNdQc7k&feature=youtu.be)
  - [machine_learning_2019](https://www.youtube.com/watch?v=-egtEUVBy9c)
 
  ## Related Resources
+
  - [Adventures In Flask While Developing D-Tale](https://github.com/man-group/dtale/blob/master/docs/FlaskCon/FlaskAdventures.md)
 
 ## Contents
@@ -55,6 +58,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [R with Reticulate](#r-with-reticulate)
   - [Command-line](#command-line)
   - [Custom Command-line Loaders](#custom-command-line-loaders)
+  - [Embedding Within Your Own Flask App](#embedding-within-your-own-flask-app)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
@@ -223,6 +227,14 @@ dtale.show(pd.DataFrame([1,2,3]), app_root='/user/johndoe/proxy/40000/`)
 ```
 
 Using this parameter will only apply the application root to that specific instance so you would have to include it on every call to `show()`.
+
+### Startup with no data
+
+It is now possible to run D-Tale with no data loaded up front. So simply call `dtale.show()` and this will start the application for you and when you go to view it you will be presented with a screen where you can upload either a CSV or TSV file for data.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/no_data.png)
+
+Once you've loaded a file it will take you directly to the standard data grid comprised of the data from the file you loaded.  This might make it easier to use this as an on demand application within a container management system like kubernetes. You start and stop these on demand and you'll be presented with a new instance to load any CSV or TSV file to!
 
 ### JupyterHub w/ Kubernetes
 
@@ -407,6 +419,52 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
+
+### Embedding Within Your Own Flask App
+
+So one of the nice features of D-Tale is that is it a Flask application.  And because that is the case it makes it easy to embed within your own Flask application.  Here's some sample code for a Flask app that embeds D-Tale inside it:
+```python
+from flask import redirect
+
+from dtale.app import build_app
+from dtale.views import startup
+
+if __name__ == '__main__':
+    app = build_app(reaper_on=False)
+
+    @app.route("/create-df")
+    def create_df():
+        df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6]))
+        instance = startup(data=df, ignore_duplicate=True)
+        return redirect(f"/dtale/main/{instance._data_id}", code=302)
+
+    @app.route("/")
+    def hello_world():
+        return 'Hi there, load data using <a href="/create-df">create-df</a>'
+
+    app.run(host="0.0.0.0", port=8080)
+```
+
+Here's some details on what is going on here:
+1. Instantiate the D-Tale application `build_app(reaper_on=False)` and take care to make sure the reaper is turned off (that way the app isn't killed after 60 minutes of inactivity)
+2. Add our own Flask routes, in this case we have `/create-df` & `/`
+  * So take a second to look at `/create-df` and how it calls `startup()`.  This stores data in the global state of D-Tale so it can be viewed
+  * We are not setting a `data_id` so this will automatically create one for us and assign that dataframe to it.
+  * If you want to just have one continuous piece of data that you can use this code:
+  ```python
+  cleanup("1")
+  startup(data_id="1",data=df)
+  ```
+  This will cleanup any data associated with the the data_id "1" and then assign the new data "df" in its place
+
+3. Start the application
+
+Here is a link to the [source code](https://github.com/man-group/dtale/tree/master/docs/embedded_dtale) for a little more complex example of embedding D-Tale (the frontend leaves a lot to be disired though :rofl:).
+
+[![](http://img.youtube.com/vi/-WzeSPNeOrk/0.jpg)](http://www.youtube.com/watch?v=-WzeSPNeOrk "Embedded D-Tale")
+
+Hope this leads to lots of new ideas of how D-Tale can be used!
+
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser

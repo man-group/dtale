@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Simple Baseball App</title>
+  <style>
+      html {
+          width: 100%;
+          height: 100%;
+      }
+      body {
+          margin: 5px;
+          width: calc(100% - 10px);
+          height: calc(100% - 10px);
+      }
+      iframe {
+          width: 100%;
+          height: calc(100% - 100px);
+          border: none;
+      }
+  </style>
+ </head>
+ <body>
+  <form method="POST" action="/load-players">
+      <span style="padding-right: 5px;">Player:</span>
+      <input type="text" name="player" required style="margin-right: 5px;">
+      <input type="submit" value="Search Players">
+  </form>
+
+  {% if player_suggestions %}
+    <h3>Suggestions for {{player}}:</h3>
+    {% for player in player_suggestions %}
+      <form method="POST" action="/load-player-data">
+        <input type="hidden" name="player_href" value="{{player['href']}}">
+        <span style="padding-right: 5px;">{{ player['name'] + ' ' + player['years'] }}</span>
+        <input type="submit" value="Load Data"><br>
+      </form>
+    {% endfor %}
+  {% endif %}
+  {% if data_exists %}
+      <h3 style="padding-top: 10px">Data For: {{ names }}</h3>
+      <iframe src="/dtale/iframe/1"/>
+  {% endif %}
+ </body>
+</html>

@@ -728,7 +728,7 @@ def is_koalas(data):
 
 
 def startup(
-    url,
+    url="",
     data=None,
     data_loader=None,
     name=None,
@@ -747,6 +747,7 @@ def startup(
      - If data has column named index it will be dropped so that it won't collide with row numbering (dtale_index)
      - Create location in memory for storing settings which can be manipulated from the front-end (sorts, filter, ...)
 
+    :param url: the base URL that D-Tale is running from to be referenced in redirects to shutdown
     :param data: :class:`pandas:pandas.DataFrame` or :class:`pandas:pandas.Series`
     :param data_loader: function which returns :class:`pandas:pandas.DataFrame`
     :param name: string label to apply to your session
@@ -1344,10 +1345,10 @@ def reshape_data(data_id):
     cfg = json.loads(get_str_arg(request, "cfg"))
     builder = DataReshaper(data_id, shape_type, cfg)
     if output == "new":
-        instance = startup("", data=builder.reshape(), ignore_duplicate=True)
+        instance = startup(data=builder.reshape(), ignore_duplicate=True)
     else:
         instance = startup(
-            "", data=builder.reshape(), data_id=data_id, ignore_duplicate=True
+            data=builder.reshape(), data_id=data_id, ignore_duplicate=True
         )
     curr_settings = global_state.get_settings(instance._data_id)
     global_state.set_settings(
@@ -2662,7 +2663,7 @@ def update_xarray_selection(data_id):
     ds = global_state.get_dataset(data_id)
     selection = get_json_arg(request, "selection") or {}
     df = convert_xarray_to_dataset(ds, **selection)
-    startup("", data=df, data_id=data_id, ignore_duplicate=True)
+    startup(data=df, data_id=data_id, ignore_duplicate=True)
     global_state.set_dataset_dim(data_id, selection)
     return jsonify(success=True)
 
@@ -2673,7 +2674,7 @@ def to_xarray(data_id):
     df = global_state.get_data(data_id)
     index_cols = get_json_arg(request, "index")
     ds = df.set_index(index_cols).to_xarray()
-    startup("", data=ds, data_id=data_id, ignore_duplicate=True)
+    startup(data=ds, data_id=data_id, ignore_duplicate=True)
     curr_settings = global_state.get_settings(data_id)
     startup_code = "df = df.set_index(['{index}']).to_xarray()".format(
         index="', '".join(index_cols)
@@ -2740,7 +2741,7 @@ def upload():
     str_obj = StringIO(decoded.decode("utf-8"))
     df = pd.read_csv(str_obj)
     # TODO: handle un-named index columns...
-    instance = startup("", data=df, ignore_duplicate=True)
+    instance = startup(data=df, ignore_duplicate=True)
     curr_settings = global_state.get_settings(instance._data_id)
     global_state.set_settings(
         instance._data_id,
