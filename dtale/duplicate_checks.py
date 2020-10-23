@@ -49,7 +49,7 @@ class DuplicateCheck(object):
         data = global_state.get_data(self.data_id)
         try:
             df, code = self.checker.remove(data)
-            instance = startup("", data=df, **self.checker.startup_kwargs)
+            instance = startup(data=df, **self.checker.startup_kwargs)
             curr_settings = global_state.get_settings(instance._data_id)
             global_state.set_settings(
                 instance._data_id,

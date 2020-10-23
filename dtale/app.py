@@ -169,7 +169,7 @@ class DtaleFlask(Flask):
         if not self.base_url:
             host = kwargs.get("host")
             initialize_process_props(host, port_num)
-            app_url = build_url(host, self.port)
+            app_url = build_url(self.port, host)
             self._setup_url_props(app_url)
             self._override_routes()
         if kwargs.get("debug", False):
