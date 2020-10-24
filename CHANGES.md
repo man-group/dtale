@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.19.0 (2020-10-23)
+* [#123](https://github.com/man-group/dtale/issues/123): selecting a range of cells to paste into excel
+* Documentation on embedding D-Tale in another Flask app
+* bugfix for altering single y-axis ranges when x-axis is non-numeric
+* [#272](https://github.com/man-group/dtale/issues/272): encoders for categorical columns
+
 ### 1.18.2 (2020-10-17)
 * [#305](https://github.com/man-group/dtale/issues/305): Show Duplicates column(s) label
 * [#304](https://github.com/man-group/dtale/issues/304): Link to Custom Filter from Column Menu

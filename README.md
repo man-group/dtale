@@ -56,6 +56,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Google Colab](#google-colab)
   - [Kaggle](#kaggle)
   - [R with Reticulate](#r-with-reticulate)
+  - [Startup with No Data](#startup-with-no-data)
   - [Command-line](#command-line)
   - [Custom Command-line Loaders](#custom-command-line-loaders)
   - [Embedding Within Your Own Flask App](#embedding-within-your-own-flask-app)
@@ -63,6 +64,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
   - [Editing Cells](#editing-cells)
+  - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
     - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
@@ -228,14 +230,6 @@ dtale.show(pd.DataFrame([1,2,3]), app_root='/user/johndoe/proxy/40000/`)
 
 Using this parameter will only apply the application root to that specific instance so you would have to include it on every call to `show()`.
 
-### Startup with no data
-
-It is now possible to run D-Tale with no data loaded up front. So simply call `dtale.show()` and this will start the application for you and when you go to view it you will be presented with a screen where you can upload either a CSV or TSV file for data.
-
-![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/no_data.png)
-
-Once you've loaded a file it will take you directly to the standard data grid comprised of the data from the file you loaded.  This might make it easier to use this as an on demand application within a container management system like kubernetes. You start and stop these on demand and you'll be presented with a new instance to load any CSV or TSV file to!
-
 ### JupyterHub w/ Kubernetes
 
 Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
@@ -314,6 +308,14 @@ Here's some helpful links for getting setup:
 reticulate
 
 installing python packages
+
+### Startup with No Data
+
+It is now possible to run D-Tale with no data loaded up front. So simply call `dtale.show()` and this will start the application for you and when you go to view it you will be presented with a screen where you can upload either a CSV or TSV file for data.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/no_data.png)
+
+Once you've loaded a file it will take you directly to the standard data grid comprised of the data from the file you loaded.  This might make it easier to use this as an on demand application within a container management system like kubernetes. You start and stop these on demand and you'll be presented with a new instance to load any CSV or TSV file to!
 
 ### Command-line
 Base CLI options (run `dtale --help` to see all options available)
@@ -520,7 +522,7 @@ Here's a quick demo:
 
 |Select|Copy|Paste|
 |:-----:|:-----:|:-----:|
-|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range1.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range2.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range3.PNG)|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range1.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range2.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range3.png)|
 
 One request that I have heard time and time again while working on D-Tale is "it would be great to be able to copy a range of cells into excel".  Well here is how that is accomplished:
 1) Shift + Click on a cell
