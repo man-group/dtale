@@ -26,19 +26,20 @@ class CopyToClipboard extends React.Component {
           .delay(300)
           .fadeOut(400);
       };
-      return [
-        <textarea
-          key={0}
-          ref={r => (this.textArea = r)}
-          style={{ position: "absolute", left: -1 * window.innerWidth }}
-          value={this.props.text || ""}
-          onChange={_.noop}
-        />,
-        <div key="copy-btn" className="hoverable-click">
-          {this.props.buttonBuilder({ onClick: copy })}
-          <div className={`hoverable__content copy-tt-${this.props.tooltipPosition}`}>{"Copied to clipboard"}</div>
-        </div>,
-      ];
+      return (
+        <React.Fragment>
+          <textarea
+            ref={r => (this.textArea = r)}
+            style={{ position: "absolute", left: -1 * window.innerWidth }}
+            value={this.props.text || ""}
+            onChange={_.noop}
+          />
+          <div className="hoverable-click">
+            {this.props.buttonBuilder({ onClick: copy })}
+            <div className={`hoverable__content copy-tt-${this.props.tooltipPosition}`}>{"Copied to clipboard"}</div>
+          </div>
+        </React.Fragment>
+      );
     }
     return null;
   }

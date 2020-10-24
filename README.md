@@ -516,6 +516,21 @@ Here's a quick demo:
 
 [![](http://img.youtube.com/vi/MY5w0m_4IAc/0.jpg)](http://www.youtube.com/watch?v=MY5w0m_4IAc "Editing Cells")
 
+### Copy Cells Into Clipboard
+
+|Select|Copy|Paste|
+|:-----:|:-----:|:-----:|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range1.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range2.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/select_range3.PNG)|
+
+One request that I have heard time and time again while working on D-Tale is "it would be great to be able to copy a range of cells into excel".  Well here is how that is accomplished:
+1) Shift + Click on a cell
+2) Shift + Click on another cell (this will trigger a popup)
+3) Choose whether you want to include headers in your copy by clicking the checkbox
+4) Click Yes
+5) Go to your excel workbook and execute Ctrl + V or manually choose "Paste"
+  * You can also paste this into a standard text editor and what you're left with is tab-delimited data
+
+
 ### Main Menu Functions
 
 #### XArray Operations

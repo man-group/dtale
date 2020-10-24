@@ -18,7 +18,7 @@ export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
   ["similarity", "standardize", "encoder"]
 );
-export const LABELS = { zscore_normalize: "Z-Score\nNormalize" };
+export const LABELS = { zscore_normalize: "Z-Score Normalize" };
 
 export function buildLabel(v) {
   if (_.has(LABELS, v)) {

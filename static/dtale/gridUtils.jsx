@@ -225,6 +225,7 @@ EXPORTS.buildState = props => ({
   triggerResize: false,
   backgroundMode: null,
   rangeHighlight: {},
+  rangeSelect: null,
 });
 
 EXPORTS.noHidden = columns => !_.some(columns, { visible: false });

@@ -17,6 +17,7 @@ import Formatting from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
 import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
+import { GridEventHandler } from "./GridEventHandler";
 import { MeasureText } from "./MeasureText";
 import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
@@ -25,7 +26,7 @@ import { DataViewerMenu } from "./menu/DataViewerMenu";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
-const FUNCS = ["_cellRenderer", "_onSectionRendered", "propagateState", "getData", "handleClicks"];
+const FUNCS = ["_cellRenderer", "_onSectionRendered", "propagateState", "getData"];
 
 class ReactDataViewer extends React.Component {
   constructor(props) {
@@ -37,22 +38,6 @@ class ReactDataViewer extends React.Component {
 
   componentDidMount() {
     this.getData(this.state.ids);
-  }
-
-  handleClicks(e) {
-    if (this.clickTimeout === null) {
-      this.clickTimeout = setTimeout(() => {
-        clearTimeout(this.clickTimeout);
-        this.clickTimeout = null;
-      }, 2000);
-    } else {
-      const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
-      if (cellIdx) {
-        this.props.editCell(cellIdx);
-      }
-      clearTimeout(this.clickTimeout);
-      this.clickTimeout = null;
-    }
   }
 
   propagateState(state, callback = _.noop) {
@@ -217,7 +202,7 @@ class ReactDataViewer extends React.Component {
   render() {
     const { formattingOpen } = this.state;
     return (
-      <div key={1} className="h-100 w-100" {...(this.props.allowCellEdits ? { onClick: this.handleClicks } : {})}>
+      <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
         <DtaleHotkeys propagateState={this.propagateState} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
@@ -267,7 +252,7 @@ class ReactDataViewer extends React.Component {
         <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
           {Descriptions.editing}
         </div>
-      </div>
+      </GridEventHandler>
     );
   }
 }
@@ -278,16 +263,13 @@ ReactDataViewer.propTypes = {
   iframe: PropTypes.bool,
   closeColumnMenu: PropTypes.func,
   openChart: PropTypes.func,
-  editCell: PropTypes.func,
-  allowCellEdits: PropTypes.bool,
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe, allowCellEdits }) => ({ dataId, iframe, allowCellEdits }),
+  ({ dataId, iframe }) => ({ dataId, iframe }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),
-    editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),
   })
 )(ReactDataViewer);
 
