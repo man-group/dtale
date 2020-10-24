@@ -6,7 +6,6 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import { CreateEncoder } from "../../../popups/create/CreateEncoder";
-import { CreateSimilarity } from "../../../popups/create/CreateSimilarity";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";

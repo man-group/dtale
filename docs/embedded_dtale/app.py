@@ -119,17 +119,9 @@ def load_data_props():
 
 
 if __name__ == "__main__":
-    app = build_app(reaper_on=False)
     # this will allow you to load templates from you local directory as well as the D-Tale templates
-    my_loader = jinja2.ChoiceLoader(
-        [
-            app.jinja_loader,
-            jinja2.FileSystemLoader(
-                os.path.join(os.path.dirname(__file__), "templates")
-            ),
-        ]
-    )
-    app.jinja_loader = my_loader
+    additional_templates = os.path.join(os.path.dirname(__file__), "templates")
+    app = build_app(reaper_on=False, additional_templates=additional_templates)
 
     @app.route("/")
     def base():

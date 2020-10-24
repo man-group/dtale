@@ -21,6 +21,13 @@
   background: lightblue;
 }
 
+.cell.in-range,
+.cell.in-range.editable:hover {
+  background: lightgrey;
+  border-style: dashed;
+  border-color: darkgrey;
+}
+
 .headerCell {
   align-items: center;
   text-align: center;

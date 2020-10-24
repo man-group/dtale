@@ -114,6 +114,7 @@ describe("DataViewer tests", () => {
       right: "col2",
       algo: "jaccard",
       k: "4",
+      normalized: false,
     });
     expect(result.find(CreateColumn).instance().state.name).toBe("col1_col2_distance");
   });

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, print_function
 
 import getpass
+import jinja2
 import os
 import pandas as pd
 import random
@@ -32,6 +33,7 @@ from dtale.utils import (
     fix_url_path,
     get_host,
     is_app_root_defined,
+    make_list,
     running_with_flask_debug,
 )
 from dtale.views import DtaleData, head_endpoint, is_up, kill, startup
@@ -248,14 +250,21 @@ class DtaleFlask(Flask):
 
 
 def build_app(
-    url=None,
-    host=None,
-    reaper_on=True,
-    app_root=None,
+    url=None, reaper_on=True, app_root=None, additional_templates=None, **kwargs
 ):
     """
     Builds :class:`flask:flask.Flask` application encapsulating endpoints for D-Tale's front-end
 
+    :param url: optional parameter which sets the host & root for any internal endpoints (ex: pinging shutdown)
+    :type url: str, optional
+    :param reaper_on: whether to run auto-reaper subprocess
+    :type reaper_on: bool
+    :param app_root: Optional path to prepend to the routes of D-Tale. This is used when making use of
+                     Jupyterhub server proxy
+    :type app_root: str, optional
+    :param additional_templates: path(s) to any other jinja templates you would like to load.  This comes into play if
+                                 you're embedding D-Tale into your own Flask app
+    :type: str, list, optional
     :return: :class:`flask:flask.Flask` application
     :rtype: :class:`dtale.app.DtaleFlask`
     """
@@ -277,6 +286,14 @@ def build_app(
         app.config["APPLICATION_ROOT"] = app_root
         app.jinja_env.globals["url_for"] = app.url_for
     app.jinja_env.globals["is_app_root_defined"] = is_app_root_defined
+
+    if additional_templates:
+        loaders = [app.jinja_loader]
+        loaders += [
+            jinja2.FileSystemLoader(loc) for loc in make_list(additional_templates)
+        ]
+        my_loader = jinja2.ChoiceLoader(loaders)
+        app.jinja_loader = my_loader
 
     app.register_blueprint(dtale)
 

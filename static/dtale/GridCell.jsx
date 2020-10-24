@@ -9,7 +9,16 @@ import { GridCellEditor } from "./GridCellEditor";
 import { Header } from "./Header";
 import bu from "./backgroundUtils";
 import { exports as gu } from "./gridUtils";
+import { isInRange } from "./rangeSelectUtils";
 
+function buildCellClassName(props) {
+  const { columnIndex, rowIndex, allowCellEdits, gridState } = props;
+  let className = "cell";
+  className += allowCellEdits ? " editable" : "";
+  const rangeSelect = _.get(gridState, "rangeSelect");
+  className += isInRange(columnIndex, rowIndex, rangeSelect) ? " in-range" : "";
+  return className;
+}
 class ReactGridCell extends React.Component {
   constructor(props) {
     super(props);
@@ -68,11 +77,7 @@ class ReactGridCell extends React.Component {
       }
     }
     return (
-      <div
-        key={key}
-        className={`cell${this.props.allowCellEdits ? " editable" : ""}`}
-        style={_.assignIn({}, style, valueStyle)}
-        {...divProps}>
+      <div key={key} className={buildCellClassName(this.props)} style={_.assignIn({}, style, valueStyle)} {...divProps}>
         {value}
       </div>
     );
@@ -94,6 +99,7 @@ ReactGridCell.propTypes = {
     hideColumnMenu: PropTypes.func,
     backgroundMode: PropTypes.string,
     rangeHighlight: PropTypes.object,
+    rangeSelect: PropTypes.object,
   }),
   propagateState: PropTypes.func,
   dataId: PropTypes.string,

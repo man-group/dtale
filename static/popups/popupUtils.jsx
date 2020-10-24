@@ -4,6 +4,7 @@ import React from "react";
 import About from "./About";
 import { CodeExport } from "./CodeExport";
 import { Confirmation } from "./Confirmation";
+import { CopyRangeToClipboard } from "./CopyRangeToClipboard";
 import { Correlations } from "./Correlations";
 import { Error } from "./ErrorPopup";
 import { Filter } from "./Filter";
@@ -117,6 +118,18 @@ function buildConfirm(props) {
     </React.Fragment>
   );
   const body = <Confirmation />;
+  return { title, body };
+}
+
+function buildCopyRange(props) {
+  const title = (
+    <React.Fragment>
+      <i className="fas fa-clipboard" />
+      <strong>Yes/No</strong>
+      <small className="pl-3">({_.get(props, "chartData.title")})</small>
+    </React.Fragment>
+  );
+  const body = <CopyRangeToClipboard propagateState={props.propagateState} />;
   return { title, body };
 }
 
@@ -244,46 +257,33 @@ function buildDuplicates() {
   return { title, body };
 }
 
+const POPUP_MAP = {
+  filter: buildFilter,
+  "column-analysis": buildColumnAnalysis,
+  correlations: buildCorrelations,
+  build: buildCreateColumn,
+  "type-conversion": buildTypeConversion,
+  reshape: buildReshape,
+  about: buildAbout,
+  confirm: buildConfirm,
+  "copy-range": buildCopyRange,
+  range: buildRange,
+  "xarray-dimensions": xarrayDimensions,
+  "xarray-indexes": xarrayIndexes,
+  rename: buildRename,
+  replacement: buildReplacement,
+  error: buildError,
+  instances: buildInstances,
+  code: buildCode,
+  variance: buildVariance,
+  upload: buildUpload,
+  duplicates: buildDuplicates,
+};
+
 export function buildBodyAndTitle(props) {
-  switch (_.get(props, "chartData.type")) {
-    case "filter":
-      return buildFilter();
-    case "column-analysis":
-      return buildColumnAnalysis(props);
-    case "correlations":
-      return buildCorrelations(props);
-    case "build":
-      return buildCreateColumn();
-    case "type-conversion":
-      return buildTypeConversion(props);
-    case "reshape":
-      return buildReshape();
-    case "about":
-      return buildAbout();
-    case "confirm":
-      return buildConfirm(props);
-    case "range":
-      return buildRange(props);
-    case "xarray-dimensions":
-      return xarrayDimensions(props);
-    case "xarray-indexes":
-      return xarrayIndexes(props);
-    case "rename":
-      return buildRename(props);
-    case "replacement":
-      return buildReplacement(props);
-    case "error":
-      return buildError(props);
-    case "instances":
-      return buildInstances(props);
-    case "code":
-      return buildCode(props);
-    case "variance":
-      return buildVariance(props);
-    case "upload":
-      return buildUpload(props);
-    case "duplicates":
-      return buildDuplicates();
+  const builder = _.get(POPUP_MAP, _.get(props, "chartData.type"));
+  if (builder) {
+    return builder(props);
   }
   return { body: null, title: null };
 }
