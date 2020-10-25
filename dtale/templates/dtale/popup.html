@@ -12,12 +12,14 @@
             </header>
         </div>
         <div class="col"></div>
+        {% if not popup_title == 'Load Data' %}
         <div class="col-auto mt-4" style="{{'padding-right: 85px' if github_fork else ''}}">
             <a href="#" onclick="window.open('/dtale/main/{{data_id}}'); return false;">
                 <i class="fas fa-th mr-4"></i>
                 <span>Back To Data</span>
             </a>
         </div>
+        {% endif %}
     </div>
     <div id="popup-content" />
 </div>

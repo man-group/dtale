@@ -10597,7 +10597,10 @@ div#popup-content > div.modal-body > div.row {
     margin-right: 0;
 }
 
-div.container-fluid.build > div#popup-content > div.modal-body,
+div.container-fluid.build > div#popup-content > div.modal-body {
+  height: 300px;
+}
+
 div.container-fluid.reshape > div#popup-content > div.modal-body,
 div.container-fluid.duplicates > div#popup-content > div.modal-body {
   height: 260px;

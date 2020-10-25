@@ -1,4 +1,3 @@
-import base64
 import json
 from builtins import str
 
@@ -3296,39 +3295,3 @@ def test_build_dtypes_state(test_data):
 
     state = views.build_dtypes_state(test_data.set_index("security_id").T)
     assert all("min" not in r and "max" not in r for r in state)
-
-
-def build_upload_data(
-    fname="/../".join([os.path.dirname(__file__), "data/test_df.csv"])
-):
-    with open(fname, "r") as f:
-        data = f.read()
-    data = base64.b64encode(data.encode("utf-8"))
-    return "data:text/csv;base64," + data.decode("utf-8")
-
-
-@pytest.mark.unit
-def test_upload():
-    import dtale.views as views
-
-    df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
-    with build_app(url=URL).test_client() as c:
-        with ExitStack() as stack:
-            data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(
-                mock.patch(
-                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
-                )
-            )
-
-            resp = c.post("/dtale/upload")
-            assert not resp.get_json()["success"]
-
-            c.post(
-                "/dtale/upload",
-                data={"contents": build_upload_data(), "filename": "test_df.csv"},
-            )
-            assert len(data) == 2
-            new_key = next((k for k in data if k != c.port), None)
-            assert list(data[new_key].columns) == ["a", "b", "c"]

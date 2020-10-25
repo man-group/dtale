@@ -17,6 +17,7 @@ import xarray as xr
 from scipy import stats
 from six import string_types, StringIO
 
+import dtale.datasets as datasets
 import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
@@ -973,7 +974,7 @@ def view_popup(popup_type, data_id=None):
     elif popup_type == "filter":
         popup_title = "Custom Filter"
     elif popup_type == "upload":
-        popup_title = "Upload Data (CSV/TSV)"
+        popup_title = "Load Data"
     else:
         popup_title = " ".join([pt.capitalize() for pt in popup_type.split("-")])
     title = "{} - {}".format(title, popup_title)
@@ -2730,6 +2731,16 @@ def run_cleanup(data_id):
     return jsonify(success=True)
 
 
+def load_new_data(df, startup_code):
+    instance = startup(data=df, ignore_duplicate=True)
+    curr_settings = global_state.get_settings(instance._data_id)
+    global_state.set_settings(
+        instance._data_id,
+        dict_merge(curr_settings, dict(startup_code=startup_code)),
+    )
+    return jsonify(success=True, data_id=instance._data_id)
+
+
 @dtale.route("/upload", methods=["POST"])
 @exception_decorator
 def upload():
@@ -2741,12 +2752,42 @@ def upload():
     str_obj = StringIO(decoded.decode("utf-8"))
     df = pd.read_csv(str_obj)
     # TODO: handle un-named index columns...
-    instance = startup(data=df, ignore_duplicate=True)
-    curr_settings = global_state.get_settings(instance._data_id)
-    global_state.set_settings(
-        instance._data_id,
-        dict_merge(
-            curr_settings, dict(startup_code="df = pd.read_csv('{}')".format(filename))
-        ),
-    )
-    return jsonify(success=True, data_id=instance._data_id)
+    return load_new_data(df, "df = pd.read_csv('{}')".format(filename))
+
+
+@dtale.route("/web-upload")
+@exception_decorator
+def web_upload():
+    from dtale.cli.loaders.csv_loader import loader_func as load_csv
+    from dtale.cli.loaders.json_loader import loader_func as load_json
+
+    data_type = get_str_arg(request, "type")
+    url = get_str_arg(request, "url")
+    proxy = get_str_arg(request, "proxy")
+    if data_type == "csv":
+        df = load_csv(path=url, proxy=proxy)
+        startup_code = (
+            "from dtale.cli.loaders.csv_loader import loader_func as load_csv\n\n"
+            "df = load_csv(path='{url}'{proxy})"
+        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+    elif data_type == "tsv":
+        df = load_csv(path=url, proxy=proxy, delimiter="\t")
+        startup_code = (
+            "from dtale.cli.loaders.csv_loader import loader_func as load_csv\n\n"
+            "df = load_csv(path='{url}'{proxy}, delimiter='\t')"
+        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+    elif data_type == "json":
+        df = load_json(path=url, proxy=proxy)
+        startup_code = (
+            "from dtale.cli.loaders.json_loader import loader_func as load_json\n\n"
+            "df = load_csv(path='{url}'{proxy})"
+        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+    return load_new_data(df, startup_code)
+
+
+@dtale.route("/datasets")
+@exception_decorator
+def dataset_upload():
+    dataset = get_str_arg(request, "dataset")
+    startup_code = "from dtale.datasets import {dataset}\n\n" "df = {dataset}()"
+    return load_new_data(getattr(datasets, dataset)(), startup_code)

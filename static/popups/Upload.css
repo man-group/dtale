@@ -73,3 +73,8 @@ div.filepicker {
   margin-right: auto;
   margin-left: auto;
 }
+
+.dataset > div > div.bouncer {
+  height: 20px;
+  width: 20px;
+}

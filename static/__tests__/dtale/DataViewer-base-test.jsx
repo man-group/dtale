@@ -78,7 +78,7 @@ describe("DataViewer tests", () => {
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
         ["Correlations", "Charts", "Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers"],
-        ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Upload CSV"],
+        ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data"],
         ["Refresh Widths", "About", "Shutdown"]
       )
     );

@@ -14,7 +14,7 @@ class UploadOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.props.open}>
             <i className="ico-file-upload" />
-            <span className="font-weight-bold">Upload CSV</span>
+            <span className="font-weight-bold">Load Data</span>
           </button>
         </span>
         <div className="hoverable__content menu-description">{Descriptions.upload}</div>

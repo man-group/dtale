@@ -57,12 +57,13 @@ class ReactGridCell extends React.Component {
       );
     }
     let value = "-";
-    let valueStyle = {};
+    // wide strings need to be displayed to the left so they are easier to read
+    let valueStyle = style.width > 350 ? { textAlign: "left" } : {};
     const divProps = {};
     if (colCfg.name) {
       const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
-      valueStyle = _.get(rec, "style", {});
+      valueStyle = { ...valueStyle, ..._.get(rec, "style") };
       valueStyle = bu.updateBackgroundStyles(gridState, valueStyle, colCfg, rec);
       if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
         divProps.title = rec.raw;
@@ -77,7 +78,7 @@ class ReactGridCell extends React.Component {
       }
     }
     return (
-      <div key={key} className={buildCellClassName(this.props)} style={_.assignIn({}, style, valueStyle)} {...divProps}>
+      <div key={key} className={buildCellClassName(this.props)} style={{ ...style, ...valueStyle }} {...divProps}>
         {value}
       </div>
     );

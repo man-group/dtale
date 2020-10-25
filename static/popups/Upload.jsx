@@ -6,19 +6,73 @@ import Dropzone from "react-dropzone";
 import { connect } from "react-redux";
 
 import { Bouncer } from "../Bouncer";
+import { BouncerWrapper } from "../BouncerWrapper";
 import { RemovableError } from "../RemovableError";
+import { buildURLString } from "../actions/url-utils";
 import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
+import { fetchJson } from "../fetcher";
 import { buildForwardURL } from "./reshape/Reshape";
 
 require("./Upload.css");
+
+const DATASETS = [
+  { value: "covid", label: "COVID-19" },
+  { value: "seinfeld", label: "Seinfeld" },
+  { value: "simpsons", label: "The Simpsons" },
+  { value: "video_games", label: "Video Games" },
+  { value: "movies", label: "Movies" },
+  { value: "time_dataframe", label: "makeTimeDataFrame" },
+];
+
+const DATASET_DESCRIPTIONS = {
+  covid: "US COVID-19 data from the NY Times.",
+  seinfeld:
+    "Dataset of all lines by character & season for the tv show Seinfeld (" +
+    "https://github.com/4m4n5/the-seinfeld-chronicles)",
+  simpsons: "Dataset of all lines by character & season (16 seasons) for the tv show The Simpsons",
+  video_games: "Dataset video games and their sales",
+  movies: "Dataset of movies and their release date, director, sales, reviews, etc...",
+  time_dataframe: "Output from running pandas._testing.makeTimeDataFrame()",
+};
 
 class ReactUpload extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       file: null,
+      urlDataType: null,
+      url: null,
+      proxy: null,
+      loadingDataset: null,
+      loadingURL: false,
     };
     this.onDrop = this.onDrop.bind(this);
+    this.loadFromWeb = this.loadFromWeb.bind(this);
+    this.loadDataset = this.loadDataset.bind(this);
+    this.handleResponse = this.handleResponse.bind(this);
+  }
+
+  handleResponse(data) {
+    if (data.error) {
+      this.setState({
+        error: <RemovableError {...data} />,
+        loadingURL: false,
+        loadingDataset: null,
+      });
+      return;
+    }
+    if (_.startsWith(window.location.pathname, "/dtale/popup/upload")) {
+      if (window.opener) {
+        window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
+        window.close();
+      } else {
+        // when we've started D-Tale with no data
+        window.location.assign(window.location.origin);
+      }
+      return;
+    }
+    const newLoc = buildForwardURL(window.location.href, data.data_id);
+    window.location.assign(newLoc);
   }
 
   onDrop(files) {
@@ -40,35 +94,29 @@ class ReactUpload extends React.Component {
             loading: true,
             error: null,
           },
-          () =>
-            $.post(menuFuncs.fullPath("/dtale/upload"), { contents, filename: name }, data => {
-              if (data.error) {
-                this.setState({ error: <RemovableError {...data} /> });
-                return;
-              }
-              if (_.startsWith(window.location.pathname, "/dtale/popup/upload")) {
-                if (window.opener) {
-                  window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
-                  window.close();
-                } else {
-                  // when we've started D-Tale with no data
-                  window.location.assign(window.location.origin);
-                }
-                return;
-              }
-              const newLoc = buildForwardURL(window.location.href, data.data_id);
-              window.location.assign(newLoc);
-            })
+          () => $.post(menuFuncs.fullPath("/dtale/upload"), { contents, filename: name }, this.handleResponse)
         );
       };
       reader.readAsDataURL(file);
     });
   }
 
+  loadFromWeb() {
+    const { urlDataType, url, proxy } = this.state;
+    this.setState({ loadingURL: true });
+    fetchJson(buildURLString("/dtale/web-upload", { type: urlDataType, url, proxy }), this.handleResponse);
+  }
+
+  loadDataset(dataset) {
+    this.setState({ loadingDataset: dataset });
+    fetchJson(buildURLString("/dtale/datasets", { dataset }), this.handleResponse);
+  }
+
   render() {
     const { error, file, loading } = this.state;
     return (
       <div key="body" className="modal-body">
+        <h3>Load File</h3>
         <div className="row">
           <div className="col-md-12">
             <Dropzone
@@ -118,6 +166,94 @@ class ReactUpload extends React.Component {
                 </section>
               )}
             </Dropzone>
+          </div>
+        </div>
+        <div className="row pt-5">
+          <div className="col-auto">
+            <h3>Load From The Web</h3>
+          </div>
+          <div className="col text-right">
+            {this.state.urlDataType && this.state.url && (
+              <BouncerWrapper showBouncer={this.state.loadingURL}>
+                <button className="btn btn-primary p-3" onClick={this.loadFromWeb}>
+                  Load
+                </button>
+              </BouncerWrapper>
+            )}
+          </div>
+        </div>
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">Data Type</label>
+          <div className="col-md-8 p-0">
+            <div className="btn-group">
+              {_.map(["csv", "tsv", "json"], urlDataType => {
+                const buttonProps = { className: "btn btn-primary" };
+                if (urlDataType === this.state.urlDataType) {
+                  buttonProps.className += " active";
+                } else {
+                  buttonProps.className += " inactive";
+                  buttonProps.onClick = () => this.setState({ urlDataType });
+                }
+                return (
+                  <button key={urlDataType} {...buttonProps}>
+                    {urlDataType.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">URL</label>
+          <div className="col-md-8 p-0">
+            <input
+              type="text"
+              className="form-control"
+              value={this.state.url || ""}
+              onChange={e => this.setState({ url: e.target.value })}
+            />
+          </div>
+        </div>
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">
+            {"Proxy"}
+            <small className="pl-3">(Optional)</small>
+          </label>
+          <div className="col-md-8 p-0">
+            <input
+              type="text"
+              className="form-control"
+              value={this.state.proxy || ""}
+              onChange={e => this.setState({ proxy: e.target.value })}
+            />
+          </div>
+        </div>
+        <div className="pb-5">
+          <h3 className="d-inline">Sample Datasets</h3>
+          <small className="pl-3 d-inline">(Requires access to web)</small>
+        </div>
+        <div className="form-group row">
+          <div className="col-md-12 text-center">
+            <div className="btn-group row">
+              {_.map(DATASETS, ({ value, label }) => (
+                <button
+                  key={value}
+                  className="btn btn-primary inactive dataset"
+                  onClick={() => this.loadDataset(value)}
+                  onMouseOver={() =>
+                    this.setState({
+                      datasetDescription: _.get(DATASET_DESCRIPTIONS, value, ""),
+                    })
+                  }>
+                  <BouncerWrapper showBouncer={this.state.loadingDataset === value}>
+                    <span>{label || value}</span>
+                  </BouncerWrapper>
+                </button>
+              ))}
+            </div>
+            <label className="col col-form-label row" style={{ fontSize: "85%" }}>
+              {this.state.datasetDescription || ""}
+            </label>
           </div>
         </div>
       </div>
