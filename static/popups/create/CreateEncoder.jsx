@@ -29,20 +29,27 @@ function buildCode({ col, n, algo }) {
   if (algo === "feature_hasher" && (_.isNull(n) || n === "" || parseInt(n) < 1)) {
     return null;
   }
-  const code = [];
   if (algo === "one_hot") {
-    code.push(`pd.get_dummies(df, columns=['${col}'], drop_first=True)`);
+    return `pd.get_dummies(df, columns=['${col}'], drop_first=True)`;
   } else if (algo === "ordinal") {
-    code.push("from sklearn.preprocessing import OrdinalEncoder");
-    code.push(`OrdinalEncoder().fit_transform(df[['${col}']]).reshape(-1)`);
+    return [
+      "from sklearn.preprocessing import OrdinalEncoder",
+      `is_nan = df['${col}'].isnull()`,
+      `pd.Series(OrdinalEncoder().fit_transform(df[['${col}']]).reshape(-1), index=df.index).where(~is_nan, 0)`,
+    ];
   } else if (algo === "label") {
-    code.push("from sklearn.preprocessing import LabelEncoder");
-    code.push(`LabelEncoder().fit_transform(df['${col}'])`);
+    return [
+      "from sklearn.preprocessing import LabelEncoder",
+      `is_nan = df['${col}'].isnull()`,
+      `pd.Series(LabelEncoder().fit_transform(df['${col}']), index=df.index).where(~is_nan, 0)`,
+    ];
   } else if (algo === "feature_hasher") {
-    code.push("from sklearn.feature_extraction import FeatureHasher");
-    code.push(`FeatureHasher(n_features=${n}, input_type='string').transform(data['${col}'].astype('str')`);
+    return [
+      "from sklearn.feature_extraction import FeatureHasher",
+      `FeatureHasher(n_features=${n}, input_type='string').transform(data['${col}'].astype('str')`,
+    ];
   }
-  return code;
+  return null;
 }
 
 class CreateEncoder extends React.Component {

@@ -818,17 +818,17 @@ class EncoderColumnBuilder(object):
         if algo == "one_hot":
             return pd.get_dummies(data, columns=[col], drop_first=True)
         elif algo == "ordinal":
-            return pd.Series(
-                OrdinalEncoder().fit_transform(data[[col]]).reshape(-1),
-                index=data.index,
-                name=self.name,
+            is_nan = data[col].isnull()
+            ordinals = (
+                OrdinalEncoder().fit_transform(data[[col]].astype("str")).reshape(-1)
+            )
+            return pd.Series(ordinals, index=data.index, name=self.name).where(
+                ~is_nan, 0
             )
         elif algo == "label":
-            return pd.Series(
-                LabelEncoder().fit_transform(data[col]),
-                index=data.index,
-                name=self.name,
-            )
+            is_nan = data[col].isnull()
+            labels = LabelEncoder().fit_transform(data[col].astype("str"))
+            return pd.Series(labels, index=data.index, name=self.name).where(~is_nan, 0)
         elif algo == "feature_hasher":
             n = int(self.cfg.get("n"))
             features = (
@@ -845,7 +845,7 @@ class EncoderColumnBuilder(object):
         col, algo = (self.cfg.get(p) for p in ["col", "algo"])
         if algo == "one_hot":
             return (
-                "dummies = pd.get_dummies(data, columns=['{col}'], drop_first=True)\n"
+                "dummies = pd.get_dummies(df, columns=['{col}'], drop_first=True)\n"
                 "for i in range(len(dummies.columns)):\n"
                 "\tnew_col = dummies.iloc[:, i]\n"
                 "\tdf.loc[:, str(new_col.name)] = new_col"
@@ -853,14 +853,16 @@ class EncoderColumnBuilder(object):
         elif algo == "ordinal":
             return (
                 "\nfrom sklearn.preprocessing import OrdinalEncoder\n"
-                "ordinals = OrdinalEncoder().fit_transform(data[['{col}']]).reshape(-1)\n"
-                "df.loc[:, '{name}'] = pd.Series(ordinals, index=df.index, name='{name}')"
+                "is_nan = df['{col}'].isnull()\n"
+                "ordinals = OrdinalEncoder().fit_transform(df[['{col}']]).reshape(-1)\n"
+                "df.loc[:, '{name}'] = pd.Series(ordinals, index=df.index, name='{name}').where(~is_nan, 0)"
             ).format(col=col, name=self.name)
         elif algo == "label":
             return (
                 "\nfrom sklearn.preprocessing import LabelEncoder\n"
-                "labels = OrdinalEncoder().fit_transform(data['{col}'])\n"
-                "df.loc[:, '{name}'] = pd.Series(labels, index=df.index, name='{name}')"
+                "is_nan = df['{col}'].isnull()"
+                "labels = OrdinalEncoder().fit_transform(df['{col}'])\n"
+                "df.loc[:, '{name}'] = pd.Series(labels, index=df.index, name='{name}').where(~is_nan, 0)"
             ).format(col=col, name=self.name)
         elif algo == "feature_hasher":
             return (

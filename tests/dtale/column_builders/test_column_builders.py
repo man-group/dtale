@@ -1,4 +1,5 @@
 import mock
+import numpy as np
 import pandas as pd
 import pytest
 from numpy.random import randn
@@ -203,10 +204,10 @@ def test_standardize():
 
 
 @pytest.mark.unit
-def test_encoder(unittest):
+def test_encoder():
     df = pd.DataFrame(
         {
-            "car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford"],
+            "car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford", np.nan],
         }
     )
     data_id, column_type = "1", "encoder"
