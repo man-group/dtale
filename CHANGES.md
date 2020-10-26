@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.19.1 (2020-10-24)
+* Load CSV/TSV/JSON from the web as well as some sample datasets
+* [#310](https://github.com/man-group/dtale/issues/310): handling for nan in ordinal & label encoders
+
+
 ### 1.19.0 (2020-10-23)
 * [#123](https://github.com/man-group/dtale/issues/123): selecting a range of cells to paste into excel
 * Documentation on embedding D-Tale in another Flask app
