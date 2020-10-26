@@ -32,7 +32,7 @@ const DATASET_DESCRIPTIONS = {
   simpsons: "Dataset of all lines by character & season (16 seasons) for the tv show The Simpsons",
   video_games: "Dataset video games and their sales",
   movies: "Dataset of movies and their release date, director, sales, reviews, etc...",
-  time_dataframe: "Output from running pandas._testing.makeTimeDataFrame()",
+  time_dataframe: "Output from running pandas.util.testing.makeTimeDataFrame()",
 };
 
 class ReactUpload extends React.Component {
@@ -113,7 +113,7 @@ class ReactUpload extends React.Component {
   }
 
   render() {
-    const { error, file, loading } = this.state;
+    const { error, file, loading, loadingDataset, loadingURL } = this.state;
     return (
       <div key="body" className="modal-body">
         <h3>Load File</h3>
@@ -174,7 +174,7 @@ class ReactUpload extends React.Component {
           </div>
           <div className="col text-right">
             {this.state.urlDataType && this.state.url && (
-              <BouncerWrapper showBouncer={this.state.loadingURL}>
+              <BouncerWrapper showBouncer={loadingURL}>
                 <button className="btn btn-primary p-3" onClick={this.loadFromWeb}>
                   Load
                 </button>
@@ -232,24 +232,31 @@ class ReactUpload extends React.Component {
           <h3 className="d-inline">Sample Datasets</h3>
           <small className="pl-3 d-inline">(Requires access to web)</small>
         </div>
-        <div className="form-group row">
+        <div className="form-group row pl-5 pr-5">
           <div className="col-md-12 text-center">
-            <div className="btn-group row">
-              {_.map(DATASETS, ({ value, label }) => (
-                <button
-                  key={value}
-                  className="btn btn-primary inactive dataset"
-                  onClick={() => this.loadDataset(value)}
-                  onMouseOver={() =>
-                    this.setState({
-                      datasetDescription: _.get(DATASET_DESCRIPTIONS, value, ""),
-                    })
-                  }>
-                  <BouncerWrapper showBouncer={this.state.loadingDataset === value}>
-                    <span>{label || value}</span>
-                  </BouncerWrapper>
-                </button>
-              ))}
+            <div className="row">
+              {_.map(DATASETS, ({ value, label }) => {
+                const buttonProps = {
+                  className: "btn btn-light w-100 inactive pointer dataset",
+                  style: { padding: "0.45rem 0.3rem" },
+                };
+                buttonProps.className += loadingDataset === value ? " p-4" : "";
+                buttonProps.style.border = "solid 1px #a7b3b7";
+                buttonProps.onClick = () => this.loadDataset(value);
+                buttonProps.onMouseOver = () =>
+                  this.setState({
+                    datasetDescription: _.get(DATASET_DESCRIPTIONS, value, ""),
+                  });
+                return (
+                  <div key={value} className="col-md-4 p-1">
+                    <button {...buttonProps}>
+                      <BouncerWrapper showBouncer={loadingDataset === value}>
+                        <span>{label || value}</span>
+                      </BouncerWrapper>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
             <label className="col col-form-label row" style={{ fontSize: "85%" }}>
               {this.state.datasetDescription || ""}

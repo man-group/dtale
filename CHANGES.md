@@ -4,7 +4,6 @@
 * Load CSV/TSV/JSON from the web as well as some sample datasets
 * [#310](https://github.com/man-group/dtale/issues/310): handling for nan in ordinal & label encoders
 
-
 ### 1.19.0 (2020-10-23)
 * [#123](https://github.com/man-group/dtale/issues/123): selecting a range of cells to paste into excel
 * Documentation on embedding D-Tale in another Flask app
@@ -31,7 +30,7 @@
 * [#282](https://github.com/man-group/dtale/issues/282): better support for using D-Tale within another Flask application
 * [#270](https://github.com/man-group/dtale/issues/270): filter outliers from column menu
 * allow users to start D-Tale without loading data
-* [#264](https://github.com/man-group/dtale/issues/264): similarity column builder: string concatenation string builder
+* [#264](https://github.com/man-group/dtale/issues/264): similarity column builder
 * [#286](https://github.com/man-group/dtale/issues/286): column description lag after type conversion
 
 ### 1.17.0 (2020-10-10)

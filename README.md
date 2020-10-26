@@ -66,7 +66,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Charts](#charts)
@@ -848,6 +848,28 @@ Other code exports available are:
 |Correlation Scatter|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/corr_scatter.png)|
 |Charts|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/code_export/charts.png)|
 
+#### Export CSV
+
+Export your current data to either a CSV or TSV file:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/export_csv.png)
+
+#### Load Data & Sample Datasets
+
+So either when starting D-Tale with no pre-loaded data or after you've already loaded some data you now have the ability to load data or choose from some sample datasets directly from the GUI:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/load_data.png)
+
+Here's the options at you disposal:
+* Load a CSV/TSV file by dragging a file to the dropzone in the top or select a file by clicking the dropzone
+* Load a CSV/TSV or JSON directly from the web by entering a URL (also throw in a proxy if you are using one)
+* Choose from one of our sample datasets:
+  * US COVID-19 data from NY Times (updated daily)
+  * Script breakdowns of popular shows Seinfeld & The Simpsons
+  * Movie dataset containing release date, director, actors, box office, reviews...
+  * Video games and their sales
+  * pandas.util.testing.makeTimeDataFrame
+
 
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
@@ -981,7 +1003,10 @@ Apply simple formats to numeric values in your grid
 |Date|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Formatting_date_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_date_formatting.png)|
 |String|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Formatting_string_apply.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Post_string_formatting.png)|
 
-Here's a grid of all the formats available with -123456.789 as input:
+For all data types you have the ability to change what string is ued for display.
+
+
+For numbers here's a grid of all the formats available with -123456.789 as input:
   
 | Format        | Output         |
 | ------------- |:--------------:|
@@ -991,6 +1016,10 @@ Here's a grid of all the formats available with -123456.789 as input:
 | Exponent      | -1e+5          |
 | BPS           | -1234567890BPS |
 | Red Negatives | <span style="color: red;">-123457</span>|
+
+For strings you can apply the follwoing formats:
+* **Truncation:** truncate long strings to a certain number of characters and replace with an allipses "..." and see the whole value on hover.
+* **Hyperlinks:** If your column is comprised of URL strings you can make them hyperlinks which will open a new tab
 
 #### Column Analysis
 Based on the data type of a column different charts will be shown.
