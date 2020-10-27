@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.19.2 (2020-10-25)
+* Documentation updates & better formatting of sample dataset buttons
+* bugfixes for loading empty dtale in a notebook and chart display in embedded app demo
+
 ### 1.19.1 (2020-10-24)
 * Load CSV/TSV/JSON from the web as well as some sample datasets
 * [#310](https://github.com/man-group/dtale/issues/310): handling for nan in ordinal & label encoders

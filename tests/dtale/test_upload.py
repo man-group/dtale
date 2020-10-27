@@ -153,11 +153,5 @@ def test_time_dataframe_dataset():
         with ExitStack() as stack:
             data = {}
             stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(
-                mock.patch(
-                    "dtale.datasets.makeTimeDataFrame",
-                    mock.Mock(return_value=pd.DataFrame(dict(time=[1]))),
-                )
-            )
             c.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))
-            assert data["1"].time.sum() == 1
+            assert data["1"]["A"].isnull().sum() == 0

@@ -463,7 +463,7 @@ Here's some details on what is going on here:
 
 Here is a link to the [source code](https://github.com/man-group/dtale/tree/master/docs/embedded_dtale) for a little more complex example of embedding D-Tale (the frontend leaves a lot to be disired though :rofl:).
 
-[![](http://img.youtube.com/vi/-WzeSPNeOrk/0.jpg)](http://www.youtube.com/watch?v=-WzeSPNeOrk "Embedded D-Tale")
+[![](http://img.youtube.com/vi/qOGkpcOSGNA/0.jpg)](http://www.youtube.com/watch?v=qOGkpcOSGNA "Embedded D-Tale")
 
 Hope this leads to lots of new ideas of how D-Tale can be used!
 
