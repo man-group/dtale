@@ -13,9 +13,14 @@
           width: calc(100% - 10px);
           height: calc(100% - 10px);
       }
-      iframe {
+      iframe.grid {
           width: 100%;
           height: calc(100% - 100px);
+          border: none;
+      }
+      iframe.chart {
+          height: 100%;
+          width: 100%;
           border: none;
       }
   </style>
@@ -39,7 +44,8 @@
   {% endif %}
   {% if data_exists %}
       <h3 style="padding-top: 10px">Data For: {{ names }}</h3>
-      <iframe src="/dtale/iframe/1"/>
+      <iframe class="grid" src="/dtale/iframe/1"></iframe>
+      <iframe class="chart" src="{{chart_url}}"></iframe>
   {% endif %}
  </body>
 </html>

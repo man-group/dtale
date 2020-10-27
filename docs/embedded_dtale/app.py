@@ -1,4 +1,4 @@
-import jinja2
+import json
 import os
 import pandas as pd
 import requests
@@ -90,7 +90,8 @@ def parse_player_df(content):
     int_cols = [c for c in df.columns if c not in str_cols + float_cols]
     df = df.astype({col: "int" for col in int_cols})
     df = df.astype({col: "float" for col in float_cols})
-    return df[["name"] + headers]
+    df.loc[:, "Season"] = df.index + 1
+    return df[["name", "Season"] + headers]
 
 
 def load_player_df(href):
@@ -111,10 +112,28 @@ def update_dtale_data(player_data):
     startup(data_id="1", data=player_data)
 
 
+def build_chart_url(names):
+    params = {
+        "chart_type": "line",
+        "x": "Season",
+        "y": json.dumps(["HR"]),
+        "group": json.dumps(["name"]),
+        "group_val": json.dumps([{"name": name} for name in names]),
+    }
+    return "/charts/1?{}".format(urllib.parse.urlencode(params))
+
+
 def load_data_props():
     instance = get_instance("1")
+
     if instance is not None:
-        return dict(names=", ".join(instance.data["name"].unique()), data_exists=True)
+        names = instance.data["name"].unique()
+        chart_url = build_chart_url(names)
+        return dict(
+            names=", ".join(instance.data["name"].unique()),
+            data_exists=True,
+            chart_url=chart_url,
+        )
     return dict(data_exists=False)
 
 

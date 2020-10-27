@@ -2,7 +2,6 @@ import pandas as pd
 import requests
 import zipfile
 
-from pandas.util.testing import makeTimeDataFrame
 from six import BytesIO
 
 
@@ -83,4 +82,11 @@ def movies():
 
 
 def time_dataframe():
-    return makeTimeDataFrame()
+    try:
+        from pandas._testing import makeTimeDataFrame
+
+        return makeTimeDataFrame()
+    except ImportError:
+        from pandas.util.testing import makeTimeDataFrame
+
+        return makeTimeDataFrame()

@@ -2787,6 +2787,8 @@ def test_302():
                 "/dtale/iframe",
                 "/dtale/popup/test",
                 "/favicon.ico",
+                "/dtale/iframe/popup/upload",
+                "/dtale/iframe/popup/describe/1",
             ]:
                 response = c.get(path)
                 assert (

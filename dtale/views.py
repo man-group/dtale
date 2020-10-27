@@ -950,6 +950,15 @@ def view_iframe(data_id=None):
     return _view_main(data_id, iframe=True)
 
 
+@dtale.route("/iframe/popup/<popup_type>")
+@dtale.route("/iframe/popup/<popup_type>/<data_id>")
+def iframe_popup(popup_type, data_id=None):
+    route = "/dtale/popup/{}".format(popup_type)
+    if data_id:
+        return redirect("{}/{}".format(route, data_id))
+    return redirect(route)
+
+
 @dtale.route("/popup/<popup_type>")
 @dtale.route("/popup/<popup_type>/<data_id>")
 def view_popup(popup_type, data_id=None):
