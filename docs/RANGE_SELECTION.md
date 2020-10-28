@@ -1,5 +1,7 @@
 # How Range Selection works in D-Tale
 
+[![](http://img.youtube.com/vi/DvJCpXbIfRg/0.jpg)](http://www.youtube.com/watch?v=DvJCpXbIfRg "Copy To Excel")
+
 ## How data is structured
 
 The main component used in D-Tale is a `MultiGrid` combined with an `InfiniteLoader` from the package `react-virtualized`.  Here is the structure of the data that is based into that `MultiGrid`:
