@@ -1,4 +1,5 @@
 import _ from "lodash";
+import $ from "jquery";
 import { combineReducers } from "redux";
 
 import { chartData } from "./chart";
@@ -124,6 +125,21 @@ function xarrayDim(state = {}, action = {}) {
   }
 }
 
+function darkMode(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("dark_mode"));
+    case "set-dark-mode":
+      $("body").addClass("dark-mode");
+      return true;
+    case "set-light-mode":
+      $("body").removeClass("dark-mode");
+      return false;
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -136,6 +152,7 @@ const dtaleStore = combineReducers({
   selectedToggle,
   xarray,
   xarrayDim,
+  darkMode,
 });
 
 export default { store: dtaleStore, getHiddenValue };

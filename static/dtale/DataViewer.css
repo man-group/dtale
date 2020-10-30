@@ -1,6 +1,5 @@
 .cell,
-.headerCell,
-.leftCell {
+.headerCell {
   width: 100%;
   height: 100%;
   display: flex;
@@ -12,8 +11,7 @@
   border-style: solid;
   border-color: rgba(170, 170, 170, 0.25);
 }
-.headerCell,
-.leftCell {
+.headerCell {
   font-weight: bold;
 }
 
@@ -73,7 +71,6 @@ body,
 .grid-menu {
   width: 50%;
   height: 50%;
-  background: white;
   border-bottom: 2px solid rgb(170, 170, 170);
   border-right: 2px solid rgb(170, 170, 170);
   text-align: center;

@@ -15,6 +15,7 @@ SETTINGS = {}
 METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
+DARK_MODE = {"dark_mode": False}
 
 
 def drop_punctuation(val):
@@ -153,6 +154,12 @@ def set_history(data_id, val):
     HISTORY[data_id] = val
 
 
+def set_dark_mode(dark_mode):
+    global DARK_MODE
+
+    DARK_MODE["dark_mode"] = dark_mode
+
+
 def cleanup(data_id=None):
     """
     Helper function for cleanup up state related to a D-Tale process with a specific port
@@ -263,7 +270,7 @@ def use_store(store_class, create_store):
         old_store.clear()
         return new_store
 
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY
+    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY, DARK_MODE
 
     DATA = convert(DATA, "DATA")
     DTYPES = convert(DTYPES, "DTYPES")
@@ -271,6 +278,7 @@ def use_store(store_class, create_store):
     METADATA = convert(METADATA, "METADATA")
     CONTEXT_VARIABLES = convert(CONTEXT_VARIABLES, "CONTEXT_VARIABLES")
     HISTORY = convert(HISTORY, "HISTORY")
+    DARK_MODE = convert(DARK_MODE, "DARK_MODE")
 
 
 def use_default_store():

@@ -60,7 +60,7 @@ class ReactDataViewer extends React.Component {
     this.setState(_.omit(state, ["formattingUpdate", "renameUpdate", "triggerBgResize"]), callback);
   }
 
-  componentDidUpdate(_prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     const gridState = ["sortInfo", "query", "columnFilters", "outlierFilters"];
     const refresh = !_.isEqual(_.pick(this.state, gridState), _.pick(prevState, gridState));
     if (!this.state.loading && prevState.loading) {
@@ -90,6 +90,14 @@ class ReactDataViewer extends React.Component {
     if (currWidth != prevWidth) {
       this.setState({ triggerResize: true });
       return;
+    }
+
+    if (prevProps.darkMode !== this.props.darkMode) {
+      this.setState({
+        styleBottomLeftGrid: {
+          ...gu.buildGridStyles(this.props).styleBottomLeftGrid,
+        },
+      });
     }
   }
 
@@ -263,10 +271,11 @@ ReactDataViewer.propTypes = {
   iframe: PropTypes.bool,
   closeColumnMenu: PropTypes.func,
   openChart: PropTypes.func,
+  darkMode: PropTypes.bool,
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe }) => ({ dataId, iframe }),
+  ({ dataId, iframe, darkMode }) => ({ dataId, iframe, darkMode }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),

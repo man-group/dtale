@@ -1,3 +1,40 @@
+body.dark-mode {
+  background-color: black !important;
+  color: white !important;
+}
+
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar {
+  border-color: white !important;
+  width: 10px !important;
+  height: 10px !important;
+}
+
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-track {
+  border: none !important;
+}
+
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-thumb {
+  background-color: white !important;
+  border-width: 0px;
+  border-radius: 5px !important;
+}
+
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-corner {
+  border-width: 0;
+}
+
+body.dark-mode .cell.editable:hover {
+  color: black;
+}
+
+body.dark-mode div.dz-message > span {
+  color: black;
+}
+
+body.dark-mode [class^='ico-'] {
+  color: #656c7e;
+}
+
 @charset "UTF-8";
 .logo--man-grail::before, .app-security__collapse-button::before, .btn-settings::before, .btn-hint::before, [class^='ico-']::before, .rejected .badge::before, .review .badge::before, .unapproved .badge::before, .cleared .badge::before, .approved .badge::before {
   display: inline-block;
