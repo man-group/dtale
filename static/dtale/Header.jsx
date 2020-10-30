@@ -8,6 +8,7 @@ import menuUtils from "../menuUtils";
 import bu from "./backgroundUtils";
 import { ignoreMenuClicks } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
+import { DataViewerMenuHolder } from "./menu/DataViewerMenuHolder";
 
 const SORT_CHARS = {
   ASC: String.fromCharCode("9650"),
@@ -17,39 +18,16 @@ const SORT_CHARS = {
 class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
-    this.renderMenu = this.renderMenu.bind(this);
   }
 
   shouldComponentUpdate(newProps) {
     return !_.isEqual(this.props, newProps);
   }
 
-  renderMenu() {
-    const { style, propagateState, menuOpen, rowCount } = this.props;
-    const activeCols = gu.getActiveCols(this.props);
-    const menuHandler = menuUtils.openMenu(
-      "gridActions",
-      () => propagateState({ menuOpen: true }),
-      () => propagateState({ menuOpen: false }),
-      "div.menu-toggle"
-    );
-    return (
-      <div style={style} className="menu-toggle">
-        <div className="crossed">
-          <div className={`grid-menu ${menuOpen ? "open" : ""}`} onClick={menuHandler}>
-            <span>&#8227;</span>
-          </div>
-          <div className="rows">{rowCount ? rowCount - 1 : 0}</div>
-          <div className="cols">{activeCols.length ? activeCols.length - 1 : 0}</div>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     const { columnIndex, style, sortInfo } = this.props;
     if (columnIndex == 0) {
-      return this.renderMenu();
+      return <DataViewerMenuHolder {...this.props} />;
     }
     const colCfg = gu.getCol(columnIndex, this.props);
     const colName = _.get(colCfg, "name");

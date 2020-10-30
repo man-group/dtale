@@ -37,6 +37,10 @@ function convertToXArray(callback) {
   };
 }
 
+function setDisplay(isDark) {
+  return dispatch => dispatch({ type: `set-${isDark ? "dark" : "light"}-mode` });
+}
+
 function isPopup() {
   return _.startsWith(window.location.pathname, "/dtale/popup");
 }
@@ -73,4 +77,5 @@ export default {
   convertToXArray,
   isPopup,
   getParams,
+  setDisplay,
 };

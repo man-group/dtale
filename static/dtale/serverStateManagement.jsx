@@ -152,6 +152,10 @@ function editCell(dataId, col, rowIndex, updated, callback) {
   );
 }
 
+function updateDisplay(darkMode, callback) {
+  fetchJson(buildURLString("/dtale/update-display", { darkMode }), callback);
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -167,4 +171,5 @@ export default {
   renameColumn,
   updateFormats,
   editCell,
+  updateDisplay,
 };

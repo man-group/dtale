@@ -37,3 +37,6 @@ jest_tmp
 
 # custom CLI loaders
 custom_loaders/
+
+# django test app
+docs/django_test/dtale_test/db.sqlite3
