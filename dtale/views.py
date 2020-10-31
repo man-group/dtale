@@ -31,6 +31,7 @@ from dtale.dash_application.charts import (
     chart_url_params,
     chart_url_querystring,
     export_chart,
+    export_png,
     export_chart_data,
     url_encode_func,
 )
@@ -2727,10 +2728,17 @@ def send_file(output, filename, content_type):
 @dtale.route("/chart-export/<data_id>")
 @exception_decorator
 def chart_export(data_id):
+    export_type = get_str_arg(request, "export_type")
     params = chart_url_params(request.args.to_dict())
-    html_str = export_chart(data_id, params)
-    filename = build_chart_filename(params["chart_type"])
-    return send_file(html_str, filename, "text/html")
+    if export_type == "png":
+        output = export_png(data_id, params)
+        filename = build_chart_filename(params["chart_type"], ext="png")
+        content_type = "image/png"
+    else:
+        output = export_chart(data_id, params)
+        filename = build_chart_filename(params["chart_type"])
+        content_type = "text/html"
+    return send_file(output, filename, content_type)
 
 
 @dtale.route("/chart-csv-export/<data_id>")

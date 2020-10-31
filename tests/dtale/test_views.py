@@ -2533,6 +2533,12 @@ def test_chart_exports(custom_data, state_data):
             )
             assert response.content_type == "text/html"
 
+            params["trendline"] = "ols"
+            response = c.get(
+                "/dtale/chart-export/{}".format(c.port), query_string=params
+            )
+            assert response.content_type == "text/html"
+
             response = c.get(
                 "/dtale/chart-csv-export/{}".format(c.port), query_string=params
             )
@@ -2665,6 +2671,39 @@ def test_chart_exports(custom_data, state_data):
                 "/dtale/chart-csv-export/{}".format(c.port), query_string=params
             )
             assert response.content_type == "text/csv"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
+def test_chart_png_export(custom_data, state_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(
+                mock.patch("dtale.global_state.DATA", {c.port: custom_data})
+            )
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(custom_data)},
+                )
+            )
+            write_image_mock = stack.enter_context(
+                mock.patch(
+                    "dtale.dash_application.charts.write_image", mock.MagicMock()
+                )
+            )
+
+            params = dict(
+                chart_type="heatmap",
+                x="date",
+                y=json.dumps(["security_id"]),
+                z="Col0",
+                export_type="png",
+            )
+            c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
+            assert write_image_mock.called
 
 
 @pytest.mark.unit
@@ -3113,7 +3152,6 @@ def test_save_column_filter(unittest, custom_data):
                     "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
                 )
             )
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             settings = {c.port: {}}
             stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
             response = c.get(
@@ -3297,3 +3335,26 @@ def test_build_dtypes_state(test_data):
 
     state = views.build_dtypes_state(test_data.set_index("security_id").T)
     assert all("min" not in r and "max" not in r for r in state)
+
+
+@pytest.mark.unit
+def test_update_display():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3, 4, 5]))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+
+            display = {"dark_mode": False}
+            stack.enter_context(mock.patch("dtale.global_state.DARK_MODE", display))
+
+            c.get("/dtale/update-display", query_string={"darkMode": True})
+            assert display["dark_mode"]
+            response = c.get("/dtale/main/{}".format(c.port))
+            assert '<body class="dark-mode">' in str(response.data)

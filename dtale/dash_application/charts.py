@@ -16,8 +16,8 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
-from plotly.io import write_html
-from six import PY3, StringIO, string_types
+from plotly.io import write_html, write_image
+from six import PY3, BytesIO, StringIO, string_types
 
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -175,6 +175,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
         base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
     elif chart_type == "treemap":
         base_props += ["treemap_value", "treemap_label", "treemap_group"]
+    elif chart_type == "scatter":
+        base_props += ["trendline"]
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
@@ -376,43 +378,91 @@ def chart_wrapper(data_id, data, url_params=None):
         def build_url(path, query):
             return fix_url_path("{}/{}/{}?{}".format(app_root, path, data_id, query))
 
-        popup_link = html.A(
-            [html.I(className="far fa-window-restore mr-4"), html.Span("Popup Chart")],
-            href=build_url("/charts", querystring),
-            target="_blank",
-            className="mr-5",
+        def build_hoverable(link, msg):
+            return html.Div(
+                [
+                    link,
+                    html.Div(
+                        msg,
+                        className="hoverable__content",
+                        style={"width": "max-content", "font-size": "80%"},
+                    ),
+                ],
+                className="hoverable",
+                style={"border-bottom": "none"},
+            )
+
+        popup_link = build_hoverable(
+            html.A(
+                html.I(className="far fa-window-restore mr-4"),
+                href=build_url("/charts", querystring),
+                target="_blank",
+                className="mr-5",
+            ),
+            "Popup Chart",
         )
         copy_link = html.Div(
             [
                 html.A(
-                    [html.I(className="ico-link mr-4"), html.Span("Copy Link")],
+                    html.I(className="ico-link mr-4"),
                     href=build_url("/charts", querystring),
                     target="_blank",
                     className="mr-5 copy-link-btn",
                 ),
                 html.Div(
-                    "Copied to clipboard", className="hoverable__content copy-tt-bottom"
+                    "Copied to clipboard",
+                    className="hoverable__click-content copy-tt-bottom",
+                    style={"width": "max-content", "font-size": "80%"},
+                ),
+                html.Div(
+                    "Copy Link",
+                    className="hoverable__content copy-tt-hide",
+                    style={"width": "max-content", "font-size": "80%"},
                 ),
             ],
             className="hoverable-click",
         )
-        code_snippet = html.A(
-            [html.I(className="ico-code mr-4"), html.Span("Code Export")],
-            href="#",
-            className="code-snippet-btn mr-5",
+        code_snippet = build_hoverable(
+            html.A(
+                html.I(className="ico-code mr-4"),
+                href="#",
+                className="code-snippet-btn mr-5",
+            ),
+            "Code Export",
         )
-        export_html_link = html.A(
-            [html.I(className="fas fa-file-code mr-4"), html.Span("Export Chart")],
-            href=build_url("/dtale/chart-export", querystring),
-            className="export-chart-btn mr-5",
+        export_html_link = build_hoverable(
+            html.A(
+                html.I(className="fas fa-file-code mr-4"),
+                href=build_url("/dtale/chart-export", querystring),
+                className="export-chart-btn mr-5",
+            ),
+            "Export Chart",
         )
-        export_csv_link = html.A(
-            [html.I(className="fas fa-file-csv mr-4"), html.Span("Export CSV")],
-            href=build_url("/dtale/chart-csv-export", querystring),
-            className="export-chart-btn",
+        export_png_link = build_hoverable(
+            html.A(
+                html.I(className="ico-photo-camera mr-4"),
+                href=build_url("/dtale/chart-export", querystring),
+                className="export-png-btn mr-5",
+            ),
+            "Export PNG",
+        )
+        export_csv_link = build_hoverable(
+            html.A(
+                html.I(className="fas fa-file-csv mr-4"),
+                href=build_url("/dtale/chart-csv-export", querystring),
+                className="export-chart-btn",
+            ),
+            "Export CSV",
         )
         links = html.Div(
-            [popup_link, copy_link, code_snippet, export_html_link, export_csv_link],
+            [
+                popup_link,
+                copy_link,
+                code_snippet,
+                export_html_link,
+                export_png_link,
+                export_csv_link,
+            ],
             style={"position": "absolute", "zIndex": 5},
         )
         return html.Div(
@@ -2863,6 +2913,14 @@ def export_chart(data_id, params):
     if params.get("chart_type") == "maps":
         return map_chart_post_processing(html_str, params)
     return html_str
+
+
+def export_png(data_id, params):
+    chart = build_raw_chart(data_id, export=True, **params)
+    image_buffer = BytesIO()
+    write_image(chart, file=image_buffer, format="png")
+    image_buffer.seek(0)
+    return image_buffer.getvalue()
 
 
 def map_chart_post_processing(html_str, params):

@@ -977,7 +977,7 @@ def test_chart_building_bar_and_popup(unittest):
             links_div = resp_data["chart-content"]["children"]["props"]["children"][0][
                 "props"
             ]["children"]
-            url = links_div[0]["props"]["href"]
+            url = links_div[0]["props"]["children"][0]["props"]["href"]
             assert url.startswith("/charts/{}?".format(c.port))
             url_params = dict(get_url_parser()(url.split("?")[-1]))
             unittest.assertEqual(
@@ -2273,7 +2273,7 @@ def test_chart_wrapper(unittest):
     cw = chart_wrapper("1", dict(min={"b": 4}, max={"b": 6}), url_params)
     output = cw("foo")
     url_params = chart_url_params(
-        "?{}".format(output.children[0].children[0].href.split("?")[-1])
+        "?{}".format(output.children[0].children[0].children[0].href.split("?")[-1])
     )
     unittest.assertEqual(
         url_params,
@@ -2300,7 +2300,7 @@ def test_chart_wrapper(unittest):
     cw = chart_wrapper("1", dict(min={"b": 4}, max={"b": 6}), url_params)
     output = cw("foo")
     url_params = chart_url_params(
-        "?{}".format(output.children[0].children[0].href.split("?")[-1])
+        "?{}".format(output.children[0].children[0].children[0].href.split("?")[-1])
     )
     unittest.assertEqual(
         url_params,

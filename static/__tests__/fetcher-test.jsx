@@ -1,28 +1,31 @@
 import _ from "lodash";
+import * as popsicle from "popsicle";
 
 import { expect, it } from "@jest/globals";
 
-import mockPopsicle from "./MockPopsicle";
 import { tick } from "./test-utils";
 
 describe("fetcher tests", () => {
-  beforeAll(() => {
-    jest.mock("popsicle", () =>
-      mockPopsicle.mock(() => {
-        throw "Exception test!";
-      })
-    );
+  let consoleErrorSpy, fetchSpy;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(global.console, "error");
+    consoleErrorSpy.mockImplementation(() => undefined);
+    fetchSpy = jest.spyOn(popsicle, "fetch");
+    fetchSpy.mockImplementation(async () => {
+      throw "Exception Test";
+    });
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    fetchSpy.mockRestore();
   });
 
   it("fetcher: testing exceptions", async () => {
     const { fetchJson } = require("../fetcher");
-    const errors = [];
-    global.console = {
-      log: global.console.log,
-      error: error => errors.push(error),
-    };
     fetchJson("url", _.noop);
     await tick();
-    expect(errors.length).toBe(3);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
   });
 });

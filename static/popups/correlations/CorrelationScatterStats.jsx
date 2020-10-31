@@ -21,7 +21,7 @@ class CorrelationScatterStats extends React.Component {
         .format("YYYY-MM-DD");
       dateStr = ` for ${startDate} thru ${this.props.date}`;
     }
-    return <b style={{ color: "black" }}>{`${col0} vs. ${col1}${dateStr}`}</b>;
+    return <b>{`${col0} vs. ${col1}${dateStr}`}</b>;
   }
 
   render() {

@@ -6,7 +6,6 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
-import { DataViewerMenu } from "../../dtale/menu/DataViewerMenu";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
@@ -54,6 +53,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
+    const { DataViewerMenu } = require("../../dtale/menu/DataViewerMenu");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -79,7 +79,7 @@ describe("DataViewer tests", () => {
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
         ["Correlations", "Charts", "Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers"],
         ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data"],
-        ["Refresh Widths", "About", "Shutdown"]
+        ["Refresh Widths", "About", "Display", "Reload Data", "Shutdown"]
       )
     );
     await tick();
