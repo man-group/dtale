@@ -5,8 +5,8 @@ body.dark-mode {
 
 body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar {
   border-color: white !important;
-  width: 10px !important;
-  height: 10px !important;
+  width: 5px !important;
+  height: 5px !important;
 }
 
 body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-track {
@@ -33,6 +33,14 @@ body.dark-mode div.dz-message > span {
 
 body.dark-mode [class^='ico-'] {
   color: #656c7e;
+}
+
+body.dark-mode div.background {
+  color: black;
+}
+
+body.dark-mode div.background:hover {
+  font-weight: bold;
 }
 
 @charset "UTF-8";
@@ -10129,7 +10137,8 @@ select.form-control:focus,
   }
 }
 
-.hoverable__content {
+.hoverable__content,
+.hoverable__click-content {
   -webkit-box-shadow: 0 0 0 1px rgba(101, 108, 126, 0.5) inset, 0 1px 3px 1px rgba(64, 64, 64, 0.2);
           box-shadow: 0 0 0 1px rgba(101, 108, 126, 0.5) inset, 0 1px 3px 1px rgba(64, 64, 64, 0.2);
   background: white;
@@ -10231,16 +10240,20 @@ li.hoverable:hover {
   text-decoration: none;
 }
 
-.hoverable:hover .hoverable__content {
+.hoverable:hover .hoverable__content,
+.hoverable-click:hover .hoverable__content {
   display: block;
 }
 
 .hoverable .hoverable__content,
-.hoverable-click .hoverable__content{
+.hoverable-click .hoverable__click-content,
+.hoverable-click .hoverable__content,
+.hoverable-click:visited .hoverable__content {
   display: none;
 }
 
-.hoverable__content {
+.hoverable__content,
+.hoverable__click-content {
   position: absolute;
   top: 100%;
   right: 0;
@@ -10294,7 +10307,8 @@ div.hoverable.label > div.hoverable__content {
   width: inherit;
 }
 
-.hoverable__content::before {
+.hoverable__content::before,
+.hoverable__click-content::before {
   position: absolute;
   right: 2em;
   bottom: 100%;
@@ -10336,7 +10350,8 @@ div.hoverable.label > div.hoverable__content {
     transform: rotate(180deg);
 }
 
-.hoverable__content::after {
+.hoverable__content::after,
+.hoverable__click-content::after {
   position: absolute;
   right: 2em;
   bottom: calc(100% - .1em);

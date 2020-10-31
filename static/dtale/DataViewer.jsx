@@ -95,7 +95,7 @@ class ReactDataViewer extends React.Component {
     if (prevProps.darkMode !== this.props.darkMode) {
       this.setState({
         styleBottomLeftGrid: {
-          ...gu.buildGridStyles(this.props).styleBottomLeftGrid,
+          ...gu.buildGridStyles(this.props.darkMode).styleBottomLeftGrid,
         },
       });
     }

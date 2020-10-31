@@ -85,6 +85,7 @@ setup(
         "flask-ngrok; python_version > '3.0'",
         "future >= 0.14.0",
         "itsdangerous",
+        "kaleido",
         "pandas",
         "requests",
         "scikit-learn >= '0.21.0",

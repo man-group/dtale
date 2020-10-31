@@ -15,6 +15,31 @@ const SORT_CHARS = {
   DESC: String.fromCharCode("9660"),
 };
 
+function buildMarkup(colCfg, colName, backgroundMode) {
+  let headerStyle = {};
+  let className = "";
+  let colNameMarkup = colName;
+  if (backgroundMode === "dtypes") {
+    const dtypeStyle = bu.dtypeHighlighting(colCfg);
+    headerStyle = _.assignIn(dtypeStyle, headerStyle);
+    colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
+    className = _.size(dtypeStyle) ? " background" : "";
+  }
+  if (backgroundMode === "missing" && colCfg.hasMissing) {
+    colNameMarkup = <div title={`Missing Values: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
+    className = " background";
+  }
+  if (backgroundMode === "outliers" && colCfg.hasOutliers) {
+    colNameMarkup = <div title={`Outliers: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
+    className = " background";
+  }
+  if (backgroundMode === "lowVariance" && colCfg.lowVariance) {
+    colNameMarkup = <div title={`Low Variance: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
+    className = " background";
+  }
+  return { headerStyle, colNameMarkup, className };
+}
+
 class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
@@ -41,25 +66,13 @@ class ReactHeader extends React.Component {
     );
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     let headerStyle = _.assignIn({}, style);
-    let colNameMarkup = colName;
-    if (this.props.backgroundMode === "dtypes") {
-      headerStyle = _.assignIn(bu.dtypeHighlighting(colCfg), headerStyle);
-      colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
-    }
-    if (this.props.backgroundMode === "missing" && colCfg.hasMissing) {
-      colNameMarkup = <div title={`Missing Values: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
-    }
-    if (this.props.backgroundMode === "outliers" && colCfg.hasOutliers) {
-      colNameMarkup = <div title={`Outliers: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
-    }
-    if (this.props.backgroundMode === "lowVariance" && colCfg.lowVariance) {
-      colNameMarkup = <div title={`Low Variance: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
-    }
+    const markupProps = buildMarkup(colCfg, colName, this.props.backgroundMode);
+    headerStyle = { ...headerStyle, ...markupProps.headerStyle };
     return (
-      <div className={`headerCell ${toggleId}`} style={headerStyle} onClick={menuHandler}>
+      <div className={`headerCell ${toggleId}${markupProps.className}`} style={headerStyle} onClick={menuHandler}>
         <div className="text-nowrap">
           {_.get(SORT_CHARS, sortDir, "")}
-          {colNameMarkup}
+          {markupProps.colNameMarkup}
         </div>
       </div>
     );

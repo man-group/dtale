@@ -25,6 +25,7 @@ function copy(e) {
   textCmp.select();
   document.execCommand("copy");
   e.target.focus();
+  $(e.target).parent().parent().find("div.copy-tt-hide").fadeOut(300).delay(300).fadeIn(450);
   $(e.target).parent().parent().find("div.copy-tt-bottom").fadeIn(300).delay(300).fadeOut(400);
 }
 
@@ -44,6 +45,10 @@ window.onload = function () {
       exportChart(e, target.attr("href"));
     } else if (target.parent().is("a.export-chart-btn")) {
       exportChart(e, target.parent().attr("href"));
+    } else if (target.is("a.export-png-btn")) {
+      exportChart(e, target.attr("href") + "&export_type=png");
+    } else if (target.parent().is("a.export-png-btn")) {
+      exportChart(e, target.parent().attr("href") + "&export_type=png");
     }
   });
 };

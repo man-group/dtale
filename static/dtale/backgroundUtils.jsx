@@ -125,24 +125,24 @@ const lowVarianceHighlighting = ({ name, lowVariance }) => {
   return { background: "rgb(255, 128, 128)" };
 };
 
-const updateBackgroundStyles = (state, valueStyle, colCfg, rec) => {
+const updateBackgroundStyles = (state, colCfg, rec) => {
   switch (state.backgroundMode) {
     case "heatmap-col":
-      return _.assignIn(heatMapBackground(rec, colCfg), valueStyle);
+      return heatMapBackground(rec, colCfg);
     case "heatmap-all":
-      return colCfg.name === gu.IDX ? valueStyle : _.assignIn(heatMapBackground(rec, state), valueStyle);
+      return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, state);
     case "dtypes":
-      return _.assignIn(dtypeHighlighting(colCfg), valueStyle);
+      return dtypeHighlighting(colCfg);
     case "missing":
-      return _.assignIn(missingHighlighting(colCfg, rec.view), valueStyle);
+      return missingHighlighting(colCfg, rec.view);
     case "outliers":
-      return _.assignIn(outlierHighlighting(colCfg, rec), valueStyle);
+      return outlierHighlighting(colCfg, rec);
     case "range":
-      return _.assign(rangeHighlighting(state, colCfg, rec), valueStyle);
+      return rangeHighlighting(state, colCfg, rec);
     case "lowVariance":
-      return _.assign(lowVarianceHighlighting(colCfg), valueStyle);
+      return lowVarianceHighlighting(colCfg);
     default:
-      return valueStyle;
+      return {};
   }
 };
 

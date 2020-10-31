@@ -11,6 +11,13 @@ import bu from "./backgroundUtils";
 import { exports as gu } from "./gridUtils";
 import { isInRange } from "./rangeSelectUtils";
 
+function buildStyle(rec, valueStyle, gridState, colCfg) {
+  const style = { ...valueStyle, ..._.get(rec, "style") };
+  const backgroundStyle = bu.updateBackgroundStyles(gridState, colCfg, rec);
+  const backgroundClass = _.size(backgroundStyle) ? " background" : "";
+  return { style: { ...style, ...backgroundStyle }, backgroundClass };
+}
+
 function buildCellClassName(props) {
   const { columnIndex, rowIndex, allowCellEdits, gridState } = props;
   let className = "cell";
@@ -19,13 +26,35 @@ function buildCellClassName(props) {
   className += isInRange(columnIndex, rowIndex, rangeSelect) ? " in-range" : "";
   return className;
 }
+
 class ReactGridCell extends React.Component {
   constructor(props) {
     super(props);
+    this.renderEdited = this.renderEdited.bind(this);
+  }
+
+  renderEdited() {
+    const { key, gridState, style, rowIndex, columnIndex, propagateState } = this.props;
+    const colCfg = gu.getCol(columnIndex, gridState);
+    const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
+    const cellStyle = _.assignIn({}, style, { padding: 0 });
+    const onMouseOver = () => {
+      const tt = $("#edit-tt");
+      const cell = $(this._ref);
+      const { top, left } = cell.position();
+      tt.css({ left: left + cell.width() + 85, top: top + 25 });
+      tt.show();
+    };
+    const onMouseOut = () => $("#edit-tt").hide();
+    return (
+      <div ref={r => (this._ref = r)} className="cell" {...{ key, style: cellStyle, onMouseOver, onMouseOut }}>
+        <GridCellEditor {...{ value: rec.raw, gridState, colCfg, propagateState, rowIndex }} />
+      </div>
+    );
   }
 
   render() {
-    const { columnIndex, key, rowIndex, style, gridState, editedCell, propagateState } = this.props;
+    const { columnIndex, key, rowIndex, style, gridState, editedCell } = this.props;
     if (rowIndex == 0) {
       return (
         <Header
@@ -40,31 +69,19 @@ class ReactGridCell extends React.Component {
     const colCfg = gu.getCol(columnIndex, gridState);
     const cellIdx = `${columnIndex}|${rowIndex}`;
     if (columnIndex > 0 && cellIdx === editedCell) {
-      const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
-      const cellStyle = _.assignIn({}, style, { padding: 0 });
-      const onMouseOver = () => {
-        const tt = $("#edit-tt");
-        const cell = $(this._ref);
-        const { top, left } = cell.position();
-        tt.css({ left: left + cell.width() + 85, top: top + 25 });
-        tt.show();
-      };
-      const onMouseOut = () => $("#edit-tt").hide();
-      return (
-        <div ref={r => (this._ref = r)} className="cell" {...{ key, style: cellStyle, onMouseOver, onMouseOut }}>
-          <GridCellEditor {...{ value: rec.raw, gridState, colCfg, propagateState, rowIndex }} />
-        </div>
-      );
+      return this.renderEdited();
     }
     let value = "-";
     // wide strings need to be displayed to the left so they are easier to read
     let valueStyle = style.width > 350 ? { textAlign: "left" } : {};
     const divProps = {};
+    let className = buildCellClassName(this.props);
     if (colCfg.name) {
       const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
-      valueStyle = { ...valueStyle, ..._.get(rec, "style") };
-      valueStyle = bu.updateBackgroundStyles(gridState, valueStyle, colCfg, rec);
+      const styleProps = buildStyle(rec, valueStyle, gridState, colCfg);
+      className = `${className}${styleProps.backgroundClass}`;
+      valueStyle = styleProps.style;
       if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
         divProps.title = rec.raw;
       }
@@ -78,7 +95,7 @@ class ReactGridCell extends React.Component {
       }
     }
     return (
-      <div key={key} className={buildCellClassName(this.props)} style={{ ...style, ...valueStyle }} {...divProps}>
+      <div key={key} className={className} style={{ ...style, ...valueStyle }} {...divProps}>
         {value}
       </div>
     );
