@@ -95,6 +95,8 @@ package index](https://pypi.org/project/dtale) and on conda using [conda-forge](
 ```sh
 # conda
 conda install dtale -c conda-forge
+# if you want to also use "Export to PNG" for charts
+conda install -c plotly python-kaleido
 ```
 
 ```sh

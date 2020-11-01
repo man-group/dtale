@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.20.0 (2020-11-1)
+* [#311](https://github.com/man-group/dtale/issues/311): png chart exports and fix for trandlines in exports
+* Added the option to switch grid to "Dark Mode"
+
 ### 1.19.2 (2020-10-25)
 * Documentation updates & better formatting of sample dataset buttons
 * bugfixes for loading empty dtale in a notebook and chart display in embedded app demo
