@@ -19,7 +19,6 @@ def test_overriden_route():
     def hello_world():
         return "hello world"
 
-    app._override_routes()
     with app.test_client() as c:
         resp = c.get("/")
         assert resp.data == b"hello world"
@@ -39,8 +38,6 @@ def test_failed_override():
         @app.route("/")
         def hello_world():
             return "hello world"
-
-        app._override_routes()
 
         with app.test_client() as c:
             resp = c.get("/")

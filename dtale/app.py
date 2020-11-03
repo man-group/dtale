@@ -139,20 +139,15 @@ class DtaleFlask(Flask):
             return fix_url_path("{}/{}".format(self.app_root, args[0]))
         return url_for(endpoint, *args, **kwargs)
 
-    def _override_routes(self, override_routes=None):
+    def _override_routes(self, rule):
         try:
-            final_override_routes = ["/"] + (override_routes or [])
-            for override_route in final_override_routes:
-                routes_to_remove = [
-                    r for r in self.url_map._rules if r.rule == override_route
+            routes_to_remove = [r for r in self.url_map._rules if r.rule == rule]
+            if routes_to_remove:
+                self.url_map._rules = [
+                    r
+                    for r in self.url_map._rules
+                    if not contains_route(routes_to_remove, r)
                 ]
-                if len(routes_to_remove) > 1:
-                    routes_to_remove = routes_to_remove[:-1]
-                    self.url_map._rules = [
-                        r
-                        for r in self.url_map._rules
-                        if not contains_route(routes_to_remove, r)
-                    ]
 
             self.url_map._remap = True
             self.url_map.update()
@@ -160,6 +155,10 @@ class DtaleFlask(Flask):
             logger.exception(
                 "Could not override routes, if you're trying to specify a route for '/' then it will be ignored..."
             )
+
+    def route(self, rule, **options):
+        self._override_routes(rule)
+        return super(DtaleFlask, self).route(rule, **options)
 
     def run(self, *args, **kwargs):
         """
@@ -173,7 +172,6 @@ class DtaleFlask(Flask):
             initialize_process_props(host, port_num)
             app_url = build_url(self.port, host)
             self._setup_url_props(app_url)
-            self._override_routes()
         if kwargs.get("debug", False):
             self.reaper_on = False
         self.build_reaper()
