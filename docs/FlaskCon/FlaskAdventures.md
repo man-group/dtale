@@ -168,7 +168,7 @@ class MyDash(dash.Dash):
 # "app" is our Flask instance from earlier
 with app.app_context():
 
-    dash_app = MyDash(server=app, routes_pathname='/charts/', eager_loading=True)
+    dash_app = MyDash(server=app, routes_pathname='/dtale/charts/', eager_loading=True)
     dash_app.config.suppress_callback_exceptions = True
     dash_app.layout = html.Div(
         [dcc.Location(id="url", refresh=False), html.Div(id="popup-content")]

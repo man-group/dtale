@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-import { AGGREGATION_OPTS } from "./Pivot";
+import { PIVOT_AGGS } from "../analysis/filters/Constants";
 
 function validateAggregateCfg(cfg) {
   const { index, agg } = cfg;
@@ -151,7 +151,7 @@ class Aggregate extends React.Component {
                   ref={r => (this._curr_agg_func = r)}
                   className="Select is-clearable is-searchable Select--single"
                   classNamePrefix="Select"
-                  options={AGGREGATION_OPTS}
+                  options={PIVOT_AGGS}
                   getOptionLabel={_.property("label")}
                   getOptionValue={_.property("value")}
                   isClearable
@@ -192,7 +192,7 @@ class Aggregate extends React.Component {
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={AGGREGATION_OPTS}
+                options={PIVOT_AGGS}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={_.get(this.state.agg, "func", null)}

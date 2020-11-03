@@ -93,7 +93,6 @@ def base_layout(app_root, **kwargs):
                         const pathSegs = window.location.pathname.split('/');
                         const dataId = pathSegs[pathSegs.length - 1];
                         const backToData = () => window.open('{app_root}/dtale/main/' + dataId);
-                        const goToLegacy = () => location.replace('{app_root}/dtale/popup/charts/' + dataId);
                     </script>
                     {renderer}
                     {css}

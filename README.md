@@ -1,9 +1,9 @@
 [![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Title.png)](https://github.com/man-group/dtale)
 
 * [Live Demo](http://alphatechadmin.pythonanywhere.com)
-* [Animated US COVID-19 Deaths By State](http://alphatechadmin.pythonanywhere.com/charts/3?chart_type=maps&query=date+%3E+%2720200301%27&agg=raw&map_type=choropleth&loc_mode=USA-states&loc=state_code&map_val=deaths&colorscale=Reds&cpg=false&animate_by=date)
-* [3D Scatter Chart](http://alphatechadmin.pythonanywhere.com/charts/4?chart_type=3d_scatter&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
-* [Surface Chart](http://alphatechadmin.pythonanywhere.com/charts/4?chart_type=surface&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
+* [Animated US COVID-19 Deaths By State](http://alphatechadmin.pythonanywhere.com/dtale/charts/3?chart_type=maps&query=date+%3E+%2720200301%27&agg=raw&map_type=choropleth&loc_mode=USA-states&loc=state_code&map_val=deaths&colorscale=Reds&cpg=false&animate_by=date)
+* [3D Scatter Chart](http://alphatechadmin.pythonanywhere.com/dtale/charts/4?chart_type=3d_scatter&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
+* [Surface Chart](http://alphatechadmin.pythonanywhere.com/dtale/charts/4?chart_type=surface&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
 
 -----------------
 

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { exports as gu } from "../../../dtale/gridUtils";
-import { AGGREGATION_OPTS } from "../../charts/Aggregations";
+import { AGGREGATION_OPTS } from "./Constants";
 import FilterSelect from "./FilterSelect";
 
 const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);

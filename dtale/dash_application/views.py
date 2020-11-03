@@ -100,7 +100,7 @@ def add_dash(server):
     """
 
     dash_app = DtaleDash(
-        server=server, routes_pathname_prefix="/charts/", eager_loading=True
+        server=server, routes_pathname_prefix="/dtale/charts/", eager_loading=True
     )
 
     # Since we're adding callbacks to elements that don't exist in the app.layout,

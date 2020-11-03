@@ -62,18 +62,18 @@ def test_toggle_modal():
                 {"id": "drilldown-toggle", "property": "on", "value": False},
             ],
         )
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
         params["state"][-1]["value"] = True
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
         params["state"][1]["value"]["agg"] = "mean"
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert not response.get_json()["response"]["drilldown-modal-1"]["is_open"]
         params["inputs"][-1]["value"] = {"points": []}
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json()["response"]["drilldown-modal-1"]["is_open"]
 
 
@@ -128,11 +128,11 @@ def test_build_x_dropdown():
                     {"id": "map-input-data", "property": "data", "value": {}},
                 ],
             )
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["inputs"][0]["value"] = True
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             response = response.get_json()["response"]["drilldown-x-dropdown-1"]
             assert len(response["options"]) == 11
             assert response["options"][0] == {"label": "a", "value": "a"}
@@ -145,7 +145,7 @@ def test_build_x_dropdown():
                 "loc": "a",
                 "map_val": "b",
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert (
                 response.get_json()["response"]["drilldown-x-dropdown-1"]["value"]
                 == "a"
@@ -157,7 +157,7 @@ def test_build_x_dropdown():
                 "lon": "b",
                 "map_val": "c",
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert (
                 response.get_json()["response"]["drilldown-x-dropdown-1"]["value"]
                 == "lat_lon"
@@ -217,15 +217,15 @@ def test_update_click_data():
                     {"id": "drilldown-toggle", "property": "on", "value": False},
                 ],
             )
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["state"][-1]["value"] = True
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["state"][1]["value"]["agg"] = "mean"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
 
@@ -233,7 +233,7 @@ def test_update_click_data():
             params["inputs"][0]["value"] = {
                 "points": [{"x": "x", "y": "y", "z": "z", "customdata": "customdata"}]
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             header = response.get_json()["response"]["drilldown-modal-header-1"][
                 "children"
             ]
@@ -253,7 +253,7 @@ def test_update_click_data():
                 ]
             }
             params["state"][1]["value"]["chart_type"] = "heatmap"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             header = response.get_json()["response"]["drilldown-modal-header-1"][
                 "children"
             ]
@@ -269,7 +269,7 @@ def test_update_click_data():
                 "loc": "b",
                 "map_val": "c",
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             header = response.get_json()["response"]["drilldown-modal-header-1"][
                 "children"
             ]
@@ -288,7 +288,7 @@ def test_update_click_data():
                 "lon": "e",
                 "map_val": "c",
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             header = response.get_json()["response"]["drilldown-modal-header-1"][
                 "children"
             ]
@@ -355,19 +355,19 @@ def test_load_drilldown_content(custom_data):
                     {"id": "drilldown-toggle", "property": "on", "value": False},
                 ],
             )
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["state"][-1]["value"] = True
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["state"][1]["value"]["agg"] = "mean"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert response.get_json() is None
             assert response.status_code == 204
             params["inputs"][-1]["value"] = "security_id"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             response = response.get_json()["response"]
             assert response["drilldown-content-1"]["children"] is None
             assert response["drilldown-x-input-1"]["style"]["display"] == "none"
@@ -382,13 +382,13 @@ def test_load_drilldown_content(custom_data):
                     }
                 ]
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             exception = print_traceback(
                 response, chart_key="drilldown-content-1", return_output=True
             )
             assert "NotImplementedError: chart type: None" in exception
             params["inputs"][-2]["value"] = "histogram"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
 
             def _chart_title(resp, histogram=False):
                 if histogram:
@@ -401,7 +401,7 @@ def test_load_drilldown_content(custom_data):
 
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
             params["inputs"][-2]["value"] = "histogram"
@@ -409,10 +409,10 @@ def test_load_drilldown_content(custom_data):
             params["state"][1]["value"]["y"] = "Col4"
             params["state"][1]["value"]["z"] = "Col0"
             params["state"][-2]["value"]["points"][0]["y"] = 4
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
             params["inputs"][-2]["value"] = "histogram"
@@ -433,10 +433,10 @@ def test_load_drilldown_content(custom_data):
                     }
                 ]
             }
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
             params["inputs"][-2]["value"] = "histogram"
@@ -448,10 +448,10 @@ def test_load_drilldown_content(custom_data):
             }
             params["state"][-2]["value"]["points"][0]["location"] = 100000
             params["state"][-2]["value"]["points"][0]["z"] = 1.23
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
             params["inputs"][-2]["value"] = "histogram"
@@ -463,8 +463,8 @@ def test_load_drilldown_content(custom_data):
             }
             params["state"][-2]["value"]["points"][0]["lat"] = 100000
             params["state"][-2]["value"]["points"][0]["lon"] = 4
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
             params["inputs"][-2]["value"] = "bar"
-            response = c.post("/charts/_dash-update-component", json=params)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
             assert _chart_title(response) == "Col0 by lat_lon (No Aggregation)"

@@ -19,7 +19,7 @@ function copy(e) {
   let chartLink = $(e.target).parent().attr("href");
   const webRoot = window.resourceBaseUrl;
   if (webRoot) {
-    chartLink = `${webRoot}/${chartLink}`;
+    chartLink = `${webRoot}${chartLink}`;
   }
   textCmp.value = `${window.location.origin}/${chartLink}`;
   textCmp.select();

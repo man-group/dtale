@@ -403,7 +403,7 @@ class DtaleData(object):
             barsort=barsort,
         )
         self.notebook(
-            route="/charts/",
+            route="/dtale/charts/",
             params=chart_url_querystring(params),
             width=width,
             height=height,

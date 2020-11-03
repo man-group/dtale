@@ -107,7 +107,7 @@ def test_ipython_notebook_funcs():
             x="col1", y="col2", group=["col3", "col4"], agg="count"
         )
         [path, query] = mock_iframe.call_args[0][0].split("?")
-        assert path == "http://localhost:9999/charts/9999"
+        assert path == "http://localhost:9999/dtale/charts/9999"
         assert dict(url_parser(query)) == dict(
             chart_type="line",
             agg="count",
