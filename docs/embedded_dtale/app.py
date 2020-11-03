@@ -120,7 +120,7 @@ def build_chart_url(names):
         "group": json.dumps(["name"]),
         "group_val": json.dumps([{"name": name} for name in names]),
     }
-    return "/charts/1?{}".format(urllib.parse.urlencode(params))
+    return "/dtale/charts/1?{}".format(urllib.parse.urlencode(params))
 
 
 def load_data_props():

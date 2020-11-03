@@ -3,21 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-const AGGREGATION_OPTS = [
-  { value: "count", label: "Count" },
-  { value: "nunique", label: "Unique Count" },
-  { value: "sum", label: "Sum" },
-  { value: "mean", label: "Mean" },
-  { value: "first", label: "First" },
-  { value: "last", label: "Last" },
-  { value: "median", label: "Median" },
-  { value: "min", label: "Minimum" },
-  { value: "max", label: "Maximum" },
-  { value: "std", label: "Standard Deviation" },
-  { value: "var", label: "Variance" },
-  { value: "mad", label: "Mean Absolute Deviation" },
-  { value: "prod", label: "Product of All Items" },
-];
+import { PIVOT_AGGS } from "../analysis/filters/Constants";
 
 function validatePivotCfg(cfg) {
   const { index, columns, values } = cfg;
@@ -55,7 +41,7 @@ class Pivot extends React.Component {
       index: null,
       columns: null,
       values: null,
-      aggfunc: _.find(AGGREGATION_OPTS, { value: "mean" }),
+      aggfunc: _.find(PIVOT_AGGS, { value: "mean" }),
       columnNameHeaders: false,
     };
     this.renderSelect = this.renderSelect.bind(this);
@@ -136,7 +122,7 @@ class Pivot extends React.Component {
             <Select
               className="Select is-clearable is-searchable Select--single"
               classNamePrefix="Select"
-              options={AGGREGATION_OPTS}
+              options={PIVOT_AGGS}
               getOptionLabel={_.property("label")}
               getOptionValue={_.property("value")}
               value={this.state.aggfunc}
@@ -155,4 +141,4 @@ Pivot.propTypes = {
   columns: PropTypes.array,
 };
 
-export { Pivot, validatePivotCfg, buildCode, AGGREGATION_OPTS };
+export { Pivot, validatePivotCfg, buildCode };

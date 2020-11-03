@@ -2776,8 +2776,8 @@ def test_200():
         "site-map",
         "version-info",
         "health",
-        "/charts/{port}",
-        "/charts/popup/{port}",
+        "/dtale/charts/{port}",
+        "/dtale/charts/popup/{port}",
         "/dtale/code-popup",
         "/missing-js",
         "images/fire.jpg",
@@ -2908,7 +2908,7 @@ def test_jinja_output():
             stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             response = c.get("/dtale/main/{}".format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
-            response = c.get("/charts/{}".format(c.port))
+            response = c.get("/dtale/charts/{}".format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
 
     with build_app(url=url).test_client() as c:

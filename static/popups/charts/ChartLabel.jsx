@@ -2,7 +2,7 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 
-import { AGGREGATION_OPTS, ROLLING_COMPS } from "./Aggregations";
+import { AGGREGATION_OPTS, ROLLING_COMPS } from "../analysis/filters/Constants";
 
 function buildLabel({ x, y, group, aggregation, rollingWindow, rollingComputation }) {
   const yLabel = _.join(_.map(y, "value"), ", ");

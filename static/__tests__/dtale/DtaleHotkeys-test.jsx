@@ -85,7 +85,7 @@ describe("DtaleHotkeys tests", () => {
     const chartsHandler = hotkeys.prop("handlers").CHARTS;
     chartsHandler();
     expect(window.open.mock.calls).toHaveLength(1);
-    expect(window.open.mock.calls[0][0]).toBe("/charts/1");
+    expect(window.open.mock.calls[0][0]).toBe("/dtale/charts/1");
   });
 
   it("calls openChart from redux", () => {

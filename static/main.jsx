@@ -13,7 +13,6 @@ import { ReactFilter as Filter } from "./popups/Filter";
 import Instances from "./popups/Instances";
 import { ReactUpload as Upload } from "./popups/Upload";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnAnalysis";
-import { ReactCharts as Charts } from "./popups/charts/Charts";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
 import { Describe } from "./popups/describe/Describe";
 import { ReactDuplicates as Duplicates } from "./popups/duplicates/Duplicates";
@@ -85,11 +84,8 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       rootNode = <CodeExport dataId={dataId} />;
       break;
     case "upload":
-      rootNode = <Upload chartData={{ visible: true }} />;
-      break;
-    case "charts":
     default:
-      rootNode = <Charts {...{ dataId, chartData }} />;
+      rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
   ReactDOM.render(rootNode, document.getElementById("popup-content"));

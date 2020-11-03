@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import Select, { createFilter } from "react-select";
 
-import { AGGREGATION_OPTS } from "../charts/Aggregations";
+import { AGGREGATION_OPTS } from "../analysis/filters/Constants";
 import ColumnSelect from "./ColumnSelect";
 
 function validateTransformCfg({ group, agg, col }) {

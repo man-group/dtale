@@ -215,7 +215,7 @@ describe("DataViewer iframe tests", () => {
     clickMainMenuButton(result, "Correlations");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations/1");
     clickMainMenuButton(result, "Charts");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/charts/1");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/charts/1");
     clickMainMenuButton(result, "Instances 1");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
     const exports = findMainMenuButton(result, "CSV", "div.btn-group");

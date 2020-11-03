@@ -5,7 +5,7 @@ import Select, { createFilter } from "react-select";
 
 import { RemovableError } from "../../RemovableError";
 import { exports as gu } from "../../dtale/gridUtils";
-import { AGGREGATION_OPTS } from "../charts/Aggregations";
+import { AGGREGATION_OPTS } from "../analysis/filters/Constants";
 
 function validateValueCfg(cfgs) {
   if (!_.size(cfgs)) {

@@ -21,7 +21,7 @@ def test_lock_zoom(unittest):
                 {"id": "chart-1", "property": "figure", "value": {}},
             ],
         )
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
 
@@ -60,7 +60,7 @@ def test_lock_zoom(unittest):
                 }
             },
         }
-        response = c.post("/charts/_dash-update-component", json=params)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
         unittest.assertEquals(
             response.get_json()["response"]["chart-1"]["figure"]["layout"]["scene"][
                 "camera"

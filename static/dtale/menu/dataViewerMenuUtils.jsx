@@ -78,7 +78,7 @@ function buildHotkeyHandlers(props) {
     FILTER: openPopup("filter", 500, 1100),
     BUILD: openPopup("build", 450, 770),
     DUPLICATES: openPopup("duplicates", 400, 770),
-    CHARTS: () => window.open(fullPath("/charts", dataId), "_blank"),
+    CHARTS: () => window.open(fullPath("/dtale/charts", dataId), "_blank"),
     CODE: openCodeExport,
   };
 }

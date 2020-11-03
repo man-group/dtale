@@ -395,7 +395,7 @@ def chart_wrapper(data_id, data, url_params=None):
         popup_link = build_hoverable(
             html.A(
                 html.I(className="far fa-window-restore mr-4"),
-                href=build_url("/charts", querystring),
+                href=build_url("/dtale/charts", querystring),
                 target="_blank",
                 className="mr-5",
             ),
@@ -405,7 +405,7 @@ def chart_wrapper(data_id, data, url_params=None):
             [
                 html.A(
                     html.I(className="ico-link mr-4"),
-                    href=build_url("/charts", querystring),
+                    href=build_url("/dtale/charts", querystring),
                     target="_blank",
                     className="mr-5 copy-link-btn",
                 ),
