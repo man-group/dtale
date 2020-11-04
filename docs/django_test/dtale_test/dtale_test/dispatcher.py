@@ -1,6 +1,7 @@
 from threading import Lock
 from werkzeug.wsgi import pop_path_info, peek_path_info
 
+
 class PathDispatcher(object):
 
     def __init__(self, default_app, create_app):
