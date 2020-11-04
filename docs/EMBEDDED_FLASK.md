@@ -1,6 +1,6 @@
-# How To Embed Within Your Own Flask App
+# How To Embed D-Tale Within Your Own Flask App
 
-So one of the nice features of D-Tale is that is it a Flask application.  And because that is the case it makes it easy to embed within your own Flask application.  Here's some sample code for a Flask app that embeds D-Tale inside it:
+One of the nice features of D-Tale is that is it a Flask application.  And because that is the case it makes it easy to embed within your own Flask application.  Here's some sample code for a Flask app that embeds D-Tale inside it:
 ```python
 from flask import redirect
 
@@ -68,4 +68,4 @@ Here is a link to the [source code](https://github.com/man-group/dtale/tree/mast
 
 [![](http://img.youtube.com/vi/qOGkpcOSGNA/0.jpg)](http://www.youtube.com/watch?v=qOGkpcOSGNA "Embedded D-Tale")
 
-Hope this leads to lots of new ideas of how D-Tale can be used! Support open-source by putting your :star: on this repo!
+Hope this leads to lots of new ideas of how D-Tale can be used! Please support open-source by putting your :star: on this repo!
