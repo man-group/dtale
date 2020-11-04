@@ -59,7 +59,8 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Startup with No Data](#startup-with-no-data)
   - [Command-line](#command-line)
   - [Custom Command-line Loaders](#custom-command-line-loaders)
-  - [Embedding Within Your Own Flask App](#embedding-within-your-own-flask-app)
+  - [Embedding Within Your Own Flask App](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_FLASK.md)
+  - [Embedding Within Your Own Django App](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_DJANGO.md)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
@@ -423,52 +424,6 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
-
-### Embedding Within Your Own Flask App
-
-So one of the nice features of D-Tale is that is it a Flask application.  And because that is the case it makes it easy to embed within your own Flask application.  Here's some sample code for a Flask app that embeds D-Tale inside it:
-```python
-from flask import redirect
-
-from dtale.app import build_app
-from dtale.views import startup
-
-if __name__ == '__main__':
-    app = build_app(reaper_on=False)
-
-    @app.route("/create-df")
-    def create_df():
-        df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6]))
-        instance = startup(data=df, ignore_duplicate=True)
-        return redirect(f"/dtale/main/{instance._data_id}", code=302)
-
-    @app.route("/")
-    def hello_world():
-        return 'Hi there, load data using <a href="/create-df">create-df</a>'
-
-    app.run(host="0.0.0.0", port=8080)
-```
-
-Here's some details on what is going on here:
-1. Instantiate the D-Tale application `build_app(reaper_on=False)` and take care to make sure the reaper is turned off (that way the app isn't killed after 60 minutes of inactivity)
-2. Add our own Flask routes, in this case we have `/create-df` & `/`
-  * So take a second to look at `/create-df` and how it calls `startup()`.  This stores data in the global state of D-Tale so it can be viewed
-  * We are not setting a `data_id` so this will automatically create one for us and assign that dataframe to it.
-  * If you want to just have one continuous piece of data that you can use this code:
-  ```python
-  cleanup("1")
-  startup(data_id="1",data=df)
-  ```
-  This will cleanup any data associated with the the data_id "1" and then assign the new data "df" in its place
-
-3. Start the application
-
-Here is a link to the [source code](https://github.com/man-group/dtale/tree/master/docs/embedded_dtale) for a little more complex example of embedding D-Tale (the frontend leaves a lot to be disired though :rofl:).
-
-[![](http://img.youtube.com/vi/qOGkpcOSGNA/0.jpg)](http://www.youtube.com/watch?v=qOGkpcOSGNA "Embedded D-Tale")
-
-Hope this leads to lots of new ideas of how D-Tale can be used!
-
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
