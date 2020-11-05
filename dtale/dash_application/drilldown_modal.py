@@ -18,8 +18,8 @@ from dtale.dash_application.layout.utils import (
     build_selections,
     AGGS,
 )
+from dtale.query import build_query
 from dtale.utils import (
-    build_query,
     classify_type,
     dict_merge,
     find_dtype,
@@ -27,9 +27,9 @@ from dtale.utils import (
     json_date,
     json_float,
     make_list,
-    run_query,
     get_dtypes,
 )
+from dtale.query import run_query
 from dtale.charts.utils import (
     MAX_GROUPS,
     ZAXIS_CHARTS,

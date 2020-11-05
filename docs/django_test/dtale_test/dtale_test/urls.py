@@ -19,7 +19,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('create-df/', views.create_df, name='create-df'),
-    path('admin/', admin.site.urls),
+    path("", views.index, name="index"),
+    path("create-df/", views.create_df, name="create-df"),
+    path("admin/", admin.site.urls),
 ]

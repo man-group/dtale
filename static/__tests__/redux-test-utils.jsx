@@ -213,7 +213,7 @@ function urlFetcher(url) {
       _.concat(
         ["/dtale/update-visibility", "/dtale/update-settings", "/dtale/update-locked", "/dtale/update-column-position"],
         ["/dtale/delete-col", "/dtale/edit-cell", "/dtale/update-formats", "/dtale/update-xarray-selection"],
-        ["/dtale/to-xarray", "/dtale/duplicates", "/dtale/web-upload", "/dtale/datasets", "/dtale/update-display"]
+        ["/dtale/to-xarray", "/dtale/duplicates", "/dtale/web-upload", "/dtale/datasets", "/dtale/update-theme"]
       ),
       prefix => _.startsWith(url, prefix)
     )

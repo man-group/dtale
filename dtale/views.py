@@ -36,10 +36,10 @@ from dtale.dash_application.charts import (
     url_encode_func,
 )
 from dtale.data_reshapers import DataReshaper
+from dtale.code_export import build_code_export
+from dtale.query import build_query, run_query
 from dtale.utils import (
     DuplicateDataError,
-    build_code_export,
-    build_query,
     build_shutdown_url,
     classify_type,
     dict_merge,
@@ -63,7 +63,6 @@ from dtale.utils import (
     jsonify_error,
     make_list,
     retrieve_grid_params,
-    run_query,
     running_with_flask_debug,
     running_with_pytest,
     sort_df_for_grid,
@@ -740,8 +739,6 @@ def startup(
     allow_cell_edits=True,
     inplace=False,
     drop_index=False,
-    hide_shutdown=False,
-    github_fork=False,
 ):
     """
     Loads and stores data globally
@@ -767,11 +764,6 @@ def startup(
     :type inplace: bool, optional
     :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
     :type drop_index: bool, optional
-    :param hide_shutdown: If true, this will hide the "Shutdown" button from users
-    :type hide_shutdown: bool, optional
-    :param github_fork: If true, this will display a "Fork Me On GitHub" ribbon in the upper right-hand corner of the
-                        app
-    :type github_fork: bool, optional
     """
 
     if (
@@ -804,8 +796,6 @@ def startup(
                 context_vars=context_vars,
                 ignore_duplicate=ignore_duplicate,
                 allow_cell_edits=allow_cell_edits,
-                hide_shutdown=hide_shutdown,
-                github_fork=github_fork,
             )
             global_state.set_dataset(instance._data_id, data)
             global_state.set_dataset_dim(instance._data_id, {})
@@ -861,9 +851,7 @@ def startup(
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         base_settings = dict(
             locked=curr_locked,
-            allow_cell_edits=allow_cell_edits,
-            hide_shutdown=hide_shutdown,
-            github_fork=github_fork,
+            allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
         )
         global_state.set_settings(data_id, base_settings)
         global_state.set_data(data_id, data)
@@ -888,6 +876,7 @@ def base_render_template(template, data_id, **kwargs):
     if not len(os.listdir("{}/static/dist".format(os.path.dirname(__file__)))):
         return redirect(current_app.url_for("missing_js"))
     curr_settings = global_state.get_settings(data_id) or {}
+    curr_app_settings = global_state.get_app_settings()
     _, version = retrieve_meta_info_and_version("dtale")
     return render_template(
         template,
@@ -898,10 +887,7 @@ def base_render_template(template, data_id, **kwargs):
         version=str(version),
         processes=len(global_state.get_data()),
         allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
-        hide_shutdown=global_state.load_flag(data_id, "hide_shutdown", False),
-        github_fork=global_state.load_flag(data_id, "github_fork", False),
-        dark_mode=global_state.DARK_MODE["dark_mode"],
-        **kwargs
+        **dict_merge(kwargs, curr_app_settings)
     )
 
 
@@ -1076,11 +1062,13 @@ def update_settings(data_id):
     return jsonify(dict(success=True))
 
 
-@dtale.route("/update-display")
+@dtale.route("/update-theme")
 @exception_decorator
-def update_display():
-    dark_mode = get_bool_arg(request, "darkMode")
-    global_state.set_dark_mode(dark_mode)
+def update_theme():
+    theme = get_str_arg(request, "theme")
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["theme"] = theme
+    global_state.set_app_settings(curr_app_settings)
     return jsonify(dict(success=True))
 
 

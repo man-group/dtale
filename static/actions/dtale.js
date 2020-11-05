@@ -37,8 +37,8 @@ function convertToXArray(callback) {
   };
 }
 
-function setDisplay(isDark) {
-  return dispatch => dispatch({ type: `set-${isDark ? "dark" : "light"}-mode` });
+function setTheme(theme) {
+  return dispatch => dispatch({ type: "set-theme", theme });
 }
 
 function isPopup() {
@@ -77,5 +77,5 @@ export default {
   convertToXArray,
   isPopup,
   getParams,
-  setDisplay,
+  setTheme,
 };

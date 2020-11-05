@@ -147,11 +147,15 @@ EXPORTS.calcColWidth = (
 EXPORTS.ROW_HEIGHT = 25;
 EXPORTS.HEADER_HEIGHT = 35;
 
-EXPORTS.buildGridStyles = (darkMode = false, headerHeight = EXPORTS.HEADER_HEIGHT) => ({
+EXPORTS.THEMES = ["light", "dark"];
+
+EXPORTS.isLight = theme => "light" === theme || !_.includes(EXPORTS.THEMES, theme);
+
+EXPORTS.buildGridStyles = (theme = "light", headerHeight = EXPORTS.HEADER_HEIGHT) => ({
   style: { border: "1px solid #ddd" },
   styleBottomLeftGrid: {
     borderRight: "2px solid #aaa",
-    backgroundColor: darkMode ? "inherit" : "#f7f7f7",
+    backgroundColor: EXPORTS.isLight(theme) ? "#f7f7f7" : "inherit",
   },
   styleTopLeftGrid: _.assignIn(
     { height: headerHeight },
@@ -201,7 +205,7 @@ EXPORTS.SORT_PROPS = [
 EXPORTS.buildToggleId = colName => `col-${_.join(_.split(colName, " "), "_")}-toggle`;
 
 EXPORTS.buildState = props => ({
-  ...EXPORTS.buildGridStyles(props.darkMode),
+  ...EXPORTS.buildGridStyles(props.theme),
   columnFormats: _.get(props, "settings.formats", {}),
   nanDisplay: _.get(props, "settings.nanDisplay"),
   overscanColumnCount: 0,

@@ -78,8 +78,6 @@ def test_startup(unittest):
             global_state.SETTINGS[instance._data_id],
             dict(
                 allow_cell_edits=True,
-                github_fork=False,
-                hide_shutdown=False,
                 locked=["date", "security_id"],
             ),
             "should lock index columns",
@@ -94,16 +92,12 @@ def test_startup(unittest):
             data=test_data,
             ignore_duplicate=True,
             allow_cell_edits=False,
-            github_fork=False,
-            hide_shutdown=False,
         )
         pdt.assert_frame_equal(instance.data, test_data)
         unittest.assertEqual(
             global_state.SETTINGS[instance._data_id],
             dict(
                 allow_cell_edits=False,
-                github_fork=False,
-                hide_shutdown=False,
                 locked=[],
             ),
             "no index = nothing locked",
@@ -117,8 +111,6 @@ def test_startup(unittest):
             global_state.SETTINGS[instance._data_id],
             dict(
                 allow_cell_edits=True,
-                github_fork=False,
-                hide_shutdown=False,
                 locked=["security_id"],
             ),
             "should lock index columns",
@@ -129,9 +121,7 @@ def test_startup(unittest):
         pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
         unittest.assertEqual(
             global_state.SETTINGS[instance._data_id],
-            dict(
-                allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]
-            ),
+            dict(allow_cell_edits=True, locked=[]),
             "should lock index columns",
         )
 
@@ -140,9 +130,7 @@ def test_startup(unittest):
         pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
         unittest.assertEqual(
             global_state.SETTINGS[instance._data_id],
-            dict(
-                allow_cell_edits=True, github_fork=False, hide_shutdown=False, locked=[]
-            ),
+            dict(allow_cell_edits=True, locked=[]),
             "should lock index columns",
         )
 
@@ -1144,7 +1132,7 @@ def test_variance(unittest):
     from dtale.views import build_dtypes_state, format_data
 
     with open(
-        "/../".join([os.path.dirname(__file__), "data/test_variance.json"]), "r"
+        os.path.join(os.path.dirname(__file__), "..", "data/test_variance.json"), "r"
     ) as f:
         expected = f.read()
         expected = json.loads(expected)
@@ -2779,6 +2767,7 @@ def test_200():
         "/dtale/charts/{port}",
         "/dtale/charts/popup/{port}",
         "/dtale/code-popup",
+        "/dtale/popup/upload",
         "/missing-js",
         "images/fire.jpg",
         "images/projections/miller.png",
@@ -2827,7 +2816,7 @@ def test_302():
                 "/dtale/popup/test",
                 "/favicon.ico",
                 "/dtale/iframe/popup/upload",
-                "/dtale/iframe/popup/describe/1",
+                "/dtale/iframe/popup/describe/{}".format(c.port),
             ]:
                 response = c.get(path)
                 assert (
@@ -2921,8 +2910,8 @@ def test_jinja_output():
             )
             stack.enter_context(
                 mock.patch(
-                    "dtale.global_state.SETTINGS",
-                    {c.port: {"locked": [], "github_fork": True}},
+                    "dtale.global_state.APP_SETTINGS",
+                    {"github_fork": True},
                 )
             )
             response = c.get("/dtale/main/{}".format(c.port))
@@ -3338,7 +3327,7 @@ def test_build_dtypes_state(test_data):
 
 
 @pytest.mark.unit
-def test_update_display():
+def test_update_theme():
     import dtale.views as views
 
     df, _ = views.format_data(pd.DataFrame([1, 2, 3, 4, 5]))
@@ -3351,10 +3340,12 @@ def test_update_display():
                 )
             )
 
-            display = {"dark_mode": False}
-            stack.enter_context(mock.patch("dtale.global_state.DARK_MODE", display))
+            app_settings = {"theme": "light"}
+            stack.enter_context(
+                mock.patch("dtale.global_state.APP_SETTINGS", app_settings)
+            )
 
-            c.get("/dtale/update-display", query_string={"darkMode": True})
-            assert display["dark_mode"]
+            c.get("/dtale/update-theme", query_string={"theme": "dark"})
+            assert app_settings["theme"]
             response = c.get("/dtale/main/{}".format(c.port))
             assert '<body class="dark-mode">' in str(response.data)

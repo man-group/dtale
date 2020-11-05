@@ -92,10 +92,10 @@ class ReactDataViewer extends React.Component {
       return;
     }
 
-    if (prevProps.darkMode !== this.props.darkMode) {
+    if (prevProps.theme !== this.props.theme) {
       this.setState({
         styleBottomLeftGrid: {
-          ...gu.buildGridStyles(this.props.darkMode).styleBottomLeftGrid,
+          ...gu.buildGridStyles(this.props.theme).styleBottomLeftGrid,
         },
       });
     }
@@ -271,11 +271,11 @@ ReactDataViewer.propTypes = {
   iframe: PropTypes.bool,
   closeColumnMenu: PropTypes.func,
   openChart: PropTypes.func,
-  darkMode: PropTypes.bool,
+  theme: PropTypes.string,
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe, darkMode }) => ({ dataId, iframe, darkMode }),
+  ({ dataId, iframe, theme }) => ({ dataId, iframe, theme }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),

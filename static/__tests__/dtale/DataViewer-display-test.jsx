@@ -49,7 +49,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "", darkMode: "True" }, store);
+    buildInnerHTML({ settings: "", theme: "dark" }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -70,17 +70,17 @@ describe("DataViewer tests", () => {
   const dataViewer = () => result.find(ReactDataViewer).instance();
 
   it("DataViewer: loads dark mode correct on inital render", async () => {
-    expect(dataViewer().props.darkMode).toBe(true);
+    expect(dataViewer().props.theme).toBe("dark");
     expect(dataViewer().state.styleBottomLeftGrid).toMatchObject({
       backgroundColor: "inherit",
     });
   });
 
   it("DataViewer: toggle dark mode", async () => {
-    const ReactDisplayOption = require("../../dtale/menu/DisplayOption").ReactDisplayOption;
-    result.find(ReactDisplayOption).find("button").first().simulate("click");
+    const ReactThemeOption = require("../../dtale/menu/ThemeOption").ReactThemeOption;
+    result.find(ReactThemeOption).find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(dataViewer().props.darkMode).toBe(false);
+    expect(dataViewer().props.theme).toBe("light");
     await tickUpdate(result);
     expect(dataViewer().state.styleBottomLeftGrid).toMatchObject({
       backgroundColor: "#f7f7f7",

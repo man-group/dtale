@@ -155,7 +155,7 @@ def custom_data(request):
 
 @pytest.fixture(scope="module")
 def state_data():
-    df = pd.read_csv("{}/data/state-codes.csv".format(os.path.dirname(__file__)))
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "data/state-codes.csv"))
     df.loc[:, "val"] = df.index.values
     df.loc[:, "cat"] = np.random.uniform(1, 20, len(df))
     return df

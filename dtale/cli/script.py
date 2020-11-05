@@ -27,7 +27,7 @@ logger = getLogger(__name__)
 @click.option(
     "--no-cell-edits",
     is_flag=True,
-    help="flag to turn off auto-reaping (process cleanup after period of inactivity",
+    help="flag to turn off cell editing in the grid",
 )
 @click.option(
     "--hide-shutdown", is_flag=True, help='flag to hide "Shutdown" button from users'
@@ -36,6 +36,12 @@ logger = getLogger(__name__)
     "--github-fork",
     is_flag=True,
     help='flag to show "Fork Me On GitHub" link in upper right-hand corner of the app',
+)
+@click.option(
+    "--theme",
+    default="light",
+    type=click.Choice(["light", "dark"]),
+    help='theme you would like used for D-Tale, the default is "light"',
 )
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
@@ -50,13 +56,13 @@ logger = getLogger(__name__)
 def main(
     host=None,
     port=None,
-    debug=False,
-    no_reaper=False,
+    debug=None,
+    no_reaper=None,
     open_browser=False,
     name=None,
-    no_cell_edits=False,
-    hide_shutdown=False,
-    github_fork=False,
+    no_cell_edits=None,
+    hide_shutdown=None,
+    github_fork=None,
     **kwargs
 ):
     """
@@ -72,6 +78,9 @@ def main(
 
     data_loader = check_loaders(kwargs)
 
+    # in order to handle the hierarchy of inputs if "--no-cell-edits" is not specified
+    # then we'll update it to None
+    allow_cell_edits = False if no_cell_edits is not None else None
     show(
         host=host,
         port=int(port or find_free_port()),
@@ -81,7 +90,7 @@ def main(
         reaper_on=not no_reaper,
         open_browser=open_browser,
         name=name,
-        allow_cell_edits=not no_cell_edits,
+        allow_cell_edits=allow_cell_edits,
         hide_shutdown=hide_shutdown,
         github_fork=github_fork,
         **kwargs

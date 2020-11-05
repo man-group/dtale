@@ -2,6 +2,7 @@ import copy
 
 import pandas as pd
 
+from dtale.query import run_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
@@ -13,7 +14,6 @@ from dtale.utils import (
     grid_formatter,
     json_int,
     make_list,
-    run_query,
     triple_quote,
 )
 

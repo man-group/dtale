@@ -1,7 +1,8 @@
 import pandas as pd
 
 import dtale.global_state as global_state
-from dtale.utils import make_list, run_query
+from dtale.query import run_query
+from dtale.utils import make_list
 
 
 def flatten_columns(df, columns=None):

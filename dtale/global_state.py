@@ -15,7 +15,11 @@ SETTINGS = {}
 METADATA = {}
 CONTEXT_VARIABLES = {}
 HISTORY = {}
-DARK_MODE = {"dark_mode": False}
+APP_SETTINGS = {
+    "theme": "light",
+    "github_fork": False,
+    "hide_shutdown": False,
+}
 
 
 def drop_punctuation(val):
@@ -106,6 +110,12 @@ def get_history(data_id=None):
     return HISTORY.get(data_id)
 
 
+def get_app_settings():
+    global APP_SETTINGS
+
+    return APP_SETTINGS
+
+
 def set_data(data_id, val):
     global DATA
 
@@ -154,10 +164,11 @@ def set_history(data_id, val):
     HISTORY[data_id] = val
 
 
-def set_dark_mode(dark_mode):
-    global DARK_MODE
+def set_app_settings(settings):
+    global APP_SETTINGS
 
-    DARK_MODE["dark_mode"] = dark_mode
+    for prop, val in settings.items():
+        APP_SETTINGS[prop] = val
 
 
 def cleanup(data_id=None):
@@ -270,7 +281,7 @@ def use_store(store_class, create_store):
         old_store.clear()
         return new_store
 
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY, DARK_MODE
+    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY, APP_SETTINGS
 
     DATA = convert(DATA, "DATA")
     DTYPES = convert(DTYPES, "DTYPES")
@@ -278,7 +289,7 @@ def use_store(store_class, create_store):
     METADATA = convert(METADATA, "METADATA")
     CONTEXT_VARIABLES = convert(CONTEXT_VARIABLES, "CONTEXT_VARIABLES")
     HISTORY = convert(HISTORY, "HISTORY")
-    DARK_MODE = convert(DARK_MODE, "DARK_MODE")
+    APP_SETTINGS = convert(APP_SETTINGS, "APP_SETTINGS")
 
 
 def use_default_store():

@@ -11,7 +11,7 @@ class ReactDataViewerMenuHolder extends React.Component {
   }
 
   render() {
-    const { style, propagateState, menuOpen, rowCount, darkMode, columns, backgroundMode } = this.props;
+    const { style, propagateState, menuOpen, rowCount, theme, columns, backgroundMode } = this.props;
     const activeCols = gu.getActiveCols({ columns, backgroundMode });
     const menuHandler = menuUtils.openMenu(
       "gridActions",
@@ -24,7 +24,10 @@ class ReactDataViewerMenuHolder extends React.Component {
         <div className="crossed">
           <div
             className={`grid-menu ${menuOpen ? "open" : ""}`}
-            style={{ background: darkMode ? "black" : "white" }}
+            style={{
+              background: gu.isLight(theme) ? "white" : "black",
+              color: gu.isLight(theme) ? "black" : "white",
+            }}
             onClick={menuHandler}>
             <span>&#8227;</span>
           </div>
@@ -38,7 +41,7 @@ class ReactDataViewerMenuHolder extends React.Component {
 ReactDataViewerMenuHolder.displayName = "ReactDataViewerMenuHolder";
 ReactDataViewerMenuHolder.propTypes = {
   style: PropTypes.object,
-  darkMode: PropTypes.bool,
+  theme: PropTypes.string,
   columns: PropTypes.arrayOf(PropTypes.object),
   backgroundMode: PropTypes.string,
   menuOpen: PropTypes.bool,
@@ -46,5 +49,5 @@ ReactDataViewerMenuHolder.propTypes = {
   propagateState: PropTypes.func,
 };
 
-const ReduxDataViewerMenuHolder = connect(({ darkMode }) => ({ darkMode }))(ReactDataViewerMenuHolder);
+const ReduxDataViewerMenuHolder = connect(({ theme }) => ({ theme }))(ReactDataViewerMenuHolder);
 export { ReduxDataViewerMenuHolder as DataViewerMenuHolder, ReactDataViewerMenuHolder };

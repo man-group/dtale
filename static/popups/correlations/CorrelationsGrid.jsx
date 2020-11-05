@@ -116,7 +116,7 @@ class CorrelationsGrid extends React.Component {
             </div>,
             <MultiGrid
               key={1}
-              {...gu.buildGridStyles(this.props.darkMode)}
+              {...gu.buildGridStyles(this.props.theme)}
               scrollToColumn={0}
               scrollToRow={0}
               cellRenderer={this._cellRenderer}
@@ -149,7 +149,7 @@ CorrelationsGrid.propTypes = {
   window: PropTypes.number,
   minPeriods: PropTypes.number,
   gridCode: PropTypes.string,
-  darkMode: PropTypes.bool,
+  theme: PropTypes.string,
 };
 
 export default CorrelationsGrid;

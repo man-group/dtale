@@ -19,7 +19,7 @@ URL = "http://localhost:40000"
 
 
 def build_upload_data(
-    fname="/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+    fname=os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
 ):
     with open(fname, "r") as f:
         data = f.read()

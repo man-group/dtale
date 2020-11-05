@@ -21,11 +21,11 @@ from dtale.dash_application.layout.utils import (
     FREQS,
     FREQ_LABELS,
 )
+from dtale.query import inner_build_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
     get_dtypes,
-    inner_build_query,
     is_app_root_defined,
     make_list,
 )

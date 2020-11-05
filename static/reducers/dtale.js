@@ -125,16 +125,14 @@ function xarrayDim(state = {}, action = {}) {
   }
 }
 
-function darkMode(state = false, action = {}) {
+function theme(state = "light", action = {}) {
   switch (action.type) {
     case "init-params":
-      return toBool(getHiddenValue("dark_mode"));
-    case "set-dark-mode":
-      $("body").addClass("dark-mode");
-      return true;
-    case "set-light-mode":
-      $("body").removeClass("dark-mode");
-      return false;
+      return getHiddenValue("theme");
+    case "set-theme":
+      $("body").removeClass(`${state}-mode`);
+      $("body").addClass(`${action.theme}-mode`);
+      return action.theme;
     default:
       return state;
   }
@@ -152,7 +150,7 @@ const dtaleStore = combineReducers({
   selectedToggle,
   xarray,
   xarrayDim,
-  darkMode,
+  theme,
 });
 
 export default { store: dtaleStore, getHiddenValue };
