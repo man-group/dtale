@@ -57,6 +57,11 @@ def test_view(unittest):
             assert 'input id="xarray" value="True"' not in str(response.data)
             assert 'input id="xarray_dim" value="{}"' not in str(response.data)
 
+            resp = c.get("/dtale/code-export/{}".format(c.port))
+            assert resp.status_code == 200
+            response_data = resp.json
+            assert response_data["success"]
+
             resp = c.get("/dtale/xarray-coordinates/{}".format(c.port))
             response_data = resp.json
             expected = [
@@ -92,6 +97,11 @@ def test_view(unittest):
             )
             assert resp.status_code == 200
             assert list(data[c.port].location.unique()) == ["IA", "IN", "IL"]
+
+            resp = c.get("/dtale/code-export/{}".format(c.port))
+            assert resp.status_code == 200
+            response_data = resp.json
+            assert response_data["success"]
 
     with app.test_client() as c:
         with ExitStack() as stack:

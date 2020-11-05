@@ -7,10 +7,12 @@ from dtale.views import startup
 
 
 def index(request):
-    return HttpResponse("""
+    return HttpResponse(
+        """
         <h1>Django/Flask Hybrid</h1>
         <span>Generate sample dataframe in D-Tale by clicking this </span><a href="/create-df">link</a>
-    """)
+    """
+    )
 
 
 def create_df(request):

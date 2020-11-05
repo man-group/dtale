@@ -41,7 +41,8 @@ from dtale.dash_application.layout.layout import (
 )
 from dtale.dash_application.layout.utils import show_style
 from dtale.dash_application.utils import get_data_id
-from dtale.utils import dict_merge, is_app_root_defined, make_list, run_query
+from dtale.query import run_query
+from dtale.utils import dict_merge, is_app_root_defined, make_list
 
 logger = getLogger(__name__)
 

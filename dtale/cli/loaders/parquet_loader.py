@@ -48,7 +48,7 @@ def find_loader(kwargs):
     parquet_opts = get_loader_options(LOADER_KEY, kwargs)
     if len([f for f in parquet_opts.values() if f]):
 
-        def _json_loader():
+        def _parquet_loader():
             parquet_arg_parsers = {}  # TODO: add additional arg parsers
             kwargs = {
                 k: parquet_arg_parsers.get(k, lambda v: v)(v)
@@ -56,5 +56,5 @@ def find_loader(kwargs):
             }
             return loader_func(**kwargs)
 
-        return _json_loader
+        return _parquet_loader
     return None

@@ -22,7 +22,7 @@
     #}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
-    <body class="{{'dark-mode' if dark_mode else ''}}">
+    <body class="{{ theme }}-mode">
         {% if github_fork %}
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/github_fork.css') }}" />
         <span id="forkongithub">
@@ -32,12 +32,13 @@
         <input type="hidden" id="data_id" value="{{data_id}}" />
         <input type="hidden" id="xarray" value="{{xarray}}" />
         <input type="hidden" id="xarray_dim" value="{{xarray_dim}}" />
+        <input type="hidden" id="app_settings" value="{{app_settings}}" />
         <input type="hidden" id="settings" value="{{settings}}" />
         <input type="hidden" id="version" value="{{version}}" />
         <input type="hidden" id="hide_shutdown" value="{{hide_shutdown}}" />
         <input type="hidden" id="allow_cell_edits" value="{{allow_cell_edits}}" />
         <input type="hidden" id="processes" value={{processes}} />
-        <input type="hidden" id="dark_mode" value="{{dark_mode}}" />
+        <input type="hidden" id="theme" value="{{theme}}" />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

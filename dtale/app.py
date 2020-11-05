@@ -23,6 +23,7 @@ from flask_compress import Compress
 from six import PY3
 
 import dtale.global_state as global_state
+import dtale.config as dtale_config
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
 from dtale.utils import (
@@ -542,6 +543,8 @@ def find_free_port():
 
 
 def build_startup_url_and_app_root(app_root=None):
+    global ACTIVE_HOST, ACTIVE_PORT, JUPYTER_SERVER_PROXY, USE_COLAB
+
     if USE_COLAB:
         colab_host = use_colab(ACTIVE_PORT)
         if colab_host:
@@ -571,28 +574,7 @@ def use_colab(port):
         return None
 
 
-def show(
-    data=None,
-    host=None,
-    port=None,
-    name=None,
-    debug=False,
-    subprocess=True,
-    data_loader=None,
-    reaper_on=True,
-    open_browser=False,
-    notebook=False,
-    force=False,
-    context_vars=None,
-    ignore_duplicate=False,
-    app_root=None,
-    allow_cell_edits=True,
-    inplace=False,
-    drop_index=False,
-    hide_shutdown=False,
-    github_fork=False,
-    **kwargs
-):
+def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     """
     Entry point for kicking off D-Tale :class:`flask:flask.Flask` process from python process
 
@@ -654,11 +636,12 @@ def show(
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK, USE_COLAB, JUPYTER_SERVER_PROXY
+    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK
 
     try:
+        final_options = dtale_config.build_show_options(options)
         logfile, log_level, verbose = map(
-            kwargs.get, ["logfile", "log_level", "verbose"]
+            final_options.get, ["logfile", "log_level", "verbose"]
         )
         setup_logging(logfile, log_level or "info", verbose)
 
@@ -673,28 +656,30 @@ def show(
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
         else:
-            initialize_process_props(host, port, force)
+            initialize_process_props(
+                final_options["host"], final_options["port"], final_options["force"]
+            )
 
         app_url = build_url(ACTIVE_PORT, ACTIVE_HOST)
-        startup_url, final_app_root = build_startup_url_and_app_root(app_root)
+        startup_url, final_app_root = build_startup_url_and_app_root(
+            final_options["app_root"]
+        )
         instance = startup(
             startup_url,
             data=data,
             data_loader=data_loader,
             name=name,
             context_vars=context_vars,
-            ignore_duplicate=ignore_duplicate,
-            allow_cell_edits=allow_cell_edits,
-            inplace=inplace,
-            drop_index=drop_index,
-            hide_shutdown=hide_shutdown,
-            github_fork=github_fork,
+            ignore_duplicate=final_options["ignore_duplicate"],
+            allow_cell_edits=final_options["allow_cell_edits"],
+            inplace=final_options["inplace"],
+            drop_index=final_options["drop_index"],
         )
         is_active = not running_with_flask_debug() and is_up(app_url)
         if is_active:
 
             def _start():
-                if open_browser:
+                if final_options["open_browser"]:
                     instance.open_browser()
 
         else:
@@ -706,17 +691,17 @@ def show(
             def _start():
                 app = build_app(
                     app_url,
-                    reaper_on=reaper_on,
+                    reaper_on=final_options["reaper_on"],
                     host=ACTIVE_HOST,
                     app_root=final_app_root,
                 )
-                if debug and not USE_NGROK:
+                if final_options["debug"] and not USE_NGROK:
                     app.jinja_env.auto_reload = True
                     app.config["TEMPLATES_AUTO_RELOAD"] = True
                 else:
                     getLogger("werkzeug").setLevel(LOG_ERROR)
 
-                if open_browser:
+                if final_options["open_browser"]:
                     instance.open_browser()
 
                 # hide banner message in production environments
@@ -728,16 +713,19 @@ def show(
                     app.run(threaded=True)
                 else:
                     app.run(
-                        host="0.0.0.0", port=ACTIVE_PORT, debug=debug, threaded=True
+                        host="0.0.0.0",
+                        port=ACTIVE_PORT,
+                        debug=final_options["debug"],
+                        threaded=True,
                     )
 
-        if subprocess:
+        if final_options["subprocess"]:
             if is_active:
                 _start()
             else:
                 _thread.start_new_thread(_start, ())
 
-            if notebook:
+            if final_options["notebook"]:
                 instance.notebook()
         else:
             logger.info("D-Tale started at: {}".format(app_url))

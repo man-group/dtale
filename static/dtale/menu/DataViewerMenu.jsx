@@ -10,11 +10,11 @@ import { openChart } from "../../actions/charts";
 import bu from "../backgroundUtils";
 import Descriptions from "../menu-descriptions.json";
 import DescribeOption from "./DescribeOption";
-import { DisplayOption } from "./DisplayOption";
 import DuplicatesOption from "./DuplicatesOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
 import RangeHighlightOption from "./RangeHighlightOption";
+import { ThemeOption } from "./ThemeOption";
 import UploadOption from "./UploadOption";
 import { XArrayOption } from "./XArrayOption";
 import menuFuncs from "./dataViewerMenuUtils";
@@ -232,7 +232,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.about}</div>
           </li>
-          <DisplayOption />
+          <ThemeOption />
           <li>
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={() => window.location.reload()}>

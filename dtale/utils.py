@@ -15,9 +15,7 @@ from flask import jsonify as _jsonify
 import numpy as np
 import pandas as pd
 from past.utils import old_div
-from six import PY3, StringIO
-
-import dtale.global_state as global_state
+from six import StringIO
 
 logger = getLogger(__name__)
 
@@ -683,66 +681,6 @@ def divide_chunks(lst, n):
         yield lst[i : i + n]
 
 
-def build_query(data_id, query=None):
-    curr_settings = global_state.get_settings(data_id) or {}
-    return inner_build_query(curr_settings, query)
-
-
-def inner_build_query(settings, query=None):
-    query_segs = []
-    for p in ["columnFilters", "outlierFilters"]:
-        curr_filters = settings.get(p) or {}
-        for col, filter_cfg in curr_filters.items():
-            query_segs.append(filter_cfg["query"])
-    if query not in [None, ""]:
-        query_segs.append(query)
-    return " and ".join(query_segs)
-
-
-def run_query(df, query, context_vars=None, ignore_empty=False):
-    """
-    Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
-    handle when column names contain special characters.  Looks like pandas will be handling this in a future
-    version: https://github.com/pandas-dev/pandas/issues/27017
-
-    The logic to handle these special characters in the meantime is only available in Python 3+
-
-    :param df: input dataframe
-    :type df: :class:`pandas:pandas.DataFrame`
-    :param query: query string
-    :type query: str
-    :param context_vars: dictionary of user-defined variables which can be referenced by name in query strings
-    :type context_vars: dict, optional
-    :return: filtered dataframe
-    """
-    if (query or "") == "":
-        return df
-
-    # https://stackoverflow.com/a/40083013/12616360 only supporting filter cleanup for python 3+
-    if PY3:
-        invalid_column_names = [x for x in df.columns.values if not x.isidentifier()]
-
-        # Make replacements in the query and keep track
-        # NOTE: This method fails if the frame has columns called REPL_0 etc.
-        replacements = dict()
-        final_query = str(query)
-        for cn in invalid_column_names:
-            r = "REPL_{}".format(str(invalid_column_names.index(cn)))
-            final_query = final_query.replace(cn, r)
-            replacements[cn] = r
-
-        inv_replacements = {replacements[k]: k for k in replacements.keys()}
-        df = df.rename(columns=replacements)
-        df = df.query(final_query, local_dict=context_vars or {})
-        df = df.rename(columns=inv_replacements)
-    else:
-        df = df.query(query, local_dict=context_vars or {})
-
-    if not len(df) and not ignore_empty:
-        raise Exception('query "{}" found no data, please alter'.format(query))
-    return df
-
-
 class DuplicateDataError(Exception):
     """
     Exception for signalling that similar data is trying to be loaded to D-Tale again.  Is this correct?
@@ -755,94 +693,6 @@ class DuplicateDataError(Exception):
 
 def triple_quote(val):
     return '"""{}"""'.format(val)
-
-
-def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
-    """
-    Helper function for building a string representing the code that was run to get the data you are viewing to that
-    point.
-
-    :param data_id: integer string identifier for a D-Tale process's data
-    :type data_id: str
-    :param imports: string representing the imports at the top of the code string
-    :type imports: string, optional
-    :param query: pandas dataframe query string
-    :type query: str, optional
-    :return: python code string
-    """
-    history = global_state.get_history(data_id) or []
-    settings = global_state.get_settings(data_id) or {}
-    ctxt_vars = global_state.get_context_variables(data_id)
-
-    startup_code = settings.get("startup_code") or ""
-    if startup_code and not startup_code.endswith("\n"):
-        startup_code += "\n"
-    xarray_setup = ""
-    if data_id in global_state.DATASETS:
-        xarray_dims = global_state.get_dataset_dim(data_id)
-        if len(xarray_dims):
-            xarray_setup = (
-                "df = ds.sel({selectors}).to_dataframe()\n"
-                "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-                "df = df.set_index(list(ds.dims.keys()))\n"
-            ).format(
-                selectors=", ".join(
-                    "{}='{}'".format(k, v) for k, v in xarray_dims.items()
-                )
-            )
-        else:
-            xarray_setup = (
-                "df = ds.to_dataframe()\n"
-                "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-                "df = df.set_index(list(ds.dims.keys()))\n"
-            )
-    startup_str = (
-        "# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'\n\n"
-        "{imports}"
-        "{xarray_setup}"
-        "{startup}"
-        "if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):\n"
-        "\tdf = df.to_frame(index=False)\n\n"
-        "# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required\n"
-        "df = df.reset_index().drop('index', axis=1, errors='ignore')\n"
-        "df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers\n"
-    ).format(imports=imports, xarray_setup=xarray_setup, startup=startup_code)
-    final_history = [startup_str] + history
-    final_query = query
-    if final_query is None:
-        final_query = settings.get("query")
-
-    if final_query is not None and final_query != "":
-        if len(ctxt_vars or {}):
-            final_history.append(
-                (
-                    "\n# this is injecting any context variables you may have passed into 'dtale.show'\n"
-                    "import dtale.global_state as dtale_global_state\n"
-                    "\n# DISCLAIMER: running this line in a different process than the one it originated will produce\n"
-                    "#             differing results\n"
-                    "ctxt_vars = dtale_global_state.get_context_variables('{data_id}')\n\n"
-                    "df = df.query({query}, local_dict=ctxt_vars)\n"
-                ).format(query=triple_quote(final_query), data_id=data_id)
-            )
-        else:
-            final_history.append(
-                "df = df.query({})\n".format(triple_quote(final_query))
-            )
-    elif settings.get("query"):
-        final_history.append(
-            "df = df.query({})\n".format(triple_quote(settings["query"]))
-        )
-    if "sort" in settings:
-        cols, dirs = [], []
-        for col, dir in settings["sort"]:
-            cols.append(col)
-            dirs.append("True" if dir == "ASC" else "False")
-        final_history.append(
-            "df = df.sort_values(['{cols}'], ascending=[{dirs}])\n".format(
-                cols=", ".join(cols), dirs="', '".join(dirs)
-            )
-        )
-    return final_history
 
 
 def export_to_csv_buffer(data, tsv=False):

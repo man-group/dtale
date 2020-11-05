@@ -21,7 +21,7 @@ def test_main(builtin_pkg):
 
     props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
-        csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = ["--host", "test", "--port", "9999", "--csv-path", csv_path]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
@@ -41,7 +41,7 @@ def test_main(builtin_pkg):
         mock_find_free_port = stack.enter_context(
             mock.patch("dtale.cli.script.find_free_port", mock.Mock(return_value=9999))
         )
-        csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = ["--csv-path", csv_path, "--debug", "--no-reaper"]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
@@ -60,7 +60,7 @@ def test_main(builtin_pkg):
         )
 
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
-        json_path = "/../".join([os.path.dirname(__file__), "data/test_df.json"])
+        json_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.json")
         args = ["--host", "test", "--port", "9999", "--json-path", json_path]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
@@ -75,6 +75,28 @@ def test_main(builtin_pkg):
         df = data_loader()
         pdt.assert_frame_equal(
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load json"
+        )
+
+    with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
+        parquet_path = os.path.join(
+            os.path.dirname(__file__), "..", "data/test_df.parquet"
+        )
+        args = ["--host", "test", "--port", "9999", "--parquet-path", parquet_path]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        assert host == "test"
+        assert not subprocess
+        assert not debug
+        assert port == 9999
+        assert reaper_on
+        assert data_loader is not None
+        df = data_loader()
+        pdt.assert_frame_equal(
+            df,
+            pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])),
+            "loader should load parquet",
         )
 
 
@@ -257,7 +279,7 @@ def test_arctic_version_data(builtin_pkg):
 def test_run():
     props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
     with ExitStack() as stack:
-        csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = [
             "dtale.cli.py",
             "--host",
@@ -287,7 +309,7 @@ def test_run():
         assert mock_exit.called_with(0)
 
     with ExitStack() as stack:
-        csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = [
             "dtale.cli.py",
             "--host",
@@ -318,7 +340,7 @@ def test_run():
 @pytest.mark.unit
 def test_custom_cli_loaders():
 
-    custom_loader_path = "/../".join([os.path.dirname(__file__), "data"])
+    custom_loader_path = os.path.join(os.path.dirname(__file__), "..", "data")
     os.environ["DTALE_CLI_LOADERS"] = custom_loader_path
 
     reload(loaders)

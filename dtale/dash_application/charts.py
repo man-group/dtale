@@ -47,8 +47,9 @@ from dtale.dash_application.layout.layout import (
 )
 from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
 from dtale.dash_application.topojson_injections import INJECTIONS
+from dtale.query import run_query
+from dtale.code_export import build_code_export
 from dtale.utils import (
-    build_code_export,
     classify_type,
     dict_merge,
     divide_chunks,
@@ -59,7 +60,6 @@ from dtale.utils import (
     flatten_lists,
     get_dtypes,
     make_list,
-    run_query,
     triple_quote,
 )
 

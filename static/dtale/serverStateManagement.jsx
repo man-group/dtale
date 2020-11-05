@@ -152,8 +152,8 @@ function editCell(dataId, col, rowIndex, updated, callback) {
   );
 }
 
-function updateDisplay(darkMode, callback) {
-  fetchJson(buildURLString("/dtale/update-display", { darkMode }), callback);
+function updateTheme(theme, callback) {
+  fetchJson(buildURLString("/dtale/update-theme", { theme }), callback);
 }
 
 export default {
@@ -171,5 +171,5 @@ export default {
   renameColumn,
   updateFormats,
   editCell,
-  updateDisplay,
+  updateTheme,
 };

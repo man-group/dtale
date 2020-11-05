@@ -1,11 +1,11 @@
 import pandas as pd
 
 import dtale.global_state as global_state
+from dtale.query import run_query
 from dtale.utils import (
     dict_merge,
     grid_columns,
     grid_formatter,
-    run_query,
     triple_quote,
 )
 from dtale.charts.utils import build_group_inputs_filter

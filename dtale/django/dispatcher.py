@@ -3,7 +3,6 @@ from werkzeug.wsgi import pop_path_info, peek_path_info
 
 
 class PathDispatcher(object):
-
     def __init__(self, default_app, create_app):
         self.default_app = default_app
         self.create_app = create_app

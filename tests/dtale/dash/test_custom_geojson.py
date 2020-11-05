@@ -21,7 +21,7 @@ app = build_app(url=URL)
 
 
 def build_geojson_data(
-    fname="/../../".join([os.path.dirname(__file__), "data/USA.json"])
+    fname=os.path.join(os.path.dirname(__file__), "../..", "data/USA.json")
 ):
     with open(fname, "r") as f:
         data = f.read()

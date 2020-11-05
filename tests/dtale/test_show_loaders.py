@@ -15,7 +15,7 @@ else:
 def test_show_csv():
     import dtale
 
-    csv_path = "/../".join([os.path.dirname(__file__), "data/test_df.csv"])
+    csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
 
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.csv_loader.show", mock_show):
@@ -50,7 +50,7 @@ def test_show_csv():
 def test_show_json():
     import dtale
 
-    json_path = "/../".join([os.path.dirname(__file__), "data/test_df.json"])
+    json_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.json")
 
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.json_loader.show", mock_show):
@@ -95,7 +95,7 @@ def test_show_json():
 def test_show_parquet():
     import dtale
 
-    parquet_path = "/../".join([os.path.dirname(__file__), "data/test_df.parquet"])
+    parquet_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.parquet")
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.parquet_loader.show", mock_show):
         dtale.show_parquet(path=parquet_path)

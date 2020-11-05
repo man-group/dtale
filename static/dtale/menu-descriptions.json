@@ -20,5 +20,5 @@
   "xarray_conversion": "Convert your pandas.Dataframe to an xarray.Dataset by selecting columns as an index. Once this is complete you'll be able to view different slices of your data by choosing index values.",
   "upload": "Load CSV/TSV files, CSV/TSV/JSON from the web or sample datasets to D-Tale using pandas.read_csv(), pandas.read_json() or customized loaders.",
   "duplicates": "Remove duplicate columns/values from your data as well as extract duplicates out into separate instances.",
-  "display": "Toggle between light & dark mode for your viewing pleasure (only affects grid, not popups or charts)."
+  "theme": "Toggle between light & dark themes for your viewing pleasure (only affects grid, not popups or charts)."
 }
