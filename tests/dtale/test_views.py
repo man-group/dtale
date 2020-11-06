@@ -59,7 +59,7 @@ def test_startup(unittest):
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
         with pytest.raises(BaseException) as error:
-            views.startup(URL, dict())
+            views.startup(URL, "bad type")
         assert (
             "data loaded must be one of the following types: pandas.DataFrame, pandas.Series, pandas.DatetimeIndex"
             in str(error.value)
@@ -173,6 +173,29 @@ def test_startup(unittest):
         test_data = test_data.set_index("a")
         views.startup(URL, data=test_data, inplace=True, drop_index=True)
         assert "a" not in test_data.columns
+
+        test_data = np.array([1, 2, 3])
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        unittest.assertEqual(
+            list(instance.data.iloc[:, 0].tolist()), test_data.tolist()
+        )
+
+        test_data = np.ndarray(shape=(2, 2), dtype=float, order="F")
+        instance = views.startup(URL, data_loader=lambda: test_data)
+        unittest.assertEqual(instance.data.values.tolist(), test_data.tolist())
+
+        test_data = [1, 2, 3]
+        instance = views.startup(
+            URL, data_loader=lambda: test_data, ignore_duplicate=True
+        )
+        unittest.assertEqual(instance.data.iloc[:, 0].tolist(), test_data)
+
+        test_data = dict(a=[1, 2, 3], b=[4, 5, 6])
+        instance = views.startup(
+            URL, data_loader=lambda: test_data, ignore_duplicate=True
+        )
+        unittest.assertEqual(instance.data["a"].values.tolist(), test_data["a"])
+        unittest.assertEqual(instance.data["b"].values.tolist(), test_data["b"])
 
 
 @pytest.mark.unit

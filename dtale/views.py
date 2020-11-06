@@ -646,6 +646,9 @@ def format_data(data, inplace=False, drop_index=False):
     if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
         data = data.to_frame(index=False)
 
+    if isinstance(data, (np.ndarray, list, dict)):
+        data = pd.DataFrame(data)
+
     index = [
         str(i) for i in make_list(data.index.name or data.index.names) if i is not None
     ]
@@ -776,13 +779,21 @@ def startup(
 
     if data is not None:
         data = handle_koalas(data)
-        if not isinstance(
-            data, (pd.DataFrame, pd.Series, pd.DatetimeIndex, pd.MultiIndex, xr.Dataset)
-        ):
+        valid_types = (
+            pd.DataFrame,
+            pd.Series,
+            pd.DatetimeIndex,
+            pd.MultiIndex,
+            xr.Dataset,
+            np.ndarray,
+            list,
+            dict,
+        )
+        if not isinstance(data, valid_types):
             raise Exception(
                 (
                     "data loaded must be one of the following types: pandas.DataFrame, pandas.Series, "
-                    "pandas.DatetimeIndex, pandas.MultiIndex, xarray.Dataset"
+                    "pandas.DatetimeIndex, pandas.MultiIndex, xarray.Dataset, numpy.array, numpy.ndarray, list, dict"
                 )
             )
 
