@@ -1,5 +1,15 @@
 ## Changelog
 
+### 1.21.0 (2020-11-6)
+* [#313](https://github.com/man-group/dtale/issues/313): support for numpy.array, lists & dictionaries
+* [#302](https://github.com/man-group/dtale/issues/302): configuration file for default options
+* Removal of legacy charting code & updating flask route to plotly dash charts from `/charts` to `/dtale/charts`
+* Update to how routes are overriden so it will work with gunicorn
+* Documentation
+  * running within gunicorn
+  * embedding in another Flask or Django app
+  * configuration settings
+
 ### 1.20.0 (2020-11-1)
 * [#311](https://github.com/man-group/dtale/issues/311): png chart exports and fix for trandlines in exports
 * Added the option to switch grid to "Dark Mode"
