@@ -10,7 +10,7 @@ LOADED_CONFIG = None
 
 def load_config_state(path):
     if not path:
-        return
+        return None
     # load .ini file with properties specific to D-Tale
     config = ConfigParser()
     config.read(path)
@@ -28,6 +28,12 @@ def get_config():
     if os.path.isfile(ini_path):
         return load_config_state(ini_path)
     return None
+
+
+def set_config(path):
+    global LOADED_CONFIG
+
+    LOADED_CONFIG = load_config_state(path)
 
 
 def get_config_val(config, defaults, prop, getter="get", section="show"):
