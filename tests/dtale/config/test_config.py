@@ -3,7 +3,12 @@ import os
 import pytest
 from six import PY3
 
-from dtale.config import load_app_settings, load_config_state, build_show_options
+from dtale.config import (
+    load_app_settings,
+    load_config_state,
+    build_show_options,
+    set_config,
+)
 
 if PY3:
     from contextlib import ExitStack
@@ -44,8 +49,15 @@ def test_build_show_options():
     final_options = build_show_options()
     assert final_options["allow_cell_edits"]
 
-    options = dict(allow_cell_edits=False)
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]
 
     del os.environ["DTALE_CONFIG"]
+
+    set_config(ini_path)
+    final_options = build_show_options()
+    assert final_options["allow_cell_edits"]
+
+    set_config(None)
+    final_options = build_show_options(options)
+    assert not final_options["allow_cell_edits"]
