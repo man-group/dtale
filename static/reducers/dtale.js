@@ -138,6 +138,17 @@ function theme(state = "light", action = {}) {
   }
 }
 
+function filteredRanges(state = {}, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toJson(getHiddenValue("filtered_ranges"));
+    case "update-filtered-ranges":
+      return action.ranges;
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -151,6 +162,7 @@ const dtaleStore = combineReducers({
   xarray,
   xarrayDim,
   theme,
+  filteredRanges,
 });
 
-export default { store: dtaleStore, getHiddenValue };
+export default { store: dtaleStore, getHiddenValue, toJson };

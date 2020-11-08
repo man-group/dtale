@@ -603,6 +603,15 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     return _formatter
 
 
+def calc_data_ranges(data):
+    try:
+        return data.agg(["min", "max"]).to_dict()
+    except ValueError:
+        # I've seen when transposing data and data types get combined into one column this exception emerges
+        # when calling 'agg' on the new data
+        return {}
+
+
 def build_dtypes_state(data, prev_state=None):
     """
     Helper function to build globally managed state pertaining to a D-Tale instances columns & data types
@@ -612,12 +621,7 @@ def build_dtypes_state(data, prev_state=None):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     prev_dtypes = {c["name"]: c for c in prev_state or []}
-    try:
-        ranges = data.agg(["min", "max"]).to_dict()
-    except ValueError:
-        # I've seen when transposing data and data types get combined into one column this exception emerges
-        # when calling 'agg' on the new data
-        ranges = {}
+    ranges = calc_data_ranges(data)
     dtype_f = dtype_formatter(data, get_dtypes(data), ranges, prev_dtypes)
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
@@ -1401,13 +1405,12 @@ def build_replacement(data_id):
     :return: JSON {success: True/False}
     """
 
-    def build_data_ranges(data, col, dtype):
+    def _build_data_ranges(data, col, dtype):
         data_ranges = {}
         if classify_type(dtype) == "F" and not data[col].isnull().all():
-            try:
-                data_ranges[col] = data[[col]].agg(["min", "max"]).to_dict()[col]
-            except ValueError:
-                pass
+            col_ranges = calc_data_ranges(data[[col]])
+            if col_ranges:
+                data_ranges[col] = col_ranges[col]
         return data_ranges
 
     data = global_state.get_data(data_id)
@@ -1428,13 +1431,13 @@ def build_replacement(data_id):
     if name is not None:
         data.loc[:, name] = output
         dtype_f = dtype_formatter(
-            data, {name: dtype}, build_data_ranges(data, name, dtype)
+            data, {name: dtype}, _build_data_ranges(data, name, dtype)
         )
         curr_dtypes.append(dtype_f(len(curr_dtypes), name))
     else:
         data.loc[:, col] = output
         dtype_f = dtype_formatter(
-            data, {col: dtype}, build_data_ranges(data, col, dtype)
+            data, {col: dtype}, _build_data_ranges(data, col, dtype)
         )
         col_index = next(
             (i for i, d in enumerate(curr_dtypes) if d["name"] == col), None
@@ -1998,9 +2001,10 @@ def get_data(data_id):
         curr_settings = dict_merge(curr_settings, dict(sort=params["sort"]))
     else:
         curr_settings = {k: v for k, v in curr_settings.items() if k != "sort"}
+    final_query = build_query(data_id, curr_settings.get("query"))
     data = run_query(
         global_state.get_data(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        final_query,
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -2028,8 +2032,45 @@ def get_data(data_id):
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
-    return_data = dict(results=results, columns=columns, total=total)
+    return_data = dict(
+        results=results, columns=columns, total=total, final_query=final_query
+    )
     return jsonify(return_data)
+
+
+@dtale.route("/load-filtered-ranges/<data_id>")
+@exception_decorator
+def load_filtered_ranges(data_id):
+    curr_settings = global_state.get_settings(data_id) or {}
+    final_query = build_query(data_id, curr_settings.get("query"))
+    if not final_query:
+        return {}
+    curr_filtered_ranges = curr_settings.get("filteredRanges", {})
+    if final_query == curr_filtered_ranges.get("query"):
+        return jsonify(curr_filtered_ranges)
+    data = run_query(
+        global_state.get_data(data_id),
+        final_query,
+        global_state.get_context_variables(data_id),
+        ignore_empty=True,
+    )
+
+    def _filter_numeric(col):
+        s = data[col]
+        dtype = find_dtype(s)
+        return classify_type(dtype) in ["F", "I"] and not s.isnull().all()
+
+    numeric_cols = [col for col in data.columns if _filter_numeric(col)]
+    filtered_ranges = calc_data_ranges(data[numeric_cols])
+    overall_min = min([v["min"] for v in filtered_ranges.values()])
+    overall_max = max([v["max"] for v in filtered_ranges.values()])
+    curr_settings["filteredRanges"] = dict(
+        query=final_query,
+        ranges=filtered_ranges,
+        overall=dict(min=overall_min, max=overall_max),
+    )
+    global_state.set_settings(data_id, curr_settings)
+    return jsonify(curr_settings["filteredRanges"])
 
 
 @dtale.route("/data-export/<data_id>")

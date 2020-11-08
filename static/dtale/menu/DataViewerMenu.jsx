@@ -11,6 +11,7 @@ import bu from "../backgroundUtils";
 import Descriptions from "../menu-descriptions.json";
 import DescribeOption from "./DescribeOption";
 import DuplicatesOption from "./DuplicatesOption";
+import HeatMapOption from "./HeatMapOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
 import RangeHighlightOption from "./RangeHighlightOption";
@@ -42,7 +43,6 @@ class ReactDataViewerMenu extends React.Component {
       }
       this.props.propagateState(updatedState);
     };
-    const heatmapActive = _.startsWith(backgroundMode, "heatmap");
     const exportFile = tsv => () =>
       window.open(
         `${menuFuncs.fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`,
@@ -108,31 +108,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.charts}</div>
           </li>
-          <li className="hoverable" style={{ color: "#565b68" }}>
-            <span className="toggler-action">
-              <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
-            </span>
-            <span className={`font-weight-bold pl-2${heatmapActive ? "flames" : ""}`}>{"Heat Map"}</span>
-            <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" style={{ fontSize: "75%" }}>
-              {_.map(
-                [
-                  ["By Col", "heatmap-col"],
-                  ["Overall", "heatmap-all"],
-                ],
-                ([label, mode]) => (
-                  <button
-                    key={label}
-                    style={{ color: "#565b68" }}
-                    className="btn btn-primary font-weight-bold"
-                    onClick={toggleBackground(mode)}>
-                    {mode === backgroundMode && <span className="flames">{label}</span>}
-                    {mode !== backgroundMode && label}
-                  </button>
-                )
-              )}
-            </div>
-            <div className="hoverable__content menu-description">{Descriptions.heatmap}</div>
-          </li>
+          <HeatMapOption backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={toggleBackground("dtypes")}>

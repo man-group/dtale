@@ -1,6 +1,8 @@
 import _ from "lodash";
 import querystring from "querystring";
 
+import serverStateManagement from "../dtale/serverStateManagement";
+
 function init() {
   return dispatch => dispatch({ type: "init-params" });
 }
@@ -68,6 +70,17 @@ function getParams() {
   return params;
 }
 
+function updateFilteredRanges(query) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const currQuery = _.get(state, "filteredRanges.query", "");
+    if (currQuery !== query) {
+      const callback = ranges => dispatch({ type: "update-filtered-ranges", ranges });
+      serverStateManagement.loadFilteredRanges(state.dataId, callback);
+    }
+  };
+}
+
 export default {
   init,
   toggleColumnMenu,
@@ -78,4 +91,5 @@ export default {
   isPopup,
   getParams,
   setTheme,
+  updateFilteredRanges,
 };

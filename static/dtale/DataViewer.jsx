@@ -145,6 +145,7 @@ class ReactDataViewer extends React.Component {
           });
           return;
         }
+        this.props.updateFilteredRanges(data.final_query);
         let newState = {
           rowCount: data.total + 1,
           data: _.assignIn(savedData, formattedData),
@@ -272,6 +273,7 @@ ReactDataViewer.propTypes = {
   closeColumnMenu: PropTypes.func,
   openChart: PropTypes.func,
   theme: PropTypes.string,
+  updateFilteredRanges: PropTypes.func,
 };
 
 const ReduxDataViewer = connect(
@@ -279,6 +281,7 @@ const ReduxDataViewer = connect(
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),
+    updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
   })
 )(ReactDataViewer);
 

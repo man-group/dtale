@@ -24,8 +24,7 @@ import { createStore } from "./reducers/store";
 
 require("./publicPath");
 
-const settingsVal = app.getHiddenValue("settings");
-const settings = settingsVal ? JSON.parse(settingsVal) : {};
+const settings = app.toJson(app.getHiddenValue("settings"));
 
 let pathname = window.location.pathname;
 if (window.resourceBaseUrl) {

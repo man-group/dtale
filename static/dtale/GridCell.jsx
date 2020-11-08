@@ -54,7 +54,7 @@ class ReactGridCell extends React.Component {
   }
 
   render() {
-    const { columnIndex, key, rowIndex, style, gridState, editedCell } = this.props;
+    const { columnIndex, key, rowIndex, style, gridState, editedCell, filteredRanges } = this.props;
     if (rowIndex == 0) {
       return (
         <Header
@@ -79,7 +79,7 @@ class ReactGridCell extends React.Component {
     if (colCfg.name) {
       const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
       value = rec.view;
-      const styleProps = buildStyle(rec, valueStyle, gridState, colCfg);
+      const styleProps = buildStyle(rec, valueStyle, { ...gridState, filteredRanges }, colCfg);
       className = `${className}${styleProps.backgroundClass}`;
       valueStyle = styleProps.style;
       if (_.includes(["string", "date"], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
@@ -123,12 +123,14 @@ ReactGridCell.propTypes = {
   dataId: PropTypes.string,
   editedCell: PropTypes.string,
   allowCellEdits: PropTypes.bool,
+  filteredRanges: PropTypes.object,
 };
 const ReduxGridCell = connect(
   state => ({
     dataId: state.dataId,
     editedCell: state.editedCell,
     allowCellEdits: state.allowCellEdits,
+    filteredRanges: state.filteredRanges,
   }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
