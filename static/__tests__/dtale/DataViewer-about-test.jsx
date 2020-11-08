@@ -31,7 +31,7 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (testIdx++ > 2 && _.includes(url, "pypi.org")) {
+        if (testIdx === 2 && _.includes(url, "pypi.org")) {
           return { info: { version: "999.0.0" } };
         }
         const { urlFetcher } = require("../redux-test-utils").default;
@@ -56,6 +56,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
+    testIdx++;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(

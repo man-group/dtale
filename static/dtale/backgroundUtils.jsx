@@ -128,9 +128,14 @@ const lowVarianceHighlighting = ({ name, lowVariance }) => {
 const updateBackgroundStyles = (state, colCfg, rec) => {
   switch (state.backgroundMode) {
     case "heatmap-col":
-      return heatMapBackground(rec, colCfg);
-    case "heatmap-all":
-      return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, state);
+      return heatMapBackground(rec, {
+        ...colCfg,
+        ..._.get(state, ["filteredRanges", "ranges", colCfg.name]),
+      });
+    case "heatmap-all": {
+      const overall = { ...state, ..._.get(state, "filteredRanges.overall") };
+      return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, overall);
+    }
     case "dtypes":
       return dtypeHighlighting(colCfg);
     case "missing":

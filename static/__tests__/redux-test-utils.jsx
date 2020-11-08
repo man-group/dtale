@@ -276,6 +276,8 @@ function urlFetcher(url) {
       data: [1, 2, 3, 2, 1],
       labels: ["1", "2", "3", "4", "5"],
     };
+  } else if (_.startsWith(url, "/dtale/load-filtered-ranges")) {
+    return { ranges: {} };
   }
   return {};
 }

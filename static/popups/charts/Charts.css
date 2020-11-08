@@ -1,0 +1,9 @@
+div.charts-body input[type='checkbox'] {
+  vertical-align: bottom;
+}
+div.charts-body {
+  padding: 1.25em;
+}
+div.charts-filters > div:first-child span.input-group-addon {
+  min-width: 7em;
+}

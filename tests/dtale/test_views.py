@@ -1303,6 +1303,7 @@ def test_get_data(unittest, test_data):
             response_data = json.loads(response.data)
             expected = dict(
                 total=50,
+                final_query="",
                 results={
                     "1": dict(
                         date="2000-01-01",
@@ -3384,3 +3385,31 @@ def test_update_theme():
             assert app_settings["theme"]
             response = c.get("/dtale/main/{}".format(c.port))
             assert '<body class="dark-mode">' in str(response.data)
+
+
+@pytest.mark.unit
+def test_load_filtered_ranges(unittest):
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+            settings = {c.port: dict(query="a > 1")}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
+            ranges = response.json
+            assert ranges["ranges"]["a"]["max"] == 3 and ranges["overall"]["min"] == 2
+            assert ranges["query"] == settings[c.port]["filteredRanges"]["query"]
+
+            response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
+            unittest.assertEqual(ranges, response.json)
+
+            del settings[c.port]["query"]
+            response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
+            assert not len(response.json)

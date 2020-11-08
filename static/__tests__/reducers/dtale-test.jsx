@@ -28,6 +28,7 @@ describe("reducer tests", () => {
       xarrayDim: {},
       allowCellEdits: true,
       theme: "light",
+      filteredRanges: {},
     };
     expect(state).toEqual(store.getState());
   });

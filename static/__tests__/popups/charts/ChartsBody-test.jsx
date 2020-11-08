@@ -4,11 +4,12 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import mockPopsicle from "../MockPopsicle";
-import { withGlobalJquery } from "../test-utils";
+import mockPopsicle from "../../MockPopsicle";
+import { tickUpdate, withGlobalJquery } from "../../test-utils";
 
-describe("WordcloudBody tests", () => {
-  let WordcloudBody;
+describe("ChartsBody tests", () => {
+  let result, ChartsBody;
+
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -18,15 +19,17 @@ describe("WordcloudBody tests", () => {
         if (_.startsWith(url, "chart-data-error-test2")) {
           return { error: "Error test." };
         }
-        const { urlFetcher } = require("../redux-test-utils").default;
+        const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
 
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
+      const chartCfg = { ctx, data: cfg.data, destroyed: false, config: cfg };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+      chartCfg.getElementAtEvent = _evt => [{ _index: 0 }];
+      chartCfg.update = _.noop;
+      chartCfg.options = { scales: { xAxes: [{}] } };
       return chartCfg;
     });
 
@@ -57,33 +60,25 @@ describe("WordcloudBody tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-    WordcloudBody = require("../../popups/charts/WordcloudBody").default;
+    ChartsBody = require("../../../popups/charts/ChartsBody").default;
   });
 
-  it("WordcloudBody missing data", () => {
-    const result = mount(<WordcloudBody chartType={{ value: "wordcloud" }} data={{}} />, {
+  const mountChart = async props => {
+    result = mount(<ChartsBody {...props} visible={true} />, {
       attachTo: document.getElementById("content"),
     });
-    result.update();
-    expect(result.html()).toBe('<div class="row"></div>');
+    await tickUpdate(result);
+  };
+
+  it("handles missing data", async () => {
+    await mountChart({ url: "chart-data-error-test1" });
+    expect(_.includes(result.html(), "No data found.")).toBe(true);
   });
 
-  it("WordcloudBody invalid chartType type", () => {
-    const result = mount(<WordcloudBody chartType={{ value: "bar" }} data={{}} />, {
-      attachTo: document.getElementById("content"),
-    });
-    result.update();
+  it("handles errors", async () => {
+    await mountChart({ url: "chart-data-error-test2" });
+    expect(_.includes(result.html(), "Error test.")).toBe(true);
+    result.setProps({ visible: false });
     expect(result.html()).toBeNull();
-  });
-
-  it("WordcloudBody missing yProp data", () => {
-    const result = mount(
-      <WordcloudBody chartType={{ value: "wordcloud" }} y={[{ value: "foo" }]} data={{ bar: [1, 2, 3] }} />,
-      {
-        attachTo: document.getElementById("content"),
-      }
-    );
-    result.update();
-    expect(result.html()).toBe('<div class="row"></div>');
   });
 });

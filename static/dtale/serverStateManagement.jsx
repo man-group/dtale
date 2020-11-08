@@ -156,6 +156,10 @@ function updateTheme(theme, callback) {
   fetchJson(buildURLString("/dtale/update-theme", { theme }), callback);
 }
 
+function loadFilteredRanges(dataId, callback) {
+  fetchJson(buildURLString(`/dtale/load-filtered-ranges/${dataId}`), callback);
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -172,4 +176,5 @@ export default {
   updateFormats,
   editCell,
   updateTheme,
+  loadFilteredRanges,
 };
