@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.21.1 (2020-11-8)
+* Additional fixes for #313 & #302
+  * Handling for partial `.ini` files
+  * Handling for dictionary inputs w/ non-iterable values
+
 ### 1.21.0 (2020-11-6)
 * [#313](https://github.com/man-group/dtale/issues/313): support for numpy.array, lists & dictionaries
 * [#302](https://github.com/man-group/dtale/issues/302): configuration file for default options
