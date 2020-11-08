@@ -197,6 +197,18 @@ def test_startup(unittest):
         unittest.assertEqual(instance.data["a"].values.tolist(), test_data["a"])
         unittest.assertEqual(instance.data["b"].values.tolist(), test_data["b"])
 
+        test_data = dict(a=1, b=2, c=3)
+        instance = views.startup(
+            URL, data_loader=lambda: test_data, ignore_duplicate=True
+        )
+        print(instance.data)
+        unittest.assertEqual(
+            sorted(instance.data["index"].values.tolist()), sorted(test_data.keys())
+        )
+        unittest.assertEqual(
+            sorted(instance.data["0"].values.tolist()), sorted(test_data.values())
+        )
+
 
 @pytest.mark.unit
 def test_in_ipython_frontend(builtin_pkg):

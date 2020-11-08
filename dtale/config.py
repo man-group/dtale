@@ -49,14 +49,14 @@ def load_app_settings(config):
     theme = get_config_val(config, curr_app_settings, "theme", section="app")
     github_fork = get_config_val(
         config,
-        curr_app_settings["github_fork"],
+        curr_app_settings,
         "github_fork",
         section="app",
         getter="getboolean",
     )
     hide_shutdown = get_config_val(
         config,
-        curr_app_settings["hide_shutdown"],
+        curr_app_settings,
         "hide_shutdown",
         section="app",
         getter="getboolean",

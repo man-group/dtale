@@ -647,7 +647,10 @@ def format_data(data, inplace=False, drop_index=False):
         data = data.to_frame(index=False)
 
     if isinstance(data, (np.ndarray, list, dict)):
-        data = pd.DataFrame(data)
+        try:
+            data = pd.DataFrame(data)
+        except BaseException:
+            data = pd.Series(data).to_frame()
 
     index = [
         str(i) for i in make_list(data.index.name or data.index.names) if i is not None
