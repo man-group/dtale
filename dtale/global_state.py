@@ -367,6 +367,10 @@ def use_shelve_store(directory):
             return dict(self.db)
 
         @read
+        def items(self):
+            return self.to_dict().items()
+
+        @read
         def __len__(self):
             return len(self.db)
 
@@ -411,6 +415,9 @@ def use_redis_store(directory, *args, **kwargs):
 
         def to_dict(self):
             return {k.decode("utf-8"): self.get(k) for k in self.keys()}
+
+        def items(self):
+            return self.to_dict().items()
 
         def __len__(self):
             return len(self.keys())
