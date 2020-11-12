@@ -2860,3 +2860,43 @@ def dataset_upload():
     dataset = get_str_arg(request, "dataset")
     startup_code = "from dtale.datasets import {dataset}\n\n" "df = {dataset}()"
     return load_new_data(getattr(datasets, dataset)(), startup_code)
+
+
+@dtale.route("/build-column-copy/<data_id>", methods=["POST"])
+@exception_decorator
+def build_column_text(data_id):
+    columns = request.form.get("columns")
+    columns = json.loads(columns)
+
+    curr_settings = global_state.get_settings(data_id) or {}
+    data = run_query(
+        global_state.get_data(data_id),
+        build_query(data_id, curr_settings.get("query")),
+        global_state.get_context_variables(data_id),
+        ignore_empty=True,
+    )
+    return data[columns].to_csv(index=False, sep="\t", header=False)
+
+
+@dtale.route("/build-row-copy/<data_id>", methods=["POST"])
+@exception_decorator
+def build_row_text(data_id):
+    start, end, rows, columns = (
+        request.form.get(p) for p in ["start", "end", "rows", "columns"]
+    )
+    columns = json.loads(columns)
+    curr_settings = global_state.get_settings(data_id) or {}
+    data = run_query(
+        global_state.get_data(data_id),
+        build_query(data_id, curr_settings.get("query")),
+        global_state.get_context_variables(data_id),
+        ignore_empty=True,
+    )
+    if rows:
+        rows = json.loads(rows)
+        data = data.iloc[rows, :]
+    else:
+        start = int(start)
+        end = int(end)
+        data = data.iloc[(start - 1) : end, :]
+    return data[columns].to_csv(index=False, sep="\t", header=False)

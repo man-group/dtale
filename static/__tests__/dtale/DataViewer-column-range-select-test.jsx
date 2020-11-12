@@ -68,57 +68,13 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: range selection", async () => {
-    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
-    const GridCell = require("../../dtale/GridCell").ReactGridCell;
-    const CopyRangeToClipboard = require("../../popups/CopyRangeToClipboard").ReactCopyRangeToClipboard;
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById("content"),
-      }
-    );
-    await tickUpdate(result);
-    let cellIdx = result.find(GridCell).at(20).find("div").prop("cell_idx");
-    const instance = result.find(ReactGridEventHandler).instance();
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    cellIdx = result.find(GridCell).last().find("div").prop("cell_idx");
-    instance.handleMouseOver({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    result.update();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toEqual({
-      start: "3|3",
-      end: "4|5",
-    });
-    const copyRange = result.find(CopyRangeToClipboard).first();
-    expect(copyRange.instance().state.finalText).toBe("foo\t2000-01-01\nfoo\t\nfoo\t\n");
-    copyRange.find("div.form-group").first().find("i").simulate("click");
-    expect(copyRange.instance().state.finalText).toBe("col3\tcol4\nfoo\t2000-01-01\nfoo\t\nfoo\t\n");
-    copyRange.instance().copy();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toBeNull();
-  });
-
-  it("DataViewer: row range selection", async () => {
+  it("DataViewer: column range selection", async () => {
     const CopyRangeToClipboard = require("../../popups/CopyRangeToClipboard").ReactCopyRangeToClipboard;
     const text = "COPIED_TEXT";
     const postSpy = jest.spyOn($, "post");
     postSpy.mockImplementation((_url, _params, callback) => callback(text));
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
+    const { ReactHeader } = require("../../dtale/Header");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -130,42 +86,33 @@ describe("DataViewer tests", () => {
       }
     );
     await tickUpdate(result);
-    const instance = result.find(ReactGridEventHandler).instance();
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
-      shiftKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.rowRange).toEqual({
+    let instance = result.find(ReactHeader).at(1);
+    instance.find("div.headerCell").simulate("click", { shiftKey: true });
+    //result.update();
+    expect(result.find(ReactDataViewer).instance().state.columnRange).toEqual({
       start: 1,
       end: 1,
     });
-    instance.handleMouseOver({
-      target: { attributes: { cell_idx: { nodeValue: "0|2" } } },
+    instance = result.find(ReactHeader).at(2);
+    instance.instance().handleMouseOver({
       shiftKey: true,
     });
-    expect(result.find(ReactDataViewer).instance().state.rowRange).toEqual({
+    expect(result.find(ReactDataViewer).instance().state.columnRange).toEqual({
       start: 1,
       end: 2,
     });
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|2" } } },
-      shiftKey: true,
-    });
+    instance.find("div.headerCell").simulate("click", { shiftKey: true });
     result.update();
     const copyRange = result.find(CopyRangeToClipboard).first();
     expect(copyRange.instance().state.finalText).toBe(text);
     expect(postSpy).toBeCalledTimes(1);
-    expect(postSpy).toBeCalledWith(
-      "/dtale/build-row-copy/1",
-      { start: 1, end: 2, columns: `["col1","col2","col3","col4"]` },
-      expect.any(Function)
-    );
+    expect(postSpy).toBeCalledWith("/dtale/build-column-copy/1", { columns: `["col1","col2"]` }, expect.any(Function));
     postSpy.mockRestore();
   });
 
-  it("DataViewer: row ctrl selection", async () => {
+  it("DataViewer: column ctrl selection", async () => {
     const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
+    const { ReactHeader } = require("../../dtale/Header");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -177,21 +124,14 @@ describe("DataViewer tests", () => {
       }
     );
     await tickUpdate(result);
-    const instance = result.find(ReactGridEventHandler).instance();
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1]);
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|2" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1, 2]);
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([2]);
+    let instance = result.find(ReactHeader).at(1);
+    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1]);
+    instance = result.find(ReactHeader).at(2);
+    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1, 2]);
+    instance = result.find(ReactHeader).at(1);
+    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([2]);
   });
 });

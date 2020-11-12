@@ -20,7 +20,8 @@
 }
 
 .cell.in-range,
-.cell.in-range.editable:hover {
+.cell.in-range.editable:hover,
+.headerCell.in-range {
   background: lightgrey;
   border-style: dashed;
   border-color: darkgrey;

@@ -14,8 +14,7 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer iframe tests", () => {
-  const { post } = $;
-  let result, DataViewer, ReactConfirmation, DataViewerInfo;
+  let result, DataViewer, ReactConfirmation, DataViewerInfo, postSpy;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -41,8 +40,6 @@ describe("DataViewer iframe tests", () => {
       return chartCfg;
     });
 
-    $.post = jest.fn();
-
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
@@ -53,6 +50,8 @@ describe("DataViewer iframe tests", () => {
   });
 
   beforeEach(async () => {
+    postSpy = jest.spyOn($, "post");
+    postSpy.mockImplementation((_url, _params, callback) => callback());
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
     result = mount(
@@ -66,10 +65,11 @@ describe("DataViewer iframe tests", () => {
     await tickUpdate(result);
   });
 
+  afterEach(() => postSpy.mockRestore());
+
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    $.post = post;
   });
 
   it("DataViewer: deleting a column", async () => {
@@ -83,13 +83,14 @@ describe("DataViewer iframe tests", () => {
   it("DataViewer: hiding a column", async () => {
     await openColMenu(result, 3);
     clickColMenuButton(result, "Hide");
-    expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
-    $.post.mock.calls[0][2](); // execute callback
     result.update();
+    expect(postSpy).toBeCalledTimes(1);
+    const firstPostCall = postSpy.mock.calls[0];
+    expect(firstPostCall[0]).toBe("/dtale/update-visibility/1");
     validateHeaders(result, ["col1", "col2", "col3"]);
     result.find(DataViewerInfo).find("div.col").last().find("i").simulate("click");
-    $.post.mock.calls[$.post.mock.calls.length - 1][2]();
     result.update();
+    expect(postSpy).toBeCalledTimes(2);
     validateHeaders(result, ["col1", "col2", "col3", "col4"]);
   });
 });

@@ -32,7 +32,7 @@ class ReactCopyRangeToClipboard extends React.Component {
   }
 
   onClose() {
-    this.props.propagateState({ rangeSelect: null }, this.props.onClose);
+    this.props.propagateState({ rangeSelect: null, columnRange: null }, this.props.onClose);
   }
 
   render() {
@@ -51,7 +51,7 @@ class ReactCopyRangeToClipboard extends React.Component {
           <div className="form-group row">
             <div className="col-md-12">
               <pre className="mb-0" style={{ maxHeight: 200 }}>
-                {this.state.finalText}
+                {_.truncate(this.state.finalText, { length: 500 })}
               </pre>
             </div>
           </div>

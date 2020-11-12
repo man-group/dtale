@@ -10,6 +10,8 @@ import { ignoreMenuClicks } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
 import { DataViewerMenuHolder } from "./menu/DataViewerMenuHolder";
 
+import { buildColumnCopyText, buildRangeState, isInRowOrColumnRange, toggleSelection } from "./rangeSelectUtils";
+
 const SORT_CHARS = {
   ASC: String.fromCharCode("9650"),
   DESC: String.fromCharCode("9660"),
@@ -40,36 +42,102 @@ function buildMarkup(colCfg, colName, backgroundMode) {
   return { headerStyle, colNameMarkup, className };
 }
 
+function buildCopyHandler(menuHandler, props) {
+  const { columnIndex, dataId, propagateState, openChart, columns, columnRange, ctrlCols } = props;
+  return e => {
+    if (e.shiftKey) {
+      if (columnRange) {
+        const title = "Copy Columns to Clipboard?";
+        const callback = copyText =>
+          openChart({
+            ...copyText,
+            type: "copy-column-range",
+            title,
+            size: "modal-sm",
+            ...props,
+          });
+        buildColumnCopyText(dataId, columns, columnRange.start, columnIndex, callback);
+      } else {
+        propagateState(
+          buildRangeState({
+            columnRange: { start: columnIndex, end: columnIndex },
+          })
+        );
+      }
+      return;
+    }
+    if (e.ctrlKey || e.metaKey) {
+      if (ctrlCols) {
+        props.propagateState(buildRangeState({ ctrlCols: toggleSelection(ctrlCols, columnIndex) }));
+      } else {
+        props.propagateState(buildRangeState({ ctrlCols: [columnIndex] }));
+      }
+      return;
+    }
+    menuHandler(e);
+  };
+}
+
 class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
+    this.handleMouseOver = this.handleMouseOver.bind(this);
   }
 
   shouldComponentUpdate(newProps) {
     return !_.isEqual(this.props, newProps);
   }
 
+  handleMouseOver(e) {
+    const { columnRange, columnIndex } = this.props;
+    const rangeExists = columnRange && columnRange.start;
+    if (e.shiftKey) {
+      if (rangeExists) {
+        this.props.propagateState(buildRangeState({ columnRange: { ...columnRange, end: columnIndex } }));
+      }
+    } else if (rangeExists) {
+      this.props.propagateState(buildRangeState());
+    }
+  }
+
   render() {
-    const { columnIndex, style, sortInfo } = this.props;
+    const { columnIndex, style, toggleColumnMenu, hideColumnMenu, propagateState } = this.props;
+    const { columns, menuOpen, sortInfo, backgroundMode, columnRange, rowCount, ctrlCols } = this.props;
     if (columnIndex == 0) {
-      return <DataViewerMenuHolder {...this.props} />;
+      return (
+        <DataViewerMenuHolder
+          style={style}
+          coluns={columns}
+          backgroundMode={backgroundMode}
+          menuOpen={menuOpen}
+          rowCount={rowCount}
+          propagateState={propagateState}
+        />
+      );
     }
     const colCfg = gu.getCol(columnIndex, this.props);
     const colName = _.get(colCfg, "name");
     const toggleId = gu.buildToggleId(colName);
     const menuHandler = menuUtils.openMenu(
       `${colName}Actions`,
-      () => this.props.toggleColumnMenu(colName, toggleId),
-      () => this.props.hideColumnMenu(colName),
+      () => toggleColumnMenu(colName, toggleId),
+      () => hideColumnMenu(colName),
       `div.${toggleId}`,
       ignoreMenuClicks
     );
+    const copyHandler = buildCopyHandler(menuHandler, this.props);
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     let headerStyle = _.assignIn({}, style);
-    const markupProps = buildMarkup(colCfg, colName, this.props.backgroundMode);
+    const markupProps = buildMarkup(colCfg, colName, backgroundMode);
     headerStyle = { ...headerStyle, ...markupProps.headerStyle };
+    const rangeClass =
+      isInRowOrColumnRange(columnIndex, columnRange) || _.includes(ctrlCols, columnIndex) ? " in-range" : "";
     return (
-      <div className={`headerCell ${toggleId}${markupProps.className}`} style={headerStyle} onClick={menuHandler}>
+      <div
+        className={`headerCell ${toggleId}${markupProps.className}${rangeClass}`}
+        style={headerStyle}
+        onClick={copyHandler}
+        onMouseOver={this.handleMouseOver}>
         <div className="text-nowrap">
           {_.get(SORT_CHARS, sortDir, "")}
           {markupProps.colNameMarkup}
@@ -80,20 +148,24 @@ class ReactHeader extends React.Component {
 }
 ReactHeader.displayName = "ReactHeader";
 ReactHeader.propTypes = {
-  columnIndex: PropTypes.number,
-  style: PropTypes.object,
-  columns: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
+  dataId: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
+  columns: PropTypes.arrayOf(PropTypes.object),
   sortInfo: PropTypes.arrayOf(PropTypes.array),
-  propagateState: PropTypes.func,
   menuOpen: PropTypes.bool,
   rowCount: PropTypes.number,
+  backgroundMode: PropTypes.string,
+  columnRange: PropTypes.object,
+  ctrlCols: PropTypes.arrayOf(PropTypes.number),
+  columnIndex: PropTypes.number,
+  style: PropTypes.object,
+  propagateState: PropTypes.func,
+  openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
-  backgroundMode: PropTypes.string,
 };
 
 const ReduxHeader = connect(
-  () => ({}),
+  ({ dataId }) => ({ dataId }),
   dispatch => ({
     toggleColumnMenu: (colName, toggleId) => dispatch(actions.toggleColumnMenu(colName, toggleId)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),

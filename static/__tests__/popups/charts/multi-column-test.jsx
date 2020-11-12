@@ -8,7 +8,6 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { Aggregations } from "../../../popups/charts/Aggregations";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
@@ -86,6 +85,7 @@ describe("Charts tests", () => {
   });
 
   it("Charts: rendering", async () => {
+    const Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     const ChartsBody = require("../../../popups/charts/ChartsBody").default;
     const ReactWordcloud = require("react-wordcloud").default;

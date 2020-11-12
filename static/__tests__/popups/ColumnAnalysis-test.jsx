@@ -8,7 +8,6 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
-import { ColumnAnalysisFilters } from "../../popups/analysis/filters/ColumnAnalysisFilters";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
@@ -62,7 +61,7 @@ const props = {
 };
 
 describe("ColumnAnalysis tests", () => {
-  let result, ColumnAnalysisChart;
+  let result, ColumnAnalysisChart, ColumnAnalysisFilters;
 
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
@@ -139,6 +138,7 @@ describe("ColumnAnalysis tests", () => {
   beforeEach(async () => {
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
+    ColumnAnalysisFilters = require("../../popups/analysis/filters/ColumnAnalysisFilters").ColumnAnalysisFilters;
 
     buildInnerHTML();
     result = mount(<ColumnAnalysis {...props} />, {

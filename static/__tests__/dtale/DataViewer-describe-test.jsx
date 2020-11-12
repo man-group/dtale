@@ -13,9 +13,9 @@ const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
-  const { post } = $;
   const { close, opener } = window;
   let result, DtypesGrid, Details, Describe, DescribeFilters, DetailsCharts, ColumnAnalysisChart, CategoryInputs;
+  let postSpy;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -55,8 +55,6 @@ describe("DataViewer tests", () => {
       return chartCfg;
     });
 
-    $.post = jest.fn();
-
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
@@ -71,6 +69,8 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
+    postSpy = jest.spyOn($, "post");
+    postSpy.mockImplementation((_url, _params, callback) => callback());
     const props = { dataId: "1", chartData: { visible: true } };
     buildInnerHTML({ settings: "" });
     result = mount(<Describe {...props} />, {
@@ -79,12 +79,13 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
   });
 
+  afterEach(() => postSpy.mockRestore());
+
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
-    $.post = post;
     window.opener = opener;
     window.close = close;
   });
@@ -158,9 +159,10 @@ describe("DataViewer tests", () => {
     dtypesGrid(result).find("div.headerCell").at(1).find("i.ico-check-box-outline-blank").simulate("click");
     dtypesGrid(result).find("i.ico-check-box").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect($.post.mock.calls[0][0]).toBe("/dtale/update-visibility/1");
-    $.post.mock.calls[0][2](); // execute callback
     result.update();
-    expect($.post.mock.calls[0][1].visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');
+    expect(postSpy).toBeCalledTimes(1);
+    const firstPostCall = postSpy.mock.calls[0];
+    expect(firstPostCall[0]).toBe("/dtale/update-visibility/1");
+    expect(firstPostCall[1].visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');
   });
 });

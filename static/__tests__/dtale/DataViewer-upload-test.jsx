@@ -16,10 +16,9 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer tests", () => {
-  const { post } = $;
   const { close, location, open, opener } = window;
   let result, DataViewer, Upload;
-  let readAsDataURLSpy, btoaSpy;
+  let readAsDataURLSpy, btoaSpy, postSpy;
 
   beforeAll(() => {
     delete window.location;
@@ -51,8 +50,6 @@ describe("DataViewer tests", () => {
     );
     jest.mock("popsicle", () => mockBuildLibs);
 
-    $.post = jest.fn();
-
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
@@ -69,6 +66,10 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
+    readAsDataURLSpy = jest.spyOn(FileReader.prototype, "readAsDataURL");
+    btoaSpy = jest.spyOn(window, "btoa");
+    postSpy = jest.spyOn($, "post");
+    postSpy.mockImplementation((_url, _params, callback) => callback({ data_id: "2" }));
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
@@ -83,13 +84,14 @@ describe("DataViewer tests", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    readAsDataURLSpy.mockRestore();
+    btoaSpy.mockRestore();
+    postSpy.mockRestore();
   });
 
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    $.post = post;
     window.location = location;
     window.close = close;
     window.open = open;
@@ -106,35 +108,38 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: upload", async () => {
     const mFile = new File(["test"], "test.csv");
-    readAsDataURLSpy = jest.spyOn(FileReader.prototype, "readAsDataURL");
-    btoaSpy = jest.spyOn(window, "btoa");
     const uploadModal = upload();
     const dd = uploadModal.find(Dropzone);
     dd.props().onDrop([mFile]);
     await tickUpdate(result);
     await tickUpdate(result);
 
-    expect($.post.mock.calls).toHaveLength(1);
-    const postCalls = $.post.mock.calls;
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const postCalls = postSpy.mock.calls;
     const firstPostCall = postCalls[0];
     expect(firstPostCall[0]).toBe("/dtale/upload");
     expect(firstPostCall[1]).toEqual({
       contents: "data:application/octet-stream;base64,dGVzdA==",
       filename: "test.csv",
     });
-    firstPostCall[2]({ data_id: "2" });
     expect(window.location.assign).toBeCalledWith("/2");
-
-    window.location.pathname = "/dtale/popup/upload";
-    firstPostCall[2]({ data_id: "2" });
-    expect(window.close).toBeCalledTimes(1);
-    expect(window.opener.location.assign).toBeCalledWith("/2");
 
     firstPostCall[2]({ error: "error test" });
     result.update();
     expect(result.find(RemovableError)).toHaveLength(1);
+  });
 
-    readAsDataURLSpy.mockRestore();
-    btoaSpy.mockRestore();
+  it("DataViewer: upload widow", async () => {
+    window.location.pathname = "/dtale/popup/upload";
+    const mFile = new File(["test"], "test.csv");
+    const uploadModal = upload();
+    const dd = uploadModal.find(Dropzone);
+    dd.props().onDrop([mFile]);
+    await tickUpdate(result);
+    await tickUpdate(result);
+
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    expect(window.close).toBeCalledTimes(1);
+    expect(window.opener.location.assign).toBeCalledWith("/2");
   });
 });

@@ -5,7 +5,6 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
-import TextEnterFilter from "../../popups/analysis/filters/TextEnterFilter";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
@@ -49,7 +48,7 @@ const props = {
 };
 
 describe("Variance tests", () => {
-  let result, ColumnAnalysisChart;
+  let result, ColumnAnalysisChart, TextEnterFilter;
 
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
@@ -94,6 +93,7 @@ describe("Variance tests", () => {
   beforeEach(async () => {
     const { Variance } = require("../../popups/variance/Variance");
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
+    TextEnterFilter = require("../../popups/analysis/filters/TextEnterFilter").default;
 
     buildInnerHTML();
     result = mount(<Variance {...props} />, {
