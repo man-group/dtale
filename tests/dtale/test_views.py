@@ -3413,3 +3413,40 @@ def test_load_filtered_ranges(unittest):
             del settings[c.port]["query"]
             response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
             assert not len(response.json)
+
+
+@pytest.mark.unit
+def test_build_column_text():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+
+            resp = c.post(
+                "/dtale/build-column-copy/{}".format(c.port),
+                data={"columns": json.dumps(["a"])},
+            )
+            assert resp.data == b"1\n2\n3\n"
+
+
+@pytest.mark.unit
+def test_build_row_text():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+
+            resp = c.post(
+                "/dtale/build-row-copy/{}".format(c.port),
+                data={"start": 1, "end": 2, "columns": json.dumps(["a"])},
+            )
+            assert resp.data == b"1\n2\n"
+            resp = c.post(
+                "/dtale/build-row-copy/{}".format(c.port),
+                data={"rows": json.dumps([1]), "columns": json.dumps(["a"])},
+            )
+            assert resp.data == b"2\n"

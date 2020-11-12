@@ -9,7 +9,6 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../../RemovableError";
-import { Aggregations } from "../../../popups/charts/Aggregations";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
@@ -22,7 +21,7 @@ function updateChartType(result, cmp, chartType) {
 }
 
 describe("Charts tests", () => {
-  let result, Charts, ChartsBody, ReactWordcloud;
+  let result, Charts, ChartsBody, ReactWordcloud, Aggregations;
   let testIdx = 0;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -87,6 +86,7 @@ describe("Charts tests", () => {
     Charts = require("../../../popups/charts/Charts").ReactCharts;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
     ReactWordcloud = require("react-wordcloud").default;
+    Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
   });
 
   beforeEach(async () => {

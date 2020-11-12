@@ -5,7 +5,6 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateZScoreNormalize } from "../../../popups/create/CreateZScoreNormalize";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -21,7 +20,7 @@ function submit(res) {
 }
 
 describe("DataViewer tests", () => {
-  let result, CreateColumn;
+  let result, CreateColumn, CreateZScoreNormalize;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -64,6 +63,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
+    CreateZScoreNormalize = require("../../../popups/create/CreateZScoreNormalize").CreateZScoreNormalize;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();

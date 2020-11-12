@@ -5,7 +5,6 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateSimilarity } from "../../../popups/create/CreateSimilarity";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -21,7 +20,7 @@ function submit(res) {
 }
 
 describe("DataViewer tests", () => {
-  let result, CreateColumn;
+  let result, CreateColumn, CreateSimilarity;
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -63,6 +62,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
+    CreateSimilarity = require("../../../popups/create/CreateSimilarity").CreateSimilarity;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 

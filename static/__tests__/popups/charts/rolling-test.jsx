@@ -7,7 +7,6 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { Aggregations } from "../../../popups/charts/Aggregations";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
@@ -80,6 +79,7 @@ describe("Charts rolling tests", () => {
   });
 
   it("Charts: rendering", async () => {
+    const Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     buildInnerHTML({ settings: "" });
     const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {

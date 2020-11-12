@@ -4,7 +4,62 @@ import React from "react";
 import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
-import { buildCopyText } from "./rangeSelectUtils";
+
+import {
+  buildCopyText,
+  buildRangeState,
+  buildRowCopyText,
+  convertCellIdxToCoords,
+  toggleSelection,
+} from "./rangeSelectUtils";
+
+function handleRangeSelect(props, cellIdx) {
+  const { columns, data, rangeSelect } = props.gridState;
+  if (rangeSelect) {
+    const copyText = buildCopyText(data, columns, rangeSelect.start, cellIdx);
+    const title = "Copy Range to Clipboard?";
+    props.openChart({
+      ...copyText,
+      type: "copy-range",
+      title,
+      size: "modal-sm",
+      ...props,
+    });
+  } else {
+    props.propagateState(buildRangeState({ rangeSelect: { start: cellIdx, end: cellIdx } }));
+  }
+}
+
+function handleRowSelect(props, cellIdx) {
+  const { columns, rowRange } = props.gridState;
+  if (rowRange) {
+    const coords = convertCellIdxToCoords(cellIdx);
+    const title = "Copy Rows to Clipboard?";
+    const callback = copyText =>
+      props.openChart({
+        ...copyText,
+        type: "copy-row-range",
+        title,
+        size: "modal-sm",
+        ...props,
+      });
+    buildRowCopyText(props.dataId, columns, { start: rowRange.start, end: coords[1] }, callback);
+  } else {
+    const coords = convertCellIdxToCoords(cellIdx);
+    props.propagateState(buildRangeState({ rowRange: { start: coords[1], end: coords[1] } }));
+  }
+}
+
+function handleCtrlRowSelect(props, cellIdx) {
+  const { ctrlRows } = props.gridState;
+  const coords = convertCellIdxToCoords(cellIdx);
+  if (ctrlRows) {
+    props.propagateState(buildRangeState({ ctrlRows: toggleSelection(ctrlRows, coords[1]) }));
+  } else {
+    const coords = convertCellIdxToCoords(cellIdx);
+    props.propagateState(buildRangeState({ ctrlRows: [coords[1]] }));
+  }
+}
 
 class ReactGridEventHandler extends React.Component {
   constructor(props) {
@@ -16,45 +71,50 @@ class ReactGridEventHandler extends React.Component {
   componentDidMount() {
     ["keyup", "keydown"].forEach(event => {
       window.addEventListener(event, e => {
-        document.onselectstart = () => !(e.key == "Shift" && e.shiftKey);
+        document.onselectstart = () => !(e.key === "Shift" && e.shiftKey) && e.key !== "Meta";
       });
     });
   }
 
   handleMouseOver(e) {
-    const { rangeSelect } = this.props.gridState;
+    const { rangeSelect, rowRange } = this.props.gridState;
     const rangeExists = rangeSelect && rangeSelect.start;
+    const rowRangeExists = rowRange && rowRange.start;
+    const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
     if (e.shiftKey) {
       if (rangeExists) {
-        const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
-        this.props.propagateState({
-          rangeSelect: { ...rangeSelect, end: cellIdx ?? null },
-        });
+        if (cellIdx && !_.startsWith(cellIdx, "0|") && !_.endsWith(cellIdx, "|0")) {
+          this.props.propagateState(
+            buildRangeState({
+              rangeSelect: { ...rangeSelect, end: cellIdx ?? null },
+            })
+          );
+        }
       }
-    } else if (rangeExists) {
-      this.props.propagateState({ rangeSelect: null });
+      if (rowRangeExists) {
+        if (cellIdx && _.startsWith(cellIdx, "0|")) {
+          const coords = convertCellIdxToCoords(cellIdx);
+          this.props.propagateState(buildRangeState({ rowRange: { ...rowRange, end: coords[1] } }));
+        }
+      }
+    } else if (rangeExists || rowRangeExists) {
+      this.props.propagateState(buildRangeState());
     }
   }
 
   handleClicks(e) {
     // check for range selected
+    const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
     if (e.shiftKey) {
-      const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
       if (cellIdx && !_.startsWith(cellIdx, "0|") && !_.endsWith(cellIdx, "|0")) {
-        const { columns, data, rangeSelect } = this.props.gridState;
-        if (rangeSelect) {
-          const copyText = buildCopyText(data, columns, rangeSelect.start, cellIdx);
-          const title = "Copy Range to Clipboard?";
-          this.props.openChart({
-            ...copyText,
-            type: "copy-range",
-            title,
-            size: "modal-sm",
-            ...this.props,
-          });
-        } else {
-          this.props.propagateState({ rangeSelect: { start: cellIdx } });
-        }
+        handleRangeSelect(this.props, cellIdx);
+      } else if (cellIdx && _.startsWith(cellIdx, "0|")) {
+        handleRowSelect(this.props, cellIdx);
+      }
+      return;
+    } else if (e.ctrlKey || e.metaKey) {
+      if (cellIdx && _.startsWith(cellIdx, "0|")) {
+        handleCtrlRowSelect(this.props, cellIdx);
       }
       return;
     }
@@ -74,7 +134,7 @@ class ReactGridEventHandler extends React.Component {
         this.clickTimeout = null;
       }
     }
-    this.props.propagateState({ rangeSelect: null });
+    this.props.propagateState(buildRangeState());
   }
 
   render() {
@@ -87,20 +147,24 @@ class ReactGridEventHandler extends React.Component {
 }
 ReactGridEventHandler.displayName = "ReactGridEventHandler";
 ReactGridEventHandler.propTypes = {
+  dataId: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   gridState: PropTypes.shape({
     rangeSelect: PropTypes.object,
+    rowRange: PropTypes.object,
+    ctrlRows: PropTypes.arrayOf(PropTypes.number),
+    ctrlCols: PropTypes.arrayOf(PropTypes.number),
     columns: PropTypes.arrayOf(PropTypes.object),
     data: PropTypes.object,
   }),
   propagateState: PropTypes.func,
   children: PropTypes.node,
   allowCellEdits: PropTypes.bool,
-  openChart: PropTypes.func,
+  openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   editCell: PropTypes.func,
 };
 
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits }) => ({ allowCellEdits }),
+  ({ allowCellEdits, dataId }) => ({ allowCellEdits, dataId }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),

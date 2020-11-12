@@ -4,6 +4,7 @@ import numeral from "numeral";
 
 import { measureText } from "./MeasureText";
 import menuFuncs from "./menu/dataViewerMenuUtils";
+import { buildRangeState } from "./rangeSelectUtils";
 
 const EXPORTS = {};
 
@@ -229,7 +230,7 @@ EXPORTS.buildState = props => ({
   triggerResize: false,
   backgroundMode: null,
   rangeHighlight: {},
-  rangeSelect: null,
+  ...buildRangeState(),
 });
 
 EXPORTS.noHidden = columns => !_.some(columns, { visible: false });

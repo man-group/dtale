@@ -5,7 +5,6 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
-import bu from "../../dtale/backgroundUtils";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
@@ -63,6 +62,7 @@ describe("DataViewer iframe tests", () => {
   });
 
   it("DataViewer: column analysis display in a modal", async () => {
+    const bu = require("../../dtale/backgroundUtils").default;
     const { DataViewer } = require("../../dtale/DataViewer");
     const ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;

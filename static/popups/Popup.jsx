@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
+import { buildRangeState } from "../dtale/rangeSelectUtils";
 import * as popupUtils from "./popupUtils";
 
 class ReactPopup extends React.Component {
@@ -26,7 +27,8 @@ class ReactPopup extends React.Component {
   render() {
     const { chartData } = this.props;
     const { type, visible, size, backdrop } = chartData;
-    const onClose = () => this.props.onClose({ size: size || "modal-lg" });
+    const onClose = () =>
+      this.props.propagateState(buildRangeState(), () => this.props.onClose({ size: size || "modal-lg" }));
     const { title, body } = popupUtils.buildBodyAndTitle(this.props);
     return (
       <Modal

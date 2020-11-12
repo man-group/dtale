@@ -267,6 +267,8 @@ const POPUP_MAP = {
   about: buildAbout,
   confirm: buildConfirm,
   "copy-range": buildCopyRange,
+  "copy-column-range": buildCopyRange,
+  "copy-row-range": buildCopyRange,
   range: buildRange,
   "xarray-dimensions": xarrayDimensions,
   "xarray-indexes": xarrayIndexes,

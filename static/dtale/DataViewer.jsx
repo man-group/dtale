@@ -212,7 +212,7 @@ class ReactDataViewer extends React.Component {
     const { formattingOpen } = this.state;
     return (
       <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
-        <DtaleHotkeys propagateState={this.propagateState} />
+        <DtaleHotkeys propagateState={this.propagateState} {...this.state} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
           loadMoreRows={_.noop}

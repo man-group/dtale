@@ -15,8 +15,6 @@ const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototy
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 describe("DataViewer iframe tests", () => {
-  const { post } = $;
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -50,10 +48,10 @@ describe("DataViewer iframe tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    $.post = post;
   });
 
   it("DataViewer: renaming a column", async () => {
+    const postSpy = jest.spyOn($, "post");
     const { DataViewer } = require("../../dtale/DataViewer");
     const { ReactRename } = require("../../popups/Rename");
 
@@ -89,5 +87,6 @@ describe("DataViewer iframe tests", () => {
     result.find(ReactRename).find("div.modal-footer").find("button").first().simulate("click");
     await tickUpdate(result);
     validateHeaders(result, ["col1", "col2", "col3", "col5"]);
+    postSpy.mockRestore();
   });
 });

@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
@@ -13,7 +14,8 @@ import { buildInnerHTML } from "../test-utils";
 
 describe("DtaleHotkeys tests", () => {
   const { open, innerWidth, innerHeight } = window;
-  let result, propagateState, openChart, buildClickHandlerSpy;
+  const text = "COPIED_TEXT";
+  let result, propagateState, openChart, buildClickHandlerSpy, postSpy;
 
   beforeAll(() => {
     propagateState = jest.fn();
@@ -26,6 +28,8 @@ describe("DtaleHotkeys tests", () => {
 
   beforeEach(() => {
     buildClickHandlerSpy = jest.spyOn(menuUtils, "buildClickHandler");
+    postSpy = jest.spyOn($, "post");
+    postSpy.mockImplementation((_url, _params, callback) => callback(text));
     buildInnerHTML({ settings: "" });
     result = mount(<ReactDtaleHotkeys {...{ propagateState, dataId: "1", openChart }} />, {
       attachTo: document.getElementById("content"),
@@ -33,8 +37,8 @@ describe("DtaleHotkeys tests", () => {
   });
 
   afterEach(() => {
-    buildClickHandlerSpy.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -104,5 +108,47 @@ describe("DtaleHotkeys tests", () => {
       type: "filter",
       visible: true,
     });
+  });
+
+  it("calls openChart for copy handler when ctrlCols exists", () => {
+    result.setProps({
+      ctrlCols: [1],
+      columns: [{}, { name: "foo", index: 1 }],
+    });
+    const hotkeys = result.find(GlobalHotKeys);
+    const copyHandler = hotkeys.prop("handlers").COPY;
+    copyHandler();
+    expect(postSpy).toBeCalledWith("/dtale/build-column-copy/1", { columns: `["foo"]` }, expect.any(Function));
+    expect(openChart).toBeCalledWith(
+      expect.objectContaining({
+        text,
+        headers: ["foo"],
+        type: "copy-column-range",
+        title: "Copy Columns to Clipboard?",
+      })
+    );
+  });
+
+  it("calls openChart for copy handler when ctrlRows exists", () => {
+    result.setProps({
+      ctrlRows: [1],
+      columns: [{ name: "foo", visible: true }],
+    });
+    const hotkeys = result.find(GlobalHotKeys);
+    const copyHandler = hotkeys.prop("handlers").COPY;
+    copyHandler();
+    expect(postSpy).toBeCalledWith(
+      "/dtale/build-row-copy/1",
+      { rows: "[0]", columns: `["foo"]` },
+      expect.any(Function)
+    );
+    expect(openChart).toBeCalledWith(
+      expect.objectContaining({
+        text,
+        headers: ["foo"],
+        type: "copy-row-range",
+        title: "Copy Rows to Clipboard?",
+      })
+    );
   });
 });
