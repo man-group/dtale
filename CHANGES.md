@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.22.0 (2020-11-14)
+* [#317](https://github.com/man-group/dtale/issues/317): convert int/float to hexadecimal
+* Copy Columns/Rows to clipboard using Shift+Click & Ctrl+Click
+* Added "items" function to global state mechanisms
+* [#296](https://github.com/man-group/dtale/issues/296): heatmap doesn't respect current filters
+
 ### 1.21.1 (2020-11-8)
 * Additional fixes for #313 & #302
   * Handling for partial `.ini` files
