@@ -4,11 +4,12 @@ import React from "react";
 import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
+import buildCode from "./typeConversionCodeUtils";
 
 const TYPE_MAP = {
   string: ["date", "int", "float", "bool", "category"],
-  int: ["date", "float", "bool", "category", "str"],
-  float: ["int", "str"],
+  int: ["date", "float", "bool", "category", "str", "hex"],
+  float: ["int", "str", "hex"],
   date: ["int", "str"],
   bool: ["int", "str"],
   category: ["int", "bool", "str"],
@@ -55,64 +56,6 @@ function validateTypeConversionCfg(cfg) {
     if (colType === "date" && to === "int" && _.includes(["D", "s", "us", "ns"], unit)) {
       return "Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'";
     }
-  }
-  return null;
-}
-
-function buildMixedCode(s, to, standardConv) {
-  if (to === "float") {
-    return `pd.to_numeric(${s}, errors="coerce")`;
-  } else if (to === "bool") {
-    return [
-      "import numpy as np",
-      "bool_map = dict(true=True, false=False)",
-      `${s}.apply(lambda b: bool_map.get(str(b).lower(), np.nan)`,
-    ];
-  }
-  return standardConv;
-}
-
-function buildCode({ col, from, to, fmt, unit }) {
-  if (_.isNull(col) || _.isNull(to)) {
-    return null;
-  }
-  const s = `df['${col}']`;
-  const classifier = gu.findColType(from);
-  const standardConv = `${s}.astype('${to}')`;
-  if (classifier === "string") {
-    // date, int, float, bool, category
-    if (to === "date") {
-      const kwargs = fmt ? `format='${fmt}'` : "infer_datetime_format=True";
-      return `pd.to_datetime(${s}, ${kwargs})`;
-    } else if (to === "int") {
-      return `${s}.astype('float').astype('int')`;
-    } else if (to === "float") {
-      return `pd.to_numeric(${s}, errors="coerce")`;
-    }
-    return standardConv;
-  } else if (classifier === "int") {
-    // date, float, category, str, bool
-    if (to === "date") {
-      if (unit === "YYYYMMDD") {
-        return `${s}.astype(str).apply(pd.Timestamp)`;
-      } else {
-        return `pd.to_datetime(${s}, unit='${unit || "D"}')`;
-      }
-    }
-    return standardConv;
-  } else if (classifier === "date") {
-    // str, int
-    if (to === "int") {
-      if (unit === "YYYYMMDD") {
-        return `pd.Series(${s}.dt.strftime('%Y%m%d').astype(int)`;
-      }
-      return ["import time", `${s}.apply(lambda x: time.mktime(x.timetuple())).astype(int)`];
-    }
-    return `pd.Series(${s}.dt.strftime('${fmt}')`;
-  } else if (_.includes(["float", "bool"], classifier)) {
-    return standardConv;
-  } else if (_.startsWith(from, "mixed")) {
-    return buildMixedCode(s, to, standardConv);
   }
   return null;
 }

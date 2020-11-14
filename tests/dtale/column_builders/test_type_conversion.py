@@ -151,6 +151,10 @@ def test_from_int():
             lambda col: pd.Timestamp(col.values[0]).strftime("%Y%m%d") == "20170322",
         )
 
+        cfg = {"col": "int", "to": "hex", "from": "int"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.values[0] == "0x3f800000")
+
 
 @pytest.mark.unit
 def test_from_float():
@@ -167,6 +171,10 @@ def test_from_float():
         cfg = {"col": "float", "to": "str", "from": "float"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "1.5")
+
+        cfg = {"col": "float", "to": "hex", "from": "float"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.values[0] == "0x3fc00000")
 
 
 @pytest.mark.unit

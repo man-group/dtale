@@ -1,6 +1,7 @@
 import random
 import string
 import strsimpy
+import struct
 import time
 
 import numpy as np
@@ -386,6 +387,10 @@ class RandomColumnBuilder(object):
         ).format(low=low, high=high, name=self.name)
 
 
+def float_to_hex(f):
+    return hex(struct.unpack("<I", struct.pack("<f", f))[0])
+
+
 class TypeConversionColumnBuilder(object):
     def __init__(self, name, cfg):
         self.name = name
@@ -450,8 +455,12 @@ class TypeConversionColumnBuilder(object):
                 return pd.Series(
                     pd.to_datetime(s, unit=unit), name=self.name, index=s.index
                 )
+            elif to_type == "hex":
+                return pd.Series(s.apply(float_to_hex), name=self.name, index=s.index)
             return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "F":  # str, int
+            if to_type == "hex":
+                return pd.Series(s.apply(float_to_hex), name=self.name, index=s.index)
             return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "D":  # str, int
             if to_type == "int":
@@ -475,6 +484,14 @@ class TypeConversionColumnBuilder(object):
         raise NotImplementedError(
             "data type conversion not supported for dtype: {}".format(from_type)
         )
+
+    def build_hex_code(self, s):
+        return (
+            "import struct\n\n"
+            "def float_to_hex(f):\n"
+            "\treturn hex(struct.unpack('<I', struct.pack('<f', f))[0])\n\n"
+            "pd.Series({s}.apply(float_to_hex), name='{name}', index={s}.index)"
+        ).format(s=s, name=self.name)
 
     def build_inner_code(self):
         col, from_type, to_type = (self.cfg.get(p) for p in ["col", "from", "to"])
@@ -516,7 +533,7 @@ class TypeConversionColumnBuilder(object):
                 return "pd.Series({s}.astype({to_type}), name='{name}', index={s}.index)".format(
                     s=s, to_type=to_type, name=self.name
                 )
-        elif classifier == "I":  # date, float, category, str, bool
+        elif classifier == "I":  # date, float, category, str, bool, hex
             if to_type == "date":
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
@@ -527,10 +544,14 @@ class TypeConversionColumnBuilder(object):
                 return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
                     s=s, name=self.name, unit=unit
                 )
+            elif to_type == "hex":
+                return self.build_hex_code(s)
             return "pd.Series({s}.astype('{to_type}'), name='{name}', index={s}.index)".format(
                 s=s, to_type=to_type, name=self.name
             )
-        elif classifier == "F":  # str, int
+        elif classifier == "F":  # str, int, hex
+            if to_type == "hex":
+                return self.build_hex_code(s)
             return "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
                 s=s, to_type=to_type, name=self.name
             )

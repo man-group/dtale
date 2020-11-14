@@ -111,6 +111,8 @@ describe("DataViewer tests", () => {
     expect(result.find(CreateTypeConversion).length).toBe(1);
     result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
     result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").last().simulate("click");
+    result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
     result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
@@ -128,6 +130,8 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build float conversion column", async () => {
     result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
+    result.update();
+    result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     submit(result);
