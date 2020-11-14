@@ -163,12 +163,13 @@ class ReactCreateColumn extends React.Component {
       const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
       let markup = null;
       if (_.size(code) > 2) {
+        const isWindow = _.includes(window.location.pathname, `/dtale/popup/${this.state.type.split("_").join("-")}`);
         markup = (
           <div className="font-weight-bold hoverable">
             <div>{code[0]}</div>
             <div>{code[1]}</div>
             <div style={{ fontSize: "85%" }}>{"hover to see more..."}</div>
-            <div className="hoverable__content build-code" style={{ width: "auto" }}>
+            <div className={`hoverable__content build-code${isWindow ? "-window" : ""}`}>
               <pre className="mb-0">{_.join(code, "\n")}</pre>
             </div>
           </div>

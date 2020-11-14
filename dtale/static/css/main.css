@@ -10316,6 +10316,13 @@ li.hoverable:hover {
     left: 0;
     top: 3em;
 }
+.hoverable__content.build-code-window {
+  width: auto;
+  right: unset;
+  left: 0;
+  top: unset;
+  bottom: 110%;
+}
 .hoverable__content.copy-tt-bottom {
   padding: .5em .5em;
   width: 10em;
@@ -10374,6 +10381,17 @@ div.hoverable.label > div.hoverable__content {
     right: unset;
     left: 2em;
 }
+.hoverable__content.build-code-window::before {
+    right: unset;
+    left: 2em;
+    bottom: unset;
+    top: 100%;
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
 .hoverable__content.copy-tt-top::before,
 .hoverable__content.col-menu-desc::before {
     bottom: unset;
@@ -10417,8 +10435,20 @@ div.hoverable.label > div.hoverable__content {
     right: unset;
     left: 2em;
 }
+.hoverable__content.build-code-window::after {
+    right: unset;
+    left: 2em;
+    bottom: unset;
+    top: 99%;
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
 .hoverable__content.copy-tt-top::after,
-.hoverable__content.col-menu-desc::after {
+.hoverable__content.col-menu-desc::after
+.hoverable__content.build-code-window::after {
     bottom: unset;
     top: calc(92% + .1em);
     -moz-transform: rotate(180deg);
@@ -10730,7 +10760,8 @@ div.container-fluid.filter > div#popup-content > div.modal-body {
 }
 
 div.container-fluid.code-popup > div#popup-content > div.modal-footer,
-div.container-fluid.code-export > div#popup-content > div.modal-footer {
+div.container-fluid.code-export > div#popup-content > div.modal-footer,
+div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
   position: absolute;
   bottom: 0;
   width: 100%;

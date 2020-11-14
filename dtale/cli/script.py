@@ -1,12 +1,19 @@
 from logging import getLogger
 
 import click
+import sys
 
 from dtale.app import find_free_port, show
 from dtale.cli.clickutils import LOG_LEVELS, get_log_options, run, setup_logging
 from dtale.cli.loaders import check_loaders, setup_loader_options
 
 logger = getLogger(__name__)
+
+
+def validate_allow_cell_edits(ctx, param, value):
+    if "--no-cell-edits" in sys.argv:
+        return value
+    return None
 
 
 @click.command(name="main", help="Run D-Tale from command-line")
@@ -27,6 +34,7 @@ logger = getLogger(__name__)
 @click.option(
     "--no-cell-edits",
     is_flag=True,
+    callback=validate_allow_cell_edits,
     help="flag to turn off cell editing in the grid",
 )
 @click.option(
