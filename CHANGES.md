@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.22.1 (2020-11-15)
+* additional updates to how int/float hex conversions work
+
 ### 1.22.0 (2020-11-14)
 * [#317](https://github.com/man-group/dtale/issues/317): convert int/float to hexadecimal
 * Copy Columns/Rows to clipboard using Shift+Click & Ctrl+Click
