@@ -42,6 +42,8 @@ def conversion_data():
 @pytest.mark.unit
 def test_from_string():
     df = conversion_data()
+    df.loc[:, "hex_int"] = df["int"].apply(hex)
+    df.loc[:, "hex_float"] = df["float"].apply(float.hex)
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
@@ -52,6 +54,14 @@ def test_from_string():
         verify_builder(builder, lambda col: col.values[0] == 1)
 
         cfg = {"col": "str_num", "to": "float", "from": "str"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.values[0] == 1.5)
+
+        cfg = {"col": "hex_int", "to": "int", "from": "str"}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.values[0] == 1)
+
+        cfg = {"col": "hex_float", "to": "float", "from": "str"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == 1.5)
 
@@ -153,7 +163,7 @@ def test_from_int():
 
         cfg = {"col": "int", "to": "hex", "from": "int"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: col.values[0] == "0x3f800000")
+        verify_builder(builder, lambda col: col.values[0] == "0x1")
 
 
 @pytest.mark.unit
@@ -174,7 +184,7 @@ def test_from_float():
 
         cfg = {"col": "float", "to": "hex", "from": "float"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: col.values[0] == "0x3fc00000")
+        verify_builder(builder, lambda col: col.values[0] == "0x1.8000000000000p+0")
 
 
 @pytest.mark.unit

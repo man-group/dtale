@@ -17,24 +17,27 @@ function buildMixedCode(col, to) {
   return standardConv(col, to);
 }
 
-function buildHexCode(col) {
-  return [
-    "import struct\n",
-    "def float_to_hex(f):",
-    "\treturn hex(struct.unpack('<I', struct.pack('<f', f))[0])\n",
-    `${s(col)}.apply(float_to_hex)`,
-  ];
-}
-
 function buildStringCode(col, to, fmt) {
   // date, int, float, bool, category
   if (to === "date") {
     const kwargs = fmt ? `format='${fmt}'` : "infer_datetime_format=True";
     return `pd.to_datetime(${s(col)}, ${kwargs})`;
   } else if (to === "int") {
-    return `${s(col)}.astype('float').astype('int')`;
+    return [
+      `s = ${s(col)}`,
+      "if s.str.startswith('0x').any():",
+      "\tstr_data = s.apply(lambda v: v if pd.isnull(v) else int(v, base=16))",
+      "else:",
+      "\tstr_data = s.astype('float').astype('int')",
+    ];
   } else if (to === "float") {
-    return `pd.to_numeric(${s(col)}, errors="coerce")`;
+    return [
+      `s = ${s(col)}`,
+      "if s.str.startswith('0x').any():",
+      "\tstr_data = s.apply(float.fromhex)",
+      "else:",
+      "\tstr_data = pd.to_numeric(s, errors='coerce')",
+    ];
   }
   return standardConv(col, to);
 }
@@ -47,6 +50,8 @@ function buildIntCode(col, to, unit) {
     } else {
       return `pd.to_datetime(${s(col)}, unit='${unit || "D"}')`;
     }
+  } else if (to === "hex") {
+    return `${s(col)}.apply(lambda v: v if pd.isnull(v) else hex(v))`;
   }
   return standardConv(col, to);
 }
@@ -67,9 +72,6 @@ export default function buildCode({ col, from, to, fmt, unit }) {
     return null;
   }
   const classifier = gu.findColType(from);
-  if (to === "hex") {
-    return buildHexCode(col);
-  }
   if (classifier === "string") {
     return buildStringCode(col, to, fmt);
   } else if (classifier === "int") {
@@ -77,6 +79,9 @@ export default function buildCode({ col, from, to, fmt, unit }) {
   } else if (classifier === "date") {
     return buildDateCode(col, to, fmt, unit);
   } else if (_.includes(["float", "bool"], classifier)) {
+    if (to === "hex") {
+      return `${s(col)}.apply(float.hex)`;
+    }
     return standardConv(col, to);
   } else if (_.startsWith(from, "mixed")) {
     return buildMixedCode(col, to);
