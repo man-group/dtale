@@ -19,6 +19,26 @@ def verify_builder(builder, checker):
 
 
 @pytest.mark.unit
+def test_random():
+    def _data():
+        for i in range(100):
+            a = i % 5
+            b = i % 3
+            c = i % 4
+            yield dict(a=a, b=b, c=c, i=i)
+
+    df = pd.DataFrame(list(_data()))
+    data_id, column_type = "1", "random"
+    i = 0
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "i", "type": "float", "low": 0, "high": 5}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: sum((col < 0) | (col > 5)) == 0)
+
+
+@pytest.mark.unit
 def test_transform():
     def _data():
         for i in range(100):

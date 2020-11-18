@@ -1,4 +1,5 @@
 import os
+import sys
 from imp import reload
 
 import mock
@@ -100,8 +101,8 @@ def test_main(builtin_pkg):
         )
 
 
-@pytest.mark.unit
-def test_arctic_loader(
+@pytest.mark.xfail(reason="there are issues trying to install mongo on circleci")
+def test_arctic_loader_integration(
     mongo_host, library_name, library, chunkstore_name, chunkstore_lib
 ):
 
@@ -163,6 +164,86 @@ def test_arctic_loader(
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
         pdt.assert_frame_equal(kwargs["data_loader"](), node2)
+
+
+@pytest.mark.unit
+def test_artic_loader():
+    node = pd.DataFrame(
+        [
+            {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
+            {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
+        ]
+    ).set_index(["date", "a"])
+
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(
+            mock.patch("dtale.cli.script.show", mock.Mock())
+        )
+        arctic_mock = stack.enter_context(
+            mock.patch("arctic.Arctic", side_effect=mock.MagicMock())
+        )
+        arctic_lib_mock = mock.MagicMock()
+        arctic_lib_mock().read = mock.Mock(return_value=node)
+        arctic_mock().get_library = arctic_lib_mock
+        args = [
+            "--port",
+            "9999",
+            "--arctic-host",
+            "test_host",
+            "--arctic-library",
+            "test_lib",
+            "--arctic-node",
+            "test_node",
+            "--arctic-start",
+            "20000101",
+            "--arctic-end",
+            "20000102",
+        ]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        assert kwargs["data_loader"] is not None
+        pdt.assert_frame_equal(kwargs["data_loader"](), node)
+        arctic_mock.assert_called_with("test_host")
+        arctic_lib_mock.assert_called_with("test_lib")
+        read_call = arctic_lib_mock.return_value.read.mock_calls[0]
+        assert read_call.args[0] == "test_node"
+        assert "chunk_range" in read_call.kwargs
+
+    node2 = pd.DataFrame(
+        [
+            {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
+            {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
+        ]
+    ).set_index(["date", "a"])
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(
+            mock.patch("dtale.cli.script.show", mock.Mock())
+        )
+        arctic_mock = stack.enter_context(
+            mock.patch("arctic.Arctic", side_effect=mock.MagicMock())
+        )
+        arctic_lib_mock = mock.MagicMock()
+        arctic_lib_mock().read = mock.Mock(return_value=node2)
+        arctic_mock().get_library = arctic_lib_mock
+        args = [
+            "--port",
+            "9999",
+            "--arctic-host",
+            "test_host",
+            "--arctic-library",
+            "test_lib",
+            "--arctic-node",
+            "test_node2",
+        ]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        assert kwargs["data_loader"] is not None
+        pdt.assert_frame_equal(kwargs["data_loader"](), node2)
+        arctic_mock.assert_called_with("test_host")
+        arctic_lib_mock.assert_called_with("test_lib")
+        arctic_lib_mock.return_value.read.assert_called_with("test_node2")
 
 
 @pytest.mark.unit
@@ -458,3 +539,28 @@ def test_loader_retrievers(builtin_pkg):
         assert mock_sourcefileloader.load_module.called_once()
         assert get_py2_loader("custom.loaders", "loader.py") is not None
         assert mock_imp.load_source.called_once()
+
+
+@pytest.mark.unit
+def test_streamlit(unittest):
+    pytest.importorskip("streamlit")
+
+    with ExitStack() as stack:
+        build_app_mock = stack.enter_context(
+            mock.patch("dtale.app.build_app", mock.Mock())
+        )
+        start_listening_mock = stack.enter_context(
+            mock.patch("streamlit.server.server.start_listening", mock.Mock())
+        )
+
+        import dtale.cli.streamlit_script as streamlit_script
+
+        mock_app = mock.MagicMock()
+        streamlit_script.streamlit_server.start_listening(mock_app)
+
+        build_app_mock.assert_called_with(reaper_on=False)
+        start_listening_mock.assert_called_with(mock_app)
+        unittest.assertEquals(
+            sys.argv[-4:],
+            ["--server.enableCORS", "false", "--server.enableXsrfProtection", "false"],
+        )

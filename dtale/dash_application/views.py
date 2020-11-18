@@ -56,14 +56,14 @@ class DtaleDash(dash.Dash):
     def __init__(self, *args, **kwargs):
         server = kwargs.get("server")
         kwargs["external_stylesheets"] = [
-            "/css/main.css",
-            "/css/dash.css",
-            "/css/github_fork.css",
+            "/dtale/static/css/main.css",
+            "/dtale/static/css/dash.css",
+            "/dtale/static/css/github_fork.css",
         ]
         kwargs["external_scripts"] = [
-            "/dash/components_bundle.js",
-            "/dash/custom_bundle.js",
-            "/dist/base_styles_bundle.js",
+            "/dtale/static/dash/components_bundle.js",
+            "/dtale/static/dash/custom_bundle.js",
+            "/dtale/static/dist/base_styles_bundle.js",
         ]
 
         app_root = server.config.get("APPLICATION_ROOT")

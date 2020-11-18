@@ -296,8 +296,8 @@ class RandomColumnBuilder(object):
             )
 
         # floats
-        low = self.cfg.get("low", 0)
-        high = self.cfg.get("high", 1)
+        low = float(self.cfg.get("low", 0))
+        high = float(self.cfg.get("high", 1))
         return pd.Series(
             np.random.uniform(low, high, len(data)), index=data.index, name=self.name
         )
@@ -312,7 +312,7 @@ class RandomColumnBuilder(object):
                 kwargs.append("chars='{chars}'".format(chars=self.cfg.get("chars")))
             kwargs = ", ".join(kwargs)
             return (
-                "import number\nimport random\n\n"
+                "\nimport number\nimport random\n\n"
                 "def id_generator(size=1500, chars=string.ascii_uppercase + string.digits):\n"
                 "\treturn ''.join(random.choice(chars) for _ in range(size))\n\n"
                 "df.loc[:, '{name}'] = pd.Series([id_generator({kwargs}) for _ in range(len(df)], index=df.index)"
@@ -373,7 +373,7 @@ class RandomColumnBuilder(object):
             low = self.cfg.get("low", 0)
             high = self.cfg.get("high", 100)
             return (
-                "import numpy as np\n\n"
+                "\nimport numpy as np\n\n"
                 "df.loc[:, '{name}'] = pd.Series(np.random.randint({low}, high={high}, size=len(df)), "
                 "index=df.index)"
             ).format(name=self.name, low=low, high=high)
@@ -381,7 +381,7 @@ class RandomColumnBuilder(object):
         low = self.cfg.get("low", 0)
         high = self.cfg.get("high", 1)
         return (
-            "import numpy as np\n\n"
+            "\nimport numpy as np\n\n"
             "df.loc[:, '{name}'] = pd.Series(np.random.uniform({low}, {high}, len(df)), index=df.index)"
         ).format(low=low, high=high, name=self.name)
 
@@ -667,7 +667,7 @@ class WinsorizeColumnBuilder(object):
             winsorize_params = ""
         if len(group or []):
             code = (
-                "from scipy.stats import mstats\n\n"
+                "\nfrom scipy.stats import mstats\n\n"
                 "def winsorize_series(group):\n"
                 "\treturn mstats.winsorize(group{params})\n\n"
                 "winsorized_data = data.groupby(['{group}'])['{col}'].transform(winsorize_series)\n"
@@ -680,7 +680,7 @@ class WinsorizeColumnBuilder(object):
             )
         else:
             code = (
-                "from scipy.stats import mstats\n\n"
+                "\nfrom scipy.stats import mstats\n\n"
                 "winsorized_data = mstats.winsorize(data['{col}']{params})\n"
                 "winsorized_data = pd.Series(winsorized_data, index=data.index, name='{name}')"
             ).format(params=winsorize_params, col=col, name=self.name)

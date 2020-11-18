@@ -83,17 +83,27 @@ python: &python
           - v1-dep-master-
           # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
           - v1-dep-
-      - run:
-          name: Install MongoDB
-          command: |
-            # run "cat /etc/os-release" to view information about the OS
-            # good article on how to install mongo, https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            sudo apt-get install gnupg
-            wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-            echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-            sudo apt-get update
-            sudo apt-get install -y mongodb-org
+#      - run:
+#          name: Install MongoDB
+#          command: |
+#            # run "cat /etc/os-release" to view information about the OS
+#            # good article on how to install mongo, https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
+#            cat /etc/os-release
+#            which systemctl
+#            # wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+#            # sudo apt-get install gnupg
+#            # wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+#            # echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.2 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+#            # sudo apt-get update
+#            # sudo apt-get install -y mongodb-org
+#            sudo apt-get install libcurl4 openssl liblzma5
+#            wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian10-4.4.2.tgz
+#            tar -zxvf mongodb-linux-*-4.4.2.tgz
+#            sudo cp mongodb-linux-*-4.4.2/bin/* /usr/local/bin/
+#            sudo mkdir -p /var/lib/mongo
+#            sudo mkdir -p /var/log/mongodb
+#            sudo chown `whoami` /var/lib/mongo     # Or substitute another user
+#            sudo chown `whoami` /var/log/mongodb   # Or substitute another user
       - run:
          name: Create and activate virtualenv
          command: |
@@ -206,12 +216,12 @@ jobs:
   build_JS:
     working_directory: ~/man-group/dtale_JS
     docker:
-    - image: circleci/python:3.8-buster-node-browsers
+      - image: circleci/python:3.8-buster-node-browsers
     <<: *javascript
   build_2_7:
     working_directory: ~/man-group/dtale_2_7
     docker:
-    - image: circleci/python:2.7-buster
+      - image: circleci/python:2.7-buster
     environment:
       <<: *python_variables
       RUN_BLACK: false
@@ -219,7 +229,7 @@ jobs:
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
     docker:
-    - image: circleci/python:3.6-buster
+      - image: circleci/python:3.6-buster
     environment:
       <<: *python_variables
     <<: *python

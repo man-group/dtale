@@ -107,7 +107,7 @@ class ReactHeader extends React.Component {
       return (
         <DataViewerMenuHolder
           style={style}
-          coluns={columns}
+          columns={columns}
           backgroundMode={backgroundMode}
           menuOpen={menuOpen}
           rowCount={rowCount}

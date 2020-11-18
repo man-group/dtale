@@ -271,7 +271,8 @@ def build_app(
     app = DtaleFlask(
         "dtale",
         reaper_on=reaper_on,
-        static_url_path="",
+        static_url_path="/dtale/static",
+        # static_url_path="",
         url=url,
         instance_relative_config=False,
         app_root=app_root,

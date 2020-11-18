@@ -48,7 +48,7 @@ function buildRandomCode(cfg) {
     if (cfg.type === "int") {
       return `pd.Series(np.random.randint(${low || 0}, high=${high || 100}, size=len(df)), index=df.index)`;
     } else {
-      return `pd.Series(np.random.uniform(${low || 0}, high=${(high || 1) - 1}, size=len(df)), index=df.index)`;
+      return `pd.Series(np.random.uniform(${low || 0}, high=${high || 1}, size=len(df)), index=df.index)`;
     }
   }
 }

@@ -105,7 +105,7 @@ class StringReplacement(object):
         replace_with = get_replacement_value_as_str(self.cfg, "replace", data[self.col])
 
         return (
-            "import re\n\n"
+            "\nimport re\n\n"
             "regex_pat = re.compile({regex_exp}, flags={flags})\n"
             "df.loc[:, '{name}'] = df['{col}'].replace(regex_pat, {replace}, regex=True)"
         ).format(
