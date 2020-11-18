@@ -101,6 +101,7 @@ setup(
         "arctic": ["arctic"],
         "r": ["rpy2<=2.8.6; python_version < '3.0'", "rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
+        "streamlit": ["streamlit"],
         "tests": ["ipython", "mock", "pytest", "pytest-cov", "pytest-server-fixtures"],
     },
     classifiers=[
@@ -131,6 +132,11 @@ setup(
             "templates/**/**/*",
         ]
     },
-    entry_points={"console_scripts": ["dtale = dtale.cli.script:main"]},
+    entry_points={
+        "console_scripts": [
+            "dtale = dtale.cli.script:main",
+            "dtale-streamlit = dtale.cli.streamlit_script:main",
+        ]
+    },
     zip_safe=False,
 )

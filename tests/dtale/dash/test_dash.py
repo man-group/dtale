@@ -286,7 +286,7 @@ def test_map_data(unittest):
             img_src = resp_data["proj-hover"]["children"][1]["props"]["children"][1][
                 "props"
             ]["src"]
-            assert img_src == "../images/projections/hammer.png"
+            assert img_src == "../static/images/projections/hammer.png"
 
 
 @pytest.mark.unit

@@ -47,7 +47,7 @@ def base_layout(app_root, **kwargs):
     :rtype: str
     """
     webroot_html = ""
-    favicon_path = "../../images/favicon.png"
+    favicon_path = "../../dtale/static/images/favicon.png"
     if is_app_root_defined(app_root):
         webroot_html = """
         <script type="text/javascript">
@@ -56,7 +56,7 @@ def base_layout(app_root, **kwargs):
         """.format(
             app_root=app_root
         )
-        favicon_path = "{}/images/favicon.png".format(app_root)
+        favicon_path = "{}/dtale/static/images/favicon.png".format(app_root)
     return """
         <!DOCTYPE html>
         <html>
@@ -233,7 +233,7 @@ PROJECTIONS = [
 
 
 def build_img_src(proj, img_type="projections"):
-    return "../images/{}/{}.png".format(img_type, "_".join(proj.split(" ")))
+    return "../static/images/{}/{}.png".format(img_type, "_".join(proj.split(" ")))
 
 
 def build_proj_hover_children(proj):

@@ -87,7 +87,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
-  ReactDOM.render(rootNode, document.getElementById("popup-content"));
+  const store = createStore(app.store);
+  store.dispatch(actions.init());
+  ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById("popup-content"));
 } else if (_.startsWith(pathname, "/dtale/code-popup")) {
   require("./dtale/DataViewer.css");
   document.getElementById("code-title").innerHTML = `${window.opener.code_popup.title} Code Export`;

@@ -22,7 +22,6 @@ function createConfig(entry) {
     output: {
       path: path.resolve(__dirname, "./dtale/static/dist"),
       filename: entryName + "_bundle.js",
-      //publicPath: "/dist/",
     },
     resolve: {
       extensions: [".js", ".jsx", ".css", ".scss"],

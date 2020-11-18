@@ -2805,10 +2805,10 @@ def test_200():
         "/dtale/code-popup",
         "/dtale/popup/upload",
         "/missing-js",
-        "images/fire.jpg",
-        "images/projections/miller.png",
-        "images/map_type/choropleth.png",
-        "maps/usa_110m.json",
+        "/dtale/static/images/fire.jpg",
+        "/dtale/static/images/projections/miller.png",
+        "/dtale/static/images/map_type/choropleth.png",
+        "/dtale/static/maps/usa_110m.json",
     ]
     with app.test_client() as c:
         with ExitStack() as stack:

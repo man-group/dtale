@@ -40,6 +40,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 
  - [Pip Install Python YouTube Channel](https://m.youtube.com/watch?v=0RihZNdQc7k&feature=youtu.be)
  - [machine_learning_2019](https://www.youtube.com/watch?v=-egtEUVBy9c)
+ - [D-Tale The Best Library To Perform Exploratory Data Analysis Using Single Line Of Code🔥🔥🔥🔥](https://www.youtube.com/watch?v=xSXGcuiEzUc)
 
  ## Related Resources
 
@@ -61,6 +62,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Custom Command-line Loaders](#custom-command-line-loaders)
   - [Embedding Within Your Own Flask App](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_FLASK.md)
   - [Embedding Within Your Own Django App](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_DJANGO.md)
+  - [Embedding Within Streamlit](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_DTALE_STREAMLIT.md)
   - [Running D-Tale On Gunicorn w/ Redis](https://github.com/man-group/dtale/blob/master/docs/GUNICORN_REDIS.md)
   - [Configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)
 - [UI](#ui)
