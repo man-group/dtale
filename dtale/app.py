@@ -676,6 +676,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             inplace=final_options["inplace"],
             drop_index=final_options["drop_index"],
         )
+        instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)
         if is_active:
 
