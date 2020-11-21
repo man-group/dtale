@@ -2704,10 +2704,11 @@ def get_filter_info(data_id):
 @exception_decorator
 def get_xarray_coords(data_id):
     ds = global_state.get_dataset(data_id)
-    coord_data = [
-        dict(name=coord, count=len(info), dtype=info.dtype.name)
-        for coord, info in ds.coords.items()
-    ]
+
+    def _format_dim(coord, count):
+        return dict(name=coord, count=count, dtype=ds.coords[coord].dtype.name)
+
+    coord_data = [_format_dim(coord, count) for coord, count in ds.coords.dims.items()]
     return jsonify(data=coord_data)
 
 
@@ -2715,7 +2716,8 @@ def get_xarray_coords(data_id):
 @exception_decorator
 def get_xarray_dimension_values(data_id, dim):
     ds = global_state.get_dataset(data_id)
-    dim = pd.DataFrame({"value": ds.coords[dim].data})
+    dim_entries = ds.coords[dim].data
+    dim = pd.DataFrame({"value": dim_entries})
     dim_f, _ = build_formatters(dim)
     return jsonify(data=dim_f.format_dicts(dim.itertuples()))
 
