@@ -211,38 +211,6 @@ def test_show(unittest, builtin_pkg):
 
         assert "9999" in instance._url
 
-    with ExitStack() as stack:
-        mock_run = stack.enter_context(
-            mock.patch("dtale.app.DtaleFlask.run", mock.Mock())
-        )
-        stack.enter_context(
-            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
-        )
-        stack.enter_context(
-            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
-        )
-        stack.enter_context(mock.patch("dtale.app.is_up", mock.Mock(return_value=True)))
-        mock_data_loader = mock.Mock(return_value=test_data)
-        mock_webbrowser = stack.enter_context(mock.patch("webbrowser.get"))
-        instance = show(
-            data_loader=mock_data_loader,
-            subprocess=False,
-            port=9999,
-            open_browser=True,
-            ignore_duplicate=True,
-        )
-        mock_run.assert_not_called()
-        webbrowser_instance = mock_webbrowser.return_value
-        assert (
-            "http://localhost:9999/dtale/main/4"
-            == webbrowser_instance.open.call_args[0][0]
-        )
-        instance.open_browser()
-        assert (
-            "http://localhost:9999/dtale/main/4"
-            == webbrowser_instance.open.mock_calls[1][1][0]
-        )
-
     # RangeIndex test
     test_data = pd.DataFrame([1, 2, 3])
     with ExitStack() as stack:
@@ -304,7 +272,9 @@ def test_show(unittest, builtin_pkg):
         )
         mock_display.assert_called_once()
         mock_iframe.assert_called_once()
-        assert mock_iframe.call_args[0][0] == "http://localhost:9999/dtale/iframe/6"
+        assert mock_iframe.call_args[0][
+            0
+        ] == "http://localhost:9999/dtale/iframe/{}".format(instance._data_id)
 
         assert type(instance.__str__()).__name__ == "str"
         assert type(instance.__repr__()).__name__ == "str"
@@ -386,6 +356,86 @@ def test_show(unittest, builtin_pkg):
         assert curr_instance_ct == len(global_state.DATA)
 
     # cleanup
+    global_state.cleanup()
+
+
+@pytest.mark.unit
+def test_open_browser():
+    from dtale.app import show
+    import dtale.global_state as global_state
+
+    test_data = pd.DataFrame([dict(a=1, b=2)])
+
+    with ExitStack() as stack:
+        mock_run = stack.enter_context(
+            mock.patch("dtale.app.DtaleFlask.run", mock.Mock())
+        )
+        stack.enter_context(
+            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
+        )
+        stack.enter_context(
+            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
+        )
+        stack.enter_context(mock.patch("dtale.app.is_up", mock.Mock(return_value=True)))
+        mock_data_loader = mock.Mock(return_value=test_data)
+        mock_browser_proc = stack.enter_context(mock.patch("subprocess.Popen"))
+        mock_webbrowser = stack.enter_context(mock.patch("webbrowser.open"))
+        stack.enter_context(
+            mock.patch("distutils.spawn.find_executable", mock.Mock(return_value=None))
+        )
+        stack.enter_context(mock.patch("dtale.env_util.IS_WINDOWS", False))
+        stack.enter_context(mock.patch("dtale.env_util.IS_LINUX_OR_BSD", True))
+        stack.enter_context(mock.patch("dtale.env_util.IS_DARWIN", False))
+        instance = show(
+            data_loader=mock_data_loader,
+            subprocess=False,
+            port=9999,
+            open_browser=True,
+            ignore_duplicate=True,
+        )
+        mock_run.assert_not_called()
+        mock_webbrowser.assert_called()
+        assert mock_webbrowser.mock_calls[0].args[
+            0
+        ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
+        mock_browser_proc.reset_mock()
+        mock_webbrowser.reset_mock()
+
+        stack.enter_context(
+            mock.patch(
+                "distutils.spawn.find_executable", mock.Mock(return_value="exists")
+            )
+        )
+        instance.open_browser()
+        mock_browser_proc.assert_called()
+        assert mock_browser_proc.mock_calls[0].args[0][
+            1
+        ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
+        mock_browser_proc.reset_mock()
+        mock_webbrowser.reset_mock()
+
+        stack.enter_context(mock.patch("dtale.env_util.IS_WINDOWS", False))
+        stack.enter_context(mock.patch("dtale.env_util.IS_LINUX_OR_BSD", False))
+        stack.enter_context(mock.patch("dtale.env_util.IS_DARWIN", True))
+
+        instance.open_browser()
+        mock_browser_proc.assert_called()
+        assert mock_browser_proc.mock_calls[0].args[0][
+            1
+        ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
+        mock_browser_proc.reset_mock()
+        mock_webbrowser.reset_mock()
+
+        stack.enter_context(mock.patch("dtale.env_util.IS_WINDOWS", True))
+        stack.enter_context(mock.patch("dtale.env_util.IS_LINUX_OR_BSD", False))
+        stack.enter_context(mock.patch("dtale.env_util.IS_DARWIN", False))
+
+        instance.open_browser()
+        mock_webbrowser.assert_called()
+        assert mock_webbrowser.mock_calls[0].args[
+            0
+        ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
+
     global_state.cleanup()
 
 

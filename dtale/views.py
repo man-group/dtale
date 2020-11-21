@@ -3,7 +3,6 @@ from __future__ import absolute_import, division
 import base64
 import os
 import time
-import webbrowser
 from builtins import map, range, str, zip
 from functools import wraps
 from logging import getLogger
@@ -18,6 +17,7 @@ from scipy import stats
 from six import string_types, StringIO
 
 import dtale.datasets as datasets
+import dtale.env_util as env_util
 import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
@@ -176,6 +176,7 @@ class DtaleData(object):
             self._name_or_data_id = self._data_id
         self._main_url = self.build_main_url()
         self._notebook_handle = None
+        self.started_with_open_browser = False
 
     def build_main_url(self, data_id=None):
         return "{}/dtale/main/{}".format(self._url, data_id or self._name_or_data_id)
@@ -218,7 +219,7 @@ class DtaleData(object):
         This function uses the :mod:`python:webbrowser` library to try and automatically open server's default browser
         to this D-Tale instance
         """
-        webbrowser.get().open(self._main_url)
+        env_util.open_browser(self._main_url)
 
     def is_up(self):
         """
@@ -234,6 +235,9 @@ class DtaleData(object):
 
         """
         if in_ipython_frontend():
+            if self.started_with_open_browser:
+                self.started_with_open_browser = False
+                return ""
             self.notebook()
             return ""
         return self.data.__str__()
@@ -246,6 +250,9 @@ class DtaleData(object):
 
         """
         if in_ipython_frontend():
+            if self.started_with_open_browser:
+                self.started_with_open_browser = False
+                return ""
             self.notebook()
             if self._notebook_handle is not None:
                 return ""
@@ -815,6 +822,7 @@ def startup(
                 ignore_duplicate=ignore_duplicate,
                 allow_cell_edits=allow_cell_edits,
             )
+
             global_state.set_dataset(instance._data_id, data)
             global_state.set_dataset_dim(instance._data_id, {})
             return instance
