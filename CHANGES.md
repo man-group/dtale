@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.23.0 (2020-11-21)
+* Added better handling for `open_browser`
+* [#319](https://github.com/man-group/dtale/issues/319): fix for loading xarray dimensions
+* Added support for embedding D-Tale within Streamlit
+
 ### 1.22.1 (2020-11-15)
 * additional updates to how int/float hex conversions work
 
