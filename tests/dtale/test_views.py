@@ -301,7 +301,7 @@ def test_processes(test_data, unittest):
                         "rows": 50,
                         "name": u"foo",
                         "ts": 1525106204000,
-                        "start": "2018-04-30 12:36:44",
+                        "start": "12:36:44 PM",
                         "names": u"date,security_id,foo,bar,baz",
                         "data_id": c.port,
                         "columns": 5,
