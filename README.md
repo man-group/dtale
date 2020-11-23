@@ -35,12 +35,14 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
  - [Medium: towards data science](https://towardsdatascience.com/introduction-to-d-tale-5eddd81abe3f)
  - [Medium: Exploratory Data Analysis – Using D-Tale](https://medium.com/da-tum/exploratory-data-analysis-1-4-using-d-tale-99a2c267db79)
  - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
+ - [Data Exploration is Now Super Easy w/ D-Tale](https://dibyendudeb.com/d-tale-data-exploration-tool/)
 
 ## Tutorials
 
  - [Pip Install Python YouTube Channel](https://m.youtube.com/watch?v=0RihZNdQc7k&feature=youtu.be)
  - [machine_learning_2019](https://www.youtube.com/watch?v=-egtEUVBy9c)
  - [D-Tale The Best Library To Perform Exploratory Data Analysis Using Single Line Of Code🔥🔥🔥🔥](https://www.youtube.com/watch?v=xSXGcuiEzUc)
+ - [Explore and Analyze Pandas Data Structures w/ D-Tale](https://m.youtube.com/watch?v=JUu5IYVGqCg)
 
  ## Related Resources
 
@@ -65,6 +67,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Embedding Within Streamlit](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_DTALE_STREAMLIT.md)
   - [Running D-Tale On Gunicorn w/ Redis](https://github.com/man-group/dtale/blob/master/docs/GUNICORN_REDIS.md)
   - [Configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)
+  - [Using Swifter](#using-swifter)
 - [UI](#ui)
   - [Dimensions/Main Menu](#dimensionsmain-menu)
   - [Header](#header)
@@ -420,6 +423,28 @@ Here's how you would use this loader:
 ```bash
 DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
 ```
+
+### Using Swifter
+
+Swifter is a package which will increase performance on any `apply()` function on a pandas series or dataframe.  If install the package in your virtual environment
+```sh
+pip install swifter
+# or
+pip install dtale[swifter]
+```
+
+It will be used for the following operations:
+- Standard dataframe formatting in the main grid & chart display
+- Column Builders
+  - Type Conversions
+    - string hex -> int or float
+    - int or float -> hex
+    - mixed -> boolean
+    - int -> timestamp
+    - date -> int
+  - Similarity Distance Calculation
+- Handling of empty strings when calculating missing counts
+- Building unique values by data type in "Describe" popup
 
 ### Accessing CLI Loaders in Notebook or Console
 I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples (the last working if you've installed `dtale[arctic]`):

@@ -18,7 +18,7 @@ from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
-from dtale.utils import classify_type
+from dtale.utils import classify_type, apply
 
 
 class ColumnBuilder(object):
@@ -414,7 +414,7 @@ class TypeConversionColumnBuilder(object):
                         return v if pd.isnull(v) else int(v, base=16)
 
                     return pd.Series(
-                        s.apply(str_hex_to_int), name=self.name, index=s.index
+                        apply(s, str_hex_to_int), name=self.name, index=s.index
                     )
                 return pd.Series(
                     s.astype("float").astype("int"), name=self.name, index=s.index
@@ -422,7 +422,7 @@ class TypeConversionColumnBuilder(object):
             elif to_type == "float":
                 if s.str.startswith("0x").any():
                     return pd.Series(
-                        s.apply(float.fromhex), name=self.name, index=s.index
+                        apply(s, float.fromhex), name=self.name, index=s.index
                     )
                 return pd.Series(
                     pd.to_numeric(s, errors="coerce"), name=self.name, index=s.index
@@ -447,7 +447,7 @@ class TypeConversionColumnBuilder(object):
                             return np.nan
 
                         return pd.Series(
-                            s.apply(_process_mixed_bool), name=self.name, index=s.index
+                            apply(s, _process_mixed_bool), name=self.name, index=s.index
                         )
                 return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "I":  # date, float, category, str, bool
@@ -455,7 +455,7 @@ class TypeConversionColumnBuilder(object):
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
                     return pd.Series(
-                        s.astype("str").apply(pd.Timestamp),
+                        apply(s.astype("str"), pd.Timestamp),
                         name=self.name,
                         index=s.index,
                     )
@@ -467,11 +467,11 @@ class TypeConversionColumnBuilder(object):
                 def int_to_hex(v):
                     return v if pd.isnull(v) else hex(v)
 
-                return pd.Series(s.apply(int_to_hex), name=self.name, index=s.index)
+                return pd.Series(apply(s, int_to_hex), name=self.name, index=s.index)
             return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "F":  # str, int
             if to_type == "hex":
-                return pd.Series(s.apply(float.hex), name=self.name, index=s.index)
+                return pd.Series(apply(s, float.hex), name=self.name, index=s.index)
             return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "D":  # str, int
             if to_type == "int":
@@ -483,7 +483,7 @@ class TypeConversionColumnBuilder(object):
                         index=s.index,
                     )
                 return pd.Series(
-                    s.apply(lambda x: time.mktime(x.timetuple())).astype(int)
+                    apply(s, lambda x: time.mktime(x.timetuple())).astype(int)
                 )
             return pd.Series(
                 s.dt.strftime(self.cfg.get("fmt") or "%Y%m%d"),
@@ -754,10 +754,10 @@ class SimilarityColumnBuilder(object):
             similarity = strsimpy.jaccard.Jaccard(int(self.cfg.get("k", 3)))
             if normalized:
                 similarity = SimilarityNormalizeWrapper(similarity)
-        distances = (
-            data[[left_col, right_col]]
-            .fillna("")
-            .apply(lambda rec: similarity.distance(*rec), axis=1)
+        distances = apply(
+            data[[left_col, right_col]].fillna(""),
+            lambda rec: similarity.distance(*rec),
+            axis=1,
         )
         return pd.Series(distances, index=data.index, name=self.name)
 
