@@ -384,8 +384,8 @@ class JSONFormatter(object):
         cols = [col for col in df.columns if col in formatters]
         return pd.concat(
             [
-                df[col].apply(
-                    lambda v: formatters[col](v, nan_display=self.nan_display)
+                apply(
+                    df[col], lambda v: formatters[col](v, nan_display=self.nan_display)
                 )
                 for col in cols
             ],
@@ -713,3 +713,12 @@ def fix_url_path(path):
     while "//" in path:
         path = path.replace("//", "/")
     return path
+
+
+def apply(df, func, *args, **kwargs):
+    try:
+        import swifter
+
+        return df.swifter.progress_bar(False).apply(func, *args, **kwargs)
+    except ImportError:
+        return df.apply(func, *args, **kwargs)

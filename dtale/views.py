@@ -40,6 +40,7 @@ from dtale.code_export import build_code_export
 from dtale.query import build_query, run_query
 from dtale.utils import (
     DuplicateDataError,
+    apply,
     build_shutdown_url,
     classify_type,
     dict_merge,
@@ -598,7 +599,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
         if classification == "S" and not dtype_data["hasMissing"]:
             if dtype.startswith("category"):
                 dtype_data["hasMissing"] += int(
-                    (s.apply(lambda x: x.strip()) == "").sum()
+                    (apply(s, lambda x: x.strip()) == "").sum()
                 )
             else:
                 dtype_data["hasMissing"] += int(
@@ -1613,7 +1614,7 @@ def describe(data_id, column):
     )
 
     if dtype["dtype"].startswith("mixed"):
-        uniq_vals["type"] = uniq_vals["value"].apply(lambda i: type(i).__name__)
+        uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
         dtype_counts = uniq_vals.groupby("type").sum().reset_index()
         dtype_counts.columns = ["dtype", "count"]
         return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
