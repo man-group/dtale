@@ -1059,7 +1059,7 @@ def get_processes():
             rows=len(data),
             columns=len(dtypes),
             names=",".join([c["name"] for c in dtypes]),
-            start=json_date(mdata["start"]),
+            start=json_date(mdata["start"], fmt="%-I:%M:%S %p"),
             ts=json_timestamp(mdata["start"]),
             name=mdata["name"],
         )

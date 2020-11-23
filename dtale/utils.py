@@ -717,7 +717,7 @@ def fix_url_path(path):
 
 def apply(df, func, *args, **kwargs):
     try:
-        import swifter
+        import swifter  # noqa: F401
 
         return df.swifter.progress_bar(False).apply(func, *args, **kwargs)
     except ImportError:

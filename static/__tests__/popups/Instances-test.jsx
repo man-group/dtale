@@ -115,7 +115,7 @@ describe("Instances tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
-    Instances = require("../../popups/Instances").default;
+    Instances = require("../../popups/instances/Instances").default;
   });
 
   beforeEach(buildInnerHTML);
@@ -134,10 +134,10 @@ describe("Instances tests", () => {
     await tickUpdate(result);
     result.find("button.preview-btn").last().simulate("click");
     await tickUpdate(result);
-    expect(result.find("h4.preview-header").first().text()).toBe("2018-04-30 12:36:44Preview");
+    expect(result.find("h4.preview-header").first().text()).toBe("8083 (2018-04-30 12:36:44)Preview");
     result.find("button.preview-btn").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find("h4.preview-header").first().text()).toBe("2018-04-30 12:36:44(foo)Preview");
+    expect(result.find("h4.preview-header").first().text()).toBe("8081 - foo (2018-04-30 12:36:44)Preview");
     expect(result.find("div.preview").first().find("div.ReactVirtualized__Table__row").length).toBe(6);
     expect(
       result.find("div.preview").first().find("div.ReactVirtualized__Table__row").first().find("div.cell").length

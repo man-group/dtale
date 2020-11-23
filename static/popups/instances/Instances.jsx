@@ -6,21 +6,14 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
 
-import { Bouncer } from "../Bouncer";
-import { RemovableError } from "../RemovableError";
-import { exports as gu } from "../dtale/gridUtils";
-import { fetchJson } from "../fetcher";
+import { Bouncer } from "../../Bouncer";
+import { RemovableError } from "../../RemovableError";
+import { exports as gu } from "../../dtale/gridUtils";
+import { fetchJson } from "../../fetcher";
+import InstancePreview from "./InstancePreview";
+import ProcessLabel from "./ProcessLabel";
 
 require("./Instances.css");
-
-function renderProcessLabel({ start, name }) {
-  return [
-    <span key={0} className="d-inline">
-      {start}
-    </span>,
-    name ? <span key={1} className="d-inline pl-3">{`(${name})`}</span> : null,
-  ];
-}
 
 class Instances extends React.Component {
   constructor(props) {
@@ -68,70 +61,7 @@ class Instances extends React.Component {
     if (this.state.loadingPreview) {
       return <Bouncer />;
     }
-    if (_.isNull(this.state.preview)) {
-      return null;
-    }
-    if (this.state.preview.error) {
-      return <RemovableError {...this.state.preview} />;
-    }
-    let ellipsesCol = null;
-    if (this.state.preview.columns.length > 6) {
-      ellipsesCol = (
-        <Column
-          label="..."
-          dataKey="dtale_index"
-          cellRenderer={() => "..."}
-          width={30}
-          maxWidth={30}
-          minWidth={30}
-          style={{ textAlign: "center" }}
-          className="cell"
-        />
-      );
-    }
-    return [
-      <h4 key={0} className="preview-header">
-        <div>
-          {renderProcessLabel(this.state.preview.instance)}
-          <span className="d-inline pl-3">Preview</span>
-        </div>
-      </h4>,
-      <AutoSizer key={1} disableHeight>
-        {({ width }) => (
-          <Table
-            height={400}
-            headerHeight={gu.ROW_HEIGHT}
-            overscanRowCount={10}
-            rowStyle={{ display: "flex" }}
-            rowHeight={gu.ROW_HEIGHT}
-            rowGetter={({ index }) => this.state.preview.results[index]}
-            rowCount={this.state.preview.total > 5 ? 6 : _.min([5, this.state.preview.total])}
-            width={width}
-            className="preview"
-            headerClassName="headerCell">
-            {_.map(_.range(1, _.min([6, this.state.preview.columns.length])), colIdx => (
-              <Column
-                key={colIdx}
-                dataKey={this.state.preview.columns[colIdx].name}
-                label={this.state.preview.columns[colIdx].name}
-                width={50}
-                maxWidth={50}
-                minWidth={50}
-                style={{ textAlign: "right", paddingRight: ".5em" }}
-                className="cell"
-                cellRenderer={({ rowData, rowIndex, dataKey }) => {
-                  if (rowIndex == 5) {
-                    return "...";
-                  }
-                  return _.get(rowData, dataKey, "N/A");
-                }}
-              />
-            ))}
-            {ellipsesCol}
-          </Table>
-        )}
-      </AutoSizer>,
-    ];
+    return <InstancePreview preview={this.state.preview} />;
   }
 
   render() {
@@ -178,16 +108,13 @@ class Instances extends React.Component {
             paddingRight: ".5em",
             fontSize: "80%",
           }}
-          cellRenderer={({ rowData }) => {
-            if (rowData.data_id === this.props.dataId) {
-              return null;
-            }
-            return (
+          cellRenderer={({ rowData }) =>
+            rowData.data_id !== this.props.dataId && (
               <button className="preview-btn" onClick={viewPreview(rowData)}>
                 Preview
               </button>
-            );
-          }}
+            )
+          }
           className="cell"
         />
       );
@@ -214,11 +141,12 @@ class Instances extends React.Component {
     return (
       <div key="body" className="modal-body">
         <div className="row">
-          <div className="col-md-7">
+          <div className="col-md-12">
             <AutoSizer disableHeight>
               {({ width }) => (
                 <Table
-                  height={400}
+                  height={200}
+                  autoHeight={true}
                   headerHeight={gu.ROW_HEIGHT}
                   overscanRowCount={10}
                   rowStyle={{ display: "flex" }}
@@ -237,7 +165,7 @@ class Instances extends React.Component {
                     width={200}
                     flexGrow={1}
                     style={{ textAlign: "left", paddingLeft: ".5em" }}
-                    cellRenderer={({ rowData }) => <div>{renderProcessLabel(rowData)}</div>}
+                    cellRenderer={({ rowData }) => <ProcessLabel process={rowData} />}
                     className="cell"
                   />
                   <Column
@@ -284,7 +212,11 @@ class Instances extends React.Component {
               )}
             </AutoSizer>
           </div>
-          <div className="col-md-5">{this.renderPreview()}</div>
+        </div>
+        <div className="row">
+          <div className="col-md-12" style={{ minHeight: 200 }}>
+            {this.renderPreview()}
+          </div>
         </div>
       </div>
     );

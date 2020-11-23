@@ -39,7 +39,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: instances", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const Instances = require("../../popups/Instances").default;
+    const Instances = require("../../popups/instances/Instances").default;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", hideShutdown: "True", processes: 2 }, store);
     const result = mount(
