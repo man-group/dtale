@@ -136,7 +136,11 @@ class DtaleFlask(Flask):
     def url_for(self, endpoint, *args, **kwargs):
         if self.app_root is not None and endpoint == "static":
             if "filename" in kwargs:
-                return fix_url_path("{}/{}".format(self.app_root, kwargs["filename"]))
+                return fix_url_path(
+                    "{}/{}/{}".format(
+                        self.app_root, self.static_url_path, kwargs["filename"]
+                    )
+                )
             return fix_url_path("{}/{}".format(self.app_root, args[0]))
         return url_for(endpoint, *args, **kwargs)
 
@@ -272,7 +276,6 @@ def build_app(
         "dtale",
         reaper_on=reaper_on,
         static_url_path="/dtale/static",
-        # static_url_path="",
         url=url,
         instance_relative_config=False,
         app_root=app_root,
