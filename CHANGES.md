@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.24.0 (2020-11-23)
+* [#295](https://github.com/man-group/dtale/issues/295): check for swifter when executing apply functions
+* Reworked the display of the "Instances" popup
+* fixed issue with serving static assets when using "app_root"
+
 ### 1.23.0 (2020-11-21)
 * Added better handling for `open_browser`
 * [#319](https://github.com/man-group/dtale/issues/319): fix for loading xarray dimensions
