@@ -45,6 +45,7 @@ def validate_allow_cell_edits(ctx, param, value):
     is_flag=True,
     help='flag to show "Fork Me On GitHub" link in upper right-hand corner of the app',
 )
+@click.option("--app-root", type=str)
 @click.option(
     "--theme",
     default="light",
@@ -71,6 +72,7 @@ def main(
     no_cell_edits=None,
     hide_shutdown=None,
     github_fork=None,
+    app_root=None,
     **kwargs
 ):
     """
@@ -101,6 +103,7 @@ def main(
         allow_cell_edits=allow_cell_edits,
         hide_shutdown=hide_shutdown,
         github_fork=github_fork,
+        app_root=app_root,
         **kwargs
     )
 
