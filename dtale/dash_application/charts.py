@@ -156,7 +156,16 @@ def url_encode_func():
 
 
 def chart_url_querystring(params, data=None, group_filter=None):
-    base_props = ["chart_type", "query", "x", "z", "agg", "window", "rolling_comp"]
+    base_props = [
+        "chart_type",
+        "query",
+        "x",
+        "z",
+        "agg",
+        "window",
+        "rolling_comp",
+        "load",
+    ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
         base_props += ["barmode", "barsort"]
@@ -1780,6 +1789,7 @@ def candlestick_builder(data_id, export=False, **inputs):
             global_state.get_data(data_id),
             query,
             global_state.get_context_variables(data_id),
+            pct=inputs.get("load"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2067,6 +2077,7 @@ def map_builder(data_id, export=False, **inputs):
             global_state.get_data(data_id),
             query,
             global_state.get_context_variables(data_id),
+            pct=inputs.get("load"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2520,6 +2531,7 @@ def build_figure_data(
         data if data is not None else global_state.get_data(data_id),
         query,
         global_state.get_context_variables(data_id),
+        pct=kwargs.get("load"),
     )
     if data is None or not len(data):
         return None, None

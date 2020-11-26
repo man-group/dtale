@@ -670,7 +670,7 @@ def animate_styles(df, **inputs):
 
 def lock_zoom_style(chart_type):
     return (
-        dict(display="block")
+        dict(display="block", textTransform="none", height="inherit")
         if chart_type in ["3d_scatter", "surface"]
         else dict(display="none")
     )
@@ -750,6 +750,21 @@ def build_map_type_tabs(map_type):
     )
 
 
+def build_hoverable(content, hoverable_content):
+    return html.Div(
+        [
+            content,
+            html.Div(
+                hoverable_content,
+                className="hoverable__content map-types",
+                style=dict(top="50%"),
+            ),
+        ],
+        style=dict(borderBottom="none"),
+        className="hoverable",
+    )
+
+
 def main_inputs_and_group_val_display(inputs):
     if show_group_input(inputs):
         return dict(display="block"), "col-md-8"
@@ -768,8 +783,8 @@ def charts_layout(df, settings, **inputs):
     :type param: dict
     :return: dash markup
     """
-    chart_type, x, y, z, group, agg = (
-        inputs.get(p) for p in ["chart_type", "x", "y", "z", "group", "agg"]
+    chart_type, x, y, z, group, agg, load = (
+        inputs.get(p) for p in ["chart_type", "x", "y", "z", "group", "agg", "load"]
     )
     y = y or []
     show_input = show_input_handler(chart_type)
@@ -937,6 +952,44 @@ def charts_layout(df, settings, **inputs):
                                 className="form-control",
                                 value=query_value,
                                 style={"lineHeight": "inherit"},
+                            ),
+                        ],
+                        className="input-group mr-3",
+                    )
+                ],
+                className="col",
+            ),
+            className="row pt-3 pb-3 charts-filters",
+        ),
+        html.Div(
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            build_hoverable(
+                                html.Span("Load"),
+                                html.Span(
+                                    "Load a random percentage of rows from your dataset."
+                                ),
+                            ),
+                            dcc.Slider(
+                                id="load-input",
+                                min=10,
+                                max=100,
+                                step=10,
+                                value=100 if load is None else load,
+                                className="w-100",
+                                marks={
+                                    20: "20%",
+                                    40: "40%",
+                                    60: "60%",
+                                    80: "80%",
+                                    100: "100%",
+                                },
+                                tooltip={
+                                    "always_visible": False,
+                                    "placement": "bottom",
+                                },
                             ),
                         ],
                         className="input-group mr-3",

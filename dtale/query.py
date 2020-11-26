@@ -19,7 +19,7 @@ def inner_build_query(settings, query=None):
     return " and ".join(query_segs)
 
 
-def run_query(df, query, context_vars=None, ignore_empty=False):
+def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
     """
     Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
     handle when column names contain special characters.  Looks like pandas will be handling this in a future
@@ -33,10 +33,18 @@ def run_query(df, query, context_vars=None, ignore_empty=False):
     :type query: str
     :param context_vars: dictionary of user-defined variables which can be referenced by name in query strings
     :type context_vars: dict, optional
+    :param pct: random percentage of dataframe to load
+    :type pct: int, optional
     :return: filtered dataframe
     """
-    if (query or "") == "":
+
+    def _load_pct(df):
+        if pct is not None and pct < 100:
+            return df.sample(frac=pct / 100)
         return df
+
+    if (query or "") == "":
+        return _load_pct(df)
 
     # https://stackoverflow.com/a/40083013/12616360 only supporting filter cleanup for python 3+
     if PY3:
@@ -60,4 +68,5 @@ def run_query(df, query, context_vars=None, ignore_empty=False):
 
     if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))
-    return df
+
+    return _load_pct(df)

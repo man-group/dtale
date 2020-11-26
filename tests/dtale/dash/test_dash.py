@@ -73,7 +73,7 @@ def test_display_page(unittest):
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-            x_dd = component_defs[12]["props"]["children"][0]
+            x_dd = component_defs[13]["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
@@ -147,6 +147,7 @@ def test_input_changes(unittest):
                     {"id": "agg-dropdown", "property": "value"},
                     {"id": "window-input", "property": "value"},
                     {"id": "rolling-comp-dropdown", "property": "value"},
+                    {"id": "load-input", "property": "value"},
                 ],
                 "state": [pathname, {"id": "query-data", "property": "data"}],
             }
@@ -165,6 +166,7 @@ def test_input_changes(unittest):
                     "window": None,
                     "rolling_comp": None,
                     "query": None,
+                    "load": None,
                 },
             )
             unittest.assertEqual(
@@ -881,6 +883,7 @@ def test_chart_building_wordcloud():
                 "agg": None,
                 "window": None,
                 "rolling_comp": None,
+                "load": 80,
             }
             chart_inputs = {"cpg": False, "barmode": "group", "barsort": None}
             params = build_chart_params(pathname, inputs, chart_inputs)
