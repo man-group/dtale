@@ -197,6 +197,7 @@ def init_callbacks(dash_app):
             Input("agg-dropdown", "value"),
             Input("window-input", "value"),
             Input("rolling-comp-dropdown", "value"),
+            Input("load-input", "value"),
         ],
         [State("url", "pathname"), State("query-data", "data")],
     )
@@ -212,6 +213,7 @@ def init_callbacks(dash_app):
         agg,
         window,
         rolling_comp,
+        load,
         pathname,
         query,
     ):
@@ -233,6 +235,7 @@ def init_callbacks(dash_app):
             agg=agg,
             window=window,
             rolling_comp=rolling_comp,
+            load=load,
         )
         data_id = get_data_id(pathname)
         options = build_input_options(global_state.get_data(data_id), **inputs)
