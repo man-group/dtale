@@ -138,6 +138,8 @@ def chart_url_params(search):
         params["animate"] = "true" == params.get("animate")
     if "window" in params:
         params["window"] = int(params["window"])
+    if "load" in params:
+        params["load"] = int(params["load"])
     if "group_filter" in params:
         params["query"] = " and ".join(
             [
@@ -194,7 +196,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
         final_params["animate_by"] = params.get("animate_by")
     list_props = ["y", "group", "map_group", "cs_group", "treemap_group", "group_val"]
-    if chart_type in ["maps", "3d_scatter", "heatmap"]:
+    if chart_type in ["maps", "3d_scatter", "heatmap", "surface"]:
         list_props += ["colorscale"]
     for gp in list_props:
         list_param = [val for val in params.get(gp) or [] if val is not None]
@@ -780,7 +782,9 @@ def scatter_code_builder(
     return code
 
 
-def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False):
+def surface_builder(
+    data, x, y, z, axes_builder, wrapper, agg=None, colorscale=None, modal=False
+):
     """
     Builder function for :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
 
@@ -863,7 +867,7 @@ def surface_builder(data, x, y, z, axes_builder, wrapper, agg=None, modal=False)
                                 z=z_data,
                                 opacity=0.8,
                                 name="all",
-                                colorscale="YlGnBu",
+                                colorscale=build_colorscale(colorscale or "YlGnBu"),
                                 colorbar=colorbar_cfg,
                             )
                         ],
@@ -2229,7 +2233,7 @@ def build_scattergeo(inputs, raw_data, layout):
         )
     chart = graph_wrapper(
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
-        config=dict(topojsonURL="/maps/"),
+        config=dict(topojsonURL="/dtale/static/maps/"),
         figure=figure_cfg,
         modal=inputs.get("modal", False),
     )
@@ -2337,7 +2341,7 @@ def build_mapbox(inputs, raw_data, layout):
         )
     chart = graph_wrapper(
         style={"margin-right": "auto", "margin-left": "auto", "height": "95%"},
-        config=dict(topojsonURL="/maps/"),
+        config=dict(topojsonURL="/dtale/static/maps/"),
         figure=figure_cfg,
         modal=inputs.get("modal", False),
     )
@@ -2459,7 +2463,7 @@ def build_choropleth(inputs, raw_data, layout):
 
     chart = graph_wrapper(
         style={"margin-right": "auto", "margin-left": "auto"},
-        config=dict(topojsonURL="/maps/"),
+        config=dict(topojsonURL="/dtale/static/maps/"),
         figure=figure_cfg,
         modal=inputs.get("modal", False),
     )
@@ -2766,7 +2770,14 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "surface":
             chart, chart_code = surface_builder(
-                data, x, y, z, axes_builder, chart_builder, agg=agg
+                data,
+                x,
+                y,
+                z,
+                axes_builder,
+                chart_builder,
+                agg=agg,
+                colorscale=inputs.get("colorscale"),
             )
             return (
                 chart,
@@ -2852,8 +2863,9 @@ def build_raw_chart(data_id=None, **inputs):
         if data is None:
             return None
 
-        chart_type, x, y, z, agg, trendline = (
-            inputs.get(p) for p in ["chart_type", "x", "y", "z", "agg", "trendline"]
+        chart_type, x, y, z, agg, trendline, colorscale = (
+            inputs.get(p)
+            for p in ["chart_type", "x", "y", "z", "agg", "trendline", "colorscale"]
         )
         z = z if chart_type in ZAXIS_CHARTS else None
 
@@ -2880,12 +2892,26 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "3d_scatter":
             return scatter_builder(
-                data, x, y, axes_builder, chart_builder, z=z, agg=agg
+                data,
+                x,
+                y,
+                axes_builder,
+                chart_builder,
+                z=z,
+                agg=agg,
+                colorscale=colorscale,
             )
 
         if chart_type == "surface":
             chart, _ = surface_builder(
-                data, x, y, z, axes_builder, chart_builder, agg=agg
+                data,
+                x,
+                y,
+                z,
+                axes_builder,
+                chart_builder,
+                agg=agg,
+                colorscale=colorscale,
             )
             return chart
 
