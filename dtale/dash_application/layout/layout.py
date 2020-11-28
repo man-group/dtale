@@ -398,7 +398,8 @@ YLORRD = [
     "#bd0026",
     "#800026",
 ]
-DEFAULT_CSALES = {"heatmap": JET, "maps": REDS, "3d_Scatter": YLORRD}
+YLGRBL = ["#ffffd9", "#d5efb3", "#73c9bc", "#1b99c2", "#1c4ea2", "#081d58"]
+DEFAULT_CSALES = {"heatmap": JET, "maps": REDS, "3d_Scatter": YLORRD, "surface": YLGRBL}
 ANIMATION_CHARTS = ["line"]
 ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps"]
 
@@ -649,7 +650,7 @@ def bar_input_style(**inputs):
 def colorscale_input_style(**inputs):
     return dict(
         display="block"
-        if inputs.get("chart_type") in ["heatmap", "maps", "3d_scatter"]
+        if inputs.get("chart_type") in ["heatmap", "maps", "3d_scatter", "surface"]
         else "none"
     )
 
@@ -670,7 +671,7 @@ def animate_styles(df, **inputs):
 
 def lock_zoom_style(chart_type):
     return (
-        dict(display="block", textTransform="none", height="inherit")
+        dict(display="block", textTransform="none")
         if chart_type in ["3d_scatter", "surface"]
         else dict(display="none")
     )

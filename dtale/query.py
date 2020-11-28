@@ -40,7 +40,7 @@ def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
 
     def _load_pct(df):
         if pct is not None and pct < 100:
-            return df.sample(frac=pct / 100)
+            return df.sample(frac=pct / 100.0)
         return df
 
     if (query or "") == "":
