@@ -67,6 +67,14 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
       break;
     }
+    case "cleaners": {
+      const prePopulated = {
+        type: "cleaning",
+        cfg: { col: chartData.selectedCol },
+      };
+      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      break;
+    }
     case "replacement":
       rootNode = <CreateReplacement {...{ dataId, chartData }} />;
       break;

@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import _ from "lodash";
 import React from "react";
 
@@ -80,6 +81,25 @@ function buildTypeConversion(props) {
       prePopulated={{
         type: "type_conversion",
         saveAs: "inplace",
+        cfg: { col: _.get(props, "chartData.selectedCol") },
+      }}
+    />
+  );
+  return { title, body };
+}
+
+function buildCleaners(props) {
+  const title = (
+    <React.Fragment>
+      <i className="ico-build" />
+      {" Clean "}
+      <strong>{_.get(props, "chartData.selectedCol")}</strong>
+    </React.Fragment>
+  );
+  const body = (
+    <CreateColumn
+      prePopulated={{
+        type: "cleaning",
         cfg: { col: _.get(props, "chartData.selectedCol") },
       }}
     />
@@ -263,6 +283,7 @@ const POPUP_MAP = {
   correlations: buildCorrelations,
   build: buildCreateColumn,
   "type-conversion": buildTypeConversion,
+  cleaners: buildCleaners,
   reshape: buildReshape,
   about: buildAbout,
   confirm: buildConfirm,

@@ -1,12 +1,13 @@
 import random
+import six
 import string
 import strsimpy
 import time
+import unicodedata
 
 import numpy as np
 import pandas as pd
 from scipy.stats import mstats
-from six import string_types
 from sklearn.preprocessing import (
     LabelEncoder,
     OrdinalEncoder,
@@ -48,6 +49,8 @@ class ColumnBuilder(object):
             self.builder = StandardizedColumnBuilder(name, cfg)
         elif column_type == "encoder":
             self.builder = EncoderColumnBuilder(name, cfg)
+        elif column_type == "cleaning":
+            self.builder = CleaningColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -440,7 +443,7 @@ class TypeConversionColumnBuilder(object):
                         def _process_mixed_bool(v):
                             if isinstance(v, bool):
                                 return v
-                            if isinstance(v, string_types):
+                            if isinstance(v, six.string_types):
                                 return dict(true=True, false=False).get(
                                     v.lower(), np.nan
                                 )
@@ -918,3 +921,194 @@ class EncoderColumnBuilder(object):
                 "\tdf.loc[:, str(new_col.name)] = new_col"
             ).format(n=self.cfg.get("n"), col=col)
         return ""
+
+
+def clean(s, cleaner, cfg):
+    if cleaner == "drop_multispace":
+        return s.str.replace(r"[ ]+", " ")
+    elif cleaner == "drop_punctuation":
+        if six.PY3:
+            return apply(
+                s, lambda x: x.translate(str.maketrans("", "", string.punctuation))
+            )
+        return apply(s, lambda x: x.translate(None, string.punctuation))
+    elif cleaner == "stopwords":
+        stopwords = cfg.get("stopwords") or []
+
+        def clean_stopwords(x):
+            return " ".join([w for w in x.split(" ") if w not in stopwords])
+
+        return apply(s, clean_stopwords)
+    elif cleaner == "nltk_stopwords":
+        try:
+            import nltk
+
+            nltk.download("stopwords")
+            nltk.download("punkt")
+
+            nltk_stopwords_set = set(nltk.corpus.stopwords.words("english"))
+
+            def clean_nltk_stopwords(x):
+                return " ".join(
+                    [
+                        w
+                        for w in nltk.tokenize.word_tokenize(x)
+                        if w not in nltk_stopwords_set
+                    ]
+                )
+
+            return apply(s, clean_nltk_stopwords)
+        except ImportError:
+            raise Exception(
+                "You must install the 'nltk' package in order to use this cleaner!"
+            )
+    elif cleaner == "drop_numbers":
+        return s.str.replace(r"[0-9]+", "")
+    elif cleaner == "keep_alpha":
+        return apply(s, lambda x: "".join(c for c in x if c.isalpha()))
+    elif cleaner == "normalize_accents":
+        return apply(
+            s,
+            lambda x: unicodedata.normalize("NFKD", u"{}".format(x))
+            .encode("ASCII", "ignore")
+            .decode("utf-8"),
+        )
+    elif cleaner == "drop_all_space":
+        return s.str.replace(r"[ ]+", "")
+    elif cleaner == "drop_repeated_words":
+
+        def drop_repeats(val):
+            def _load():
+                val_segs = val.split(" ")
+                for i, v2 in enumerate(val_segs):
+                    if i == 0:
+                        yield v2
+                    elif val_segs[i - 1] != v2:
+                        yield v2
+
+            return " ".join(list(_load()))
+
+        return apply(s, drop_repeats)
+    elif cleaner == "add_word_number_space":
+        return s.str.replace(r"(\d+(\.\d+)?)", r" \1 ")
+    elif cleaner == "drop_repeated_chars":
+
+        def drop_repeats(val):
+            def _load():
+                for i, v2 in enumerate(val):
+                    if i == 0:
+                        yield v2
+                    elif val[i - 1] != v2:
+                        yield v2
+
+            return "".join(list(_load()))
+
+        return apply(s, drop_repeats)
+    elif cleaner == "update_case":
+        case = cfg.get("caseType")
+        return getattr(s.str, case)()
+    elif cleaner == "space_vals_to_empty":
+        return s.str.replace(r"[ ]+", "")
+    return s
+
+
+def clean_code(cleaner, cfg):
+    if cleaner == "drop_multispace":
+        return ["s = s.str.replace(r'[ ]+', ' ')"]
+    elif cleaner == "drop_punctuation":
+        if six.PY3:
+            return [
+                "s = s.apply(lambda x: x.translate(str.maketrans('', '', string.punctuation))"
+            ]
+        return ["s = s.apply(lambda x: x.translate(None, string.punctuation))"]
+    elif cleaner == "stopwords":
+        stopwords = cfg.get("stopwords") or []
+        return [
+            "def clean_stopwords(x):",
+            "\treturn ' '.join([w for w in x.split(' ') if w not in ['{}'])".format(
+                "','".join(stopwords)
+            ),
+            "s = s.apply(clean_stopwords)",
+        ]
+    elif cleaner == "nltk_stopwords":
+        return [
+            "import nltk\n",
+            "nltk.download('stopwords')" "nltk.download('punkt')\n",
+            "nltk_stopwords_set = set(nltk.corpus..words('english'))\n",
+            "def clean_nltk_stopwords(x):",
+            "\treturn ' '.join(",
+            "\t\t[w for w in nltk.tokenize.word_tokenize(x) if w not in nltk_stopwords_set]",
+            "\t)",
+            "s = s.apply(clean_nltk_stopwords)",
+        ]
+    elif cleaner == "drop_numbers":
+        return ["""s = s.str.replace(r'[0-9]+', '')"""]
+    elif cleaner == "keep_alpha":
+        return ["s = s.apply(lambda x: ''.join(c for c in x if c.isalpha()))"]
+    elif cleaner == "normalize_accents":
+        return [
+            "import unicodedata\n",
+            "s = s.apply(",
+            "\tlambda x: unicodedata.normalize('NFKD', u'{}'.format(x)).encode('ASCII', 'ignore').decode('utf-8')",
+            ")",
+        ]
+    elif cleaner == "drop_all_space":
+        return ["s.str.replace(r'[ ]+', '')"]
+    elif cleaner == "drop_repeated_words":
+        return [
+            "def drop_repeated_words(val):",
+            "\tdef _load():",
+            "\t\tval_segs = val.split(' ')",
+            "\t\t\tfor i, v2 in enumerate(val_segs):",
+            "\t\t\t\tif i == 0:",
+            "\t\t\t\t\tyield v2",
+            "\t\t\t\telif val_segs[i - 1] != v2:",
+            "\t\t\t\t\tyield v2",
+            "\treturn ' '.join(list(_load()))",
+            "s = s.apply(drop_repeated_words)",
+        ]
+    elif cleaner == "add_word_number_space":
+        return ["s = s.str.replace(r'(\\d+(\\.\\d+)?)', r' \\1 ')"]
+    elif cleaner == "drop_repeated_chars":
+        return [
+            "def drop_repeated_chars(val):",
+            "\tdef _load():",
+            "\t\tfor i, v2 in enumerate(val):",
+            "\t\t\tif i == 0:",
+            "\t\t\t\tyield v2",
+            "\t\t\telif val[i - 1] != v2:",
+            "\t\t\t\tyield v2",
+            "\treturn ''.join(list(_load()))",
+            "s = s.apply(drop_repeated_chars)",
+        ]
+    elif cleaner == "update_case":
+        case = cfg.get("caseType")
+        return ["s = s.str.{}()".format(case)]
+    elif cleaner == "space_vals_to_empty":
+        return ["s = s.str.replace(r'[ ]+', '')"]
+    return []
+
+
+class CleaningColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, cleaners = (self.cfg.get(p) for p in ["col", "cleaners"])
+        s = data[col]
+        for cleaner in cleaners:
+            s = clean(s, cleaner, self.cfg)
+        return s
+
+    def build_code(self):
+        col, cleaners = (self.cfg.get(p) for p in ["col", "cleaners"])
+        code = ["s= ddf['{col}']".format(col=col)]
+        for cleaner in cleaners:
+            code += clean_code(cleaner, self.cfg)
+        code.append(
+            "df.loc[:, '{name}'] = pd.Series(s, index=df.index, name='{name}')".format(
+                name=self.name
+            )
+        )
+        return code

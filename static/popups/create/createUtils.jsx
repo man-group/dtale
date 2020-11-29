@@ -2,6 +2,7 @@ import _ from "lodash";
 import React from "react";
 
 import { CreateBins, validateBinsCfg } from "./CreateBins";
+import { CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
@@ -16,7 +17,7 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize", "encoder"]
+  ["similarity", "standardize", "encoder", "cleaning"]
 );
 export const LABELS = { zscore_normalize: "Z-Score Normalize" };
 
@@ -53,6 +54,8 @@ export function validateCfg(type, cfg) {
       return validateZScoreNormalizeCfg(cfg);
     case "numeric":
       return validateNumericCfg(cfg);
+    case "cleaning":
+      return validateCleaningCfg(cfg);
   }
   return null;
 }
@@ -89,6 +92,14 @@ export function getBody(state, props, updateState) {
       return <CreateWinsorize {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "zscore_normalize":
       return <CreateZScoreNormalize {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "cleaning":
+      return (
+        <CreateCleaning
+          {..._.pick(state, ["columns", "namePopulated"])}
+          updateState={updateState}
+          prePopulated={_.get(props, "prePopulated.cfg") || {}}
+        />
+      );
   }
   return null;
 }
