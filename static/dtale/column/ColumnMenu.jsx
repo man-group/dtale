@@ -10,10 +10,10 @@ import { openChart } from "../../actions/charts";
 import actions from "../../actions/dtale";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
-import bu from "../backgroundUtils";
 import { exports as gu } from "../gridUtils";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 import serverState from "../serverStateManagement";
+import ColumnMenuHeader from "./ColumnMenuHeader";
 import ColumnMenuOption from "./ColumnMenuOption";
 
 const { ROW_HEIGHT, SORT_PROPS } = gu;
@@ -162,33 +162,7 @@ class ReactColumnMenu extends React.Component {
         style={{ minWidth: "11em" }}
         ref={cm => (this._div = cm)}>
         {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
-        <header>
-          <span>{`Column "${selectedCol}"`}</span>
-          <ul className="col-menu-descriptors">
-            <li>
-              {"Data Type:"}
-              <span>{colCfg.dtype}</span>
-            </li>
-            {colCfg.hasMissing > 0 && (
-              <li>
-                {"# Missing:"}
-                <span>{colCfg.hasMissing}</span>
-              </li>
-            )}
-            {colCfg.hasOutliers > 0 && (
-              <li>
-                {"# Outliers:"}
-                <span>{colCfg.hasOutliers}</span>
-              </li>
-            )}
-            {colCfg.lowVariance && (
-              <li>
-                {`${bu.flagIcon}Low Variance:`}
-                <span>True</span>
-              </li>
-            )}
-          </ul>
-        </header>
+        <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />
         <ul>
           <li>
             <span className="toggler-action">
@@ -246,6 +220,13 @@ class ReactColumnMenu extends React.Component {
           <ColumnMenuOption open={renameCol} label="Rename" iconClass="ico-edit" />
           <ColumnMenuOption open={openAction("replacement")} label="Replacements" iconClass="fas fa-backspace mr-3" />
           <ColumnMenuOption open={openAction("type-conversion")} label="Type Conversion" iconClass="ico-swap-horiz" />
+          {gu.findColType(colCfg.dtype) === "string" && (
+            <ColumnMenuOption
+              open={openAction("cleaners")}
+              label="Clean Column"
+              iconClass="fas fa-pump-soap ml-3 mr-4"
+            />
+          )}
           <ColumnMenuOption open={openAction("duplicates")} label="Duplicates" iconClass="fas fa-clone ml-2 mr-4" />
           <ColumnMenuOption open={openDescribe} label="Describe" iconClass="ico-view-column" />
           <ColumnMenuOption

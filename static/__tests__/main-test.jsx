@@ -76,7 +76,7 @@ describe("main tests", () => {
 
   const popupCodes = _.concat(
     ["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter", "type-conversion"],
-    []
+    ["cleaners"]
   );
 
   _.forEach(popupCodes, popup => {
