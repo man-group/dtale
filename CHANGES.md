@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.25.0 (2020-11-30)
+* [#323](https://github.com/man-group/dtale/issues/323): precision setting for all float columns
+* [#265](https://github.com/man-group/dtale/issues/265): column cleaners
+* [#322](https://github.com/man-group/dtale/issues/322): colorscales not being included in chart exports and colorscales added to surface charts
+* [#148](https://github.com/man-group/dtale/issues/148): random sampling in charts
+
 ### 1.24.0 (2020-11-23)
 * [#295](https://github.com/man-group/dtale/issues/295): check for swifter when executing apply functions
 * Reworked the display of the "Instances" popup
