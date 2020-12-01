@@ -63,7 +63,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: string formatting", async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
-    const Formatting = require("../../../popups/formats/Formatting").default;
+    const Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
     const StringFormatting = require("../../../popups/formats/StringFormatting").default;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);

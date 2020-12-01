@@ -52,6 +52,12 @@ def validate_allow_cell_edits(ctx, param, value):
     type=click.Choice(["light", "dark"]),
     help='theme you would like used for D-Tale, the default is "light"',
 )
+@click.option(
+    "--precision",
+    default=2,
+    type=int,
+    help="Default precision displayed by columns containing float data (default: 2)",
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(

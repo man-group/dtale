@@ -69,6 +69,7 @@ def test_build_show_options():
     os.environ["DTALE_CONFIG"] = ini_path
     final_options = build_show_options()
     assert final_options["allow_cell_edits"]
+    assert final_options["precision"] == 6
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

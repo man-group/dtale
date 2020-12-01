@@ -757,6 +757,7 @@ def startup(
     allow_cell_edits=True,
     inplace=False,
     drop_index=False,
+    precision=2,
 ):
     """
     Loads and stores data globally
@@ -782,6 +783,9 @@ def startup(
     :type inplace: bool, optional
     :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
     :type drop_index: bool, optional
+    :param precision: The default precision to display for float data in D-Tale grid
+    :type precision: int, optional
+
     """
 
     if (
@@ -822,6 +826,7 @@ def startup(
                 context_vars=context_vars,
                 ignore_duplicate=ignore_duplicate,
                 allow_cell_edits=allow_cell_edits,
+                precision=precision,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -879,6 +884,7 @@ def startup(
         base_settings = dict(
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
+            precision=precision,
         )
         global_state.set_settings(data_id, base_settings)
         global_state.set_data(data_id, data)

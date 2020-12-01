@@ -72,7 +72,7 @@ describe("DataViewer iframe tests", () => {
     DataViewer = require("../../dtale/DataViewer").DataViewer;
     ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
     Header = require("../../dtale/Header").ReactHeader;
-    Formatting = require("../../popups/formats/Formatting").default;
+    Formatting = require("../../popups/formats/Formatting").ReactFormatting;
     DataViewerMenu = require("../../dtale/menu/DataViewerMenu").DataViewerMenu;
     DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
   });

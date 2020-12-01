@@ -63,7 +63,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: date formatting", async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
-    const Formatting = require("../../../popups/formats/Formatting").default;
+    const Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
     const DateFormatting = require("../../../popups/formats/DateFormatting").default;
 
     const store = reduxUtils.createDtaleStore();

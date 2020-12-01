@@ -67,7 +67,7 @@ describe("DataViewer tests", () => {
     const dv = require("../../../dtale/DataViewer");
     DataViewer = dv.DataViewer;
     ReactDataViewer = dv.ReactDataViewer;
-    Formatting = require("../../../popups/formats/Formatting").default;
+    Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
     NumericFormatting = require("../../../popups/formats/NumericFormatting").default;
   });
 

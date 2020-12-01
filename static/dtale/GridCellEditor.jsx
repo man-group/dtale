@@ -23,7 +23,7 @@ class ReactGridCellEditor extends React.Component {
   onKeyDown(e) {
     const hideTT = () => $("#edit-tt").hide();
     if (e.key === "Enter") {
-      const { gridState, colCfg, rowIndex, propagateState, dataId } = this.props;
+      const { gridState, colCfg, rowIndex, propagateState, dataId, settings } = this.props;
       if (this.props.value === this.state.value) {
         this.props.clearEdit();
         return;
@@ -35,7 +35,10 @@ class ReactGridCellEditor extends React.Component {
           return;
         }
         const updatedData = _.cloneDeep(data);
-        updatedData[rowIndex - 1][colCfg.name] = gu.buildDataProps(colCfg, this.state.value, { columnFormats });
+        updatedData[rowIndex - 1][colCfg.name] = gu.buildDataProps(colCfg, this.state.value, {
+          columnFormats,
+          settings,
+        });
         const width = gu.calcColWidth(colCfg, gridState);
         const updatedColumns = _.map(columns, c => _.assignIn({}, c, c.name === colCfg.name ? { width } : {}));
         propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, this.props.clearEdit);
@@ -74,9 +77,10 @@ ReactGridCellEditor.propTypes = {
     sortInfo: PropTypes.arrayOf(PropTypes.array),
     columnFormats: PropTypes.object,
   }),
+  settings: PropTypes.object,
 };
 const ReduxGridCellEditor = connect(
-  state => ({ dataId: state.dataId, editedCell: state.editedCell }),
+  ({ dataId, editedCell, settings }) => ({ dataId, editedCell, settings }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     clearEdit: () => dispatch({ type: "clear-edit" }),
