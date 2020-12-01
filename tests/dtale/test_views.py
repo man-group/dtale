@@ -79,6 +79,7 @@ def test_startup(unittest):
             dict(
                 allow_cell_edits=True,
                 locked=["date", "security_id"],
+                precision=2,
             ),
             "should lock index columns",
         )
@@ -92,6 +93,7 @@ def test_startup(unittest):
             data=test_data,
             ignore_duplicate=True,
             allow_cell_edits=False,
+            precision=6,
         )
         pdt.assert_frame_equal(instance.data, test_data)
         unittest.assertEqual(
@@ -99,6 +101,7 @@ def test_startup(unittest):
             dict(
                 allow_cell_edits=False,
                 locked=[],
+                precision=6,
             ),
             "no index = nothing locked",
         )
@@ -112,6 +115,7 @@ def test_startup(unittest):
             dict(
                 allow_cell_edits=True,
                 locked=["security_id"],
+                precision=2,
             ),
             "should lock index columns",
         )
@@ -121,7 +125,7 @@ def test_startup(unittest):
         pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
         unittest.assertEqual(
             global_state.SETTINGS[instance._data_id],
-            dict(allow_cell_edits=True, locked=[]),
+            dict(allow_cell_edits=True, locked=[], precision=2),
             "should lock index columns",
         )
 
@@ -130,7 +134,7 @@ def test_startup(unittest):
         pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
         unittest.assertEqual(
             global_state.SETTINGS[instance._data_id],
-            dict(allow_cell_edits=True, locked=[]),
+            dict(allow_cell_edits=True, locked=[], precision=2),
             "should lock index columns",
         )
 

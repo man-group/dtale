@@ -17,7 +17,7 @@ function toBool(value) {
 }
 
 function toJson(value) {
-  return _.isNull(value) ? {} : JSON.parse(value);
+  return value ? JSON.parse(value) : {};
 }
 
 function dataId(state = null, action = {}) {
@@ -149,6 +149,15 @@ function filteredRanges(state = {}, action = {}) {
   }
 }
 
+function settings(state = {}, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toJson(getHiddenValue("settings"));
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -163,6 +172,7 @@ const dtaleStore = combineReducers({
   xarrayDim,
   theme,
   filteredRanges,
+  settings,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

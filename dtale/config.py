@@ -82,6 +82,7 @@ def build_show_options(options=None):
         allow_cell_edits=True,
         inplace=False,
         drop_index=False,
+        precision=2,
     )
     config_options = {}
     config = get_config()
@@ -118,6 +119,9 @@ def build_show_options(options=None):
         )
         config_options["drop_index"] = get_config_val(
             config, defaults, "drop_index", "getboolean"
+        )
+        config_options["precision"] = get_config_val(
+            config, defaults, "precision", "getint"
         )
 
     return dict_merge(defaults, config_options, options)

@@ -63,7 +63,7 @@ describe("DataViewer tests", () => {
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     DataViewer = require("../../../dtale/DataViewer").DataViewer;
-    Formatting = require("../../../popups/formats/Formatting").default;
+    Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
     NumericFormatting = require("../../../popups/formats/NumericFormatting").default;
   });
 

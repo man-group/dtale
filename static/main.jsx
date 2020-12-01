@@ -24,8 +24,6 @@ import { createStore } from "./reducers/store";
 
 require("./publicPath");
 
-const settings = app.toJson(app.getHiddenValue("settings"));
-
 let pathname = window.location.pathname;
 if (window.resourceBaseUrl) {
   pathname = _.replace(pathname, window.resourceBaseUrl, "");
@@ -34,6 +32,7 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   require("./dtale/DataViewer.css");
 
   let rootNode = null;
+  const settings = app.toJson(app.getHiddenValue("settings"));
   const dataId = app.getHiddenValue("data_id");
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
   const pathSegs = _.split(pathname, "/");
@@ -107,7 +106,7 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   store.dispatch(actions.init());
   ReactDOM.render(
     <Provider store={store}>
-      <DataViewer settings={settings} />
+      <DataViewer />
     </Provider>,
     document.getElementById("content")
   );

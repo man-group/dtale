@@ -86,7 +86,7 @@ class ReactGridCell extends React.Component {
         divProps.title = rec.raw;
       }
       divProps.cell_idx = cellIdx;
-      if (_.get(gridState, ["columnFormats", colCfg.name, "fmt", "link"])) {
+      if (_.get(gridState, ["columnFormats", colCfg.name, "fmt", "link"]) === true) {
         value = (
           <a href={rec.raw} target="_blank" rel="noopener noreferrer">
             {value}

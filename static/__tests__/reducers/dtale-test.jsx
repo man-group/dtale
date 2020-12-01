@@ -29,6 +29,7 @@ describe("reducer tests", () => {
       allowCellEdits: true,
       theme: "light",
       filteredRanges: {},
+      settings: {},
     };
     expect(state).toEqual(store.getState());
   });

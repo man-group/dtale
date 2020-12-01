@@ -13,7 +13,7 @@ import actions from "../actions/dtale";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
-import Formatting from "../popups/formats/Formatting";
+import { Formatting } from "../popups/formats/Formatting";
 import { DataViewerInfo } from "./DataViewerInfo";
 import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
@@ -135,8 +135,15 @@ class ReactDataViewer extends React.Component {
     const url = buildURLString(`/dtale/data/${this.props.dataId}?`, params);
     fetchJsonPromise(url)
       .then(data => {
+        const { columns, columnFormats } = this.state;
+        const { settings } = this.props;
         const formattedData = _.mapValues(data.results, d =>
-          _.mapValues(d, (val, col) => gu.buildDataProps(_.find(data.columns, { name: col }), val, this.state))
+          _.mapValues(d, (val, col) =>
+            gu.buildDataProps(_.find(data.columns, { name: col }), val, {
+              columnFormats,
+              settings,
+            })
+          )
         );
         if (data.error) {
           this.setState({
@@ -154,7 +161,6 @@ class ReactDataViewer extends React.Component {
           loading: false,
           backgroundMode,
         };
-        const { columns } = this.state;
         if (_.isEmpty(columns)) {
           const preLocked = _.concat(_.get(this.props, "settings.locked", []), [gu.IDX]);
           newState.columns = _.map(data.columns, c =>
@@ -248,7 +254,6 @@ class ReactDataViewer extends React.Component {
         <Formatting
           {..._.pick(this.state, ["data", "columns", "columnFormats", "nanDisplay"])}
           selectedCol={_.get(this.state.selectedCols, "0")}
-          dataId={this.props.dataId}
           visible={formattingOpen}
           propagateState={this.propagateState}
         />
@@ -277,7 +282,12 @@ ReactDataViewer.propTypes = {
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe, theme }) => ({ dataId, iframe, theme }),
+  ({ dataId, iframe, theme, settings }) => ({
+    dataId,
+    iframe,
+    theme,
+    settings,
+  }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),

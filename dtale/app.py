@@ -678,6 +678,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             allow_cell_edits=final_options["allow_cell_edits"],
             inplace=final_options["inplace"],
             drop_index=final_options["drop_index"],
+            precision=final_options["precision"],
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

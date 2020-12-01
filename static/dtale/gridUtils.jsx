@@ -44,12 +44,12 @@ function buildString(val, { truncate }) {
   return truncate ? _.truncate(val, { length: truncate }) : val;
 }
 
-function buildValue({ name, dtype }, rawValue, { columnFormats }) {
+function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
   if (!_.isUndefined(rawValue)) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
     switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
       case "float":
-        return buildNumeral(rawValue, fmt || "0.00");
+        return buildNumeral(rawValue, fmt || `0.${_.repeat("0", settings.precision ?? 2)}`);
       case "int":
         return buildNumeral(rawValue, fmt || "0");
       case "date":
@@ -62,9 +62,9 @@ function buildValue({ name, dtype }, rawValue, { columnFormats }) {
   return "";
 }
 
-EXPORTS.buildDataProps = ({ name, dtype }, rawValue, { columnFormats }) => ({
+EXPORTS.buildDataProps = ({ name, dtype }, rawValue, { columnFormats, settings }) => ({
   raw: rawValue,
-  view: buildValue({ name, dtype }, rawValue, { columnFormats }),
+  view: buildValue({ name, dtype }, rawValue, { columnFormats, settings }),
   style: menuFuncs.buildStyling(
     rawValue,
     EXPORTS.findColType((dtype || "").toLowerCase()),

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
 import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
+import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
@@ -27,7 +28,7 @@ function buildState({ selectedCol, columnFormats, nanDisplay }) {
   return state;
 }
 
-class Formatting extends React.Component {
+class ReactFormatting extends React.Component {
   constructor(props) {
     super(props);
     this.state = buildState(props);
@@ -45,7 +46,7 @@ class Formatting extends React.Component {
 
   save() {
     const { fmt, style, applyToAll, nanDisplay } = this.state;
-    const { dataId, data, columns, columnFormats, selectedCol, propagateState } = this.props;
+    const { dataId, data, columns, columnFormats, selectedCol, propagateState, settings } = this.props;
     let selectedCols = [selectedCol];
     if (applyToAll) {
       const dtype = gu.getDtype(selectedCol, columns);
@@ -61,6 +62,7 @@ class Formatting extends React.Component {
           const raw = _.get(d, [sc, "raw"]);
           const updatedProp = gu.buildDataProps(colCfg, raw, {
             columnFormats: { [sc]: { fmt, style } },
+            settings,
           });
           return { ...ret, [sc]: updatedProp };
         },
@@ -182,8 +184,8 @@ class Formatting extends React.Component {
     );
   }
 }
-Formatting.displayName = "Formatting";
-Formatting.propTypes = {
+ReactFormatting.displayName = "ReactFormatting";
+ReactFormatting.propTypes = {
   dataId: PropTypes.string.isRequired,
   data: PropTypes.object,
   columns: PropTypes.arrayOf(PropTypes.object),
@@ -192,6 +194,12 @@ Formatting.propTypes = {
   selectedCol: PropTypes.string,
   visible: PropTypes.bool,
   propagateState: PropTypes.func,
+  settings: PropTypes.object,
 };
 
-export default Formatting;
+const ReduxFormatting = connect(({ dataId, settings }) => ({
+  dataId,
+  settings,
+}))(ReactFormatting);
+
+export { ReduxFormatting as Formatting, ReactFormatting };
