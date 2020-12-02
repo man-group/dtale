@@ -146,7 +146,6 @@ function createDashConfig(entry) {
     output: {
       path: path.resolve(__dirname, "./dtale/static/dash"),
       filename: entryName + "_bundle.js",
-      //publicPath: "/dash/",
       library: entryName,
       libraryTarget: "window",
     },

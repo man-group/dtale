@@ -37,7 +37,7 @@ class CorrelationsTsOptions extends React.Component {
       clicker = "Click on any point in the chart to view a scatter plot of the data in that rolling correlation";
     }
     return (
-      <div className="col">
+      <div className="col pl-0 pr-0">
         <div>
           <b>{description}</b>
         </div>
@@ -165,7 +165,7 @@ class CorrelationsTsOptions extends React.Component {
             {this.renderRollingWindow()}
           </div>
         </div>
-        <div className="col-auto pl-0 text-right" style={{ marginTop: ".3em" }}>
+        <div className="col-auto pl-0 pr-0 text-right" style={{ marginTop: ".3em" }}>
           {renderCodePopupAnchor(this.props.tsCode, "Correlations Timeseries")}
         </div>
       </div>

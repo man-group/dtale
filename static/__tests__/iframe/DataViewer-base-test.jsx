@@ -115,9 +115,10 @@ describe("DataViewer iframe tests", () => {
     ).toEqual(
       _.concat(
         ["XArray Dimensions", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
-        ["Correlations", "Charts", "Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers"],
-        ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data"],
-        ["Refresh Widths", "About", "Theme", "Reload Data", "Open In New Tab", "Shutdown"]
+        ["Correlations", "Predictive Power Score", "Charts", "Heat Map", "Highlight Dtypes"],
+        ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
+        ["Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Open In New Tab"],
+        ["Shutdown"]
       )
     );
   });

@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { Bouncer } from "../Bouncer";
+import { BouncerWrapper } from "../BouncerWrapper";
 import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
 import { buildURL } from "../actions/url-utils";
@@ -14,6 +15,7 @@ import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";
 import CorrelationsGrid from "./correlations/CorrelationsGrid";
 import CorrelationsTsOptions from "./correlations/CorrelationsTsOptions";
+import PPSCollapsible from "./correlations/PPSCollapsible";
 import corrUtils from "./correlations/correlationsUtils";
 
 class Correlations extends React.Component {
@@ -46,7 +48,10 @@ class Correlations extends React.Component {
       buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, this.props.chartData, ["query"]),
       gridData => {
         if (gridData.error) {
-          this.setState({ error: <RemovableError {...gridData} /> });
+          this.setState({
+            error: <RemovableError {...gridData} />,
+            loadingCorrelations: false,
+          });
           return;
         }
         const { data, dates, code } = gridData;
@@ -60,6 +65,7 @@ class Correlations extends React.Component {
           selectedDate: _.get(dates, "0.name", null),
           rolling,
           gridCode: code,
+          loadingCorrelations: false,
         };
         this.setState(state, () => {
           let { col1, col2 } = this.props.chartData || {};
@@ -130,7 +136,7 @@ class Correlations extends React.Component {
 
   viewScatterRow(evt) {
     const point = this.state.chart.getElementAtEvent(evt);
-    if (point) {
+    if (point && point[0]._datasetIndex !== undefined) {
       const data = _.get(point, ["0", "_chart", "config", "data", "datasets", point[0]._datasetIndex, "data"]);
       if (data) {
         const index = data[point[0]._index].index;
@@ -140,25 +146,13 @@ class Correlations extends React.Component {
         } else {
           updatedQuery = [`index == ${index}`];
         }
-        saveFilter(this.props.dataId, _.join(updatedQuery, " and "), () => {
-          window.opener.location.reload();
-        });
+        saveFilter(this.props.dataId, _.join(updatedQuery, " and "), window.opener.location.reload);
       }
     }
   }
 
   buildScatter(selectedCols, date = null, tsCode = null) {
-    const params = { selectedCols, query: this.props.chartData.query };
-    if (date) {
-      params.dateCol = this.state.selectedDate;
-      params.date = date;
-    }
-    if (this.state.rolling) {
-      params.rolling = this.state.rolling;
-      params.window = this.state.window;
-    }
-    const path = `${corrUtils.BASE_SCATTER_URL}/${this.props.dataId}`;
-    const scatterUrl = buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
+    const scatterUrl = corrUtils.buildScatterParams(selectedCols, date, this.props, this.state);
     if (this.state.scatterUrl === scatterUrl) {
       return;
     }
@@ -206,79 +200,83 @@ class Correlations extends React.Component {
   }
 
   render() {
-    if (this.state.error) {
-      return (
-        <div key="body" className="modal-body scatter-body">
-          {this.state.error}
-        </div>
-      );
-    }
-    const { selectedCols, tsUrl, hasDate } = this.state;
+    const { selectedCols, tsUrl, hasDate, error } = this.state;
     return (
       <div key="body" className="modal-body scatter-body">
-        <CorrelationsGrid
-          buildTs={this.buildTs}
-          buildScatter={this.buildScatter}
-          selectedCols={selectedCols}
-          {...this.state}
-        />
-        <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
-          <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
-          <ChartsBody
-            ref={r => (this._ts_chart = r)}
-            visible={true}
-            url={tsUrl}
-            columns={[
-              { name: "x", dtype: "datetime[ns]" },
-              { name: "corr", dtype: "float64" },
-            ]}
-            x={{ value: "x" }}
-            y={[{ value: "corr" }]}
-            configHandler={config => {
-              config.options.scales.yAxes = [
-                {
-                  ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
-                  afterTickToLabelConversion: data => {
-                    data.ticks[0] = null;
-                    data.ticks[data.ticks.length - 1] = null;
-                  },
-                  id: "y-corr",
-                },
-              ];
-              config.options.onClick = this.viewScatter;
-              config.options.legend = { display: false };
-              config.plugins = [
-                chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
-                chartUtils.lineHoverPlugin(corrUtils.colorScale),
-              ];
-              config.data.datasets[0].selectedPoint = 0;
-              return config;
-            }}
-            height={300}
-            showControls={false}
-            dataLoadCallback={data => {
-              const selectedDate = _.get(data || {}, "data.all.x.0");
-              const tsCode = _.get(data, "code", "");
-              if (selectedDate) {
-                this.buildScatter(this.state.selectedCols, selectedDate, tsCode);
-              } else {
-                this.setState({ tsCode: _.get(data, "code", "") });
-              }
-            }}
-          />
-        </ConditionalRender>
-        <CorrelationScatterStats {...this.state} />
-        <figure>
-          {this.state.scatterError}
-          <ConditionalRender display={_.isEmpty(this.state.scatterError)}>
-            <div className="chart-wrapper" style={{ height: 400 }}>
-              <div id="scatter-bouncer" style={{ display: "none" }}>
-                <Bouncer />
-              </div>
-              <canvas id="rawScatterChart" />
-            </div>
-          </ConditionalRender>
-        </figure>
+        {error}
+        {!error && (
+          <BouncerWrapper showBouncer={this.state.loadingCorrelations}>
+            <CorrelationsGrid
+              buildTs={this.buildTs}
+              buildScatter={this.buildScatter}
+              selectedCols={selectedCols}
+              {...this.state}
+            />
+            <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
+              <PPSCollapsible ppsInfo={this.state.tsPps} />
+              <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
+              <ChartsBody
+                ref={r => (this._ts_chart = r)}
+                visible={true}
+                url={tsUrl}
+                columns={[
+                  { name: "x", dtype: "datetime[ns]" },
+                  { name: "corr", dtype: "float64" },
+                ]}
+                x={{ value: "x" }}
+                y={[{ value: "corr" }]}
+                configHandler={config => {
+                  config.options.scales.yAxes = [
+                    {
+                      ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
+                      afterTickToLabelConversion: data => {
+                        data.ticks[0] = null;
+                        data.ticks[data.ticks.length - 1] = null;
+                      },
+                      id: "y-corr",
+                    },
+                  ];
+                  config.options.scales.xAxes[0].scaleLabel.display = false;
+                  config.options.onClick = this.viewScatter;
+                  config.options.legend = { display: false };
+                  config.plugins = [
+                    chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
+                    chartUtils.lineHoverPlugin(corrUtils.colorScale),
+                  ];
+                  config.data.datasets[0].selectedPoint = 0;
+                  return config;
+                }}
+                height={300}
+                showControls={false}
+                dataLoadCallback={data => {
+                  const selectedDate = _.get(data || {}, "data.all.x.0");
+                  const tsCode = _.get(data, "code", "");
+                  if (selectedDate) {
+                    this.setState({ tsPps: _.get(data, "pps") });
+                    this.buildScatter(this.state.selectedCols, selectedDate, tsCode);
+                  } else {
+                    this.setState({
+                      tsCode: _.get(data, "code", ""),
+                      tsPps: _.get(data, "pps"),
+                    });
+                  }
+                }}
+              />
+            </ConditionalRender>
+            <CorrelationScatterStats {...this.state} />
+            <figure>
+              {this.state.scatterError}
+              <ConditionalRender display={_.isEmpty(this.state.scatterError)}>
+                <div className="chart-wrapper" style={{ height: 400 }}>
+                  <div id="scatter-bouncer" style={{ display: "none" }}>
+                    <Bouncer />
+                  </div>
+                  <canvas id="rawScatterChart" />
+                </div>
+              </ConditionalRender>
+            </figure>
+          </BouncerWrapper>
+        )}
       </div>
     );
   }

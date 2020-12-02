@@ -11,7 +11,18 @@
     "only_in_s0": 0,
     "only_in_s1": 0,
     "pearson": 0.019643318814764315,
-    "spearman": 0.01647169200912469
+    "spearman": 0.01647169200912469,
+    "pps": {
+      "baseline_score": 24889245973.8262,
+      "case": "regression",
+      "is_valid_score": true,
+      "metric": "mean absolute error",
+      "model": "DecisionTreeRegressor()",
+      "model_score": 0.0,
+      "ppscore": 1.0,
+      "x": "col1",
+      "y": "col2"
+    }
   },
   "x": "col1",
   "y": "col2",

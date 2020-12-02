@@ -18,6 +18,7 @@ import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { CreateColumn } from "./create/CreateColumn";
 import { Duplicates } from "./duplicates/Duplicates";
 import Instances from "./instances/Instances";
+import { PredictivePowerScore } from "./pps/PredictivePowerScore";
 import { CreateReplacement } from "./replacement/CreateReplacement";
 import { Reshape } from "./reshape/Reshape";
 import { Variance } from "./variance/Variance";
@@ -54,6 +55,17 @@ function buildCorrelations(props) {
     </React.Fragment>
   );
   const body = <Correlations propagateState={props.propagateState} />;
+  return { title, body };
+}
+
+function buildPps(props) {
+  const title = (
+    <React.Fragment>
+      <i className="ico-bubble-chart" />
+      <strong>Predictive Power Score</strong>
+    </React.Fragment>
+  );
+  const body = <PredictivePowerScore propagateState={props.propagateState} />;
   return { title, body };
 }
 
@@ -281,6 +293,7 @@ const POPUP_MAP = {
   filter: buildFilter,
   "column-analysis": buildColumnAnalysis,
   correlations: buildCorrelations,
+  pps: buildPps,
   build: buildCreateColumn,
   "type-conversion": buildTypeConversion,
   cleaners: buildCleaners,

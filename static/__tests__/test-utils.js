@@ -30,6 +30,7 @@ function buildInnerHTML(props = {}, store = null) {
   const body = document.getElementsByTagName("body")[0];
   let innerHTML = `<input type="hidden" id="settings" value="${settings ?? BASE_SETTINGS}" />`;
   innerHTML += `<input type="hidden" id="version" value="${pjson.version}" />`;
+  innerHTML += `<input type="hidden" id="python_version" value="${props.pythonVersion ?? "3.8.0"}" />`;
   innerHTML += `<input type="hidden" id="hide_shutdown" value="${hideShutdown ?? HIDE_SHUTDOWN}" />`;
   innerHTML += `<input type="hidden" id="processes" value=${processes ?? PROCESSES} />`;
   innerHTML += `<input type="hidden" id="iframe" value="${iframe ?? IFRAME}" />`;

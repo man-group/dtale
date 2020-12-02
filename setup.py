@@ -88,6 +88,7 @@ setup(
         "kaleido",
         "pandas",
         "plotly>=4.9.0",
+        "ppscore; python_version >= '3.6'",
         "requests",
         "scikit-learn >= '0.21.0",
         "scipy",

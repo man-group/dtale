@@ -22,7 +22,7 @@ import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId, menuOpen, backgroundMode } = this.props;
+    const { hideShutdown, dataId, menuOpen, backgroundMode, pythonVersion } = this.props;
     const iframe = global.top !== global.self;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup } = buttonHandlers;
@@ -56,7 +56,7 @@ class ReactDataViewerMenu extends React.Component {
       <div
         className="column-toggle__dropdown"
         hidden={!menuOpen}
-        style={{ minWidth: "11em", top: "1em", left: "0.5em" }}>
+        style={{ minWidth: "13.65em", top: "1em", left: "0.5em" }}>
         {menuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <header className="title-font">D-TALE</header>
         <ul>
@@ -99,6 +99,17 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.corr}</div>
           </li>
+          {(!pythonVersion || (pythonVersion[0] >= 3 && pythonVersion[1] >= 6)) && (
+            <li className="hoverable">
+              <span className="toggler-action">
+                <button className="btn btn-plain" onClick={openTab("pps")}>
+                  <i className="ico-bubble-chart" />
+                  <span className="font-weight-bold">Predictive Power Score</span>
+                </button>
+              </span>
+              <div className="hoverable__content menu-description">{Descriptions.pps}</div>
+            </li>
+          )}
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={buttonHandlers.CHARTS}>
@@ -253,10 +264,11 @@ ReactDataViewerMenu.propTypes = {
   rangeHighlight: PropTypes.object,
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
+  pythonVersion: PropTypes.arrayOf(PropTypes.number),
 };
 
 const ReduxDataViewerMenu = connect(
-  state => _.pick(state, ["dataId", "hideShutdown"]),
+  state => _.pick(state, ["dataId", "hideShutdown", "pythonVersion"]),
   dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
 )(ReactDataViewerMenu);
 

@@ -158,6 +158,21 @@ function settings(state = {}, action = {}) {
   }
 }
 
+function pythonVersion(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params": {
+      const version = getHiddenValue("python_version");
+      if (version) {
+        const versionNumbers = _.map(_.split(version, "."), _.parseInt);
+        return versionNumbers;
+      }
+      return state;
+    }
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -173,6 +188,7 @@ const dtaleStore = combineReducers({
   theme,
   filteredRanges,
   settings,
+  pythonVersion,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };
