@@ -1,6 +1,7 @@
 import chroma from "chroma-js";
 import _ from "lodash";
 
+import { buildURL } from "../../actions/url-utils";
 import chartUtils from "../../chartUtils";
 
 function buildState() {
@@ -18,10 +19,14 @@ function buildState() {
     useRolling: false,
     window: 4,
     minPeriods: 1,
+    loadingCorrelations: true,
   };
 }
 
 const colorScale = chroma.scale(["red", "yellow", "green"]).domain([-1, 0, 1]);
+const ppsScale = chroma
+  .scale(["#f7fbff", "#d0e1f2", "#94c4df", "#4b98c9", "#1664ab", "#08306b"])
+  .domain([0, 0.2, 0.4, 0.6, 0.8, 1.0]);
 const percent = num => (num === "N/A" ? num : `${_.round(num * 100, 2)}%`);
 
 function createScatter(ctx, data, xProp, yProp, onClick) {
@@ -53,12 +58,30 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
   return chart;
 }
 
+const BASE_SCATTER_URL = "/dtale/scatter";
+
+function buildScatterParams(selectedCols, date, props, state) {
+  const params = { selectedCols, query: props.chartData.query };
+  if (date) {
+    params.dateCol = state.selectedDate;
+    params.date = date;
+  }
+  if (state.rolling) {
+    params.rolling = state.rolling;
+    params.window = state.window;
+  }
+  const path = `${BASE_SCATTER_URL}/${props.dataId}`;
+  return buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
+}
+
 export default {
-  BASE_SCATTER_URL: "/dtale/scatter",
+  BASE_SCATTER_URL,
   BASE_CORRELATIONS_URL: "/dtale/correlations",
   BASE_CORRELATIONS_TS_URL: "/dtale/correlations-ts",
   buildState,
   colorScale,
+  ppsScale,
   createScatter,
   percent,
+  buildScatterParams,
 };

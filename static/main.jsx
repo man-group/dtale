@@ -16,6 +16,7 @@ import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn"
 import { Describe } from "./popups/describe/Describe";
 import { ReactDuplicates as Duplicates } from "./popups/duplicates/Duplicates";
 import Instances from "./popups/instances/Instances";
+import { PredictivePowerScore } from "./popups/pps/PredictivePowerScore";
 import { ReactCreateReplacement as CreateReplacement } from "./popups/replacement/CreateReplacement";
 import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
 import { Variance } from "./popups/variance/Variance";
@@ -44,6 +45,9 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       break;
     case "correlations":
       rootNode = <Correlations {...{ dataId, chartData }} />;
+      break;
+    case "pps":
+      rootNode = <PredictivePowerScore {...{ dataId, chartData }} />;
       break;
     case "describe":
       rootNode = <Describe {...{ dataId, chartData }} />;

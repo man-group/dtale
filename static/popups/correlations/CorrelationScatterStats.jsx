@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { renderCodePopupAnchor } from "../CodePopup";
+import { default as PPSDetails, displayScore } from "../pps/PPSDetails";
 import corrUtils from "./correlationsUtils";
 
 class CorrelationScatterStats extends React.Component {
@@ -30,7 +31,7 @@ class CorrelationScatterStats extends React.Component {
     if (_.isEmpty(stats)) {
       return null;
     }
-    const { pearson, spearman, correlated } = stats;
+    const { pearson, spearman, pps, correlated } = stats;
     let i = 0;
     const pearsonInfo = [<dt key={i++}>Pearson</dt>, <dd key={i++}>{corrUtils.percent(pearson)}</dd>];
     const spearmanInfo = [<dt key={i++}>Spearman</dt>, <dd key={i++}>{corrUtils.percent(spearman)}</dd>];
@@ -41,6 +42,18 @@ class CorrelationScatterStats extends React.Component {
         </dl>
         <dl className="property-pair inline">{pearsonInfo}</dl>
         <dl className="property-pair inline">{spearmanInfo}</dl>
+        {pps && (
+          <dl className="property-pair inline">
+            <dt>PPS</dt>
+            <dd className="hoverable">
+              {displayScore(pps)}
+              <div className="hoverable__content">
+                <h4>Predictive Power Score</h4>
+                <PPSDetails ppsInfo={pps} />
+              </div>
+            </dd>
+          </dl>
+        )}
         <dl className="property-pair inline">
           <dt>Correlated</dt>
           <dd>{correlated}</dd>

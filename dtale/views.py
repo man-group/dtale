@@ -11,6 +11,7 @@ from flask import current_app, json, make_response, redirect, render_template, r
 
 import numpy as np
 import pandas as pd
+import platform
 import requests
 import xarray as xr
 from scipy import stats
@@ -135,7 +136,7 @@ def is_up(base):
     :return: `True` if :mod:`flask:flask.Flask` process is up and running, `False` otherwise
     """
     try:
-        return requests.get("{}/health".format(base), verify=False).ok
+        return requests.get("{}/health".format(base), verify=False, timeout=10).ok
     except BaseException:
         return False
 
@@ -862,6 +863,7 @@ def startup(
                 if len(global_state.get_data())
                 else 1
             )
+
         if data_id in global_state.get_settings():
             curr_settings = global_state.get_settings(data_id)
             curr_locked = curr_settings.get("locked", [])
@@ -920,6 +922,7 @@ def base_render_template(template, data_id, **kwargs):
         version=str(version),
         processes=len(global_state.get_data()),
         allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
+        python_version=platform.python_version(),
         **dict_merge(kwargs, curr_app_settings)
     )
 
@@ -980,6 +983,14 @@ def iframe_popup(popup_type, data_id=None):
     return redirect(route)
 
 
+POPUP_TITLES = {
+    "reshape": "Summarize Data",
+    "filter": "Custom Filter",
+    "upload": "Load Data",
+    "pps": "Predictive Power Score",
+}
+
+
 @dtale.route("/popup/<popup_type>")
 @dtale.route("/popup/<popup_type>/<data_id>")
 def view_popup(popup_type, data_id=None):
@@ -999,14 +1010,9 @@ def view_popup(popup_type, data_id=None):
     title = "D-Tale"
     if curr_metadata.get("name"):
         title = "{} ({})".format(title, curr_metadata["name"])
-    if popup_type == "reshape":
-        popup_title = "Summarize Data"
-    elif popup_type == "filter":
-        popup_title = "Custom Filter"
-    elif popup_type == "upload":
-        popup_title = "Load Data"
-    else:
-        popup_title = " ".join([pt.capitalize() for pt in popup_type.split("-")])
+    popup_title = POPUP_TITLES.get(popup_type) or " ".join(
+        [pt.capitalize() for pt in popup_type.split("-")]
+    )
     title = "{} - {}".format(title, popup_title)
     params = request.args.to_dict()
     if len(params):
@@ -2353,11 +2359,26 @@ def get_correlations(data_id):
                 valid_date_cols.append(dict(name=name, rolling=False))
             elif date_counts.eq(1).all():
                 valid_date_cols.append(dict(name=name, rolling=True))
+    corr_cols_str = "'\n\t'".join(
+        ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
+    )
+    pps_data = None
+    if get_bool_arg(request, "pps"):
+        code = build_code_export(data_id, imports="import ppscore\n")
+        code.append(
+            (
+                "corr_cols = [\n"
+                "\t'{corr_cols}'\n"
+                "]\n"
+                "corr_data = ppscore.matrix(df[corr_cols])\n"
+            ).format(corr_cols=corr_cols_str)
+        )
 
-    if data[valid_corr_cols].isnull().values.any():
+        data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
+    elif data[valid_corr_cols].isnull().values.any():
         data = data.corr(method="pearson")
         code = build_code_export(data_id)
-        code.append("corr_data = corr_data.corr(method='pearson')")
+        code.append("corr_data = df.corr(method='pearson')")
     else:
         # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
         # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
@@ -2373,11 +2394,7 @@ def get_correlations(data_id):
                 "]\n"
                 "corr_data = np.corrcoef(df[corr_cols].values, rowvar=False)\n"
                 "corr_data = pd.DataFrame(corr_data, columns=[corr_cols], index=[corr_cols])"
-            ).format(
-                corr_cols="'\n\t'".join(
-                    ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
-                )
-            )
+            ).format(corr_cols=corr_cols_str)
         )
 
     code.append(
@@ -2389,7 +2406,10 @@ def get_correlations(data_id):
     col_types = grid_columns(data)
     f = grid_formatter(col_types, nan_display=None)
     return jsonify(
-        data=f.format_dicts(data.itertuples()), dates=valid_date_cols, code=code
+        data=f.format_dicts(data.itertuples()),
+        dates=valid_date_cols,
+        code=code,
+        pps=pps_data,
     )
 
 
@@ -2445,6 +2465,34 @@ def get_chart_data(data_id):
     return jsonify(data)
 
 
+def get_ppscore(df, col1, col2):
+    try:
+        import ppscore
+
+        pps = ppscore.score(df, col1, col2)
+        pps["model"] = pps["model"].__str__()
+        return pps
+    except BaseException:
+        return None
+
+
+def get_ppscore_matrix(df):
+    try:
+        import ppscore
+
+        pps_data = ppscore.matrix(df)
+        data = (
+            pps_data[["x", "y", "ppscore"]].set_index(["x", "y"]).unstack()["ppscore"]
+        )
+
+        # additional PPS display
+        pps_data.loc[:, "model"] = pps_data["model"].astype("str")
+        pps_data = pps_data.to_dict(orient="records")
+        return data, pps_data
+    except BaseException:
+        return [], None
+
+
 @dtale.route("/correlations-ts/<data_id>")
 @exception_decorator
 def get_correlations_ts(data_id):
@@ -2474,6 +2522,7 @@ def get_correlations_ts(data_id):
     rolling_window = get_int_arg(request, "rollingWindow")
     min_periods = get_int_arg(request, "minPeriods")
     code = build_code_export(data_id)
+    pps = get_ppscore(data, col1, col2)
 
     if rolling:
         data = data[[date_col, col1, col2]].set_index(date_col)
@@ -2537,6 +2586,7 @@ def get_correlations_ts(data_id):
     return_data, _code = build_base_chart(data.fillna(0), "date", "corr")
     return_data["success"] = True
     return_data["code"] = "\n".join(code)
+    return_data["pps"] = pps
     return jsonify(return_data)
 
 
@@ -2620,9 +2670,11 @@ def get_scatter(data_id):
     s1 = data[col2]
     pearson = s0.corr(s1, method="pearson")
     spearman = s0.corr(s1, method="spearman")
+    pps = get_ppscore(data, col1, col2)
     stats = dict(
         pearson="N/A" if pd.isnull(pearson) else pearson,
         spearman="N/A" if pd.isnull(spearman) else spearman,
+        pps=pps,
         correlated=len(data),
         only_in_s0=len(data[data[col1].isnull()]),
         only_in_s1=len(data[data[col2].isnull()]),
@@ -2634,6 +2686,8 @@ def get_scatter(data_id):
             "s1 = scatter_data['{col2}']\n"
             "pearson = s0.corr(s1, method='pearson')\n"
             "spearman = s0.corr(s1, method='spearman')\n"
+            "\nimport ppscore\n\n"
+            "pps = ppscore.score(data, '{col1}', '{col2}')\n"
             "only_in_s0 = len(scatter_data[scatter_data['{col1}'].isnull()])\n"
             "only_in_s1 = len(scatter_data[scatter_data['{col2}'].isnull()])"
         ).format(col1=col1, col2=col2, idx_col=idx_col)

@@ -31,7 +31,7 @@
       "<rootDir>/test_env.js"
     ],
     "moduleNameMapper": {
-      "\\.css$": "<rootDir>/__mocks__/styleMock.js"
+      "\\.(css|scss)$": "<rootDir>/__mocks__/styleMock.js"
     },
     "moduleFileExtensions": [
       "js",

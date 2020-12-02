@@ -11,6 +11,7 @@ import { BouncerWrapper } from "../../BouncerWrapper";
 import { exports as gu } from "../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../CodePopup";
 import CorrelationsCell from "./CorrelationsCell";
+import corrUtils from "./correlationsUtils";
 
 require("./CorrelationsGrid.css");
 
@@ -62,6 +63,7 @@ class CorrelationsGrid extends React.Component {
       "buildTs",
       "buildScatter",
       "selectedCols",
+      "colorScale",
     ]);
     const props = _.assignIn(mainProps, this.state, cellProps);
     return <CorrelationsCell {...props} />;
@@ -107,12 +109,12 @@ class CorrelationsGrid extends React.Component {
         <small className="pl-3">(Click on any cell to view the details of that correlation)</small>
         <AutoSizer className="correlations-grid" disableHeight>
           {({ width }) => [
-            <div key={0} style={{ width }} className="row pl-5 pt-3 pb-3 correlations-filters">
-              <span className="pl-3 mb-auto mt-auto">View correlation for</span>
+            <div key={0} style={{ width }} className="row pt-3 pb-3 correlations-filters">
+              <span className="mb-auto mt-auto">View Correlation(s) For</span>
               <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
               <span className="mb-auto mt-auto">vs.</span>
               <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
-              <div className="col text-right">{renderCodePopupAnchor(this.props.gridCode, "Correlations")}</div>
+              <div className="col pr-0 text-right">{renderCodePopupAnchor(this.props.gridCode, "Correlations")}</div>
             </div>,
             <MultiGrid
               key={1}
@@ -150,6 +152,8 @@ CorrelationsGrid.propTypes = {
   minPeriods: PropTypes.number,
   gridCode: PropTypes.string,
   theme: PropTypes.string,
+  colorScale: PropTypes.func,
 };
+CorrelationsGrid.defaultProps = { colorScale: corrUtils.colorScale };
 
 export default CorrelationsGrid;

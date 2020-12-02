@@ -45,6 +45,17 @@
     "corr": -0.5101782784596804,
     "x": "2019-01-02"
   },
+  "pps": {
+    "baseline_score": 24889245973.8262,
+    "case": "regression",
+    "is_valid_score": true,
+    "metric": "mean absolute error",
+    "model": "DecisionTreeRegressor()",
+    "model_score": 0.0,
+    "ppscore": 1.0,
+    "x": "col1",
+    "y": "col2"
+  },
   "x": "x",
   "y": "corr"
 }

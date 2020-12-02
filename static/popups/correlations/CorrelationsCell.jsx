@@ -3,8 +3,6 @@ import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
 
-import corrUtils from "./correlationsUtils";
-
 const MAX_LABEL_LEN = 18;
 
 class CorrelationsCell extends React.Component {
@@ -24,7 +22,7 @@ class CorrelationsCell extends React.Component {
   }
 
   render() {
-    const { columnIndex, rowIndex, style, correlations, columns, col2, hasDate, selectedDate } = this.props;
+    const { columnIndex, rowIndex, style, correlations, columns, col2, hasDate, selectedDate, colorScale } = this.props;
     if (rowIndex == 0) {
       if (columnIndex == 0) {
         return null;
@@ -38,7 +36,7 @@ class CorrelationsCell extends React.Component {
     const prop = _.isNull(col2) ? columns[columnIndex - 1].value : col2.value;
     const corrOnItself = row.column === prop || _.isNull(row[prop]);
     const valueStyle = {
-      background: corrOnItself ? "rgba(255,255,255,1)" : corrUtils.colorScale(row[prop]),
+      background: corrOnItself ? "rgba(255,255,255,1)" : colorScale(row[prop]),
       textAlign: "center",
     };
     const props = {};
@@ -91,6 +89,7 @@ CorrelationsCell.propTypes = {
   window: PropTypes.number,
   minPeriods: PropTypes.number,
   selectedCols: PropTypes.arrayOf(PropTypes.string),
+  colorScale: PropTypes.func,
 };
 
 export default CorrelationsCell;

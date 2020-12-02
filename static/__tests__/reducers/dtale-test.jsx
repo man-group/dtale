@@ -30,6 +30,7 @@ describe("reducer tests", () => {
       theme: "light",
       filteredRanges: {},
       settings: {},
+      pythonVersion: null,
     };
     expect(state).toEqual(store.getState());
   });

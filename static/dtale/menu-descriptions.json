@@ -20,5 +20,6 @@
   "xarray_conversion": "Convert your pandas.Dataframe to an xarray.Dataset by selecting columns as an index. Once this is complete you'll be able to view different slices of your data by choosing index values.",
   "upload": "Load CSV/TSV files, CSV/TSV/JSON from the web or sample datasets to D-Tale using pandas.read_csv(), pandas.read_json() or customized loaders.",
   "duplicates": "Remove duplicate columns/values from your data as well as extract duplicates out into separate instances.",
-  "theme": "Toggle between light & dark themes for your viewing pleasure (only affects grid, not popups or charts)."
+  "theme": "Toggle between light & dark themes for your viewing pleasure (only affects grid, not popups or charts).",
+  "pps": "PPS is an asymmetric, data-type-agnostic score that can detect linear or non-linear relationships between two columns. The score ranges from 0 (no predictive power) to 1 (perfect predictive power). It can be used as an alternative to the correlation (matrix). WARNING: This could take a while to load."
 }

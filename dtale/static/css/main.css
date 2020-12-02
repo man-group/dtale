@@ -10305,6 +10305,10 @@ li.hoverable:hover {
     top: -0.8em;
     left: 13em;
 }
+.hoverable__content.menu-description {
+    top: -0.8em;
+    left: 13.65em;
+}
 .hoverable__content.map-types {
     min-width: 13em;
     right: unset;

@@ -6,8 +6,10 @@ import numpy as np
 import os
 import pandas as pd
 import pandas.util.testing as pdt
+import platform
 import pytest
 from pandas.tseries.offsets import Day
+from pkg_resources import parse_version
 from six import PY3
 
 from dtale.app import build_app
@@ -1918,6 +1920,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
                     dict(column="bar", security_id=None, foo=None, bar=None),
                 ],
                 dates=[],
+                pps=None,
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != "code"},
@@ -1964,13 +1967,14 @@ def test_get_correlations(unittest, test_data, rolling_data):
             )
             response = c.get("/dtale/correlations/{}".format(c.port))
             response_data = json.loads(response.data)
-            expected = expected = dict(
+            expected = dict(
                 data=[
                     dict(column="security_id", security_id=1.0, foo=None, bar=None),
                     dict(column="foo", security_id=None, foo=None, bar=None),
                     dict(column="bar", security_id=None, foo=None, bar=None),
                 ],
                 dates=[dict(name="date", rolling=False)],
+                pps=None,
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k != "code"},
@@ -1994,6 +1998,61 @@ def test_get_correlations(unittest, test_data, rolling_data):
                 [dict(name="date", rolling=True)],
                 "should return correlation date columns",
             )
+
+
+@pytest.mark.skipif(
+    parse_version(platform.python_version()) < parse_version("3.6.0"),
+    reason="requires python 3.6 or higher",
+)
+def test_get_pps_matrix(unittest, test_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            test_data, _ = views.format_data(test_data)
+            stack.enter_context(
+                mock.patch("dtale.global_state.DATA", {c.port: test_data})
+            )
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(test_data)},
+                )
+            )
+            response = c.get("/dtale/correlations/{}?pps=true".format(c.port))
+            response_data = response.json
+            expected = [
+                {"bar": 1, "column": "bar", "foo": 0, "security_id": 0},
+                {"bar": 0, "column": "foo", "foo": 1, "security_id": 0},
+                {"bar": 0, "column": "security_id", "foo": 0, "security_id": 1},
+            ]
+            unittest.assertEqual(
+                response_data["data"],
+                expected,
+                "should return scores",
+            )
+            pps_val = next(
+                (
+                    p
+                    for p in response_data["pps"]
+                    if p["y"] == "security_id" and p["x"] == "foo"
+                ),
+                None,
+            )
+            expected = {
+                "baseline_score": 12.5,
+                "case": "regression",
+                "is_valid_score": True,
+                "metric": "mean absolute error",
+                "model": "DecisionTreeRegressor()",
+                "model_score": 12.635071306123939,
+                "ppscore": 0,
+                "x": "foo",
+                "y": "security_id",
+            }
+            unittest.assertEqual(pps_val, expected, "should return PPS information")
+            assert "import ppscore" in response_data["code"]
+            assert "corr_data = ppscore.matrix(df[corr_cols])" in response_data["code"]
 
 
 def build_ts_data(size=5, days=5):
@@ -2029,6 +2088,8 @@ def test_get_correlations_ts(unittest, rolling_data):
         build_ts_data(size=50), columns=["date", "security_id", "foo", "bar"]
     )
 
+    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
+
     with app.test_client() as c:
         with mock.patch("dtale.global_state.DATA", {c.port: test_data}):
             params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]))
@@ -2051,6 +2112,19 @@ def test_get_correlations_ts(unittest, rolling_data):
                 },
                 "max": {"corr": 1.0, "x": "2000-01-05"},
                 "min": {"corr": 1.0, "x": "2000-01-01"},
+                "pps": None
+                if no_pps
+                else {
+                    "baseline_score": 12.5,
+                    "case": "regression",
+                    "is_valid_score": True,
+                    "metric": "mean absolute error",
+                    "model": "DecisionTreeRegressor()",
+                    "model_score": 0.0,
+                    "ppscore": 1.0,
+                    "x": "foo",
+                    "y": "bar",
+                },
                 "success": True,
             }
             unittest.assertEqual(
@@ -2128,6 +2202,10 @@ s0 = scatter_data['foo']
 s1 = scatter_data['bar']
 pearson = s0.corr(s1, method='pearson')
 spearman = s0.corr(s1, method='spearman')
+
+import ppscore
+
+pps = ppscore.score(data, 'foo', 'bar')
 only_in_s0 = len(scatter_data[scatter_data['foo'].isnull()])
 only_in_s1 = len(scatter_data[scatter_data['bar'].isnull()])"""
 
@@ -2136,6 +2214,7 @@ only_in_s1 = len(scatter_data[scatter_data['bar'].isnull()])"""
 def test_get_scatter(unittest, rolling_data):
     import dtale.views as views
 
+    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
     test_data = pd.DataFrame(
         build_ts_data(), columns=["date", "security_id", "foo", "bar"]
     )
@@ -2164,6 +2243,19 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "spearman": 0.9999999999999999,
+                    "pps": None
+                    if no_pps
+                    else {
+                        "baseline_score": 1.2,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 1.0,
+                        "ppscore": 0.16666666666666663,
+                        "x": "foo",
+                        "y": "bar",
+                    },
                 },
                 data={
                     "all": {
@@ -2235,6 +2327,19 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "pearson": 1.0,
+                    "pps": None
+                    if no_pps
+                    else {
+                        "baseline_score": 3736.0678,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 2.2682,
+                        "ppscore": 0.9993928911033145,
+                        "x": "foo",
+                        "y": "bar",
+                    },
                     "spearman": 1.0,
                 },
                 error="Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...",
@@ -2271,7 +2376,7 @@ def test_get_scatter(unittest, rolling_data):
 
 
 @pytest.mark.unit
-def test_get_chart_data(unittest, test_data, rolling_data):
+def test_get_chart_data(unittest, rolling_data):
     import dtale.views as views
 
     test_data = pd.DataFrame(
