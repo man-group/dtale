@@ -107,7 +107,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: build int conversion column", async () => {
+  it("DataViewer: build config", async () => {
     expect(result.find(CreateCleaning).length).toBe(1);
     result.find(CreateCleaning).find(Select).first().instance().onChange({ value: "col1" });
     result.update();
@@ -146,6 +146,22 @@ describe("DataViewer tests", () => {
       cleaners: ["drop_multispace", "stopwords", "update_case"],
       caseType: "upper",
       stopwords: ["foo", "bar"],
+    });
+  });
+
+  it("DataViewer: toggle off cleaner", async () => {
+    expect(result.find(CreateCleaning).length).toBe(1);
+    result.find(CreateCleaning).find(Select).first().instance().onChange({ value: "col1" });
+    result.update();
+    result.find(CreateCleaning).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.find(CreateCleaning).find("div.form-group").at(1).find("button").first().simulate("click");
+    result.find(CreateCleaning).find("div.form-group").at(1).find("button").at(1).simulate("click");
+    result.update();
+    submit(result);
+    await tick();
+    expect(result.find(CreateColumn).instance().state.cfg).toEqual({
+      col: "col1",
+      cleaners: ["drop_punctuation"],
     });
   });
 

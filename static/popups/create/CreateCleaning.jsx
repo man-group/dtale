@@ -113,13 +113,13 @@ class CreateCleaning extends React.Component {
                     whiteSpace: "pre-wrap",
                     height: "42px",
                   },
+                  onClick: () => this.updateCleaners(cleaner),
                 };
                 if (_.includes(this.state.cleaners, cleaner)) {
                   buttonProps.className += " btn-primary active";
                 } else {
                   buttonProps.className += " btn-light inactive pointer";
                   buttonProps.style.border = "solid 1px #a7b3b7";
-                  buttonProps.onClick = () => this.updateCleaners(cleaner);
                 }
                 return (
                   <div key={i} className="col-md-3 p-1">
