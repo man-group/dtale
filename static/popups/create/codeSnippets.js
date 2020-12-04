@@ -54,6 +54,9 @@ function buildRandomCode(cfg) {
 }
 
 function buildCleaningCode(cfg) {
+  if (!cfg.col) {
+    return null;
+  }
   let code = [`s = df['${cfg.col}']`];
   _.forEach(cfg.cleaners, cleaner => {
     if (cleaner === "drop_multispace") {
