@@ -78,6 +78,11 @@ def get_dtypes(data_id=None):
     return DTYPES.get(data_id)
 
 
+def get_dtype_info(data_id, col):
+    dtypes = get_dtypes(data_id)
+    return next((c for c in dtypes or [] if c["name"] == col), None)
+
+
 def get_settings(data_id=None):
     global SETTINGS
 

@@ -50,6 +50,7 @@ from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.query import run_query
 from dtale.code_export import build_code_export
 from dtale.utils import (
+    apply,
     classify_type,
     dict_merge,
     divide_chunks,
@@ -59,6 +60,7 @@ from dtale.utils import (
     fix_url_path,
     flatten_lists,
     get_dtypes,
+    json_timestamp,
     make_list,
     triple_quote,
 )
@@ -585,8 +587,16 @@ def cpg_chunker(charts, columns=2):
     ]
 
 
-def build_scatter_trendline(x, y, trendline):
-    fig = px.scatter(x=x, y=y, trendline=trendline)
+def build_scatter_trendline(x, y, trendline, data_id, x_col, y_col):
+    def _format_data(s, col):
+        dtype = (global_state.get_dtype_info(data_id, col) or {}).get("dtype")
+        if classify_type(dtype) == "D":
+            return [json_timestamp(pd.Timestamp(v)) for v in s]
+        return s
+
+    fig = px.scatter(
+        x=_format_data(x, x_col), y=_format_data(y, y_col), trendline=trendline
+    )
     return fig.data[1]
 
 
@@ -625,6 +635,7 @@ def scatter_builder(
     trendline=None,
     modal=False,
     colorscale=None,
+    data_id=None,
 ):
     """
     Builder function for :plotly:`plotly.graph_objs.Scatter <plotly.graph_objs.Scatter>`
@@ -673,7 +684,9 @@ def scatter_builder(
                     )
                 )
                 if trendline:
-                    yield build_scatter_trendline(d["x"], d[y_val], trendline)
+                    yield build_scatter_trendline(
+                        d["x"], d[y_val], trendline, data_id, x, y_val
+                    )
 
         figure_cfg = {
             "data": list(_build_data()),
@@ -2742,6 +2755,7 @@ def build_chart(data_id=None, data=None, **inputs):
             kwargs = dict(agg=agg)
             if chart_type == "scatter":
                 kwargs["trendline"] = trendline
+                kwargs["data_id"] = data_id
             if chart_type == "3d_scatter":
                 kwargs["z"] = z
                 kwargs["animate_by"] = animate_by
@@ -2887,7 +2901,14 @@ def build_raw_chart(data_id=None, **inputs):
         )
         if chart_type == "scatter":
             return scatter_builder(
-                data, x, y, axes_builder, chart_builder, agg=agg, trendline=trendline
+                data,
+                x,
+                y,
+                axes_builder,
+                chart_builder,
+                agg=agg,
+                trendline=trendline,
+                data_id=data_id,
             )
 
         if chart_type == "3d_scatter":
