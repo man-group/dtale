@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.26.0 (2020-12-5)
+* [#325](https://github.com/man-group/dtale/issues/325): Plotly export chart colors
+* fixed highlight.js dependabot warning
+* [#326](https://github.com/man-group/dtale/issues/326): trendline with datetime data
+* [#327](https://github.com/man-group/dtale/issues/327): fixed issues with cleaner deselection
+* [#273](https://github.com/man-group/dtale/issues/273): Predictive Power Score
+
 ### 1.25.0 (2020-11-30)
 * [#323](https://github.com/man-group/dtale/issues/323): precision setting for all float columns
 * [#265](https://github.com/man-group/dtale/issues/265): column cleaners

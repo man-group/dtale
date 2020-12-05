@@ -50,7 +50,6 @@ from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.query import run_query
 from dtale.code_export import build_code_export
 from dtale.utils import (
-    apply,
     classify_type,
     dict_merge,
     divide_chunks,
