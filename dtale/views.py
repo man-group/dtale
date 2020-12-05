@@ -535,11 +535,6 @@ def unique_count(s):
     return int(s.dropna().unique().size)
 
 
-def get_dtype_info(data_id, col):
-    dtypes = global_state.get_dtypes(data_id)
-    return next((c for c in dtypes if c["name"] == col), None)
-
-
 def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     """
     Helper function to build formatter for the descriptive information about each column in the dataframe you
@@ -1136,7 +1131,7 @@ def update_formats(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     updated_formats = {col: col_format}
     if update_all_dtype:
-        col_dtype = get_dtype_info(data_id, col)["dtype"]
+        col_dtype = global_state.get_dtype_info(data_id, col)["dtype"]
         updated_formats = {
             c["name"]: col_format
             for c in global_state.get_dtypes(data_id)
@@ -1593,7 +1588,7 @@ def describe(data_id, column):
     """
     data = global_state.get_data(data_id)[[column]]
     additional_aggs = None
-    dtype = get_dtype_info(data_id, column)
+    dtype = global_state.get_dtype_info(data_id, column)
     if classify_type(dtype["dtype"]) in ["I", "F"]:
         additional_aggs = ["sum", "median", "mode", "var", "sem", "skew", "kurt"]
     code = build_code_export(data_id)
@@ -1687,7 +1682,7 @@ def variance(data_id, column):
     check1 = bool((unique_ct / s_size) < 0.1)
     code.append("check1 = (unique_ct / s_size) < 0.1")
     return_data = dict(check1=dict(unique=unique_ct, size=s_size, result=check1))
-    dtype = get_dtype_info(data_id, column)
+    dtype = global_state.get_dtype_info(data_id, column)
     if unique_ct >= 2:
         val_counts = s.value_counts()
         check2 = bool((val_counts.values[0] / val_counts.values[1]) > 20)
@@ -1784,7 +1779,7 @@ def toggle_outlier_filter(data_id, column):
             k: v for k, v in outlierFilters.items() if k != column
         }
     else:
-        dtype_info = get_dtype_info(data_id, column)
+        dtype_info = global_state.get_dtype_info(data_id, column)
         outlier_range, min_val, max_val = (
             dtype_info.get(p) for p in ["outlierRange", "min", "max"]
         )
@@ -1919,7 +1914,7 @@ def edit_cell(data_id, column):
 
 
 def build_filter_vals(series, data_id, column, fmt):
-    dtype_info = get_dtype_info(data_id, column)
+    dtype_info = global_state.get_dtype_info(data_id, column)
     vals = list(series.dropna().unique())
     try:
         vals = sorted(vals)
