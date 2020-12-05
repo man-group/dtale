@@ -959,10 +959,16 @@ def test_chart_building_scatter():
 def test_chart_building_scatter_trendline_with_dates():
     import dtale.views as views
 
-    df = pd.DataFrame(dict(
-        a=[1, 2, 3],
-        b=[pd.Timestamp('20000101'), pd.Timestamp('20000102'), pd.Timestamp('20000103')],
-    ))
+    df = pd.DataFrame(
+        dict(
+            a=[1, 2, 3],
+            b=[
+                pd.Timestamp("20000101"),
+                pd.Timestamp("20000102"),
+                pd.Timestamp("20000103"),
+            ],
+        )
+    )
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
@@ -984,7 +990,12 @@ def test_chart_building_scatter_trendline_with_dates():
                 "window": None,
                 "rolling_comp": None,
             }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": None, "trendline": "ols"}
+            chart_inputs = {
+                "cpg": False,
+                "barmode": "group",
+                "barsort": None,
+                "trendline": "ols",
+            }
             params = build_chart_params(pathname, inputs, chart_inputs)
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]

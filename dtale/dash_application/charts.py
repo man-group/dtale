@@ -2853,6 +2853,7 @@ def build_raw_chart(data_id=None, **inputs):
             output = output.figure
             if inputs.get("title"):
                 output["layout"]["title"] = dict(text=inputs.get("title"))
+            output["layout"]["colorway"] = px.colors.qualitative.D3
         return output
 
     def _raw_chart_builder():
