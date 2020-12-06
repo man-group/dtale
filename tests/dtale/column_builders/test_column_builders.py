@@ -254,3 +254,18 @@ def test_encoder():
         cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
+
+
+@pytest.mark.unit
+def test_diff():
+    df = pd.DataFrame({"A": [9, 4, 2, 1]})
+    data_id, column_type = "1", "diff"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "A", "periods": "1"}
+        builder = ColumnBuilder(data_id, column_type, "dA", cfg)
+        verify_builder(
+            builder,
+            lambda col: col.isnull().sum() == 1 and col.sum() == -8,
+        )

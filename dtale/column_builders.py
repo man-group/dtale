@@ -51,6 +51,8 @@ class ColumnBuilder(object):
             self.builder = EncoderColumnBuilder(name, cfg)
         elif column_type == "cleaning":
             self.builder = CleaningColumnBuilder(name, cfg)
+        elif column_type == "diff":
+            self.builder = DiffColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -1112,3 +1114,21 @@ class CleaningColumnBuilder(object):
             )
         )
         return code
+
+
+class DiffColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, periods = (self.cfg.get(p) for p in ["col", "periods"])
+        return pd.Series(data[col].diff(int(periods)), index=data.index, name=self.name)
+
+    def build_code(self):
+        col, periods = (self.cfg.get(p) for p in ["col", "periods"])
+        return "df.loc[:, '{name}'] = pd.Series(df['{col}'].diff({periods}), index=df.index, name='{name}')".format(
+            name=self.name,
+            col=col,
+            periods=periods,
+        )
