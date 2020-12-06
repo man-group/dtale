@@ -4,6 +4,7 @@ import React from "react";
 import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
+import { CreateDiff, validateDiffCfg } from "./CreateDiff";
 import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
@@ -17,9 +18,12 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize", "encoder", "cleaning"]
+  ["similarity", "standardize", "encoder", "cleaning", "diff"]
 );
-export const LABELS = { zscore_normalize: "Z-Score Normalize" };
+export const LABELS = {
+  zscore_normalize: "Z-Score Normalize",
+  diff: "Row Difference",
+};
 
 export function buildLabel(v) {
   if (_.has(LABELS, v)) {
@@ -56,6 +60,8 @@ export function validateCfg(type, cfg) {
       return validateNumericCfg(cfg);
     case "cleaning":
       return validateCleaningCfg(cfg);
+    case "diff":
+      return validateDiffCfg(cfg);
   }
   return null;
 }
@@ -100,6 +106,8 @@ export function getBody(state, props, updateState) {
           prePopulated={_.get(props, "prePopulated.cfg") || {}}
         />
       );
+    case "diff":
+      return <CreateDiff {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
   }
   return null;
 }
