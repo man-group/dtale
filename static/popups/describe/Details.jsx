@@ -13,11 +13,11 @@ import DetailsCharts from "./DetailsCharts";
 
 const BASE_DESCRIBE_URL = "/dtale/describe";
 
-function displayUniques(uniques, dtype = null) {
+function displayUniques(uniques, dtype = null, baseTitle = "Unique") {
   if (_.isEmpty(uniques.data)) {
     return null;
   }
-  let title = "Unique Values";
+  let title = `${baseTitle} Values`;
   if (dtype) {
     title = `${title} of type '${dtype}'`;
   }
@@ -83,7 +83,7 @@ class Details extends React.Component {
         this.setState(newState);
         return;
       }
-      newState.details = _.pick(detailData, ["describe", "uniques", "dtype_counts"]);
+      newState.details = _.pick(detailData, ["describe", "uniques", "dtype_counts", "sequential_diffs"]);
       newState.details.name = this.props.selected.name;
       newState.details.dtype = this.props.selected.dtype;
       newState.code = detailData.code;
@@ -92,13 +92,22 @@ class Details extends React.Component {
   }
 
   renderUniques() {
-    if (this.state.deepData == "outliers") {
+    if (this.state.deepData !== "uniques") {
       return null;
     }
 
     const uniques = _.get(this.state, "details.uniques") || {};
     const dtypeCt = _.size(uniques);
     return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, dtypeCt > 1 ? dtype : null));
+  }
+
+  renderDiffs() {
+    if (this.state.deepData !== "diffs") {
+      return null;
+    }
+
+    const diffs = _.get(this.state, "details.sequential_diffs.diffs") || {};
+    return displayUniques(diffs, null, "Sequential Difference");
   }
 
   loadOutliers() {
@@ -109,18 +118,34 @@ class Details extends React.Component {
   }
 
   renderDeepDataToggle() {
-    if (_.includes(["float", "int"], gu.findColType(this.props.selected.dtype))) {
-      const { deepData, outliers, loadingOutliers } = this.state;
+    const { deepData } = this.state;
+    const colType = gu.findColType(this.props.selected.dtype);
+    if (_.includes(["float", "int"], colType)) {
+      const { outliers, loadingOutliers } = this.state;
       const toggle = val => () => {
-        const outliersCallback = _.isNull(outliers) && !loadingOutliers ? this.loadOutliers : _.noop;
+        const outliersCallback =
+          _.isNull(outliers) && val === "outliers" && !loadingOutliers ? this.loadOutliers : _.noop;
         this.setState({ deepData: val }, outliersCallback);
       };
       return (
         <div className="row pb-5">
           <div className="col-auto pl-0">
             <div className="btn-group compact col-auto">
-              <button {...buildButton(deepData == "uniques", toggle("uniques"))}>Uniques</button>
-              <button {...buildButton(deepData == "outliers", toggle("outliers"))}>Outliers</button>
+              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>Uniques</button>
+              <button {...buildButton(deepData === "outliers", toggle("outliers"))}>Outliers</button>
+              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>Diffs</button>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (colType === "date") {
+      const toggle = val => () => this.setState({ deepData: val });
+      return (
+        <div className="row pb-5">
+          <div className="col-auto pl-0">
+            <div className="btn-group compact col-auto">
+              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>Uniques</button>
+              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>Diffs</button>
             </div>
           </div>
         </div>
@@ -130,7 +155,7 @@ class Details extends React.Component {
   }
 
   renderOutliers() {
-    if (this.state.deepData == "uniques") {
+    if (this.state.deepData !== "outliers") {
       return null;
     }
     if (this.state.loadingOutliers) {
@@ -228,6 +253,7 @@ class Details extends React.Component {
         />
         {this.renderDeepDataToggle()}
         {this.renderUniques()}
+        {this.renderDiffs()}
         {this.renderOutliers()}
       </React.Fragment>
     );

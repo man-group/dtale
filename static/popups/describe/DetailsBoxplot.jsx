@@ -133,6 +133,18 @@ class DetailsBoxplot extends React.Component {
             {_.map(describeKeys, k => (
               <li key={k}>{buildStat(k, describe[k])}</li>
             ))}
+            {details.sequential_diffs && (
+              <li>
+                <div>
+                  <h4 className="d-inline">Sequential Diffs</h4>
+                </div>
+                <ul>
+                  <li>{buildStat("Min", details.sequential_diffs.min)}</li>
+                  <li>{buildStat("Average", details.sequential_diffs.avg)}</li>
+                  <li>{buildStat("Max", details.sequential_diffs.max)}</li>
+                </ul>
+              </li>
+            )}
             {dtypeCounts}
           </ul>
         </div>
