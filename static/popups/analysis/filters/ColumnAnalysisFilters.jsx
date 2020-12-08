@@ -109,56 +109,50 @@ class ColumnAnalysisFilters extends React.Component {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
         filterMarkup = (
-          <div className="col row">
+          <React.Fragment>
             {this.buildChartTypeToggle()}
             {this.buildFilter("bins")}
-          </div>
+          </React.Fragment>
         );
       } else {
         filterMarkup = (
-          <div className="col row">
-            {this.buildChartTypeToggle()}
+          <React.Fragment>
             {this.buildFilter("top")}
             <OrdinalInputs updateOrdinal={this.updateOrdinal} {...this.props} />
-          </div>
+          </React.Fragment>
         );
       }
     } else if ("float" === colType) {
       // floats -> Histogram or Categories
       if (this.state.type === "histogram") {
-        filterMarkup = (
-          <div className="col row">
-            {this.buildChartTypeToggle()}
-            {this.buildFilter("bins")}
-          </div>
-        );
+        filterMarkup = <React.Fragment>{this.buildFilter("bins")}</React.Fragment>;
       } else {
         filterMarkup = (
-          <div className="col row">
-            {this.buildChartTypeToggle()}
+          <React.Fragment>
             {this.buildFilter("top")}
             <CategoryInputs key="category" updateCategory={this.updateCategory} {...this.props} />
-          </div>
+          </React.Fragment>
         );
       }
     } else {
       // date, string, bool -> Value Counts
       filterMarkup = (
-        <div className="col row">
-          {this.buildChartTypeToggle()}
-          <h4 className="pl-5 pt-3 modal-title font-weight-bold">{title}</h4>
+        <React.Fragment>
           {this.buildFilter("top")}
           <OrdinalInputs updateOrdinal={this.updateOrdinal} {...this.props} />
-        </div>
+        </React.Fragment>
       );
     }
     return (
-      <div className="form-group row small-gutters mb-0">
-        {filterMarkup}
-        <div className="col-auto">
-          <div>{renderCodePopupAnchor(code, title)}</div>
+      <React.Fragment>
+        <div className="form-group row small-gutters">
+          <div className="col type-toggle">{this.buildChartTypeToggle()}</div>
+          <div className="col-auto">
+            <div>{renderCodePopupAnchor(code, title)}</div>
+          </div>
         </div>
-      </div>
+        <div className="form-group row small-gutters mb-0">{filterMarkup}</div>
+      </React.Fragment>
     );
   }
 }

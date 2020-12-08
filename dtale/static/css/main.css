@@ -10910,3 +10910,7 @@ div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
   align-items: center;
   font-weight: bold;
 }
+
+.type-toggle div.btn-group {
+  padding: 0;
+}
