@@ -13,11 +13,7 @@ import TextEnterFilter from "./TextEnterFilter";
 function wrapFilterMarkup(filterMarkup) {
   return (
     <div className="form-group row small-gutters mb-3 mt-3">
-      <div className="col row">
-        <div className="col" />
-        {filterMarkup}
-        <div className="col" />
-      </div>
+      <div className="row">{filterMarkup}</div>
     </div>
   );
 }
@@ -67,6 +63,12 @@ class DescribeFilters extends React.Component {
     }
     if (colType === "float") {
       options.push({ label: TITLES.categories, value: "categories" });
+    } else if (colType == "string") {
+      options.push({
+        label: TITLES.word_value_counts,
+        value: "word_value_counts",
+      });
+      options.push({ label: TITLES.value_counts, value: "value_counts" });
     } else {
       options.push({ label: TITLES.value_counts, value: "value_counts" });
     }
@@ -150,8 +152,8 @@ class DescribeFilters extends React.Component {
     }
     return (
       <React.Fragment>
-        <div className="form-group row small-gutters mb-3 mt-3">
-          <div className="col row">{this.buildChartTypeToggle()}</div>
+        <div className="form-group row small-gutters mb-5 mt-3">
+          <div className="col p-0 type-toggle">{this.buildChartTypeToggle()}</div>
           <div className="col-auto">
             <div>{renderCodePopupAnchor(code, TITLES[this.state.type])}</div>
           </div>

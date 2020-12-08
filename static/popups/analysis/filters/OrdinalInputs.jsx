@@ -26,37 +26,39 @@ class CategoryInputs extends React.Component {
       c => _.toLower(c.value)
     );
     return (
-      <React.Fragment>
-        <div className="col-auto text-center pr-4">
-          <div>
-            <b>Ordinal</b>
+      <div className="col-auto">
+        <div className="row">
+          <div className="col-auto text-center pr-4">
+            <div>
+              <b>Ordinal</b>
+            </div>
+            <div style={{ marginTop: "-.5em" }}>
+              <small>(Choose Col/Agg)</small>
+            </div>
           </div>
-          <div style={{ marginTop: "-.5em" }}>
-            <small>(Choose Col/Agg)</small>
+          <div className="col-auto pl-0 mr-3 ordinal-dd">
+            <FilterSelect
+              selectProps={{
+                value: this.state.ordinalCol,
+                options: colOpts,
+                onChange: v => updateOrdinal("ordinalCol", v),
+                noOptionsText: () => "No columns found",
+                isClearable: true,
+              }}
+            />
+          </div>
+          <div className="col-auto pl-0 mr-3 ordinal-dd">
+            <FilterSelect
+              selectProps={{
+                value: this.state.ordinalAgg,
+                options: ANALYSIS_AGGS,
+                onChange: v => updateOrdinal("ordinalAgg", v),
+              }}
+              labelProp="label"
+            />
           </div>
         </div>
-        <div className="col-auto pl-0 mr-3 ordinal-dd">
-          <FilterSelect
-            selectProps={{
-              value: this.state.ordinalCol,
-              options: colOpts,
-              onChange: v => updateOrdinal("ordinalCol", v),
-              noOptionsText: () => "No columns found",
-              isClearable: true,
-            }}
-          />
-        </div>
-        <div className="col-auto pl-0 mr-3 ordinal-dd">
-          <FilterSelect
-            selectProps={{
-              value: this.state.ordinalAgg,
-              options: ANALYSIS_AGGS,
-              onChange: v => updateOrdinal("ordinalAgg", v),
-            }}
-            labelProp="label"
-          />
-        </div>
-      </React.Fragment>
+      </div>
     );
   }
 }
