@@ -1638,6 +1638,30 @@ def describe(data_id, column):
             "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
         )
 
+    if classify_type(dtype["dtype"]) in ["I", "F", "D"]:
+        diff = data[column].diff()
+        min_diff = diff.min()
+        max_diff = diff.max()
+        avg_diff = diff.mean()
+        diff_vals = diff.value_counts().sort_values(ascending=False)
+        diff_vals.index.name = "value"
+        diff_vals.name = "count"
+        diff_vals = diff_vals.reset_index()
+
+        diff_vals_f = grid_formatter(grid_columns(diff_vals), as_string=True)
+        diff_fmt = next((f[2] for f in diff_vals_f.fmts if f[1] == "value"), None)
+        diff_ct = len(diff_vals)
+        return_data["sequential_diffs"] = {
+            "diffs": {
+                "data": diff_vals_f.format_dicts(diff_vals.head(100).itertuples()),
+                "top": diff_ct > 100,
+                "total": diff_ct,
+            },
+            "min": diff_fmt(min_diff, "N/A"),
+            "max": diff_fmt(max_diff, "N/A"),
+            "avg": diff_fmt(avg_diff, "N/A"),
+        }
+
     return_data["uniques"] = {}
     for uniq_type, uniq_grp in uniq_vals.groupby("type"):
         total = len(uniq_grp)

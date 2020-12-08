@@ -68,16 +68,7 @@ class Correlations extends React.Component {
           loadingCorrelations: false,
         };
         this.setState(state, () => {
-          let { col1, col2 } = this.props.chartData || {};
-          if (_.isUndefined(col1)) {
-            if (_.isUndefined(col2)) {
-              [col1, col2] = _.take(columns, 2);
-            } else {
-              col1 = _.find(columns, c => c !== col2);
-            }
-          } else if (_.isUndefined(col2)) {
-            col2 = _.find(columns, c => c !== col1);
-          }
+          const { col1, col2 } = corrUtils.findCols(this.props.chartData, columns);
           if (col1 && col2) {
             if (state.hasDate) {
               if (rolling) {

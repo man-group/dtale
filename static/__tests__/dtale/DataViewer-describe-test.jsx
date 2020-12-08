@@ -96,6 +96,16 @@ describe("DataViewer tests", () => {
   it("DataViewer: describe base grid operations", async () => {
     details(result)
       .find("button")
+      .findWhere(btn => btn.text() === "Diffs")
+      .first()
+      .simulate("click");
+    expect(
+      details(result)
+        .find("span.font-weight-bold")
+        .findWhere(span => span.text() === "Sequential Difference Values (top 100 most common):")
+    ).not.toHaveLength(0);
+    details(result)
+      .find("button")
       .findWhere(btn => btn.text() === "Outliers")
       .first()
       .simulate("click");

@@ -74,6 +74,20 @@ function buildScatterParams(selectedCols, date, props, state) {
   return buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
 }
 
+function findCols(chartData, columns) {
+  let { col1, col2 } = chartData || {};
+  if (_.isUndefined(col1)) {
+    if (_.isUndefined(col2)) {
+      [col1, col2] = _.take(columns, 2);
+    } else {
+      col1 = _.find(columns, c => c !== col2);
+    }
+  } else if (_.isUndefined(col2)) {
+    col2 = _.find(columns, c => c !== col1);
+  }
+  return { col1, col2 };
+}
+
 export default {
   BASE_SCATTER_URL,
   BASE_CORRELATIONS_URL: "/dtale/correlations",
@@ -84,4 +98,5 @@ export default {
   createScatter,
   percent,
   buildScatterParams,
+  findCols,
 };

@@ -84,6 +84,16 @@ const DESCRIBE = {
         top: true,
       },
     },
+    sequential_diffs: {
+      min: 1,
+      max: 3,
+      avg: 2,
+      diffs: {
+        data: _.map([1, 2, 3, 4], i => ({ value: i, count: 1 })),
+        top: true,
+        total: 10,
+      },
+    },
   },
   col2: {
     describe: {
