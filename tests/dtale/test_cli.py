@@ -101,6 +101,35 @@ def test_main(builtin_pkg):
         )
 
 
+@pytest.mark.unit
+def test_sqlite_loader():
+    props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
+    with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test.sqlite3")
+        args = [
+            "--host",
+            "test",
+            "--port",
+            "9999",
+            "--sqlite-path",
+            csv_path,
+            "--sqlite-table",
+            "test_simpsons",
+        ]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        assert host == "test"
+        assert not subprocess
+        assert not debug
+        assert port == 9999
+        assert reaper_on
+        assert data_loader is not None
+        df = data_loader()
+        assert len(df) == 5
+
+
 @pytest.mark.xfail(reason="there are issues trying to install mongo on circleci")
 def test_arctic_loader_integration(
     mongo_host, library_name, library, chunkstore_name, chunkstore_lib

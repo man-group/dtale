@@ -101,3 +101,23 @@ def test_show_parquet():
         dtale.show_parquet(path=parquet_path)
         df = mock_show.call_args.kwargs["data_loader"]()
         assert df is not None
+
+
+@pytest.mark.unit
+def test_show_sqlite():
+    import dtale
+
+    parquet_path = os.path.join(os.path.dirname(__file__), "..", "data/test.sqlite3")
+    mock_show = mock.Mock()
+    with mock.patch("dtale.cli.loaders.sqlite_loader.show", mock_show):
+        dtale.show_sqlite(path=parquet_path, table="test_simpsons")
+        df = mock_show.call_args.kwargs["data_loader"]()
+        assert df is not None
+
+    with mock.patch("dtale.cli.loaders.sqlite_loader.show", mock_show):
+        with pytest.raises(Exception) as error:
+            dtale.show_sqlite(path=parquet_path)
+            assert (
+                "You must specify a table name in order to use sqlite loader!"
+                in str(error.value)
+            )
