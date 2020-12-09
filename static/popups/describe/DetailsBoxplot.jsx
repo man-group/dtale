@@ -133,6 +133,41 @@ class DetailsBoxplot extends React.Component {
             {_.map(describeKeys, k => (
               <li key={k}>{buildStat(k, describe[k])}</li>
             ))}
+            {details.string_metrics && (
+              <React.Fragment>
+                <li>
+                  <div>
+                    <h4 className="d-inline">Characters</h4>
+                  </div>
+                  <ul>
+                    <li>{buildStat("Min # Chars", details.string_metrics.char_min)}</li>
+                    <li>{buildStat("Average # Chars", details.string_metrics.char_mean)}</li>
+                    <li>{buildStat("Max # Chars", details.string_metrics.char_max)}</li>
+                    <li>{buildStat("STD # Chars", details.string_metrics.char_std)}</li>
+                    <li>{buildStat("Rows w/ Spaces", details.string_metrics.with_space)}</li>
+                    <li>{buildStat("Rows w/ Accent Chars", details.string_metrics.with_accent)}</li>
+                    <li>{buildStat("Rows w/ Numeric Chars", details.string_metrics.with_accent)}</li>
+                    <li>{buildStat("Rows w/ All Uppercase Chars", details.string_metrics.with_upper)}</li>
+                    <li>{buildStat("Rows w/ All Lowercase Chars", details.string_metrics.with_lower)}</li>
+                    <li>{buildStat("Rows w/ Punctuation", details.string_metrics.with_punc)}</li>
+                    <li>{buildStat("Rows Starting w/ Space", details.string_metrics.space_at_the_first)}</li>
+                    <li>{buildStat("Rows Ending w/ Space", details.string_metrics.space_at_the_end)}</li>
+                    <li>{buildStat("Rows w/ Multi Spacing", details.string_metrics.multi_space_after_each_other)}</li>
+                  </ul>
+                </li>
+                <li>
+                  <div>
+                    <h4 className="d-inline">Words</h4>
+                  </div>
+                  <ul>
+                    <li>{buildStat("Min # Words", details.string_metrics.word_min)}</li>
+                    <li>{buildStat("Average # Words", details.string_metrics.word_mean)}</li>
+                    <li>{buildStat("Max # Words", details.string_metrics.word_max)}</li>
+                    <li>{buildStat("STD # Words", details.string_metrics.word_std)}</li>
+                  </ul>
+                </li>
+              </React.Fragment>
+            )}
             {details.sequential_diffs && (
               <li>
                 <div>

@@ -83,7 +83,8 @@ class Details extends React.Component {
         this.setState(newState);
         return;
       }
-      newState.details = _.pick(detailData, ["describe", "uniques", "dtype_counts", "sequential_diffs"]);
+      const detailProps = ["describe", "uniques", "dtype_counts", "sequential_diffs", "string_metrics"];
+      newState.details = _.pick(detailData, detailProps);
       newState.details.name = this.props.selected.name;
       newState.details.dtype = this.props.selected.dtype;
       newState.code = detailData.code;
