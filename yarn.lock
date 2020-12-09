@@ -4897,7 +4897,12 @@ hastscript@^6.0.0:
     property-information "^5.0.0"
     space-separated-tokens "^1.0.0"
 
-highlight.js@^10.1.1, highlight.js@~10.1.0:
+highlight.js@10.4.1, highlight.js@^10.1.1:
+  version "10.4.1"
+  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.4.1.tgz#d48fbcf4a9971c4361b3f95f302747afe19dbad0"
+  integrity sha512-yR5lWvNz7c85OhVAEAeFhVCc/GV4C30Fjzc/rCP0aCWzc1UUOPUk55dK/qdwTZHBvMZo+eZ2jpk62ndX/xMFlg==
+
+highlight.js@~10.1.0:
   version "10.1.2"
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.1.2.tgz#c20db951ba1c22c055010648dfffd7b2a968e00c"
   integrity sha512-Q39v/Mn5mfBlMff9r+zzA+gWxRsCRKwEMvYTiisLr/XUiFI/4puWt0Ojdko3R3JCNWGdOWaA5g/Yxqa23kC5AA==
@@ -7951,10 +7956,10 @@ react-slider@1.0.8:
   resolved "https://registry.yarnpkg.com/react-slider/-/react-slider-1.0.8.tgz#a60877ca9acd18f61fce6786346223aedceff053"
   integrity sha512-GXnw6b7V3yeGiaOZJeQHbdOmQT+z5LlYni+3g1C0vAfKtdoQEO/fW2Iesz7ZEIt/Lf5E5hW5UsRbAiWQkZU+GA==
 
-react-syntax-highlighter@15.3.1:
-  version "15.3.1"
-  resolved "https://registry.yarnpkg.com/react-syntax-highlighter/-/react-syntax-highlighter-15.3.1.tgz#ba16ae8705f191956b73d0e11ae938fd255f2579"
-  integrity sha512-XVQuug7kQ4/cWxiYE0XfGXvbDqLLqRsMK/GpmD3v1WOLzb6REcgkL59cJo0m3Y2LB0eoRCNhV62jqQe9/Z0p9w==
+react-syntax-highlighter@15.4.0:
+  version "15.4.0"
+  resolved "https://registry.yarnpkg.com/react-syntax-highlighter/-/react-syntax-highlighter-15.4.0.tgz#c98e7e441d1c6438885d64de3d01310626a75888"
+  integrity sha512-jQHkyTQaUH+UsYPnwXTEuijGteGgDJfeQJt8CJPgv6xPdIh0cXdjK/ntnilu68WTQvmz9JffgVfhMW5C/sss4g==
   dependencies:
     "@babel/runtime" "^7.3.1"
     highlight.js "^10.1.1"
