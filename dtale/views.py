@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import absolute_import, division
 
 import base64
@@ -1568,6 +1569,118 @@ def load_describe(column_series, additional_aggs=None):
     return desc, code
 
 
+def build_sequential_diffs(s, col):
+    diff = s.diff()
+    min_diff = diff.min()
+    max_diff = diff.max()
+    avg_diff = diff.mean()
+    diff_vals = diff.value_counts().sort_values(ascending=False)
+    diff_vals.index.name = "value"
+    diff_vals.name = "count"
+    diff_vals = diff_vals.reset_index()
+
+    diff_vals_f = grid_formatter(grid_columns(diff_vals), as_string=True)
+    diff_fmt = next((f[2] for f in diff_vals_f.fmts if f[1] == "value"), None)
+    diff_ct = len(diff_vals)
+
+    code = (
+        "sequential_diffs = data['{}'].diff()\n"
+        "min_diff = sequential_diffs.min()\n"
+        "max_diff = sequential_diffs.max()\n"
+        "avg_diff = sequential_diffs.mean()\n"
+        "diff_vals = sequential_diffs.value_counts().sort_values(ascending=False)"
+    ).format(col)
+
+    metrics = {
+        "diffs": {
+            "data": diff_vals_f.format_dicts(diff_vals.head(100).itertuples()),
+            "top": diff_ct > 100,
+            "total": diff_ct,
+        },
+        "min": diff_fmt(min_diff, "N/A"),
+        "max": diff_fmt(max_diff, "N/A"),
+        "avg": diff_fmt(avg_diff, "N/A"),
+    }
+    return metrics, code
+
+
+def build_string_metrics(s, col):
+    char_len = s.len()
+
+    def calc_len(x):
+        try:
+            return len(x)
+        except BaseException:
+            return 0
+
+    word_len = apply(s.replace(r"[\s]+", " ").str.split(" "), calc_len)
+
+    def txt_count(r):
+        return s.count(r).astype(bool).sum()
+
+    string_metrics = dict(
+        char_min=int(char_len.min()),
+        char_max=int(char_len.max()),
+        char_mean=json_float(char_len.mean()),
+        char_std=json_float(char_len.std()),
+        with_space=int(txt_count(r"\s")),
+        with_accent=int(txt_count(r"[À-ÖÙ-öù-ÿĀ-žḀ-ỿ]")),
+        with_num=int(txt_count(r"[0-9]")),
+        with_upper=int(txt_count(r"[A-Z]")),
+        with_lower=int(txt_count(r"[a-z]")),
+        with_punc=int(
+            txt_count(
+                r'(\!|"|\#|\$|%|&|\'|\(|\)|\*|\+|,|\-|\.|/|\:|\;|\<|\=|\>|\?|@|\[|\\|\]|\^|_|\`|\{|\||\}|\~)'
+            )
+        ),
+        space_at_the_first=int(txt_count(r"^ ")),
+        space_at_the_end=int(txt_count(r" $")),
+        multi_space_after_each_other=int(txt_count(r"\s{2,}")),
+        word_min=int(word_len.min()),
+        word_max=int(word_len.max()),
+        word_mean=json_float(word_len.mean()),
+        word_std=json_float(word_len.std()),
+    )
+
+    punc_reg = (
+        """\tr'(\\!|"|\\#|\\$|%|&|\\'|\\(|\\)|\\*|\\+|,|\\-|\\.|/|\\:|\\;|\\<|\\=|"""
+        """\\>|\\?|@|\\[|\\\\|\\]|\\^|_|\\`|\\{|\\||\\}|\\~)'"""
+    )
+    code = [
+        "s = data['{}'].str".format(col),
+        "char_len = s.len()\n",
+        "def calc_len(x):",
+        "\ttry:",
+        "\t\treturn len(x)",
+        "\texcept:",
+        "\t\treturn 0\n",
+        "word_len = s.replace(r'[\\s]+', ' ').str.split(' ').apply(calc_len)\n",
+        "def txt_count(r):",
+        "\treturn s.count(r).astype(bool).sum()\n",
+        "char_min=char_len.min()",
+        "char_max = char_len.max()",
+        "char_mean = char_len.mean()",
+        "char_std = char_len.std()",
+        "with_space = txt_count(r'\\s')",
+        "with_accent = txt_count(r'[À-ÖÙ-öù-ÿĀ-žḀ-ỿ]')",
+        "with_num = txt_count(r'[0-9]')",
+        "with_upper = txt_count(r'[A-Z]')",
+        "with_lower = txt_count(r'[a-z]')",
+        "with_punc = txt_count(",
+        "\t{}".format(punc_reg),
+        ")",
+        "space_at_the_first = txt_count(r'^ ')",
+        "space_at_the_end = txt_count(r' $')",
+        "multi_space_after_each_other = txt_count(r'\\s{2,}')",
+        "word_min = word_len.min()",
+        "word_max = word_len.max()",
+        "word_mean = word_len.mean()",
+        "word_std = word_len.std()",
+    ]
+
+    return string_metrics, code
+
+
 @dtale.route("/describe/<data_id>/<column>")
 @exception_decorator
 def describe(data_id, column):
@@ -1589,7 +1702,8 @@ def describe(data_id, column):
     data = global_state.get_data(data_id)[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
-    if classify_type(dtype["dtype"]) in ["I", "F"]:
+    classification = classify_type(dtype["dtype"])
+    if classification in ["I", "F"]:
         additional_aggs = ["sum", "median", "mode", "var", "sem", "skew", "kurt"]
     code = build_code_export(data_id)
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
@@ -1638,29 +1752,15 @@ def describe(data_id, column):
             "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
         )
 
-    if classify_type(dtype["dtype"]) in ["I", "F", "D"]:
-        diff = data[column].diff()
-        min_diff = diff.min()
-        max_diff = diff.max()
-        avg_diff = diff.mean()
-        diff_vals = diff.value_counts().sort_values(ascending=False)
-        diff_vals.index.name = "value"
-        diff_vals.name = "count"
-        diff_vals = diff_vals.reset_index()
+    if classification in ["I", "F", "D"]:
+        sd_metrics, sd_code = build_sequential_diffs(data[column], column)
+        return_data["sequential_diffs"] = sd_metrics
+        code.append(sd_code)
 
-        diff_vals_f = grid_formatter(grid_columns(diff_vals), as_string=True)
-        diff_fmt = next((f[2] for f in diff_vals_f.fmts if f[1] == "value"), None)
-        diff_ct = len(diff_vals)
-        return_data["sequential_diffs"] = {
-            "diffs": {
-                "data": diff_vals_f.format_dicts(diff_vals.head(100).itertuples()),
-                "top": diff_ct > 100,
-                "total": diff_ct,
-            },
-            "min": diff_fmt(min_diff, "N/A"),
-            "max": diff_fmt(max_diff, "N/A"),
-            "avg": diff_fmt(avg_diff, "N/A"),
-        }
+    if classification == "S":
+        sm_metrics, sm_code = build_string_metrics(data[column].str, column)
+        return_data["string_metrics"] = sm_metrics
+        code += sm_code
 
     return_data["uniques"] = {}
     for uniq_type, uniq_grp in uniq_vals.groupby("type"):

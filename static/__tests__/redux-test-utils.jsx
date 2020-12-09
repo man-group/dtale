@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import qs from "querystring";
 
 import _ from "lodash";
@@ -110,6 +111,7 @@ const DESCRIBE = {
   },
   col3: {
     describe: { count: 4, freq: 4, top: "foo", unique: 1 },
+    string_metrics: {},
     uniques: { str: { data: [{ value: "foo", count: 1 }], top: false } },
   },
   col4: {
