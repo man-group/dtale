@@ -1165,7 +1165,7 @@ def bar_builder(
                     data["data"] = list(
                         build_grouped_bars_with_multi_yaxis(data["data"], y)
                     )
-                return dict(data=data, layout=layout, name=frame["name"])
+            return dict(data=data, layout=layout, name=frame["name"])
 
         def build_bar_frames(data, frame_builder):
             frames, slider_steps = [], []
