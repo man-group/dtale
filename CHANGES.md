@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.27.0 (2020-12-9)
+* fixed bug with bar chart animations
+* [#335](https://github.com/man-group/dtale/issues/336): addition string metrics for Describe popup
+* [#336](https://github.com/man-group/dtale/issues/336): sqlite loader
+* [#333](https://github.com/man-group/dtale/issues/333): sequential diffs in describe popup
+* [#332](https://github.com/man-group/dtale/issues/332): adding "word counts" to Describe popup]
+* [#329](https://github.com/man-group/dtale/issues/329): diff() column builder
+* added highlight.js & upgraded react-syntax-highlighter
+
 ### 1.26.0 (2020-12-5)
 * [#325](https://github.com/man-group/dtale/issues/325): Plotly export chart colors
 * fixed highlight.js dependabot warning
