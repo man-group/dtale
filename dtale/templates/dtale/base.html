@@ -50,5 +50,25 @@
           In CSS, the last style declared takes precedence.
         #}
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+        {#
+           When loaded in an iframe, the code below will allow the parent
+           window to register and listen for the data id.
+        #}
+        <script type="text/javascript" >
+            const msg = {
+                data_id: '{{data_id}}',
+                xarray: '{{xarray}}',
+                xarray_dim: '{{xarray_dim}}',
+                settings: '{{settings}}',
+                version: '{{version}}',
+                hide_shutdown: '{{hide_shutdown}}',
+                processes: '{{processes}}',
+            };
+            window.addEventListener(
+                'load',
+                function() { window.parent.postMessage(msg, '*'); },
+                false
+            );
+        </script>
     </body>
 </html>
