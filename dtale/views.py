@@ -1649,7 +1649,8 @@ def build_string_metrics(s, col):
         """\\>|\\?|@|\\[|\\\\|\\]|\\^|_|\\`|\\{|\\||\\}|\\~)'"""
     )
     code = [
-        "s = data['{}'].str".format(col),
+        "s = data['{}']".format(col),
+        "s = s[~s.isnull()].str",
         "char_len = s.len()\n",
         "def calc_len(x):",
         "\ttry:",
@@ -1763,7 +1764,10 @@ def describe(data_id, column):
         code.append(sd_code)
 
     if classification == "S":
-        sm_metrics, sm_code = build_string_metrics(data[column].str, column)
+        str_col = data[column]
+        sm_metrics, sm_code = build_string_metrics(
+            str_col[~str_col.isnull()].str, column
+        )
         return_data["string_metrics"] = sm_metrics
         code += sm_code
 
