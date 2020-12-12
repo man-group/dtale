@@ -143,14 +143,14 @@ class ReactColumnMenu extends React.Component {
         );
       const msg = `Are you sure you want to delete the column "${selectedCol}"?`;
       const title = `Delete column - ${selectedCol}`;
-      openChart({ type: "confirm", title, msg, yesAction, size: "modal-sm" });
+      openChart({ type: "confirm", title, msg, yesAction, size: "sm" });
     };
     const renameCol = () =>
       openChart({
         type: "rename",
         selectedCol,
         columns: this.props.columns,
-        size: "modal-sm",
+        size: "sm",
       });
     const openAction = action => openPopup(action, 400, 770);
     const closeMenu = () => this.props.hideColumnMenu(selectedCol);

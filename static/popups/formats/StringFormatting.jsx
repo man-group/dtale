@@ -1,7 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import { ModalBody } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 
 const BASE_FMT = { truncate: null, link: false };
 
@@ -27,7 +27,7 @@ class StringFormatting extends React.Component {
     const exampleStr = "I am a long piece of text, please truncate me.";
     const exampleOutput = _.isNull(fmt.truncate) ? exampleStr : _.truncate(exampleStr, { length: fmt.truncate });
     return (
-      <ModalBody>
+      <Modal.Body>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">Render as Hyperlink?</label>
           <div className="col-md-8 mt-auto mb-auto">
@@ -58,7 +58,7 @@ class StringFormatting extends React.Component {
             <span>{exampleOutput}</span>
           </div>
         </div>
-      </ModalBody>
+      </Modal.Body>
     );
   }
 }

@@ -111,11 +111,4 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     expect(store.getState().xarrayDim).toEqual({ foo: "foo2", bar: "bar2" });
   });
-
-  it("DataViewer: clearing selected dimensions", async () => {
-    result.find(XArrayDimensions).find("li").first().find(Select).first().instance().onChange(null);
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
-    expect(store.getState().xarrayDim).toEqual({});
-  });
 });

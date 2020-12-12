@@ -4,7 +4,7 @@ import _ from "lodash";
 import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
-import { ModalBody } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import Select, { createFilter } from "react-select";
 
 import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
@@ -126,7 +126,7 @@ class NumericFormatting extends React.Component {
     let exampleOutput = this.state.fmt ? numeral(exampleNum).format(this.state.fmt) : exampleNum;
     exampleOutput = <span style={menuFuncs.buildStyling(exampleNum, "float", this.state)}>{exampleOutput}</span>;
     return (
-      <ModalBody>
+      <Modal.Body>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">Precision</label>
           <div className="col-md-6">
@@ -200,7 +200,7 @@ class NumericFormatting extends React.Component {
             {exampleOutput}
           </small>
         </div>
-      </ModalBody>
+      </Modal.Body>
     );
   }
 }

@@ -1,7 +1,7 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
@@ -79,7 +79,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: about", async () => {
     expect(result.find(About).length).toBe(1);
-    result.find(ModalClose).first().simulate("click");
+    result.find(Modal.Header).first().find("button").simulate("click");
     expect(result.find(About).length).toBe(0);
     clickMainMenuButton(result, "About");
     await tickUpdate(result);

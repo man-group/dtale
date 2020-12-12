@@ -1,12 +1,11 @@
 import { mount } from "enzyme";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -96,9 +95,19 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
+  it("reshape pivot cfg validation", () => {
+    const { validatePivotCfg } = require("../../../popups/reshape/Pivot");
+    const cfg = { index: null, columns: null, values: null };
+    expect(validatePivotCfg(cfg)).toBe("Missing an index selection!");
+    cfg.index = "x";
+    expect(validatePivotCfg(cfg)).toBe("Missing a columns selection!");
+    cfg.columns = "y";
+    expect(validatePivotCfg(cfg)).toBe("Missing a value(s) selection!");
+  });
+
   it("DataViewer: reshape pivot", async () => {
     expect(result.find(Reshape).length).toBe(1);
-    result.find(ModalClose).first().simulate("click");
+    result.find(Modal.Header).first().find("button").first().simulate("click");
     expect(result.find(Reshape).length).toBe(0);
     clickMainMenuButton(result, "Summarize Data");
     await tickUpdate(result);
@@ -120,37 +129,5 @@ describe("DataViewer tests", () => {
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
     expect(result.find(Reshape).length).toBe(0);
-  });
-
-  it("DataViewer: reshape pivot errors", async () => {
-    expect(result.find(Reshape).length).toBe(1);
-    result.update();
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    result.update();
-    expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
-    const pivotComp = result.find(Pivot).first();
-    const pivotInputs = pivotComp.find(Select);
-    pivotInputs.first().instance().onChange({ value: "col1" });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Missing a columns selection!");
-    pivotInputs.at(1).instance().onChange({ value: "col2" });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Missing a value(s) selection!");
-    pivotInputs
-      .at(2)
-      .instance()
-      .onChange([{ value: "col3" }]);
-    pivotInputs.last().instance().onChange({ value: "count" });
-  });
-
-  test("DataViewer: reshape pivot cfg validation", done => {
-    const { validatePivotCfg } = require("../../../popups/reshape/Pivot");
-    const cfg = { index: null, columns: null, values: null };
-    expect(validatePivotCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = "x";
-    expect(validatePivotCfg(cfg)).toBe("Missing a columns selection!");
-    cfg.columns = "y";
-    expect(validatePivotCfg(cfg)).toBe("Missing a value(s) selection!");
-    done();
   });
 });

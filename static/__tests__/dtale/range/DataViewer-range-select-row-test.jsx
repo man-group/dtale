@@ -6,9 +6,9 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
-import mockPopsicle from "../MockPopsicle";
-import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import mockPopsicle from "../../MockPopsicle";
+import reduxUtils from "../../redux-test-utils";
+import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -37,7 +37,7 @@ describe("DataViewer tests", () => {
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const { urlFetcher } = require("../redux-test-utils").default;
+        const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
@@ -68,57 +68,13 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: range selection", async () => {
-    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
-    const GridCell = require("../../dtale/GridCell").ReactGridCell;
-    const CopyRangeToClipboard = require("../../popups/CopyRangeToClipboard").ReactCopyRangeToClipboard;
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById("content"),
-      }
-    );
-    await tickUpdate(result);
-    let cellIdx = result.find(GridCell).at(20).find("div").prop("cell_idx");
-    const instance = result.find(ReactGridEventHandler).instance();
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    cellIdx = result.find(GridCell).last().find("div").prop("cell_idx");
-    instance.handleMouseOver({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    result.update();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toEqual({
-      start: "3|3",
-      end: "4|5",
-    });
-    const copyRange = result.find(CopyRangeToClipboard).first();
-    expect(copyRange.instance().state.finalText).toBe("foo\t2000-01-01\nfoo\t\nfoo\t\n");
-    copyRange.find("div.form-group").first().find("i").simulate("click");
-    expect(copyRange.instance().state.finalText).toBe("col3\tcol4\nfoo\t2000-01-01\nfoo\t\nfoo\t\n");
-    copyRange.instance().copy();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toBeNull();
-  });
-
   it("DataViewer: row range selection", async () => {
-    const CopyRangeToClipboard = require("../../popups/CopyRangeToClipboard").ReactCopyRangeToClipboard;
+    const CopyRangeToClipboard = require("../../../popups/CopyRangeToClipboard").ReactCopyRangeToClipboard;
     const text = "COPIED_TEXT";
     const postSpy = jest.spyOn($, "post");
     postSpy.mockImplementation((_url, _params, callback) => callback(text));
-    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
+    const { DataViewer, ReactDataViewer } = require("../../../dtale/DataViewer");
+    const { ReactGridEventHandler } = require("../../../dtale/GridEventHandler");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -161,37 +117,5 @@ describe("DataViewer tests", () => {
       expect.any(Function)
     );
     postSpy.mockRestore();
-  });
-
-  it("DataViewer: row ctrl selection", async () => {
-    const { DataViewer, ReactDataViewer } = require("../../dtale/DataViewer");
-    const { ReactGridEventHandler } = require("../../dtale/GridEventHandler");
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById("content"),
-      }
-    );
-    await tickUpdate(result);
-    const instance = result.find(ReactGridEventHandler).instance();
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1]);
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|2" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1, 2]);
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
-      ctrlKey: true,
-    });
-    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([2]);
   });
 });

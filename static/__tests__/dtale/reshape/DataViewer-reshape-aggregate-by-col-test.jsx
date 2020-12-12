@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import { mount } from "enzyme";
 import React from "react";
 import { Provider } from "react-redux";
@@ -16,7 +17,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("DataViewer tests", () => {
   const { location, open, opener } = window;
-  let result, Reshape, Transpose, validateTransposeCfg;
+  let result, Reshape, Aggregate, validateAggregateCfg;
 
   beforeAll(() => {
     delete window.location;
@@ -24,7 +25,7 @@ describe("DataViewer tests", () => {
     delete window.opener;
     window.location = {
       reload: jest.fn(),
-      pathname: "/dtale/iframe/1",
+      pathname: "/dtale/column/1",
       assign: jest.fn(),
     };
     window.open = jest.fn();
@@ -45,14 +46,12 @@ describe("DataViewer tests", () => {
       configurable: true,
       value: 775,
     });
-
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
-
     const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
       const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
       chartCfg.destroy = () => (chartCfg.destroyed = true);
@@ -60,14 +59,13 @@ describe("DataViewer tests", () => {
       chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
       return chartCfg;
     });
-
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     Reshape = require("../../../popups/reshape/Reshape").ReactReshape;
-    Transpose = require("../../../popups/reshape/Transpose").Transpose;
-    validateTransposeCfg = require("../../../popups/reshape/Transpose").validateTransposeCfg;
+    Aggregate = require("../../../popups/reshape/Aggregate").Aggregate;
+    validateAggregateCfg = require("../../../popups/reshape/Aggregate").validateAggregateCfg;
   });
 
   beforeEach(async () => {
@@ -95,19 +93,15 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: reshape transpose", async () => {
-    result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
-    expect(result.find(Transpose).length).toBe(1);
-    const transposeComp = result.find(Transpose).first();
-    const transposeInputs = transposeComp.find(Select);
-    transposeInputs
-      .first()
-      .instance()
-      .onChange([{ value: "col1" }]);
-    transposeInputs
-      .last()
-      .instance()
-      .onChange([{ value: "col2" }]);
+  it("DataViewer: reshape aggregate 'By Column'", async () => {
+    result.find(Reshape).find("div.modal-body").find("button").first().simulate("click");
+    expect(result.find(Aggregate).length).toBe(1);
+    const aggComp = result.find(Aggregate).first();
+    const aggInputs = aggComp.find(Select);
+    aggInputs.first().instance().onChange({ value: "col1" });
+    aggInputs.at(1).instance().onChange({ value: "col2" });
+    aggInputs.at(2).instance().onChange({ value: "count" });
+    aggComp.find("i").first().simulate("click");
     result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
@@ -115,11 +109,14 @@ describe("DataViewer tests", () => {
     result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(0);
+    expect(result.find(Reshape)).toHaveLength(0);
 
-    const cfg = { index: null };
-    expect(validateTransposeCfg(cfg)).toBe("Missing an index selection!");
+    const cfg = { index: null, agg: null };
+    expect(validateAggregateCfg(cfg)).toBe("Missing an index selection!");
     cfg.index = ["x"];
-    expect(validateTransposeCfg(cfg)).toBeNull();
+    cfg.agg = { type: "func" };
+    expect(validateAggregateCfg(cfg)).toBe("Missing an aggregation selection!");
+    cfg.agg = { type: "col" };
+    expect(validateAggregateCfg(cfg)).toBe("Missing an aggregation selection!");
   });
 });

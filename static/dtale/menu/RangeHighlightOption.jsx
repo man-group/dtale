@@ -11,7 +11,7 @@ class RangeHighlightOption extends React.Component {
   }
 
   render() {
-    const openRangeHightlight = () => this.props.openChart(_.assignIn({ type: "range", size: "modal-sm" }, this.props));
+    const openRangeHightlight = () => this.props.openChart(_.assignIn({ type: "range", size: "sm" }, this.props));
     const turnOffRangeHighlight = () => {
       const rangeHighlight = { ...this.props.rangeHighlight };
       _.forEach(rangeHighlight, range => {

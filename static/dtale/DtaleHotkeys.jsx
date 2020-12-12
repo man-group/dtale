@@ -23,7 +23,7 @@ class ReactDtaleHotkeys extends React.Component {
           ...copyText,
           type: "copy-row-range",
           title,
-          size: "modal-sm",
+          size: "sm",
           ...this.props,
         });
       const params = { rows: JSON.stringify(_.map(ctrlRows, idx => idx - 1)) };
@@ -35,7 +35,7 @@ class ReactDtaleHotkeys extends React.Component {
           ...copyText,
           type: "copy-column-range",
           title,
-          size: "modal-sm",
+          size: "sm",
           ...this.props,
         });
       buildCtrlColumnCopyText(dataId, columns, ctrlCols, callback);

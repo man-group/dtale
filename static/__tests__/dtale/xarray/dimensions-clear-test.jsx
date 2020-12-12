@@ -1,4 +1,5 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
 import { Provider } from "react-redux";
 import Select from "react-select";
@@ -7,7 +8,7 @@ import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, clickMainMenuButton, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -15,27 +16,16 @@ const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
-  const { location, open, opener } = window;
-  let result, Reshape, Transpose, validateTransposeCfg;
+  let result, store, XArrayDimensions;
 
   beforeAll(() => {
-    delete window.location;
-    delete window.open;
-    delete window.opener;
-    window.location = {
-      reload: jest.fn(),
-      pathname: "/dtale/iframe/1",
-      assign: jest.fn(),
-    };
-    window.open = jest.fn();
-    window.opener = { code_popup: { code: "test code", title: "Test" } };
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
       value: 500,
     });
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
       configurable: true,
-      value: 800,
+      value: 500,
     });
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
@@ -49,6 +39,22 @@ describe("DataViewer tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
+        if (_.startsWith(url, "/dtale/xarray-coordinates/1")) {
+          return {
+            data: [
+              { name: "foo", count: 10, dtype: "object" },
+              { name: "bar", count: 5, dtype: "float64" },
+            ],
+          };
+        } else if (_.startsWith(url, "/dtale/xarray-dimension-values/1/foo")) {
+          return {
+            data: [{ value: "foo1" }, { value: "foo2" }, { value: "foo3" }],
+          };
+        } else if (_.startsWith(url, "/dtale/xarray-dimension-values/1/bar")) {
+          return {
+            data: [{ value: "bar1" }, { value: "bar2" }, { value: "bar3" }],
+          };
+        }
         return urlFetcher(url);
       })
     );
@@ -65,61 +71,38 @@ describe("DataViewer tests", () => {
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-    Reshape = require("../../../popups/reshape/Reshape").ReactReshape;
-    Transpose = require("../../../popups/reshape/Transpose").Transpose;
-    validateTransposeCfg = require("../../../popups/reshape/Transpose").validateTransposeCfg;
   });
 
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
+    XArrayDimensions = require("../../../popups/XArrayDimensions").ReactXArrayDimensions;
+
+    store = reduxUtils.createDtaleStore();
+    const xarrayDim = "{&quot;foo&quot;:&quot;foo1&quot;}";
+    buildInnerHTML({ settings: "", xarray: "True", xarrayDim }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
       { attachTo: document.getElementById("content") }
     );
-    await tick();
-    clickMainMenuButton(result, "Summarize Data");
+    await tickUpdate(result);
+    clickMainMenuButton(result, "XArray Dimensions");
+    await tickUpdate(result);
     await tickUpdate(result);
   });
 
   afterAll(() => {
-    window.location = location;
-    window.open = open;
-    window.opener = opener;
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
     Object.defineProperty(window, "innerWidth", originalInnerWidth);
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: reshape transpose", async () => {
-    result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
-    expect(result.find(Transpose).length).toBe(1);
-    const transposeComp = result.find(Transpose).first();
-    const transposeInputs = transposeComp.find(Select);
-    transposeInputs
-      .first()
-      .instance()
-      .onChange([{ value: "col1" }]);
-    transposeInputs
-      .last()
-      .instance()
-      .onChange([{ value: "col2" }]);
-    result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
+  it("DataViewer: clearing selected dimensions", async () => {
+    result.find(XArrayDimensions).find("li").first().find(Select).first().instance().onChange(null);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(1);
-    result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(0);
-
-    const cfg = { index: null };
-    expect(validateTransposeCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = ["x"];
-    expect(validateTransposeCfg(cfg)).toBeNull();
+    expect(store.getState().xarrayDim).toEqual({});
   });
 });

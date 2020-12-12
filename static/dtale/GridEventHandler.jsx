@@ -22,7 +22,7 @@ function handleRangeSelect(props, cellIdx) {
       ...copyText,
       type: "copy-range",
       title,
-      size: "modal-sm",
+      size: "sm",
       ...props,
     });
   } else {
@@ -40,7 +40,7 @@ function handleRowSelect(props, cellIdx) {
         ...copyText,
         type: "copy-row-range",
         title,
-        size: "modal-sm",
+        size: "sm",
         ...props,
       });
     buildRowCopyText(props.dataId, columns, { start: rowRange.start, end: coords[1] }, callback);

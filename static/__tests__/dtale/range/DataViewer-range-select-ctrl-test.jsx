@@ -1,22 +1,20 @@
 import { mount } from "enzyme";
+import _ from "lodash";
 import React from "react";
-import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
-import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../../MockPopsicle";
-import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
+const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 describe("DataViewer tests", () => {
-  const { open } = window;
-
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
       configurable: true,
@@ -26,8 +24,15 @@ describe("DataViewer tests", () => {
       configurable: true,
       value: 500,
     });
-    delete window.open;
-    window.open = jest.fn();
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 1205,
+    });
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 775,
+    });
+    Object.defineProperty(global.document, "execCommand", { value: _.noop });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -58,14 +63,13 @@ describe("DataViewer tests", () => {
   afterAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    window.open = open;
+    Object.defineProperty(window, "innerWidth", originalInnerWidth);
+    Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: date formatting", async () => {
-    const { DataViewer } = require("../../../dtale/DataViewer");
-    const Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
-    const DateFormatting = require("../../../popups/formats/DateFormatting").default;
-
+  it("DataViewer: row ctrl selection", async () => {
+    const { DataViewer, ReactDataViewer } = require("../../../dtale/DataViewer");
+    const { ReactGridEventHandler } = require("../../../dtale/GridEventHandler");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     const result = mount(
@@ -76,28 +80,22 @@ describe("DataViewer tests", () => {
         attachTo: document.getElementById("content"),
       }
     );
-
     await tickUpdate(result);
-    // select column
-    result.find(".main-grid div.headerCell div").last().simulate("click");
-    result.update();
-    clickColMenuButton(result, "Formats");
-    result.update();
-    expect(result.find(DateFormatting).length).toBe(1);
-
-    result.find(Formatting).find("i.ico-info-outline").first().simulate("click");
-    const momentUrl = "https://momentjs.com/docs/#/displaying/format/";
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(momentUrl);
-    const input = result.find(DateFormatting).find("div.form-group").at(0).find("input");
-
-    input.simulate("change", { target: { value: "YYYYMMDD" } });
-    expect(result.find(DateFormatting).find("div.row").last().text()).toBe(
-      "Raw:December 31st 1999, 7:00:00 pmFormatted:19991231"
-    );
-
-    result.find(Formatting).find(Modal.Footer).first().find("button").first().simulate("click");
-    await tickUpdate(result);
-    const grid = result.find(MultiGrid).first().instance();
-    expect(grid.props.data["0"].col4.view.length).toBe(8);
+    const instance = result.find(ReactGridEventHandler).instance();
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
+      ctrlKey: true,
+    });
+    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1]);
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: "0|2" } } },
+      ctrlKey: true,
+    });
+    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([1, 2]);
+    instance.handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
+      ctrlKey: true,
+    });
+    expect(result.find(ReactDataViewer).instance().state.ctrlRows).toEqual([2]);
   });
 });

@@ -1,12 +1,11 @@
 import { mount } from "enzyme";
 import React from "react";
-import { ModalClose } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -16,22 +15,22 @@ const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
 const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
-function findNumericInputs(result) {
-  const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
-  return result.find(CreateNumeric).first();
-}
-
-function findLeftInputs(result) {
-  return findNumericInputs(result).find("div.form-group").at(1);
-}
-
-const simulateClick = async result => {
-  result.simulate("click");
-  await tick();
-};
-
 describe("DataViewer tests", () => {
   let result, CreateColumn;
+
+  function findNumericInputs(r) {
+    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
+    return r.find(CreateNumeric).first();
+  }
+
+  function findLeftInputs(r) {
+    return findNumericInputs(r).find("div.form-group").at(1);
+  }
+
+  const simulateClick = async r => {
+    r.simulate("click");
+    await tick();
+  };
 
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -97,11 +96,26 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
+  it("DataViewer: build numeric cfg validation", () => {
+    const { validateNumericCfg } = require("../../../popups/create/CreateNumeric");
+    const cfg = {};
+    expect(validateNumericCfg(cfg)).toBe("Please select an operation!");
+    cfg.operation = "x";
+    cfg.left = { type: "col", col: null };
+    expect(validateNumericCfg(cfg)).toBe("Left side is missing a column selection!");
+    cfg.left = { type: "val", val: null };
+    expect(validateNumericCfg(cfg)).toBe("Left side is missing a static value!");
+    cfg.left.val = "x";
+    cfg.right = { type: "col", col: null };
+    expect(validateNumericCfg(cfg)).toBe("Right side is missing a column selection!");
+    cfg.right = { type: "val", val: null };
+    expect(validateNumericCfg(cfg)).toBe("Right side is missing a static value!");
+  });
+
   it("DataViewer: build numeric column", async () => {
     const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
-
     expect(result.find(CreateColumn).length).toBe(1);
-    result.find(ModalClose).first().simulate("click");
+    result.find(Modal.Header).first().find("button").simulate("click");
     expect(result.find(CreateColumn).length).toBe(0);
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
@@ -121,53 +135,7 @@ describe("DataViewer tests", () => {
     await tick();
     findNumericInputs(result).find("div.form-group").at(2).find(Select).first().instance().onChange({ value: "col2" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
-  });
-
-  it("DataViewer: build column errors", async () => {
-    expect(result.find(CreateColumn).length).toBe(1);
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Name is required!");
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "col4" } });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("The column 'col4' already exists!");
-    result
-      .find(CreateColumn)
-      .find("div.form-group")
-      .first()
-      .find("input")
-      .first()
-      .simulate("change", { target: { value: "error" } });
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    expect(result.find(RemovableError).text()).toBe("Please select an operation!");
-
-    await simulateClick(findNumericInputs(result).find("div.form-group").first().find("button").first());
-    await simulateClick(findLeftInputs(result).find("button").first());
-    findLeftInputs(result).find(Select).first().instance().onChange({ value: "col1" });
-    await tick();
-    findNumericInputs(result).find("div.form-group").at(2).find(Select).first().instance().onChange({ value: "col2" });
-    await simulateClick(result.find("div.modal-footer").first().find("button").first());
-    expect(result.find(RemovableError).text()).toBe("error test");
-  });
-
-  it("DataViewer: build numeric cfg validation", () => {
-    const { validateNumericCfg } = require("../../../popups/create/CreateNumeric");
-    const cfg = {};
-    expect(validateNumericCfg(cfg)).toBe("Please select an operation!");
-    cfg.operation = "x";
-    cfg.left = { type: "col", col: null };
-    expect(validateNumericCfg(cfg)).toBe("Left side is missing a column selection!");
-    cfg.left = { type: "val", val: null };
-    expect(validateNumericCfg(cfg)).toBe("Left side is missing a static value!");
-    cfg.left.val = "x";
-    cfg.right = { type: "col", col: null };
-    expect(validateNumericCfg(cfg)).toBe("Right side is missing a column selection!");
-    cfg.right = { type: "val", val: null };
-    expect(validateNumericCfg(cfg)).toBe("Right side is missing a static value!");
+    await tickUpdate(result);
+    expect(result.find(CreateColumn)).toHaveLength(0);
   });
 });
