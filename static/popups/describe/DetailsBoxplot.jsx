@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import chartUtils from "../../chartUtils";
+import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
 
 const COUNT_STATS = ["count", "missing_ct", "missing_pct"];
 const POSITION_STATS = ["first", "last", "top"];
@@ -19,7 +20,11 @@ function buildStat(key, value) {
     return (
       <div>
         <h4 className="d-inline pr-5">{`${_.get(LABELS, key, key)}:`}</h4>
-        <span className="d-inline">{value}</span>
+        <span className="d-inline">
+          {value}
+          {key === "skew" && skewMsg(value)}
+          {key === "kurt" && kurtMsg(value)}
+        </span>
       </div>
     );
   }
