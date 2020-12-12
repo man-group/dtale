@@ -3,7 +3,35 @@ import React from "react";
 
 import bu from "../backgroundUtils";
 
-class ColumnMenuHeader extends React.Component {
+export function skewMsg(skew) {
+  const skewFloat = parseFloat(skew);
+  if (skewFloat || skewFloat === 0) {
+    if (skewFloat >= -0.5 && skewFloat < 0.5) {
+      return " (fairly symmetrical)";
+    } else if (skewFloat >= -1 && skewFloat < -0.5) {
+      return " (moderately skewed)";
+    } else if (skewFloat < -1 || skewFloat > 1) {
+      return " (highly skewed)";
+    }
+  }
+  return "";
+}
+
+export function kurtMsg(kurt) {
+  const kurtFloat = parseFloat(kurt);
+  if (kurtFloat || kurtFloat === 0) {
+    if (kurtFloat > 3) {
+      return " (leptokurtic)";
+    } else if (kurtFloat === 3) {
+      return " (mesokurtic)";
+    } else if (kurtFloat < 3) {
+      return " (platykurtic)";
+    }
+  }
+  return "";
+}
+
+export default class ColumnMenuHeader extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -36,6 +64,24 @@ class ColumnMenuHeader extends React.Component {
               <span>True</span>
             </li>
           )}
+          {colCfg.skew && (
+            <li>
+              Skew:
+              <span>
+                {colCfg.skew}
+                {skewMsg(colCfg.skew)}
+              </span>
+            </li>
+          )}
+          {colCfg.kurt && (
+            <li>
+              Kurtosis:
+              <span>
+                {colCfg.kurt}
+                {kurtMsg(colCfg.kurt)}
+              </span>
+            </li>
+          )}
         </ul>
       </header>
     );
@@ -46,5 +92,3 @@ ColumnMenuHeader.propTypes = {
   colCfg: PropTypes.object,
   col: PropTypes.string,
 };
-
-export default ColumnMenuHeader;

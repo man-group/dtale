@@ -158,6 +158,8 @@ def test_startup(unittest):
                 "hasOutliers": 0,
                 "lowVariance": False,
                 "unique_ct": 2,
+                "kurt": "nan",
+                "skew": "nan",
             },
             next(
                 (
@@ -1343,6 +1345,8 @@ def test_get_data(unittest, test_data):
                         lowVariance=False,
                         outlierRange={"lower": -24.5, "upper": 73.5},
                         unique_ct=50,
+                        kurt=-1.2,
+                        skew=0,
                     ),
                     dict(
                         dtype="int64",
@@ -1356,6 +1360,8 @@ def test_get_data(unittest, test_data):
                         lowVariance=False,
                         outlierRange={"lower": 1.0, "upper": 1.0},
                         unique_ct=1,
+                        kurt=0,
+                        skew=0,
                     ),
                     dict(
                         dtype="float64",
@@ -1369,6 +1375,8 @@ def test_get_data(unittest, test_data):
                         lowVariance=False,
                         outlierRange={"lower": 1.5, "upper": 1.5},
                         unique_ct=1,
+                        kurt=0,
+                        skew=0,
                     ),
                     dict(
                         dtype="string",
@@ -1603,6 +1611,8 @@ def test_get_data(unittest, test_data):
                     lowVariance=False,
                     outlierRange={"lower": 2.5, "upper": 2.5},
                     unique_ct=1,
+                    kurt=0,
+                    skew=0,
                 ),
                 "should update dtypes on data structure change",
             )

@@ -582,6 +582,8 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             if not any((np.isnan(v) or np.isinf(v) for v in [o_s, o_e])):
                 dtype_data["hasOutliers"] += int(((s < o_s) | (s > o_e)).sum())
                 dtype_data["outlierRange"] = dict(lower=o_s, upper=o_e)
+            dtype_data["skew"] = json_float(s.skew())
+            dtype_data["kurt"] = json_float(s.kurt())
 
         if classification in ["F", "I"] and not s.isnull().all():
             # build variance flag
@@ -1704,13 +1706,16 @@ def describe(data_id, column):
     dtype = global_state.get_dtype_info(data_id, column)
     classification = classify_type(dtype["dtype"])
     if classification in ["I", "F"]:
-        additional_aggs = ["sum", "median", "mode", "var", "sem", "skew", "kurt"]
+        additional_aggs = ["sum", "median", "mode", "var", "sem"]
     code = build_code_export(data_id)
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
     code += desc_code
     return_data = dict(describe=desc, success=True)
     if "unique" not in return_data["describe"]:
         return_data["describe"]["unique"] = json_int(dtype["unique_ct"], as_string=True)
+    for p in ["skew", "kurt"]:
+        if p in dtype:
+            return_data["describe"][p] = dtype[p]
 
     uniq_vals = data[column].value_counts().sort_values(ascending=False)
     uniq_vals.index.name = "value"
