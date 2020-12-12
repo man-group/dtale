@@ -1,6 +1,6 @@
 import { mount } from "enzyme";
 import React from "react";
-import { ModalFooter } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
@@ -89,7 +89,7 @@ describe("DataViewer tests", () => {
     expect(result.find(StringFormatting).find("div.row").last().text()).toBe(
       "Raw:I am a long piece of text, please truncate me.Truncated:..."
     );
-    result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
+    result.find(Formatting).find(Modal.Footer).first().find("button").first().simulate("click");
     await tickUpdate(result);
     const grid = result.find(MultiGrid).first().instance();
     expect(grid.props.data["0"].col3.view).toBe("...");

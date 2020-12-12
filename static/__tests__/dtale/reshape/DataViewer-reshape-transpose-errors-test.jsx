@@ -5,6 +5,7 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
+import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -16,7 +17,7 @@ const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototyp
 
 describe("DataViewer tests", () => {
   const { location, open, opener } = window;
-  let result, Reshape, Transpose, validateTransposeCfg;
+  let result, Reshape, Transpose;
 
   beforeAll(() => {
     delete window.location;
@@ -67,7 +68,6 @@ describe("DataViewer tests", () => {
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     Reshape = require("../../../popups/reshape/Reshape").ReactReshape;
     Transpose = require("../../../popups/reshape/Transpose").Transpose;
-    validateTransposeCfg = require("../../../popups/reshape/Transpose").validateTransposeCfg;
   });
 
   beforeEach(async () => {
@@ -95,31 +95,14 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: reshape transpose", async () => {
-    result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
-    expect(result.find(Transpose).length).toBe(1);
-    const transposeComp = result.find(Transpose).first();
-    const transposeInputs = transposeComp.find(Select);
-    transposeInputs
-      .first()
-      .instance()
-      .onChange([{ value: "col1" }]);
-    transposeInputs
-      .last()
-      .instance()
-      .onChange([{ value: "col2" }]);
-    result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
+  it("DataViewer: reshape transpose errors", async () => {
     expect(result.find(Reshape).length).toBe(1);
-    result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
+    result.find(Reshape).find("div.modal-body").find("button").at(2).simulate("click");
+    result.find("div.modal-footer").first().find("button").first().simulate("click");
+    result.update();
+    expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
+    result.find(Transpose).first().find(Select).first().instance().onChange({ value: "col1" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(0);
-
-    const cfg = { index: null };
-    expect(validateTransposeCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = ["x"];
-    expect(validateTransposeCfg(cfg)).toBeNull();
   });
 });

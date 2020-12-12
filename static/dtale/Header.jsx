@@ -53,7 +53,7 @@ function buildCopyHandler(menuHandler, props) {
             ...copyText,
             type: "copy-column-range",
             title,
-            size: "modal-sm",
+            size: "sm",
             ...props,
           });
         buildColumnCopyText(dataId, columns, columnRange.start, columnIndex, callback);

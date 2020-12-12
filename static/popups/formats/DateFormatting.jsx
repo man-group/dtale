@@ -2,7 +2,7 @@ import _ from "lodash";
 import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
-import { ModalBody } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 
 const BASE_STATE = { fmt: null };
 
@@ -22,7 +22,7 @@ class DateFormatting extends React.Component {
     const exampleStr = m.format("MMMM Do YYYY, h:mm:ss a");
     const exampleOutput = _.isNull(this.state.fmt) ? exampleStr : m.format(this.state.fmt);
     return (
-      <ModalBody>
+      <Modal.Body>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">
             <span>moment.js Format</span>
@@ -58,7 +58,7 @@ class DateFormatting extends React.Component {
             <span>{exampleOutput}</span>
           </div>
         </div>
-      </ModalBody>
+      </Modal.Body>
     );
   }
 }

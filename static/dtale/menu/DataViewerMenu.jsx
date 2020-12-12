@@ -209,7 +209,7 @@ class ReactDataViewerMenu extends React.Component {
                 onClick={() =>
                   this.props.openChart({
                     type: "about",
-                    size: "modal-sm",
+                    size: "sm",
                     backdrop: true,
                   })
                 }>

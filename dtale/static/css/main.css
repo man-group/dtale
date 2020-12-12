@@ -10107,6 +10107,7 @@ select.form-control:focus,
   color: #004c93;
   font-size: .9375rem;
   font-weight: normal;
+  width: 100%;
 }
 
 .modal-title i {

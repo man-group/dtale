@@ -1,13 +1,14 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
-import { Modal, ModalClose, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
 import { buildRangeState } from "../dtale/rangeSelectUtils";
+import DraggableModalDialog from "./DraggableModalDialog";
 import * as popupUtils from "./popupUtils";
 
 class ReactPopup extends React.Component {
@@ -28,22 +29,22 @@ class ReactPopup extends React.Component {
     const { chartData } = this.props;
     const { type, visible, size, backdrop } = chartData;
     const onClose = () =>
-      this.props.propagateState(buildRangeState(), () => this.props.onClose({ size: size || "modal-lg" }));
+      this.props.propagateState(buildRangeState(), () => this.props.onClose({ size: size || "lg" }));
     const { title, body } = popupUtils.buildBodyAndTitle(this.props);
     return (
       <Modal
         {...{
-          isOpen: visible,
-          onRequestHide: onClose,
-          size: size || "modal-lg",
-          backdrop: backdrop || false,
-          className: `${type}-modal`,
+          show: visible,
+          onHide: onClose,
+          dialogAs: DraggableModalDialog,
+          size: size || "lg",
+          backdrop: backdrop ?? "static",
+          dialogClassName: `${type}-modal`,
         }}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: onClose }} />}
-        <ModalHeader>
-          <ModalTitle>{title}</ModalTitle>
-          <ModalClose onClick={onClose} />
-        </ModalHeader>
+        <Modal.Header closeButton>
+          <Modal.Title>{title}</Modal.Title>
+        </Modal.Header>
         <ConditionalRender display={visible}>{body}</ConditionalRender>
       </Modal>
     );

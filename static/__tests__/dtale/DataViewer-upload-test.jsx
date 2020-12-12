@@ -1,8 +1,8 @@
 import { mount } from "enzyme";
 import $ from "jquery";
 import React from "react";
+import Modal from "react-bootstrap/Modal";
 import Dropzone from "react-dropzone";
-import { ModalClose } from "react-modal-bootstrap";
 import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
@@ -84,6 +84,7 @@ describe("DataViewer tests", () => {
   });
 
   afterEach(() => {
+    result.unmount();
     readAsDataURLSpy.mockRestore();
     btoaSpy.mockRestore();
     postSpy.mockRestore();
@@ -102,7 +103,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: upload open/close", async () => {
     expect(result.find(Upload).length).toBe(1);
-    result.find(ModalClose).first().simulate("click");
+    result.find(Modal.Header).first().find("button").simulate("click");
     expect(result.find(Upload).length).toBe(0);
   });
 

@@ -1,13 +1,14 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
-import { Modal, ModalClose, ModalFooter, ModalHeader, ModalTitle } from "react-modal-bootstrap";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
 import serverState from "../../dtale/serverStateManagement";
+import DraggableModalDialog from "../DraggableModalDialog";
 import DateFormatting from "./DateFormatting";
 import NumericFormatting from "./NumericFormatting";
 import StringFormatting from "./StringFormatting";
@@ -163,23 +164,22 @@ class ReactFormatting extends React.Component {
     const { visible } = this.props;
     const hide = () => this.props.propagateState({ formattingOpen: false });
     return (
-      <Modal isOpen={visible} onRequestHide={hide} backdrop={false}>
+      <Modal show={visible} onHide={hide} backdrop="static" dialogAs={DraggableModalDialog}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: hide }} />}
-        <ModalHeader>
-          <ModalTitle>
+        <Modal.Header closeButton>
+          <Modal.Title>
             <i className="ico-palette" />
             Formatting
-          </ModalTitle>
-          <ModalClose onClick={hide} />
-        </ModalHeader>
+          </Modal.Title>
+        </Modal.Header>
         {this.renderBody()}
         {this.renderApplyAll()}
         {this.renderNanDisplay()}
-        <ModalFooter>
+        <Modal.Footer>
           <button className="btn btn-primary" onClick={this.save}>
             <span>Apply</span>
           </button>
-        </ModalFooter>
+        </Modal.Footer>
       </Modal>
     );
   }

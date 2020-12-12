@@ -1,7 +1,7 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
-import { ModalClose, ModalFooter } from "react-modal-bootstrap";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 import Select from "react-select";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
@@ -98,7 +98,7 @@ describe("DataViewer tests", () => {
     clickColMenuButton(result, "Formats");
     result.update();
     expect(result.find(NumericFormatting).length).toBe(1);
-    result.find(Formatting).find(ModalClose).first().simulate("click");
+    result.find(Formatting).find(Modal.Header).first().find("button").simulate("click");
     result.update();
     expect(result.find(Formatting).instance().props.visible).toBe(false);
     result.update();
@@ -123,7 +123,7 @@ describe("DataViewer tests", () => {
       result.find(NumericFormatting).find("div.form-group").at(i).find("button").last().simulate("click");
     });
     result.find(Formatting).find("div.form-group").last().find(Select).instance().onChange({ value: "-" });
-    result.find(Formatting).find(ModalFooter).first().find("button").first().simulate("click");
+    result.find(Formatting).find(Modal.Footer).first().find("button").first().simulate("click");
     await tickUpdate(result);
     const grid = result.find(MultiGrid).first().instance();
     expect(grid.props.data["0"].col2.view).toBe("2.500000");
