@@ -75,7 +75,7 @@ function buildCleaningCode(cfg) {
         "import nltk\n",
         "nltk.download('stopwords')",
         "nltk.download('punkt')\n",
-        "nltk_stopwords_set = set(nltk.corpus..words('english'))\n",
+        `nltk_stopwords_set = set(nltk.corpus..words('${cfg.language ?? "english"}'))\n`,
         "def clean_nltk_stopwords(x):",
         "\treturn ' '.join(",
         "\t\t[w for w in nltk.tokenize.word_tokenize(x) if w not in nltk_stopwords_set]",
