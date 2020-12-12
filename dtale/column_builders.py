@@ -942,13 +942,14 @@ def clean(s, cleaner, cfg):
 
         return apply(s, clean_stopwords)
     elif cleaner == "nltk_stopwords":
+        language = cfg.get("language") or "english"
         try:
             import nltk
 
             nltk.download("stopwords")
             nltk.download("punkt")
 
-            nltk_stopwords_set = set(nltk.corpus.stopwords.words("english"))
+            nltk_stopwords_set = set(nltk.corpus.stopwords.words(language))
 
             def clean_nltk_stopwords(x):
                 return " ".join(
@@ -959,7 +960,7 @@ def clean(s, cleaner, cfg):
                     ]
                 )
 
-            return apply(s, clean_nltk_stopwords)
+            return apply(s.fillna(""), clean_nltk_stopwords)
         except ImportError:
             raise Exception(
                 "You must install the 'nltk' package in order to use this cleaner!"
@@ -1036,7 +1037,9 @@ def clean_code(cleaner, cfg):
         return [
             "import nltk\n",
             "nltk.download('stopwords')" "nltk.download('punkt')\n",
-            "nltk_stopwords_set = set(nltk.corpus..words('english'))\n",
+            "nltk_stopwords_set = set(nltk.corpus..words('{}'))\n".format(
+                cfg.get("language") or "english"
+            ),
             "def clean_nltk_stopwords(x):",
             "\treturn ' '.join(",
             "\t\t[w for w in nltk.tokenize.word_tokenize(x) if w not in nltk_stopwords_set]",

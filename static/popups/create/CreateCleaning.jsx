@@ -1,9 +1,11 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import Select, { createFilter } from "react-select";
 
 import ColumnSelect from "./ColumnSelect";
 import { buildCleaningCode as buildCode } from "./codeSnippets";
+import Languages from "./nltk-languages.json";
 
 function validateCleaningCfg({ col, cleaners, stopwords, caseType }) {
   if (!col) {
@@ -33,7 +35,7 @@ const NAMES = {
   nltk_stopwords: "Drop NLTK Stop Words",
   drop_numbers: "Remove Numbers",
   keep_alpha: "Keep Only Alpha",
-  normalize_accents: "Drop Accent Characters",
+  normalize_accents: "Normalize Accent Characters",
   drop_all_space: "Remove Spaces",
   drop_repeated_words: "Drop Repeated Words",
   add_word_number_space: "Add Space Between Word and Numbers",
@@ -45,7 +47,7 @@ const NAMES = {
 class CreateCleaning extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { col: null, cleaners: [] };
+    this.state = { col: null, cleaners: [], language: { value: "english" } };
     this.updateState = this.updateState.bind(this);
     this.updateCleaners = this.updateCleaners.bind(this);
   }
@@ -70,6 +72,9 @@ class CreateCleaning extends React.Component {
     }
     if (_.includes(currState.cleaners, "stopwords")) {
       updatedState.cfg.stopwords = _.split(currState.stopwords, ",");
+    }
+    if (_.includes(currState.cleaners, "nltk_stopwords")) {
+      updatedState.cfg.language = _.get(currState, "language.value");
     }
     updatedState.code = buildCode(updatedState.cfg);
     if (_.get(state, "col") && !this.props.namePopulated) {
@@ -143,8 +148,26 @@ class CreateCleaning extends React.Component {
             </div>
           </div>
         )}
+        {_.includes(this.state.cleaners, "nltk_stopwords") && (
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">NLTK Language</label>
+            <div className="col-md-8">
+              <Select
+                className="Select is-clearable is-searchable Select--single"
+                classNamePrefix="Select"
+                options={_.map(Languages, l => ({ value: l }))}
+                getOptionLabel={_.property("value")}
+                getOptionValue={_.property("value")}
+                value={this.state.language}
+                onChange={selected => this.updateState({ language: selected })}
+                noOptionsText={() => "No columns found"}
+                filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+              />
+            </div>
+          </div>
+        )}
         {_.includes(this.state.cleaners, "update_case") && (
-          <div key={1} className="form-group row">
+          <div className="form-group row">
             <label className="col-md-3 col-form-label text-right">Case</label>
             <div className="col-md-8">
               <div className="btn-group">
