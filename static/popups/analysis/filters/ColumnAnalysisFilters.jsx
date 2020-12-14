@@ -80,9 +80,10 @@ class ColumnAnalysisFilters extends React.Component {
   }
 
   updateOrdinal(prop, val) {
-    const currState = _.assignIn({}, _.pick(this.state, ["ordinalCol", "ordinalAgg"]), { [prop]: val });
+    const currState = _.assignIn({}, _.pick(this.state, ["ordinalCol", "ordinalAgg", "cleaner"]), { [prop]: val });
+    const cleanerChange = _.get(currState, "cleaner.value") !== _.get(this.state, "cleaner.value");
     this.setState(currState, () => {
-      if (currState.ordinalCol && currState.ordinalAgg) {
+      if ((currState.ordinalCol && currState.ordinalAgg) || cleanerChange) {
         this.buildChart();
       }
     });

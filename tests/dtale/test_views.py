@@ -1852,7 +1852,11 @@ def test_get_column_analysis_word_value_count(unittest):
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(
-                    col="a", type="word_value_counts", ordinalCol="b", ordinalAgg="mean"
+                    col="a",
+                    type="word_value_counts",
+                    ordinalCol="b",
+                    ordinalAgg="mean",
+                    cleaner="underscore_to_space",
                 ),
             )
             response_data = json.loads(response.data)

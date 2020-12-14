@@ -108,11 +108,15 @@ const EMTPY_CATEGORY = (
   </div>
 );
 
+const PARAM_PROPS = _.concat(
+  ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
+  ["categoryAgg", "cleaner"]
+);
+
 function dataLoader(props, state, propagateState, chartParams) {
   const { chartData, height, dataId } = props;
   const finalParams = chartParams || state.chartParams;
   const { selectedCol } = chartData;
-  const paramProps = ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol", "categoryAgg"];
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
   if (params.type === "categories" && _.isNull(finalParams.categoryCol)) {
@@ -121,10 +125,10 @@ function dataLoader(props, state, propagateState, chartParams) {
   }
   let subProps = ["categoryCol", "categoryAgg"];
   if (_.includes(["value_counts", "word_value_counts"], params.type)) {
-    subProps = ["ordinalCol", "ordinalAgg"];
+    subProps = ["ordinalCol", "ordinalAgg", "cleaner"];
   }
   _.forEach(subProps, p => (params[p] = _.get(finalParams, [p, "value"])));
-  const url = `${BASE_ANALYSIS_URL}/${dataId}?${qs.stringify(buildURLParams(params, paramProps))}`;
+  const url = `${BASE_ANALYSIS_URL}/${dataId}?${qs.stringify(buildURLParams(params, PARAM_PROPS))}`;
   fetchJson(url, fetchedChartData => {
     const newState = { error: null, chartParams: finalParams };
     if (_.get(fetchedChartData, "error")) {

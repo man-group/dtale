@@ -1012,6 +1012,8 @@ def clean(s, cleaner, cfg):
         return getattr(s.str, case)()
     elif cleaner == "space_vals_to_empty":
         return s.str.replace(r"[ ]+", "")
+    elif cleaner == "underscore_to_space":
+        return s.str.replace("_", " ")
     return s
 
 
@@ -1091,6 +1093,8 @@ def clean_code(cleaner, cfg):
         return ["s = s.str.{}()".format(case)]
     elif cleaner == "space_vals_to_empty":
         return ["s = s.str.replace(r'[ ]+', '')"]
+    elif cleaner == "underscore_to_space":
+        return ["s = s.str.replace('_', ' ')"]
     return []
 
 
