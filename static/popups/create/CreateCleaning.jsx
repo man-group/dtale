@@ -23,26 +23,41 @@ function validateCleaningCfg({ col, cleaners, stopwords, caseType }) {
   return null;
 }
 
-const CLEANERS = _.concat(
-  ["drop_multispace", "drop_punctuation", "stopwords", "nltk_stopwords", "drop_numbers", "keep_alpha"],
-  ["normalize_accents", "drop_all_space", "drop_repeated_words", "add_word_number_space", "drop_repeated_chars"],
-  ["update_case", "space_vals_to_empty"]
-);
-const NAMES = {
-  drop_multispace: "Replace Multi-Space w/ Single-Space",
-  drop_punctuation: "Remove Punctuation",
-  stopwords: "Drop Stop Words",
-  nltk_stopwords: "Drop NLTK Stop Words",
-  drop_numbers: "Remove Numbers",
-  keep_alpha: "Keep Only Alpha",
-  normalize_accents: "Normalize Accent Characters",
-  drop_all_space: "Remove Spaces",
-  drop_repeated_words: "Drop Repeated Words",
-  add_word_number_space: "Add Space Between Word and Numbers",
-  drop_repeated_chars: "Remove Repeated Chars",
-  update_case: "Update Word Case",
-  space_vals_to_empty: "Update Space Values to Empty String",
-};
+const CLEANERS = [
+  { value: "drop_multispace", label: "Replace Multi-Space w/ Single-Space" },
+  { value: "drop_punctuation", label: "Remove Punctuation", word_count: true },
+  { value: "stopwords", label: "Drop Stop Words" },
+  { value: "nltk_stopwords", label: "Drop NLTK Stop Words" },
+  { value: "drop_numbers", label: "Remove Numbers", word_count: true },
+  { value: "keep_alpha", label: "Keep Only Alpha", word_count: true },
+  {
+    value: "normalize_accents",
+    label: "Normalize Accent Characters",
+    word_count: true,
+  },
+  { value: "drop_all_space", label: "Remove Spaces", word_count: true },
+  {
+    value: "drop_repeated_words",
+    label: "Drop Repeated Words",
+    word_count: true,
+  },
+  {
+    value: "add_word_number_space",
+    label: "Add Space Between Word and Numbers",
+    word_count: true,
+  },
+  {
+    value: "drop_repeated_chars",
+    label: "Remove Repeated Chars",
+    word_count: true,
+  },
+  { value: "update_case", label: "Update Word Case" },
+  {
+    value: "space_vals_to_empty",
+    label: "Update Space Values to Empty String",
+    word_count: true,
+  },
+];
 
 class CreateCleaning extends React.Component {
   constructor(props) {
@@ -118,7 +133,7 @@ class CreateCleaning extends React.Component {
                     whiteSpace: "pre-wrap",
                     height: "42px",
                   },
-                  onClick: () => this.updateCleaners(cleaner),
+                  onClick: () => this.updateCleaners(cleaner.value),
                 };
                 if (_.includes(this.state.cleaners, cleaner)) {
                   buttonProps.className += " btn-primary active";
@@ -128,7 +143,7 @@ class CreateCleaning extends React.Component {
                 }
                 return (
                   <div key={i} className="col-md-3 p-1">
-                    <button {...buttonProps}>{NAMES[cleaner] ?? cleaner}</button>
+                    <button {...buttonProps}>{cleaner.label}</button>
                   </div>
                 );
               })}
@@ -208,4 +223,4 @@ CreateCleaning.propTypes = {
   prePopulated: PropTypes.object,
 };
 
-export { CreateCleaning, validateCleaningCfg, buildCode };
+export { CreateCleaning, validateCleaningCfg, buildCode, CLEANERS };

@@ -44,7 +44,7 @@ class TextEnterFilter extends React.Component {
             <small>(Please edit)</small>
           </div>
         </div>
-        <div style={{ width: "3em" }} data-tip="Press ENTER to submit" className="mb-auto mt-auto">
+        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
           <input
             type="text"
             className="form-control text-center column-analysis-filter"

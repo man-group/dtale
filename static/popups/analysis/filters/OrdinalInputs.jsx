@@ -3,23 +3,58 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { exports as gu } from "../../../dtale/gridUtils";
+import { CLEANERS } from "../../create/CreateCleaning";
 import { AGGREGATION_OPTS } from "./Constants";
 import FilterSelect from "./FilterSelect";
 
 const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
+const CLEANER_OPTS = _.concat(
+  [{ value: "underscore_to_space", label: "Replace underscores w/ space" }],
+  _.filter(CLEANERS, "word_count")
+);
 
-class CategoryInputs extends React.Component {
+class OrdinalInputs extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       ordinalCol: null,
       ordinalAgg: _.find(ANALYSIS_AGGS, { value: "sum" }),
+      cleaner: null,
     };
+    this.updateOrdinal = this.updateOrdinal.bind(this);
+    this.renderCleaners = this.renderCleaners.bind(this);
+  }
+
+  updateOrdinal(prop, val) {
+    this.setState({ [prop]: val }, () => this.props.updateOrdinal(prop, val));
+  }
+
+  renderCleaners() {
+    if (this.props.type === "word_value_counts") {
+      return (
+        <div className="row pt-3" data-tip="Clean column of extraneous values">
+          <div className="col-auto text-center pr-4 ml-auto mt-auto mb-auto">
+            <b>Cleaner</b>
+          </div>
+          <div className="col-auto pl-0 mr-3 ordinal-dd cleaner-dd">
+            <FilterSelect
+              selectProps={{
+                value: this.state.cleaner,
+                options: CLEANER_OPTS,
+                onChange: v => this.updateOrdinal("cleaner", v),
+                isClearable: true,
+              }}
+              labelProp="label"
+            />
+          </div>
+        </div>
+      );
+    }
+    return null;
   }
 
   render() {
     const { cols, selectedCol } = this.props;
-    const updateOrdinal = (prop, val) => this.setState({ [prop]: val }, () => this.props.updateOrdinal(prop, val));
     let colOpts = _.filter(cols, c => c.name !== selectedCol && _.includes(["float", "int"], gu.findColType(c.dtype)));
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
@@ -41,7 +76,7 @@ class CategoryInputs extends React.Component {
               selectProps={{
                 value: this.state.ordinalCol,
                 options: colOpts,
-                onChange: v => updateOrdinal("ordinalCol", v),
+                onChange: v => this.updateOrdinal("ordinalCol", v),
                 noOptionsText: () => "No columns found",
                 isClearable: true,
               }}
@@ -52,21 +87,23 @@ class CategoryInputs extends React.Component {
               selectProps={{
                 value: this.state.ordinalAgg,
                 options: ANALYSIS_AGGS,
-                onChange: v => updateOrdinal("ordinalAgg", v),
+                onChange: v => this.updateOrdinal("ordinalAgg", v),
               }}
               labelProp="label"
             />
           </div>
         </div>
+        {this.renderCleaners()}
       </div>
     );
   }
 }
-CategoryInputs.displayName = "CategoryInputs";
-CategoryInputs.propTypes = {
+OrdinalInputs.displayName = "OrdinalInputs";
+OrdinalInputs.propTypes = {
   selectedCol: PropTypes.string,
   cols: PropTypes.array,
   updateOrdinal: PropTypes.func,
+  type: PropTypes.string,
 };
 
-export default CategoryInputs;
+export default OrdinalInputs;

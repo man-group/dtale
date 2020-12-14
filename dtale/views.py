@@ -24,7 +24,7 @@ import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.column_builders import ColumnBuilder
+from dtale.column_builders import clean, clean_code, ColumnBuilder
 from dtale.column_filters import ColumnFilter
 from dtale.column_replacements import ColumnReplacement
 from dtale.duplicate_checks import DuplicateCheck
@@ -2310,16 +2310,19 @@ def get_column_analysis(data_id):
     if data_type is None:
         data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
     if data_type == "word_value_counts":
+        s = data[selected_col]
+        cleaner = get_str_arg(request, "cleaner")
+        if cleaner is not None:
+            s = clean(s, cleaner, {})
         hist = (
-            pd.value_counts(data[selected_col].str.split(expand=True).stack())
+            pd.value_counts(s.str.split(expand=True).stack())
             .to_frame(name="data")
             .sort_index()
         )
-        code.append(
-            "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'].str.split(expand=True).stack())".format(
-                col=selected_col
-            )
-        )
+        code.append("s = df[~pd.isnull(df['{col}'])]['{col}']".format(col=selected_col))
+        if cleaner is not None:
+            code += clean_code(cleaner, {})
+        code.append("chart = pd.value_counts(s.str.split(expand=True).stack())")
         if ordinal_col is not None:
             expanded_words = data[selected_col].str.split(expand=True).stack()
             expanded_words.name = "label"
