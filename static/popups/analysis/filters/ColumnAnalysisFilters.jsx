@@ -109,12 +109,7 @@ class ColumnAnalysisFilters extends React.Component {
     if ("int" === colType) {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
-        filterMarkup = (
-          <React.Fragment>
-            {this.buildChartTypeToggle()}
-            {this.buildFilter("bins")}
-          </React.Fragment>
-        );
+        filterMarkup = this.buildFilter("bins");
       } else {
         filterMarkup = (
           <React.Fragment>

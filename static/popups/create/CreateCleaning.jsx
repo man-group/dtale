@@ -4,6 +4,7 @@ import React from "react";
 import Select, { createFilter } from "react-select";
 
 import ColumnSelect from "./ColumnSelect";
+import Descriptions from "./cleaning-descriptions.json";
 import { buildCleaningCode as buildCode } from "./codeSnippets";
 import Languages from "./nltk-languages.json";
 
@@ -62,7 +63,12 @@ const CLEANERS = [
 class CreateCleaning extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { col: null, cleaners: [], language: { value: "english" } };
+    this.state = {
+      col: null,
+      cleaners: [],
+      language: { value: "english" },
+      description: null,
+    };
     this.updateState = this.updateState.bind(this);
     this.updateCleaners = this.updateCleaners.bind(this);
   }
@@ -134,8 +140,13 @@ class CreateCleaning extends React.Component {
                     height: "42px",
                   },
                   onClick: () => this.updateCleaners(cleaner.value),
+                  onMouseEnter: () =>
+                    this.setState({
+                      description: _.get(Descriptions, cleaner.value),
+                    }),
+                  onMouseLeave: () => this.setState({ description: null }),
                 };
-                if (_.includes(this.state.cleaners, cleaner)) {
+                if (_.includes(this.state.cleaners, cleaner.value)) {
                   buttonProps.className += " btn-primary active";
                 } else {
                   buttonProps.className += " btn-light inactive pointer";
@@ -148,6 +159,9 @@ class CreateCleaning extends React.Component {
                 );
               })}
             </div>
+            <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
+              {this.state.description}
+            </label>
           </div>
         </div>
         {_.includes(this.state.cleaners, "stopwords") && (
