@@ -10108,6 +10108,7 @@ select.form-control:focus,
   font-size: .9375rem;
   font-weight: normal;
   width: 100%;
+  cursor: crosshair;
 }
 
 .modal-title i {
