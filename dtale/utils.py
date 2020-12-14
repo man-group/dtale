@@ -195,7 +195,7 @@ def json_string(x, nan_display="", **kwargs):
     """
     if pd.isnull(x):
         return nan_display
-    if x or x in ["", False, 0]:
+    if x or x in ["", False, 0, pd.Timedelta(0)]:
         try:
             return str(x)
         except UnicodeEncodeError:

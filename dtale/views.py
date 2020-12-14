@@ -1573,6 +1573,7 @@ def load_describe(column_series, additional_aggs=None):
 
 def build_sequential_diffs(s, col):
     diff = s.diff()
+    diff = diff[diff == diff]  # remove nan or nat values
     min_diff = diff.min()
     max_diff = diff.max()
     avg_diff = diff.mean()
@@ -1587,6 +1588,7 @@ def build_sequential_diffs(s, col):
 
     code = (
         "sequential_diffs = data['{}'].diff()\n"
+        "diff = diff[diff == diff]\n"
         "min_diff = sequential_diffs.min()\n"
         "max_diff = sequential_diffs.max()\n"
         "avg_diff = sequential_diffs.mean()\n"
