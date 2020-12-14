@@ -54,6 +54,14 @@ def get_data(data_id=None):
     return DATA.get(data_id)
 
 
+def build_data_id():
+    if not len(get_data()):
+        return "1"
+    current_ids = [int(data_id) for data_id in get_data().keys()]
+    new_id = max(current_ids) + 1
+    return str(new_id)
+
+
 def get_dataset(data_id=None):
     global DATASETS
 

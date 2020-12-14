@@ -856,11 +856,7 @@ def startup(
             )
 
         if data_id is None:
-            data_id = str(
-                int(max(global_state.get_data().keys())) + 1
-                if len(global_state.get_data())
-                else 1
-            )
+            data_id = global_state.build_data_id()
 
         if data_id in global_state.get_settings():
             curr_settings = global_state.get_settings(data_id)

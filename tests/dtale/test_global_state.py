@@ -1,4 +1,5 @@
 import mock
+import pandas as pd
 import pytest
 from six import PY3
 
@@ -266,3 +267,19 @@ def test_use_redis_store(unittest, tmpdir, test_data):
 
     global_state.cleanup(data_id="1")
     unittest.assertNotEqual(contents_after, get_store_contents())
+
+
+@pytest.mark.unit
+def test_build_data_id():
+    import dtale.global_state as global_state
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
+
+        assert global_state.build_data_id() == "1"
+
+    df = pd.DataFrame([1, 2, 3, 4, 5])
+    data = {str(idx + 1): df for idx in range(10)}
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        assert global_state.build_data_id() == "11"
