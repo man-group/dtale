@@ -1,5 +1,18 @@
 ## Changelog
 
+### 1.28.0 (2020-12-14)
+* [#354](https://github.com/man-group/dtale/issues/354): fix for building data ids greater than 10
+* [#343](https://github.com/man-group/dtale/issues/343): remove nan & nat values from sequential diff analysis
+* [#342](https://github.com/man-group/dtale/issues/342): column cleaner descriptions
+* [#340](https://github.com/man-group/dtale/issues/340): add column cleaners to "Word Value Counts" analysis chart
+* [#341](https://github.com/man-group/dtale/issues/341): NLTK stopword cleaner updates
+* [#338](https://github.com/man-group/dtale/issues/338): removing nan values from string metrics
+* [#334](https://github.com/man-group/dtale/issues/334): skew/kurtosis summary
+* Updated modals to be movable (react-draggable)
+* build(deps): bump ini from 1.3.5 to 1.3.7
+* Notify iframe parent of updates
+
+
 ### 1.27.0 (2020-12-9)
 * fixed bug with bar chart animations
 * [#335](https://github.com/man-group/dtale/issues/336): addition string metrics for Describe popup
