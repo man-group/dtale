@@ -28,7 +28,7 @@ class StringFormatting extends React.Component {
     const exampleOutput = _.isNull(fmt.truncate) ? exampleStr : _.truncate(exampleStr, { length: fmt.truncate });
     return (
       <Modal.Body>
-        <div className="form-group row">
+        <div className="form-group row mb-2">
           <label className="col-md-4 col-form-label text-right">Render as Hyperlink?</label>
           <div className="col-md-8 mt-auto mb-auto">
             <i

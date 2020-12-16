@@ -1,5 +1,6 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
+import { Resizable } from "re-resizable";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
@@ -42,10 +43,13 @@ class ReactPopup extends React.Component {
           dialogClassName: `${type}-modal`,
         }}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: onClose }} />}
-        <Modal.Header closeButton>
-          <Modal.Title>{title}</Modal.Title>
-        </Modal.Header>
-        <ConditionalRender display={visible}>{body}</ConditionalRender>
+        <Resizable className="modal-resizable" defaultSize={{ width: "auto", height: "auto" }}>
+          <Modal.Header closeButton>
+            <Modal.Title>{title}</Modal.Title>
+          </Modal.Header>
+          <ConditionalRender display={visible}>{body}</ConditionalRender>
+          <span className="resizable-handle" />
+        </Resizable>
       </Modal>
     );
   }

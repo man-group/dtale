@@ -1,5 +1,6 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
+import { Resizable } from "re-resizable";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
@@ -118,7 +119,7 @@ class ReactFormatting extends React.Component {
   renderApplyAll() {
     const { columns, selectedCol } = this.props;
     return (
-      <div className="row mb-0">
+      <div className="row mb-5">
         <div className="col" />
         <label className="col-auto col-form-label pr-3">
           {`Apply this formatting to all columns of dtype, ${gu.getDtype(selectedCol, columns)}?`}
@@ -166,20 +167,25 @@ class ReactFormatting extends React.Component {
     return (
       <Modal show={visible} onHide={hide} backdrop="static" dialogAs={DraggableModalDialog}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: hide }} />}
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="ico-palette" />
-            Formatting
-          </Modal.Title>
-        </Modal.Header>
-        {this.renderBody()}
-        {this.renderApplyAll()}
-        {this.renderNanDisplay()}
-        <Modal.Footer>
-          <button className="btn btn-primary" onClick={this.save}>
-            <span>Apply</span>
-          </button>
-        </Modal.Footer>
+        <Resizable className="modal-resizable" defaultSize={{ width: "auto", height: "auto" }}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              <i className="ico-palette" />
+              Formatting
+            </Modal.Title>
+          </Modal.Header>
+          <div style={{ paddingBottom: "5em" }}>
+            {this.renderBody()}
+            {this.renderApplyAll()}
+            {this.renderNanDisplay()}
+          </div>
+          <Modal.Footer>
+            <button className="btn btn-primary" onClick={this.save}>
+              <span>Apply</span>
+            </button>
+          </Modal.Footer>
+          <span className="resizable-handle" />
+        </Resizable>
       </Modal>
     );
   }
