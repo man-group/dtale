@@ -1,5 +1,7 @@
 # Spicy Resizable & Draggable Boostrap Modals in React
 
+[![](http://img.youtube.com/vi/SZdKhOO09po/0.jpg)](http://www.youtube.com/watch?v=SZdKhOO09po "Modals")
+
 I had been using Boostrap modals in my open-source software, [D-Tale](https://github.com/man-group/dtale), for the last year and I had always been meaning to explore how to make them draggable and/or resizable.  I am happy to announce that I was able to achieve both. Through the use of a couple great packages:
 * [react-bootstrap](https://github.com/react-bootstrap/react-bootstrap)
 * [react-draggable](https://github.com/STRML/react-draggable)
