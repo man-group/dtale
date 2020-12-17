@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.28.1 (2020-12-16)
+* updated modals to be resizable (re-resizable)
+
 ### 1.28.0 (2020-12-14)
 * [#354](https://github.com/man-group/dtale/issues/354): fix for building data ids greater than 10
 * [#343](https://github.com/man-group/dtale/issues/343): remove nan & nat values from sequential diff analysis
