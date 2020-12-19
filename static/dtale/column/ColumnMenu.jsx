@@ -234,7 +234,6 @@ class ReactColumnMenu extends React.Component {
             label="Column Analysis"
             iconClass="ico-equalizer"
           />
-          <ColumnMenuOption open={openFormatting} label="Formats" iconClass="ico-palette" />
           {_.has(colCfg, "lowVariance") && (
             <ColumnMenuOption
               open={openPopup("variance", 400, 770)}
@@ -242,6 +241,7 @@ class ReactColumnMenu extends React.Component {
               iconClass="fas fa-chart-bar ml-2 mr-4"
             />
           )}
+          <ColumnMenuOption open={openFormatting} label="Formats" iconClass="ico-palette" />
           <ColumnFilter {...this.props} />
         </ul>
       </div>
