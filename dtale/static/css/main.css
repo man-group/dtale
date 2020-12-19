@@ -4525,6 +4525,7 @@ button.close {
   position: relative;
   width: auto;
   margin: 10px;
+  transition: none !important;
 }
 
 .modal-content {
@@ -4597,7 +4598,7 @@ button.close {
 }
 
 .modal-resizable > .modal-body {
-  padding: 1em 1em 5em 1em;
+  padding: 1em 1em 4em 1em;
 }
 
 .modal-footer {

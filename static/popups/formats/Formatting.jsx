@@ -19,6 +19,8 @@ const BASE_STATE = {
   style: null,
   applyToAll: false,
   nanDisplay: { value: "nan" },
+  minHeight: null,
+  minWidth: null,
 };
 
 function buildState({ selectedCol, columnFormats, nanDisplay }) {
@@ -164,10 +166,21 @@ class ReactFormatting extends React.Component {
   render() {
     const { visible } = this.props;
     const hide = () => this.props.propagateState({ formattingOpen: false });
+    const onResizeStart = (_e, _dir, refToElement) => {
+      this.setState({
+        minHeight: refToElement.offsetHeight,
+        minWidth: refToElement.offsetWidth,
+      });
+    };
     return (
       <Modal show={visible} onHide={hide} backdrop="static" dialogAs={DraggableModalDialog}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: hide }} />}
-        <Resizable className="modal-resizable" defaultSize={{ width: "auto", height: "auto" }}>
+        <Resizable
+          className="modal-resizable"
+          defaultSize={{ width: "auto", height: "auto" }}
+          minHeight={this.state.minHeight}
+          minWidth={this.state.minWidth}
+          onResizeStart={onResizeStart}>
           <Modal.Header closeButton>
             <Modal.Title>
               <i className="ico-palette" />
