@@ -9,5 +9,6 @@
   "drop_all_space": "Remove all spaces in the row i.e. \"New York\" > \"NewYork\"",
   "drop_repeated_words": "Remove repeated words i.e. \"Berlin Berlin #1234\" > \"Berlin #1234\"",
   "add_word_number_space": "Add space between words and/or numbers. i.e. \"Berlin123\" > \"Berlin 123\"",
-  "drop_repeated_chars": "Removes characters which are repeated within a value i.e. \"BBerlin\" > \"Berlin\""
+  "drop_repeated_chars": "Removes characters which are repeated within a value i.e. \"BBerlin\" > \"Berlin\"",
+  "hidden_chars": "Removes characters that cannot be printed to your screen using string.printable"
 }
