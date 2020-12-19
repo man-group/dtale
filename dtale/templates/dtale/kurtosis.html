@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+        <title>Kurtosis</title>
+    </head>
+    <body style="padding: 0.5em">
+        <h1>Kurtosis</h1>
+        <ul>
+            <h4>Determines the heaviness of the distribution tails.</h4>
+            <li>Leptokurtic (more than normal dist hight) : Kurtosis > 3</li>
+            <li>Mesokurtic (normal dist hight): (Kurtosis=3)</li>
+            <li>Platykurtic (less than normal dist hight): (Kurtosis <3)</li>
+        </ul>
+        <img
+            style="width: 100%; height: 100%"
+            src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/kurtosis.png"
+        />
+    </body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+        <title>Skewness</title>
+    </head>
+    <body style="padding: 0.5em">
+        <h1>Skewness</h1>
+        <ul>
+            <h4>Measures the symmetry of the distribution.</h4>
+            <li>Fairly symmetrical: skewness is between -0.5 and 0.5</li>
+            <li>Moderately skewed: skewness is between -1 and —0.5 or between 0.5 and 1</li>
+            <li>Highly skewed: skewness is less than -1 or greater than 1</li>
+        </ul>
+        <img
+            style="width: 100%; height: 100%"
+            src="https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/skew.png"
+        />
+    </body>
+</html>

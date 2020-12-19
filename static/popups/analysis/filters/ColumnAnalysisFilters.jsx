@@ -141,7 +141,7 @@ class ColumnAnalysisFilters extends React.Component {
     }
     return (
       <React.Fragment>
-        <div className="form-group row small-gutters">
+        <div className="form-group row small-gutters mb-4">
           <div className="col type-toggle">{this.buildChartTypeToggle()}</div>
           <div className="col-auto">
             <div>{renderCodePopupAnchor(code, title)}</div>

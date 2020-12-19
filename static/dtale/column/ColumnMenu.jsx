@@ -64,6 +64,9 @@ function ignoreMenuClicks(e) {
   if (colFilter && $(e.target).hasClass("Select__option")) {
     return true; // ignore option selection
   }
+  if ($(e.target).hasClass("ico-info")) {
+    return true; // ignore option selection
+  }
   if (colFilter && e.target.nodeName === "svg") {
     return true; // ignore option selection
   }

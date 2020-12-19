@@ -1637,10 +1637,18 @@ stats = df['foo'].describe().to_frame().T"""
 
 @pytest.mark.unit
 def test_get_column_analysis(unittest, test_data):
+    import dtale.views as views
+
     with app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(
                 mock.patch("dtale.global_state.DATA", {c.port: test_data})
+            )
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(test_data)},
+                )
             )
             settings = {c.port: {}}
             stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
@@ -1684,14 +1692,15 @@ def test_get_column_analysis(unittest, test_data):
                     "missing_ct": "0",
                     "missing_pct": 0.0,
                     "total_count": "50",
+                    "kurt": 0.0,
+                    "skew": 0.0,
                 },
-                cols=None,
                 chart_type="histogram",
                 dtype="int64",
                 query="",
             )
             unittest.assertEqual(
-                {k: v for k, v in response_data.items() if k != "code"},
+                {k: v for k, v in response_data.items() if k not in ["code", "cols"]},
                 expected,
                 "should return 20-bin histogram for foo",
             )
@@ -1717,14 +1726,15 @@ def test_get_column_analysis(unittest, test_data):
                     "missing_ct": "0",
                     "missing_pct": 0.0,
                     "total_count": "50",
+                    "kurt": 0.0,
+                    "skew": 0.0,
                 },
                 chart_type="histogram",
                 dtype="int64",
-                cols=None,
                 query="",
             )
             unittest.assertEqual(
-                {k: v for k, v in response_data.items() if k != "code"},
+                {k: v for k, v in response_data.items() if k not in ["code", "cols"]},
                 expected,
                 "should return 5-bin histogram for foo",
             )
@@ -1749,14 +1759,15 @@ def test_get_column_analysis(unittest, test_data):
                     "missing_ct": "0",
                     "missing_pct": 0.0,
                     "total_count": "39",
+                    "kurt": 0.0,
+                    "skew": 0.0,
                 },
                 chart_type="histogram",
                 dtype="int64",
-                cols=None,
                 query="security_id > 10",
             )
             unittest.assertEqual(
-                {k: v for k, v in response_data.items() if k != "code"},
+                {k: v for k, v in response_data.items() if k not in ["code", "cols"]},
                 expected,
                 "should return a filtered 5-bin histogram for foo",
             )
