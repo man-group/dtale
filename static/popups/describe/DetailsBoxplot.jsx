@@ -13,6 +13,8 @@ const LABELS = {
   missing_ct: "Count (missing)",
   missing_pct: "% Missing",
   freq: "Frequency",
+  kurt: "Kurtosis",
+  skew: "Skew",
 };
 
 function buildStat(key, value) {
@@ -101,7 +103,9 @@ class DetailsBoxplot extends React.Component {
   render() {
     const { details } = this.props;
     const describe = _.get(details, "describe", {});
-    const describeKeys = _.keys(_.omit(describe, _.concat(["total_count", "freq"], COUNT_STATS, POSITION_STATS)));
+    const describeKeys = _.keys(
+      _.omit(describe, _.concat(["total_count", "freq", "skew", "kurt"], COUNT_STATS, POSITION_STATS))
+    );
     let dtypeCounts = null;
     if (details.dtype_counts) {
       dtypeCounts = (
@@ -185,6 +189,8 @@ class DetailsBoxplot extends React.Component {
                 </ul>
               </li>
             )}
+            {describe.kurt !== undefined && <li>{buildStat("kurt", describe.kurt)}</li>}
+            {describe.skew !== undefined && <li>{buildStat("skew", describe.skew)}</li>}
             {dtypeCounts}
           </ul>
         </div>
