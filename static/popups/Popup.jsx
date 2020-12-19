@@ -15,13 +15,24 @@ import * as popupUtils from "./popupUtils";
 class ReactPopup extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { title: "" };
+    this.state = { minHeight: null, minWidth: null };
   }
 
-  shouldComponentUpdate(newProps) {
+  componentDidUpdate() {
+    if (!_.get(this.props, "chartData.visible")) {
+      this.setState({ minHeight: null, minWidth: null });
+    }
+  }
+
+  shouldComponentUpdate(newProps, newState) {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
+
+    if (!_.isEqual(this.state, newState)) {
+      return true;
+    }
+
     // Otherwise, use the default react behaviour.
     return false;
   }
@@ -32,6 +43,13 @@ class ReactPopup extends React.Component {
     const onClose = () =>
       this.props.propagateState(buildRangeState(), () => this.props.onClose({ size: size || "lg" }));
     const { title, body } = popupUtils.buildBodyAndTitle(this.props);
+
+    const onResizeStart = (_e, _dir, refToElement) => {
+      this.setState({
+        minHeight: refToElement.offsetHeight,
+        minWidth: refToElement.offsetWidth,
+      });
+    };
     return (
       <Modal
         {...{
@@ -43,7 +61,12 @@ class ReactPopup extends React.Component {
           dialogClassName: `${type}-modal`,
         }}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: "esc" }} handlers={{ CLOSE_MODAL: onClose }} />}
-        <Resizable className="modal-resizable" defaultSize={{ width: "auto", height: "auto" }}>
+        <Resizable
+          className="modal-resizable"
+          defaultSize={{ width: "auto", height: "auto" }}
+          minHeight={this.state.minHeight}
+          minWidth={this.state.minWidth}
+          onResizeStart={onResizeStart}>
           <Modal.Header closeButton>
             <Modal.Title>{title}</Modal.Title>
           </Modal.Header>
