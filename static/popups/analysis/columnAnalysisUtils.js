@@ -7,8 +7,9 @@ import { fetchJson } from "../../fetcher";
 import { RemovableError } from "../../RemovableError";
 import ColumnAnalysisChart from "./ColumnAnalysisChart";
 import React from "react";
+import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
 
-const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max"];
+const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max", "skew", "kurt"];
 
 function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
   const xAxes = [{ scaleLabel: { display: true, labelString: "Value" } }];
@@ -72,7 +73,16 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
 function createChart(ctx, fetchedData, chartOpts) {
   const { desc, labels } = fetchedData;
   if (desc) {
-    const descHTML = _.map(DESC_PROPS, p => `${_.capitalize(p)}: <b>${desc[p]}</b>`).join(", ");
+    const descHTML = _.map(DESC_PROPS, p => {
+      let markup = `${p === "kurt" ? "Kurtosis" : _.capitalize(p)}: <b>${desc[p]}</b>`;
+      if (p === "skew") {
+        markup += skewMsg(desc[p], true);
+      }
+      if (p === "kurt") {
+        markup += kurtMsg(desc[p], true);
+      }
+      return markup;
+    }).join(", ");
     $("#describe").html(`<small>${descHTML}</small>`);
   } else {
     $("#describe").empty();

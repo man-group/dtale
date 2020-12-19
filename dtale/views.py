@@ -1024,6 +1024,11 @@ def view_popup(popup_type, data_id=None):
     )
 
 
+@dtale.route("/calculation/<calc_type>")
+def view_calculation(calc_type="skew"):
+    return render_template("dtale/{}.html".format(calc_type))
+
+
 @dtale.route("/code-popup")
 def view_code_popup():
     """
@@ -2437,6 +2442,10 @@ def get_column_analysis(data_id):
             )
         )
         desc, desc_code = load_describe(data[selected_col])
+        dtype_info = global_state.get_dtype_info(data_id, selected_col)
+        for p in ["skew", "kurt"]:
+            if p in dtype_info:
+                desc[p] = dtype_info[p]
         code += desc_code
         return_data = dict(labels=hist_labels, data=hist_data, desc=desc)
     cols = global_state.get_dtypes(data_id)

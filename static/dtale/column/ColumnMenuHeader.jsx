@@ -3,30 +3,53 @@ import React from "react";
 
 import bu from "../backgroundUtils";
 
-export function skewMsg(skew) {
+function calcInfo(msg, calc, asText = false) {
+  if (asText) {
+    let txt = `<span class="pl-3 pr-3">(${msg})</span>`;
+    txt += `<a class="ico-info pointer" target="_blank" href="/dtale/calculation/${calc}"/>`;
+    return txt;
+  }
+  return (
+    <React.Fragment>
+      <span className={"pl-3 pr-3"}>{`(${msg})`}</span>
+      <i
+        className="ico-info pointer"
+        onClick={() => {
+          window.open(`/dtale/calculation/${calc}`, "_blank", "titlebar=1,location=1,status=1,width=800,height=600");
+        }}
+      />
+    </React.Fragment>
+  );
+}
+
+export function skewMsg(skew, asText = false) {
   const skewFloat = parseFloat(skew);
   if (skewFloat || skewFloat === 0) {
+    let msg;
     if (skewFloat >= -0.5 && skewFloat < 0.5) {
-      return " (fairly symmetrical)";
+      msg = "fairly symmetrical";
     } else if (skewFloat >= -1 && skewFloat < -0.5) {
-      return " (moderately skewed)";
+      msg = "moderately skewed";
     } else if (skewFloat < -1 || skewFloat > 1) {
-      return " (highly skewed)";
+      msg = "highly skewed";
     }
+    return calcInfo(msg, "skew", asText);
   }
   return "";
 }
 
-export function kurtMsg(kurt) {
+export function kurtMsg(kurt, asText = false) {
   const kurtFloat = parseFloat(kurt);
   if (kurtFloat || kurtFloat === 0) {
+    let msg;
     if (kurtFloat > 3) {
-      return " (leptokurtic)";
+      msg = "leptokurtic";
     } else if (kurtFloat === 3) {
-      return " (mesokurtic)";
+      msg = "mesokurtic";
     } else if (kurtFloat < 3) {
-      return " (platykurtic)";
+      msg = "platykurtic";
     }
+    return calcInfo(msg, "kurtosis", asText);
   }
   return "";
 }
@@ -64,7 +87,7 @@ export default class ColumnMenuHeader extends React.Component {
               <span>True</span>
             </li>
           )}
-          {colCfg.skew && (
+          {colCfg.skew !== undefined && (
             <li>
               Skew:
               <span>
@@ -73,7 +96,7 @@ export default class ColumnMenuHeader extends React.Component {
               </span>
             </li>
           )}
-          {colCfg.kurt && (
+          {colCfg.kurt !== undefined && (
             <li>
               Kurtosis:
               <span>
