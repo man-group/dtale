@@ -56,7 +56,7 @@ class ReactColumnAnalysis extends React.Component {
     let filters = null;
     if (this.state.type) {
       filters = (
-        <div key="inputs" className="modal-body modal-form">
+        <div key="inputs" className="modal-form">
           <ColumnAnalysisFilters
             {..._.pick(this.state, ["type", "cols", "dtype", "code", "top"])}
             chartType={this.state.type}

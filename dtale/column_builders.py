@@ -16,6 +16,7 @@ from sklearn.preprocessing import (
     RobustScaler,
 )
 from sklearn.feature_extraction import FeatureHasher
+from string import printable
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
@@ -1014,6 +1015,8 @@ def clean(s, cleaner, cfg):
         return s.str.replace(r"[ ]+", "")
     elif cleaner == "underscore_to_space":
         return s.str.replace("_", " ")
+    elif cleaner == "hidden_chars":
+        return s.str.replace(r"[^{}]+".format(printable), "")
     return s
 
 
@@ -1095,6 +1098,11 @@ def clean_code(cleaner, cfg):
         return ["s = s.str.replace(r'[ ]+', '')"]
     elif cleaner == "underscore_to_space":
         return ["s = s.str.replace('_', ' ')"]
+    elif cleaner == "hidden_chars":
+        return [
+            "from string import printable",
+            "s = s.str.replacer(r'[^{}]+'.format(printable), '')",
+        ]
     return []
 
 

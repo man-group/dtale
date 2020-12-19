@@ -126,6 +126,9 @@ function buildCleaningCode(cfg) {
       code.push(`s = s.str.${cfg.caseType}()`);
     } else if (cleaner === "space_vals_to_empty") {
       code.push(`s = s.str.replace(r'[ ]+', '')`);
+    } else if (cleaner === "hidden_chars") {
+      code.push("from string import printable");
+      code.push("s = s.str.replacer(r'[^{}]+'.format(printable), '')");
     }
   });
   return code;

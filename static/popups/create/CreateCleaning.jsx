@@ -58,6 +58,10 @@ const CLEANERS = [
     label: "Update Space Values to Empty String",
     word_count: true,
   },
+  {
+    value: "hidden_chars",
+    label: "Remove Hidden Characters",
+  },
 ];
 
 class CreateCleaning extends React.Component {
