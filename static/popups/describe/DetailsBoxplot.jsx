@@ -152,8 +152,8 @@ class DetailsBoxplot extends React.Component {
                     <li>{buildStat("Rows w/ Spaces", details.string_metrics.with_space)}</li>
                     <li>{buildStat("Rows w/ Accent Chars", details.string_metrics.with_accent)}</li>
                     <li>{buildStat("Rows w/ Numeric Chars", details.string_metrics.with_accent)}</li>
-                    <li>{buildStat("Rows w/ All Uppercase Chars", details.string_metrics.with_upper)}</li>
-                    <li>{buildStat("Rows w/ All Lowercase Chars", details.string_metrics.with_lower)}</li>
+                    <li>{buildStat("Rows w/ Uppercase Chars", details.string_metrics.with_upper)}</li>
+                    <li>{buildStat("Rows w/ Lowercase Chars", details.string_metrics.with_lower)}</li>
                     <li>{buildStat("Rows w/ Punctuation", details.string_metrics.with_punc)}</li>
                     <li>{buildStat("Rows Starting w/ Space", details.string_metrics.space_at_the_first)}</li>
                     <li>{buildStat("Rows Ending w/ Space", details.string_metrics.space_at_the_end)}</li>
