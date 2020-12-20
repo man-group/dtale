@@ -37,7 +37,7 @@ describe("OrdinalInputs tests", () => {
 
   it("renders cleaners on word_value_counts", () => {
     const cleaners = result.find(FilterSelect).last().prop("selectProps").options;
-    expect(cleaners).toHaveLength(10);
+    expect(cleaners).toHaveLength(12);
     expect(cleaners[0].value).toBe("underscore_to_space");
   });
 });

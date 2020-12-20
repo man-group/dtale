@@ -2283,6 +2283,15 @@ def get_column_analysis(data_id):
         ).format(col=group, ret_col=ret_col)
         return grp_sums / grp_sums.sum(), code
 
+    def handle_cleaners(s):
+        cleaners = get_str_arg(request, "cleaners")
+        cleaner_code = []
+        if cleaners:
+            for cleaner in cleaners.split(","):
+                s = clean(s, cleaner, {})
+                cleaner_code += clean_code(cleaner, {})
+        return s, cleaner_code
+
     col = get_str_arg(request, "col", "values")
     bins = get_int_arg(request, "bins", 20)
     ordinal_col = get_str_arg(request, "ordinalCol")
@@ -2313,18 +2322,14 @@ def get_column_analysis(data_id):
     if data_type is None:
         data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
     if data_type == "word_value_counts":
-        s = data[selected_col]
-        cleaner = get_str_arg(request, "cleaner")
-        if cleaner is not None:
-            s = clean(s, cleaner, {})
+        s, cleaner_code = handle_cleaners(data[selected_col])
         hist = (
             pd.value_counts(s.str.split(expand=True).stack())
             .to_frame(name="data")
             .sort_index()
         )
         code.append("s = df[~pd.isnull(df['{col}'])]['{col}']".format(col=selected_col))
-        if cleaner is not None:
-            code += clean_code(cleaner, {})
+        code += cleaner_code
         code.append("chart = pd.value_counts(s.str.split(expand=True).stack())")
         if ordinal_col is not None:
             expanded_words = data[selected_col].str.split(expand=True).stack()
@@ -2371,12 +2376,14 @@ def get_column_analysis(data_id):
         return_data = f.format_lists(hist)
         return_data["top"] = top
     elif data_type == "value_counts":
-        hist = pd.value_counts(data[selected_col]).to_frame(name="data")
+        s, cleaner_code = handle_cleaners(data[selected_col])
+        hist = pd.value_counts(s).to_frame(name="data")
         code.append(
             "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(
                 col=selected_col
             )
         )
+        code += cleaner_code
         if ordinal_col is not None:
             if ordinal_agg == "pctsum":
                 ordinal_data, pctsum_code = pctsum_updates(
