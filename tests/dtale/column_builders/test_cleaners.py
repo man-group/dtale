@@ -1,3 +1,4 @@
+# coding=utf-8
 import mock
 import pandas as pd
 import pytest
@@ -200,6 +201,19 @@ def test_hidden_chars():
         cfg = {"col": "foo", "cleaners": ["hidden_chars"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: sum(col.isnull()) == 0)
+
+
+@pytest.mark.unit
+def test_replace_hyphens_w_space():
+    df = pd.DataFrame(dict(foo=["a‐b᠆c﹣d－e⁃f−g", "", "a"]))
+    data_id, column_type = "1", "cleaning"
+    i = 0
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "foo", "cleaners": ["replace_hyphen_w_space"]}
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        verify_builder(builder, lambda col: col.values[0] == "a b c d e f g")
 
 
 @pytest.mark.unit

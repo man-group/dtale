@@ -16,10 +16,12 @@ const CLEANER_OPTS = _.concat(
 class OrdinalInputs extends React.Component {
   constructor(props) {
     super(props);
+    const { type } = props;
+    const hiddenChars = _.find(CLEANER_OPTS, { value: "hidden_chars" });
     this.state = {
       ordinalCol: null,
       ordinalAgg: _.find(ANALYSIS_AGGS, { value: "sum" }),
-      cleaner: null,
+      cleaners: type === "word_value_counts" || type === "value_counts" ? [{ ...hiddenChars }] : [],
     };
     this.updateOrdinal = this.updateOrdinal.bind(this);
     this.renderCleaners = this.renderCleaners.bind(this);
@@ -30,19 +32,21 @@ class OrdinalInputs extends React.Component {
   }
 
   renderCleaners() {
-    if (this.props.type === "word_value_counts") {
+    const { type } = this.props;
+    if (type === "word_value_counts" || type === "value_counts") {
       return (
         <div className="row pt-3" data-tip="Clean column of extraneous values">
           <div className="col-auto text-center pr-4 ml-auto mt-auto mb-auto">
             <b>Cleaner</b>
           </div>
-          <div className="col-auto pl-0 mr-3 ordinal-dd cleaner-dd">
+          <div className="col pl-0 mr-3 ordinal-dd cleaner-dd">
             <FilterSelect
               selectProps={{
-                value: this.state.cleaner,
+                value: this.state.cleaners,
                 options: CLEANER_OPTS,
-                onChange: v => this.updateOrdinal("cleaner", v),
+                onChange: v => this.updateOrdinal("cleaners", v),
                 isClearable: true,
+                isMulti: true,
               }}
               labelProp="label"
             />
@@ -61,7 +65,7 @@ class OrdinalInputs extends React.Component {
       c => _.toLower(c.value)
     );
     return (
-      <div className="col-auto">
+      <div className="col">
         <div className="row">
           <div className="col-auto text-center pr-4">
             <div>

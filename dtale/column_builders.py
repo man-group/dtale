@@ -1,3 +1,4 @@
+# coding=utf-8
 import random
 import six
 import string
@@ -1017,6 +1018,8 @@ def clean(s, cleaner, cfg):
         return s.str.replace("_", " ")
     elif cleaner == "hidden_chars":
         return s.str.replace(r"[^{}]+".format(printable), "")
+    elif cleaner == "replace_hyphen_w_space":
+        return s.str.replace(r"[‐᠆﹣－⁃−]+", " ")
     return s
 
 
@@ -1103,6 +1106,8 @@ def clean_code(cleaner, cfg):
             "from string import printable",
             "s = s.str.replacer(r'[^{}]+'.format(printable), '')",
         ]
+    elif cleaner == "replace_hyphen_w_space":
+        return ("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−]+', ' ')",)
     return []
 
 

@@ -61,6 +61,12 @@ const CLEANERS = [
   {
     value: "hidden_chars",
     label: "Remove Hidden Characters",
+    word_count: true,
+  },
+  {
+    value: "replace_hyphen_w_space",
+    label: "Replace Hyphens w/ Space",
+    word_count: true,
   },
 ];
 
@@ -69,7 +75,7 @@ class CreateCleaning extends React.Component {
     super(props);
     this.state = {
       col: null,
-      cleaners: [],
+      cleaners: ["hidden_chars"],
       language: { value: "english" },
       description: null,
     };

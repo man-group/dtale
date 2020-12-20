@@ -120,7 +120,7 @@ const EMTPY_CATEGORY = (
 
 const PARAM_PROPS = _.concat(
   ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
-  ["categoryAgg", "cleaner"]
+  ["categoryAgg", "cleaners"]
 );
 
 function dataLoader(props, state, propagateState, chartParams) {
@@ -135,7 +135,10 @@ function dataLoader(props, state, propagateState, chartParams) {
   }
   let subProps = ["categoryCol", "categoryAgg"];
   if (_.includes(["value_counts", "word_value_counts"], params.type)) {
-    subProps = ["ordinalCol", "ordinalAgg", "cleaner"];
+    subProps = ["ordinalCol", "ordinalAgg"];
+  }
+  if (finalParams?.cleaners && finalParams?.cleaners?.length) {
+    params.cleaners = _.join(_.map(finalParams.cleaners, "value"), ",");
   }
   _.forEach(subProps, p => (params[p] = _.get(finalParams, [p, "value"])));
   const url = `${BASE_ANALYSIS_URL}/${dataId}?${qs.stringify(buildURLParams(params, PARAM_PROPS))}`;

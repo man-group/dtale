@@ -143,7 +143,7 @@ describe("DataViewer tests", () => {
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col1",
-      cleaners: ["drop_multispace", "stopwords", "update_case"],
+      cleaners: ["hidden_chars", "drop_multispace", "stopwords", "update_case"],
       caseType: "upper",
       stopwords: ["foo", "bar"],
     });
@@ -161,7 +161,7 @@ describe("DataViewer tests", () => {
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col1",
-      cleaners: ["drop_punctuation"],
+      cleaners: ["hidden_chars", "drop_punctuation"],
     });
   });
 
@@ -185,7 +185,7 @@ describe("DataViewer tests", () => {
     expect(
       validateCleaningCfg({
         col: "col2",
-        cleaners: ["update_case", "stopwords"],
+        cleaners: ["hidden_chars", "update_case", "stopwords"],
         caseType: "upper",
         stopwords: ["foo"],
       })

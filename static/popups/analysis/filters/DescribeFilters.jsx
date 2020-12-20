@@ -97,8 +97,8 @@ class DescribeFilters extends React.Component {
   }
 
   updateOrdinal(prop, val) {
-    const currState = _.assignIn({}, _.pick(this.state, ["ordinalCol", "ordinalAgg", "cleaner"]), { [prop]: val });
-    const cleanerChange = _.get(currState, "cleaner.value") !== _.get(this.state, "cleaner.value");
+    const currState = _.assignIn({}, _.pick(this.state, ["ordinalCol", "ordinalAgg", "cleaners"]), { [prop]: val });
+    const cleanerChange = _.get(currState, "cleaners") !== _.get(this.state, "cleaners");
     this.setState(currState, () => {
       if ((currState.ordinalCol && currState.ordinalAgg) || cleanerChange) {
         this.buildChart();

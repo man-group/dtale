@@ -7,7 +7,7 @@ input.column-analysis-filter {
 }
 
 .ordinal-dd.cleaner-dd .Select {
-  min-width: 21.35em;
+  width: 100%;
 }
 
 .ordinal-dd .is-clearable.Select--single .Select__value-container--has-value > .Select__single-value {

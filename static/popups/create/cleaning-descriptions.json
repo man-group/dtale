@@ -10,5 +10,6 @@
   "drop_repeated_words": "Remove repeated words i.e. \"Berlin Berlin #1234\" > \"Berlin #1234\"",
   "add_word_number_space": "Add space between words and/or numbers. i.e. \"Berlin123\" > \"Berlin 123\"",
   "drop_repeated_chars": "Removes characters which are repeated within a value i.e. \"BBerlin\" > \"Berlin\"",
-  "hidden_chars": "Removes characters that cannot be printed to your screen using string.printable"
+  "hidden_chars": "Removes characters that cannot be printed to your screen using string.printable",
+  "replace_hyphen_w_space": "Replaces any hyphens (unicode or otherwise) with a space"
 }
