@@ -1630,7 +1630,8 @@ if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):
 df = df.reset_index().drop('index', axis=1, errors='ignore')
 df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers
 
-chart = np.histogram(df[~pd.isnull(df['foo'])][['foo']], bins=20)
+s = df[~pd.isnull(df['{col}'])][['{col}']]
+chart, labels = np.histogram(s, bins=20)
 # main statistics
 stats = df['foo'].describe().to_frame().T"""
 
@@ -1897,6 +1898,30 @@ def test_get_column_analysis_word_value_count(unittest):
                     0.138889,
                 ],
             )
+
+
+@pytest.mark.unit
+def test_get_column_analysis_kde():
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=np.random.randn(100)))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(df)},
+                )
+            )
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="a", type="histogram", bins=50),
+            )
+            response_data = json.loads(response.data)
+            assert len(response_data["kde"]) == 50
 
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
@@ -2765,7 +2790,7 @@ def test_chart_exports(custom_data, state_data):
             response = c.get(
                 "/dtale/chart-csv-export/{}".format(c.port), query_string=params
             )
-            assert response.content_type == "application/json"
+            assert response.content_type == "text/csv"
 
     with app.test_client() as c:
         with ExitStack() as stack:
