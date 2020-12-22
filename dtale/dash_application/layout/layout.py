@@ -9,6 +9,7 @@ import plotly
 from pkg_resources import parse_version
 
 import dtale.dash_application.custom_geojson as custom_geojson
+import dtale.global_state as global_state
 from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, find_group_vals
 from dtale.dash_application.layout.utils import (
     build_input,
@@ -21,7 +22,7 @@ from dtale.dash_application.layout.utils import (
     FREQS,
     FREQ_LABELS,
 )
-from dtale.query import inner_build_query
+from dtale.query import build_query, inner_build_query, run_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
@@ -772,7 +773,23 @@ def main_inputs_and_group_val_display(inputs):
     return dict(display="none"), "col-md-12"
 
 
-def charts_layout(df, settings, **inputs):
+def build_slider_counts(df, data_id, query_value):
+    record_ct = len(
+        run_query(
+            df,
+            build_query(data_id, query_value),
+            global_state.get_context_variables(data_id),
+        )
+    )
+    slider_counts = {
+        v * 20: {"label": "{}% ({:,.0f})".format(v * 20, (v * 2) / 10 * record_ct)}
+        for v in range(1, 6)
+    }
+    slider_counts[100]["style"] = {"white-space": "nowrap"}
+    return slider_counts
+
+
+def charts_layout(df, settings, data_id, **inputs):
     """
     Builds main dash inputs with dropdown options populated with the columns of the dataframe associated with the
     page. Inputs included are: chart tabs, query, x, y, z, group, aggregation, rolling window/computation,
@@ -782,6 +799,8 @@ def charts_layout(df, settings, **inputs):
     :type df: :class:`pandas:pandas.DataFrame`
     :param settings: global settings associated with this dataframe (contains properties like "query")
     :type param: dict
+    :param data_id: identifier for the data we are viewing
+    :type data_id: string
     :return: dash markup
     """
     chart_type, x, y, z, group, agg, load = (
@@ -809,6 +828,7 @@ def charts_layout(df, settings, **inputs):
     query_value = inputs.get("query") or inner_build_query(
         settings, settings.get("query")
     )
+
     query_label = html.Div(
         [
             html.Span("Query"),
@@ -980,16 +1000,10 @@ def charts_layout(df, settings, **inputs):
                                 step=10,
                                 value=100 if load is None else load,
                                 className="w-100",
-                                marks={
-                                    20: "20%",
-                                    40: "40%",
-                                    60: "60%",
-                                    80: "80%",
-                                    100: "100%",
-                                },
+                                marks=build_slider_counts(df, data_id, query_value),
                                 tooltip={
                                     "always_visible": False,
-                                    "placement": "bottom",
+                                    "placement": "left",
                                 },
                             ),
                         ],

@@ -28,6 +28,7 @@ from dtale.dash_application.layout.layout import (
     build_candlestick_options,
     build_mapbox_style_options,
     build_proj_hover_children,
+    build_slider_counts,
     build_treemap_options,
     charts_layout,
     colorscale_input_style,
@@ -136,11 +137,16 @@ def init_callbacks(dash_app):
             Output("query-data", "data"),
             Output("query-input", "style"),
             Output("query-input", "title"),
+            Output("load-input", "marks"),
         ],
         [Input("query-input", "value")],
-        [State("url", "pathname"), State("query-data", "data")],
+        [
+            State("url", "pathname"),
+            State("query-data", "data"),
+            State("load-input", "marks"),
+        ],
     )
-    def query_input(query, pathname, curr_query):
+    def query_input(query, pathname, curr_query, curr_marks):
         """
         dash callback for storing valid pandas dataframe queries.  This acts as an intermediary between values typed
         by the user and values that are applied to pandas dataframes.  Most of the time what the user has typed is not
@@ -158,13 +164,19 @@ def init_callbacks(dash_app):
             data_id = get_data_id(pathname)
             data = global_state.get_data(data_id)
             ctxt_vars = global_state.get_context_variables(data_id)
-            run_query(data, query, ctxt_vars)
-            return query, {"line-height": "inherit"}, ""
+            df = run_query(data, query, ctxt_vars)
+            return (
+                query,
+                {"line-height": "inherit"},
+                "",
+                build_slider_counts(df, data_id, query),
+            )
         except BaseException as ex:
             return (
                 curr_query,
                 {"line-height": "inherit", "background-color": "pink"},
                 str(ex),
+                curr_marks,
             )
 
     @dash_app.callback(
@@ -875,7 +887,7 @@ def init_callbacks(dash_app):
         data_id = get_data_id(pathname)
         df = global_state.get_data(data_id)
         settings = global_state.get_settings(data_id) or {}
-        return charts_layout(df, settings, **params)
+        return charts_layout(df, settings, data_id, **params)
 
     custom_geojson.init_callbacks(dash_app)
     drilldown_modal.init_callbacks(dash_app)

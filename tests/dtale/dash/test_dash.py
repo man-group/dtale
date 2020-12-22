@@ -94,10 +94,14 @@ def test_query_changes():
             stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
             pathname = path_builder(c.port)
             params = {
-                "output": "..query-data.data...query-input.style...query-input.title..",
+                "output": "..query-data.data...query-input.style...query-input.title...load-input.marks..",
                 "changedPropIds": ["query-input.value"],
                 "inputs": [{"id": "query-input", "property": "value", "value": "d"}],
-                "state": [pathname, {"id": "query-data", "property": "data"}],
+                "state": [
+                    pathname,
+                    {"id": "query-data", "property": "data"},
+                    {"id": "load-input", "property": "marks"},
+                ],
             }
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
