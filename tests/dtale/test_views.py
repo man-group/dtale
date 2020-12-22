@@ -2505,8 +2505,8 @@ def test_get_chart_data(unittest, rolling_data):
             response = c.get("/dtale/chart-data/{}".format(c.port), query_string=params)
             response_data = json.loads(response.data)
             assert response_data["error"] == (
-                "baz contains duplicates, please specify group or additional filtering or select 'No Aggregation' "
-                "from Aggregation drop-down."
+                "The grouping [baz] contains duplicates, please specify group or additional filtering or select "
+                "'No Aggregation' from Aggregation drop-down."
             )
 
     with app.test_client() as c:
