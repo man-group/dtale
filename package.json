@@ -67,7 +67,7 @@
     "@babel/preset-flow": "7.12.1",
     "@babel/preset-react": "7.12.10",
     "@babel/register": "7.12.10",
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.4.1",
+    "@wojtekmaj/enzyme-adapter-react-17": "0.4.1",
     "autoprefixer": "10.1.0",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
@@ -160,5 +160,8 @@
     "string.prototype.startswith": "1.0.0",
     "styled-components": "5.2.1",
     "uuid": "8.3.2"
+  },
+  "resolutions": {
+    "node-notifier": "8.0.1"
   }
-}
+ }
