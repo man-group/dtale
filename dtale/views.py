@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import platform
 import requests
+import scipy.stats as sts
 import xarray as xr
-from scipy import stats
 from six import string_types, StringIO
 
 import dtale.datasets as datasets
@@ -1840,14 +1840,14 @@ def variance(data_id, column):
     return_data["outlierCt"] = dtype["hasOutliers"]
     return_data["missingCt"] = int(s.isnull().sum())
 
-    jb_stat, jb_p = stats.jarque_bera(s)
+    jb_stat, jb_p = sts.jarque_bera(s)
     return_data["jarqueBera"] = dict(statistic=float(jb_stat), pvalue=float(jb_p))
-    sw_stat, sw_p = stats.shapiro(s)
+    sw_stat, sw_p = sts.shapiro(s)
     return_data["shapiroWilk"] = dict(statistic=float(sw_stat), pvalue=float(sw_p))
     code += [
-        "\nimport scipy.stats as stats\n",
-        "jb_stat, jb_p = stats.jarque_bera(s)",
-        "sw_stat, sw_p = stats.shapiro(s)",
+        "\nimport scipy.stats as sts\n",
+        "jb_stat, jb_p = sts.jarque_bera(s)",
+        "sw_stat, sw_p = sts.shapiro(s)",
     ]
     return_data["code"] = "\n".join(code)
     return jsonify(return_data)
@@ -2292,6 +2292,18 @@ def get_column_analysis(data_id):
                 cleaner_code += clean_code(cleaner, {})
         return s, cleaner_code
 
+    def build_kde(s, hist_labels, code, return_data):
+        try:
+            kde = sts.gaussian_kde(s)
+            kde_data = kde.pdf(hist_labels)
+            kde_data = [json_float(k) for k in kde_data[1:]]
+            code.append("import scipy.stats as sts\n")
+            code.append("kde = sts.gaussian_kde(s['{}'])".format(selected_col))
+            code.append("kde_data = kde.pdf(np.linspace(labels.min(), labels.max()))")
+            return_data["kde"] = kde_data
+        except np.linalg.LinAlgError:
+            pass
+
     col = get_str_arg(request, "col", "values")
     bins = get_int_arg(request, "bins", 20)
     ordinal_col = get_str_arg(request, "ordinalCol")
@@ -2440,21 +2452,22 @@ def get_column_analysis(data_id):
     elif data_type == "histogram":
         hist_data, hist_labels = np.histogram(data, bins=bins)
         hist_data = [json_float(h) for h in hist_data]
-        hist_labels = [
-            "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
-        ]  # drop the first bin because of just a minimum
-        code.append(
-            "chart = np.histogram(df[~pd.isnull(df['{col}'])][['{col}']], bins={bins})".format(
-                col=selected_col, bins=bins
-            )
+        code.append("s = df[~pd.isnull(df['{col}'])][['{col}']]")
+        code.append("chart, labels = np.histogram(s, bins={bins})".format(bins=bins))
+        return_data = dict(
+            labels=[
+                "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
+            ],  # drop the first bin because of just a minimum
+            data=hist_data,
         )
+        build_kde(data[selected_col], hist_labels, code, return_data)
         desc, desc_code = load_describe(data[selected_col])
         dtype_info = global_state.get_dtype_info(data_id, selected_col)
         for p in ["skew", "kurt"]:
             if p in dtype_info:
                 desc[p] = dtype_info[p]
         code += desc_code
-        return_data = dict(labels=hist_labels, data=hist_data, desc=desc)
+        return_data["desc"] = desc
     cols = global_state.get_dtypes(data_id)
     return jsonify(
         code="\n".join(code),

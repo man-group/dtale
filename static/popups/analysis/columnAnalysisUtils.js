@@ -60,14 +60,32 @@ function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
 }
 
 function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
-  const { data } = fetchedData;
+  const { data, kde } = fetchedData;
   const xAxes = [{ scaleLabel: { display: true, labelString: "Bin" } }];
-  const yAxes = [{ scaleLabel: { display: true, labelString: "Frequency" }, position: "left" }];
-  const datasets = [{ label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)" }];
+  const yAxes = [{ scaleLabel: { display: true, labelString: "Frequency" }, position: "left", id: "y-1" }];
+  let datasets = [
+    { label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y-1" },
+  ];
+  if (kde) {
+    yAxes.push({
+      scaleLabel: { display: true, labelString: "KDE" },
+      id: "y-2",
+      position: "right",
+    });
+    datasets = _.concat(
+      _.assignIn(
+        { label: "KDE", type: "line", fill: false, borderColor: "rgb(255, 99, 132)" },
+        { borderWidth: 2, data: kde, backgroundColor: "rgb(255, 99, 132)", pointRadius: 0, yAxisID: "y-2" }
+      ),
+      datasets
+    );
+    baseCfg.options.tooltips = { mode: "index", intersect: true };
+  }
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { xAxes, yAxes };
   baseCfg.options.scales.yAxes[0].ticks = { min: 0 };
   baseCfg.options.tooltips = { mode: "index", intersect: false };
+  baseCfg.options.legend.display = true;
 }
 
 function createChart(ctx, fetchedData, chartOpts) {
