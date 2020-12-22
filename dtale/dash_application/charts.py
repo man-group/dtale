@@ -2723,6 +2723,7 @@ def build_chart(data_id=None, data=None, **inputs):
             inputs.get(p)
             for p in ["x", "y", "z", "agg", "group", "animate_by", "trendline"]
         )
+        x = str("x") if x is None else x
         z = z if chart_type in ZAXIS_CHARTS else None
         chart_inputs = {
             k: v

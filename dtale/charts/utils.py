@@ -76,7 +76,7 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         treemap_props = ["treemap_value", "treemap_label"]
         return all(inputs.get(p) is not None for p in treemap_props)
 
-    if x is None or not len(y or []):
+    if not y:
         return False
 
     if chart_type in ZAXIS_CHARTS and z is None:
@@ -447,6 +447,11 @@ def build_base_chart(
         raw_data, x, y, kwargs.get("z"), group_col, animate_by, group_val=group_val
     )
     x_col = str("x")
+    if x is None:
+        x = x_col
+        data.loc[:, x_col] = range(
+            1, len(data) + 1
+        )  # sequential integers: 1, 2, ..., N
     y_cols = make_list(y)
     z_col = kwargs.get("z")
     z_cols = make_list(z_col)
