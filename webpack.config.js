@@ -50,7 +50,7 @@ function createConfig(entry) {
             }
             return file.startsWith(__dirname + "/node_modules");
           },
-          query: {
+          options: {
             cacheDirectory: true,
             presets: ["@babel/env", "@babel/react", "@babel/flow"],
             plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-classes"],
@@ -71,8 +71,8 @@ function createConfig(entry) {
             {
               loader: "postcss-loader",
               options: {
-                plugins() {
-                  return [postcssNested, autoprefixer];
+                postcssOptions: {
+                  plugins: [postcssNested, autoprefixer],
                 },
               },
             },
