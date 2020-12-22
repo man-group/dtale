@@ -23,6 +23,7 @@ import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
 from dtale.charts.utils import (
+    DUPES_MSG,
     YAXIS_CHARTS,
     ZAXIS_CHARTS,
     build_agg_data,
@@ -826,6 +827,13 @@ def surface_builder(
     df = pd.DataFrame(
         {k: v for k, v in data["data"]["all"].items() if k in ["x", y[0], z]}
     )
+    check_exceptions(
+        df[["x", y[0]]],
+        False,
+        True,
+        dupes_msg=DUPES_MSG.format("{}, {}".format(x, y[0])),
+    )
+
     df = df.set_index(["x", y[0]]).unstack(0)[z]
     code = [
         "chart_data = chart_data.set_index(['x', '{y}']).unstack(0)['{z}']".format(
@@ -1641,6 +1649,12 @@ def heatmap_builder(data_id, export=False, **inputs):
             heat_data = data[data[animate_by] == first_frame].sort_values([x, y])
         else:
             heat_data = data.sort_values([x, y])
+        check_exceptions(
+            heat_data[[x, y]],
+            False,
+            True,
+            dupes_msg=DUPES_MSG.format("{}, {}".format(x, y)),
+        )
         heat_data = heat_data.set_index([x, y])
         heat_data = heat_data.unstack(0)[z]
         heat_data = heat_data.values

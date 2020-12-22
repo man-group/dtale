@@ -270,8 +270,8 @@ def check_all_nan(df, cols=None):
 
 
 DUPES_MSG = (
-    "{} contains duplicates, please specify group or additional filtering or select 'No Aggregation' from"
-    " Aggregation drop-down."
+    "The grouping [{}] contains duplicates, please specify group or additional filtering or select 'No Aggregation' "
+    "from Aggregation drop-down."
 )
 LIMIT_MSG = "Dataset exceeds {} records, cannot render. Please apply filter..."
 
