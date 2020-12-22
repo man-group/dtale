@@ -21,7 +21,7 @@ function updateChartType(result, cmp, chartType) {
 }
 
 describe("Charts tests", () => {
-  let result, Charts, ChartsBody, ReactWordcloud, Aggregations;
+  let result, Charts, ChartsBody, Aggregations;
   let testIdx = 0;
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
@@ -56,36 +56,16 @@ describe("Charts tests", () => {
       return chartCfg;
     });
 
-    const mockD3Cloud = withGlobalJquery(() => () => {
-      const cloudCfg = {};
-      const propUpdate = prop => val => {
-        cloudCfg[prop] = val;
-        return cloudCfg;
-      };
-      cloudCfg.size = propUpdate("size");
-      cloudCfg.padding = propUpdate("padding");
-      cloudCfg.words = propUpdate("words");
-      cloudCfg.rotate = propUpdate("rotate");
-      cloudCfg.spiral = propUpdate("spiral");
-      cloudCfg.random = propUpdate("random");
-      cloudCfg.text = propUpdate("text");
-      cloudCfg.font = propUpdate("font");
-      cloudCfg.fontStyle = propUpdate("fontStyle");
-      cloudCfg.fontWeight = propUpdate("fontWeight");
-      cloudCfg.fontSize = () => ({
-        on: () => ({ start: _.noop }),
-      });
-      return cloudCfg;
-    });
-
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("d3-cloud", () => mockD3Cloud);
+    jest.mock("react-wordcloud", () => {
+      const MockComponent = require("../../MockComponent").MockComponent;
+      return MockComponent;
+    });
     jest.mock("chart.js", () => mockChartUtils);
     jest.mock("chartjs-plugin-zoom", () => ({}));
     jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     Charts = require("../../../popups/charts/Charts").ReactCharts;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    ReactWordcloud = require("react-wordcloud").default;
     Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
   });
 
@@ -174,7 +154,7 @@ describe("Charts tests", () => {
       )
     ).toBe("1.1235");
     updateChartType(result, ChartsBody, "wordcloud");
-    const wc = result.find(ReactWordcloud).first();
+    const wc = result.find("MockComponent").first();
     expect(wc.props().callbacks.getWordTooltip({ fullText: "test", value: 5 })).toBe("test (5)");
     const cb = result.find(ChartsBody).instance();
     expect(cb.shouldComponentUpdate(cb.props, cb.state)).toBe(false);
