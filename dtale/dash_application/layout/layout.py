@@ -1011,7 +1011,7 @@ def charts_layout(df, settings, **inputs):
                                     dcc.Dropdown(
                                         id="x-dropdown",
                                         options=x_options,
-                                        placeholder="Select a column",
+                                        placeholder="Default Index (1, 2, ..., N)",
                                         value=x,
                                         style=dict(width="inherit"),
                                     ),
