@@ -89,7 +89,7 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
     return True
 
 
-def build_formatters(df):
+def build_formatters(df, nan_display=None):
     """
     Helper around :meth:`dtale.utils.grid_formatters` that will build a formatter for the data being fed into a chart as
     well as a formatter for the min/max values for each column used in the chart data.
@@ -100,9 +100,9 @@ def build_formatters(df):
     :rtype: (:class:`dtale.utils.JSONFormatter`, :class:`dtale.utils.JSONFormatter`)
     """
     cols = grid_columns(df)
-    data_f = grid_formatter(cols, nan_display=None)
+    data_f = grid_formatter(cols, nan_display=nan_display)
     overrides = {"F": lambda f, i, c: f.add_float(i, c, precision=2)}
-    range_f = grid_formatter(cols, overrides=overrides, nan_display=None)
+    range_f = grid_formatter(cols, overrides=overrides, nan_display=nan_display)
     return data_f, range_f
 
 
@@ -655,5 +655,5 @@ def weekday_tick_handler(col_data, col):
 def find_group_vals(df, group_cols):
     group_vals, _ = retrieve_chart_data(df, group_cols)
     group_vals = group_vals.drop_duplicates().sort_values(group_cols)
-    group_f, _ = build_formatters(group_vals)
+    group_f, _ = build_formatters(group_vals, nan_display="NaN")
     return group_f.format_dicts(group_vals.itertuples())

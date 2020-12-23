@@ -320,7 +320,7 @@ class JSONFormatter(object):
 
     def add_string(self, idx, name=None):
         def f(x, nan_display):
-            return json_string(x)
+            return json_string(x, nan_display=nan_display)
 
         self.fmts.append([idx, name, f])
 
@@ -345,7 +345,9 @@ class JSONFormatter(object):
 
     def add_timestamp(self, idx, name=None, as_string=False):
         def f(x, nan_display):
-            return json_timestamp(x, as_string=as_string or self.as_string)
+            return json_timestamp(
+                x, nan_display=nan_display, as_string=as_string or self.as_string
+            )
 
         self.fmts.append([idx, name, f])
 
