@@ -162,6 +162,7 @@ class DetailsBoxplot extends React.Component {
                     <li>{buildStat("Rows Starting w/ Space", details.string_metrics.space_at_the_first)}</li>
                     <li>{buildStat("Rows Ending w/ Space", details.string_metrics.space_at_the_end)}</li>
                     <li>{buildStat("Rows w/ Multi Spacing", details.string_metrics.multi_space_after_each_other)}</li>
+                    <li>{buildStat("Rows w/ Hidden Chars", details.string_metrics.with_hidden)}</li>
                   </ul>
                 </li>
                 <li>
