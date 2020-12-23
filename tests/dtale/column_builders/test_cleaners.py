@@ -106,7 +106,7 @@ def test_normalize_accents(unittest):
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
 
         def test(col):
-            unittest.assertEquals(col.values[0], "naive cafe")
+            unittest.assertEqual(col.values[0], "naive cafe")
             return True
 
         verify_builder(builder, test)

@@ -18,22 +18,43 @@ else:
 
 
 @pytest.mark.unit
-def test_main(builtin_pkg):
+def test_main(unittest):
 
-    props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
+    props = [
+        "host",
+        "port",
+        "debug",
+        "subprocess",
+        "data_loader",
+        "reaper_on",
+        "show_columns",
+        "hide_columns",
+    ]
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = ["--host", "test", "--port", "9999", "--csv-path", csv_path]
+        args += ["--show-columns", "a,b", "--hide-columns", "c"]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
-        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        (
+            host,
+            port,
+            debug,
+            subprocess,
+            data_loader,
+            reaper_on,
+            show_columns,
+            hide_columns,
+        ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
         assert not debug
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
+        unittest.assertEqual(show_columns, ["a", "b"])
+        unittest.assertEqual(hide_columns, ["c"])
 
     with ExitStack() as stack:
         mock_show = stack.enter_context(
@@ -48,13 +69,24 @@ def test_main(builtin_pkg):
         mock_show.assert_called_once()
         mock_find_free_port.assert_called_once()
         _, kwargs = mock_show.call_args
-        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        (
+            host,
+            port,
+            debug,
+            subprocess,
+            data_loader,
+            reaper_on,
+            show_columns,
+            hide_columns,
+        ) = map(kwargs.get, props)
         assert host is None
         assert not subprocess
         assert debug
         assert port == 9999
         assert not reaper_on
         assert data_loader is not None
+        assert show_columns is None
+        assert hide_columns is None
         df = data_loader()
         pdt.assert_frame_equal(
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
@@ -66,13 +98,24 @@ def test_main(builtin_pkg):
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
-        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        (
+            host,
+            port,
+            debug,
+            subprocess,
+            data_loader,
+            reaper_on,
+            show_columns,
+            hide_columns,
+        ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
         assert not debug
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
+        assert show_columns is None
+        assert hide_columns is None
         df = data_loader()
         pdt.assert_frame_equal(
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load json"
@@ -86,13 +129,24 @@ def test_main(builtin_pkg):
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
-        host, port, debug, subprocess, data_loader, reaper_on = map(kwargs.get, props)
+        (
+            host,
+            port,
+            debug,
+            subprocess,
+            data_loader,
+            reaper_on,
+            show_columns,
+            hide_columns,
+        ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
         assert not debug
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
+        assert show_columns is None
+        assert hide_columns is None
         df = data_loader()
         pdt.assert_frame_equal(
             df,
@@ -589,7 +643,7 @@ def test_streamlit(unittest):
 
         build_app_mock.assert_called_with(reaper_on=False)
         start_listening_mock.assert_called_with(mock_app)
-        unittest.assertEquals(
+        unittest.assertEqual(
             sys.argv[-4:],
             ["--server.enableCORS", "false", "--server.enableXsrfProtection", "false"],
         )
