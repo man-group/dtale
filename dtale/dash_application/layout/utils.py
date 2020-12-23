@@ -64,7 +64,7 @@ def build_option(value, label=None):
     Returns value/label inputs in a dictionary for use in
     :dash:`dash_core_components.Dropdown <dash-core-components/Dropdown>`
     """
-    return {"label": label or value, "value": value}
+    return {"label": value if label is None else label, "value": value}
 
 
 FREQS = ["H", "H2", "WD", "D", "W", "M", "Q", "Y"]
