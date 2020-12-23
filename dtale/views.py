@@ -17,6 +17,7 @@ import requests
 import scipy.stats as sts
 import xarray as xr
 from six import string_types, StringIO
+from string import printable
 
 import dtale.datasets as datasets
 import dtale.env_util as env_util
@@ -1654,6 +1655,7 @@ def build_string_metrics(s, col):
         space_at_the_first=int(txt_count(r"^ ")),
         space_at_the_end=int(txt_count(r" $")),
         multi_space_after_each_other=int(txt_count(r"\s{2,}")),
+        with_hidden=int(txt_count(r"[^{}]+".format(printable))),
         word_min=int(word_len.min()),
         word_max=int(word_len.max()),
         word_mean=json_float(word_len.mean()),
