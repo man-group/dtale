@@ -83,6 +83,8 @@ def build_show_options(options=None):
         inplace=False,
         drop_index=False,
         precision=2,
+        show_columns=None,
+        hide_columns=None,
     )
     config_options = {}
     config = get_config()
@@ -123,6 +125,16 @@ def build_show_options(options=None):
         config_options["precision"] = get_config_val(
             config, defaults, "precision", "getint"
         )
+        config_options["show_columns"] = get_config_val(
+            config, defaults, "show_columns"
+        )
+        if config_options["show_columns"]:
+            config_options["show_columns"] = config_options["show_columns"].split(",")
+        config_options["hide_columns"] = get_config_val(
+            config, defaults, "hide_columns"
+        )
+        if config_options["hide_columns"]:
+            config_options["hide_columns"] = config_options["hide_columns"].split(",")
 
     return dict_merge(defaults, config_options, options)
 

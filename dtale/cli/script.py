@@ -58,6 +58,14 @@ def validate_allow_cell_edits(ctx, param, value):
     type=int,
     help="Default precision displayed by columns containing float data (default: 2)",
 )
+@click.option(
+    "--show-columns",
+    help="Comma-separated string of column names you would like displayed on load",
+)
+@click.option(
+    "--hide-columns",
+    help="Comma-separated string of column names you would like hidden on load",
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(
@@ -97,6 +105,12 @@ def main(
     # in order to handle the hierarchy of inputs if "--no-cell-edits" is not specified
     # then we'll update it to None
     allow_cell_edits = False if no_cell_edits is not None else None
+    kwargs["show_columns"] = (
+        kwargs["show_columns"].split(",") if kwargs.get("show_columns") else None
+    )
+    kwargs["hide_columns"] = (
+        kwargs["hide_columns"].split(",") if kwargs.get("hide_columns") else None
+    )
     show(
         host=host,
         port=int(port or find_free_port()),

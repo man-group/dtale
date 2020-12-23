@@ -108,22 +108,23 @@ def test_find_free_port():
         ) in str(excinfo)
 
 
+class MockDtaleFlask(Flask):
+    def __init__(
+        self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs
+    ):
+        kwargs.pop("instance_relative_config", None)
+        kwargs.pop("static_url_path", None)
+        super(MockDtaleFlask, self).__init__(import_name, *args, **kwargs)
+
+    def run(self, *args, **kwargs):
+        pass
+
+
 @pytest.mark.unit
-def test_show(unittest, builtin_pkg):
+def test_show(unittest):
     from dtale.app import show, get_instance, instances
     import dtale.views as views
     import dtale.global_state as global_state
-
-    class MockDtaleFlask(Flask):
-        def __init__(
-            self, import_name, reaper_on=True, url=None, app_root=None, *args, **kwargs
-        ):
-            kwargs.pop("instance_relative_config", None)
-            kwargs.pop("static_url_path", None)
-            super(MockDtaleFlask, self).__init__(import_name, *args, **kwargs)
-
-        def run(self, *args, **kwargs):
-            pass
 
     instances()
     test_data = pd.DataFrame([dict(a=1, b=2)])
@@ -144,7 +145,6 @@ def test_show(unittest, builtin_pkg):
         instance = show(
             data=test_data, subprocess=False, name="foo", ignore_duplicate=True
         )
-        print(instance.main_url())
         assert "http://localhost:9999" == instance._url
         assert "http://localhost:9999/dtale/main/foo" == instance.main_url()
         mock_run.assert_called_once()
@@ -672,3 +672,59 @@ def test_build_startup_url_and_app_root():
         url, app_root = build_startup_url_and_app_root("/test_route/")
         assert url == "http:/localhost:40000/test_route/"
         assert app_root == "/test_route/"
+
+
+@pytest.mark.unit
+def test_show_columns():
+    from dtale.app import show
+
+    data, dtypes = {}, {}
+    df = pd.DataFrame(dict(a=[1, 2], b=[2, 3]))
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
+        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask.run", mock.Mock()))
+        stack.enter_context(
+            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
+        )
+        stack.enter_context(
+            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
+        )
+        stack.enter_context(
+            mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
+        )
+        stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = show(
+            data=df, ignore_duplicate=True, show_columns=["a"], subprocess=False
+        )
+        assert dtypes[instance._data_id][0]["visible"]
+        assert not dtypes[instance._data_id][1]["visible"]
+
+
+@pytest.mark.unit
+def test_hide_columns():
+    from dtale.app import show
+
+    data, dtypes = {}, {}
+    df = pd.DataFrame(dict(a=[1, 2], b=[2, 3]))
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
+        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask.run", mock.Mock()))
+        stack.enter_context(
+            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
+        )
+        stack.enter_context(
+            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
+        )
+        stack.enter_context(
+            mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
+        )
+        stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = show(
+            data=df, ignore_duplicate=True, hide_columns=["b"], subprocess=False
+        )
+        assert dtypes[instance._data_id][0]["visible"]
+        assert not dtypes[instance._data_id][1]["visible"]

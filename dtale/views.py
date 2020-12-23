@@ -757,6 +757,8 @@ def startup(
     inplace=False,
     drop_index=False,
     precision=2,
+    show_columns=None,
+    hide_columns=None,
 ):
     """
     Loads and stores data globally
@@ -784,6 +786,10 @@ def startup(
     :type drop_index: bool, optional
     :param precision: The default precision to display for float data in D-Tale grid
     :type precision: int, optional
+    :param show_columns: Columns to show on load, hide all others
+    :type show_columns: list, optional
+    :param hide_columns: Columns to hide on load
+    :type hide_columns: list, optional
 
     """
 
@@ -826,6 +832,8 @@ def startup(
                 ignore_duplicate=ignore_duplicate,
                 allow_cell_edits=allow_cell_edits,
                 precision=precision,
+                show_columns=show_columns,
+                hide_columns=hide_columns,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -884,9 +892,14 @@ def startup(
         )
         global_state.set_settings(data_id, base_settings)
         global_state.set_data(data_id, data)
-        global_state.set_dtypes(
-            data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
-        )
+        dtypes_state = build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
+        if show_columns or hide_columns:
+            for col in dtypes_state:
+                if show_columns and col["name"] not in show_columns:
+                    col["visible"] = False
+                if hide_columns and col["name"] in hide_columns:
+                    col["visible"] = False
+        global_state.set_dtypes(data_id, dtypes_state)
         global_state.set_context_variables(
             data_id, build_context_variables(data_id, context_vars)
         )

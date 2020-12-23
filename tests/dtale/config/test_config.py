@@ -57,7 +57,7 @@ def test_load_app_settings_w_missing_props():
 
 
 @pytest.mark.unit
-def test_build_show_options():
+def test_build_show_options(unittest):
     final_options = build_show_options()
     assert final_options["allow_cell_edits"]
 
@@ -70,6 +70,8 @@ def test_build_show_options():
     final_options = build_show_options()
     assert final_options["allow_cell_edits"]
     assert final_options["precision"] == 6
+    unittest.assertEqual(final_options["show_columns"], ["a", "b"])
+    unittest.assertEqual(final_options["hide_columns"], ["c"])
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

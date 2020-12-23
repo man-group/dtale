@@ -61,7 +61,7 @@ def test_lock_zoom(unittest):
             },
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        unittest.assertEquals(
+        unittest.assertEqual(
             response.get_json()["response"]["chart-1"]["figure"]["layout"]["scene"][
                 "camera"
             ],
