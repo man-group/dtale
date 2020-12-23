@@ -2280,7 +2280,7 @@ def build_mapbox(inputs, raw_data, layout):
         props.map_val,
         props.animate_by,
         props.map_group,
-        group_val=props.group_val,
+        group_val=None if props.map_group is None else props.group_val,
     )
     if props.agg is not None:
         data, agg_code = build_agg_data(
