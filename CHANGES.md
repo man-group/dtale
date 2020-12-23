@@ -1,5 +1,23 @@
 ## Changelog
 
+### 1.29.0 (2020-12-22)
+* [#363](https://github.com/man-group/dtale/issues/363): show/hide columns on load
+* [#348](https://github.com/man-group/dtale/issues/348): sub-date map animation fix
+* [#347](https://github.com/man-group/dtale/issues/347): display items loaded in "Load" slider
+* [#349](https://github.com/man-group/dtale/issues/349): additional duplicates handling in chart builders
+* node-notifier depdabot alert
+* [#351](https://github.com/man-group/dtale/issues/351): added KDE to histograms in column analysis
+* package upgrades
+* [#350](https://github.com/man-group/dtale/issues/350): x-axis column selection no longer required for charts
+  * if there is no selection then the default index of (1, 2, ..., N) will be used in its place
+* [#356](https://github.com/man-group/dtale/issues/356): "replace hyphens" cleaner and cleaners added to "Value Counts" analysis
+* [#358](https://github.com/man-group/dtale/issues/358): addition skew/kurtosis display
+* [#357](https://github.com/man-group/dtale/issues/357): cleaner for hidden characters
+* [#359](https://github.com/man-group/dtale/issues/358): repositioned skew/kurt in describe
+* [#359](https://github.com/man-group/dtale/issues/359): moved "Variance Report" option up in column menu
+* [#360](https://github.com/man-group/dtale/issues/360): updates to string describe labels
+* fixed issues with draggable/resizable modals
+
 ### 1.28.1 (2020-12-16)
 * updated modals to be resizable (re-resizable)
 
