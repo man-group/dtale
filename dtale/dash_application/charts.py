@@ -34,6 +34,7 @@ from dtale.charts.utils import (
     build_group_inputs_filter,
     check_all_nan,
     check_exceptions,
+    date_freq_handler,
     retrieve_chart_data,
     valid_chart,
     weekday_tick_handler,
@@ -2087,9 +2088,11 @@ def treemap_builder(data_id, export=False, **inputs):
 
 
 def build_map_frames(data, animate_by, frame_builder):
-    formatter = find_dtype_formatter(find_dtype(data[animate_by]))
+    freq_handler = date_freq_handler(data)
+    s, _ = freq_handler(animate_by)
+    formatter = find_dtype_formatter(find_dtype(s))
     frames, slider_steps = [], []
-    for g_name, g in data.groupby(animate_by):
+    for g_name, g in data.groupby(s):
         g_name = formatter(g_name)
         frames.append(dict(data=[frame_builder(g, g_name)], name=g_name))
         slider_steps.append(g_name)
