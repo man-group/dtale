@@ -363,35 +363,54 @@ def build_agg_data(df, x, y, inputs, agg, z=None, group_col=None, animate_by=Non
         idx_cols += make_list(y)
         agg_cols = make_list(z)
 
-    groups = df.groupby(idx_cols)
-    if agg in ["pctsum", "pctct"]:
-        func = "sum" if agg == "pctsum" else "size"
-        subidx_cols = [c for c in idx_cols if c not in make_list(group_col)]
-        groups = getattr(groups[agg_cols], func)()
-        groups = groups / getattr(df.groupby(subidx_cols)[agg_cols], func)() * 100
-        if len(agg_cols) > 1:
-            groups.columns = agg_cols
-        elif len(agg_cols) == 1:
-            groups.name = agg_cols[0]
-        code = (
-            "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}()\n"
-            "chart_data = chart_data / chart_data.groupby(['{subidx_cols}']).{agg}()\n"
-            "chart_data = chart_data.reset_index()"
-        )
-        code = code.format(
-            cols="', '".join(idx_cols),
-            subidx_cols="', '".join(subidx_cols),
-            agg_cols="', '".join(make_list(agg_cols)),
-            agg=func,
-        )
-        code = [code]
-    else:
-        groups = getattr(groups[agg_cols], agg)()
-        code = [
-            "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}().reset_index()".format(
-                cols="', '".join(idx_cols), agg_cols="', '".join(agg_cols), agg=agg
+    if agg == "drop_duplicates":
+        groups = [df[idx_cols + [col]].drop_duplicates() for col in agg_cols]
+        if len(groups) == 1:
+            groups = groups[0]
+            code = "chart_data = chart_data[['{}']].drop_duplicates()".format(
+                "','".join(idx_cols + agg_cols)
             )
-        ]
+        else:
+            groups = pd.merge(*groups, on=idx_cols, how="outer")
+            code = (
+                "idx_cols = ['{}']\n"
+                "agg_cols = ['{}']\n"
+                "chart_data = pd.merge(\n"
+                "\t*[chart_data[idx_cols + [col]].drop_duplicates() for col in agg_cols],\n"
+                "\ton=idx_cols,\n"
+                "\thow='outer'\n"
+                ")"
+            ).format("','".join(idx_cols), "','".join(agg_cols))
+    else:
+        groups = df.groupby(idx_cols)
+        if agg in ["pctsum", "pctct"]:
+            func = "sum" if agg == "pctsum" else "size"
+            subidx_cols = [c for c in idx_cols if c not in make_list(group_col)]
+            groups = getattr(groups[agg_cols], func)()
+            groups = groups / getattr(df.groupby(subidx_cols)[agg_cols], func)() * 100
+            if len(agg_cols) > 1:
+                groups.columns = agg_cols
+            elif len(agg_cols) == 1:
+                groups.name = agg_cols[0]
+            code = (
+                "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}()\n"
+                "chart_data = chart_data / chart_data.groupby(['{subidx_cols}']).{agg}()\n"
+                "chart_data = chart_data.reset_index()"
+            )
+            code = code.format(
+                cols="', '".join(idx_cols),
+                subidx_cols="', '".join(subidx_cols),
+                agg_cols="', '".join(make_list(agg_cols)),
+                agg=func,
+            )
+            code = [code]
+        else:
+            groups = getattr(groups[agg_cols], agg)()
+            code = [
+                "chart_data = chart_data.groupby(['{cols}'])[['{agg_cols}']].{agg}().reset_index()".format(
+                    cols="', '".join(idx_cols), agg_cols="', '".join(agg_cols), agg=agg
+                )
+            ]
     if animate_by is not None:
         full_idx = pd.MultiIndex.from_product(
             [df[c].unique() for c in idx_cols], names=idx_cols
@@ -592,7 +611,7 @@ def build_base_chart(
     dupe_cols = main_group + (y_cols if len(z_cols) else [])
     check_exceptions(
         data[dupe_cols].rename(columns={x_col: x}),
-        allow_duplicates or agg == "raw",
+        allow_duplicates or agg in ["raw", "drop_duplicates"],
         unlimited_data=unlimited_data,
         data_limit=40000 if len(z_cols) or animate_by is not None else 15000,
     )
