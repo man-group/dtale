@@ -1376,7 +1376,6 @@ def charts_layout(df, settings, data_id, **inputs):
                                         options=[
                                             build_option(v, AGGS[v])
                                             for v in [
-                                                "raw",
                                                 "count",
                                                 "nunique",
                                                 "sum",
@@ -1397,7 +1396,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                 "pctct",
                                             ]
                                         ],
-                                        placeholder="Select an aggregation",
+                                        placeholder="No Aggregation",
                                         style=dict(width="inherit"),
                                         value=agg or "raw",
                                     ),

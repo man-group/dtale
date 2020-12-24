@@ -166,7 +166,7 @@ def test_input_changes(unittest):
                     "z": None,
                     "group": None,
                     "group_val": None,
-                    "agg": None,
+                    "agg": "raw",
                     "window": None,
                     "rolling_comp": None,
                     "query": None,

@@ -244,7 +244,7 @@ def init_callbacks(dash_app):
             z=z,
             group=group,
             group_val=group_val,
-            agg=agg,
+            agg=agg or "raw",
             window=window,
             rolling_comp=rolling_comp,
             load=load,
