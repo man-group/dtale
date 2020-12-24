@@ -2311,7 +2311,7 @@ def get_column_analysis(data_id):
         try:
             kde = sts.gaussian_kde(s)
             kde_data = kde.pdf(hist_labels)
-            kde_data = [json_float(k) for k in kde_data[1:]]
+            kde_data = [json_float(k, precision=8) for k in kde_data]
             code.append("import scipy.stats as sts\n")
             code.append("kde = sts.gaussian_kde(s['{}'])".format(selected_col))
             code.append("kde_data = kde.pdf(np.linspace(labels.min(), labels.max()))")
