@@ -49,6 +49,8 @@ class Details extends React.Component {
       error: null,
       details: null,
       deepData: "uniques",
+      viewWordValues: false,
+      wordValues: null,
       outliers: null,
       loadingOutliers: false,
     };
@@ -57,6 +59,7 @@ class Details extends React.Component {
     this.renderDeepDataToggle = this.renderDeepDataToggle.bind(this);
     this.loadOutliers = this.loadOutliers.bind(this);
     this.renderOutliers = this.renderOutliers.bind(this);
+    this.propagateState = state => this.setState(state);
   }
 
   componentDidUpdate(prevProps) {
@@ -73,6 +76,8 @@ class Details extends React.Component {
         code: null,
         outliers: null,
         deepData: "uniques",
+        viewWordValues: false,
+        wordValues: null,
       };
       if (detailData.error) {
         newState.error = (
@@ -96,7 +101,10 @@ class Details extends React.Component {
     if (this.state.deepData !== "uniques") {
       return null;
     }
-
+    if (this.state.viewWordValues) {
+      const { wordValues } = this.state;
+      return displayUniques({ data: wordValues }, null, "Word");
+    }
     const uniques = _.get(this.state, "details.uniques") || {};
     const dtypeCt = _.size(uniques);
     return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, dtypeCt > 1 ? dtype : null));
@@ -251,6 +259,7 @@ class Details extends React.Component {
           cols={dtypes}
           col={selected.name}
           dataId={dataId}
+          propagateState={this.propagateState}
         />
         {this.renderDeepDataToggle()}
         {this.renderUniques()}

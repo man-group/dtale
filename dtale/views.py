@@ -1793,7 +1793,11 @@ def describe(data_id, column):
     for uniq_type, uniq_grp in uniq_vals.groupby("type"):
         total = len(uniq_grp)
         top = total > 100
-        uniq_grp = uniq_grp[["value", "count"]].head(100)
+        uniq_grp = (
+            uniq_grp[["value", "count"]]
+            .sort_values(["count", "value"], ascending=[False, True])
+            .head(100)
+        )
         uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
         uniq_f, _ = build_formatters(uniq_grp)
         return_data["uniques"][uniq_type] = dict(

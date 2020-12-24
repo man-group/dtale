@@ -172,6 +172,10 @@ function dataLoader(props, state, propagateState, chartParams) {
     newState.query = _.get(fetchedChartData, "query");
     newState.cols = _.get(fetchedChartData, "cols", []);
     newState.top = _.get(fetchedChartData, "top", null);
+    let wordValues;
+    if (newState.type === "word_value_counts") {
+      wordValues = _.zipWith(fetchedChartData.labels, fetchedChartData.data, (value, count) => ({ value, count }));
+    }
     newState.chart = (
       <ColumnAnalysisChart
         finalParams={_.assignIn(finalParams, { selectedCol, type: newState.type })}
@@ -179,7 +183,7 @@ function dataLoader(props, state, propagateState, chartParams) {
         height={height}
       />
     );
-    propagateState(newState);
+    propagateState({ ...newState, wordValues });
   });
 }
 
