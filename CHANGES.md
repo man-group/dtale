@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.29.1 (2020-12-24)
+* [#228](https://github.com/man-group/dtale/issues/228): additional documentation on how to run in docker
+* [#344](https://github.com/man-group/dtale/issues/344): Updates to sorting of unique values as well as display of word value count raw values
+* [#374](https://github.com/man-group/dtale/issues/374): fixed issue displaying "NaN" string values in chart group options
+* [#373](https://github.com/man-group/dtale/issues/373): only use group values in mapbox if mapbox group column(s) has been specified
+* [#367](https://github.com/man-group/dtale/issues/367): rows with hidden characters
+* [#372](https://github.com/man-group/dtale/issues/372): updated labels for First/Last aggregations and added "Remove Duplicates" option
+* [#368](https://github.com/man-group/dtale/issues/368): updated "No Aggregation" to be default aggregationfor charts
+* [#369](https://github.com/man-group/dtale/issues/369): x-axis count wordclouds
+* [#366](https://github.com/man-group/dtale/issues/366): additional hyphen added to "Replace Hyphens w/ Space" cleaner
+* [#365](https://github.com/man-group/dtale/issues/365): fixed display issues with KDE
+
 ### 1.29.0 (2020-12-22)
 * [#363](https://github.com/man-group/dtale/issues/363): show/hide columns on load
 * [#348](https://github.com/man-group/dtale/issues/348): sub-date map animation fix
