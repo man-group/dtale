@@ -1385,6 +1385,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                 "corr",
                                                 "first",
                                                 "last",
+                                                "drop_duplicates",
                                                 "median",
                                                 "min",
                                                 "max",
