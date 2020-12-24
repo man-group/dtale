@@ -71,6 +71,7 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
       scaleLabel: { display: true, labelString: "KDE" },
       id: "y-2",
       position: "right",
+      ticks: { min: 0, max: _.max(kde) },
     });
     datasets = _.concat(
       _.assignIn(

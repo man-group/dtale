@@ -1921,7 +1921,7 @@ def test_get_column_analysis_kde():
                 query_string=dict(col="a", type="histogram", bins=50),
             )
             response_data = json.loads(response.data)
-            assert len(response_data["kde"]) == 50
+            assert len(response_data["kde"]) == 51
 
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
