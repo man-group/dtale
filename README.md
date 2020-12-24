@@ -56,6 +56,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Jupyter Notebook](#jupyter-notebook)
   - [Jupyterhub w/ Jupyter Server Proxy](#jupyterhub-w-jupyter-server-proxy)
   - [Jupyterhub w/ Kubernetes](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
+  - [Docker Container](#docker-container)
   - [Google Colab](#google-colab)
   - [Kaggle](#kaggle)
   - [R with Reticulate](#r-with-reticulate)
@@ -243,6 +244,18 @@ Using this parameter will only apply the application root to that specific insta
 ### JupyterHub w/ Kubernetes
 
 Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
+
+### Docker Container
+
+If you have D-Tale installed within your docker container please add the following parameters to your `docker run` command.
+
+**On a Mac**: ```-h `hostname` -p 40000:40000```
+* `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
+* `-p`, access to port 40000 which is the default port for running D-Tale
+
+**Everything Else**: ```-h `hostname` --network host```
+* `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
+* `--network host`, this will allow access to as many ports as needed for running D-Tale processes
 
 ### Google Colab
 
