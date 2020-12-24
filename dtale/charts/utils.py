@@ -77,7 +77,7 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         return all(inputs.get(p) is not None for p in treemap_props)
 
     if not y:
-        return False
+        return chart_type == "wordcloud" and inputs.get("agg") == "count"
 
     if chart_type in ZAXIS_CHARTS and z is None:
         return False

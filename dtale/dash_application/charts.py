@@ -2587,6 +2587,9 @@ def build_figure_data(
         chart_kwargs["animate_by"] = animate_by
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs["z"] = z
+    if not y:  # this is to handle when a user wants to see the count of just the x-axis
+        data.loc[:, "count"] = 1
+        y = "count"
     data, chart_code = build_base_chart(data, x, y, unlimited_data=True, **chart_kwargs)
     return data, code + chart_code
 
@@ -2751,7 +2754,9 @@ def build_chart(data_id=None, data=None, **inputs):
         if chart_type == "wordcloud":
             return (
                 chart_builder(
-                    dash_components.Wordcloud(id="wc", data=data, y=y, group=group)
+                    dash_components.Wordcloud(
+                        id="wc", data=data, y=y or ["count"], group=group
+                    )
                 ),
                 range_data,
                 code,
