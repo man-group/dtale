@@ -50,7 +50,15 @@ class DetailsCharts extends React.Component {
         query: null,
       });
     } else {
-      const propagateState = state => this.setState(state);
+      const propagateState = state =>
+        this.setState(state, () => {
+          const { type, wordValues } = state;
+          const proppedState = { viewWordValues: type === "word_value_counts" };
+          if (wordValues !== undefined) {
+            proppedState.wordValues = wordValues;
+          }
+          this.props.propagateState(proppedState);
+        });
       const props = {
         chartData: { selectedCol: this.props.col },
         height: 400,
@@ -88,6 +96,7 @@ DetailsCharts.propTypes = {
   dtype: PropTypes.string,
   col: PropTypes.string,
   dataId: PropTypes.string,
+  propagateState: PropTypes.func,
 };
 
 export default DetailsCharts;
