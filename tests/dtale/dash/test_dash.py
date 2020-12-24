@@ -898,6 +898,16 @@ def test_chart_building_wordcloud():
                 == "Wordcloud"
             )
 
+            inputs["y"] = None
+            inputs["agg"] = "count"
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert (
+                resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
+                == "Wordcloud"
+            )
+
 
 @pytest.mark.unit
 def test_chart_building_scatter():
