@@ -26,9 +26,9 @@ export function skewMsg(skew, asText = false) {
   const skewFloat = parseFloat(skew);
   if (skewFloat || skewFloat === 0) {
     let msg;
-    if (skewFloat >= -0.5 && skewFloat < 0.5) {
+    if (skewFloat >= -0.5 && skewFloat <= 0.5) {
       msg = "fairly symmetrical";
-    } else if (skewFloat >= -1 && skewFloat < -0.5) {
+    } else if ((skewFloat >= -1 && skewFloat < -0.5) || (skewFloat <= 1 && skewFloat > 0.5)) {
       msg = "moderately skewed";
     } else if (skewFloat < -1 || skewFloat > 1) {
       msg = "highly skewed";
