@@ -10325,7 +10325,7 @@ li.hoverable:hover {
     left: 13.65em;
 }
 .hoverable__content.map-types {
-    min-width: 13em;
+    min-width: 28em;
     right: unset;
     left: 0;
 }

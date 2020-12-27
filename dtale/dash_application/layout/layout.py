@@ -204,7 +204,7 @@ CHART_INPUT_SETTINGS = {
 MAP_TYPES = [
     dict(value="choropleth", image=True),
     dict(value="scattergeo", label="ScatterGeo", image=True),
-    dict(value="mapbox"),
+    dict(value="mapbox", label="Detailed", image=True),
 ]
 SCOPES = ["world", "usa", "europe", "asia", "africa", "north america", "south america"]
 PROJECTIONS = [
@@ -728,7 +728,7 @@ def build_map_type_tabs(map_type):
                         html.Span(t.get("label", t["value"].capitalize())),
                         html.Img(src=build_img_src(t["value"], img_type="map_type")),
                     ],
-                    className="col-md-6",
+                    className="col-md-4",
                 )
 
     return html.Div(
