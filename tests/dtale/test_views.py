@@ -1200,6 +1200,10 @@ def test_variance(unittest):
                 mock.patch("dtale.global_state.DTYPES", {c.port: dtypes})
             )
             response = c.get("/dtale/variance/{}/{}".format(c.port, "x"))
+            major, minor, revision = [int(i) for i in platform.python_version_tuple()]
+            if major == 3 and minor > 6:
+                expected["x"]["check2"]["val1"]["val"] = 0
+                expected["x"]["check2"]["val2"]["val"] = 2
             response_data = json.loads(response.data)
             del response_data["code"]
             unittest.assertEqual(response_data, expected["x"])

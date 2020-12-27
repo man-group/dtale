@@ -252,6 +252,9 @@ workflows:
   build_all:
     jobs:
       - build_JS
+      - build_2_7:
+          requires:
+            - build_JS
       - build_3_6:
           requires:
             - build_JS

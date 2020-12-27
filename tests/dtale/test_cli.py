@@ -250,7 +250,7 @@ def test_arctic_loader_integration(
 
 
 @pytest.mark.unit
-def test_artic_loader():
+def test_artic_loader(builtin_pkg):
     node = pd.DataFrame(
         [
             {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
@@ -258,16 +258,39 @@ def test_artic_loader():
         ]
     ).set_index(["date", "a"])
 
+    orig_import = __import__
+
     with ExitStack() as stack:
+        mock_arctic = mock.MagicMock()
+
+        class MockVersionedItem(object):
+            __name__ = "VersionedItem"
+
+            def __init__(self):
+                self.data = node
+                pass
+
+        def import_mock(name, *args, **kwargs):
+            if name == "arctic":
+                return mock_arctic
+            if name == "arctic.store.versioned_item":
+                return mock_versioned_item
+            return orig_import(name, *args, **kwargs)
+
+        mock_arctic_class = mock.MagicMock()
+        mock_arctic.Arctic.return_value = mock_arctic_class
+        mock_arctic_lib = mock.MagicMock()
+        mock_arctic_lib.read = mock.Mock(return_value=MockVersionedItem())
+        mock_arctic_class.get_library = mock.Mock(return_value=mock_arctic_lib)
+        mock_versioned_item = mock.Mock()
+        mock_versioned_item.VersionedItem = MockVersionedItem
+
+        stack.enter_context(
+            mock.patch("{}.__import__".format(builtin_pkg), side_effect=import_mock)
+        )
         mock_show = stack.enter_context(
             mock.patch("dtale.cli.script.show", mock.Mock())
         )
-        arctic_mock = stack.enter_context(
-            mock.patch("arctic.Arctic", side_effect=mock.MagicMock())
-        )
-        arctic_lib_mock = mock.MagicMock()
-        arctic_lib_mock().read = mock.Mock(return_value=node)
-        arctic_mock().get_library = arctic_lib_mock
         args = [
             "--port",
             "9999",
@@ -286,29 +309,19 @@ def test_artic_loader():
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
-        pdt.assert_frame_equal(kwargs["data_loader"](), node)
-        arctic_mock.assert_called_with("test_host")
-        arctic_lib_mock.assert_called_with("test_lib")
-        read_call = arctic_lib_mock.return_value.read.mock_calls[0]
+        output = kwargs["data_loader"]()
+        pdt.assert_frame_equal(output, node)
+        mock_arctic.Arctic.assert_called_with("test_host")
+        mock_arctic_class.get_library.assert_called_with("test_lib")
+        read_call = mock_arctic_lib.read.mock_calls[0]
         assert read_call.args[0] == "test_node"
         assert "chunk_range" in read_call.kwargs
 
-    node2 = pd.DataFrame(
-        [
-            {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
-            {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
-        ]
-    ).set_index(["date", "a"])
-    with ExitStack() as stack:
-        mock_show = stack.enter_context(
-            mock.patch("dtale.cli.script.show", mock.Mock())
-        )
-        arctic_mock = stack.enter_context(
-            mock.patch("arctic.Arctic", side_effect=mock.MagicMock())
-        )
-        arctic_lib_mock = mock.MagicMock()
-        arctic_lib_mock().read = mock.Mock(return_value=node2)
-        arctic_mock().get_library = arctic_lib_mock
+        mock_arctic.reset_mock()
+        mock_arctic_lib.reset_mock()
+        mock_arctic_class.reset_mock()
+        mock_show.reset_mock()
+
         args = [
             "--port",
             "9999",
@@ -323,10 +336,10 @@ def test_artic_loader():
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
-        pdt.assert_frame_equal(kwargs["data_loader"](), node2)
-        arctic_mock.assert_called_with("test_host")
-        arctic_lib_mock.assert_called_with("test_lib")
-        arctic_lib_mock.return_value.read.assert_called_with("test_node2")
+        pdt.assert_frame_equal(kwargs["data_loader"](), node)
+        mock_arctic.Arctic.assert_called_with("test_host")
+        mock_arctic_class.get_library.assert_called_with("test_lib")
+        mock_arctic_lib.read.assert_called_with("test_node2")
 
 
 @pytest.mark.unit

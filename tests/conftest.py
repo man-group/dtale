@@ -7,7 +7,6 @@ import unittest as ut
 import numpy as np
 import pandas as pd
 import pytest
-from arctic import CHUNK_STORE, Arctic
 from pandas.tseries.offsets import Day
 from past.utils import old_div
 from six import PY3
@@ -23,6 +22,8 @@ def disable_arctic_cache(pymongo_api):
 
 @pytest.fixture(scope="module")
 def arctic(mongo_server_module):
+    from arctic import Arctic
+
     disable_arctic_cache(mongo_server_module.api)
     mongo_server_module.api.drop_database("arctic")
     mongo_server_module.api.drop_database("arctic_{}".format(getpass.getuser()))
@@ -52,6 +53,8 @@ def library(library_name, arctic):
 
 @pytest.fixture(scope="module")
 def chunkstore_lib(arctic, chunkstore_name):
+    from arctic import CHUNK_STORE
+
     arctic.initialize_library(chunkstore_name, lib_type=CHUNK_STORE)
     return arctic.get_library(chunkstore_name)
 

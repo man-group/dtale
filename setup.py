@@ -96,7 +96,8 @@ setup(
         "statsmodels",
         "strsimpy",
         "six",
-        "xarray",
+        "xarray == 0.11.3; python_version < '3.0'",
+        "xarray; python_version >= '3.0'",
     ],
     extras_require={
         "arctic": ["arctic"],

@@ -241,8 +241,8 @@ def test_from_category():
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(
             builder,
-            lambda col: isinstance(col.values[0], np.bool_)
-            and np.bool_(True) == col.values[0],
+            lambda col: isinstance(col.values[0], (np.bool, np.bool_))
+            and col.values[0] in [np.bool(True), np.bool_(True)],
         )
 
         cfg = {"col": "cat_str", "to": "str", "from": "category"}
