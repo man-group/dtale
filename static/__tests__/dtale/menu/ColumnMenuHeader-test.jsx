@@ -9,6 +9,7 @@ describe("ColumnMenuHeader tests", () => {
     expect(mount(skewMsg(0)).find("span").text()).toBe("(fairly symmetrical)");
     expect(skewMsg(0, true)).toEqual(expect.stringContaining("(fairly symmetrical)"));
     expect(mount(skewMsg(-0.75)).find("span").text()).toBe("(moderately skewed)");
+    expect(mount(skewMsg(0.7)).find("span").text()).toBe("(moderately skewed)");
     expect(mount(skewMsg(-2)).find("span").text()).toBe("(highly skewed)");
     expect(skewMsg("nan")).toBe("");
   });
