@@ -587,3 +587,11 @@ div#treemap-inputs > div {
   line-height: 29px;
 }
 
+.modal-body {
+  background: white;
+}
+
+.modal-header {
+  background: white;
+}
+
