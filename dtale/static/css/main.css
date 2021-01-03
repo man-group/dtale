@@ -4525,6 +4525,9 @@ button.close {
   position: relative;
   width: auto;
   margin: 10px;
+}
+
+.modal-dialog.react-draggable {
   transition: none !important;
 }
 
@@ -4535,8 +4538,11 @@ button.close {
   display: flex;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.react-draggable .modal-content {
   background: transparent;
 }
 
@@ -10163,6 +10169,9 @@ select.form-control:focus,
   border-radius: 0 0 .2em .2em;
   background: #ebedee;
   padding: .5em 1em;
+}
+
+.modal-resizable > .modal-footer {
   position: absolute;
   bottom: 0;
   width: 100%;
