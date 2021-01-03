@@ -1,0 +1,13 @@
+{% extends "dtale/base.html" %}
+
+{% set network = True %}
+{% block full_content %}
+<div class="container-fluid network">
+    <div id="content">
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript" src="{{ url_for('static', filename='dist/network_bundle.js') }}"></script>
+{% endblock %}

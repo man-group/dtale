@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html style="{{ 'height: 100%' if network else '' }}">
     <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -22,7 +22,7 @@
     #}
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
     </head>
-    <body class="{{ theme }}-mode">
+    <body class="{{ theme }}-mode" style="{{ 'height: 100%' if network else '' }}">
         {% if github_fork %}
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/github_fork.css') }}" />
         <span id="forkongithub">

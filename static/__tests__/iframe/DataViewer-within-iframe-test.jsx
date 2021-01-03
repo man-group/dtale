@@ -88,7 +88,7 @@ describe("DataViewer within iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
-        ["Correlations", "Predictive Power Score", "Charts", "Heat Map", "Highlight Dtypes"],
+        ["Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes"],
         ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
         ["Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Open In New Tab"],
         ["Shutdown"]

@@ -1,0 +1,25 @@
+.groups-legend {
+  width: 5em;
+  position: absolute;
+  border: 1px solid gray;
+  border-radius: 0.25rem;
+  padding: 0.25em;
+}
+
+.shortest-path {
+  border: 1px solid gray;
+  border-radius: 0.25rem;
+}
+
+button.load-network .bouncer {
+  height: 20px;
+  width: 20px;
+}
+
+button.load-network {
+  min-width: 50px;
+}
+
+.accordion-content .network-analysis ul {
+  padding: 0;
+}

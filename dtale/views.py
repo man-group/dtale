@@ -10,6 +10,7 @@ from logging import getLogger
 
 from flask import current_app, json, make_response, redirect, render_template, request
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 import platform
@@ -1041,6 +1042,23 @@ def view_popup(popup_type, data_id=None):
 @dtale.route("/calculation/<calc_type>")
 def view_calculation(calc_type="skew"):
     return render_template("dtale/{}.html".format(calc_type))
+
+
+@dtale.route("/network")
+@dtale.route("/network/<data_id>")
+def view_network(data_id=None):
+    """
+    :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :return: HTML
+    """
+    if data_id is None or data_id not in global_state.get_data().keys():
+        return redirect("/dtale/network/{}".format(head_endpoint()))
+    return base_render_template(
+        "dtale/network.html", data_id, title="Network Viewer", iframe=False
+    )
 
 
 @dtale.route("/code-popup")
@@ -3148,3 +3166,106 @@ def build_row_text(data_id):
         end = int(end)
         data = data.iloc[(start - 1) : end, :]
     return data[columns].to_csv(index=False, sep="\t", header=False)
+
+
+@dtale.route("/network-data/<data_id>")
+@exception_decorator
+def network_data(data_id):
+    df = global_state.get_data(data_id)
+    to_col = get_str_arg(request, "to")
+    from_col = get_str_arg(request, "from")
+    group = get_str_arg(request, "group", "")
+    weight = get_str_arg(request, "weight")
+
+    nodes = list(df[to_col].unique())
+    nodes += list(df[~df[from_col].isin(nodes)][from_col].unique())
+    nodes = sorted(nodes)
+    nodes = {node: node_id for node_id, node in enumerate(nodes, 1)}
+
+    edge_cols = [to_col, from_col]
+    if weight:
+        edge_cols.append(weight)
+
+    edges = df[[to_col, from_col]].applymap(nodes.get)
+    edges.columns = ["to", "from"]
+    if weight:
+        edges.loc[:, "value"] = df[weight]
+    edges = edges.to_dict(orient="records")
+
+    if group:
+        group = df[[from_col, group]].set_index(from_col)[group].astype("str").to_dict()
+    else:
+        group = {}
+
+    groups = {}
+
+    def build_group(node, node_id):
+        group_val = group.get(node, "N/A")
+        groups[group_val] = node_id
+        return group_val
+
+    nodes = [
+        dict(id=node_id, label=node, group=build_group(node, node_id))
+        for node, node_id in nodes.items()
+    ]
+    return jsonify(dict(nodes=nodes, edges=edges, groups=groups, success=True))
+
+
+@dtale.route("/network-analysis/<data_id>")
+@exception_decorator
+def network_analysis(data_id):
+    df = global_state.get_data(data_id)
+    to_col = get_str_arg(request, "to")
+    from_col = get_str_arg(request, "from")
+    weight = get_str_arg(request, "weight")
+
+    G = nx.Graph()
+    max_edge, min_edge, avg_weight = (None, None, None)
+    if weight:
+        G.add_weighted_edges_from(
+            [tuple(x) for x in df[[to_col, from_col, weight]].values]
+        )
+        sorted_edges = sorted(
+            G.edges(data=True), key=lambda x: x[2]["weight"], reverse=True
+        )
+        max_edge = sorted_edges[0]
+        min_edge = sorted_edges[-1]
+        avg_weight = df[weight].mean()
+    else:
+        G.add_edges_from([tuple(x) for x in df[[to_col, from_col]].values])
+
+    most_connected_node = max(dict(G.degree()).items(), key=lambda x: x[1])
+    return_data = {
+        "node_ct": len(G),
+        "triangle_ct": int(sum(nx.triangles(G).values()) / 3),
+        "most_connected_node": "{} (Connections: {})".format(*most_connected_node),
+        "leaf_ct": sum((1 for edge, degree in dict(G.degree()).items() if degree == 1)),
+        "edge_ct": sum(dict(G.degree()).values()),
+        "max_edge": None
+        if max_edge is None
+        else "{} (source: {}, target: {})".format(
+            max_edge[-1]["weight"], max_edge[0], max_edge[1]
+        ),
+        "min_edge": None
+        if min_edge is None
+        else "{} (source: {}, target: {})".format(
+            min_edge[-1]["weight"], min_edge[0], min_edge[1]
+        ),
+        "avg_weight": json_float(avg_weight),
+    }
+    return jsonify(dict(data=return_data, success=True))
+
+
+@dtale.route("/shortest-path/<data_id>")
+@exception_decorator
+def shortest_path(data_id):
+    df = global_state.get_data(data_id)
+    to_col = get_str_arg(request, "to")
+    from_col = get_str_arg(request, "from")
+    start_val = get_str_arg(request, "start")
+    end_val = get_str_arg(request, "end")
+
+    G = nx.Graph()
+    G.add_edges_from([tuple(x) for x in df[[to_col, from_col]].values])
+    shortest_path = nx.shortest_path(G, source=start_val, target=end_val)
+    return jsonify(dict(data=shortest_path, success=True))

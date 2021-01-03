@@ -2972,6 +2972,7 @@ def test_200():
         "/dtale/static/images/projections/miller.png",
         "/dtale/static/images/map_type/choropleth.png",
         "/dtale/static/maps/usa_110m.json",
+        "/dtale/network/{port}",
     ]
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -3547,7 +3548,7 @@ def test_update_theme():
             c.get("/dtale/update-theme", query_string={"theme": "dark"})
             assert app_settings["theme"]
             response = c.get("/dtale/main/{}".format(c.port))
-            assert '<body class="dark-mode">' in str(response.data)
+            assert '<body class="dark-mode"' in str(response.data)
 
 
 @pytest.mark.unit

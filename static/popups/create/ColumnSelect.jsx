@@ -60,7 +60,7 @@ ColumnSelect.propTypes = {
   isMulti: PropTypes.bool,
   otherProps: PropTypes.arrayOf(PropTypes.string),
   prop: PropTypes.string.isRequired,
-  label: PropTypes.string,
+  label: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   parent: PropTypes.object,
   updateState: PropTypes.func,
   dtypes: PropTypes.arrayOf(PropTypes.string),

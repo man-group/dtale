@@ -10,6 +10,7 @@ const entries = [
   ["base_styles", "./static/base_styles.js"],
   ["polyfills", "./static/polyfills.js"],
   ["dtale", "./static/main.jsx"],
+  ["network", "./static/network/main.jsx"],
 ];
 
 function createConfig(entry) {

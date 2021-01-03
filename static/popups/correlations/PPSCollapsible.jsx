@@ -1,9 +1,8 @@
 import PropTypes from "prop-types";
 import React from "react";
 
+import Collapsible from "../../Collapsible";
 import { default as PPSDetails, displayScore } from "../pps/PPSDetails";
-
-require("./PPSCollapsible.scss");
 
 class PPSCollapsible extends React.Component {
   constructor(props) {
@@ -16,19 +15,13 @@ class PPSCollapsible extends React.Component {
     if (!ppsInfo) {
       return null;
     }
-    const { isOpen } = this.state;
-    const onClick = () => this.setState({ isOpen: !this.state.isOpen });
     return (
       <div className="row">
         <div className="col-md-12 pr-0 pl-0">
-          <dl className="accordion pt-3">
-            <dt className={`accordion-title${isOpen ? " is-expanded" : ""} pointer pl-3`} onClick={onClick}>
-              {`Predictive Power Score for ${ppsInfo.x} vs. ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
-            </dt>
-            <dd className={`accordion-content${isOpen ? " is-expanded" : ""}`} onClick={onClick}>
-              <PPSDetails ppsInfo={ppsInfo} />
-            </dd>
-          </dl>
+          <Collapsible
+            title={`Predictive Power Score for ${ppsInfo.x} vs. ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
+            content={<PPSDetails ppsInfo={ppsInfo} />}
+          />
         </div>
       </div>
     );

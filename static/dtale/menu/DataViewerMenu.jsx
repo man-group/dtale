@@ -14,6 +14,7 @@ import DuplicatesOption from "./DuplicatesOption";
 import HeatMapOption from "./HeatMapOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
+import NetworkOption from "./NetworkOption";
 import RangeHighlightOption from "./RangeHighlightOption";
 import { ThemeOption } from "./ThemeOption";
 import UploadOption from "./UploadOption";
@@ -119,6 +120,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.charts}</div>
           </li>
+          <NetworkOption open={buttonHandlers.NETWORK} />
           <HeatMapOption backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
           <li className="hoverable">
             <span className="toggler-action">

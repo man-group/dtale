@@ -115,7 +115,7 @@ describe("DataViewer iframe tests", () => {
     ).toEqual(
       _.concat(
         ["XArray Dimensions", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
-        ["Correlations", "Predictive Power Score", "Charts", "Heat Map", "Highlight Dtypes"],
+        ["Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes"],
         ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
         ["Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Open In New Tab"],
         ["Shutdown"]
@@ -217,6 +217,8 @@ describe("DataViewer iframe tests", () => {
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/correlations/1");
     clickMainMenuButton(result, "Charts");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/charts/1");
+    clickMainMenuButton(result, "Network Viewer");
+    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/network/1");
     clickMainMenuButton(result, "Instances 1");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/instances/1");
     const exports = findMainMenuButton(result, "CSV", "div.btn-group");
