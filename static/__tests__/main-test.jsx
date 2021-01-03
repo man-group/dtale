@@ -43,7 +43,7 @@ describe("main tests", () => {
     window.opener = opener;
   });
 
-  const testMain = (mainName, search = "") => {
+  const testMain = (mainName, search = "", fname = "main") => {
     window.location = { pathname: `/dtale/${mainName}/1`, search };
     buildInnerHTML();
     const mockReactDOM = { renderStatus: false };
@@ -51,11 +51,13 @@ describe("main tests", () => {
       mockReactDOM.renderStatus = true;
     };
     withGlobalJquery(() => jest.mock("react-dom", () => mockReactDOM));
-    require(`../main`);
+    require(`../${fname}`);
     expect(mockReactDOM.renderStatus).toBe(true);
   };
 
   it("main rendering", () => testMain("main"));
+
+  it("network main rendering", () => testMain("network/1", "", "network/main"));
 
   it("base_styles.js loading", () => {
     require("../base_styles");

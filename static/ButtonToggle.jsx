@@ -22,6 +22,9 @@ class ButtonToggle extends React.Component {
           const buttonProps = { className: "btn" };
           if (value === this.state.active) {
             buttonProps.className += " btn-primary active";
+            if (this.props.allowDeselect) {
+              buttonProps.onClick = () => this.setState({ active: null }, () => update(null));
+            }
           } else {
             buttonProps.className += " btn-primary inactive";
             buttonProps.onClick = () => this.setState({ active: value }, () => update(value));
@@ -41,6 +44,8 @@ ButtonToggle.propTypes = {
   options: PropTypes.array,
   update: PropTypes.func,
   defaultValue: PropTypes.string,
+  allowDeselect: PropTypes.bool,
 };
+ButtonToggle.defaultProps = { allowDeselect: false };
 
 export default ButtonToggle;

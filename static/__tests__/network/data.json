@@ -1,0 +1,180 @@
+{
+  "edges": [
+    {
+      "from": 14,
+      "to": 1,
+      "value": 5
+    },
+    {
+      "from": 14,
+      "to": 3,
+      "value": 1
+    },
+    {
+      "from": 14,
+      "to": 5,
+      "value": 3
+    },
+    {
+      "from": 14,
+      "to": 8,
+      "value": 2
+    },
+    {
+      "from": 3,
+      "to": 10,
+      "value": 6
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "value": 1
+    },
+    {
+      "from": 4,
+      "to": 2,
+      "value": 1
+    },
+    {
+      "from": 6,
+      "to": 8,
+      "value": 5
+    },
+    {
+      "from": 6,
+      "to": 10,
+      "value": 3
+    },
+    {
+      "from": 7,
+      "to": 1,
+      "value": 4
+    },
+    {
+      "from": 8,
+      "to": 5,
+      "value": 1
+    },
+    {
+      "from": 8,
+      "to": 7,
+      "value": 1
+    },
+    {
+      "from": 9,
+      "to": 8,
+      "value": 1
+    },
+    {
+      "from": 10,
+      "to": 12,
+      "value": 1
+    },
+    {
+      "from": 10,
+      "to": 12,
+      "value": 10
+    },
+    {
+      "from": 11,
+      "to": 10,
+      "value": 3
+    },
+    {
+      "from": 12,
+      "to": 7,
+      "value": 1
+    },
+    {
+      "from": 12,
+      "to": 13,
+      "value": 1
+    },
+    {
+      "from": 13,
+      "to": 10,
+      "value": 1
+    }
+  ],
+  "groups": {
+    "1": 13,
+    "10": 10,
+    "2": 14,
+    "3": 11,
+    "4": 7,
+    "N/A": 5
+  },
+  "nodes": [
+    {
+      "group": "N/A",
+      "id": 1,
+      "label": "b"
+    },
+    {
+      "group": "N/A",
+      "id": 2,
+      "label": "bz"
+    },
+    {
+      "group": "1",
+      "id": 3,
+      "label": "c"
+    },
+    {
+      "group": "1",
+      "id": 4,
+      "label": "ca"
+    },
+    {
+      "group": "N/A",
+      "id": 5,
+      "label": "d"
+    },
+    {
+      "group": "3",
+      "id": 6,
+      "label": "e"
+    },
+    {
+      "group": "4",
+      "id": 7,
+      "label": "f"
+    },
+    {
+      "group": "1",
+      "id": 8,
+      "label": "g"
+    },
+    {
+      "group": "1",
+      "id": 9,
+      "label": "gg"
+    },
+    {
+      "group": "10",
+      "id": 10,
+      "label": "h"
+    },
+    {
+      "group": "3",
+      "id": 11,
+      "label": "hh"
+    },
+    {
+      "group": "1",
+      "id": 12,
+      "label": "j"
+    },
+    {
+      "group": "1",
+      "id": 13,
+      "label": "k"
+    },
+    {
+      "group": "2",
+      "id": 14,
+      "label": "z"
+    }
+  ],
+  "success": true
+}

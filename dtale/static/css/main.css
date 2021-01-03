@@ -10764,6 +10764,13 @@ div.container-fluid.describe > div#popup-content > div.modal-body {
 div.container-fluid.describe div.describe-dtypes-grid-col {
     height: calc(100vh - 112px);
 }
+div.container-fluid.network {
+  height: 100%;
+}
+div.container-fluid.network > #content {
+  height: 100%;
+  padding-top: 0.5em;
+}
 div.modal-dialog div.modal-body.describe-body {
   height: 500px;
   overflow-y: auto;

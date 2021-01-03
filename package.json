@@ -159,9 +159,10 @@
     "serialize-javascript": "5.0.1",
     "string.prototype.startswith": "1.0.0",
     "styled-components": "5.2.1",
-    "uuid": "8.3.2"
+    "uuid": "8.3.2",
+    "vis-network": "8.5.6"
   },
   "resolutions": {
     "node-notifier": "8.0.1"
   }
- }
+}

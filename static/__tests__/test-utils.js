@@ -62,14 +62,14 @@ function clickMainMenuButton(result, name, btnTag = "button") {
   return findMainMenuButton(result, name, btnTag).simulate("click");
 }
 
-function tick() {
+function tick(timeout = 0) {
   return new Promise(resolve => {
-    setTimeout(resolve, 0);
+    setTimeout(resolve, timeout);
   });
 }
 
-async function tickUpdate(result) {
-  await tick();
+async function tickUpdate(result, timeout = 0) {
+  await tick(timeout);
   result.update();
 }
 

@@ -69,12 +69,14 @@ function buildHotkeyHandlers(props) {
     }
   };
   const openTab = type => () => window.open(fullPath(`/dtale/popup/${type}`, dataId), "_blank");
+  const openNetwork = () => window.open(fullPath(`/dtale/network`, dataId), "_blank");
   const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700);
   return {
     openTab,
     openPopup,
     MENU: openMenu,
     DESCRIBE: openTab("describe"),
+    NETWORK: openNetwork,
     FILTER: openPopup("filter", 500, 1100),
     BUILD: openPopup("build", 450, 770),
     DUPLICATES: openPopup("duplicates", 400, 770),

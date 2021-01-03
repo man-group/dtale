@@ -86,6 +86,8 @@ setup(
         "future >= 0.14.0",
         "itsdangerous",
         "kaleido",
+        "networkx == 2.2; python_version < '3.0'",
+        "networkx; python_version >= '3.0'",
         "pandas",
         "plotly>=4.9.0",
         "ppscore; python_version >= '3.6'",

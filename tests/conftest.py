@@ -177,6 +177,11 @@ def scattergeo_data():
 
 
 @pytest.fixture(scope="module")
+def network_data():
+    return pd.read_csv(os.path.join(os.path.dirname(__file__), "data/network.csv"))
+
+
+@pytest.fixture(scope="module")
 def builtin_pkg():
     if PY3:
         return "builtins"
