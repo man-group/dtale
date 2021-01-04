@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.30.0 (2021-1-3)
+* fixed dependency issues with 27-3 build and pandas 1.2.0 test failures
+* [#379](https://github.com/man-group/dtale/issues/379): issue with skew description
+* [#346](https://github.com/man-group/dtale/issues/346): updated mapbox description
+* [#381](https://github.com/man-group/dtale/issues/381): Network Analysis sub-page
+* [#361](https://github.com/man-group/dtale/issues/361): Network Display
+* fixed styling of Dash modals
+
 ### 1.29.1 (2020-12-24)
 * [#228](https://github.com/man-group/dtale/issues/228): additional documentation on how to run in docker
 * [#344](https://github.com/man-group/dtale/issues/344): Updates to sorting of unique values as well as display of word value count raw values
