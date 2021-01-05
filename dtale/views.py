@@ -597,6 +597,9 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
                 check2 = (val_counts.values[0] / val_counts.values[1]) > 20
             dtype_data["lowVariance"] = bool(check1 and check2)
 
+        if classification in ["D"] and not s.isnull().all():
+            dtype_data["skew"] = json_float(apply(s, json_timestamp).skew())
+
         if classification == "S" and not dtype_data["hasMissing"]:
             if dtype.startswith("category"):
                 dtype_data["hasMissing"] += int(
@@ -1711,6 +1714,8 @@ def build_string_metrics(s, col):
         "space_at_the_first = txt_count(r'^ ')",
         "space_at_the_end = txt_count(r' $')",
         "multi_space_after_each_other = txt_count(r'\\s{2,}')",
+        "\nfrom string import printable\n",
+        "with_hidden = txt_count(r'[^{}]+'.format(printable))",
         "word_min = word_len.min()",
         "word_max = word_len.max()",
         "word_mean = word_len.mean()",
