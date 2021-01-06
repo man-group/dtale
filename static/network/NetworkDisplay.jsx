@@ -28,10 +28,10 @@ class ReactNetworkDisplay extends React.Component {
       loadingDtypes: true,
       loadingData: false,
       dtypes: null,
-      to: null,
-      from: null,
-      group: null,
-      weight: null,
+      to: props.to ? { value: props.to } : null,
+      from: props.from ? { value: props.from } : null,
+      group: props.group ? { value: props.group } : null,
+      weight: props.weight ? { value: props.weight } : null,
       hierarchy: null,
       groups: null,
       shortestPath: [],
@@ -58,7 +58,11 @@ class ReactNetworkDisplay extends React.Component {
         return;
       }
       newState.dtypes = dtypesData.dtypes;
-      this.setState(newState);
+      this.setState(newState, () => {
+        if (this.state.to && this.state.from) {
+          this.load();
+        }
+      });
     });
   }
 
@@ -262,16 +266,16 @@ class ReactNetworkDisplay extends React.Component {
             <React.Fragment>
               <NetworkAnalysis {..._.pick(this.state, ["to", "from", "weight"])} />
               <HierarchyToggle updateHierarchy={hierarchy => this.setState({ hierarchy }, this.draw)} />
-              <GlobalHotKeys
-                keyMap={{ ZOOM_OUT: "esc" }}
-                handlers={{ ZOOM_OUT: () => this.network.fit(Constants.ZOOM) }}
-              />
-              <GroupsLegend groups={this.state.groups} />
               <ShortestPath
                 nodes={this.state.shortestPath}
                 {..._.pick(this.state, ["to", "from", "allNodes"])}
                 highlightPath={this.highlightPath}
               />
+              <GlobalHotKeys
+                keyMap={{ ZOOM_OUT: "esc" }}
+                handlers={{ ZOOM_OUT: () => this.network.fit(Constants.ZOOM) }}
+              />
+              <GroupsLegend groups={this.state.groups} />
             </React.Fragment>
           )}
           <div style={{ height: "calc(100% - 170px)" }} ref={this.container} />
@@ -283,6 +287,10 @@ class ReactNetworkDisplay extends React.Component {
 ReactNetworkDisplay.displayName = "ReactNetworkDisplay";
 ReactNetworkDisplay.propTypes = {
   dataId: PropTypes.string.isRequired,
+  to: PropTypes.string,
+  from: PropTypes.string,
+  group: PropTypes.string,
+  weight: PropTypes.string,
 };
 
 const ReduxNetworkDisplay = connect(({ dataId }) => ({ dataId }))(ReactNetworkDisplay);

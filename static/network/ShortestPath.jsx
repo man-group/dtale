@@ -40,7 +40,7 @@ class ReactShortestPath extends React.Component {
   render() {
     if (this.state.shortestPath) {
       return (
-        <div className="row m-3 mt-5 shortest-path">
+        <div className="row m-3 mt-3 shortest-path">
           <div className="col">
             {`Shortest path between nodes ${this.state.start} & ${this.state.end}: `}
             <b>{_.join(this.state.shortestPath, " -> ")}</b>
