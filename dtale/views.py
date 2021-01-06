@@ -18,7 +18,6 @@ import requests
 import scipy.stats as sts
 import xarray as xr
 from six import string_types, StringIO
-from string import printable
 
 import dtale.datasets as datasets
 import dtale.env_util as env_util
@@ -26,7 +25,7 @@ import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.column_builders import clean, clean_code, ColumnBuilder
+from dtale.column_builders import clean, clean_code, ColumnBuilder, printable
 from dtale.column_filters import ColumnFilter
 from dtale.column_replacements import ColumnReplacement
 from dtale.duplicate_checks import DuplicateCheck
@@ -1665,7 +1664,7 @@ def build_string_metrics(s, col):
         char_std=json_float(char_len.std()),
         with_space=int(txt_count(r"\s")),
         with_accent=int(txt_count(r"[À-ÖÙ-öù-ÿĀ-žḀ-ỿ]")),
-        with_num=int(txt_count(r"[0-9]")),
+        with_num=int(txt_count(r"[\d]")),
         with_upper=int(txt_count(r"[A-Z]")),
         with_lower=int(txt_count(r"[a-z]")),
         with_punc=int(
@@ -1705,7 +1704,7 @@ def build_string_metrics(s, col):
         "char_std = char_len.std()",
         "with_space = txt_count(r'\\s')",
         "with_accent = txt_count(r'[À-ÖÙ-öù-ÿĀ-žḀ-ỿ]')",
-        "with_num = txt_count(r'[0-9]')",
+        "with_num = txt_count(r'[\\d]')",
         "with_upper = txt_count(r'[A-Z]')",
         "with_lower = txt_count(r'[a-z]')",
         "with_punc = txt_count(",
@@ -1714,7 +1713,7 @@ def build_string_metrics(s, col):
         "space_at_the_first = txt_count(r'^ ')",
         "space_at_the_end = txt_count(r' $')",
         "multi_space_after_each_other = txt_count(r'\\s{2,}')",
-        "\nfrom string import printable\n",
+        "printable = r'\\w \\!\"#\\$%&'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'",
         "with_hidden = txt_count(r'[^{}]+'.format(printable))",
         "word_min = word_len.min()",
         "word_max = word_len.max()",
