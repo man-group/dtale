@@ -14,7 +14,7 @@ const store = createStore(app.store);
 store.dispatch(actions.init());
 ReactDOM.render(
   <Provider store={store}>
-    <NetworkDisplay />
+    <NetworkDisplay {...actions.getParams()} />
   </Provider>,
   document.getElementById("content")
 );
