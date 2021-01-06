@@ -83,7 +83,7 @@ function buildCleaningCode(cfg) {
         "s = s.apply(clean_nltk_stopwords)",
       ]);
     } else if (cleaner === "drop_numbers") {
-      code.push(`s = s.str.replace(r'[0-9]+', '')`);
+      code.push(`s = s.str.replace(r'[/d]+', '')`);
     } else if (cleaner === "keep_alpha") {
       code.push(`s = s.apply(lambda x: ''.join(c for c in x if c.isalpha()))`);
     } else if (cleaner === "normalize_accents") {
@@ -127,7 +127,7 @@ function buildCleaningCode(cfg) {
     } else if (cleaner === "space_vals_to_empty") {
       code.push(`s = s.str.replace(r'[ ]+', '')`);
     } else if (cleaner === "hidden_chars") {
-      code.push("from string import printable");
+      code.push("printable = r'\\w \\!\\\"#\\$%&\\'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'");
       code.push("s = s.str.replacer(r'[^{}]+'.format(printable), '')");
     }
   });
