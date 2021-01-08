@@ -3,35 +3,8 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import chartUtils from "../../chartUtils";
-import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
-
-const COUNT_STATS = ["count", "missing_ct", "missing_pct"];
-const POSITION_STATS = ["first", "last", "top"];
-const LABELS = {
-  total_count: "Total Rows",
-  count: "Count (non-nan)",
-  missing_ct: "Count (missing)",
-  missing_pct: "% Missing",
-  freq: "Frequency",
-  kurt: "Kurtosis",
-  skew: "Skew",
-};
-
-function buildStat(key, value) {
-  if (value !== undefined) {
-    return (
-      <div>
-        <h4 className="d-inline pr-5">{`${_.get(LABELS, key, key)}:`}</h4>
-        <span className="d-inline">
-          {value}
-          {key === "skew" && skewMsg(value)}
-          {key === "kurt" && kurtMsg(value)}
-        </span>
-      </div>
-    );
-  }
-  return null;
-}
+import { DetailsSequentialDiffs } from "./DetailsSequentialDiffs";
+import { buildStat, COUNT_STATS, POSITION_STATS } from "./detailUtils";
 
 class DetailsBoxplot extends React.Component {
   constructor(props) {
@@ -39,6 +12,7 @@ class DetailsBoxplot extends React.Component {
     this.state = { boxplot: null };
     this.createBoxplot = this.createBoxplot.bind(this);
   }
+
   componentDidMount() {
     this.createBoxplot();
   }
@@ -101,7 +75,7 @@ class DetailsBoxplot extends React.Component {
   }
 
   render() {
-    const { details } = this.props;
+    const { details, column } = this.props;
     const describe = _.get(details, "describe", {});
     const describeKeys = _.keys(
       _.omit(describe, _.concat(["total_count", "freq", "skew", "kurt"], COUNT_STATS, POSITION_STATS))
@@ -178,18 +152,7 @@ class DetailsBoxplot extends React.Component {
                 </li>
               </React.Fragment>
             )}
-            {details.sequential_diffs && (
-              <li>
-                <div>
-                  <h4 className="d-inline">Sequential Diffs</h4>
-                </div>
-                <ul>
-                  <li>{buildStat("Min", details.sequential_diffs.min)}</li>
-                  <li>{buildStat("Average", details.sequential_diffs.avg)}</li>
-                  <li>{buildStat("Max", details.sequential_diffs.max)}</li>
-                </ul>
-              </li>
-            )}
+            {details.sequential_diffs && <DetailsSequentialDiffs data={details.sequential_diffs} column={column} />}
             {describe.kurt !== undefined && <li>{buildStat("kurt", describe.kurt)}</li>}
             {describe.skew !== undefined && <li>{buildStat("skew", describe.skew)}</li>}
             {dtypeCounts}
@@ -207,6 +170,7 @@ class DetailsBoxplot extends React.Component {
 DetailsBoxplot.displayName = "DetailsBoxplot";
 DetailsBoxplot.propTypes = {
   details: PropTypes.object,
+  column: PropTypes.string,
 };
 
 export default DetailsBoxplot;

@@ -45,7 +45,7 @@ class DetailsCharts extends React.Component {
     if (finalParams.type === "boxplot") {
       const { details, detailCode } = this.props;
       this.setState({
-        chart: <DetailsBoxplot details={details} />,
+        chart: <DetailsBoxplot details={details} column={this.props.col} />,
         code: detailCode,
         query: null,
       });
