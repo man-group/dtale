@@ -55,20 +55,20 @@ describe("NetworkDisplay test", () => {
     }));
   });
 
-  beforeEach(async () => {
+  const buildDisplay = async (params = {}) => {
     const { NetworkDisplay } = require("../../network/NetworkDisplay");
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
       <Provider store={store}>
-        <NetworkDisplay />
+        <NetworkDisplay {...params} />
       </Provider>,
       {
         attachTo: document.getElementById("content"),
       }
     );
     await tickUpdate(result);
-  });
+  };
 
   const buildNetwork = async () => {
     const comp = result.find("ReactNetworkDisplay");
@@ -89,6 +89,7 @@ describe("NetworkDisplay test", () => {
   };
 
   it("renders correctly", async () => {
+    await buildDisplay();
     await buildNetwork();
     const comp = result.find("ReactNetworkDisplay");
     expect(comp.instance().network).toBeDefined();
@@ -101,7 +102,8 @@ describe("NetworkDisplay test", () => {
     expect(comp.instance().network.options.layout.hierarchical).toBeUndefined();
   });
 
-  it("correctly displays collapsible instructions", () => {
+  it("correctly displays collapsible instructions", async () => {
+    await buildDisplay();
     expect(result.find("NetworkDescription").length).toBe(1);
     result.find("NetworkDescription").find("Collapsible").find("dd").simulate("click");
     const title = result.find("NetworkDescription").find("Collapsible").find("h3");
@@ -109,6 +111,7 @@ describe("NetworkDisplay test", () => {
   });
 
   it("builds shortest path", async () => {
+    await buildDisplay();
     await buildNetwork();
     await clickShortestPath("b");
     await clickShortestPath("c");
@@ -121,9 +124,24 @@ describe("NetworkDisplay test", () => {
   });
 
   it("builds network analysis", async () => {
+    await buildDisplay();
     await buildNetwork();
     result.find("ReactNetworkAnalysis").find("Collapsible").find("dd").simulate("click");
     await tickUpdate(result);
     expect(result.find("ReactNetworkAnalysis").find("div.network-analysis").length).toBe(8);
+  });
+
+  it("builds network analysis with parameters", async () => {
+    await buildDisplay({
+      to: "to",
+      from: "from",
+      group: "weight",
+      weight: "weight",
+    });
+    expect(result.find("ReactNetworkDisplay").state()).toMatchObject({
+      to: { value: "to" },
+      from: { value: "from" },
+    });
+    expect(result.find("ReactNetworkDisplay").instance().network).toBeDefined();
   });
 });

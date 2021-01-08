@@ -3615,3 +3615,23 @@ def test_build_row_text():
                 data={"rows": json.dumps([1]), "columns": json.dumps(["a"])},
             )
             assert resp.data == b"2\n"
+
+
+@pytest.mark.unit
+def test_sorted_sequential_diffs():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3, 4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+
+            resp = c.get("/dtale/sorted-sequential-diffs/{}/a/ASC".format(c.port))
+            data = resp.json
+            assert data["min"] == "1"
+            assert data["max"] == "1"
+
+            resp = c.get("/dtale/sorted-sequential-diffs/{}/a/DESC".format(c.port))
+            data = resp.json
+            assert data["min"] == "-1"
+            assert data["max"] == "-1"

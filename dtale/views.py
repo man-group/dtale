@@ -1606,7 +1606,9 @@ def load_describe(column_series, additional_aggs=None):
     return desc, code
 
 
-def build_sequential_diffs(s, col):
+def build_sequential_diffs(s, col, sort=None):
+    if sort is not None:
+        s = s.sort_values(ascending=sort == "ASC")
     diff = s.diff()
     diff = diff[diff == diff]  # remove nan or nat values
     min_diff = diff.min()
@@ -3273,3 +3275,11 @@ def shortest_path(data_id):
     G.add_edges_from([tuple(x) for x in df[[to_col, from_col]].values])
     shortest_path = nx.shortest_path(G, source=start_val, target=end_val)
     return jsonify(dict(data=shortest_path, success=True))
+
+
+@dtale.route("/sorted-sequential-diffs/<data_id>/<column>/<sort>")
+@exception_decorator
+def get_sorted_sequential_diffs(data_id, column, sort):
+    df = global_state.get_data(data_id)
+    metrics, _ = build_sequential_diffs(df[column], column, sort=sort)
+    return jsonify(metrics)

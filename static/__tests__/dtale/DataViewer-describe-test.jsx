@@ -1,10 +1,12 @@
 import { mount } from "enzyme";
 import $ from "jquery";
 import React from "react";
+import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../MockPopsicle";
+import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
@@ -72,10 +74,16 @@ describe("DataViewer tests", () => {
     postSpy = jest.spyOn($, "post");
     postSpy.mockImplementation((_url, _params, callback) => callback());
     const props = { dataId: "1", chartData: { visible: true } };
-    buildInnerHTML({ settings: "" });
-    result = mount(<Describe {...props} />, {
-      attachTo: document.getElementById("content"),
-    });
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "" }, store);
+    result = mount(
+      <Provider store={store}>
+        <Describe {...props} />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
     await tickUpdate(result);
   });
 
