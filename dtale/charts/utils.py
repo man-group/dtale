@@ -430,6 +430,7 @@ def build_base_chart(
     y,
     group_col=None,
     group_val=None,
+    bins_val=None,
     agg=None,
     allow_duplicates=False,
     return_raw=False,
@@ -476,6 +477,10 @@ def build_base_chart(
     z_cols = make_list(z_col)
     sort_cols = y_cols if len(z_cols) else []
     if group_col is not None and len(group_col):
+        for col in make_list(group_col):
+            if classify_type(find_dtype(data[col])) == "F":
+                data.loc[:, col] = pd.qcut(data[col], q=bins_val).astype("str")
+
         main_group = group_col
         if animate_by is not None:
             main_group = [animate_by] + main_group

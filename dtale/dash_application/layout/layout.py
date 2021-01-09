@@ -415,17 +415,34 @@ def show_input_handler(chart_type):
     return _show_input
 
 
-def show_group_input(inputs, group_cols=None):
-    chart_type = inputs.get("chart_type")
-    if show_input_handler(chart_type)("group"):
-        return len(group_cols or make_list(inputs.get("group")))
-    elif show_input_handler(chart_type)("map_group"):
-        return len(group_cols or make_list(inputs.get("map_group")))
-    elif show_input_handler(chart_type)("cs_group"):
-        return len(group_cols or make_list(inputs.get("cs_group")))
-    elif show_input_handler(chart_type)("treemap_group"):
-        return len(group_cols or make_list(inputs.get("treemap_group")))
+def contains_float_col(group_prop, inputs, data_id, group_cols=None):
+    for group_col in group_cols or make_list(inputs.get(group_prop)):
+        if (
+            classify_type(global_state.get_dtype_info(data_id, group_col)["dtype"])
+            == "F"
+        ):
+            return True
     return False
+
+
+def show_group_input(inputs, data_id, group_cols=None):
+    def _flags(group_prop):
+        if len(group_cols or make_list(inputs.get(group_prop))):
+            float_col = contains_float_col(group_prop, inputs, data_id, group_cols)
+            return not float_col, float_col
+        return False, False
+
+    chart_type = inputs.get("chart_type")
+
+    if show_input_handler(chart_type)("group"):
+        return _flags("group")
+    elif show_input_handler(chart_type)("map_group"):
+        return _flags("map_group")
+    elif show_input_handler(chart_type)("cs_group"):
+        return _flags("cs_group")
+    elif show_input_handler(chart_type)("treemap_group"):
+        return _flags("treemap_group")
+    return False, False
 
 
 def update_label_for_freq(val):
@@ -767,10 +784,15 @@ def build_hoverable(content, hoverable_content):
     )
 
 
-def main_inputs_and_group_val_display(inputs):
-    if show_group_input(inputs):
-        return dict(display="block"), "col-md-8"
-    return dict(display="none"), "col-md-12"
+def main_inputs_and_group_val_display(inputs, data_id):
+    group_vals, bins = show_group_input(inputs, data_id)
+    if group_vals or bins:
+        return (
+            dict(display="block" if group_vals else "none"),
+            dict(display="block" if bins else "none"),
+            "col-md-8",
+        )
+    return dict(display="none"), dict(display="none"), "col-md-12"
 
 
 def build_slider_counts(df, data_id, query_value):
@@ -885,7 +907,9 @@ def charts_layout(df, settings, data_id, **inputs):
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
-    group_val_style, main_input_class = main_inputs_and_group_val_display(inputs)
+    group_val_style, bins_style, main_input_class = main_inputs_and_group_val_display(
+        inputs, data_id
+    )
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]
 
     def show_map_style(show):
@@ -1627,6 +1651,19 @@ def charts_layout(df, settings, data_id, **inputs):
                     className="col-md-4 pt-3 pb-5",
                     id="group-val-input",
                     style=group_val_style,
+                ),
+                build_input(
+                    "Bins",
+                    daq.NumericInput(
+                        id="bins-val-input",
+                        min=1,
+                        max=30,
+                        value=inputs.get("bins_val") or 5,
+                        style=dict(width="inherit"),
+                    ),
+                    className="col-md-4 pt-3 pb-5",
+                    id="bins-input",
+                    style=bins_style,
                 ),
             ],
             className="row",

@@ -144,12 +144,26 @@ def chart_url_params(search):
     if "load" in params:
         params["load"] = int(params["load"])
     if "group_filter" in params:
+        group_filter = params["group_filter"]
+        filter_col, filter_val = group_filter.split(" == ")
+        if filter_val.startswith("'(") and filter_val.endswith("]'"):
+            start, end = filter_val.split(",")
+            group_filter = "({} <= {} <= {})".format(start[2:], filter_col, end[:-2])
+            params = {
+                k: v
+                for k, v in params.items()
+                if k
+                not in [
+                    "group",
+                    "cs_group",
+                    "map_group",
+                    "treemap_group",
+                    "candlestick_group",
+                ]
+            }
+
         params["query"] = " and ".join(
-            [
-                params[p]
-                for p in ["query", "group_filter"]
-                if (params.get(p) or "") != ""
-            ]
+            [p for p in [params.get("query") or "", group_filter] if p != ""]
         )
         del params["group_filter"]
         params["cpg"] = False
@@ -170,6 +184,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "window",
         "rolling_comp",
         "load",
+        "bins_val",
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
@@ -2508,6 +2523,7 @@ def build_figure_data(
     z=None,
     group=None,
     group_val=None,
+    bins_val=None,
     agg=None,
     window=None,
     rolling_comp=None,
@@ -2578,6 +2594,7 @@ def build_figure_data(
     chart_kwargs = dict(
         group_col=group,
         group_val=group_val,
+        bins_val=bins_val,
         agg=agg,
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,
