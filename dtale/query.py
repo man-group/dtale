@@ -56,7 +56,10 @@ def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
         final_query = str(query)
         for cn in invalid_column_names:
             r = "REPL_{}".format(str(invalid_column_names.index(cn)))
-            final_query = final_query.replace(cn, r)
+            query_tokens = final_query.split(" ")
+            final_query = " ".join(
+                [r if t in [cn, "({}".format(cn)] else t for t in query_tokens]
+            )
             replacements[cn] = r
 
         inv_replacements = {replacements[k]: k for k in replacements.keys()}

@@ -206,6 +206,7 @@ def init_callbacks(dash_app):
             Input("z-dropdown", "value"),
             Input("group-dropdown", "value"),
             Input("group-val-dropdown", "value"),
+            Input("bins-val-input", "value"),
             Input("agg-dropdown", "value"),
             Input("window-input", "value"),
             Input("rolling-comp-dropdown", "value"),
@@ -222,6 +223,7 @@ def init_callbacks(dash_app):
         z,
         group,
         group_val,
+        bins_val,
         agg,
         window,
         rolling_comp,
@@ -234,6 +236,7 @@ def init_callbacks(dash_app):
         users selecting the same column for multiple axes.
         """
         y_val = make_list(y_single if chart_type in ZAXIS_CHARTS else y_multi)
+        data_id = get_data_id(pathname)
         if group_val is not None:
             group_val = [json.loads(gv) for gv in group_val]
         inputs = dict(
@@ -244,12 +247,12 @@ def init_callbacks(dash_app):
             z=z,
             group=group,
             group_val=group_val,
+            bins_val=bins_val,
             agg=agg or "raw",
             window=window,
             rolling_comp=rolling_comp,
             load=load,
         )
-        data_id = get_data_id(pathname)
         options = build_input_options(global_state.get_data(data_id), **inputs)
         (
             x_options,
@@ -798,7 +801,11 @@ def init_callbacks(dash_app):
         return yaxis_data
 
     @dash_app.callback(
-        [Output("group-val-input", "style"), Output("main-inputs", "className")],
+        [
+            Output("group-val-input", "style"),
+            Output("bins-input", "style"),
+            Output("main-inputs", "className"),
+        ],
         [
             Input("input-data", "modified_timestamp"),
             Input("map-input-data", "modified_timestamp"),
@@ -806,6 +813,7 @@ def init_callbacks(dash_app):
             Input("treemap-input-data", "modified_timestamp"),
         ],
         [
+            State("url", "pathname"),
             State("input-data", "data"),
             State("map-input-data", "data"),
             State("candlestick-input-data", "data"),
@@ -813,10 +821,11 @@ def init_callbacks(dash_app):
         ],
     )
     def main_input_class(
-        ts_, ts2_, _ts3, _ts4, inputs, map_inputs, cs_inputs, treemap_inputs
+        ts_, ts2_, _ts3, _ts4, pathname, inputs, map_inputs, cs_inputs, treemap_inputs
     ):
         return main_inputs_and_group_val_display(
-            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs)
+            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs),
+            get_data_id(pathname),
         )
 
     @dash_app.callback(
@@ -847,6 +856,7 @@ def init_callbacks(dash_app):
         inputs,
         prev_group_vals,
     ):
+        data_id = get_data_id(pathname)
         group_cols = group_cols
         if chart_type == "maps":
             group_cols = map_group_cols
@@ -855,9 +865,9 @@ def init_callbacks(dash_app):
         elif chart_type == "treemap":
             group_cols = treemap_group_cols
         group_cols = make_list(group_cols)
-        if not show_group_input(inputs, group_cols):
+        show_group, _ = show_group_input(inputs, data_id, group_cols)
+        if not show_group:
             return [], None
-        data_id = get_data_id(pathname)
         group_vals = run_query(
             global_state.get_data(data_id),
             inputs.get("query"),
