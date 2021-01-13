@@ -41,4 +41,5 @@ export const TITLES = {
   boxplot: "Describe",
   categories: "Categories",
   word_value_counts: "Word Value Counts",
+  geolocation: "Geolocation",
 };

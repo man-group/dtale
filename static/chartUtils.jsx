@@ -5,6 +5,7 @@ import "chartjs-plugin-zoom";
 import chroma from "chroma-js";
 import _ from "lodash";
 import moment from "moment";
+import Plotly from "plotly.js-dist";
 
 import { buildRGBA } from "./colors";
 import { exports as gu } from "./dtale/gridUtils";
@@ -329,6 +330,25 @@ function createScatterCfg({ data, min, max }, { x, y, additionalOptions, configH
   return _.isUndefined(configHandler) ? cfg : configHandler(cfg);
 }
 
+function createGeolocation(ctxId, fetchedData) {
+  const layout = {
+    autosize: true,
+    legend: { orientation: "h" },
+    margin: { b: 0, l: 0, r: 0, t: 0 },
+    geo: { fitbounds: "locations" },
+  };
+  const data = [
+    {
+      type: "scattergeo",
+      mode: "markers",
+      marker: { color: "darkblue" },
+      lat: fetchedData.lat,
+      lon: fetchedData.lon,
+    },
+  ];
+  Plotly.newPlot(ctxId, data, layout);
+}
+
 export default {
   createChart,
   chartWrapper,
@@ -338,6 +358,7 @@ export default {
   lineHoverPlugin,
   createLineCfg,
   createBarCfg,
+  createGeolocation,
   createStackedCfg,
   createScatterCfg,
   createPieCfg,

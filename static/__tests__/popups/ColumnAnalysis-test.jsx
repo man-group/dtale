@@ -17,10 +17,11 @@ const ANALYSIS_DATA = {
   dtype: "float64",
   cols: [
     { name: "intCol", dtype: "int64" },
-    { name: "bar", dtype: "float64" },
+    { name: "bar", dtype: "float64", coord: "lat" },
     { name: "strCol", dtype: "string" },
     { name: "dateCol", dtype: "datetime" },
     { name: "baz", dtype: "float64" },
+    { name: "lon", coord: "lon", dtype: "float64" },
   ],
   query: null,
   data: [6, 13, 13, 30, 34, 57, 84, 135, 141, 159, 170, 158, 126, 94, 70, 49, 19, 7, 9, 4],
@@ -109,6 +110,13 @@ describe("ColumnAnalysis tests", () => {
                 count,
               });
             }
+            if (params.type === "geolocation") {
+              return _.assignIn({}, ANALYSIS_DATA, {
+                chart_type: "geolocation",
+                lat: [1, 2, 3],
+                lon: [4, 5, 6],
+              });
+            }
             return ANALYSIS_DATA;
           }
         }
@@ -156,6 +164,7 @@ describe("ColumnAnalysis tests", () => {
   const filters = () => result.find(ColumnAnalysisFilters);
 
   it("ColumnAnalysis rendering float data", async () => {
+    expect(result.find("ButtonToggle").prop("options")[2].label).toBe("Geolocation");
     expect(input().prop("value")).toBe("20");
     expect(chart().cfg.type).toBe("bar");
     expect(_.get(chart(), "cfg.data.datasets[0].data")).toEqual(ANALYSIS_DATA.data);
@@ -178,7 +187,7 @@ describe("ColumnAnalysis tests", () => {
   it("ColumnAnalysis chart functionality", async () => {
     updateProps({
       ...props,
-      chartData: _.assignIn(props.chartData, { selectedCol: "baz" }),
+      chartData: { ...props.chartData, selectedCol: "baz" },
     });
     expect(result.props().chartData.selectedCol).toBe("baz");
     const currChart = chart();
@@ -201,6 +210,14 @@ describe("ColumnAnalysis tests", () => {
       .simulate("change", { target: { value: "50" } });
     filters().find("input").first().simulate("keyPress", { key: "Enter" });
     await tickUpdate(result);
+  });
+
+  it("geolocation chart functionality", async () => {
+    result.find("ButtonToggle").find("button").last().simulate("click");
+    await tickUpdate(result);
+    expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
+    expect(result.find("GeoFilters")).toHaveLength(1);
+    expect(result.find("GeoFilters").text()).toBe("Latitude:barLongitude:lon");
   });
 
   it("ColumnAnalysis rendering int data", async () => {

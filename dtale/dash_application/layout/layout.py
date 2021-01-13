@@ -28,6 +28,7 @@ from dtale.utils import (
     classify_type,
     get_dtypes,
     is_app_root_defined,
+    coord_type,
     make_list,
 )
 
@@ -536,7 +537,7 @@ def build_map_options(
 ):
     dtypes = get_dtypes(df)
     cols = sorted(dtypes.keys())
-    float_cols, str_cols, num_cols = [], [], []
+    lat_cols, lon_cols, str_cols, num_cols = [], [], [], []
     for c in cols:
         dtype = dtypes[c]
         classification = classify_type(dtype)
@@ -545,14 +546,17 @@ def build_map_options(
             continue
         if classification in ["F", "I"]:
             num_cols.append(c)
-            if classification == "F":
-                float_cols.append(c)
+            coord = coord_type(df[c])
+            if coord == "lat":
+                lat_cols.append(c)
+            elif coord == "lon":
+                lon_cols.append(c)
 
     lat_options = [
-        build_option(c) for c in float_cols if c not in build_selections(lon, map_val)
+        build_option(c) for c in lat_cols if c not in build_selections(lon, map_val)
     ]
     lon_options = [
-        build_option(c) for c in float_cols if c not in build_selections(lat, map_val)
+        build_option(c) for c in lon_cols if c not in build_selections(lat, map_val)
     ]
     loc_options = [
         build_option(c) for c in str_cols if c not in build_selections(map_val)
