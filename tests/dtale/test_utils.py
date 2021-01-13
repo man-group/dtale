@@ -256,3 +256,19 @@ def test_json_string2(builtin_pkg):
         )
         stack.enter_context(mock.patch("dtale.utils.logger", MockLogger()))
         utils.json_string(TestStr(), nan_display="nan")
+
+
+@pytest.mark.unit
+def test_coord_type():
+    df = pd.DataFrame(
+        dict(
+            lat=[1.0, 2.0, 3.0],
+            lon=[4.0, 5.0, 6.0],
+            c=[7.0, 8.0, 9.0],
+            d=["a", "b", "c"],
+        )
+    )
+    assert utils.coord_type(df["lat"]) == "lat"
+    assert utils.coord_type(df["lon"]) == "lon"
+    assert utils.coord_type(df["c"]) is None
+    assert utils.coord_type(df["d"]) is None

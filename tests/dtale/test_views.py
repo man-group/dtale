@@ -160,6 +160,7 @@ def test_startup(unittest):
                 "unique_ct": 2,
                 "kurt": "nan",
                 "skew": "nan",
+                "coord": None,
             },
             next(
                 (
@@ -1352,6 +1353,7 @@ def test_get_data(unittest, test_data):
                         unique_ct=50,
                         kurt=-1.2,
                         skew=0,
+                        coord=None,
                     ),
                     dict(
                         dtype="int64",
@@ -1367,6 +1369,7 @@ def test_get_data(unittest, test_data):
                         unique_ct=1,
                         kurt=0,
                         skew=0,
+                        coord=None,
                     ),
                     dict(
                         dtype="float64",
@@ -1382,6 +1385,7 @@ def test_get_data(unittest, test_data):
                         unique_ct=1,
                         kurt=0,
                         skew=0,
+                        coord=None,
                     ),
                     dict(
                         dtype="string",
@@ -1618,6 +1622,7 @@ def test_get_data(unittest, test_data):
                     unique_ct=1,
                     kurt=0,
                     skew=0,
+                    coord=None,
                 ),
                 "should update dtypes on data structure change",
             )
@@ -1927,6 +1932,23 @@ def test_get_column_analysis_kde():
             )
             response_data = json.loads(response.data)
             assert len(response_data["kde"]) == 51
+
+
+@pytest.mark.unit
+def test_get_column_analysis_geolocation(unittest):
+    df = pd.DataFrame(dict(a=[1, 2, 3], b=[3, 4, 5]))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="a", type="geolocation", latCol="a", lonCol="b"),
+            )
+            response_data = json.loads(response.data)
+            unittest.assertEqual(response_data["lat"], [1, 2, 3])
+            unittest.assertEqual(response_data["lon"], [3, 4, 5])
 
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'

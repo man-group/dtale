@@ -46,6 +46,7 @@ from dtale.utils import (
     apply,
     build_shutdown_url,
     classify_type,
+    coord_type,
     dict_merge,
     divide_chunks,
     export_to_csv_buffer,
@@ -595,6 +596,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
                 val_counts = s.value_counts()
                 check2 = (val_counts.values[0] / val_counts.values[1]) > 20
             dtype_data["lowVariance"] = bool(check1 and check2)
+            dtype_data["coord"] = coord_type(s)
 
         if classification in ["D"] and not s.isnull().all():
             dtype_data["skew"] = json_float(apply(s, json_timestamp).skew())
@@ -2353,6 +2355,8 @@ def get_column_analysis(data_id):
     ordinal_agg = get_str_arg(request, "ordinalAgg", "sum")
     category_col = get_str_arg(request, "categoryCol")
     category_agg = get_str_arg(request, "categoryAgg", "mean")
+    lat_col = get_str_arg(request, "latCol")
+    lon_col = get_str_arg(request, "lonCol")
     data_type = get_str_arg(request, "type")
     curr_settings = global_state.get_settings(data_id) or {}
     query = build_query(data_id, curr_settings.get("query"))
@@ -2363,11 +2367,10 @@ def get_column_analysis(data_id):
     )
     selected_col = find_selected_column(data, col)
     cols = [selected_col]
-    if ordinal_col is not None:
-        cols.append(ordinal_col)
-    if category_col is not None:
-        cols.append(category_col)
-    data = data[~pd.isnull(data[selected_col])][cols]
+    for col in [ordinal_col, category_col, lat_col, lon_col]:
+        if col is not None:
+            cols.append(col)
+    data = data[~pd.isnull(data[selected_col])][list(set(cols))]
 
     code = build_code_export(
         data_id, imports="import numpy as np\nimport pandas as pd\n\n"
@@ -2376,7 +2379,21 @@ def get_column_analysis(data_id):
     classifier = classify_type(dtype)
     if data_type is None:
         data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
-    if data_type == "word_value_counts":
+    if data_type == "geolocation":
+        lat_col = get_str_arg(request, "latCol")
+        lon_col = get_str_arg(request, "lonCol")
+        geo = data[[lat_col, lon_col]].dropna()
+        geo.columns = ["lat", "lon"]
+        code += [
+            "chart = df[~pd.isnull(df['{}'])][['{}', '{}']".format(
+                selected_col, lat_col, lon_col
+            ),
+            "chart.columns = ['lat', 'lon']",
+        ]
+        col_types = grid_columns(geo)
+        f = grid_formatter(col_types, nan_display=None)
+        return_data = f.format_lists(geo)
+    elif data_type == "word_value_counts":
         s, cleaner_code = handle_cleaners(data[selected_col])
         hist = (
             pd.value_counts(s.str.split(expand=True).stack())

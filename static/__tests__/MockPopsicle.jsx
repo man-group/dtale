@@ -1,5 +1,4 @@
 import _ from "lodash";
-import * as popsicle from "popsicle";
 
 /**
  * Return an object that behaves the same as popsicle, but overrides
@@ -41,9 +40,9 @@ function mock(getReturnValue) {
 
     return p;
   };
-  return _.assignIn({}, popsicle, {
+  return {
     fetch: boomshaka,
-  });
+  };
 }
 
 export default {

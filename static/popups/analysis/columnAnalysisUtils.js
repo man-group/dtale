@@ -131,15 +131,15 @@ function createChart(ctx, fetchedData, chartOpts) {
 }
 
 const BASE_ANALYSIS_URL = "/dtale/column-analysis";
-const EMTPY_CATEGORY = (
+const emptyVal = val => (
   <div style={{ height: 400 }} className="missing-category">
-    {"Please select a category."}
+    {`Please select a ${val}.`}
   </div>
 );
 
 const PARAM_PROPS = _.concat(
   ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
-  ["categoryAgg", "cleaners"]
+  ["categoryAgg", "cleaners", "latCol", "lonCol"]
 );
 
 function dataLoader(props, state, propagateState, chartParams) {
@@ -149,10 +149,18 @@ function dataLoader(props, state, propagateState, chartParams) {
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
   if (params.type === "categories" && _.isNull(finalParams.categoryCol)) {
-    propagateState({ chart: EMTPY_CATEGORY, code: null });
+    propagateState({ chart: emptyVal("category"), code: null });
     return;
   }
   let subProps = ["categoryCol", "categoryAgg"];
+  if (params.type === "geolocation") {
+    if (_.isNull(finalParams.latCol) || _.isNull(finalParams.lonCol)) {
+      propagateState({ chart: emptyVal(_.isNull(finalParams.latCol) ? "latitude" : "longitude"), code: null });
+      return;
+    } else {
+      subProps = ["latCol", "lonCol"];
+    }
+  }
   if (_.includes(["value_counts", "word_value_counts"], params.type)) {
     subProps = ["ordinalCol", "ordinalAgg"];
   }

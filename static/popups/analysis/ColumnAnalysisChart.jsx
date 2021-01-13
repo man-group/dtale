@@ -26,6 +26,10 @@ class ColumnAnalysisChart extends React.Component {
   createChart() {
     const { fetchedChartData, finalParams } = this.props;
     const builder = ctx => {
+      if (finalParams.type === "geolocation") {
+        chartUtils.createGeolocation("columnAnalysisChart", fetchedChartData);
+        return null;
+      }
       if (!_.get(fetchedChartData, "data", []).length) {
         return null;
       }
@@ -36,9 +40,11 @@ class ColumnAnalysisChart extends React.Component {
   }
 
   render() {
+    const isGeo = this.props?.finalParams?.type === "geolocation";
     return (
       <div style={{ height: this.props.height }}>
-        <canvas id="columnAnalysisChart" />
+        {isGeo && <div id="columnAnalysisChart" />}
+        {!isGeo && <canvas id="columnAnalysisChart" />}
       </div>
     );
   }

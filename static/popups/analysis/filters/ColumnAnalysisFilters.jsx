@@ -7,6 +7,7 @@ import { exports as gu } from "../../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../../CodePopup";
 import CategoryInputs from "./CategoryInputs";
 import { ANALYSIS_AGGS, TITLES } from "./Constants";
+import { default as GeoFilters, hasCoords, loadCoordVals } from "./GeoFilters";
 import OrdinalInputs from "./OrdinalInputs";
 import TextEnterFilter from "./TextEnterFilter";
 
@@ -19,6 +20,7 @@ class ColumnAnalysisFilters extends React.Component {
       top: (props.top || 100) + "",
       ordinalCol: null,
       categoryCol: null,
+      ...loadCoordVals(props.selectedCol, props.cols),
     };
     this.state.ordinalAgg = _.find(ANALYSIS_AGGS, { value: "sum" });
     this.state.categoryAgg = _.find(ANALYSIS_AGGS, { value: "mean" });
@@ -55,6 +57,9 @@ class ColumnAnalysisFilters extends React.Component {
       options.push({ label: TITLES.categories, value: "categories" });
     } else {
       options.push({ label: TITLES.value_counts, value: "value_counts" });
+    }
+    if (hasCoords(this.props.selectedCol, this.props.cols)) {
+      options.push({ label: TITLES.geolocation, value: "geolocation" });
     }
     const update = value => this.setState({ type: value, top: null }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
@@ -102,11 +107,14 @@ class ColumnAnalysisFilters extends React.Component {
     if (_.isNull(this.props.type)) {
       return null;
     }
-    const { code, dtype } = this.props;
+    const { code, dtype, selectedCol, cols } = this.props;
     const colType = gu.findColType(dtype);
     const title = this.state.type === "histogram" ? "Histogram" : "Value Counts";
     let filterMarkup = null;
-    if ("int" === colType) {
+    if (this.state.type === "geolocation") {
+      const update = val => this.setState(val, this.buildChart);
+      filterMarkup = <GeoFilters col={selectedCol} columns={cols} {...this.state} update={update} />;
+    } else if ("int" === colType) {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
         filterMarkup = this.buildFilter("bins");

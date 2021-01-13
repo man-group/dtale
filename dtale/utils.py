@@ -493,6 +493,16 @@ def get_dtypes(df):
     return dict(list(_load()))
 
 
+def coord_type(s):
+    if classify_type(find_dtype(s)) != "F":
+        return None
+    if "lat" in s.name.lower():
+        return None if (~s.dropna().between(-90, 90)).sum() else "lat"
+    if "lon" in s.name.lower():
+        return None if (~s.dropna().between(-180, 180)).sum() else "lon"
+    return None
+
+
 def grid_columns(df):
     """
     Build list of {name, dtype} dictionaries for columns in :class:`pandas:pandas.DataFrame`

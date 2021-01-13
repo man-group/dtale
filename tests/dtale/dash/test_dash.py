@@ -213,8 +213,8 @@ def test_map_data(unittest):
     df = pd.DataFrame(
         dict(
             a=[1, 2, 3],
-            b=[4, 5, 6],
-            c=[7, 8, 9],
+            lat=[4.0, 5.0, 6.0],
+            lon=[7.0, 8.0, 9.0],
             d=pd.date_range("20200101", "20200103"),
             e=["a", "b", "c"],
         )
@@ -266,6 +266,7 @@ def test_map_data(unittest):
                     "proj": None,
                 },
             )
+
             unittest.assertEqual(
                 resp_data["map-loc-dropdown"]["options"], [{"label": "e", "value": "e"}]
             )
@@ -273,6 +274,14 @@ def test_map_data(unittest):
                 resp_data["map-loc-mode-input"]["style"], {"display": "none"}
             )
             unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
+            unittest.assertEqual(
+                resp_data["map-lat-dropdown"]["options"],
+                [{"label": "lat", "value": "lat"}],
+            )
+            unittest.assertEqual(
+                resp_data["map-lon-dropdown"]["options"],
+                [{"label": "lon", "value": "lon"}],
+            )
 
             params["inputs"][0]["value"] = "mapbox"
             response = c.post("/dtale/charts/_dash-update-component", json=params)
