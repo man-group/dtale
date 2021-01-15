@@ -13,5 +13,6 @@
   "winsorize": "Remove outliers in your column by replacing values that fall at or below the lowest percentile with the maximum value in that group and replacing values that fall at or above highest percentile with the minimum value of that group.",
   "zscore_normalize": "Normalize a numeric column by turning it into z-scores. Simply subtract it's mean and divide by it's standard deviation.",
   "cleaning": "Clean string data of punctuation, numbers & other erroneous data using different functions.",
-  "diff": "Calculate differences between rows using Pandas` diff() function."
+  "diff": "Calculate differences between rows using Pandas` diff() function.",
+  "data_slope": "Calculate the slope (sequential increases/decreases) of a column based on the current order."
 }

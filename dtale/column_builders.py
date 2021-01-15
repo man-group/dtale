@@ -54,6 +54,8 @@ class ColumnBuilder(object):
             self.builder = CleaningColumnBuilder(name, cfg)
         elif column_type == "diff":
             self.builder = DiffColumnBuilder(name, cfg)
+        elif column_type == "data_slope":
+            self.builder = TimeseriesDataSlopeBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -1154,3 +1156,27 @@ class DiffColumnBuilder(object):
             col=col,
             periods=periods,
         )
+
+
+class TimeseriesDataSlopeBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col = self.cfg.get("col")
+        diffs = data[col].diff().bfill()
+        diffs.loc[diffs < 0] = -1
+        g = (~(diffs == diffs.shift(1))).cumsum()
+        return pd.Series(g, index=data.index, name=self.name)
+
+    def build_code(self):
+        col = self.cfg.get("col")
+        return [
+            "diffs = df['{}'].diff().bfill()".format(col),
+            "diffs.loc[diffs < 0] = -1",
+            "g = (~(diffs == diffs.shift(1))).cumsum()",
+            "df.loc[:, '{name}'] = pd.Series(g, index=df.index, name='{name}')".format(
+                name=self.name
+            ),
+        ]

@@ -3,6 +3,7 @@ import React from "react";
 
 import { CreateBins, validateBinsCfg } from "./CreateBins";
 import { CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
+import { CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateDiff, validateDiffCfg } from "./CreateDiff";
 import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
@@ -18,7 +19,7 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize", "encoder", "cleaning", "diff"]
+  ["similarity", "standardize", "encoder", "cleaning", "diff", "data_slope"]
 );
 export const LABELS = {
   zscore_normalize: "Z-Score Normalize",
@@ -62,6 +63,8 @@ export function validateCfg(type, cfg) {
       return validateCleaningCfg(cfg);
     case "diff":
       return validateDiffCfg(cfg);
+    case "data_slope":
+      return validateDataSlopeCfg(cfg);
   }
   return null;
 }
@@ -108,6 +111,8 @@ export function getBody(state, props, updateState) {
       );
     case "diff":
       return <CreateDiff {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "data_slope":
+      return <CreateDataSlope {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
   }
   return null;
 }

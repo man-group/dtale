@@ -269,3 +269,18 @@ def test_diff():
             builder,
             lambda col: col.isnull().sum() == 1 and col.sum() == -8,
         )
+
+
+@pytest.mark.unit
+def test_data_slope():
+    df = pd.DataFrame({"entity": [5, 7, 5, 5, 5, 6, 3, 2, 0, 5]})
+    data_id, column_type = "1", "data_slope"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "entity"}
+        builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
+        verify_builder(
+            builder,
+            lambda col: col.sum() == 35,
+        )

@@ -4,9 +4,9 @@ import React from "react";
 
 import ColumnSelect from "./ColumnSelect";
 
-function validateZScoreNormalizeCfg({ col }) {
+function validateDataSlopeCfg({ col }) {
   if (!col) {
-    return "Please select a column to normalize!";
+    return "Please select a column!";
   }
   return null;
 }
@@ -16,10 +16,14 @@ function buildCode({ col }) {
     return null;
   }
 
-  return `(df['${col}'] - data['${col}'].mean()) / data['${col}'].std(ddof=0)`;
+  return [
+    `diffs = df['${col}'].diff().bfill()`,
+    "diffs.loc[diffs < 0] = -1",
+    "g = (~(diffs == diffs.shift(1))).cumsum()",
+  ];
 }
 
-class CreateZScoreNormalize extends React.Component {
+class CreateDataSlope extends React.Component {
   constructor(props) {
     super(props);
     this.state = { col: null };
@@ -35,7 +39,7 @@ class CreateZScoreNormalize extends React.Component {
     };
     updatedState.code = buildCode(updatedState.cfg);
     if (_.get(state, "col") && !this.props.namePopulated) {
-      updatedState.name = `${updatedState.cfg.col}_normalize`;
+      updatedState.name = `${updatedState.cfg.col}_data_slope`;
     }
     this.setState(currState, () => this.props.updateState(updatedState));
   }
@@ -53,11 +57,11 @@ class CreateZScoreNormalize extends React.Component {
     );
   }
 }
-CreateZScoreNormalize.displayName = "CreateZScoreNormalize";
-CreateZScoreNormalize.propTypes = {
+CreateDataSlope.displayName = "CreateDataSlope";
+CreateDataSlope.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
 };
 
-export { CreateZScoreNormalize, validateZScoreNormalizeCfg, buildCode };
+export { CreateDataSlope, validateDataSlopeCfg, buildCode };
