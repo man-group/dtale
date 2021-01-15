@@ -233,6 +233,12 @@ PROJECTIONS = [
     "sinusoidal",
 ]
 
+AUTO_LOAD_MSG = (
+    "By default, the chart builder will try to build a chart everytime you change your chart settings. If you "
+    "toggle off 'Auto-Load' then you can change the settings as much as you like without triggering a chart build. "
+    "In order to trigger a chart build with 'Auto-Load' off you must click the 'Load' button."
+)
+
 
 def build_img_src(proj, img_type="projections"):
     return "../static/images/{}/{}.png".format(img_type, "_".join(proj.split(" ")))
@@ -773,13 +779,13 @@ def build_map_type_tabs(map_type):
     )
 
 
-def build_hoverable(content, hoverable_content):
+def build_hoverable(content, hoverable_content, hover_class="map-types"):
     return html.Div(
         [
             content,
             html.Div(
                 hoverable_content,
-                className="hoverable__content map-types",
+                className="hoverable__content {}".format(hover_class),
                 style=dict(top="50%"),
             ),
         ],
@@ -972,6 +978,7 @@ def charts_layout(df, settings, data_id, **inputs):
         dcc.Store(id="range-data"),
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
+        dcc.Store(id="load-clicks", data=0),
         dcc.Input(id="chart-code", type="hidden"),
         html.Div(
             html.Div(
@@ -1601,7 +1608,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                         colorscale=inputs.get("colorscale")
                                         or default_cscale,
                                     ),
-                                    className="col-auto addon-min-width",
+                                    className="col-auto addon-min-width pr-0",
                                     style=cscale_style,
                                     id="colorscale-input",
                                 ),
@@ -1634,6 +1641,31 @@ def charts_layout(df, settings, data_id, **inputs):
                                     id="lock-zoom-btn",
                                     className="ml-auto",
                                     style=lock_zoom_style(chart_type),
+                                ),
+                                build_input(
+                                    build_hoverable(
+                                        html.Div(
+                                            "Auto-Load", style=dict(color="white")
+                                        ),
+                                        AUTO_LOAD_MSG,
+                                        "",
+                                    ),
+                                    html.Div(
+                                        daq.BooleanSwitch(
+                                            id="auto-load-toggle",
+                                            on=True,
+                                            color="green",
+                                        ),
+                                        className="toggle-wrapper",
+                                    ),
+                                    id="auto-load-input",
+                                    className="ml-auto col-auto",
+                                ),
+                                dbc.Button(
+                                    "Load",
+                                    id="load-btn",
+                                    color="primary",
+                                    style=dict(display="none"),
                                 ),
                             ],
                             className="row pt-3 pb-5 charts-filters",

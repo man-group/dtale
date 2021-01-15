@@ -503,7 +503,8 @@ div.tab-container > div.tab:last-child {
 #drilldown-input .input-group-addon,
 #map-loc-mode-input .input-group-addon,
 #custom-geojson-input .input-group-addon,
-#upload-geojson-btn .input-group-addon {
+#upload-geojson-btn .input-group-addon,
+#auto-load-input .input-group-addon {
     height: 36px;
     white-space: pre-line;
 }
@@ -515,12 +516,14 @@ div.tab-container > div.tab:last-child {
 }
 #cpg-input > div.input-group div:last-child,
 #animate-input > div.input-group div:last-child,
-#drilldown-input > div.input-group div:last-child {
+#drilldown-input > div.input-group div:last-child,
+#auto-load-input > div.input-group div:last-child {
     min-width: 3.75em;
 }
 #cpg-toggle,
 #animate-toggle,
-#drilldown-toggle {
+#drilldown-toggle,
+#auto-load-toggle {
   margin-top: 3px;
 }
 .toggle-wrapper {
@@ -593,5 +596,10 @@ div#treemap-inputs > div {
 
 .modal-header {
   background: white;
+}
+
+#load-btn {
+  margin-top: .3em;
+  height: 36px;
 }
 

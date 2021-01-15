@@ -73,7 +73,7 @@ def test_display_page(unittest):
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-            x_dd = component_defs[13]["props"]["children"][0]
+            x_dd = component_defs[14]["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
             x_dd = x_dd["props"]["children"][0]
@@ -861,7 +861,7 @@ def build_chart_params(
     return build_dash_request(
         (
             "..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..."
-            "yaxis-type.children.."
+            "yaxis-type.children...load-clicks.data.."
         ),
         "input-data.modified_timestamp",
         [
@@ -874,7 +874,8 @@ def build_chart_params(
                 "candlestick-input-data",
                 "treemap-input-data",
             ]
-        ],
+        ]
+        + [{"id": "load-btn", "property": "n_clicks", "value": 0}],
         [
             pathname,
             {"id": "input-data", "property": "data", "value": inputs},
@@ -884,6 +885,8 @@ def build_chart_params(
             {"id": "candlestick-input-data", "property": "data", "value": cs_inputs},
             {"id": "treemap-input-data", "property": "data", "value": treemap_inputs},
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
+            {"id": "auto-load-toggle", "property": "on", "value": True},
+            {"id": "load-clicks", "property": "data", "value": 0},
         ],
     )
 
@@ -904,7 +907,7 @@ def test_chart_building_nones():
             "barmode": "group",
             "barsort": None,
         }
-        params["state"][-1]["value"] = {
+        params["state"][-3]["value"] = {
             "cpg": False,
             "barmode": "group",
             "barsort": None,
@@ -1239,6 +1242,15 @@ def test_chart_building_bar_and_popup(unittest):
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             assert len(resp_data["chart-content"]["children"]) == 2
+
+            params["inputs"][-1]["value"] = 1
+            params["state"][-2]["value"] = False
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            assert response.get_json()["response"]["load-clicks"]["data"] == 1
+
+            params["state"][-1]["value"] = 1
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            assert response.status_code == 204
 
 
 @pytest.mark.unit
@@ -2624,3 +2636,18 @@ def test_chart_url_params():
         treemap_group=["group"],
     )
     test_parsing(params)
+
+
+@pytest.mark.unit
+def test_load_style(unittest):
+    with app.test_client() as c:
+        params = build_dash_request(
+            "load-btn.style",
+            "auto-load-toggle.on",
+            {"id": "auto-load-toggle", "property": "on", "value": False},
+            [],
+        )
+        del params["state"]
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(resp_data, {"load-btn": {"style": {"display": "block"}}})
