@@ -607,12 +607,22 @@ def init_callbacks(dash_app):
         )
 
     @dash_app.callback(
+        Output("load-btn", "style"),
+        [
+            Input("auto-load-toggle", "on"),
+        ],
+    )
+    def load_style(auto_load):
+        return dict(display="block" if not auto_load else "none")
+
+    @dash_app.callback(
         [
             Output("chart-content", "children"),
             Output("last-chart-input-data", "data"),
             Output("range-data", "data"),
             Output("chart-code", "value"),
             Output("yaxis-type", "children"),
+            Output("load-clicks", "data"),
         ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
@@ -627,6 +637,7 @@ def init_callbacks(dash_app):
             Input("map-input-data", "modified_timestamp"),
             Input("candlestick-input-data", "modified_timestamp"),
             Input("treemap-input-data", "modified_timestamp"),
+            Input("load-btn", "n_clicks"),
         ],
         [
             State("url", "pathname"),
@@ -637,6 +648,8 @@ def init_callbacks(dash_app):
             State("candlestick-input-data", "data"),
             State("treemap-input-data", "data"),
             State("last-chart-input-data", "data"),
+            State("auto-load-toggle", "on"),
+            State("load-clicks", "data"),
         ],
     )
     def on_data(
@@ -646,6 +659,7 @@ def init_callbacks(dash_app):
         _ts4,
         _ts5,
         _ts6,
+        load,
         pathname,
         inputs,
         chart_inputs,
@@ -654,6 +668,8 @@ def init_callbacks(dash_app):
         cs_data,
         treemap_data,
         last_chart_inputs,
+        auto_load,
+        prev_load_clicks,
     ):
         """
         dash callback controlling the building of dash charts
@@ -666,6 +682,8 @@ def init_callbacks(dash_app):
             cs_data,
             treemap_data,
         )
+        if not auto_load and load == prev_load_clicks:
+            raise PreventUpdate
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
@@ -677,6 +695,7 @@ def init_callbacks(dash_app):
             range_data,
             "\n".join(make_list(code) + [CHART_EXPORT_CODE]),
             get_yaxis_type_tabs(make_list(inputs.get("y") or [])),
+            load,
         )
 
     def get_default_range(range_data, y, max=False):
