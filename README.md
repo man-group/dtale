@@ -4,6 +4,7 @@
 * [Animated US COVID-19 Deaths By State](http://alphatechadmin.pythonanywhere.com/dtale/charts/3?chart_type=maps&query=date+%3E+%2720200301%27&agg=raw&map_type=choropleth&loc_mode=USA-states&loc=state_code&map_val=deaths&colorscale=Reds&cpg=false&animate_by=date)
 * [3D Scatter Chart](http://alphatechadmin.pythonanywhere.com/dtale/charts/4?chart_type=3d_scatter&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
 * [Surface Chart](http://alphatechadmin.pythonanywhere.com/dtale/charts/4?chart_type=surface&query=&x=date&z=Col0&agg=raw&cpg=false&y=%5B%22security_id%22%5D)
+* [Network Analysis](http://alphatechadmin.pythonanywhere.com/dtale/charts/5?to=to&from=from&group=weight&weight=weight)
 
 -----------------
 
@@ -36,6 +37,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
  - [Medium: Exploratory Data Analysis – Using D-Tale](https://medium.com/da-tum/exploratory-data-analysis-1-4-using-d-tale-99a2c267db79)
  - [EOD Notes: Using python and dtale to analyze correlations](https://www.google.com/amp/s/eod-notes.com/2020/05/07/using-python-and-dtale-to-analyze-correlations/amp/)
  - [Data Exploration is Now Super Easy w/ D-Tale](https://dibyendudeb.com/d-tale-data-exploration-tool/)
+ - [Practical Business Python](https://pbpython.com/dataframe-gui-overview.html)
 
 ## Tutorials
 
@@ -43,10 +45,14 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
  - [machine_learning_2019](https://www.youtube.com/watch?v=-egtEUVBy9c)
  - [D-Tale The Best Library To Perform Exploratory Data Analysis Using Single Line Of Code🔥🔥🔥🔥](https://www.youtube.com/watch?v=xSXGcuiEzUc)
  - [Explore and Analyze Pandas Data Structures w/ D-Tale](https://m.youtube.com/watch?v=JUu5IYVGqCg)
+ - [Data Preprocessing simplest method 🔥](https://www.youtube.com/watch?v=Q2kMNPKgN4g)
 
  ## Related Resources
 
  - [Adventures In Flask While Developing D-Tale](https://github.com/man-group/dtale/blob/master/docs/FlaskCon/FlaskAdventures.md)
+ - [Adding Range Selection to react-virtualized](https://github.com/man-group/dtale/blob/master/docs/RANGE_SELECTION.md)
+ - [Building Draggable/Resizable Modals](https://github.com/man-group/dtale/blob/master/docs/DRAGGABLE_RESIZABLE_MODALS.md)
+ - [Embedding Flask Apps within Streamlit](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_STREAMLIT.md)
 
 ## Contents
 
@@ -75,10 +81,11 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Coverage (Deprecated)](#coverage-deprecated), [Correlations](#correlations), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [About](#about), [Resize](#resize), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Charts](#charts)
+  - [Network Viewer](#network-viewer)
   - [Hotkeys](#hotkeys)
   - [Menu Functions Depending on Browser Dimensions](#menu-functions-depending-on-browser-dimensions)
 - [For Developers](#for-developers)
@@ -252,6 +259,10 @@ If you have D-Tale installed within your docker container please add the followi
 **On a Mac**: ```-h `hostname` -p 40000:40000```
 * `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
 * `-p`, access to port 40000 which is the default port for running D-Tale
+
+**On Windows**: ```-p 40000:40000```
+* `-p`, access to port 40000 which is the default port for running D-Tale
+* D-Tale URL will be http://127.0.0.1:40000/
 
 **Everything Else**: ```-h `hostname` --network host```
 * `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
@@ -631,6 +642,19 @@ This is very powerful functionality which allows users to create a new data from
 
 [![](http://img.youtube.com/vi/fYsxogXKZ2c/0.jpg)](http://www.youtube.com/watch?v=fYsxogXKZ2c "Reshaping Tutorial")
 
+#### Duplicates
+Remove duplicate columns/values from your data as well as extract duplicates out into separate instances.
+
+The folowing screen shots are for a dataframe with the following data:
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/data.png)
+
+|Function|Description|Preview|
+|:------:|:---------:|:-----:|
+|**Remove Duplicate Columns**|Remove any columns that contain the same data as another and you can either keep the first, last or none of these columns that match this criteria.  You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/columns.png)|
+|**Remove Duplicate Column Names**|Remove any columns with the same name (name comparison is case-insensitive) and you can either keep the first, last or none of these columns that match this criteria. You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/columns_names.png)|
+|**Remove Duplicate Rows**|Remove any rows from your dataframe where the values of a subset of columns are considered duplicates. You can choose to keep the first, last or none of the rows considered duplicated.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/rows.png)|
+|**Show Duplicates**|Break any duplicate rows (based on a subset of columns) out into another dataframe viewable in your D-Tale session. You can choose to view all duplicates or select specific groups based on the duplicated value.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/show.png)|
+
 #### Charts
 Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
  
@@ -742,13 +766,31 @@ Here is the documentation for those: [Legacy Charts](https://github.com/man-grou
 
 This is a very powerful feature with many more features that could be offered (linked subplots, different statistical aggregations, etc...) so please submit issues :)
 
-#### Coverage (Deprecated)
+#### Network Viewer
 
-If you have watched the video within the [Man Institute](https://www.man.com/maninstitute/d-tale) blog post you'll notice that there is a "Coverage" popup.  This was deprecated with the creation of the "Charts" page.  You can create the same coverage chart in that video by choosing the following options in the "Charts" page:
-- Type: **Line**
-- X: **date**
-- Y: **security_id**
-- Aggregation: **Count** or **Unique Count**
+This tool gives users the ability to visualize directed graphs.  For the screenshots I'll beshowing for this functionality we'll be working off a dataframe with the following data:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/data.png)
+
+Start by selecting columns containing the "To" and "From" values for the nodes in you network and then click "Load":
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_to_from.png)
+
+You can also see instructions on to interact with the network by expanding the directions section by clicking on the header "Network Viewer" at the top.  You can also view details about the network provided by the package [networkx](https://github.com/networkx) by clicking the header "Network Analysis".
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_expanded.png)
+
+Select a column containing weighting for the edges of the nodes in the "Weight" column and click "Load":
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_weight.png)
+
+Select a column containing group information for each node in the "From" column by populating "Group" and then clicking "Load":
+ ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_group.png)
+
+ Perform shortest path analysis by doing a Shift+Click on two nodes:
+ ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_shortest_path.png)
+
+View direct descendants of each node by clicking on it:
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/network/network_descendants.png)
+
+You can zoom in on nodes by double-clicking and zoom back out by pressing "Esc".
 
 #### Correlations
 Shows a pearson correlation matrix of all numeric columns against all other numeric columns
@@ -756,10 +798,11 @@ Shows a pearson correlation matrix of all numeric columns against all other nume
   - If you have a date-type column, you can click an individual cell and see a timeseries of pearson correlations for that column combination
     - Currently if you have multiple date-type columns you will have the ability to toggle between them by way of a drop-down
   - Furthermore, you can click on individual points in the timeseries to view the scatter plot of the points going into that correlation
+    - Within the scatter plot section you can also view the details of the PPS for those data points in the chart by hovering over the number next to "PPS"
 
-|Matrix|Timeseries|Scatter|
-|------|----------|-------|
-|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_scatter.png)|
+|Matrix|PPS|Timeseries|Scatter|
+|------|---|----------|-------|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_pps.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_ts.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Correlations_scatter.png)|
 
 |Col1 Filtered|Col2 Filtered|Col1 & Col2 Filtered|
 |------|----------|-------|
@@ -772,6 +815,13 @@ When the data being viewed in D-Tale has date or timestamp columns but for each 
 |Data|Correlations|
 |:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr.png)|
+
+#### Predictive Power Score
+Predictive Power Score (using the package [ppscore](https://github.com/8080labs/ppscore)) is an asymmetric, data-type-agnostic score that can detect linear or non-linear relationships between two columns. The score ranges from 0 (no predictive power) to 1 (perfect predictive power). It can be used as an alternative to the correlation (matrix). WARNING: This could take a while to load.
+
+This page works similar to the [Correlations](#correlations) page but uses the PPS calcuation to populate the grid and by clicking on cells you can view the details of the PPS for those two columns in question.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/rolling_corr_data.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/pps.png)
 
 #### Heat Map
 This will hide any non-float or non-int columns (with the exception of the index on the right) and apply a color to the background of each cell.
@@ -822,6 +872,13 @@ You can activate as many of these criteria as you'd like nad they will be treate
 |:------:|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_range_selections.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_range_output.png)|
 
+#### Low Variance Flag
+Show flags on column headers where both these conditions are true:
+* Count of unique values / column size < 10%
+* Count of most common value / Count of second most common value > 20
+
+Here's an example of what this will look like when you apply it:
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/highlight_range_selections.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/low_variance.png)
 
 #### Code Exports
 *Code Exports* are small snippets of code representing the current state of the grid you're viewing including things like:
@@ -911,8 +968,18 @@ This will give you information about what version of D-Tale you're running as we
 |--------|:------:|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/About-up-to-date.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/About-out-of-date.png)|
 
-#### Resize
+#### Refresh Widths
 Mostly a fail-safe in the event that your columns are no longer lining up. Click this and should fix that
+
+#### Theme
+Toggle between light & dark themes for your viewing pleasure (only affects grid, not popups or charts).
+
+|Light|Dark|
+|--------|:------:|
+|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/theme/light.png)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/theme/dark.png)|
+
+#### Reload Data
+Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.
 
 #### Shutdown
 Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
@@ -1027,7 +1094,9 @@ Based on the data type of a column different charts will be shown.
 |---------------|----------------|--------|
 | Histogram     | Float, Int |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/histogram.PNG)|
 | Value Counts  | Int, String, Bool, Date, Category|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts.PNG)|
+| Word Value Counts | String | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/word_value_counts.png)|
 | Category      | Float   |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/category.PNG)|
+|Geolocation*   | Int, Float     |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/geolocation.PNG)|
 
 
 **Histogram** can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input
@@ -1039,7 +1108,13 @@ Based on the data type of a column different charts will be shown.
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts_ordinal.PNG
 )
 
+**Word Value Count** you can analyze string data by splitting each record by spaces to see the counts of each word.  This chart has all the same functions available as "Value Counts".  In addition, you can select multiple "Cleaner" functions to be applied to your column before building word values. These functions will perform operations like removing punctuation, removing numeric character & normalizing accent characters.
+
 **Category (Category Breakdown)** when viewing float columns you can also see them broken down by a categorical column (string, date, int, etc...).  This means that when you select a category column this will then display the frequency of each category in a line as well as bars based on the float column you're analyzing grouped by that category and computed by your aggregation (default: mean).
+
+**Geolocation** when your data contains latitude & longitude then you can view the coverage in a plotly scattergeo map.  In order to have access this chart your dataframe must have at least one of each of these types of columns:
+* "lat" must be contained within the lower-cased version of the column name and values be between -90 & 90
+* "lon" must be contained within the lower-cased version of the column name and values be between -180 & 180
 
 ### Hotkeys
 

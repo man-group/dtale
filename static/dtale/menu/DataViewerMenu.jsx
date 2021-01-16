@@ -222,13 +222,14 @@ class ReactDataViewerMenu extends React.Component {
             <div className="hoverable__content menu-description">{Descriptions.about}</div>
           </li>
           <ThemeOption />
-          <li>
+          <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={() => window.location.reload()}>
                 <i className="ico-sync" />
                 <span className="font-weight-bold">Reload Data</span>
               </button>
             </span>
+            <div className="hoverable__content menu-description">{Descriptions.reload_data}</div>
           </li>
           <ConditionalRender display={iframe}>
             <li>

@@ -65,7 +65,7 @@ export default class NetworkDescription extends React.Component {
               <b>Double Clicking</b>
               {` on a node will zoom in on it and pressing `}
               <b>Esc</b>
-              {` will clear the zoom`}
+              {` will reset the zoom`}
             </li>
             <li>
               <b>Shift+Clicking</b>
