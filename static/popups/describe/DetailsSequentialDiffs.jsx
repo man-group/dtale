@@ -21,6 +21,12 @@ class ReactDetailsSequentialDiffs extends React.Component {
     this.loadSortedDiffs = this.loadSortedDiffs.bind(this);
   }
 
+  componentDidUpdate(nextProps) {
+    if (this.props.column !== nextProps.column) {
+      this.setState({ sortedDiffs: {}, sort: null, error: null });
+    }
+  }
+
   loadSortedDiffs(sort) {
     if (_.has(this.state.sortedDiffs, sort)) {
       this.setState({ sort });
