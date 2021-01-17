@@ -1337,6 +1337,7 @@ def test_get_data(unittest, test_data):
                         hasMissing=0,
                         hasOutliers=0,
                         unique_ct=1,
+                        kurt=0,
                         skew=0,
                     ),
                     dict(

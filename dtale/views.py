@@ -599,7 +599,9 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype_data["coord"] = coord_type(s)
 
         if classification in ["D"] and not s.isnull().all():
-            dtype_data["skew"] = json_float(apply(s, json_timestamp).skew())
+            timestamps = apply(s, json_timestamp)
+            dtype_data["skew"] = json_float(timestamps.skew())
+            dtype_data["kurt"] = json_float(timestamps.kurt())
 
         if classification == "S" and not dtype_data["hasMissing"]:
             if dtype.startswith("category"):
