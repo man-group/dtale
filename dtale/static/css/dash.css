@@ -571,6 +571,10 @@ div#treemap-inputs > div {
   padding-bottom: 0.25rem !important;
 }
 
+div#bins-val-input input {
+  border-radius: 0 3px 3px 0 !important;
+}
+
 #mapbox-token-input {
   width: 100%;
   border-top-left-radius: .25rem;
@@ -601,5 +605,29 @@ div#treemap-inputs > div {
 #load-btn {
   margin-top: .3em;
   height: 36px;
+}
+
+#bins-val-input,
+#bins-val-input input {
+  height: 36px;
+}
+#bin-type-input .input-group-addon {
+  min-width: initial;
+}
+#bin-type-div .hoverable__content {
+  width: max-content;
+}
+#bin-type-div .hoverable__content ul {
+  list-style-type: disc;
+}
+
+#yaxis-type-div,
+#group-type-div,
+#bin-type-div {
+  border: 1px solid #a7b3b7;
+}
+
+#group-type-div > div {
+  margin: auto;
 }
 

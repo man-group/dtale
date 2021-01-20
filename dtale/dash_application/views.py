@@ -36,7 +36,7 @@ from dtale.dash_application.layout.layout import (
     lock_zoom_style,
     main_inputs_and_group_val_display,
     show_chart_per_group,
-    show_group_input,
+    get_group_types,
     show_input_handler,
     show_yaxis_ranges,
 )
@@ -205,8 +205,10 @@ def init_callbacks(dash_app):
             Input("y-single-dropdown", "value"),
             Input("z-dropdown", "value"),
             Input("group-dropdown", "value"),
+            Input("group-type", "value"),
             Input("group-val-dropdown", "value"),
             Input("bins-val-input", "value"),
+            Input("bin-type", "value"),
             Input("agg-dropdown", "value"),
             Input("window-input", "value"),
             Input("rolling-comp-dropdown", "value"),
@@ -222,8 +224,10 @@ def init_callbacks(dash_app):
         y_single,
         z,
         group,
+        group_type,
         group_val,
         bins_val,
+        bin_type,
         agg,
         window,
         rolling_comp,
@@ -246,8 +250,10 @@ def init_callbacks(dash_app):
             y=y_val,
             z=z,
             group=group,
+            group_type=group_type or "groups",
             group_val=group_val,
             bins_val=bins_val,
+            bin_type=bin_type or "width",
             agg=agg or "raw",
             window=window,
             rolling_comp=rolling_comp,
@@ -821,9 +827,11 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [
+            Output("group-type-input", "style"),
             Output("group-val-input", "style"),
             Output("bins-input", "style"),
             Output("main-inputs", "className"),
+            Output("group-inputs-row", "style"),
         ],
         [
             Input("input-data", "modified_timestamp"),
@@ -884,8 +892,8 @@ def init_callbacks(dash_app):
         elif chart_type == "treemap":
             group_cols = treemap_group_cols
         group_cols = make_list(group_cols)
-        show_group, _ = show_group_input(inputs, data_id, group_cols)
-        if not show_group:
+        group_types = get_group_types(inputs, data_id, group_cols)
+        if "groups" not in group_types:
             return [], None
         group_vals = run_query(
             global_state.get_data(data_id),
