@@ -184,7 +184,9 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "window",
         "rolling_comp",
         "load",
+        "group_type",
         "bins_val",
+        "bin_type",
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
@@ -2522,8 +2524,10 @@ def build_figure_data(
     y=None,
     z=None,
     group=None,
+    group_type=None,
     group_val=None,
     bins_val=None,
+    bin_type=None,
     agg=None,
     window=None,
     rolling_comp=None,
@@ -2593,8 +2597,10 @@ def build_figure_data(
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
+        group_type=group_type,
         group_val=group_val,
         bins_val=bins_val,
+        bin_type=bin_type,
         agg=agg,
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,

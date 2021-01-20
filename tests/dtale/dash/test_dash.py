@@ -147,8 +147,10 @@ def test_input_changes(unittest):
                     {"id": "y-single-dropdown", "property": "value"},
                     {"id": "z-dropdown", "property": "value"},
                     {"id": "group-dropdown", "property": "value"},
+                    {"id": "group-type", "property": "value"},
                     {"id": "group-val-dropdown", "property": "value"},
                     {"id": "bins-val-input", "property": "value"},
+                    {"id": "bins-type", "property": "value"},
                     {"id": "agg-dropdown", "property": "value"},
                     {"id": "window-input", "property": "value"},
                     {"id": "rolling-comp-dropdown", "property": "value"},
@@ -173,6 +175,8 @@ def test_input_changes(unittest):
                     "query": None,
                     "load": None,
                     "bins_val": None,
+                    "bin_type": "width",
+                    "group_type": "groups",
                 },
             )
             unittest.assertEqual(
@@ -424,7 +428,10 @@ def test_main_input_styling(unittest):
             )
             pathname = path_builder(c.port)
             params = {
-                "output": "..group-val-input.style...bins-input.style...main-inputs.className..",
+                "output": (
+                    "..group-type-input.style...group-val-input.style...bins-input.style...main-inputs.className..."
+                    "group-inputs-row.style.."
+                ),
                 "changedPropIds": ["input-data.modified_timestamp"],
                 "inputs": [
                     ts_builder("input-data"),
@@ -449,6 +456,8 @@ def test_main_input_styling(unittest):
                 response.get_json()["response"],
                 {
                     "bins-input": {"style": {"display": "none"}},
+                    "group-type-input": {"style": {"display": "none"}},
+                    "group-inputs-row": {"style": {"display": "none"}},
                     "group-val-input": {"style": {"display": "none"}},
                     "main-inputs": {"className": "col-md-12"},
                 },
@@ -460,7 +469,9 @@ def test_main_input_styling(unittest):
                 response.get_json()["response"],
                 {
                     "bins-input": {"style": {"display": "none"}},
-                    "group-val-input": {"style": {"display": "block"}},
+                    "group-inputs-row": {"style": {"display": "block"}},
+                    "group-type-input": {"style": {"display": "block"}},
+                    "group-val-input": {"style": {"display": "none"}},
                     "main-inputs": {"className": "col-md-8"},
                 },
             )
@@ -469,7 +480,9 @@ def test_main_input_styling(unittest):
             unittest.assertEqual(
                 response.get_json()["response"],
                 {
-                    "bins-input": {"style": {"display": "block"}},
+                    "bins-input": {"style": {"display": "none"}},
+                    "group-inputs-row": {"style": {"display": "block"}},
+                    "group-type-input": {"style": {"display": "none"}},
                     "group-val-input": {"style": {"display": "none"}},
                     "main-inputs": {"className": "col-md-8"},
                 },
@@ -2089,7 +2102,9 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
             inputs = {
                 "chart_type": "treemap",
                 "agg": "mean",
+                "group_type": "bins",
                 "bins_val": 5,
+                "bin_type": "freq",
             }
             chart_inputs = {}
             treemap_inputs = {
@@ -2097,6 +2112,16 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
                 "treemap_label": "2",
                 "treemap_group": ["3"],
             }
+            params = build_chart_params(
+                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+            )
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert (
+                len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
+            )
+
+            inputs["bin_type"] = "width"
             params = build_chart_params(
                 pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
             )
@@ -2120,7 +2145,9 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
                 url_params,
                 {
                     "agg": "mean",
+                    "group_type": "bins",
                     "bins_val": "5",
+                    "bin_type": "width",
                     "chart_type": "treemap",
                     "cpg": "false",
                     "group_filter": group_filter,
@@ -2131,8 +2158,8 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
             )
             response = c.get(url)
             assert response.status_code == 200
-            [pathname_val, search_val] = url.split("?")
-            print(search_val)
+            [_, search_val] = url.split("?")
+            assert len(search_val)
 
 
 @pytest.mark.unit

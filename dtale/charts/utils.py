@@ -1,5 +1,6 @@
 import copy
 
+import numpy as np
 import pandas as pd
 
 from dtale.query import run_query
@@ -429,8 +430,10 @@ def build_base_chart(
     x,
     y,
     group_col=None,
+    group_type=None,
     group_val=None,
     bins_val=None,
+    bin_type=None,
     agg=None,
     allow_duplicates=False,
     return_raw=False,
@@ -478,8 +481,33 @@ def build_base_chart(
     sort_cols = y_cols if len(z_cols) else []
     if group_col is not None and len(group_col):
         for col in make_list(group_col):
-            if classify_type(find_dtype(data[col])) == "F":
-                data.loc[:, col] = pd.qcut(data[col], q=bins_val).astype("str")
+            classifier = classify_type(find_dtype(data[col]))
+            if classifier == "F" or (classifier == "I" and group_type == "bins"):
+                if bin_type == "width":
+                    data.loc[:, col] = pd.qcut(data[col], q=bins_val).astype("str")
+                    code.append(
+                        "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins})".format(
+                            col=col, bins=bins_val
+                        )
+                    )
+                else:
+                    npt = len(data[col])
+                    equal_freq_bins = np.interp(
+                        np.linspace(0, npt, bins_val + 1),
+                        np.arange(npt),
+                        np.sort(data[col]),
+                    )
+                    data.loc[:, col] = pd.cut(
+                        data[col], bins=equal_freq_bins[1:]
+                    ).astype("str")
+                    code.append(
+                        (
+                            "npt = len(chart_data)\n"
+                            "equal_freq_bins = np.interp(np.linspace(0, npt, {bins}), np.arange(npt), "
+                            "np.sort(data['{col}']))\n"
+                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins[1:])"
+                        ).format(col=col, bins=bins_val + 1)
+                    )
 
         main_group = group_col
         if animate_by is not None:
