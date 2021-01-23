@@ -647,6 +647,7 @@ def scatter_builder(
     axes_builder,
     wrapper,
     group=None,
+    group_filter=None,
     z=None,
     agg=None,
     animate_by=None,
@@ -739,7 +740,7 @@ def scatter_builder(
         return wrapper(
             graph_wrapper(figure=figure_cfg, modal=modal),
             group_filter=dict_merge(
-                dict(y=y_val), {} if group is None else dict(group=group)
+                dict(y=y_val), {} if group_filter is None else dict(group=group_filter)
             ),
         )
 
@@ -1112,7 +1113,7 @@ def bar_builder(
                     },
                     modal=kwargs.get("modal", False),
                 ),
-                group_filter=dict(group=series_key),
+                group_filter=dict(group=series.pop("_filter_")),
             )
             for series_key, series in data["data"].items()
         ]
@@ -1322,7 +1323,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                     },
                     modal=inputs.get("modal", False),
                 ),
-                group_filter=dict(group=series_key),
+                group_filter=dict(group=series.pop("_filter_")),
             )
             for series_key, series in data["data"].items()
         ]
@@ -1521,7 +1522,9 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                     ),
                     group_filter=dict_merge(
                         dict(y=y2),
-                        {} if series_key == "all" else dict(group=series_key),
+                        {}
+                        if series_key == "all"
+                        else dict(group=series.pop("_filter_")),
                     ),
                 )
                 if len(negative_values):
@@ -2018,7 +2021,7 @@ def treemap_builder(data_id, export=False, **inputs):
             )
         )
 
-        def _build_treemap_data(values, labels, name):
+        def _build_treemap_data(values, labels, name, group_filter):
             x, y, width, height = 0.0, 0.0, 100.0, 100.0
             normed = squarify.normalize_sizes(values, width, height)
             rects = squarify.squarify(normed, x, y, width, height)
@@ -2065,10 +2068,9 @@ def treemap_builder(data_id, export=False, **inputs):
                 annotations=annotations,
                 hovermode="closest",
             )
-            group_filter = None
             if name != "all":
                 layout["title"] = name
-                group_filter = dict(group=name)
+                group_filter = dict(group=group_filter)
             figure_cfg = dict(data=[trace], layout=layout)
             base_fig = graph_wrapper(
                 style={"margin-right": "auto", "margin-left": "auto"},
@@ -2080,7 +2082,12 @@ def treemap_builder(data_id, export=False, **inputs):
             return chart_builder(base_fig, group_filter=group_filter)
 
         chart = [
-            _build_treemap_data(series[treemap_value], series["x"], series_key)
+            _build_treemap_data(
+                series[treemap_value],
+                series["x"],
+                series_key,
+                series.pop("_filter_", None),
+            )
             for series_key, series in data["data"].items()
         ]
         code.append(
@@ -2136,9 +2143,8 @@ def map_builder(data_id, export=False, **inputs):
             agg_title = AGGS[props.agg]
             title = "{} ({})".format(title, agg_title)
         if props.group_val is not None:
-            title = "{} {}".format(
-                title, build_group_inputs_filter(raw_data, props.group_val)
-            )
+            _, group_label = build_group_inputs_filter(raw_data, props.group_val)
+            title = "{} ({})".format(title, group_label)
         layout = build_layout(
             dict(title=title, autosize=True, margin={"l": 0, "r": 0, "b": 0})
         )
@@ -2815,9 +2821,10 @@ def build_chart(data_id=None, data=None, **inputs):
                             axes_builder,
                             chart_builder,
                             group=subgroup,
+                            group_filter=subgroup_cfg.pop("_filter_"),
                             **kwargs
                         )
-                        for subgroup in data["data"]
+                        for subgroup, subgroup_cfg in data["data"].items()
                     ]
                 )
             else:

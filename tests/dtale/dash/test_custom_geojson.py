@@ -88,7 +88,6 @@ def test_update_geojson():
             params["state"][0]["value"] = "africa_110m.json"
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            print(resp_data["output-geojson-upload"]["children"])
             assert (
                 resp_data["output-geojson-upload"]["children"]
                 == "africa_110m uploaded!"

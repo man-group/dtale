@@ -1,3 +1,6 @@
+import pandas as pd
+from pkg_resources import parse_version
+
 import dtale.global_state as global_state
 
 
@@ -49,7 +52,10 @@ def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
     if (query or "") == "":
         return _load_pct(df)
 
-    df = df.query(query, local_dict=context_vars or {})
+    is_pandas25 = parse_version(pd.__version__) >= parse_version("0.25.0")
+    df = df.query(
+        query if is_pandas25 else query.replace("`", ""), local_dict=context_vars or {}
+    )
 
     if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))

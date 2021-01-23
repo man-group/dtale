@@ -212,7 +212,7 @@ class ShowDuplicates(object):
         duplicates = pd.concat(duplicates)
         group_filter = None
         if self.cfg.get("filter"):
-            group_filter = build_group_inputs_filter(
+            group_filter, _ = build_group_inputs_filter(
                 df, [{col: val for col, val in zip(group, self.cfg["filter"])}]
             )
             duplicates = run_query(duplicates, group_filter)

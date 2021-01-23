@@ -1782,7 +1782,7 @@ def test_chart_building_map_scattergeo(unittest, scattergeo_data):
             title = resp_data["chart-content"]["children"]["props"]["children"][1][
                 "props"
             ]["figure"]["layout"]["title"]
-            assert title["text"] == "Map of val (No Aggregation) (cat == {})".format(
+            assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
                 group_val
             )
 
@@ -1853,7 +1853,7 @@ def test_chart_building_map_mapbox(unittest, scattergeo_data):
             title = resp_data["chart-content"]["children"]["props"]["children"][1][
                 "props"
             ]["figure"]["layout"]["title"]
-            assert title["text"] == "Map of val (No Aggregation) (cat == {})".format(
+            assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
                 group_val
             )
 
@@ -2072,7 +2072,6 @@ def test_chart_building_treemap(treemap_data):
             )
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            print(resp_data["chart-content"])
             assert len(resp_data["chart-content"]["children"]) == 1
 
             inputs["query"] = "group == 'group3'"
@@ -2140,7 +2139,7 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
             url_params = dict(get_url_parser()(url.split("?")[-1]))
             group_filter = url_params.get("group_filter")
             assert group_filter is not None
-            assert group_filter.startswith("3 == '(") and group_filter.endswith("]'")
+            assert group_filter.startswith("`3` == '(") and group_filter.endswith("]'")
             unittest.assertEqual(
                 url_params,
                 {
