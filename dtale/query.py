@@ -1,5 +1,3 @@
-from six import PY3
-
 import dtale.global_state as global_state
 
 
