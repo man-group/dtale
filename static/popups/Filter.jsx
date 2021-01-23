@@ -105,6 +105,10 @@ class ReactFilter extends React.Component {
           <p className="font-weight-bold">Example queries</p>
           <ul>
             <li>
+              {"wrap column names in backticks that are protected words or containing spaces/periods: "}
+              <span className="font-weight-bold">{"`from` == 5 and `Col 1` == 2 and `Col.1` == 3"}</span>
+            </li>
+            <li>
               {"drop NaN values: "}
               <span className="font-weight-bold">{"Col == Col"}</span>
             </li>

@@ -77,7 +77,7 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
-    clickBuilder(result, "Z-Score Normalize");
+    clickBuilder(result, "Data Slope");
   });
 
   afterAll(() => {
@@ -87,7 +87,7 @@ describe("DataViewer tests", () => {
     Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
-  it("DataViewer: build z-score normalize column", async () => {
+  it("DataViewer: build data slope column", async () => {
     expect(result.find(CreateDataSlope).length).toBe(1);
     result.find(CreateDataSlope).find(Select).first().instance().onChange({ value: "col1" });
     result.update();
@@ -99,7 +99,7 @@ describe("DataViewer tests", () => {
     expect(result.find(CreateColumn).instance().state.name).toBe("col1_data_slope");
   });
 
-  it("DataViewer: build z-score normalize cfg validation", () => {
+  it("DataViewer: build data slope cfg validation", () => {
     const { validateDataSlopeCfg } = require("../../../popups/create/CreateDataSlope");
     expect(validateDataSlopeCfg({})).toBe("Please select a column!");
     expect(

@@ -3,6 +3,11 @@ from six import PY3
 import dtale.global_state as global_state
 
 
+def build_col_key(col):
+    # Use backticks for pandas >= 0.25 to handle column names with spaces or protected words
+    return "`{}`".format(col)
+
+
 def build_query(data_id, query=None):
     curr_settings = global_state.get_settings(data_id) or {}
     return inner_build_query(curr_settings, query)
@@ -46,28 +51,7 @@ def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
     if (query or "") == "":
         return _load_pct(df)
 
-    # https://stackoverflow.com/a/40083013/12616360 only supporting filter cleanup for python 3+
-    if PY3:
-        invalid_column_names = [x for x in df.columns.values if not x.isidentifier()]
-
-        # Make replacements in the query and keep track
-        # NOTE: This method fails if the frame has columns called REPL_0 etc.
-        replacements = dict()
-        final_query = str(query)
-        for cn in invalid_column_names:
-            r = "REPL_{}".format(str(invalid_column_names.index(cn)))
-            query_tokens = final_query.split(" ")
-            final_query = " ".join(
-                [r if t in [cn, "({}".format(cn)] else t for t in query_tokens]
-            )
-            replacements[cn] = r
-
-        inv_replacements = {replacements[k]: k for k in replacements.keys()}
-        df = df.rename(columns=replacements)
-        df = df.query(final_query, local_dict=context_vars or {})
-        df = df.rename(columns=inv_replacements)
-    else:
-        df = df.query(query, local_dict=context_vars or {})
+    df = df.query(query, local_dict=context_vars or {})
 
     if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))

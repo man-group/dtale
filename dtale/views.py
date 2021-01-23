@@ -40,7 +40,7 @@ from dtale.dash_application.charts import (
 )
 from dtale.data_reshapers import DataReshaper
 from dtale.code_export import build_code_export
-from dtale.query import build_query, run_query
+from dtale.query import build_col_key, build_query, run_query
 from dtale.utils import (
     DuplicateDataError,
     apply,
@@ -1913,11 +1913,15 @@ def build_outlier_query(iqr_lower, iqr_upper, min_val, max_val, column):
     queries = []
     if iqr_lower > min_val:
         queries.append(
-            "{column} < {lower}".format(column=column, lower=json_float(iqr_lower))
+            "{column} < {lower}".format(
+                column=build_col_key(column), lower=json_float(iqr_lower)
+            )
         )
     if iqr_upper < max_val:
         queries.append(
-            "{column} > {upper}".format(column=column, upper=json_float(iqr_upper))
+            "{column} > {upper}".format(
+                column=build_col_key(column), upper=json_float(iqr_upper)
+            )
         )
     return "(({}))".format(") or (".join(queries)) if len(queries) > 1 else queries[0]
 
