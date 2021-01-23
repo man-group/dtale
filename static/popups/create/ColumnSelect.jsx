@@ -8,12 +8,11 @@ import { exports as gu } from "../../dtale/gridUtils";
 class ColumnSelect extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { [props.prop]: _.get(props.parent, props.prop, null) };
     this.updateState = this.updateState.bind(this);
   }
 
   updateState(state) {
-    this.setState(state, () => this.props.updateState(state));
+    this.props.updateState(state);
   }
 
   render() {
@@ -42,7 +41,7 @@ class ColumnSelect extends React.Component {
               )}
               getOptionLabel={o => o.label ?? o.value}
               getOptionValue={_.property("value")}
-              value={this.state[prop]}
+              value={_.get(this.props.parent, this.props.prop, null)}
               onChange={selected => this.updateState({ [prop]: selected })}
               isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!

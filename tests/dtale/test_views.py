@@ -616,8 +616,8 @@ def test_toggle_outlier_filter(unittest):
             stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
-            assert resp["outlierFilters"]["a"]["query"] == "a > 339.75"
-            assert settings[c.port]["outlierFilters"]["a"]["query"] == "a > 339.75"
+            assert resp["outlierFilters"]["a"]["query"] == "`a` > 339.75"
+            assert settings[c.port]["outlierFilters"]["a"]["query"] == "`a` > 339.75"
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
             assert "a" not in resp["outlierFilters"]
@@ -1281,7 +1281,7 @@ def test_test_filter(test_data):
                     query_string=dict(query="a.b == 2"),
                 )
                 response_data = json.loads(response.data)
-                assert response_data["success"]
+                assert not response_data["success"]
 
 
 @pytest.mark.unit
@@ -3375,7 +3375,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["bool_val"],
-                {u"query": u"bool_val == False", u"value": [u"False"]},
+                {u"query": u"`bool_val` == False", u"value": [u"False"]},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "str_val"),
@@ -3385,7 +3385,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["str_val"],
-                {u"query": "str_val in ('a', 'b')", u"value": ["a", "b"]},
+                {u"query": "`str_val` in ('a', 'b')", u"value": ["a", "b"]},
             )
             for col, f_type in [
                 ("bool_val", "string"),
@@ -3400,7 +3400,7 @@ def test_save_column_filter(unittest, custom_data):
                 )
                 unittest.assertEqual(
                     json.loads(response.data)["currFilters"][col],
-                    {u"query": u"{col} != {col}".format(col=col), u"missing": True},
+                    {u"query": u"`{col}` != `{col}`".format(col=col), u"missing": True},
                 )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "bool_val"),
@@ -3418,7 +3418,7 @@ def test_save_column_filter(unittest, custom_data):
                         )
                     ),
                 )
-                query = "int_val {} 5".format("==" if operand == "=" else operand)
+                query = "`int_val` {} 5".format("==" if operand == "=" else operand)
                 unittest.assertEqual(
                     json.loads(response.data)["currFilters"]["int_val"],
                     {u"query": query, u"value": "5", "operand": operand},
@@ -3431,7 +3431,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val in (5, 4)", u"value": ["5", "4"], "operand": "="},
+                {u"query": "`int_val` in (5, 4)", u"value": ["5", "4"], "operand": "="},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3444,7 +3444,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
                 {
-                    u"query": "int_val >= 4 and int_val <= 5",
+                    u"query": "`int_val` >= 4 and `int_val` <= 5",
                     "min": "4",
                     "max": "5",
                     "operand": "[]",
@@ -3461,7 +3461,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
                 {
-                    u"query": "int_val > 4 and int_val < 5",
+                    u"query": "`int_val` > 4 and `int_val` < 5",
                     "min": "4",
                     "max": "5",
                     "operand": "()",
@@ -3477,7 +3477,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val > 4", "min": "4", "operand": "()"},
+                {u"query": "`int_val` > 4", "min": "4", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3489,7 +3489,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val < 5", "max": "5", "operand": "()"},
+                {u"query": "`int_val` < 5", "max": "5", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3501,7 +3501,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val == 4", "min": "4", "max": "4", "operand": "()"},
+                {u"query": "`int_val` == 4", "min": "4", "max": "4", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "date"),
@@ -3514,7 +3514,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["date"],
                 {
-                    u"query": "date == '20000101'",
+                    u"query": "`date` == '20000101'",
                     "start": "20000101",
                     "end": "20000101",
                 },
@@ -3530,7 +3530,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["date"],
                 {
-                    u"query": "date >= '20000101' and date <= '20000102'",
+                    u"query": "`date` >= '20000101' and `date` <= '20000102'",
                     "start": "20000101",
                     "end": "20000102",
                 },
