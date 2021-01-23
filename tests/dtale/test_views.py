@@ -210,7 +210,6 @@ def test_startup(unittest):
         instance = views.startup(
             URL, data_loader=lambda: test_data, ignore_duplicate=True
         )
-        print(instance.data)
         unittest.assertEqual(
             sorted(instance.data["index"].values.tolist()), sorted(test_data.keys())
         )
@@ -2502,7 +2501,7 @@ def test_get_chart_data(unittest, rolling_data):
             response_data = json.loads(response.data)
             assert response_data["min"]["security_id"] == 24.5
             assert response_data["max"]["security_id"] == 24.5
-            series_key = "baz == 'baz'"
+            series_key = "(baz: baz)"
             assert response_data["data"][series_key]["x"][-1] == "2000-01-05"
             assert len(response_data["data"][series_key]["security_id"]) == 5
             assert sum(response_data["data"][series_key]["security_id"]) == 122.5
@@ -3098,7 +3097,6 @@ def test_500():
                 "/dtale/main/1",
             ]:
                 response = c.get(path)
-                print(path)
                 assert response.status_code == 500
                 assert "<h1>Internal Server Error</h1>" in str(response.data)
 
