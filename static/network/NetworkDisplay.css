@@ -1,5 +1,5 @@
 .groups-legend {
-  width: 5em;
+  width: min-content;
   position: absolute;
   border: 1px solid gray;
   border-radius: 0.25rem;
