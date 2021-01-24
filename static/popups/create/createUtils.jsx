@@ -7,8 +7,10 @@ import { CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
 import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { CreateDiff, validateDiffCfg } from "./CreateDiff";
 import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
+import { CreateExponentialSmoothing, validateExponentialSmoothingCfg } from "./CreateExponentialSmoothing";
 import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { CreateRandom, validateRandomCfg } from "./CreateRandom";
+import { CreateRolling, validateRollingCfg } from "./CreateRolling";
 import { CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
 import { CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
 import { CreateString, validateStringCfg } from "./CreateString";
@@ -19,7 +21,7 @@ import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScor
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize", "encoder", "cleaning", "diff", "data_slope"]
+  ["similarity", "standardize", "encoder", "cleaning", "diff", "data_slope", "rolling", "exponential_smoothing"]
 );
 export const LABELS = {
   zscore_normalize: "Z-Score Normalize",
@@ -65,6 +67,10 @@ export function validateCfg(type, cfg) {
       return validateDiffCfg(cfg);
     case "data_slope":
       return validateDataSlopeCfg(cfg);
+    case "rolling":
+      return validateRollingCfg(cfg);
+    case "exponential_smoothing":
+      return validateExponentialSmoothingCfg(cfg);
   }
   return null;
 }
@@ -113,6 +119,10 @@ export function getBody(state, props, updateState) {
       return <CreateDiff {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "data_slope":
       return <CreateDataSlope {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "rolling":
+      return <CreateRolling {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "exponential_smoothing":
+      return <CreateExponentialSmoothing {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
   }
   return null;
 }

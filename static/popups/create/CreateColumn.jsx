@@ -122,9 +122,12 @@ class ReactCreateColumn extends React.Component {
             <div className="col-md-8 builders">
               <div className="row">
                 {_.map(createUtils.TYPES, (type, i) => {
+                  const isExponentialSmoothing = type === "exponential_smoothing";
                   const buttonProps = {
                     className: "btn w-100",
-                    style: { padding: "0.45rem 0.3rem" },
+                    style: isExponentialSmoothing
+                      ? { padding: 0, whiteSpace: "break-spaces" }
+                      : { padding: "0.45rem 0.3rem" },
                   };
                   if (type === this.state.type) {
                     buttonProps.className += " btn-primary active";
