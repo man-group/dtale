@@ -535,6 +535,7 @@ def init_callbacks(dash_app):
             Output("cpg-input", "style"),
             Output("barmode-input", "style"),
             Output("barsort-input", "style"),
+            Output("top-bars-input", "style"),
             Output("yaxis-input", "style"),
             Output("animate-input", "style"),
             Output("animate-by-input", "style"),
@@ -574,6 +575,7 @@ def init_callbacks(dash_app):
             cpg_style,
             bar_style,
             barsort_style,
+            barsort_style,
             yaxis_style,
             animate_style,
             animate_by_style,
@@ -587,6 +589,7 @@ def init_callbacks(dash_app):
             Input("cpg-toggle", "on"),
             Input("barmode-dropdown", "value"),
             Input("barsort-dropdown", "value"),
+            Input("top-bars", "value"),
             Input("colorscale-picker", "colorscale"),
             Input("animate-toggle", "on"),
             Input("animate-by-dropdown", "value"),
@@ -594,7 +597,7 @@ def init_callbacks(dash_app):
         ],
     )
     def chart_input_data(
-        cpg, barmode, barsort, colorscale, animate, animate_by, trendline
+        cpg, barmode, barsort, top_bars, colorscale, animate, animate_by, trendline
     ):
         """
         dash callback for maintaining selections in chart-formatting inputs
@@ -606,6 +609,7 @@ def init_callbacks(dash_app):
             cpg=cpg,
             barmode=barmode,
             barsort=barsort,
+            top_bars=top_bars,
             colorscale=colorscale,
             animate=animate,
             animate_by=animate_by,
