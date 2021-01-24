@@ -284,3 +284,51 @@ def test_data_slope():
             builder,
             lambda col: col.sum() == 35,
         )
+
+
+@pytest.mark.unit
+def test_rolling(rolling_data):
+    import dtale.views as views
+
+    df, _ = views.format_data(rolling_data)
+    data_id, column_type = "1", "rolling"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
+        builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
+        verify_builder(
+            builder,
+            lambda col: col.isnull().sum() == 0,
+        )
+
+        cfg = {
+            "col": "0",
+            "comp": "mean",
+            "window": "5",
+            "min_periods": 1,
+            "on": "date",
+            "center": True,
+        }
+        builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
+        verify_builder(
+            builder,
+            lambda col: col.isnull().sum() == 0,
+        )
+
+
+@pytest.mark.unit
+def test_exponential_smoothing(rolling_data):
+    import dtale.views as views
+
+    df, _ = views.format_data(rolling_data)
+    data_id, column_type = "1", "exponential_smoothing"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"col": "0", "alpha": 0.3}
+        builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)
+        verify_builder(
+            builder,
+            lambda col: col.isnull().sum() == 0,
+        )
