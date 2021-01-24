@@ -631,3 +631,6 @@ div#bins-val-input input {
   margin: auto;
 }
 
+#top-bars div.Select {
+  min-width: 6.5em;
+}

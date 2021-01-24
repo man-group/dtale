@@ -1722,6 +1722,18 @@ def charts_layout(df, settings, data_id, **inputs):
                     style=barsort_input_style,
                     id="barsort-input",
                 ),
+                build_input(
+                    "Top",
+                    dcc.Dropdown(
+                        id="top-bars",
+                        options=[build_option(v) for v in [5, 10, 20, 50]],
+                        value=inputs.get("top_bars"),
+                        placeholder=None,
+                    ),
+                    className="col-auto",
+                    style=barsort_input_style,
+                    id="top-bars-input",
+                ),
                 html.Div(
                     html.Div(
                         [

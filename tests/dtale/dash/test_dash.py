@@ -508,8 +508,8 @@ def test_chart_type_changes():
             fig_data_outputs = (
                 "..y-multi-input.style...y-single-input.style...z-input.style...group-input.style..."
                 "rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style..."
-                "yaxis-input.style...animate-input.style...animate-by-input.style...animate-by-dropdown.options..."
-                "trendline-input.style.."
+                "top-bars-input.style...yaxis-input.style...animate-input.style...animate-by-input.style..."
+                "animate-by-dropdown.options...trendline-input.style.."
             )
             inputs = {
                 "id": "input-data",
@@ -754,6 +754,7 @@ def test_chart_input_updates(unittest):
                 {"id": "cpg-toggle", "property": "on", "value": False},
                 {"id": "barmode-dropdown", "property": "value", "value": "group"},
                 {"id": "barsort-dropdown", "property": "value"},
+                {"id": "top-bars", "property": "value"},
                 {"id": "colorscale-dropdown", "property": "value"},
                 {"id": "animate-toggle", "property": "on"},
                 {"id": "animate-by-dropdown", "property": "value"},
@@ -769,6 +770,7 @@ def test_chart_input_updates(unittest):
                 "cpg": False,
                 "barmode": "group",
                 "barsort": None,
+                "top_bars": None,
                 "colorscale": None,
                 "animate": None,
                 "animate_by": None,
@@ -1256,6 +1258,13 @@ def test_chart_building_bar_and_popup(unittest):
             resp_data = response.get_json()["response"]
             assert len(resp_data["chart-content"]["children"]) == 2
 
+            chart_inputs["top_bars"] = 5
+            params = build_chart_params(pathname, inputs, chart_inputs)
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            resp_data = response.get_json()["response"]
+            assert len(resp_data["chart-content"]["children"]) == 2
+
+            chart_inputs["top_bars"] = None
             params["inputs"][-1]["value"] = 1
             params["state"][-2]["value"] = False
             response = c.post("/dtale/charts/_dash-update-component", json=params)

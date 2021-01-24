@@ -190,7 +190,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
-        base_props += ["barmode", "barsort"]
+        base_props += ["barmode", "barsort", "top_bars"]
     elif chart_type == "maps":
         map_type = params.get("map_type")
         if map_type == "scattergeo":
@@ -1043,6 +1043,7 @@ def bar_builder(
     cpg=False,
     barmode="group",
     barsort=None,
+    top_bars=None,
     **kwargs
 ):
     """
@@ -1067,6 +1068,24 @@ def bar_builder(
     :return: surface chart
     :rtype: :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
     """
+
+    def _build_sorted_bars(sort_col, series, data, hover_text, axes):
+        df = pd.DataFrame(series)
+        df = df.sort_values(sort_col)
+        if top_bars:
+            df = df.sort_values(sort_col, ascending=False)
+            df = df.head(top_bars)
+        data["data"][series_key] = {c: df[c].values for c in df.columns}
+        tickvals = list(range(len(df["x"])))
+        data["data"][series_key]["x"] = tickvals
+        hover_text[series_key] = {
+            "hovertext": df["x"].values,
+            "hoverinfo": "y+text",
+        }
+        axes["xaxis"] = dict_merge(
+            axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
+        )
+
     hover_text = dict()
     allow_multiaxis = barmode is None or barmode == "group"
     axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
@@ -1074,18 +1093,9 @@ def bar_builder(
     for series_key, series in data["data"].items():
         barsort_col = "x" if barsort == x or barsort not in series else barsort
         if barsort_col != "x" or kwargs.get("agg") == "raw":
-            df = pd.DataFrame(series)
-            df = df.sort_values(barsort_col)
-            data["data"][series_key] = {c: df[c].values for c in df.columns}
-            tickvals = list(range(len(df["x"])))
-            data["data"][series_key]["x"] = tickvals
-            hover_text[series_key] = {
-                "hovertext": df["x"].values,
-                "hoverinfo": "y+text",
-            }
-            axes["xaxis"] = dict_merge(
-                axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
-            )
+            _build_sorted_bars(barsort_col, series, data, hover_text, axes)
+        elif top_bars:
+            _build_sorted_bars(y[0], series, data, hover_text, axes)
 
     if cpg:
         charts = [
@@ -1209,7 +1219,15 @@ def bar_builder(
 
 
 def bar_code_builder(
-    data, x, y, axes_builder, cpg=False, barmode="group", barsort=None, **kwargs
+    data,
+    x,
+    y,
+    axes_builder,
+    cpg=False,
+    barmode="group",
+    barsort=None,
+    top_bars=None,
+    **kwargs
 ):
     code = []
     base_chart_cfg = []
@@ -1225,13 +1243,28 @@ def bar_code_builder(
 
     barsort_col = "x" if barsort == x or barsort not in series else barsort
     x_data = "chart_data['x']"
-    if barsort_col != "x" or kwargs.get("agg") == "raw":
-        code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
-        x_data = "list(range(len(chart_data['x'])))"
-        base_chart_cfg = ["hovertext=chart_data['x'].values", "hoverinfo='y_text'"]
+
+    def _build_sorted_code(sort_col):
+        if top_bars:
+            code.append(
+                "chart_data = chart_data.sort_values('{}', ascending=False).head({})".format(
+                    barsort_col, top_bars
+                )
+            )
+        else:
+            code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
         axes["xaxis"] = dict_merge(
             axes.get("xaxis", {}), {"tickmode": "auto", "nticks": len(series["x"])}
         )
+        return "list(range(len(chart_data['x'])))", [
+            "hovertext=chart_data['x'].values",
+            "hoverinfo='y_text'",
+        ]
+
+    if barsort_col != "x" or kwargs.get("agg") == "raw":
+        x_data, base_chart_cfg = _build_sorted_code(barsort_col)
+    elif top_bars:
+        x_data, base_chart_cfg = _build_sorted_code(y[0])
 
     pp = pprint.PrettyPrinter(indent=4)
     code.append(("\nimport plotly.graph_objs as go\n\n" "charts = []"))
