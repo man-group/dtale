@@ -173,6 +173,8 @@ function dataLoader(props, state, propagateState, chartParams) {
     const newState = { error: null, chartParams: finalParams };
     if (_.get(fetchedChartData, "error")) {
       newState.error = <RemovableError {...fetchedChartData} />;
+      propagateState({ error: <RemovableError {...fetchedChartData} /> });
+      return;
     }
     newState.code = _.get(fetchedChartData, "code", "");
     newState.dtype = _.get(fetchedChartData, "dtype", "");

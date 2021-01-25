@@ -147,7 +147,7 @@ class DescribeFilters extends React.Component {
       } else {
         filterMarkup = wrapFilterMarkup([
           this.buildFilter("top"),
-          <OrdinalInputs key="ordinal" updateOrdinal={this.updateOrdinal} {...this.props} />,
+          <OrdinalInputs key="ordinal" colType={colType} updateOrdinal={this.updateOrdinal} {...this.props} />,
         ]);
       }
     } else if ("float" === colType) {
@@ -164,7 +164,7 @@ class DescribeFilters extends React.Component {
       // date, string, bool -> Value Counts
       filterMarkup = wrapFilterMarkup([
         this.buildFilter("top"),
-        <OrdinalInputs key="ordinal" updateOrdinal={this.updateOrdinal} {...this.props} />,
+        <OrdinalInputs key="ordinal" colType={colType} updateOrdinal={this.updateOrdinal} {...this.props} />,
       ]);
     }
     return (

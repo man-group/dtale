@@ -72,6 +72,7 @@ class DetailsCharts extends React.Component {
     const { details } = this.props;
     return (
       <React.Fragment>
+        {this.state.error}
         <div className="row">
           <div className="col-md-12">
             <DescribeFilters
