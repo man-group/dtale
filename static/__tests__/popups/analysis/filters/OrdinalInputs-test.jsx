@@ -15,6 +15,7 @@ describe("OrdinalInputs tests", () => {
       selectedCol: "foo",
       cols: [{ name: "foo" }, { name: "bar" }],
       type: "word_value_counts",
+      colType: "string",
       updateOrdinal,
     };
     result = shallow(<OrdinalInputs {...props} />);
@@ -39,5 +40,10 @@ describe("OrdinalInputs tests", () => {
     const cleaners = result.find(FilterSelect).last().prop("selectProps").options;
     expect(cleaners).toHaveLength(12);
     expect(cleaners[0].value).toBe("underscore_to_space");
+  });
+
+  it("does not render cleaners for int column", () => {
+    result.setProps({ colType: "int" });
+    expect(result.find("div.row")).toHaveLength(1);
   });
 });

@@ -94,7 +94,7 @@ describe("DataViewer tests", () => {
     result
       .find(CreateExponentialSmoothing)
       .find("div.form-group")
-      .at(2)
+      .at(1)
       .find("input")
       .last()
       .simulate("change", { target: { value: "0.3" } });
@@ -105,7 +105,7 @@ describe("DataViewer tests", () => {
       col: "col1",
       alpha: "0.3",
     });
-    expect(result.find(CreateColumn).instance().state.name).toBe("col1_normalize");
+    expect(result.find(CreateColumn).instance().state.name).toBe("col1_exp_smooth");
   });
 
   it("DataViewer: build exponential smoothing cfg validation", () => {

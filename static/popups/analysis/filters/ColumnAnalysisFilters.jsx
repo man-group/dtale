@@ -122,7 +122,7 @@ class ColumnAnalysisFilters extends React.Component {
         filterMarkup = (
           <React.Fragment>
             {this.buildFilter("top")}
-            <OrdinalInputs updateOrdinal={this.updateOrdinal} {...this.props} />
+            <OrdinalInputs colType={colType} updateOrdinal={this.updateOrdinal} {...this.props} />
           </React.Fragment>
         );
       }
@@ -143,7 +143,7 @@ class ColumnAnalysisFilters extends React.Component {
       filterMarkup = (
         <React.Fragment>
           {this.buildFilter("top")}
-          <OrdinalInputs updateOrdinal={this.updateOrdinal} {...this.props} />
+          <OrdinalInputs colType={colType} updateOrdinal={this.updateOrdinal} {...this.props} />
         </React.Fragment>
       );
     }

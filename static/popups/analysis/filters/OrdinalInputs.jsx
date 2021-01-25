@@ -32,8 +32,8 @@ class OrdinalInputs extends React.Component {
   }
 
   renderCleaners() {
-    const { type } = this.props;
-    if (type === "word_value_counts" || type === "value_counts") {
+    const { type, colType } = this.props;
+    if ((type === "word_value_counts" || type === "value_counts") && colType === "string") {
       return (
         <div className="row pt-3" data-tip="Clean column of extraneous values">
           <div className="col-auto text-center pr-4 ml-auto mt-auto mb-auto">
@@ -108,6 +108,7 @@ OrdinalInputs.propTypes = {
   cols: PropTypes.array,
   updateOrdinal: PropTypes.func,
   type: PropTypes.string,
+  colType: PropTypes.string,
 };
 
 export default OrdinalInputs;
