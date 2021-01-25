@@ -8,12 +8,12 @@ import ColumnSelect from "./ColumnSelect";
 
 require("./CreateWinsorize.css");
 
-const StyledSlider = styled(ReactSlider)`
+export const StyledSlider = styled(ReactSlider)`
   width: 100%;
   height: 25px;
 `;
 
-const StyledThumb = styled.div`
+export const StyledThumb = styled.div`
   height: 25px;
   line-height: 25px;
   width: 25px;
@@ -24,16 +24,16 @@ const StyledThumb = styled.div`
   cursor: grab;
 `;
 
-const Thumb = (props, state) => <StyledThumb {...props}>{state.valueNow}</StyledThumb>;
+export const Thumb = (props, state) => <StyledThumb {...props}>{state.valueNow}</StyledThumb>;
 
-const StyledTrack = styled.div`
+export const StyledTrack = styled.div`
   top: 0;
   bottom: 0;
   background: ${props => (props.index === 1 ? "#2a91d1" : "#ddd")};
   border-radius: 999px;
 `;
 
-const Track = (props, state) => <StyledTrack {...props} index={state.index} />;
+export const Track = (props, state) => <StyledTrack {...props} index={state.index} />;
 
 function validateWinsorizeCfg({ col }) {
   if (!col) {

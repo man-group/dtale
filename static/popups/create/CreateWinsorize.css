@@ -4,3 +4,10 @@
   padding: 0.25em;
   text-align: center;
 }
+
+.input-group .form-control.alpha-slider-input {
+  width: 3.75em;
+  border-radius: 0.25rem !important;
+  padding: 0.25em;
+  text-align: center;
+}
