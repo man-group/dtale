@@ -465,6 +465,7 @@ def get_group_types(inputs, data_id, group_cols=None):
                         return ["bins"]
                     if classifier == "I":
                         return ["groups", "bins"]
+                    return ["groups"]
         return []
 
     chart_type = inputs.get("chart_type")
