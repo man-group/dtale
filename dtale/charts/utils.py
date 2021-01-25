@@ -535,7 +535,9 @@ def build_base_chart(
             classifier = classify_type(find_dtype(data[col]))
             if classifier == "F" or (classifier == "I" and group_type == "bins"):
                 if bin_type == "width":
-                    data.loc[:, col] = pd.qcut(data[col], q=bins_val).astype("str")
+                    data.loc[:, col] = pd.qcut(
+                        data[col], q=bins_val, duplicates="drop"
+                    ).astype("str")
                     code.append(
                         "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins})".format(
                             col=col, bins=bins_val
@@ -549,7 +551,7 @@ def build_base_chart(
                         np.sort(data[col]),
                     )
                     data.loc[:, col] = pd.cut(
-                        data[col], bins=equal_freq_bins[1:]
+                        data[col], bins=equal_freq_bins[1:], duplicates="drop"
                     ).astype("str")
                     code.append(
                         (
