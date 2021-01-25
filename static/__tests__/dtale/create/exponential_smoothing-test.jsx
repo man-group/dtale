@@ -103,7 +103,7 @@ describe("DataViewer tests", () => {
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col1",
-      alpha: "0.3",
+      alpha: 0.3,
     });
     expect(result.find(CreateColumn).instance().state.name).toBe("col1_exp_smooth");
   });
@@ -119,7 +119,7 @@ describe("DataViewer tests", () => {
     expect(
       validateExponentialSmoothingCfg({
         col: "col1",
-        alpha: "0.3",
+        alpha: 0.3,
       })
     ).toBeNull();
   });

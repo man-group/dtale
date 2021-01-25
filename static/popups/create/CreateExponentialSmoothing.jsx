@@ -3,12 +3,13 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import ColumnSelect from "./ColumnSelect";
+import { StyledSlider, Thumb, Track } from "./CreateWinsorize";
 
 function validateExponentialSmoothingCfg({ col, alpha }) {
   if (!col) {
     return "Please select a column to smooth!";
   }
-  if (!parseFloat(alpha)) {
+  if (!alpha) {
     return "Please enter a valid float for alpha!";
   }
   return null;
@@ -18,7 +19,7 @@ function buildCode({ col, alpha }) {
   if (!col) {
     return null;
   }
-  if (!parseFloat(alpha)) {
+  if (!alpha) {
     return null;
   }
   return [
@@ -33,7 +34,7 @@ function buildCode({ col, alpha }) {
 class CreateExponentialSmoothing extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { col: null, alpha: "0.0" };
+    this.state = { col: null, alpha: 0.0 };
     this.updateState = this.updateState.bind(this);
   }
 
@@ -66,12 +67,28 @@ class CreateExponentialSmoothing extends React.Component {
         <div key={2} className="form-group row">
           <label className="col-md-3 col-form-label text-right">Alpha</label>
           <div className="col-md-8">
-            <input
-              type="number"
-              className="form-control"
-              value={this.state.alpha}
-              onChange={e => this.updateState({ alpha: e.target.value })}
-            />
+            <div className="input-group">
+              <input
+                type="number"
+                className="form-control mr-3 alpha-slider-input"
+                value={this.state.alpha}
+                onChange={e => this.updateState({ alpha: parseFloat(e.target.value) ?? 0.0 })}
+              />
+              <StyledSlider
+                defaultValue={this.state.alpha}
+                renderTrack={Track}
+                renderThumb={Thumb}
+                value={this.state.alpha}
+                min={0.0}
+                max={1.0}
+                step={0.01}
+                onAfterChange={alpha => this.updateState({ alpha })}
+              />
+            </div>
+            <small>
+              {`Alpha is a smoothing factor that takes values between 0 and 1. The alpha number near 0 makes data `}
+              {`more abstract and smoother than 1.`}
+            </small>
           </div>
         </div>
       </React.Fragment>
