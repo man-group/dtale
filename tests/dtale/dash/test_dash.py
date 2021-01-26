@@ -414,6 +414,11 @@ def test_main_input_styling(unittest):
         dict(
             a=[1.1, 2.1, 3.3],
             b=[4, 5, 6],
+            c=[
+                pd.Timestamp("20000101"),
+                pd.Timestamp("20000102"),
+                pd.Timestamp("20000103"),
+            ],
         )
     )
     with app.test_client() as c:
@@ -480,12 +485,34 @@ def test_main_input_styling(unittest):
             unittest.assertEqual(
                 response.get_json()["response"],
                 {
-                    "bins-input": {"style": {"display": "none"}},
+                    "bins-input": {"style": {"display": "block"}},
                     "group-inputs-row": {"style": {"display": "block"}},
                     "group-type-input": {"style": {"display": "none"}},
                     "group-val-input": {"style": {"display": "none"}},
                     "main-inputs": {"className": "col-md-8"},
                 },
+            )
+
+            params["state"][1]["value"]["group"] = ["c"]
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            assert (
+                response.get_json()["response"]["bins-input"]["style"]["display"]
+                == "none"
+            )
+            assert (
+                response.get_json()["response"]["group-val-input"]["style"]["display"]
+                == "block"
+            )
+
+            params["state"][1]["value"]["group"] = ["c|WD"]
+            response = c.post("/dtale/charts/_dash-update-component", json=params)
+            assert (
+                response.get_json()["response"]["bins-input"]["style"]["display"]
+                == "none"
+            )
+            assert (
+                response.get_json()["response"]["group-val-input"]["style"]["display"]
+                == "block"
             )
 
 

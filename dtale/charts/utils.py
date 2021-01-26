@@ -544,21 +544,23 @@ def build_base_chart(
                         ).format(col=col, bins=bins_val)
                     )
                 else:
-                    npt = len(data[col])
+                    bins_data = data[col].dropna()
+                    npt = len(bins_data)
                     equal_freq_bins = np.interp(
                         np.linspace(0, npt, bins_val + 1),
                         np.arange(npt),
-                        np.sort(data[col]),
+                        np.sort(bins_data),
                     )
                     data.loc[:, col] = pd.cut(
-                        data[col], bins=equal_freq_bins[1:], duplicates="drop"
+                        data[col], bins=equal_freq_bins, duplicates="drop"
                     ).astype("str")
                     code.append(
                         (
-                            "npt = len(chart_data)\n"
+                            "bins_data = data['{col}'].dropna()\n"
+                            "npt = len(bins_data)\n"
                             "equal_freq_bins = np.interp(np.linspace(0, npt, {bins}), np.arange(npt), "
-                            "np.sort(data['{col}']))\n"
-                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins[1:], "
+                            "np.sort(bins_data))\n"
+                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins, "
                             'duplicates="drop")'
                         ).format(col=col, bins=bins_val + 1)
                     )

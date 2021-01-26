@@ -458,13 +458,29 @@ def get_group_types(inputs, data_id, group_cols=None):
     def _flags(group_prop):
         final_group_cols = group_cols or make_list(inputs.get(group_prop))
         if len(final_group_cols):
-            for dtype_info in global_state.get_dtypes(data_id):
+            dtypes = global_state.get_dtypes(data_id)
+            for dtype_info in dtypes:
                 if dtype_info["name"] in final_group_cols:
                     classifier = classify_type(dtype_info["dtype"])
                     if classifier == "F":
                         return ["bins"]
                     if classifier == "I":
                         return ["groups", "bins"]
+                    return ["groups"]
+            for fgc in final_group_cols:
+                col, freq = fgc.split("|")
+                col_exists = (
+                    next(
+                        (
+                            dtype_info
+                            for dtype_info in dtypes
+                            if dtype_info["name"] == col
+                        ),
+                        None,
+                    )
+                    is not None
+                )
+                if col_exists and freq in FREQS:
                     return ["groups"]
         return []
 
@@ -826,8 +842,12 @@ def build_hoverable(content, hoverable_content, hover_class="map-types", top="50
 def main_inputs_and_group_val_display(inputs, data_id):
     group_types = get_group_types(inputs, data_id)
     if len(group_types):
-        is_groups = "groups" in group_types and inputs.get("group_type") == "groups"
-        is_bins = "bins" in group_types and inputs.get("group_type") == "bins"
+        is_groups = ["groups"] == group_types or (
+            "groups" in group_types and inputs.get("group_type") == "groups"
+        )
+        is_bins = ["bins"] == group_types or (
+            "bins" in group_types and inputs.get("group_type") == "bins"
+        )
         return (
             dict(display="block" if len(group_types) > 1 else "none"),
             dict(display="block" if is_groups else "none"),
