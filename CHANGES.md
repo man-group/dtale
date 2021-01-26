@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.32.1 (2021-1-25)
+* [#408](https://github.com/man-group/dtale/issues/408): modifications to exponential smoothing column builder UI
+* [#405](https://github.com/man-group/dtale/issues/405): removed cleaners from non-string columns)
+* [#404](https://github.com/man-group/dtale/issues/404): fixed bug with missing group selection dropdown on strings)
+* [#406](https://github.com/man-group/dtale/issues/406): handling for duplicate bins
+
 ### 1.32.0 (2021-1-24)
 * [#396](https://github.com/man-group/dtale/issues/396): added kurtosis to date column descriptions and fixed issue with sequential diffs hanging around for previous columns
 * [#397](https://github.com/man-group/dtale/issues/397): group type & bin type (frequency/width) options for charts

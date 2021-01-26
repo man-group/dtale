@@ -538,9 +538,11 @@ def build_base_chart(
                     data.loc[:, col] = pd.qcut(
                         data[col], q=bins_val, duplicates="drop"
                     ).astype("str")
-                    code.append((
-                        "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins}, duplicates=\"drop\")"
-                    ).format(col=col, bins=bins_val))
+                    code.append(
+                        (
+                            "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins}, duplicates=\"drop\")"
+                        ).format(col=col, bins=bins_val)
+                    )
                 else:
                     npt = len(data[col])
                     equal_freq_bins = np.interp(
@@ -557,7 +559,7 @@ def build_base_chart(
                             "equal_freq_bins = np.interp(np.linspace(0, npt, {bins}), np.arange(npt), "
                             "np.sort(data['{col}']))\n"
                             "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins[1:], "
-                            "duplicates=\"drop\")"
+                            'duplicates="drop")'
                         ).format(col=col, bins=bins_val + 1)
                     )
 
