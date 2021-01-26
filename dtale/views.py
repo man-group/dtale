@@ -2384,7 +2384,7 @@ def get_column_analysis(data_id):
     dtype = find_dtype(data[selected_col])
     classifier = classify_type(dtype)
     if data_type is None:
-        data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
+        data_type = "histogram" if classifier in ["F", "I", "D"] else "value_counts"
     if data_type == "geolocation":
         lat_col = get_str_arg(request, "latCol")
         lon_col = get_str_arg(request, "lonCol")
@@ -2516,9 +2516,20 @@ def get_column_analysis(data_id):
         return_data = f.format_lists(hist)
         return_data["top"] = top
     elif data_type == "histogram":
+        if classifier == "D":
+            data.loc[:, selected_col] = apply(data[selected_col], json_timestamp)
         hist_data, hist_labels = np.histogram(data, bins=bins)
         hist_data = [json_float(h) for h in hist_data]
         code.append("s = df[~pd.isnull(df['{col}'])][['{col}']]")
+        if classifier == "D":
+            code.append(
+                (
+                    "\nimport time\n\n"
+                    "s.loc[:, '{col}'] = s['{col}'].apply(\n"
+                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
+                    ")"
+                )
+            )
         code.append("chart, labels = np.histogram(s, bins={bins})".format(bins=bins))
         return_data = dict(
             labels=[

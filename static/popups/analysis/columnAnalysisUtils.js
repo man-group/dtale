@@ -160,9 +160,10 @@ function dataLoader(props, state, propagateState, chartParams) {
     } else {
       subProps = ["latCol", "lonCol"];
     }
-  }
-  if (_.includes(["value_counts", "word_value_counts"], params.type)) {
+  } else if (_.includes(["value_counts", "word_value_counts"], params.type)) {
     subProps = ["ordinalCol", "ordinalAgg"];
+  } else if (params.type === "histogram") {
+    subProps = [];
   }
   if (finalParams?.cleaners && finalParams?.cleaners?.length) {
     params.cleaners = _.join(_.map(finalParams.cleaners, "value"), ",");

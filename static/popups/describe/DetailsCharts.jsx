@@ -48,6 +48,7 @@ class DetailsCharts extends React.Component {
         chart: <DetailsBoxplot details={details} column={this.props.col} />,
         code: detailCode,
         query: null,
+        error: null,
       });
     } else {
       const propagateState = state =>
