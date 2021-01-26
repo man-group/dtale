@@ -3,10 +3,8 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { exports as gu } from "../../../dtale/gridUtils";
-import { AGGREGATION_OPTS } from "./Constants";
+import { ANALYSIS_AGGS } from "./Constants";
 import FilterSelect from "./FilterSelect";
-
-const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
 
 class CategoryInputs extends React.Component {
   constructor(props) {
@@ -50,7 +48,7 @@ class CategoryInputs extends React.Component {
           <FilterSelect
             selectProps={{
               value: this.state.categoryAgg,
-              options: ANALYSIS_AGGS,
+              options: _.reject(ANALYSIS_AGGS, ({ value }) => value === "count"),
               onChange: v => updateCategory("categoryAgg", v),
             }}
             labelProp="label"

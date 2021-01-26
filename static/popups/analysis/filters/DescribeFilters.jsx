@@ -62,7 +62,7 @@ class DescribeFilters extends React.Component {
     const { dtype, cols, selectedCol } = this.props;
     const colType = gu.findColType(dtype);
     const options = [{ label: TITLES.boxplot, value: "boxplot" }];
-    if (_.includes(["float", "int"], colType)) {
+    if (_.includes(["float", "int", "date"], colType)) {
       options.push({ label: TITLES.histogram, value: "histogram" });
     }
     if (colType === "float") {

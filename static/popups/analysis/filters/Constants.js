@@ -34,7 +34,10 @@ export const ROLLING_COMPS = [
   { value: "var", label: "Variance" },
 ];
 
-export const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
+export const ANALYSIS_AGGS = _.concat(
+  _.reject(AGGREGATION_OPTS, ({ value }) => value === "rolling"),
+  [{ value: "pctsum", label: "Percentage Sum" }]
+);
 export const TITLES = {
   histogram: "Histogram",
   value_counts: "Value Counts",
