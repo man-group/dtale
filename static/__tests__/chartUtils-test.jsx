@@ -3,7 +3,7 @@ import _ from "lodash";
 
 import { expect, it } from "@jest/globals";
 
-import { withGlobalJquery } from "./test-utils";
+import { mockChartJS } from "./test-utils";
 
 const GRADIENT_FUNCS = [
   "borderColor",
@@ -16,17 +16,8 @@ const GRADIENT_FUNCS = [
 describe("chartUtils tests", () => {
   let colorScale, chartUtils;
   beforeAll(() => {
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      return chartCfg;
-    });
+    mockChartJS();
 
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     const correlationsUtils = require("../popups/correlations/correlationsUtils").default;
     chartUtils = require("../chartUtils").default;
     colorScale = correlationsUtils.colorScale;

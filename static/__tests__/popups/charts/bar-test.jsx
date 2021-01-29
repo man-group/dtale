@@ -9,7 +9,7 @@ import { expect, it } from "@jest/globals";
 
 import AxisEditor from "../../../popups/charts/AxisEditor";
 import mockPopsicle from "../../MockPopsicle";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -42,16 +42,7 @@ describe("Charts bar tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, data: cfg.data, destroyed: false, config: cfg };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementAtEvent = _evt => [{ _index: 0 }];
-      chartCfg.update = _.noop;
-      chartCfg.options = { scales: { xAxes: [{}] } };
-      return chartCfg;
-    });
-
+    mockChartJS();
     const mockD3Cloud = withGlobalJquery(() => () => {
       const cloudCfg = {};
       const propUpdate = prop => val => {
@@ -76,9 +67,7 @@ describe("Charts bar tests", () => {
 
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("d3-cloud", () => mockD3Cloud);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     Charts = require("../../../popups/charts/Charts").ReactCharts;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
   });
@@ -122,7 +111,7 @@ describe("Charts bar tests", () => {
       .simulate("change", { target: { value: "42" } });
     axisEditor().instance().closeMenu();
     const chartObj = result.find(ChartsBody).instance().state.charts[0];
-    expect(chartObj.config.options.scales.yAxes[0].ticks).toEqual({
+    expect(chartObj.cfg.options.scales.yAxes[0].ticks).toEqual({
       min: 40,
       max: 42,
     });

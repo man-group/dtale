@@ -106,7 +106,7 @@ function createChart(ctx, fetchedData, chartOpts) {
   } else {
     $("#describe").empty();
   }
-  const chartCfg = {
+  let chartCfg = {
     type: "bar",
     data: { labels },
     options: {
@@ -124,6 +124,14 @@ function createChart(ctx, fetchedData, chartOpts) {
       break;
     case "categories":
       infoBuilder = buildCategoryAxes;
+      break;
+    case "qq":
+      infoBuilder = (_chartCfg, data, _chartOpts) => {
+        chartCfg = chartUtils.createScatterCfg(data, { x: "x", y: ["y"] }, data => data);
+        chartCfg.options.scales.xAxes[0].scaleLabel.display = false;
+        chartCfg.options.scales.yAxes[0].scaleLabel.display = false;
+        chartCfg.data.datasets[0].trendlineLinear = { style: "#ff6384", lineStyle: "line", width: 1 };
+      };
       break;
   }
   infoBuilder(chartCfg, fetchedData, chartOpts);
@@ -162,7 +170,7 @@ function dataLoader(props, state, propagateState, chartParams) {
     }
   } else if (_.includes(["value_counts", "word_value_counts"], params.type)) {
     subProps = ["ordinalCol", "ordinalAgg"];
-  } else if (params.type === "histogram") {
+  } else if (params.type === "histogram" || params.type === "qq") {
     subProps = [];
   }
   if (finalParams?.cleaners && finalParams?.cleaners?.length) {

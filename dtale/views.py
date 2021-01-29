@@ -2545,6 +2545,27 @@ def get_column_analysis(data_id):
                 desc[p] = dtype_info[p]
         code += desc_code
         return_data["desc"] = desc
+    elif data_type == "qq":
+        s = data[selected_col]
+        code.append("s = df[~pd.isnull(df['{col}'])]['{col}']")
+        if classifier == "D":
+            s = apply(s, json_timestamp)
+            code.append(
+                (
+                    "\nimport time\n\n"
+                    "s = s['{col}'].apply(\n"
+                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
+                    ")"
+                )
+            )
+        qq_x, qq_y = sts.probplot(s, dist="norm", fit=False)
+        qq = pd.DataFrame(dict(x=qq_x, y=qq_y))
+        f = grid_formatter(grid_columns(qq), nan_display=None)
+        return_data = dict(data=f.format_dicts(qq.itertuples()))
+        code.append('qq = sts.probplot(s, dist="norm", fit=False)')
+        return_data["min"] = f.fmts[0][-1](qq.min()[0].min(), None)
+        return_data["max"] = f.fmts[0][-1](qq.max()[0].max(), None)
+
     cols = global_state.get_dtypes(data_id)
     return jsonify(
         code="\n".join(code),
