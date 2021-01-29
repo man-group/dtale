@@ -45,4 +45,5 @@ export const TITLES = {
   categories: "Categories",
   word_value_counts: "Word Value Counts",
   geolocation: "Geolocation",
+  qq: "Q-Q Plot",
 };

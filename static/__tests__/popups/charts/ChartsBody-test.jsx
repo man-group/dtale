@@ -5,7 +5,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../../MockPopsicle";
-import { tickUpdate, withGlobalJquery } from "../../test-utils";
+import { mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("ChartsBody tests", () => {
   let result, ChartsBody;
@@ -23,16 +23,7 @@ describe("ChartsBody tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, data: cfg.data, destroyed: false, config: cfg };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementAtEvent = _evt => [{ _index: 0 }];
-      chartCfg.update = _.noop;
-      chartCfg.options = { scales: { xAxes: [{}] } };
-      return chartCfg;
-    });
-
+    mockChartJS();
     const mockD3Cloud = withGlobalJquery(() => () => {
       const cloudCfg = {};
       const propUpdate = prop => val => {
@@ -57,9 +48,7 @@ describe("ChartsBody tests", () => {
 
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("d3-cloud", () => mockD3Cloud);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
   });
 

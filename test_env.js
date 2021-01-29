@@ -19,5 +19,9 @@ jest.mock("cacheable-lookup", () => ({
   default: () => ({ lookup: () => ({}) }),
 }));
 
+jest.mock("chartjs-plugin-zoom", () => ({}));
+jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+jest.mock("chartjs-plugin-trendline", () => ({}));
+
 // this is required for webpack dynamic public path setup
 global.__webpack_public_path__ = "";

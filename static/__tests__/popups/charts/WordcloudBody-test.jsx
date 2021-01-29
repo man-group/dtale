@@ -5,7 +5,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../../MockPopsicle";
-import { withGlobalJquery } from "../../test-utils";
+import { mockChartJS, withGlobalJquery } from "../../test-utils";
 
 describe("WordcloudBody tests", () => {
   let WordcloudBody;
@@ -23,12 +23,7 @@ describe("WordcloudBody tests", () => {
       })
     );
 
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      return chartCfg;
-    });
+    mockChartJS();
 
     const mockD3Cloud = withGlobalJquery(() => () => {
       const cloudCfg = {};
@@ -54,9 +49,7 @@ describe("WordcloudBody tests", () => {
 
     jest.mock("popsicle", () => mockBuildLibs);
     jest.mock("d3-cloud", () => mockD3Cloud);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     WordcloudBody = require("../../../popups/charts/WordcloudBody").default;
   });
 

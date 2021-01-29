@@ -48,7 +48,7 @@ class ColumnAnalysisFilters extends React.Component {
   buildChartTypeToggle() {
     const colType = gu.findColType(this.props.dtype);
     let options = [{ label: TITLES.histogram, value: "histogram" }];
-    if (colType == "string") {
+    if (colType === "string") {
       options = [
         { label: TITLES.value_counts, value: "value_counts" },
         { label: TITLES.word_value_counts, value: "word_value_counts" },
@@ -60,6 +60,9 @@ class ColumnAnalysisFilters extends React.Component {
     }
     if (hasCoords(this.props.selectedCol, this.props.cols)) {
       options.push({ label: TITLES.geolocation, value: "geolocation" });
+    }
+    if (colType !== "string") {
+      options.push({ label: TITLES.qq, value: "qq" });
     }
     const update = value => this.setState({ type: value, top: null }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
@@ -114,6 +117,8 @@ class ColumnAnalysisFilters extends React.Component {
     if (this.state.type === "geolocation") {
       const update = val => this.setState(val, this.buildChart);
       filterMarkup = <GeoFilters col={selectedCol} columns={cols} {...this.state} update={update} />;
+    } else if (this.state.type === "qq") {
+      filterMarkup = null;
     } else if ("int" === colType) {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
@@ -138,6 +143,8 @@ class ColumnAnalysisFilters extends React.Component {
           </React.Fragment>
         );
       }
+    } else if (this.state.type === "histogram") {
+      filterMarkup = <React.Fragment>{this.buildFilter("bins")}</React.Fragment>;
     } else {
       // date, string, bool -> Value Counts
       filterMarkup = (

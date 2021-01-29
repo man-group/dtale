@@ -62,7 +62,8 @@ class DescribeFilters extends React.Component {
     const { dtype, cols, selectedCol } = this.props;
     const colType = gu.findColType(dtype);
     const options = [{ label: TITLES.boxplot, value: "boxplot" }];
-    if (_.includes(["float", "int", "date"], colType)) {
+    const isFid = _.includes(["float", "int", "date"], colType);
+    if (isFid) {
       options.push({ label: TITLES.histogram, value: "histogram" });
     }
     if (colType === "float") {
@@ -78,6 +79,9 @@ class DescribeFilters extends React.Component {
     }
     if (hasCoords(selectedCol, cols)) {
       options.push({ label: TITLES.geolocation, value: "geolocation" });
+    }
+    if (isFid) {
+      options.push({ label: TITLES.qq, value: "qq" });
     }
     const update = value => this.setState({ type: value }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
@@ -136,7 +140,7 @@ class DescribeFilters extends React.Component {
     const { code, dtype } = this.props;
     const colType = gu.findColType(dtype);
     let filterMarkup = null;
-    if (this.state.type === "boxplot") {
+    if (this.state.type === "boxplot" || this.state.type === "qq") {
       filterMarkup = null;
     } else if (this.state.type === "geolocation") {
       filterMarkup = wrapFilterMarkup(this.buildGeoFilter());

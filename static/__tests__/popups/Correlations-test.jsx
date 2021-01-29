@@ -11,7 +11,7 @@ import { expect, it } from "@jest/globals";
 import CorrelationsTsOptions from "../../popups/correlations/CorrelationsTsOptions";
 import mockPopsicle from "../MockPopsicle";
 import correlationsData from "../data/correlations";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const chartData = {
   visible: true,
@@ -67,22 +67,9 @@ describe("Correlations tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      chartCfg.getDatasetMeta = _idx => ({
-        controller: { _config: { selectedPoint: 0 } },
-      });
-      return chartCfg;
-    });
-
+    mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     Correlations = require("../../popups/Correlations").Correlations;
     ChartsBody = require("../../popups/charts/ChartsBody").default;
     CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;

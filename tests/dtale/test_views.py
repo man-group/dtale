@@ -1951,6 +1951,30 @@ def test_get_column_analysis_geolocation(unittest):
             unittest.assertEqual(response_data["lon"], [3, 4, 5])
 
 
+@pytest.mark.unit
+def test_get_column_analysis_qq():
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=np.random.normal(loc=20, scale=5, size=100)))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(df)},
+                )
+            )
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="a", type="qq"),
+            )
+            response_data = json.loads(response.data)
+            assert len(response_data["data"]) == 100
+
+
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 
 import numpy as np

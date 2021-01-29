@@ -10,7 +10,8 @@ import { expect, it } from "@jest/globals";
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
+
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -49,18 +50,8 @@ describe("DataViewer tests", () => {
       })
     );
     jest.mock("popsicle", () => mockBuildLibs);
+    mockChartJS();
 
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      return chartCfg;
-    });
-
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
     DataViewer = require("../../dtale/DataViewer").DataViewer;
     Upload = require("../../popups/Upload").ReactUpload;
   });

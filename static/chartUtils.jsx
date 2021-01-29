@@ -1,6 +1,7 @@
 /* eslint max-lines: "off" */
-import Chart from "chart.js";
+import Chart, { plugins as chartPlugins } from "chart.js";
 import "chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js";
+import chartTrendline from "chartjs-plugin-trendline";
 import "chartjs-plugin-zoom";
 import chroma from "chroma-js";
 import _ from "lodash";
@@ -10,6 +11,8 @@ import Plotly from "plotly.js-dist";
 import { buildRGBA } from "./colors";
 import { exports as gu } from "./dtale/gridUtils";
 import { formatScatterPoints, getScatterMax, getScatterMin } from "./scatterChartUtils";
+
+chartPlugins.register(chartTrendline);
 
 // needed to add these parameters because Chart.Zoom.js causes Chart.js to look for them
 const DEFAULT_OPTIONS = { pan: { enabled: false }, zoom: { enabled: false } };
