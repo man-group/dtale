@@ -139,10 +139,9 @@ def chart_url_params(search):
     params["cpg"] = "true" == params.get("cpg")
     if params.get("chart_type") in ANIMATION_CHARTS:
         params["animate"] = "true" == params.get("animate")
-    if "window" in params:
-        params["window"] = int(params["window"])
-    if "load" in params:
-        params["load"] = int(params["load"])
+    for int_prop in ["window", "load", "top_bars"]:
+        if int_prop in params:
+            params[int_prop] = int(params[int_prop])
     if "group_filter" in params:
         group_filter = params["group_filter"]
         filter_col, filter_val = group_filter.split(" == ")
