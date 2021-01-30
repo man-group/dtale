@@ -92,6 +92,38 @@ function mockChartJS() {
   }));
 }
 
+function mockD3Cloud() {
+  const mocker = withGlobalJquery(() => () => {
+    const cloudCfg = {};
+    const propUpdate = prop => val => {
+      cloudCfg[prop] = val;
+      return cloudCfg;
+    };
+    cloudCfg.size = propUpdate("size");
+    cloudCfg.padding = propUpdate("padding");
+    cloudCfg.words = propUpdate("words");
+    cloudCfg.rotate = propUpdate("rotate");
+    cloudCfg.spiral = propUpdate("spiral");
+    cloudCfg.random = propUpdate("random");
+    cloudCfg.text = propUpdate("text");
+    cloudCfg.font = propUpdate("font");
+    cloudCfg.fontStyle = propUpdate("fontStyle");
+    cloudCfg.fontWeight = propUpdate("fontWeight");
+    cloudCfg.fontSize = () => ({
+      on: () => ({ start: _.noop }),
+    });
+    return cloudCfg;
+  });
+  jest.mock("d3-cloud", () => mocker);
+}
+
+function mockWordcloud() {
+  jest.mock("react-wordcloud", () => {
+    const MockComponent = require("./MockComponent").MockComponent;
+    return MockComponent;
+  });
+}
+
 export {
   withGlobalJquery,
   replaceNBSP,
@@ -102,4 +134,6 @@ export {
   tick,
   tickUpdate,
   mockChartJS,
+  mockD3Cloud,
+  mockWordcloud,
 };

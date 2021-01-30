@@ -4,14 +4,10 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import chartsData from "./data/charts";
+import { mockWordcloud } from "./test-utils";
 
 describe("dash tests", () => {
-  beforeAll(() => {
-    jest.mock("react-wordcloud", () => {
-      const MockComponent = require("./MockComponent").MockComponent;
-      return MockComponent;
-    });
-  });
+  beforeAll(mockWordcloud);
 
   it("dash rendering", () => {
     const { Wordcloud } = require("../dash/lib/index");

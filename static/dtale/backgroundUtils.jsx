@@ -4,6 +4,8 @@ import _ from "lodash";
 import { MODES } from "../popups/RangeHighlight";
 import { exports as gu } from "./gridUtils";
 
+const RESIZABLE = ["outliers", "missing"];
+
 const heatMap = chroma.scale(["red", "yellow", "green"]).domain([0, 0.5, 1]);
 
 const heatMapBackground = ({ raw, view }, { min, max }) => {
@@ -127,6 +129,11 @@ const lowVarianceHighlighting = ({ name, lowVariance }) => {
 
 const updateBackgroundStyles = (state, colCfg, rec) => {
   switch (state.backgroundMode) {
+    case `heatmap-col-${colCfg.name}`:
+      return heatMapBackground(rec, {
+        ...colCfg,
+        ..._.get(state, ["filteredRanges", "ranges", colCfg.name]),
+      });
     case "heatmap-col":
       return heatMapBackground(rec, {
         ...colCfg,
@@ -158,4 +165,5 @@ export default {
   dtypeHighlighting,
   updateBackgroundStyles,
   buildOutlierScales,
+  RESIZABLE,
 };

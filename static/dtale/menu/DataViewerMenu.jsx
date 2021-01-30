@@ -31,10 +31,9 @@ class ReactDataViewerMenu extends React.Component {
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
       });
-    const resizeBgs = ["outliers", "missing"];
     const bgState = bgType => ({
       backgroundMode: backgroundMode === bgType ? null : bgType,
-      triggerBgResize: _.includes(resizeBgs, backgroundMode) || _.includes(resizeBgs, bgType),
+      triggerBgResize: _.includes(bu.RESIZABLE, backgroundMode) || _.includes(bu.RESIZABLE, bgType),
     });
     const toggleBackground = bgType => () => this.props.propagateState(bgState(bgType));
     const toggleOutlierBackground = () => {

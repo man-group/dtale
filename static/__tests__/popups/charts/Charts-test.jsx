@@ -10,7 +10,7 @@ import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../../RemovableError";
 import mockPopsicle from "../../MockPopsicle";
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
 const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
@@ -47,11 +47,8 @@ describe("Charts tests", () => {
       })
     );
     mockChartJS();
+    mockWordcloud();
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("react-wordcloud", () => {
-      const MockComponent = require("../../MockComponent").MockComponent;
-      return MockComponent;
-    });
 
     Charts = require("../../../popups/charts/Charts").ReactCharts;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;

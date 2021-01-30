@@ -15,6 +15,7 @@ import menuFuncs from "../menu/dataViewerMenuUtils";
 import serverState from "../serverStateManagement";
 import ColumnMenuHeader from "./ColumnMenuHeader";
 import ColumnMenuOption from "./ColumnMenuOption";
+import HeatMapOption from "./HeatMapOption";
 
 const { ROW_HEIGHT, SORT_PROPS } = gu;
 const MOVE_COLS = [
@@ -245,6 +246,7 @@ class ReactColumnMenu extends React.Component {
             />
           )}
           <ColumnMenuOption open={openFormatting} label="Formats" iconClass="ico-palette" />
+          <HeatMapOption {..._.pick(this.props, ["propagateState", "backgroundMode", "selectedCol"])} colCfg={colCfg} />
           <ColumnFilter {...this.props} />
         </ul>
       </div>
@@ -264,6 +266,7 @@ ReactColumnMenu.propTypes = {
   openChart: PropTypes.func,
   hideColumnMenu: PropTypes.func,
   outlierFilters: PropTypes.object,
+  backgroundMode: PropTypes.string,
 };
 
 const ReduxColumnMenu = connect(

@@ -260,6 +260,7 @@ class ReactDataViewer extends React.Component {
         <MeasureText />
         <ColumnMenu
           {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "outlierFilters", "error"])}
+          backgroundMode={this.state.backgroundMode}
           propagateState={this.propagateState}
           noInfo={gu.hasNoInfo(this.state)}
         />
