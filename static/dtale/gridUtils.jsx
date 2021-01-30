@@ -77,7 +77,7 @@ function getHeatActive(column) {
 }
 
 EXPORTS.getActiveCols = ({ columns, backgroundMode }) => {
-  const heatmapActive = _.startsWith(backgroundMode, "heatmap");
+  const heatmapActive = _.includes(["heatmap-col", "heatmap-all"], backgroundMode);
   return _.filter(columns || [], c => (heatmapActive ? getHeatActive(c) : c.visible));
 };
 
