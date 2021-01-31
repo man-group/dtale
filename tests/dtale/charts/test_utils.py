@@ -1,13 +1,8 @@
 import mock
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 import dtale.charts.utils as chart_utils
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit

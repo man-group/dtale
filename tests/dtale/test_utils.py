@@ -4,14 +4,9 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 import dtale.utils as utils
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 def build_req_tuple(args):
@@ -241,10 +236,7 @@ def test_json_string2(builtin_pkg):
 
     class MockStr(object):
         def __init__(self, string=""):
-            if PY3:
-                raise UnicodeEncodeError("", "", 0, 0, "")
-            else:
-                raise UnicodeEncodeError("", u"", 0, 0, "")
+            raise UnicodeEncodeError("", "", 0, 0, "")
 
     class TestStr(object):
         def encode(self, encoding=None, errors=None):

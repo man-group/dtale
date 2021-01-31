@@ -1,15 +1,10 @@
 import mock
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 import dtale.global_state as global_state
 from dtale.views import build_dtypes_state
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 def setup_module(module):

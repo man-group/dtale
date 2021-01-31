@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 from pandas.tseries.offsets import Day
 from past.utils import old_div
-from six import PY3
 
 
 def disable_arctic_cache(pymongo_api):
@@ -183,6 +182,4 @@ def network_data():
 
 @pytest.fixture(scope="module")
 def builtin_pkg():
-    if PY3:
-        return "builtins"
-    return "__builtin__"
+    return "builtins"

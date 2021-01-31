@@ -2,12 +2,7 @@ import mock
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
-from six import PY3
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
+from contextlib import ExitStack
 
 
 @pytest.mark.unit

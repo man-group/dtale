@@ -4,7 +4,7 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.app import build_app
 from dtale.dash_application.charts import (
@@ -18,11 +18,6 @@ from dtale.dash_application.charts import (
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq
 from dtale.utils import make_list
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)

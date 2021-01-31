@@ -3,7 +3,7 @@ from builtins import getattr
 
 import mock
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.cli.clickutils import (
     get_loader_options,
@@ -11,11 +11,6 @@ from dtale.cli.clickutils import (
     retrieve_meta_info_and_version,
     setup_logging,
 )
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit
