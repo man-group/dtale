@@ -96,6 +96,8 @@ setup(
         "strsimpy",
         "six",
         "xarray",
+        "xlrd",
+        "openpyxl",
     ],
     extras_require={
         "arctic": ["arctic"],

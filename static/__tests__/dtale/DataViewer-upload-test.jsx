@@ -21,7 +21,7 @@ describe("DataViewer tests", () => {
     offsetHeight: 500,
   });
   let result, DataViewer, Upload;
-  let readAsDataURLSpy, btoaSpy, postSpy;
+  let readAsDataURLSpy, btoaSpy, ajaxSpy;
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -54,8 +54,8 @@ describe("DataViewer tests", () => {
   beforeEach(async () => {
     readAsDataURLSpy = jest.spyOn(FileReader.prototype, "readAsDataURL");
     btoaSpy = jest.spyOn(window, "btoa");
-    postSpy = jest.spyOn($, "post");
-    postSpy.mockImplementation((_url, _params, callback) => callback({ data_id: "2" }));
+    ajaxSpy = jest.spyOn($, "ajax");
+    ajaxSpy.mockImplementation(({ success }) => success({ data_id: "2" }));
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
@@ -73,7 +73,7 @@ describe("DataViewer tests", () => {
     result.unmount();
     readAsDataURLSpy.mockRestore();
     btoaSpy.mockRestore();
-    postSpy.mockRestore();
+    ajaxSpy.mockRestore();
   });
 
   afterAll(() => {
@@ -100,22 +100,24 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     await tickUpdate(result);
 
-    expect(postSpy).toHaveBeenCalledTimes(1);
-    const postCalls = postSpy.mock.calls;
-    const firstPostCall = postCalls[0];
-    expect(firstPostCall[0]).toBe("/dtale/upload");
-    expect(firstPostCall[1]).toEqual({
-      contents: "data:application/octet-stream;base64,dGVzdA==",
-      filename: "test.csv",
-    });
+    expect(ajaxSpy).toHaveBeenCalledTimes(1);
+    const ajaxCalls = ajaxSpy.mock.calls;
+    const firstPostCall = ajaxCalls[0][0];
+    expect(firstPostCall.url).toBe("/dtale/upload");
+    const read = new FileReader();
+    read.readAsBinaryString(firstPostCall.data.entries().next().value[1]);
+    read.onloadend = function () {
+      expect(read.result).toBe("data:application/octet-stream;base64,dGVzdA==");
+    };
+    expect(firstPostCall.data.entries().next().value[0]).toBe("test.csv");
     expect(window.location.assign).toBeCalledWith("/2");
 
-    firstPostCall[2]({ error: "error test" });
+    firstPostCall.success({ error: "error test" });
     result.update();
     expect(result.find(RemovableError)).toHaveLength(1);
   });
 
-  it("DataViewer: upload widow", async () => {
+  it("DataViewer: upload window", async () => {
     window.location.pathname = "/dtale/popup/upload";
     const mFile = new File(["test"], "test.csv");
     const uploadModal = upload();
@@ -124,7 +126,7 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     await tickUpdate(result);
 
-    expect(postSpy).toHaveBeenCalledTimes(1);
+    expect(ajaxSpy).toHaveBeenCalledTimes(1);
     expect(window.close).toBeCalledTimes(1);
     expect(window.opener.location.assign).toBeCalledWith("/2");
   });

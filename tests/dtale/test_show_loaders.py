@@ -1,5 +1,6 @@
 import json
 import os
+import pandas as pd
 
 import mock
 import pytest
@@ -39,6 +40,57 @@ def test_show_csv():
             dtale.show_csv(path="http://test-csv", proxy="http://test-proxy")
             mock_show.call_args.kwargs["data_loader"]()
             mock_show.reset_mock()
+
+
+@pytest.mark.unit
+def test_show_excel(unittest):
+    import dtale
+
+    excel_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.xlsx")
+
+    mock_show = mock.Mock()
+    with mock.patch("dtale.cli.loaders.excel_loader.show", mock_show):
+        dtale.show_excel(path=excel_path)
+        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.reset_mock()
+
+        with pytest.raises(Exception) as e:
+            dtale.show_excel(path=excel_path, sheet="Worksheet")
+            mock_show.reset_mock()
+            assert (
+                str(e) == "Excel file loaded but there was no sheet named 'Worksheet'."
+            )
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch("dtale.cli.loaders.excel_loader.show", mock_show)
+        )
+
+        class MockRequest(object):
+            def __init__(self):
+                self.content = str.encode("blah")
+                self.status_code = 200
+
+        stack.enter_context(
+            mock.patch("requests.get", mock.Mock(return_value=MockRequest()))
+        )
+        mock_read_excel = stack.enter_context(
+            mock.patch(
+                "pandas.read_excel",
+                mock.Mock(return_value={"blah": pd.DataFrame([1, 2, 3, 4])}),
+            )
+        )
+        dtale.show_excel(path="http://test-excel.xlsx", sheet="blah")
+        mock_show.call_args.kwargs["data_loader"]()
+        unittest.assertEqual(
+            mock_read_excel.call_args.kwargs,
+            {"sheet_name": "blah", "engine": "openpyxl"},
+        )
+        mock_show.mock_reset()
+        mock_read_excel.mock_reset()
+        dtale.show_excel(path="http://test-excel.xls", sheet="blah")
+        mock_show.call_args.kwargs["data_loader"]()
+        assert mock_read_excel.call_args.kwargs["engine"] == "xlrd"
 
 
 @pytest.mark.unit

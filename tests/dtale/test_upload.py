@@ -1,10 +1,10 @@
-import base64
 import os
 
 import mock
 import pandas as pd
 import pytest
 from contextlib import ExitStack
+from six import BytesIO
 
 from dtale.app import build_app
 
@@ -17,8 +17,7 @@ def build_upload_data(
 ):
     with open(fname, "r") as f:
         data = f.read()
-    data = base64.b64encode(data.encode("utf-8"))
-    return "data:text/csv;base64," + data.decode("utf-8")
+    return BytesIO(str.encode(data))
 
 
 @pytest.mark.unit
@@ -41,7 +40,32 @@ def test_upload():
 
             c.post(
                 "/dtale/upload",
-                data={"contents": build_upload_data(), "filename": "test_df.csv"},
+                data={"test_df.csv": (build_upload_data(), "test_df.csv")},
+            )
+            assert len(data) == 2
+            new_key = next((k for k in data if k != c.port), None)
+            assert list(data[new_key].columns) == ["a", "b", "c"]
+
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            data = {c.port: df}
+            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
+                )
+            )
+            assert len(data) == 1
+            c.post(
+                "/dtale/upload",
+                data={
+                    "test_df.xlsx": (
+                        os.path.join(
+                            os.path.dirname(__file__), "..", "data/test_df.xlsx"
+                        ),
+                        "test_df.xlsx",
+                    )
+                },
             )
             assert len(data) == 2
             new_key = next((k for k in data if k != c.port), None)
@@ -57,6 +81,12 @@ def test_web_upload(unittest):
             load_csv = stack.enter_context(
                 mock.patch(
                     "dtale.cli.loaders.csv_loader.loader_func",
+                    mock.Mock(return_value=pd.DataFrame(dict(a=[1], b=[2]))),
+                )
+            )
+            load_excel = stack.enter_context(
+                mock.patch(
+                    "dtale.cli.loaders.excel_loader.loader_func",
                     mock.Mock(return_value=pd.DataFrame(dict(a=[1], b=[2]))),
                 )
             )
@@ -97,6 +127,15 @@ def test_web_upload(unittest):
                 {"path": "http://test.com", "proxy": "http://testproxy.com"},
             )
             assert len(data) == 3
+
+            params = {"type": "excel", "url": "http://test.com"}
+            c.get("/dtale/web-upload", query_string=params)
+            load_excel.assert_called_once()
+            unittest.assertEqual(
+                load_excel.call_args.kwargs,
+                {"path": "http://test.com", "proxy": None},
+            )
+            assert len(data) == 4
 
 
 @pytest.mark.unit

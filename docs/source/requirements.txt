@@ -15,3 +15,5 @@ scikit-learn
 statsmodels
 xarray
 pyarrow
+xlrd
+openpyxl

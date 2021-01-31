@@ -87,6 +87,42 @@ def test_main(unittest):
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
         )
 
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(
+            mock.patch("dtale.cli.script.show", mock.Mock())
+        )
+        mock_find_free_port = stack.enter_context(
+            mock.patch("dtale.cli.script.find_free_port", mock.Mock(return_value=9999))
+        )
+        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.xlsx")
+        args = ["--excel-path", csv_path, "--debug", "--no-reaper"]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        mock_find_free_port.assert_called_once()
+        _, kwargs = mock_show.call_args
+        (
+            host,
+            port,
+            debug,
+            subprocess,
+            data_loader,
+            reaper_on,
+            show_columns,
+            hide_columns,
+        ) = map(kwargs.get, props)
+        assert host is None
+        assert not subprocess
+        assert debug
+        assert port == 9999
+        assert not reaper_on
+        assert data_loader is not None
+        assert show_columns is None
+        assert hide_columns is None
+        df = data_loader()
+        pdt.assert_frame_equal(
+            df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load xlsx"
+        )
+
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
         json_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.json")
         args = ["--host", "test", "--port", "9999", "--json-path", json_path]

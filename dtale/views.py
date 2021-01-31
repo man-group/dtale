@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import, division
 
-import base64
 import os
 import time
 from builtins import map, range, str, zip
@@ -3140,15 +3139,35 @@ def load_new_data(df, startup_code):
 @dtale.route("/upload", methods=["POST"])
 @exception_decorator
 def upload():
-    contents, filename = (request.form.get(p) for p in ["contents", "filename"])
-    if contents is None:
+    if not request.files:
         raise Exception("No file data loaded!")
-    _, content_string = contents.split(",")
-    decoded = base64.b64decode(content_string)
-    str_obj = StringIO(decoded.decode("utf-8"))
-    df = pd.read_csv(str_obj)
-    # TODO: handle un-named index columns...
-    return load_new_data(df, "df = pd.read_csv('{}')".format(filename))
+    for filename in request.files:
+        contents = request.files[filename]
+        _, ext = os.path.splitext(filename)
+        if ext in [".csv", ".tsv"]:
+            # Set engine to python to auto detect delimiter...
+            df = pd.read_csv(
+                StringIO(contents.read().decode()), engine="python", sep=None
+            )
+            return load_new_data(
+                df, "df = pd.read_csv('{}', engine='python', sep=None)".format(filename)
+            )
+        if ext in [".xls", ".xlsx"]:
+            engine = "xlrd" if ext == ".xls" else "openpyxl"
+            dfs = pd.read_excel(contents, sheet_name=None, engine=engine)
+            if not dfs:
+                raise Exception("Failed to load Excel file. Returned no data.")
+            sheet_names = list(dfs.keys())
+            for sheet_name in sheet_names:
+                df = dfs[sheet_name]
+                code = "df = pd.read_excel('{}', sheet_name='{}', engine='{}')".format(
+                    filename, sheet_name, engine
+                )
+                if sheet_name == sheet_names[-1]:
+                    return load_new_data(df, code)
+                else:
+                    load_new_data(df, code)
+        raise Exception("File type of {} is not supported!".format(ext))
 
 
 @dtale.route("/web-upload")
@@ -3156,6 +3175,7 @@ def upload():
 def web_upload():
     from dtale.cli.loaders.csv_loader import loader_func as load_csv
     from dtale.cli.loaders.json_loader import loader_func as load_json
+    from dtale.cli.loaders.excel_loader import loader_func as load_excel
 
     data_type = get_str_arg(request, "type")
     url = get_str_arg(request, "url")
@@ -3178,6 +3198,13 @@ def web_upload():
             "from dtale.cli.loaders.json_loader import loader_func as load_json\n\n"
             "df = load_csv(path='{url}'{proxy})"
         ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+    elif data_type == "excel":
+        df = load_excel(path=url, proxy=proxy)
+        startup_code = (
+            "from dtale.cli.loaders.excel_loader import loader_func as load_excel\n\n"
+            "df = load_excel(path='{url}'{proxy})"
+        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+
     return load_new_data(df, startup_code)
 
 
