@@ -30,8 +30,6 @@ def show_loader(**kwargs):
 def loader_func(**kwargs):
     path = kwargs.pop("path")
     if path.startswith("http://") or path.startswith("https://"):
-        engine = "xlrd" if path.endswith("xls") else "openpyxl"
-        sheet_name = kwargs.pop("sheet", None)
         proxy = kwargs.pop("proxy", None)
         req_kwargs = {}
         if proxy is not None:
@@ -39,16 +37,18 @@ def loader_func(**kwargs):
         resp = requests.get(path, **req_kwargs)
         assert resp.status_code == 200
         path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
-        dfs = pd.read_excel(
-            path, sheet_name=sheet_name,engine=engine,
-            **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)}
-        )
-        if not dfs:
-            raise Exception("Failed to load Excel file. Returned no data.")
-        if sheet_name:
-            return dfs[sheet_name]
-        # this is required because there is no support for loading multiple datasets at once from the CLI
-        # I can add this later...
+    engine = "xlrd" if path.endswith("xls") else "openpyxl"
+    sheet_name = kwargs.pop("sheet", None)
+    dfs = pd.read_excel(
+        path, sheet_name=sheet_name, engine=engine,
+        **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)}
+    )
+    if not dfs:
+        raise Exception("Failed to load Excel file. Returned no data.")
+    if sheet_name:
+        return dfs[sheet_name]
+    # this is required because there is no support for loading multiple datasets at once from the CLI
+    # I can add this later...
     return dfs[list(dfs.keys())[0]]
 
 
