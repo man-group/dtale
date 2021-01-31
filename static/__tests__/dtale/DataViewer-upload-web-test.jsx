@@ -7,19 +7,22 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("DataViewer tests", () => {
-  const { close, location, open, opener } = window;
   let result, DataViewer, Upload;
+  const { close, location, open, opener } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
+    dimensions.beforeAll();
     delete window.location;
     delete window.close;
     delete window.open;
@@ -32,14 +35,6 @@ describe("DataViewer tests", () => {
     window.close = jest.fn();
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn() } };
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -82,8 +77,7 @@ describe("DataViewer tests", () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     window.location = location;
     window.close = close;
     window.open = open;

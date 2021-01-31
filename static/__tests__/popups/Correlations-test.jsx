@@ -9,6 +9,7 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import CorrelationsTsOptions from "../../popups/correlations/CorrelationsTsOptions";
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import correlationsData from "../data/correlations";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
@@ -20,21 +21,16 @@ const chartData = {
   query: "col == 3",
 };
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("Correlations tests", () => {
-  const { opener } = window;
   let Correlations, ChartsBody, CorrelationsGrid, CorrelationScatterStats;
+  const { opener } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
 
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
@@ -81,8 +77,7 @@ describe("Correlations tests", () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     window.opener = opener;
   });
 

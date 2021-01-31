@@ -7,6 +7,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import CorrelationsTsOptions from "../../../popups/correlations/CorrelationsTsOptions";
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import correlationsData from "../../data/correlations";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -20,21 +21,16 @@ const chartData = {
   col2: "col3",
 };
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("Correlations tests", () => {
   let result, Correlations, ChartsBody;
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
+  beforeAll(() => {
+    dimensions.beforeAll();
+    mockChartJS();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/correlations/")) {
@@ -59,19 +55,13 @@ describe("Correlations tests", () => {
         return urlFetcher(url);
       })
     );
-
-    mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
 
     Correlations = require("../../../popups/Correlations").Correlations;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   const buildResult = async (props = chartData) => {
     buildInnerHTML({ settings: "" });

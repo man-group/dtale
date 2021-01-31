@@ -4,24 +4,21 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("Instances tests", () => {
-  const { location } = window;
   let Instances, assignSpy;
+  const { location } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+
     delete window.location;
     window.location = {
       href: "http://localhost:8080",
@@ -121,8 +118,7 @@ describe("Instances tests", () => {
   beforeEach(buildInnerHTML);
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     assignSpy.mockRestore();
     window.location = location;
   });

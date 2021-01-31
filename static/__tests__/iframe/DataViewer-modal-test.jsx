@@ -5,34 +5,23 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 import { clickColMenuButton, openColMenu, validateHeaders } from "./iframe-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
-
 describe("DataViewer iframe tests", () => {
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+    innerHeight: 1240,
+    innerWidth: 1005,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1005,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 1240,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -40,18 +29,10 @@ describe("DataViewer iframe tests", () => {
         return urlFetcher(url);
       })
     );
-
-    mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: column analysis display in a modal", async () => {
     const bu = require("../../dtale/backgroundUtils").default;

@@ -65,6 +65,7 @@ describe("ColumnAnalysis tests", () => {
   let result, ColumnAnalysisChart, ColumnAnalysisFilters;
 
   beforeAll(() => {
+    mockChartJS();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/column-analysis")) {
@@ -117,15 +118,20 @@ describe("ColumnAnalysis tests", () => {
                 lon: [4, 5, 6],
               });
             }
+            if (params.type === "qq") {
+              return {
+                chart_type: "qq",
+                data: [{ x: 1, y: 1 }],
+                min: 1,
+                max: 1,
+              };
+            }
             return ANALYSIS_DATA;
           }
         }
         return {};
       })
     );
-
-    mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
@@ -204,6 +210,12 @@ describe("ColumnAnalysis tests", () => {
     expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
     expect(result.find("GeoFilters")).toHaveLength(1);
     expect(result.find("GeoFilters").text()).toBe("Latitude:barLongitude:lon");
+  });
+
+  it("qq plot chart functionality", async () => {
+    result.find("ButtonToggle").find("button").last().simulate("click");
+    await tickUpdate(result);
+    expect(chart().cfg.type).toBe("scatter");
   });
 
   it("ColumnAnalysis rendering int data", async () => {

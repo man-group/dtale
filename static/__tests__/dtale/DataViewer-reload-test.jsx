@@ -6,25 +6,21 @@ import { Provider } from "react-redux";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("DataViewer tests", () => {
   let result, DataViewer, ReactDataViewer;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -35,7 +31,6 @@ describe("DataViewer tests", () => {
         return urlFetcher(url);
       })
     );
-    mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
 
     const dv = require("../../dtale/DataViewer");
@@ -58,10 +53,7 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   const dataViewer = () => result.find(ReactDataViewer).instance();
 

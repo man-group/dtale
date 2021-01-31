@@ -5,17 +5,13 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
 
 function submit(res) {
   res.find("div.modal-footer").first().find("button").first().simulate("click");
@@ -24,24 +20,15 @@ function submit(res) {
 describe("DataViewer tests", () => {
   let result, CreateColumn, CreateRolling;
 
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1205,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 775,
-    });
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+    innerWidth: 1205,
+    innerHeight: 775,
+  });
 
+  beforeAll(() => {
+    dimensions.beforeAll();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
@@ -73,12 +60,7 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Rolling");
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: build rolling column", async () => {
     expect(result.find(CreateRolling).length).toBe(1);

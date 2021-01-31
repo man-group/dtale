@@ -5,16 +5,13 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import { buildInnerHTML, withGlobalJquery } from "../test-utils";
 
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-
 describe("ColumnMenu ignoreClicks tests", () => {
+  const dimensions = new DimensionsHelper({ innerWidth: 100 });
   beforeAll(() => {
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 100,
-    });
+    dimensions.beforeAll();
     const mockJquery = withGlobalJquery(() => selector => {
       if (selector === "div.column-filter") {
         return {
@@ -34,9 +31,7 @@ describe("ColumnMenu ignoreClicks tests", () => {
     jest.mock("jquery", () => mockJquery);
   });
 
-  afterAll(() => {
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("ColumnMenu: make sure clicks in certain areas of the menu won't close it", () => {
     const { ignoreMenuClicks } = require("../../dtale/column/ColumnMenu");

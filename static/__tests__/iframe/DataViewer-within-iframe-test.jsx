@@ -5,25 +5,21 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("DataViewer within iframe tests", () => {
   const { location, open, top, self } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     delete window.location;
     delete window.open;
@@ -40,19 +36,14 @@ describe("DataViewer within iframe tests", () => {
         return urlFetcher(url);
       })
     );
-
-    mockChartJS();
-
-    const mockDateInput = withGlobalJquery(() => require("@blueprintjs/datetime"));
-
     jest.mock("popsicle", () => mockBuildLibs);
 
+    const mockDateInput = withGlobalJquery(() => require("@blueprintjs/datetime"));
     jest.mock("@blueprintjs/datetime", () => mockDateInput);
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     window.location = location;
     window.open = open;
     window.top = top;

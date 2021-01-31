@@ -8,11 +8,9 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate, withGlobalJquery } from "../../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
@@ -20,16 +18,15 @@ function updateChartType(result, cmp, chartType) {
 }
 
 describe("Charts tests", () => {
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
+  beforeAll(() => {
+    dimensions.beforeAll();
+    mockChartJS();
+    mockWordcloud();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const urlParams = qs.parse(url.split("?")[1]);
@@ -40,15 +37,10 @@ describe("Charts tests", () => {
         return urlFetcher(url);
       })
     );
-    mockChartJS();
-    mockWordcloud();
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("Charts: rendering", async () => {
     const Aggregations = require("../../../popups/charts/Aggregations").Aggregations;

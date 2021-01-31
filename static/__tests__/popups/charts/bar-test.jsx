@@ -8,11 +8,9 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import AxisEditor from "../../../popups/charts/AxisEditor";
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate, withGlobalJquery } from "../../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
@@ -21,17 +19,15 @@ function updateChartType(result, cmp, chartType) {
 
 describe("Charts bar tests", () => {
   let result, Charts, ChartsBody;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-
+    dimensions.beforeAll();
+    mockChartJS();
+    mockD3Cloud();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const urlParams = qs.parse(url.split("?")[1]);
@@ -42,9 +38,6 @@ describe("Charts bar tests", () => {
         return urlFetcher(url);
       })
     );
-    mockChartJS();
-    mockD3Cloud();
-
     jest.mock("popsicle", () => mockBuildLibs);
 
     Charts = require("../../../popups/charts/Charts").ReactCharts;
@@ -59,10 +52,7 @@ describe("Charts bar tests", () => {
     await tickUpdate(result);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   const axisEditor = () => result.find(AxisEditor).first();
 

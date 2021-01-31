@@ -11,21 +11,24 @@ import { expect, it } from "@jest/globals";
 
 import { BouncerWrapper } from "../../../BouncerWrapper";
 import { RemovableError } from "../../../RemovableError";
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
-
 describe("DataViewer tests", () => {
   const { location, open, opener } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 800,
+    offsetHeight: 500,
+    innerWidth: 1205,
+    innerHeight: 775,
+  });
   let result, Duplicates, Columns, ColumnNames, Rows, ShowDuplicates;
 
   beforeAll(() => {
+    dimensions.beforeAll();
     delete window.location;
     delete window.open;
     delete window.opener;
@@ -37,22 +40,7 @@ describe("DataViewer tests", () => {
     };
     window.open = jest.fn();
     window.opener = { code_popup: { code: "test code", title: "Test" } };
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 800,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1205,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 775,
-    });
+
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
@@ -118,13 +106,10 @@ describe("DataViewer tests", () => {
   });
 
   afterAll(() => {
+    dimensions.afterAll();
     window.location = location;
     window.open = open;
     window.opener = opener;
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
   });
 
   it("DataViewer: duplicate columns", async () => {
