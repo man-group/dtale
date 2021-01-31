@@ -5,26 +5,22 @@ import { Provider } from "react-redux";
 
 import { it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 import { clickColMenuButton, openColMenu, validateHeaders } from "./iframe-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("DataViewer iframe tests", () => {
   let result, DataViewer, ReactConfirmation, postSpy;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -32,9 +28,6 @@ describe("DataViewer iframe tests", () => {
         return urlFetcher(url);
       })
     );
-
-    mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
 
     DataViewer = require("../../dtale/DataViewer").DataViewer;
@@ -59,10 +52,7 @@ describe("DataViewer iframe tests", () => {
 
   afterEach(() => postSpy.mockRestore());
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: deleting a column", async () => {
     await openColMenu(result, 3);

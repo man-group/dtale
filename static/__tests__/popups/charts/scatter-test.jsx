@@ -7,11 +7,9 @@ import Select from "react-select";
 
 import { it } from "@jest/globals";
 
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate, withGlobalJquery } from "../../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
@@ -20,16 +18,15 @@ function updateChartType(result, cmp, chartType) {
 
 describe("Charts scatter tests", () => {
   let result, Charts, ChartsBody;
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
+  beforeAll(() => {
+    dimensions.beforeAll();
+    mockChartJS();
+    mockD3Cloud();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const urlParams = qs.parse(url.split("?")[1]);
@@ -40,9 +37,6 @@ describe("Charts scatter tests", () => {
         return urlFetcher(url);
       })
     );
-    mockChartJS();
-    mockD3Cloud();
-
     jest.mock("popsicle", () => mockBuildLibs);
 
     Charts = require("../../../popups/charts/Charts").ReactCharts;
@@ -57,10 +51,7 @@ describe("Charts scatter tests", () => {
     await tickUpdate(result);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("Charts: rendering", async () => {
     const filters = result.find(Charts).find(Select);

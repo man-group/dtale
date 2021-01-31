@@ -7,6 +7,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 
@@ -21,9 +22,6 @@ import {
 
 import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from "./iframe-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
 
 class MockDateInput extends React.Component {
@@ -35,17 +33,15 @@ MockDateInput.displayName = "DateInput";
 
 describe("DataViewer iframe tests", () => {
   const { location, open, top, self } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
   let result, DataViewer, ColumnMenu, Header, Formatting, DataViewerMenu, DataViewerInfo;
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     delete window.location;
     delete window.open;
@@ -62,11 +58,7 @@ describe("DataViewer iframe tests", () => {
         return urlFetcher(url);
       })
     );
-
-    mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
-
     jest.mock("@blueprintjs/datetime", () => ({ DateInput: MockDateInput }));
     DataViewer = require("../../dtale/DataViewer").DataViewer;
     ColumnMenu = require("../../dtale/column/ColumnMenu").ReactColumnMenu;
@@ -91,8 +83,7 @@ describe("DataViewer iframe tests", () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     window.location = location;
     window.open = open;
     window.top = top;
