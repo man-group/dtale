@@ -1,5 +1,20 @@
 ## Changelog
 
+### 1.32.1 (2021-1-25)
+* [#408](https://github.com/man-group/dtale/issues/408): modifications to exponential smoothing column builder UI
+* [#405](https://github.com/man-group/dtale/issues/405): removed cleaners from non-string columns)
+* [#404](https://github.com/man-group/dtale/issues/404): fixed bug with missing group selection dropdown on strings)
+* [#406](https://github.com/man-group/dtale/issues/406): handling for duplicate bins
+
+### 1.32.0 (2021-1-24)
+* [#396](https://github.com/man-group/dtale/issues/396): added kurtosis to date column descriptions and fixed issue with sequential diffs hanging around for previous columns
+* [#397](https://github.com/man-group/dtale/issues/397): group type & bin type (frequency/width) options for charts
+* Updated pandas query building to use backticks for extreme column names
+* Node tooltips and URL history building for Network Viewer
+* [#399](https://github.com/man-group/dtale/issues/399): better titles for groups in charts
+* [#393](https://github.com/man-group/dtale/issues/393): rolling & exponential smoothing column builders
+* [#401](https://github.com/man-group/dtale/issues/401): option to show top values in bar charts
+
 ### 1.31.0 (2021-1-16)
 * [#387](https://github.com/man-group/dtale/issues/387): calculate skew on date columns converted to millisecond integers
 * [#386](https://github.com/man-group/dtale/issues/386): bugfixes with "Rows w/ numeric" & "Rows w/ hidden"

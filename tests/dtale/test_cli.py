@@ -6,15 +6,10 @@ import mock
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit
@@ -554,18 +549,6 @@ def test_loader_retrieval():
     with ExitStack() as stack:
         stack.enter_context(
             mock.patch(
-                "platform.python_version_tuple", mock.Mock(return_value=(2, 7, 3))
-            )
-        )
-        mock_loader = stack.enter_context(
-            mock.patch("dtale.cli.loaders.get_py2_loader", mock.Mock())
-        )
-        custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
-
-    with ExitStack() as stack:
-        stack.enter_context(
-            mock.patch(
                 "platform.python_version_tuple", mock.Mock(return_value=(3, 0, 0))
             )
         )
@@ -602,7 +585,7 @@ def test_loader_retrieval():
 
 @pytest.mark.unit
 def test_loader_retrievers(builtin_pkg):
-    from dtale.cli.loaders import get_py35_loader, get_py33_loader, get_py2_loader
+    from dtale.cli.loaders import get_py35_loader, get_py33_loader
 
     orig_import = __import__
     mock_importlib_util = mock.Mock()
@@ -633,8 +616,6 @@ def test_loader_retrievers(builtin_pkg):
         assert mock_importlib_machinery.SourceFileLoader.called_once()
         mock_sourcefileloader = mock_importlib_machinery.SourceFileLoader.return_value
         assert mock_sourcefileloader.load_module.called_once()
-        assert get_py2_loader("custom.loaders", "loader.py") is not None
-        assert mock_imp.load_source.called_once()
 
 
 @pytest.mark.unit

@@ -9,9 +9,10 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import CorrelationsTsOptions from "../../popups/correlations/CorrelationsTsOptions";
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import correlationsData from "../data/correlations";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const chartData = {
   visible: true,
@@ -20,21 +21,16 @@ const chartData = {
   query: "col == 3",
 };
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("Correlations tests", () => {
-  const { opener } = window;
   let Correlations, ChartsBody, CorrelationsGrid, CorrelationScatterStats;
+  const { opener } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
 
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
@@ -67,22 +63,9 @@ describe("Correlations tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      chartCfg.getDatasetMeta = _idx => ({
-        controller: { _config: { selectedPoint: 0 } },
-      });
-      return chartCfg;
-    });
-
+    mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     Correlations = require("../../popups/Correlations").Correlations;
     ChartsBody = require("../../popups/charts/ChartsBody").default;
     CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
@@ -94,8 +77,7 @@ describe("Correlations tests", () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
+    dimensions.afterAll();
     window.opener = opener;
   });
 

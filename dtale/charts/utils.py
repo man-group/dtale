@@ -1,8 +1,9 @@
 import copy
 
+import numpy as np
 import pandas as pd
 
-from dtale.query import run_query
+from dtale.query import build_col_key, run_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
@@ -162,46 +163,91 @@ def group_filter_handler(col_def, group_val, group_classifier):
     if len(col_def_segs) > 1:
         col, freq = col_def_segs
         if group_val == "nan":
-            return "{col} != {col}".format(col=col)
+            return "{col} != {col}".format(col=build_col_key(col)), "{}: NaN".format(
+                col
+            )
         if freq == "WD":
-            return "{}.dt.dayofweek == {}".format(col, group_val)
+            return (
+                "{}.dt.dayofweek == {}".format(build_col_key(col), group_val),
+                "{}.dt.dayofweek: {}".format(col, group_val),
+            )
         elif freq == "H2":
-            return "{}.dt.hour == {}".format(col, group_val)
+            return (
+                "{}.dt.hour == {}".format(build_col_key(col), group_val),
+                "{}.dt.hour: {}".format(col, group_val),
+            )
         elif freq == "H":
             ts_val = pd.Timestamp(group_val)
-            return "{col}.dt.date == '{day}' and {col}.dt.hour == {hour}".format(
-                col=col, day=ts_val.strftime("%Y%m%d"), hour=ts_val.hour
+            day = ts_val.strftime("%Y%m%d")
+            hour = ts_val.hour
+            return (
+                "{col}.dt.date == '{day}' and {col}.dt.hour == {hour}".format(
+                    col=build_col_key(col), day=day, hour=hour
+                ),
+                "{col}.dt.date: {day}, {col}.dt.hour: {hour}".format(
+                    col=col, day=day, hour=hour
+                ),
             )
         elif freq == "D":
             ts_val = convert_date_val_to_date(group_val)
-            return "{col}.dt.date == '{day}'".format(
-                col=col, day=ts_val.strftime("%Y%m%d")
+            day = ts_val.strftime("%Y%m%d")
+            return (
+                "{col}.dt.date == '{day}'".format(col=build_col_key(col), day=day),
+                "{}.dt.date: {}".format(col, day),
             )
         elif freq == "W":
             ts_val = convert_date_val_to_date(group_val)
-            return "{col}.dt.year == {year} and {col}.dt.week == {week}".format(
-                col=col, year=ts_val.year, week=ts_val.week
+            return (
+                "{col}.dt.year == {year} and {col}.dt.week == {week}".format(
+                    col=build_col_key(col), year=ts_val.year, week=ts_val.week
+                ),
+                "{col}.dt.year: {year}, {col}.dt.week: {week}".format(
+                    col=col, year=ts_val.year, week=ts_val.week
+                ),
             )
         elif freq == "M":
             ts_val = convert_date_val_to_date(group_val)
-            return "{col}.dt.year == {year} and {col}.dt.month == {month}".format(
-                col=col, year=ts_val.year, month=ts_val.month
+            return (
+                "{col}.dt.year == {year} and {col}.dt.month == {month}".format(
+                    col=build_col_key(col), year=ts_val.year, month=ts_val.month
+                ),
+                "{col}.dt.year: {year}, {col}.dt.month: {month}".format(
+                    col=col, year=ts_val.year, month=ts_val.month
+                ),
             )
         elif freq == "Q":
             ts_val = convert_date_val_to_date(group_val)
-            return "{col}.dt.year == {year} and {col}.dt.quarter == {quarter}".format(
-                col=col, year=ts_val.year, quarter=ts_val.quarter
+            return (
+                "{col}.dt.year == {year} and {col}.dt.quarter == {quarter}".format(
+                    col=build_col_key(col), year=ts_val.year, quarter=ts_val.quarter
+                ),
+                "{col}.dt.year: {year}, {col}.dt.quarter: {quarter}".format(
+                    col=col, year=ts_val.year, quarter=ts_val.quarter
+                ),
             )
         elif freq == "Y":
             ts_val = convert_date_val_to_date(group_val)
-            return "{col}.dt.year == {year}".format(col=col, year=ts_val.year)
+            return (
+                "{col}.dt.year == {year}".format(
+                    col=build_col_key(col), year=ts_val.year
+                ),
+                "{}.dt.year: {}".format(col, ts_val.year),
+            )
     if group_val == "nan":
-        return "{col} != {col}".format(col=col_def)
+        return "{col} != {col}".format(col=build_col_key(col_def)), "{}: NaN".format(
+            col_def
+        )
     if group_classifier in ["I", "F"]:
-        return "{col} == {val}".format(col=col_def, val=group_val)
+        return (
+            "{col} == {val}".format(col=build_col_key(col_def), val=group_val),
+            "{}: {}".format(col_def, group_val),
+        )
     if group_classifier == "D":
         group_val = convert_date_val_to_date(group_val).strftime("%Y%m%d")
-    return "{col} == '{val}'".format(col=col_def, val=group_val)
+    return (
+        "{col} == '{val}'".format(col=build_col_key(col_def), val=group_val),
+        "{}: {}".format(col_def, group_val),
+    )
 
 
 def build_group_inputs_filter(df, group_inputs):
@@ -214,11 +260,17 @@ def build_group_inputs_filter(df, group_inputs):
 
     def _full_filter():
         for group_val in group_inputs:
-            group_filter = " and ".join(list(_group_filter(group_val)))
-            yield group_filter
+            filter_vals, label_vals = [], []
+            for fv, lv in _group_filter(group_val):
+                filter_vals.append(fv)
+                label_vals.append(lv)
+            yield " and ".join(filter_vals), ", ".join(label_vals)
 
-    filters = list(_full_filter())
-    return "({})".format(") or (".join(filters))
+    full_filters, full_labels = [], []
+    for ff, fl in _full_filter():
+        full_filters.append(ff)
+        full_labels.append(fl)
+    return ("({})".format(") or (".join(full_filters)), ", ".join(full_labels))
 
 
 def retrieve_chart_data(df, *args, **kwargs):
@@ -246,7 +298,7 @@ def retrieve_chart_data(df, *args, **kwargs):
     all_data = pd.concat(all_data, axis=1)
     all_code = ["chart_data = pd.concat(["] + all_code + ["], axis=1)"]
     if len(make_list(kwargs.get("group_val"))):
-        filters = build_group_inputs_filter(all_data, kwargs["group_val"])
+        filters, labels = build_group_inputs_filter(all_data, kwargs["group_val"])
         all_data = run_query(all_data, filters)
         all_code.append(
             "chart_data = chart_data.query({})".format(triple_quote(filters))
@@ -429,8 +481,10 @@ def build_base_chart(
     x,
     y,
     group_col=None,
+    group_type=None,
     group_val=None,
     bins_val=None,
+    bin_type=None,
     agg=None,
     allow_duplicates=False,
     return_raw=False,
@@ -478,8 +532,38 @@ def build_base_chart(
     sort_cols = y_cols if len(z_cols) else []
     if group_col is not None and len(group_col):
         for col in make_list(group_col):
-            if classify_type(find_dtype(data[col])) == "F":
-                data.loc[:, col] = pd.qcut(data[col], q=bins_val).astype("str")
+            classifier = classify_type(find_dtype(data[col]))
+            if classifier == "F" or (classifier == "I" and group_type == "bins"):
+                if bin_type == "width":
+                    data.loc[:, col] = pd.qcut(
+                        data[col], q=bins_val, duplicates="drop"
+                    ).astype("str")
+                    code.append(
+                        (
+                            "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins}, duplicates=\"drop\")"
+                        ).format(col=col, bins=bins_val)
+                    )
+                else:
+                    bins_data = data[col].dropna()
+                    npt = len(bins_data)
+                    equal_freq_bins = np.interp(
+                        np.linspace(0, npt, bins_val + 1),
+                        np.arange(npt),
+                        np.sort(bins_data),
+                    )
+                    data.loc[:, col] = pd.cut(
+                        data[col], bins=equal_freq_bins, duplicates="drop"
+                    ).astype("str")
+                    code.append(
+                        (
+                            "bins_data = data['{col}'].dropna()\n"
+                            "npt = len(bins_data)\n"
+                            "equal_freq_bins = np.interp(np.linspace(0, npt, {bins}), np.arange(npt), "
+                            "np.sort(bins_data))\n"
+                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins, "
+                            'duplicates="drop")'
+                        ).format(col=col, bins=bins_val + 1)
+                    )
 
         main_group = group_col
         if animate_by is not None:
@@ -564,8 +648,15 @@ def build_base_chart(
                             gc, group_fmts[gc](gv, as_string=True), classifier
                         )
 
-                group_filter = " and ".join(list(_group_filter()))
-                yield group_filter, data_f.format_lists(grp)
+                final_group_filter, final_group_label = [], []
+                for gf, gl in _group_filter():
+                    final_group_filter.append(gf)
+                    final_group_label.append(gl)
+                group_filter = " and ".join(final_group_filter)
+                group_label = "({})".format(", ".join(final_group_label))
+                data = data_f.format_lists(grp)
+                data["_filter_"] = group_filter
+                yield group_label, data
 
         if animate_by is not None:
             frame_fmt = find_dtype_formatter(

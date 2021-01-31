@@ -51,6 +51,7 @@ describe("DescribeFilters tests", () => {
         "boxplot",
         "histogram",
         "value_counts",
+        "qq",
       ]);
     });
 
@@ -79,7 +80,12 @@ describe("DescribeFilters tests", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(0);
       expect(result.find(CategoryInputs)).toHaveLength(0);
       expect(result.find(TextEnterFilter)).toHaveLength(0);
-      expect(_.map(result.find(ButtonToggle).prop("options"), "value")).toEqual(["boxplot", "histogram", "categories"]);
+      expect(_.map(result.find(ButtonToggle).prop("options"), "value")).toEqual([
+        "boxplot",
+        "histogram",
+        "categories",
+        "qq",
+      ]);
     });
 
     it("rendering histogram", () => {
@@ -107,7 +113,12 @@ describe("DescribeFilters tests", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(0);
       expect(result.find(CategoryInputs)).toHaveLength(0);
       expect(result.find(TextEnterFilter)).toHaveLength(0);
-      expect(_.map(result.find(ButtonToggle).prop("options"), "value")).toEqual(["boxplot", "value_counts"]);
+      expect(_.map(result.find(ButtonToggle).prop("options"), "value")).toEqual([
+        "boxplot",
+        "histogram",
+        "value_counts",
+        "qq",
+      ]);
     });
 
     it("rendering value_counts", () => {

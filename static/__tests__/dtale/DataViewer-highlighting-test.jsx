@@ -5,25 +5,21 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 
 import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, tick, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-
 describe("DataViewer highlighting tests", () => {
   let result, DataViewer, ReactDataViewer, RangeHighlight;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -50,10 +46,7 @@ describe("DataViewer highlighting tests", () => {
     await tick();
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   const heatMapBtn = () => findMainMenuButton(result, "By Col", "div.btn-group");
   const dataViewer = () => result.find(ReactDataViewer);

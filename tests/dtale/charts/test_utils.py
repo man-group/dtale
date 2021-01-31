@@ -1,13 +1,8 @@
 import mock
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 import dtale.charts.utils as chart_utils
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit
@@ -62,10 +57,10 @@ def test_convert_date_val_to_date():
 @pytest.mark.unit
 def test_group_filter_handler():
     assert (
-        chart_utils.group_filter_handler("date", "2020-01-01", "D")
-        == "date == '20200101'"
+        chart_utils.group_filter_handler("date", "2020-01-01", "D")[0]
+        == "`date` == '20200101'"
     )
     assert (
-        chart_utils.group_filter_handler("date", 1577854800000, "D")
-        == "date == '20200101'"
+        chart_utils.group_filter_handler("date", 1577854800000, "D")[0]
+        == "`date` == '20200101'"
     )

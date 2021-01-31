@@ -6,7 +6,7 @@ import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const VARIANCE_DATA = {
   check1: {
@@ -71,23 +71,9 @@ describe("Variance tests", () => {
       })
     );
 
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = {
-        ctx,
-        cfg,
-        data: cfg.data,
-        destroyed: false,
-      };
-      chartCfg.destroy = function destroy() {
-        chartCfg.destroyed = true;
-      };
-      return chartCfg;
-    });
+    mockChartJS();
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   beforeEach(async () => {

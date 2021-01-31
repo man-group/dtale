@@ -73,6 +73,57 @@ async function tickUpdate(result, timeout = 0) {
   result.update();
 }
 
+function mockChartJS() {
+  const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
+    const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
+    chartCfg.destroy = () => (chartCfg.destroyed = true);
+    chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
+    chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
+    chartCfg.getDatasetMeta = _idx => ({ controller: { _config: { selectedPoint: 0 } } });
+    chartCfg.update = _.noop;
+    chartCfg.options = { scales: { xAxes: [{}] } };
+    return chartCfg;
+  });
+
+  jest.mock("chart.js", () => ({
+    __esModule: true,
+    default: mockChartUtils,
+    plugins: { register: () => undefined },
+  }));
+}
+
+function mockD3Cloud() {
+  const mocker = withGlobalJquery(() => () => {
+    const cloudCfg = {};
+    const propUpdate = prop => val => {
+      cloudCfg[prop] = val;
+      return cloudCfg;
+    };
+    cloudCfg.size = propUpdate("size");
+    cloudCfg.padding = propUpdate("padding");
+    cloudCfg.words = propUpdate("words");
+    cloudCfg.rotate = propUpdate("rotate");
+    cloudCfg.spiral = propUpdate("spiral");
+    cloudCfg.random = propUpdate("random");
+    cloudCfg.text = propUpdate("text");
+    cloudCfg.font = propUpdate("font");
+    cloudCfg.fontStyle = propUpdate("fontStyle");
+    cloudCfg.fontWeight = propUpdate("fontWeight");
+    cloudCfg.fontSize = () => ({
+      on: () => ({ start: _.noop }),
+    });
+    return cloudCfg;
+  });
+  jest.mock("d3-cloud", () => mocker);
+}
+
+function mockWordcloud() {
+  jest.mock("react-wordcloud", () => {
+    const MockComponent = require("./MockComponent").MockComponent;
+    return MockComponent;
+  });
+}
+
 export {
   withGlobalJquery,
   replaceNBSP,
@@ -82,4 +133,7 @@ export {
   clickMainMenuButton,
   tick,
   tickUpdate,
+  mockChartJS,
+  mockD3Cloud,
+  mockWordcloud,
 };

@@ -5,16 +5,11 @@ import mock
 import os
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.app import build_app
 
 from tests.dtale.dash.test_dash import build_chart_params, path_builder
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)
@@ -88,7 +83,6 @@ def test_update_geojson():
             params["state"][0]["value"] = "africa_110m.json"
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
-            print(resp_data["output-geojson-upload"]["children"])
             assert (
                 resp_data["output-geojson-upload"]["children"]
                 == "africa_110m uploaded!"

@@ -1,7 +1,7 @@
 import mock
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.app import build_app
 
@@ -11,11 +11,6 @@ from tests.dtale.dash.test_dash import (
     print_traceback,
     ts_builder,
 )
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)

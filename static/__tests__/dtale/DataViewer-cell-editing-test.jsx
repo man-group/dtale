@@ -4,35 +4,20 @@ import { Provider } from "react-redux";
 
 import { it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, tick, tickUpdate, withGlobalJquery } from "../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
+import { buildInnerHTML, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("DataViewer tests", () => {
   const { open } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 1205,
+    offsetHeight: 775,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1205,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 775,
-    });
+    dimensions.beforeAll();
     delete window.open;
     window.open = jest.fn();
 
@@ -42,31 +27,12 @@ describe("DataViewer tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = {
-        ctx,
-        cfg,
-        data: cfg.data,
-        destroyed: false,
-      };
-      chartCfg.destroy = function destroy() {
-        chartCfg.destroyed = true;
-      };
-      return chartCfg;
-    });
-
+    mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
+    dimensions.afterAll();
     window.open = open;
   });
 

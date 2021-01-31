@@ -51,7 +51,7 @@ def build_input(
     return html.Div(
         [
             html.Div(
-                [html.Span(label, className=label_class), input],
+                [html.Span(label, className=label_class)] + make_list(input),
                 className="input-group mr-3",
             )
         ],

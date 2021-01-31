@@ -40,7 +40,7 @@ from dtale.dash_application.charts import (
 )
 from dtale.data_reshapers import DataReshaper
 from dtale.code_export import build_code_export
-from dtale.query import build_query, run_query
+from dtale.query import build_col_key, build_query, run_query
 from dtale.utils import (
     DuplicateDataError,
     apply,
@@ -599,7 +599,9 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype_data["coord"] = coord_type(s)
 
         if classification in ["D"] and not s.isnull().all():
-            dtype_data["skew"] = json_float(apply(s, json_timestamp).skew())
+            timestamps = apply(s, json_timestamp)
+            dtype_data["skew"] = json_float(timestamps.skew())
+            dtype_data["kurt"] = json_float(timestamps.kurt())
 
         if classification == "S" and not dtype_data["hasMissing"]:
             if dtype.startswith("category"):
@@ -1911,11 +1913,15 @@ def build_outlier_query(iqr_lower, iqr_upper, min_val, max_val, column):
     queries = []
     if iqr_lower > min_val:
         queries.append(
-            "{column} < {lower}".format(column=column, lower=json_float(iqr_lower))
+            "{column} < {lower}".format(
+                column=build_col_key(column), lower=json_float(iqr_lower)
+            )
         )
     if iqr_upper < max_val:
         queries.append(
-            "{column} > {upper}".format(column=column, upper=json_float(iqr_upper))
+            "{column} > {upper}".format(
+                column=build_col_key(column), upper=json_float(iqr_upper)
+            )
         )
     return "(({}))".format(") or (".join(queries)) if len(queries) > 1 else queries[0]
 
@@ -2378,7 +2384,7 @@ def get_column_analysis(data_id):
     dtype = find_dtype(data[selected_col])
     classifier = classify_type(dtype)
     if data_type is None:
-        data_type = "histogram" if classifier in ["F", "I"] else "value_counts"
+        data_type = "histogram" if classifier in ["F", "I", "D"] else "value_counts"
     if data_type == "geolocation":
         lat_col = get_str_arg(request, "latCol")
         lon_col = get_str_arg(request, "lonCol")
@@ -2510,9 +2516,20 @@ def get_column_analysis(data_id):
         return_data = f.format_lists(hist)
         return_data["top"] = top
     elif data_type == "histogram":
+        if classifier == "D":
+            data.loc[:, selected_col] = apply(data[selected_col], json_timestamp)
         hist_data, hist_labels = np.histogram(data, bins=bins)
         hist_data = [json_float(h) for h in hist_data]
         code.append("s = df[~pd.isnull(df['{col}'])][['{col}']]")
+        if classifier == "D":
+            code.append(
+                (
+                    "\nimport time\n\n"
+                    "s.loc[:, '{col}'] = s['{col}'].apply(\n"
+                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
+                    ")"
+                )
+            )
         code.append("chart, labels = np.histogram(s, bins={bins})".format(bins=bins))
         return_data = dict(
             labels=[
@@ -2528,6 +2545,27 @@ def get_column_analysis(data_id):
                 desc[p] = dtype_info[p]
         code += desc_code
         return_data["desc"] = desc
+    elif data_type == "qq":
+        s = data[selected_col]
+        code.append("s = df[~pd.isnull(df['{col}'])]['{col}']")
+        if classifier == "D":
+            s = apply(s, json_timestamp)
+            code.append(
+                (
+                    "\nimport time\n\n"
+                    "s = s['{col}'].apply(\n"
+                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
+                    ")"
+                )
+            )
+        qq_x, qq_y = sts.probplot(s, dist="norm", fit=False)
+        qq = pd.DataFrame(dict(x=qq_x, y=qq_y))
+        f = grid_formatter(grid_columns(qq), nan_display=None)
+        return_data = dict(data=f.format_dicts(qq.itertuples()))
+        code.append('qq = sts.probplot(s, dist="norm", fit=False)')
+        return_data["min"] = f.fmts[0][-1](qq.min()[0].min(), None)
+        return_data["max"] = f.fmts[0][-1](qq.max()[0].max(), None)
+
     cols = global_state.get_dtypes(data_id)
     return jsonify(
         code="\n".join(code),

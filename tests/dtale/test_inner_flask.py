@@ -1,14 +1,8 @@
 import mock
 import pytest
-
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.app import build_app
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit

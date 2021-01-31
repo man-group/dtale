@@ -1,6 +1,6 @@
 import pandas as pd
 import requests
-from six import PY3, BytesIO, StringIO
+from six import BytesIO
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options, loader_prop_keys
@@ -38,7 +38,7 @@ def loader_func(**kwargs):
             req_kwargs["proxies"] = dict(http=proxy, https=proxy)
         resp = requests.get(path, **req_kwargs)
         assert resp.status_code == 200
-        path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
+        path = BytesIO(resp.content)
     return pd.read_csv(
         path, **{k: v for k, v in kwargs.items() if k in loader_prop_keys(LOADER_PROPS)}
     )

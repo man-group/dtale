@@ -3,12 +3,7 @@ from collections import namedtuple
 import mock
 import pandas as pd
 import pytest
-from six import PY3
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
+from contextlib import ExitStack
 
 
 # this test will make sure that ipython hasn't changed their implementations of display, IFrame & DisplayHandle.update

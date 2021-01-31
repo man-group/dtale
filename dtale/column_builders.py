@@ -56,6 +56,10 @@ class ColumnBuilder(object):
             self.builder = DiffColumnBuilder(name, cfg)
         elif column_type == "data_slope":
             self.builder = TimeseriesDataSlopeBuilder(name, cfg)
+        elif column_type == "rolling":
+            self.builder = RollingBuilder(name, cfg)
+        elif column_type == "exponential_smoothing":
+            self.builder = ExponentialSmoothingBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -935,11 +939,9 @@ def clean(s, cleaner, cfg):
     if cleaner == "drop_multispace":
         return s.str.replace(r"[ ]+", " ")
     elif cleaner == "drop_punctuation":
-        if six.PY3:
-            return apply(
-                s, lambda x: x.translate(str.maketrans("", "", string.punctuation))
-            )
-        return apply(s, lambda x: x.translate(None, string.punctuation))
+        return apply(
+            s, lambda x: x.translate(str.maketrans("", "", string.punctuation))
+        )
     elif cleaner == "stopwords":
         stopwords = cfg.get("stopwords") or []
 
@@ -1031,11 +1033,9 @@ def clean_code(cleaner, cfg):
     if cleaner == "drop_multispace":
         return ["s = s.str.replace(r'[ ]+', ' ')"]
     elif cleaner == "drop_punctuation":
-        if six.PY3:
-            return [
-                "s = s.apply(lambda x: x.translate(str.maketrans('', '', string.punctuation))"
-            ]
-        return ["s = s.apply(lambda x: x.translate(None, string.punctuation))"]
+        return [
+            "s = s.apply(lambda x: x.translate(str.maketrans('', '', string.punctuation))"
+        ]
     elif cleaner == "stopwords":
         stopwords = cfg.get("stopwords") or []
         return [
@@ -1177,6 +1177,105 @@ class TimeseriesDataSlopeBuilder(object):
             "diffs.loc[diffs < 0] = -1",
             "g = (~(diffs == diffs.shift(1))).cumsum()",
             "df.loc[:, '{name}'] = pd.Series(g, index=df.index, name='{name}')".format(
+                name=self.name
+            ),
+        ]
+
+
+class RollingBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def _get_props(self):
+        col, comp, window, center = (
+            self.cfg.get(p) for p in ["col", "comp", "window", "center"]
+        )
+        rolling_kwargs = {
+            p: self.cfg[p]
+            for p in ["min_periods", "center", "win_type", "on", "closed"]
+            if self.cfg.get(p) is not None
+        }
+        window = int(window)
+        if rolling_kwargs.get("min_periods"):
+            rolling_kwargs["min_periods"] = int(rolling_kwargs["min_periods"])
+        return col, comp, window, center, rolling_kwargs
+
+    def build_column(self, data):
+        col, comp, window, center, rolling_kwargs = self._get_props()
+        if rolling_kwargs.get("on"):
+            vals = data[[col, rolling_kwargs["on"]]].rolling(window, **rolling_kwargs)[
+                col
+            ]
+        else:
+            vals = data[col].rolling(window, **rolling_kwargs)
+        vals = getattr(vals, comp)()
+        return pd.Series(vals, index=data.index, name=self.name)
+
+    def build_code(self):
+        col, comp, window, center, rolling_kwargs = self._get_props()
+        rolling_kwargs_str = []
+        if rolling_kwargs.get("min_periods"):
+            rolling_kwargs_str.append(
+                "min_periods={}".format(rolling_kwargs["min_periods"])
+            )
+        if rolling_kwargs.get("center"):
+            rolling_kwargs_str.append("center=True")
+        for p in ["win_type", "on", "closed"]:
+            if rolling_kwargs.get(p):
+                rolling_kwargs_str.append("{}='{}'".format(p, rolling_kwargs[p]))
+        rolling_kwargs_str = ", ".join(rolling_kwargs_str)
+        if rolling_kwargs.get("on"):
+            code = [
+                "rolling_vals = df[['{}', '{}']].rolling(",
+                "\t{}{}".format(
+                    window,
+                    "" if not rolling_kwargs_str else ", {}".format(rolling_kwargs_str),
+                ),
+                ").{}()['{}']".format(comp, col),
+            ]
+        else:
+            code = [
+                "rolling_vals = df['{col}'].rolling({window}{kwargs}).{comp}()".format(
+                    col=col,
+                    window=window,
+                    kwargs=""
+                    if not rolling_kwargs_str
+                    else ", {}".format(rolling_kwargs_str),
+                    comp=comp,
+                )
+            ]
+        return code + [
+            "df.loc[:, '{name}'] = pd.Series(colling_vals, index=df.index, name='{name}')".format(
+                name=self.name
+            )
+        ]
+
+
+class ExponentialSmoothingBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, alpha = (self.cfg.get(p) for p in ["col", "alpha"])
+        alpha = float(alpha)
+        s = data[col].values
+        result = [s[0]]
+        for n in range(1, len(s)):
+            result.append(alpha * s[n] + (1 - alpha) * result[n - 1])
+        return pd.Series(result, index=data.index, name=self.name)
+
+    def build_code(self):
+        col, alpha = (self.cfg.get(p) for p in ["col", "alpha"])
+        return [
+            "s = df['{}'].values".format(col),
+            "result = [s[0]]",
+            "for n in range(1, len(s)):",
+            "\tresult.append({alpha} * s[n] + (1 - {alpha}) * result[n - 1])".format(
+                alpha=alpha
+            ),
+            "df.loc[:, '{name}'] = pd.Series(result, index=df.index, name='{name}')".format(
                 name=self.name
             ),
         ]

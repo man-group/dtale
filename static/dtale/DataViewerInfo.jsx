@@ -9,6 +9,8 @@ import menuUtils from "../menuUtils";
 import { exports as gu } from "./gridUtils";
 import serverState from "./serverStateManagement";
 
+const removeBackticks = query => query.replace(/`/g, "");
+
 function buildMenuHandler(prop, propagateState) {
   return menuUtils.openMenu(
     `${prop}Actions`,
@@ -38,7 +40,7 @@ function displayQueries(props, prop) {
             <i className="ico-cancel mr-4" />
           </button>
         </span>
-        <span className="font-weight-bold text-nowrap">{cfg.query}</span>
+        <span className="font-weight-bold text-nowrap">{removeBackticks(cfg.query)}</span>
       </li>
     );
   });
@@ -144,7 +146,7 @@ class ReactDataViewerInfo extends React.Component {
       return [
         label,
         <div key={1} className="pl-3 d-inline-block filter-menu-toggle">
-          {filterSegs[0]}
+          {removeBackticks(filterSegs[0])}
         </div>,
         clearAll,
       ];
@@ -152,7 +154,7 @@ class ReactDataViewerInfo extends React.Component {
     const clickHandler = buildMenuHandler("filter", state => this.setState(state));
     let filterText = _.join(filterSegs, " and ");
     if (_.size(filterText) > 30) {
-      filterText = _.truncate(filterText, { length: 30 });
+      filterText = _.truncate(removeBackticks(filterText), { length: 30 });
     }
     return [
       label,

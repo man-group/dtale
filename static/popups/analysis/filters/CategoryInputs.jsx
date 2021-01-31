@@ -3,28 +3,32 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { exports as gu } from "../../../dtale/gridUtils";
-import { AGGREGATION_OPTS } from "./Constants";
+import { ANALYSIS_AGGS } from "./Constants";
 import FilterSelect from "./FilterSelect";
-
-const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
 
 class CategoryInputs extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      categoryCol: null,
-      categoryAgg: _.find(ANALYSIS_AGGS, { value: "mean" }),
-    };
-  }
-
-  render() {
-    const { cols, selectedCol } = this.props;
-    const updateCategory = (prop, val) => this.setState({ [prop]: val }, () => this.props.updateCategory(prop, val));
-    let colOpts = _.reject(cols, c => c.name === selectedCol || gu.findColType(c.dtype) === "float");
+    let colOpts = _.reject(props.cols, c => c.name === props.selectedCol || gu.findColType(c.dtype) === "float");
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
       c => _.toLower(c.value)
     );
+    this.state = {
+      categoryCol: _.head(colOpts),
+      colOpts,
+      categoryAgg: _.find(ANALYSIS_AGGS, { value: "mean" }),
+    };
+  }
+
+  componentDidMount() {
+    if (this.state.categoryCol) {
+      this.props.updateCategory("categoryCol", this.state.categoryCol);
+    }
+  }
+
+  render() {
+    const updateCategory = (prop, val) => this.setState({ [prop]: val }, () => this.props.updateCategory(prop, val));
     return (
       <React.Fragment>
         <div className="col-auto text-center pr-4">
@@ -39,7 +43,7 @@ class CategoryInputs extends React.Component {
           <FilterSelect
             selectProps={{
               value: this.state.categoryCol,
-              options: colOpts,
+              options: this.state.colOpts,
               onChange: v => updateCategory("categoryCol", v),
               noOptionsText: () => "No columns found",
               isClearable: true,
@@ -50,7 +54,7 @@ class CategoryInputs extends React.Component {
           <FilterSelect
             selectProps={{
               value: this.state.categoryAgg,
-              options: ANALYSIS_AGGS,
+              options: _.reject(ANALYSIS_AGGS, ({ value }) => value === "count"),
               onChange: v => updateCategory("categoryAgg", v),
             }}
             labelProp="label"

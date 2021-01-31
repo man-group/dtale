@@ -1,6 +1,6 @@
 {
   "name": "dtale",
-  "version": "1.31.0",
+  "version": "1.32.1",
   "description": "Visualizer for Pandas Data Structures",
   "main": "main.js",
   "directories": {
@@ -118,6 +118,7 @@
     "bootstrap": "4.5.3",
     "chart.js": "2.9.4",
     "chartjs-chart-box-and-violin-plot": "2.3.0",
+    "chartjs-plugin-trendline": "0.2.2",
     "chartjs-plugin-zoom": "0.7.7",
     "chroma-js": "2.1.0",
     "create-react-class": "15.7.0",

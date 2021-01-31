@@ -239,6 +239,38 @@ AUTO_LOAD_MSG = (
     "In order to trigger a chart build with 'Auto-Load' off you must click the 'Load' button."
 )
 
+BIN_TYPE_MSG = [
+    html.Div(
+        [
+            html.H3("Bin Types", style=dict(display="inline"), className="pr-3"),
+            html.A(
+                "(Binning in Data Mining)",
+                href="https://www.geeksforgeeks.org/binning-in-data-mining/",
+            ),
+            html.Br(),
+        ]
+    ),
+    html.Ul(
+        [
+            html.Li(
+                [
+                    html.B("Equal Width"),
+                    html.Span(": the bins are of equal sized ranges"),
+                ],
+                className="mb-0",
+            ),
+            html.Li(
+                [
+                    html.B("Equal Frquency"),
+                    html.Span(": the bins contain an equal amount of values"),
+                ],
+                className="mb-0",
+            ),
+        ],
+        className="mb-0",
+    ),
+]
+
 
 def build_img_src(proj, img_type="projections"):
     return "../static/images/{}/{}.png".format(img_type, "_".join(proj.split(" ")))
@@ -422,22 +454,35 @@ def show_input_handler(chart_type):
     return _show_input
 
 
-def contains_float_col(group_prop, inputs, data_id, group_cols=None):
-    for group_col in group_cols or make_list(inputs.get(group_prop)):
-        if (
-            classify_type(global_state.get_dtype_info(data_id, group_col)["dtype"])
-            == "F"
-        ):
-            return True
-    return False
-
-
-def show_group_input(inputs, data_id, group_cols=None):
+def get_group_types(inputs, data_id, group_cols=None):
     def _flags(group_prop):
-        if len(group_cols or make_list(inputs.get(group_prop))):
-            float_col = contains_float_col(group_prop, inputs, data_id, group_cols)
-            return not float_col, float_col
-        return False, False
+        final_group_cols = group_cols or make_list(inputs.get(group_prop))
+        if len(final_group_cols):
+            dtypes = global_state.get_dtypes(data_id)
+            for dtype_info in dtypes:
+                if dtype_info["name"] in final_group_cols:
+                    classifier = classify_type(dtype_info["dtype"])
+                    if classifier == "F":
+                        return ["bins"]
+                    if classifier == "I":
+                        return ["groups", "bins"]
+                    return ["groups"]
+            for fgc in final_group_cols:
+                col, freq = fgc.split("|")
+                col_exists = (
+                    next(
+                        (
+                            dtype_info
+                            for dtype_info in dtypes
+                            if dtype_info["name"] == col
+                        ),
+                        None,
+                    )
+                    is not None
+                )
+                if col_exists and freq in FREQS:
+                    return ["groups"]
+        return []
 
     chart_type = inputs.get("chart_type")
 
@@ -747,7 +792,7 @@ def build_group_val_options(df, group_cols):
 
 
 def build_map_type_tabs(map_type):
-    def _build_hoverable():
+    def _build_map_type_hoverable():
         for t in MAP_TYPES:
             if t.get("image", False):
                 yield html.Div(
@@ -770,7 +815,7 @@ def build_map_type_tabs(map_type):
                 style=dict(height="36px"),
             ),
             html.Div(
-                html.Div(list(_build_hoverable()), className="row"),
+                html.Div(list(_build_map_type_hoverable()), className="row"),
                 className="hoverable__content map-types",
             ),
         ],
@@ -779,14 +824,14 @@ def build_map_type_tabs(map_type):
     )
 
 
-def build_hoverable(content, hoverable_content, hover_class="map-types"):
+def build_hoverable(content, hoverable_content, hover_class="map-types", top="50%"):
     return html.Div(
         [
             content,
             html.Div(
                 hoverable_content,
                 className="hoverable__content {}".format(hover_class),
-                style=dict(top="50%"),
+                style=dict(top=top),
             ),
         ],
         style=dict(borderBottom="none"),
@@ -795,14 +840,28 @@ def build_hoverable(content, hoverable_content, hover_class="map-types"):
 
 
 def main_inputs_and_group_val_display(inputs, data_id):
-    group_vals, bins = show_group_input(inputs, data_id)
-    if group_vals or bins:
-        return (
-            dict(display="block" if group_vals else "none"),
-            dict(display="block" if bins else "none"),
-            "col-md-8",
+    group_types = get_group_types(inputs, data_id)
+    if len(group_types):
+        is_groups = ["groups"] == group_types or (
+            "groups" in group_types and inputs.get("group_type") == "groups"
         )
-    return dict(display="none"), dict(display="none"), "col-md-12"
+        is_bins = ["bins"] == group_types or (
+            "bins" in group_types and inputs.get("group_type") == "bins"
+        )
+        return (
+            dict(display="block" if len(group_types) > 1 else "none"),
+            dict(display="block" if is_groups else "none"),
+            dict(display="block" if is_bins else "none"),
+            "col-md-8",
+            dict(display="block"),
+        )
+    return (
+        dict(display="none"),
+        dict(display="none"),
+        dict(display="none"),
+        "col-md-12",
+        dict(display="none"),
+    )
 
 
 def build_slider_counts(df, data_id, query_value):
@@ -917,9 +976,13 @@ def charts_layout(df, settings, data_id, **inputs):
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
-    group_val_style, bins_style, main_input_class = main_inputs_and_group_val_display(
-        inputs, data_id
-    )
+    (
+        group_type_style,
+        group_val_style,
+        bins_style,
+        main_input_class,
+        show_groups,
+    ) = main_inputs_and_group_val_display(inputs, data_id)
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]
 
     def show_map_style(show):
@@ -1494,215 +1557,322 @@ def charts_layout(df, settings, data_id, **inputs):
                             ],
                             className="row pt-3 pb-3 charts-filters",
                         ),
+                    ],
+                    id="main-inputs",
+                    className=main_input_class,
+                ),
+                html.Div(
+                    [
                         html.Div(
-                            [
-                                build_input(
-                                    "Chart Per\nGroup",
-                                    html.Div(
-                                        daq.BooleanSwitch(
-                                            id="cpg-toggle",
-                                            on=inputs.get("cpg") or False,
+                            html.Div(
+                                html.Div(
+                                    [
+                                        html.Span(
+                                            "Group Type",
+                                            className="input-group-addon",
                                         ),
-                                        className="toggle-wrapper",
-                                    ),
-                                    id="cpg-input",
-                                    style=show_style(show_cpg),
-                                    className="col-auto",
+                                        html.Div(
+                                            dcc.Tabs(
+                                                id="group-type",
+                                                value=inputs.get("group_type")
+                                                or "groups",
+                                                children=[
+                                                    build_tab(
+                                                        "Values",
+                                                        "groups",
+                                                        {
+                                                            "padding": "2px",
+                                                            "minWidth": "4em",
+                                                        },
+                                                    ),
+                                                    build_tab(
+                                                        "Bins",
+                                                        "bins",
+                                                        {
+                                                            "padding": "2px",
+                                                            "minWidth": "4em",
+                                                        },
+                                                    ),
+                                                ],
+                                            ),
+                                            id="group-type-div",
+                                            className="form-control col-auto pt-3",
+                                        ),
+                                    ],
+                                    className="input-group",
                                 ),
-                                build_input(
-                                    "Trendline",
-                                    dcc.Dropdown(
-                                        id="trendline-dropdown",
-                                        options=[
-                                            build_option("ols"),
-                                            build_option("lowess"),
-                                        ],
-                                        value=inputs.get("trendline"),
-                                    ),
-                                    className="col-auto addon-min-width",
-                                    style=scatter_input,
-                                    id="trendline-input",
-                                ),
-                                build_input(
-                                    "Barmode",
-                                    dcc.Dropdown(
-                                        id="barmode-dropdown",
-                                        options=[
-                                            build_option("group", "Group"),
-                                            build_option("stack", "Stack"),
-                                            build_option("relative", "Relative"),
-                                        ],
-                                        value=inputs.get("barmode") or "group",
-                                        placeholder="Select a mode",
-                                    ),
-                                    className="col-auto addon-min-width",
-                                    style=bar_style,
-                                    id="barmode-input",
-                                ),
-                                build_input(
-                                    "Barsort",
-                                    dcc.Dropdown(
-                                        id="barsort-dropdown",
-                                        options=barsort_options,
-                                        value=inputs.get("barsort"),
-                                    ),
-                                    className="col-auto addon-min-width",
-                                    style=barsort_input_style,
-                                    id="barsort-input",
+                                className="addon-min-width",
+                            ),
+                            className="col-md-12 p-0 pb-5",
+                            id="group-type-input",
+                            style=group_type_style,
+                        ),
+                        build_input(
+                            "Group(s)",
+                            dcc.Dropdown(
+                                id="group-val-dropdown",
+                                multi=True,
+                                placeholder="Select a group value(s)",
+                                value=group_val,
+                                style=dict(width="inherit"),
+                            ),
+                            className="col-md-12 p-0 pb-5",
+                            id="group-val-input",
+                            style=group_val_style,
+                        ),
+                        build_input(
+                            "Bins",
+                            [
+                                daq.NumericInput(
+                                    id="bins-val-input",
+                                    min=1,
+                                    max=30,
+                                    value=inputs.get("bins_val") or 5,
                                 ),
                                 html.Div(
                                     html.Div(
                                         [
                                             html.Span(
-                                                "Y-Axis",
+                                                "Binning",
                                                 className="input-group-addon",
                                             ),
                                             html.Div(
-                                                dcc.Tabs(
-                                                    id="yaxis-type",
-                                                    value=yaxis_type,
-                                                    children=get_yaxis_type_tabs(y),
+                                                build_hoverable(
+                                                    dcc.Tabs(
+                                                        id="bin-type",
+                                                        value=inputs.get("bin_type")
+                                                        or "width",
+                                                        children=[
+                                                            build_tab(
+                                                                "Width",
+                                                                "width",
+                                                                {
+                                                                    "padding": "2px",
+                                                                    "minWidth": "4em",
+                                                                },
+                                                            ),
+                                                            build_tab(
+                                                                "Freq",
+                                                                "freq",
+                                                                {
+                                                                    "padding": "2px",
+                                                                    "minWidth": "4em",
+                                                                },
+                                                            ),
+                                                        ],
+                                                    ),
+                                                    BIN_TYPE_MSG,
+                                                    "",
+                                                    top="120%",
                                                 ),
-                                                id="yaxis-type-div",
+                                                id="bin-type-div",
                                                 className="form-control col-auto pt-3",
-                                                style=yaxis_type_style,
-                                            ),
-                                            dcc.Dropdown(
-                                                id="yaxis-dropdown",
-                                                options=yaxis_options,
-                                            ),
-                                            html.Span(
-                                                "Min:",
-                                                className="input-group-addon col-auto",
-                                                id="yaxis-min-label",
-                                            ),
-                                            dcc.Input(
-                                                id="yaxis-min-input",
-                                                type="number",
-                                                className="form-control col-auto",
-                                                style={"lineHeight": "inherit"},
-                                            ),
-                                            html.Span(
-                                                "Max:",
-                                                className="input-group-addon col-auto",
-                                                id="yaxis-max-label",
-                                            ),
-                                            dcc.Input(
-                                                id="yaxis-max-input",
-                                                type="number",
-                                                className="form-control col-auto",
-                                                style={"lineHeight": "inherit"},
                                             ),
                                         ],
                                         className="input-group",
-                                        id="yaxis-min-max-options",
                                     ),
                                     className="col-auto addon-min-width",
-                                    id="yaxis-input",
-                                    style=show_style(show_yaxis),
-                                ),
-                                build_input(
-                                    "Colorscale",
-                                    dcs.DashColorscales(
-                                        id="colorscale-picker",
-                                        colorscale=inputs.get("colorscale")
-                                        or default_cscale,
-                                    ),
-                                    className="col-auto addon-min-width pr-0",
-                                    style=cscale_style,
-                                    id="colorscale-input",
-                                ),
-                                build_input(
-                                    "Animate",
-                                    html.Div(
-                                        daq.BooleanSwitch(
-                                            id="animate-toggle",
-                                            on=inputs.get("animate") or False,
-                                        ),
-                                        className="toggle-wrapper",
-                                    ),
-                                    id="animate-input",
-                                    style=animate_style,
-                                    className="col-auto",
-                                ),
-                                build_input(
-                                    "Animate By",
-                                    dcc.Dropdown(
-                                        id="animate-by-dropdown",
-                                        options=animate_opts,
-                                        value=inputs.get("animate_by"),
-                                    ),
-                                    className="col-auto addon-min-width",
-                                    style=animate_by_style,
-                                    id="animate-by-input",
-                                ),
-                                dbc.Button(
-                                    "Lock Zoom",
-                                    id="lock-zoom-btn",
-                                    className="ml-auto",
-                                    style=lock_zoom_style(chart_type),
-                                ),
-                                build_input(
-                                    build_hoverable(
-                                        html.Div(
-                                            "Auto-Load", style=dict(color="white")
-                                        ),
-                                        AUTO_LOAD_MSG,
-                                        "",
-                                    ),
-                                    html.Div(
-                                        daq.BooleanSwitch(
-                                            id="auto-load-toggle",
-                                            on=True,
-                                            color="green",
-                                        ),
-                                        className="toggle-wrapper",
-                                    ),
-                                    id="auto-load-input",
-                                    className="ml-auto col-auto",
-                                ),
-                                dbc.Button(
-                                    "Load",
-                                    id="load-btn",
-                                    color="primary",
-                                    style=dict(display="none"),
+                                    id="bin-type-input",
                                 ),
                             ],
-                            className="row pt-3 pb-5 charts-filters",
-                            id="chart-inputs",
+                            className="col-md-12 p-0",
+                            id="bins-input",
+                            style=bins_style,
                         ),
                     ],
-                    id="main-inputs",
-                    className=main_input_class,
-                ),
-                build_input(
-                    "Group(s)",
-                    dcc.Dropdown(
-                        id="group-val-dropdown",
-                        multi=True,
-                        placeholder="Select a group value(s)",
-                        value=group_val,
-                        style=dict(width="inherit"),
-                    ),
-                    className="col-md-4 pt-3 pb-5",
-                    id="group-val-input",
-                    style=group_val_style,
-                ),
-                build_input(
-                    "Bins",
-                    daq.NumericInput(
-                        id="bins-val-input",
-                        min=1,
-                        max=30,
-                        value=inputs.get("bins_val") or 5,
-                        style=dict(width="inherit"),
-                    ),
-                    className="col-md-4 pt-3 pb-5",
-                    id="bins-input",
-                    style=bins_style,
+                    id="group-inputs-row",
+                    className="col-md-4 row pt-3 pb-5",
+                    style=show_groups,
                 ),
             ],
             className="row",
+        ),
+        html.Div(
+            [
+                build_input(
+                    "Chart Per\nGroup",
+                    html.Div(
+                        daq.BooleanSwitch(
+                            id="cpg-toggle",
+                            on=inputs.get("cpg") or False,
+                        ),
+                        className="toggle-wrapper",
+                    ),
+                    id="cpg-input",
+                    style=show_style(show_cpg),
+                    className="col-auto",
+                ),
+                build_input(
+                    "Trendline",
+                    dcc.Dropdown(
+                        id="trendline-dropdown",
+                        options=[
+                            build_option("ols"),
+                            build_option("lowess"),
+                        ],
+                        value=inputs.get("trendline"),
+                    ),
+                    className="col-auto addon-min-width",
+                    style=scatter_input,
+                    id="trendline-input",
+                ),
+                build_input(
+                    "Barmode",
+                    dcc.Dropdown(
+                        id="barmode-dropdown",
+                        options=[
+                            build_option("group", "Group"),
+                            build_option("stack", "Stack"),
+                            build_option("relative", "Relative"),
+                        ],
+                        value=inputs.get("barmode") or "group",
+                        placeholder="Select a mode",
+                    ),
+                    className="col-auto addon-min-width",
+                    style=bar_style,
+                    id="barmode-input",
+                ),
+                build_input(
+                    "Barsort",
+                    dcc.Dropdown(
+                        id="barsort-dropdown",
+                        options=barsort_options,
+                        value=inputs.get("barsort"),
+                    ),
+                    className="col-auto addon-min-width",
+                    style=barsort_input_style,
+                    id="barsort-input",
+                ),
+                build_input(
+                    "Top",
+                    dcc.Dropdown(
+                        id="top-bars",
+                        options=[build_option(v) for v in [5, 10, 20, 50]],
+                        value=inputs.get("top_bars"),
+                        placeholder=None,
+                    ),
+                    className="col-auto",
+                    style=barsort_input_style,
+                    id="top-bars-input",
+                ),
+                html.Div(
+                    html.Div(
+                        [
+                            html.Span(
+                                "Y-Axis",
+                                className="input-group-addon",
+                            ),
+                            html.Div(
+                                dcc.Tabs(
+                                    id="yaxis-type",
+                                    value=yaxis_type,
+                                    children=get_yaxis_type_tabs(y),
+                                ),
+                                id="yaxis-type-div",
+                                className="form-control col-auto pt-3",
+                                style=yaxis_type_style,
+                            ),
+                            dcc.Dropdown(
+                                id="yaxis-dropdown",
+                                options=yaxis_options,
+                            ),
+                            html.Span(
+                                "Min:",
+                                className="input-group-addon col-auto",
+                                id="yaxis-min-label",
+                            ),
+                            dcc.Input(
+                                id="yaxis-min-input",
+                                type="number",
+                                className="form-control col-auto",
+                                style={"lineHeight": "inherit"},
+                            ),
+                            html.Span(
+                                "Max:",
+                                className="input-group-addon col-auto",
+                                id="yaxis-max-label",
+                            ),
+                            dcc.Input(
+                                id="yaxis-max-input",
+                                type="number",
+                                className="form-control col-auto",
+                                style={"lineHeight": "inherit"},
+                            ),
+                        ],
+                        className="input-group",
+                        id="yaxis-min-max-options",
+                    ),
+                    className="col-auto addon-min-width",
+                    id="yaxis-input",
+                    style=show_style(show_yaxis),
+                ),
+                build_input(
+                    "Colorscale",
+                    dcs.DashColorscales(
+                        id="colorscale-picker",
+                        colorscale=inputs.get("colorscale") or default_cscale,
+                    ),
+                    className="col-auto addon-min-width pr-0",
+                    style=cscale_style,
+                    id="colorscale-input",
+                ),
+                build_input(
+                    "Animate",
+                    html.Div(
+                        daq.BooleanSwitch(
+                            id="animate-toggle",
+                            on=inputs.get("animate") or False,
+                        ),
+                        className="toggle-wrapper",
+                    ),
+                    id="animate-input",
+                    style=animate_style,
+                    className="col-auto",
+                ),
+                build_input(
+                    "Animate By",
+                    dcc.Dropdown(
+                        id="animate-by-dropdown",
+                        options=animate_opts,
+                        value=inputs.get("animate_by"),
+                    ),
+                    className="col-auto addon-min-width",
+                    style=animate_by_style,
+                    id="animate-by-input",
+                ),
+                dbc.Button(
+                    "Lock Zoom",
+                    id="lock-zoom-btn",
+                    className="ml-auto",
+                    style=lock_zoom_style(chart_type),
+                ),
+                build_input(
+                    build_hoverable(
+                        html.Div("Auto-Load", style=dict(color="white")),
+                        AUTO_LOAD_MSG,
+                        "",
+                        top="120%",
+                    ),
+                    html.Div(
+                        daq.BooleanSwitch(
+                            id="auto-load-toggle",
+                            on=True,
+                            color="green",
+                        ),
+                        className="toggle-wrapper",
+                    ),
+                    id="auto-load-input",
+                    className="ml-auto col-auto",
+                ),
+                dbc.Button(
+                    "Load",
+                    id="load-btn",
+                    color="primary",
+                    style=dict(display="none"),
+                ),
+            ],
+            className="row pt-3 pb-5 charts-filters",
+            id="chart-inputs",
         ),
         dcc.Loading(
             html.Div(id="chart-content", style={"height": "69vh"}), type="circle"

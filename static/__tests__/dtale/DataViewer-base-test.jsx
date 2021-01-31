@@ -6,25 +6,23 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
 
 describe("DataViewer tests", () => {
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
+
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -32,24 +30,10 @@ describe("DataViewer tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      return chartCfg;
-    });
-
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");

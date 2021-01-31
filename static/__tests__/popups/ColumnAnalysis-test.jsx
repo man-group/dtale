@@ -9,7 +9,7 @@ import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const ANALYSIS_DATA = {
   desc: { count: 20 },
@@ -65,6 +65,7 @@ describe("ColumnAnalysis tests", () => {
   let result, ColumnAnalysisChart, ColumnAnalysisFilters;
 
   beforeAll(() => {
+    mockChartJS();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/column-analysis")) {
@@ -117,30 +118,21 @@ describe("ColumnAnalysis tests", () => {
                 lon: [4, 5, 6],
               });
             }
+            if (params.type === "qq") {
+              return {
+                chart_type: "qq",
+                data: [{ x: 1, y: 1 }],
+                min: 1,
+                max: 1,
+              };
+            }
             return ANALYSIS_DATA;
           }
         }
         return {};
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = {
-        ctx,
-        cfg,
-        data: cfg.data,
-        destroyed: false,
-      };
-      chartCfg.destroy = function destroy() {
-        chartCfg.destroyed = true;
-      };
-      return chartCfg;
-    });
-
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   beforeEach(async () => {
@@ -213,11 +205,17 @@ describe("ColumnAnalysis tests", () => {
   });
 
   it("geolocation chart functionality", async () => {
-    result.find("ButtonToggle").find("button").last().simulate("click");
+    result.find("ButtonToggle").find("button").at(2).simulate("click");
     await tickUpdate(result);
     expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
     expect(result.find("GeoFilters")).toHaveLength(1);
     expect(result.find("GeoFilters").text()).toBe("Latitude:barLongitude:lon");
+  });
+
+  it("qq plot chart functionality", async () => {
+    result.find("ButtonToggle").find("button").last().simulate("click");
+    await tickUpdate(result);
+    expect(chart().cfg.type).toBe("scatter");
   });
 
   it("ColumnAnalysis rendering int data", async () => {

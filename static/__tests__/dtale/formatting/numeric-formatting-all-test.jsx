@@ -7,26 +7,22 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { expect, it } from "@jest/globals";
 
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, DataViewer, Formatting, NumericFormatting;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
+    dimensions.beforeAll();
+    mockChartJS();
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -44,24 +40,8 @@ describe("DataViewer tests", () => {
         return urlFetcher(url);
       })
     );
-
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = {
-        ctx,
-        cfg,
-        data: cfg.data,
-        destroyed: false,
-      };
-      chartCfg.destroy = function destroy() {
-        chartCfg.destroyed = true;
-      };
-      return chartCfg;
-    });
-
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     DataViewer = require("../../../dtale/DataViewer").DataViewer;
     Formatting = require("../../../popups/formats/Formatting").ReactFormatting;
     NumericFormatting = require("../../../popups/formats/NumericFormatting").default;
@@ -81,10 +61,7 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: apply numeric formatting to all", async () => {
     result.find(".main-grid div.headerCell div").at(0).simulate("click");

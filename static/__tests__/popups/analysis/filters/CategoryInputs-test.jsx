@@ -24,6 +24,7 @@ describe("CategoryInputs tests", () => {
   });
 
   it("calls updateCategory", () => {
+    updateCategory.mockReset();
     result.find(FilterSelect).first().prop("selectProps").onChange({ value: "bar" });
     result.find(FilterSelect).last().prop("selectProps").onChange({ value: "mean" });
     expect(updateCategory.mock.calls).toHaveLength(2);

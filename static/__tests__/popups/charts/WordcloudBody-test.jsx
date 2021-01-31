@@ -5,7 +5,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import mockPopsicle from "../../MockPopsicle";
-import { withGlobalJquery } from "../../test-utils";
+import { mockChartJS, mockD3Cloud, withGlobalJquery } from "../../test-utils";
 
 describe("WordcloudBody tests", () => {
   let WordcloudBody;
@@ -23,40 +23,11 @@ describe("WordcloudBody tests", () => {
       })
     );
 
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      return chartCfg;
-    });
-
-    const mockD3Cloud = withGlobalJquery(() => () => {
-      const cloudCfg = {};
-      const propUpdate = prop => val => {
-        cloudCfg[prop] = val;
-        return cloudCfg;
-      };
-      cloudCfg.size = propUpdate("size");
-      cloudCfg.padding = propUpdate("padding");
-      cloudCfg.words = propUpdate("words");
-      cloudCfg.rotate = propUpdate("rotate");
-      cloudCfg.spiral = propUpdate("spiral");
-      cloudCfg.random = propUpdate("random");
-      cloudCfg.text = propUpdate("text");
-      cloudCfg.font = propUpdate("font");
-      cloudCfg.fontStyle = propUpdate("fontStyle");
-      cloudCfg.fontWeight = propUpdate("fontWeight");
-      cloudCfg.fontSize = () => ({
-        on: () => ({ start: _.noop }),
-      });
-      return cloudCfg;
-    });
+    mockChartJS();
+    mockD3Cloud();
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("d3-cloud", () => mockD3Cloud);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
+
     WordcloudBody = require("../../../popups/charts/WordcloudBody").default;
   });
 

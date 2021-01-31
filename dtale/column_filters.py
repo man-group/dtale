@@ -2,6 +2,7 @@ import json
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type, find_dtype, make_list
+from dtale.query import build_col_key
 
 
 class ColumnFilter(object):
@@ -60,7 +61,10 @@ class MissingFilter(object):
     def handle_missing(self, fltr):
         if self.cfg is None or not self.cfg.get("missing", False):
             return fltr
-        return {"missing": True, "query": "{col} != {col}".format(col=self.column)}
+        return {
+            "missing": True,
+            "query": "{col} != {col}".format(col=build_col_key(self.column)),
+        }
 
 
 class StringFilter(MissingFilter):
@@ -77,7 +81,7 @@ class StringFilter(MissingFilter):
         if len(state) == 1:
             val_str = ("'{}'" if self.classification == "S" else "{}").format(state[0])
             fltr["query"] = "{} {} {}".format(
-                self.column, "==" if operand == "=" else "!=", val_str
+                build_col_key(self.column), "==" if operand == "=" else "!=", val_str
             )
         else:
             val_str = (
@@ -86,7 +90,9 @@ class StringFilter(MissingFilter):
                 else ",".join(state)
             )
             fltr["query"] = "{} {} ({})".format(
-                self.column, "in" if operand == "=" else "not in", val_str
+                build_col_key(self.column),
+                "in" if operand == "=" else "not in",
+                val_str,
             )
         return super(StringFilter, self).handle_missing(fltr)
 
@@ -109,11 +115,13 @@ class NumericFilter(MissingFilter):
             fltr = dict(value=cfg_val, operand=cfg_operand)
             if len(state) == 1:
                 fltr["query"] = "{} {} {}".format(
-                    self.column, "==" if cfg_operand == "=" else "!=", state[0]
+                    build_col_key(self.column),
+                    "==" if cfg_operand == "=" else "!=",
+                    state[0],
                 )
             else:
                 fltr["query"] = "{} {} ({})".format(
-                    self.column,
+                    build_col_key(self.column),
                     "in" if cfg_operand == "=" else "not in",
                     ", ".join(map(str, state)),
                 )
@@ -124,7 +132,9 @@ class NumericFilter(MissingFilter):
             fltr = dict(
                 value=cfg_val,
                 operand=cfg_operand,
-                query="{} {} {}".format(self.column, cfg_operand, cfg_val),
+                query="{} {} {}".format(
+                    build_col_key(self.column), cfg_operand, cfg_val
+                ),
             )
             return super(NumericFilter, self).handle_missing(fltr)
         if cfg_operand in ["[]", "()"]:
@@ -134,18 +144,22 @@ class NumericFilter(MissingFilter):
                 fltr["min"] = cfg_min
                 queries.append(
                     "{} >{} {}".format(
-                        self.column, "=" if cfg_operand == "[]" else "", cfg_min
+                        build_col_key(self.column),
+                        "=" if cfg_operand == "[]" else "",
+                        cfg_min,
                     )
                 )
             if cfg_max is not None:
                 fltr["max"] = cfg_max
                 queries.append(
                     "{} <{} {}".format(
-                        self.column, "=" if cfg_operand == "[]" else "", cfg_max
+                        build_col_key(self.column),
+                        "=" if cfg_operand == "[]" else "",
+                        cfg_max,
                     )
                 )
             if len(queries) == 2 and cfg_max == cfg_min:
-                queries = ["{} == {}".format(self.column, cfg_max)]
+                queries = ["{} == {}".format(build_col_key(self.column), cfg_max)]
             if not len(queries):
                 return super(NumericFilter, self).handle_missing(None)
             fltr["query"] = " and ".join(queries)
@@ -165,11 +179,11 @@ class DateFilter(MissingFilter):
         fltr = dict(start=start, end=end)
         queries = []
         if start:
-            queries.append("{} >= '{}'".format(self.column, start))
+            queries.append("{} >= '{}'".format(build_col_key(self.column), start))
         if end:
-            queries.append("{} <= '{}'".format(self.column, end))
+            queries.append("{} <= '{}'".format(build_col_key(self.column), end))
         if len(queries) == 2 and start == end:
-            queries = ["{} == '{}'".format(self.column, start)]
+            queries = ["{} == '{}'".format(build_col_key(self.column), start)]
         if not len(queries):
             return super(DateFilter, self).handle_missing(None)
         fltr["query"] = " and ".join(queries)

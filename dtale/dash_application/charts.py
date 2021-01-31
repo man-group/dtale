@@ -17,7 +17,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 from plotly.io import write_html, write_image
-from six import PY3, BytesIO, StringIO, string_types
+from six import BytesIO, StringIO, string_types
 
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -90,15 +90,7 @@ def get_url_parser():
     """
     Returns URL parser based on whether Python 2 or 3 is being used.
     """
-    if PY3:
-        return urllib.parse.parse_qsl
-    else:
-        try:
-            return urllib.parse_qsl
-        except BaseException:
-            from urlparse import parse_qsl
-
-            return parse_qsl
+    return urllib.parse.parse_qsl
 
 
 def chart_url_params(search):
@@ -139,10 +131,9 @@ def chart_url_params(search):
     params["cpg"] = "true" == params.get("cpg")
     if params.get("chart_type") in ANIMATION_CHARTS:
         params["animate"] = "true" == params.get("animate")
-    if "window" in params:
-        params["window"] = int(params["window"])
-    if "load" in params:
-        params["load"] = int(params["load"])
+    for int_prop in ["window", "load", "top_bars"]:
+        if int_prop in params:
+            params[int_prop] = int(params[int_prop])
     if "group_filter" in params:
         group_filter = params["group_filter"]
         filter_col, filter_val = group_filter.split(" == ")
@@ -171,7 +162,7 @@ def chart_url_params(search):
 
 
 def url_encode_func():
-    return urllib.parse.urlencode if PY3 else urllib.urlencode
+    return urllib.parse.urlencode
 
 
 def chart_url_querystring(params, data=None, group_filter=None):
@@ -184,11 +175,13 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "window",
         "rolling_comp",
         "load",
+        "group_type",
         "bins_val",
+        "bin_type",
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
-        base_props += ["barmode", "barsort"]
+        base_props += ["barmode", "barsort", "top_bars"]
     elif chart_type == "maps":
         map_type = params.get("map_type")
         if map_type == "scattergeo":
@@ -645,6 +638,7 @@ def scatter_builder(
     axes_builder,
     wrapper,
     group=None,
+    group_filter=None,
     z=None,
     agg=None,
     animate_by=None,
@@ -737,7 +731,7 @@ def scatter_builder(
         return wrapper(
             graph_wrapper(figure=figure_cfg, modal=modal),
             group_filter=dict_merge(
-                dict(y=y_val), {} if group is None else dict(group=group)
+                dict(y=y_val), {} if group_filter is None else dict(group=group_filter)
             ),
         )
 
@@ -1040,6 +1034,7 @@ def bar_builder(
     cpg=False,
     barmode="group",
     barsort=None,
+    top_bars=None,
     **kwargs
 ):
     """
@@ -1064,6 +1059,24 @@ def bar_builder(
     :return: surface chart
     :rtype: :plotly:`plotly.graph_objs.Surface <plotly.graph_objs.Surface>`
     """
+
+    def _build_sorted_bars(sort_col, series, data, hover_text, axes):
+        df = pd.DataFrame(series)
+        df = df.sort_values(sort_col)
+        if top_bars:
+            df = df.sort_values(sort_col, ascending=False)
+            df = df.head(top_bars)
+        data["data"][series_key] = {c: df[c].values for c in df.columns}
+        tickvals = list(range(len(df["x"])))
+        data["data"][series_key]["x"] = tickvals
+        hover_text[series_key] = {
+            "hovertext": df["x"].values,
+            "hoverinfo": "y+text",
+        }
+        axes["xaxis"] = dict_merge(
+            axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
+        )
+
     hover_text = dict()
     allow_multiaxis = barmode is None or barmode == "group"
     axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
@@ -1071,18 +1084,9 @@ def bar_builder(
     for series_key, series in data["data"].items():
         barsort_col = "x" if barsort == x or barsort not in series else barsort
         if barsort_col != "x" or kwargs.get("agg") == "raw":
-            df = pd.DataFrame(series)
-            df = df.sort_values(barsort_col)
-            data["data"][series_key] = {c: df[c].values for c in df.columns}
-            tickvals = list(range(len(df["x"])))
-            data["data"][series_key]["x"] = tickvals
-            hover_text[series_key] = {
-                "hovertext": df["x"].values,
-                "hoverinfo": "y+text",
-            }
-            axes["xaxis"] = dict_merge(
-                axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
-            )
+            _build_sorted_bars(barsort_col, series, data, hover_text, axes)
+        elif top_bars:
+            _build_sorted_bars(y[0], series, data, hover_text, axes)
 
     if cpg:
         charts = [
@@ -1110,7 +1114,7 @@ def bar_builder(
                     },
                     modal=kwargs.get("modal", False),
                 ),
-                group_filter=dict(group=series_key),
+                group_filter=dict(group=series.pop("_filter_")),
             )
             for series_key, series in data["data"].items()
         ]
@@ -1206,7 +1210,15 @@ def bar_builder(
 
 
 def bar_code_builder(
-    data, x, y, axes_builder, cpg=False, barmode="group", barsort=None, **kwargs
+    data,
+    x,
+    y,
+    axes_builder,
+    cpg=False,
+    barmode="group",
+    barsort=None,
+    top_bars=None,
+    **kwargs
 ):
     code = []
     base_chart_cfg = []
@@ -1222,13 +1234,28 @@ def bar_code_builder(
 
     barsort_col = "x" if barsort == x or barsort not in series else barsort
     x_data = "chart_data['x']"
-    if barsort_col != "x" or kwargs.get("agg") == "raw":
-        code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
-        x_data = "list(range(len(chart_data['x'])))"
-        base_chart_cfg = ["hovertext=chart_data['x'].values", "hoverinfo='y_text'"]
+
+    def _build_sorted_code(sort_col):
+        if top_bars:
+            code.append(
+                "chart_data = chart_data.sort_values('{}', ascending=False).head({})".format(
+                    barsort_col, top_bars
+                )
+            )
+        else:
+            code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
         axes["xaxis"] = dict_merge(
             axes.get("xaxis", {}), {"tickmode": "auto", "nticks": len(series["x"])}
         )
+        return "list(range(len(chart_data['x'])))", [
+            "hovertext=chart_data['x'].values",
+            "hoverinfo='y_text'",
+        ]
+
+    if barsort_col != "x" or kwargs.get("agg") == "raw":
+        x_data, base_chart_cfg = _build_sorted_code(barsort_col)
+    elif top_bars:
+        x_data, base_chart_cfg = _build_sorted_code(y[0])
 
     pp = pprint.PrettyPrinter(indent=4)
     code.append(("\nimport plotly.graph_objs as go\n\n" "charts = []"))
@@ -1320,7 +1347,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                     },
                     modal=inputs.get("modal", False),
                 ),
-                group_filter=dict(group=series_key),
+                group_filter=dict(group=series.pop("_filter_")),
             )
             for series_key, series in data["data"].items()
         ]
@@ -1519,7 +1546,9 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                     ),
                     group_filter=dict_merge(
                         dict(y=y2),
-                        {} if series_key == "all" else dict(group=series_key),
+                        {}
+                        if series_key == "all"
+                        else dict(group=series.pop("_filter_")),
                     ),
                 )
                 if len(negative_values):
@@ -2016,7 +2045,7 @@ def treemap_builder(data_id, export=False, **inputs):
             )
         )
 
-        def _build_treemap_data(values, labels, name):
+        def _build_treemap_data(values, labels, name, group_filter):
             x, y, width, height = 0.0, 0.0, 100.0, 100.0
             normed = squarify.normalize_sizes(values, width, height)
             rects = squarify.squarify(normed, x, y, width, height)
@@ -2063,10 +2092,9 @@ def treemap_builder(data_id, export=False, **inputs):
                 annotations=annotations,
                 hovermode="closest",
             )
-            group_filter = None
             if name != "all":
                 layout["title"] = name
-                group_filter = dict(group=name)
+                group_filter = dict(group=group_filter)
             figure_cfg = dict(data=[trace], layout=layout)
             base_fig = graph_wrapper(
                 style={"margin-right": "auto", "margin-left": "auto"},
@@ -2078,7 +2106,12 @@ def treemap_builder(data_id, export=False, **inputs):
             return chart_builder(base_fig, group_filter=group_filter)
 
         chart = [
-            _build_treemap_data(series[treemap_value], series["x"], series_key)
+            _build_treemap_data(
+                series[treemap_value],
+                series["x"],
+                series_key,
+                series.pop("_filter_", None),
+            )
             for series_key, series in data["data"].items()
         ]
         code.append(
@@ -2134,9 +2167,8 @@ def map_builder(data_id, export=False, **inputs):
             agg_title = AGGS[props.agg]
             title = "{} ({})".format(title, agg_title)
         if props.group_val is not None:
-            title = "{} {}".format(
-                title, build_group_inputs_filter(raw_data, props.group_val)
-            )
+            _, group_label = build_group_inputs_filter(raw_data, props.group_val)
+            title = "{} ({})".format(title, group_label)
         layout = build_layout(
             dict(title=title, autosize=True, margin={"l": 0, "r": 0, "b": 0})
         )
@@ -2522,8 +2554,10 @@ def build_figure_data(
     y=None,
     z=None,
     group=None,
+    group_type=None,
     group_val=None,
     bins_val=None,
+    bin_type=None,
     agg=None,
     window=None,
     rolling_comp=None,
@@ -2593,8 +2627,10 @@ def build_figure_data(
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
+        group_type=group_type,
         group_val=group_val,
         bins_val=bins_val,
+        bin_type=bin_type,
         agg=agg,
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,
@@ -2809,9 +2845,10 @@ def build_chart(data_id=None, data=None, **inputs):
                             axes_builder,
                             chart_builder,
                             group=subgroup,
+                            group_filter=subgroup_cfg.pop("_filter_"),
                             **kwargs
                         )
-                        for subgroup in data["data"]
+                        for subgroup, subgroup_cfg in data["data"].items()
                     ]
                 )
             else:

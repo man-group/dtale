@@ -5,37 +5,23 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import PPSDetails from "../../popups/pps/PPSDetails";
+import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
-
 describe("DataViewer tests", () => {
-  const { opener } = window;
   let result, PredictivePowerScore;
   let testIdx = 0;
+  const { opener } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+    innerWidth: 1205,
+    innerHeight: 1340,
+  });
 
   beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1105,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 1340,
-    });
-
+    dimensions.beforeAll();
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
 
@@ -69,10 +55,7 @@ describe("DataViewer tests", () => {
   });
 
   afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
+    dimensions.afterAll();
     window.opener = opener;
   });
 

@@ -8,17 +8,11 @@ import pandas as pd
 import pandas.util.testing as pdt
 import platform
 import pytest
+from contextlib import ExitStack
 from pandas.tseries.offsets import Day
-from pkg_resources import parse_version
-from six import PY3
 
 from dtale.app import build_app
 from dtale.utils import DuplicateDataError
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)
@@ -210,7 +204,6 @@ def test_startup(unittest):
         instance = views.startup(
             URL, data_loader=lambda: test_data, ignore_duplicate=True
         )
-        print(instance.data)
         unittest.assertEqual(
             sorted(instance.data["index"].values.tolist()), sorted(test_data.keys())
         )
@@ -616,8 +609,8 @@ def test_toggle_outlier_filter(unittest):
             stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
-            assert resp["outlierFilters"]["a"]["query"] == "a > 339.75"
-            assert settings[c.port]["outlierFilters"]["a"]["query"] == "a > 339.75"
+            assert resp["outlierFilters"]["a"]["query"] == "`a` > 339.75"
+            assert settings[c.port]["outlierFilters"]["a"]["query"] == "`a` > 339.75"
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
             assert "a" not in resp["outlierFilters"]
@@ -1271,17 +1264,16 @@ def test_test_filter(test_data):
             )
             response_data = json.loads(response.data)
             assert response_data["success"]
-    if PY3:
-        df = pd.DataFrame([dict(a=1)])
-        df["a.b"] = 2
-        with app.test_client() as c:
-            with mock.patch("dtale.global_state.DATA", {c.port: df}):
-                response = c.get(
-                    "/dtale/test-filter/{}".format(c.port),
-                    query_string=dict(query="a.b == 2"),
-                )
-                response_data = json.loads(response.data)
-                assert response_data["success"]
+    df = pd.DataFrame([dict(a=1)])
+    df["a.b"] = 2
+    with app.test_client() as c:
+        with mock.patch("dtale.global_state.DATA", {c.port: df}):
+            response = c.get(
+                "/dtale/test-filter/{}".format(c.port),
+                query_string=dict(query="a.b == 2"),
+            )
+            response_data = json.loads(response.data)
+            assert not response_data["success"]
 
 
 @pytest.mark.unit
@@ -1337,6 +1329,7 @@ def test_get_data(unittest, test_data):
                         hasMissing=0,
                         hasOutliers=0,
                         unique_ct=1,
+                        kurt=0,
                         skew=0,
                     ),
                     dict(
@@ -1951,6 +1944,30 @@ def test_get_column_analysis_geolocation(unittest):
             unittest.assertEqual(response_data["lon"], [3, 4, 5])
 
 
+@pytest.mark.unit
+def test_get_column_analysis_qq():
+    import dtale.views as views
+
+    df = pd.DataFrame(dict(a=np.random.normal(loc=20, scale=5, size=100)))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.global_state.DTYPES",
+                    {c.port: views.build_dtypes_state(df)},
+                )
+            )
+            settings = {c.port: {}}
+            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="a", type="qq"),
+            )
+            response_data = json.loads(response.data)
+            assert len(response_data["data"]) == 100
+
+
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 
 import numpy as np
@@ -2077,10 +2094,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
             )
 
 
-@pytest.mark.skipif(
-    parse_version(platform.python_version()) < parse_version("3.6.0"),
-    reason="requires python 3.6 or higher",
-)
+@pytest.mark.unit
 def test_get_pps_matrix(unittest, test_data):
     import dtale.views as views
 
@@ -2165,8 +2179,6 @@ def test_get_correlations_ts(unittest, rolling_data):
         build_ts_data(size=50), columns=["date", "security_id", "foo", "bar"]
     )
 
-    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
-
     with app.test_client() as c:
         with mock.patch("dtale.global_state.DATA", {c.port: test_data}):
             params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]))
@@ -2189,9 +2201,7 @@ def test_get_correlations_ts(unittest, rolling_data):
                 },
                 "max": {"corr": 1.0, "x": "2000-01-05"},
                 "min": {"corr": 1.0, "x": "2000-01-01"},
-                "pps": None
-                if no_pps
-                else {
+                "pps": {
                     "baseline_score": 12.5,
                     "case": "regression",
                     "is_valid_score": True,
@@ -2291,7 +2301,6 @@ only_in_s1 = len(scatter_data[scatter_data['bar'].isnull()])"""
 def test_get_scatter(unittest, rolling_data):
     import dtale.views as views
 
-    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
     test_data = pd.DataFrame(
         build_ts_data(), columns=["date", "security_id", "foo", "bar"]
     )
@@ -2320,9 +2329,7 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "spearman": 0.9999999999999999,
-                    "pps": None
-                    if no_pps
-                    else {
+                    "pps": {
                         "baseline_score": 1.2,
                         "case": "regression",
                         "is_valid_score": True,
@@ -2404,9 +2411,7 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "pearson": 1.0,
-                    "pps": None
-                    if no_pps
-                    else {
+                    "pps": {
                         "baseline_score": 3736.0678,
                         "case": "regression",
                         "is_valid_score": True,
@@ -2501,7 +2506,7 @@ def test_get_chart_data(unittest, rolling_data):
             response_data = json.loads(response.data)
             assert response_data["min"]["security_id"] == 24.5
             assert response_data["max"]["security_id"] == 24.5
-            series_key = "baz == 'baz'"
+            series_key = "(baz: baz)"
             assert response_data["data"][series_key]["x"][-1] == "2000-01-05"
             assert len(response_data["data"][series_key]["security_id"]) == 5
             assert sum(response_data["data"][series_key]["security_id"]) == 122.5
@@ -3097,7 +3102,6 @@ def test_500():
                 "/dtale/main/1",
             ]:
                 response = c.get(path)
-                print(path)
                 assert response.status_code == 500
                 assert "<h1>Internal Server Error</h1>" in str(response.data)
 
@@ -3374,7 +3378,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["bool_val"],
-                {u"query": u"bool_val == False", u"value": [u"False"]},
+                {u"query": u"`bool_val` == False", u"value": [u"False"]},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "str_val"),
@@ -3384,7 +3388,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["str_val"],
-                {u"query": "str_val in ('a', 'b')", u"value": ["a", "b"]},
+                {u"query": "`str_val` in ('a', 'b')", u"value": ["a", "b"]},
             )
             for col, f_type in [
                 ("bool_val", "string"),
@@ -3399,7 +3403,7 @@ def test_save_column_filter(unittest, custom_data):
                 )
                 unittest.assertEqual(
                     json.loads(response.data)["currFilters"][col],
-                    {u"query": u"{col} != {col}".format(col=col), u"missing": True},
+                    {u"query": u"`{col}` != `{col}`".format(col=col), u"missing": True},
                 )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "bool_val"),
@@ -3417,7 +3421,7 @@ def test_save_column_filter(unittest, custom_data):
                         )
                     ),
                 )
-                query = "int_val {} 5".format("==" if operand == "=" else operand)
+                query = "`int_val` {} 5".format("==" if operand == "=" else operand)
                 unittest.assertEqual(
                     json.loads(response.data)["currFilters"]["int_val"],
                     {u"query": query, u"value": "5", "operand": operand},
@@ -3430,7 +3434,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val in (5, 4)", u"value": ["5", "4"], "operand": "="},
+                {u"query": "`int_val` in (5, 4)", u"value": ["5", "4"], "operand": "="},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3443,7 +3447,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
                 {
-                    u"query": "int_val >= 4 and int_val <= 5",
+                    u"query": "`int_val` >= 4 and `int_val` <= 5",
                     "min": "4",
                     "max": "5",
                     "operand": "[]",
@@ -3460,7 +3464,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
                 {
-                    u"query": "int_val > 4 and int_val < 5",
+                    u"query": "`int_val` > 4 and `int_val` < 5",
                     "min": "4",
                     "max": "5",
                     "operand": "()",
@@ -3476,7 +3480,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val > 4", "min": "4", "operand": "()"},
+                {u"query": "`int_val` > 4", "min": "4", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3488,7 +3492,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val < 5", "max": "5", "operand": "()"},
+                {u"query": "`int_val` < 5", "max": "5", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
@@ -3500,7 +3504,7 @@ def test_save_column_filter(unittest, custom_data):
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": "int_val == 4", "min": "4", "max": "4", "operand": "()"},
+                {u"query": "`int_val` == 4", "min": "4", "max": "4", "operand": "()"},
             )
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "date"),
@@ -3513,7 +3517,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["date"],
                 {
-                    u"query": "date == '20000101'",
+                    u"query": "`date` == '20000101'",
                     "start": "20000101",
                     "end": "20000101",
                 },
@@ -3529,7 +3533,7 @@ def test_save_column_filter(unittest, custom_data):
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["date"],
                 {
-                    u"query": "date >= '20000101' and date <= '20000102'",
+                    u"query": "`date` >= '20000101' and `date` <= '20000102'",
                     "start": "20000101",
                     "end": "20000102",
                 },

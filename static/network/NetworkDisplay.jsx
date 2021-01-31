@@ -16,26 +16,39 @@ import { ShortestPath } from "./ShortestPath";
 import HierarchyToggle from "./HierarchyToggle";
 import * as Constants from "./networkUtils";
 import { NetworkAnalysis } from "./NetworkAnalysis";
+import NetworkUrlParams from "./NetworkUrlParams";
 
 require("./NetworkDisplay.css");
 require("vis-network/styles/vis-network.min.css");
 
+function buildParams({ to, from, weight, group }) {
+  return {
+    to: to?.value,
+    from: from?.value,
+    group: group?.value,
+    weight: weight?.value,
+  };
+}
+
+function buildState(props = {}) {
+  return {
+    error: null,
+    loadingData: false,
+    dtypes: null,
+    to: props.to ? { value: props.to } : null,
+    from: props.from ? { value: props.from } : null,
+    group: props.group ? { value: props.group } : null,
+    weight: props.weight ? { value: props.weight } : null,
+    hierarchy: null,
+    groups: null,
+    shortestPath: [],
+  };
+}
+
 class ReactNetworkDisplay extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      error: null,
-      loadingDtypes: true,
-      loadingData: false,
-      dtypes: null,
-      to: props.to ? { value: props.to } : null,
-      from: props.from ? { value: props.from } : null,
-      group: props.group ? { value: props.group } : null,
-      weight: props.weight ? { value: props.weight } : null,
-      hierarchy: null,
-      groups: null,
-      shortestPath: [],
-    };
+    this.state = { ...buildState(props), loadingDtypes: true };
     this.onClick = this.onClick.bind(this);
     this.neighborhoodHighlight = this.neighborhoodHighlight.bind(this);
     this.load = this.load.bind(this);
@@ -110,60 +123,19 @@ class ReactNetworkDisplay extends React.Component {
   }
 
   neighborhoodHighlight(params) {
-    let { allNodes, highlightActive } = this.state;
-    const network = this.network;
-    const nodesDataset = network.body.data.nodes;
-    // if something is selected:
-    if (params.nodes.length > 0) {
-      highlightActive = true;
-      const selectedNodeId = params.nodes[0];
-
-      // mark all nodes as hard to read.
-      _.forEach(allNodes, node => {
-        node.color = "rgba(200,200,200,0.5)";
-        if (node.hiddenLabel === undefined) {
-          node.hiddenLabel = node.label;
-          node.label = undefined;
-        }
-      });
-      const connectedNodes = network.getConnectedNodes(selectedNodeId);
-      let allConnectedNodes = [];
-
-      // get the second degree nodes
-      _.forEach(
-        connectedNodes,
-        node => (allConnectedNodes = allConnectedNodes.concat(network.getConnectedNodes(node)))
-      );
-
-      // all second degree nodes get a different color and their label back
-      _.forEach(allConnectedNodes, connectedNode =>
-        Constants.resetNode(allNodes[connectedNode], "rgba(150,150,150,0.75)")
-      );
-
-      // all first degree nodes get their own color and their label back
-      _.forEach(connectedNodes, connectedNode => Constants.resetNode(allNodes[connectedNode]));
-
-      // the main node gets its own color and its label back.
-      Constants.resetNode(allNodes[selectedNodeId]);
-    } else if (highlightActive === true) {
-      // reset all nodes
-      _.forEach(allNodes, node => Constants.resetNode(node));
-      highlightActive = false;
-    }
-
-    nodesDataset.update(_.values(allNodes));
+    const highlightActive = Constants.neighborhoodHighlight(this.state, this.network, params);
     this.setState({ highlightActive, shortestPath: [] });
   }
 
   load() {
-    const { to, from, group, weight } = this.state;
+    const params = buildParams(this.state);
+    if (!params.to || !params.from) {
+      this.network?.destroy();
+      this.network = null;
+      this.setState({ ...buildState(), dtypes: this.state.dtypes });
+      return;
+    }
     this.setState({ loadingData: true });
-    const params = {
-      to: to?.value,
-      from: from?.value,
-      group: group?.value ?? "",
-      weight: weight?.value ?? "",
-    };
     fetchJson(buildURLString(`/dtale/network-data/${this.props.dataId}?`, params), data => {
       if (data.error) {
         this.setState({
@@ -176,6 +148,7 @@ class ReactNetworkDisplay extends React.Component {
       if (this.state.weight) {
         _.forEach(edges, edge => (edge.title = `Weight: ${edge.value}`));
       }
+      _.forEach(nodes, node => (node.title = node.label));
       const nodesDataset = new vis.DataSet(nodes);
       const edgesDataset = new vis.DataSet(edges);
       this.draw({ nodes: nodesDataset, edges: edgesDataset });
@@ -185,7 +158,14 @@ class ReactNetworkDisplay extends React.Component {
         groupsMapping = _.map(groups, (nodeId, group) => [group, { ...networkNodes[nodeId]?.options?.color }]);
       }
       const allNodes = nodesDataset.get({ returnType: "Object" });
-      this.setState({ loadingData: false, allNodes, highlightActive: false, groups: groupsMapping, error: null });
+      this.setState({
+        params,
+        loadingData: false,
+        allNodes,
+        highlightActive: false,
+        groups: groupsMapping,
+        error: null,
+      });
     });
   }
 
@@ -211,6 +191,7 @@ class ReactNetworkDisplay extends React.Component {
     const loadDisabled = !(to && from);
     return (
       <React.Fragment>
+        <NetworkUrlParams params={this.state.params} propagateState={state => this.setState(state, this.load)} />
         <NetworkDescription />
         {error}
         <BouncerWrapper showBouncer={loadingDtypes}>

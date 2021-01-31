@@ -18,7 +18,6 @@ from dtale.dash_application.layout.utils import (
     build_selections,
     AGGS,
 )
-from dtale.query import build_query
 from dtale.utils import (
     classify_type,
     dict_merge,
@@ -29,7 +28,7 @@ from dtale.utils import (
     make_list,
     get_dtypes,
 )
-from dtale.query import run_query
+from dtale.query import build_query, run_query
 from dtale.charts.utils import (
     MAX_GROUPS,
     ZAXIS_CHARTS,
@@ -56,7 +55,8 @@ def build_histogram(data_id, col, query, point_filter):
         query,
         global_state.get_context_variables(data_id),
     )
-    data = run_query(data, build_group_inputs_filter(data, [point_filter]))
+    query, _ = build_group_inputs_filter(data, [point_filter])
+    data = run_query(data, query)
     s = data[~pd.isnull(data[col])][col]
     hist_data, hist_labels = np.histogram(s, bins=10)
     hist_labels = list(map(lambda x: json_float(x, precision=3), hist_labels[1:]))
@@ -250,7 +250,7 @@ def init_callbacks(dash_app):
                         )
                         return hist_chart, dict(display="none")
                     else:
-                        xy_query = build_group_inputs_filter(
+                        xy_query, _ = build_group_inputs_filter(
                             global_state.get_data(data_id),
                             [point_filter],
                         )
@@ -285,7 +285,7 @@ def init_callbacks(dash_app):
                         )
                         return hist_chart, dict(display="none")
                     else:
-                        map_query = build_group_inputs_filter(
+                        map_query, _ = build_group_inputs_filter(
                             global_state.get_data(data_id),
                             [point_filter],
                         )
@@ -323,7 +323,7 @@ def init_callbacks(dash_app):
                         )
                         return hist_chart, dict(display="none")
                     else:
-                        x_query = build_group_inputs_filter(
+                        x_query, _ = build_group_inputs_filter(
                             global_state.get_data(data_id),
                             [point_filter],
                         )

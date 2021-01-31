@@ -6,14 +6,10 @@ import Select from "react-select";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../../RemovableError";
+import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, clickMainMenuButton, tick, withGlobalJquery } from "../../test-utils";
-
-const originalOffsetHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
-const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-const originalInnerHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerHeight");
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateColumn;
@@ -32,24 +28,15 @@ describe("DataViewer tests", () => {
     await tick();
   };
 
-  beforeAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
-      configurable: true,
-      value: 500,
-    });
-    Object.defineProperty(window, "innerWidth", {
-      configurable: true,
-      value: 1205,
-    });
-    Object.defineProperty(window, "innerHeight", {
-      configurable: true,
-      value: 775,
-    });
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+    innerWidth: 1205,
+    innerHeight: 775,
+  });
 
+  beforeAll(() => {
+    dimensions.beforeAll();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
@@ -57,18 +44,9 @@ describe("DataViewer tests", () => {
       })
     );
 
-    const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-      const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-      chartCfg.destroy = () => (chartCfg.destroyed = true);
-      chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-      chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-      return chartCfg;
-    });
+    mockChartJS();
 
     jest.mock("popsicle", () => mockBuildLibs);
-    jest.mock("chart.js", () => mockChartUtils);
-    jest.mock("chartjs-plugin-zoom", () => ({}));
-    jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
   });
 
   beforeEach(async () => {
@@ -89,12 +67,7 @@ describe("DataViewer tests", () => {
     await tick();
   });
 
-  afterAll(() => {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", originalInnerHeight);
-  });
+  afterAll(dimensions.afterAll);
 
   it("DataViewer: build column errors", async () => {
     expect(result.find(CreateColumn).length).toBe(1);
