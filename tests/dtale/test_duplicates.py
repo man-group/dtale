@@ -2,7 +2,7 @@ import json
 import mock
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.duplicate_checks import (
     DuplicateCheck,
@@ -11,11 +11,6 @@ from dtale.duplicate_checks import (
     RemoveAllDataException,
 )
 from tests.dtale.test_views import app
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 def duplicates_data():

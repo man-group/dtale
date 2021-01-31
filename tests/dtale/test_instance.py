@@ -3,14 +3,9 @@ from collections import namedtuple
 import mock
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.dash_application.charts import get_url_parser
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit

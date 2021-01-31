@@ -2,16 +2,10 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.column_builders import ColumnBuilder
 from tests.dtale.column_builders.test_column_builders import verify_builder
-
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 def conversion_data():

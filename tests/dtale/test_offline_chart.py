@@ -1,11 +1,6 @@
 import mock
 import pytest
-from six import PY3
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
+from contextlib import ExitStack
 
 
 @pytest.mark.unit
@@ -13,11 +8,7 @@ def test_build_file(
     test_data, state_data, scattergeo_data, candlestick_data, treemap_data
 ):
     from dtale import offline_chart
-
-    if PY3:
-        from unittest.mock import mock_open
-    else:
-        from mock import mock_open
+    from unittest.mock import mock_open
 
     with ExitStack() as stack:
         stack.enter_context(

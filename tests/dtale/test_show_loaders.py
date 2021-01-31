@@ -3,12 +3,7 @@ import os
 
 import mock
 import pytest
-from six import PY3
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
+from contextlib import ExitStack
 
 
 @pytest.mark.unit
@@ -32,7 +27,7 @@ def test_show_csv():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.content = csv_txt.encode() if PY3 else csv_txt
+                    self.content = csv_txt.encode()
                     self.status_code = 200
 
             stack.enter_context(
@@ -69,7 +64,7 @@ def test_show_json():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.text = json_txt.encode() if PY3 else json_txt
+                    self.text = json_txt.encode()
                     self.status_code = 200
 
                 def json(self):

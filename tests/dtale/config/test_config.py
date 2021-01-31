@@ -1,7 +1,7 @@
 import mock
 import os
 import pytest
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.config import (
     load_app_settings,
@@ -9,11 +9,6 @@ from dtale.config import (
     build_show_options,
     set_config,
 )
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 
 @pytest.mark.unit

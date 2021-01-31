@@ -1,7 +1,5 @@
 import string
 
-from six import PY3
-
 try:
     from collections.abc import MutableMapping
 except ImportError:
@@ -23,9 +21,7 @@ APP_SETTINGS = {
 
 
 def drop_punctuation(val):
-    if PY3:
-        return val.translate(str.maketrans(dict.fromkeys(string.punctuation)))
-    return val.translate(string.maketrans("", ""), string.punctuation)
+    return val.translate(str.maketrans(dict.fromkeys(string.punctuation)))
 
 
 def convert_name_to_url_path(name):
@@ -270,14 +266,9 @@ def use_store(store_class, create_store):
     ), 'Must subclass MutableMapping or implement "to_dict"'
 
     assert inspect.isfunction(create_store), "Must be a function"
-    if PY3:
-        assert list(inspect.signature(create_store).parameters) == [
-            "name"
-        ], 'Must take "name" as the only parameter'
-    else:
-        assert inspect.getargspec(create_store).args == [
-            "name"
-        ], 'Must take "name" as the only parameter'
+    assert list(inspect.signature(create_store).parameters) == [
+        "name"
+    ], 'Must take "name" as the only parameter'
 
     def convert(old_store, name):
         """Convert a data store to the new type

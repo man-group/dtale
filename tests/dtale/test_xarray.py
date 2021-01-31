@@ -5,14 +5,9 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from six import PY3
+from contextlib import ExitStack
 
 from dtale.app import build_app
-
-if PY3:
-    from contextlib import ExitStack
-else:
-    from contextlib2 import ExitStack
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)
@@ -67,7 +62,7 @@ def test_view(unittest):
             expected = [
                 {
                     "count": 3,
-                    "dtype": "str64" if PY3 else "string16",
+                    "dtype": "str64",
                     "name": "location",
                 },
                 {"count": 731, "dtype": "datetime64[ns]", "name": "time"},
