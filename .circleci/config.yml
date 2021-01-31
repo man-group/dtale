@@ -216,16 +216,8 @@ jobs:
   build_JS:
     working_directory: ~/man-group/dtale_JS
     docker:
-      - image: circleci/python:3.8-buster-node-browsers
+      - image: circleci/node:latest
     <<: *javascript
-  build_2_7:
-    working_directory: ~/man-group/dtale_2_7
-    docker:
-      - image: circleci/python:2.7-buster
-    environment:
-      <<: *python_variables
-      RUN_BLACK: false
-    <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
     docker:
@@ -247,14 +239,18 @@ jobs:
     environment:
       <<: *python_variables
     <<: *python
+  build_3_9:
+    working_directory: ~/man-group/dtale_3_9
+    docker:
+      - image: circleci/python:3.9-buster
+    environment:
+      <<: *python_variables
+    <<: *python
 workflows:
   version: 2
   build_all:
     jobs:
       - build_JS
-      - build_2_7:
-          requires:
-            - build_JS
       - build_3_6:
           requires:
             - build_JS
@@ -262,5 +258,8 @@ workflows:
           requires:
             - build_JS
       - build_3_8:
+          requires:
+            - build_JS
+      - build_3_9:
           requires:
             - build_JS
