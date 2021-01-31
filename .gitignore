@@ -40,3 +40,4 @@ custom_loaders/
 
 # django test app
 docs/django_test/dtale_test/db.sqlite3
+package-lock.json

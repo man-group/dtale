@@ -17,3 +17,5 @@ statsmodels==0.10.2; python_version < '3.0'
 statsmodels; python_version > '3.0'
 xarray
 pyarrow
+xlrd
+openpyxl

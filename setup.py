@@ -100,6 +100,8 @@ setup(
         "six",
         "xarray == 0.11.3; python_version < '3.0'",
         "xarray; python_version >= '3.0'",
+        "xlrd",
+        "openpyxl",
     ],
     extras_require={
         "arctic": ["arctic"],

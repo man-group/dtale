@@ -76,28 +76,18 @@ class ReactUpload extends React.Component {
   }
 
   onDrop(files) {
+    const fd = new FormData();
     files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        /*
-         * I'm not sure if reader.onload will be executed in order.
-         * For example, if the 1st file is larger than the 2nd one,
-         * the 2nd file might load first.
-         */
-        const contents = reader.result;
-        const size = file.size;
-        const name = file.name;
-        const lastModified = new Date(file.lastModified);
-        this.setState(
-          {
-            file: { size, name, lastModified },
-            loading: true,
-            error: null,
-          },
-          () => $.post(menuFuncs.fullPath("/dtale/upload"), { contents, filename: name }, this.handleResponse)
-        );
-      };
-      reader.readAsDataURL(file);
+        fd.append(file.name,file);
+      });
+    $.ajax({
+      type: "POST",
+      url: menuFuncs.fullPath("/dtale/upload"),
+      data: fd,
+      contentType: false,
+      processData: false,
+      success: this.handleResponse,
+      error: this.handleResponse
     });
   }
 
@@ -143,9 +133,11 @@ class ReactUpload extends React.Component {
                     {...getRootProps({
                       className: "filepicker dropzone dz-clickable",
                     })}>
-                    <input {...getInputProps()} />
+                    <input {...getInputProps()} name="file"/>
                     <div data-filetype=".csv" className="filepicker-file-icon"></div>
                     <div data-filetype=".tsv" className="filepicker-file-icon"></div>
+                    <div data-filetype=".xls" className="filepicker-file-icon"></div>
+                    <div data-filetype=".xlsx" className="filepicker-file-icon"></div>
                     <div className="dz-default dz-message">
                       <span>Drop data files here to upload, or click to select files</span>
                     </div>
@@ -186,7 +178,7 @@ class ReactUpload extends React.Component {
           <label className="col-md-3 col-form-label text-right">Data Type</label>
           <div className="col-md-8 p-0">
             <div className="btn-group">
-              {_.map(["csv", "tsv", "json"], urlDataType => {
+              {_.map(["csv", "tsv", "json", "excel"], urlDataType => {
                 const buttonProps = { className: "btn btn-primary" };
                 if (urlDataType === this.state.urlDataType) {
                   buttonProps.className += " active";
