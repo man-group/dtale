@@ -64,7 +64,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="1.32.1",
+    version="1.33.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -87,7 +87,7 @@ setup(
         "networkx",
         "pandas",
         "plotly>=4.9.0",
-        "ppscore; python_version >= '3.6'",
+        "ppscore",
         "requests",
         "scikit-learn >= '0.21.0",
         "scipy",

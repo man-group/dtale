@@ -1,5 +1,19 @@
 ## Changelog
 
+### 1.33.0 (2021-1-31)
+* Excel Uploads
+* Removed python2.7 support from code
+* CI Updates:
+  * updated JS workflow to use latest node image
+  * dropped support for python 2.7 and added support for python 3.9
+* Jest test refactoring
+* [#415](https://github.com/man-group/dtale/issues/415): single column heatmap
+* [#414](https://github.com/man-group/dtale/issues/414): exporting charts using "top_bars"
+* [#413](https://github.com/man-group/dtale/issues/413): Q-Q Plot
+* [#411](https://github.com/man-group/dtale/issues/411): updates for column analysis warnings
+* [#412](https://github.com/man-group/dtale/issues/412): histogram for date columns
+* [#404](https://github.com/man-group/dtale/issues/404): fixes for group input display on floats and data frequencies
+
 ### 1.32.1 (2021-1-25)
 * [#408](https://github.com/man-group/dtale/issues/408): modifications to exponential smoothing column builder UI
 * [#405](https://github.com/man-group/dtale/issues/405): removed cleaners from non-string columns)

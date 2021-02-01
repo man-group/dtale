@@ -372,6 +372,11 @@ Loading data from **CSV**
 ```bash
 dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
 ```
+Loading data from **EXCEL**
+```bash
+dtale --excel-path /home/jdoe/my_csv.xlsx --excel-parse_dates date
+dtale --excel-path /home/jdoe/my_csv.xls --excel-parse_dates date
+```
 Loading data from **JSON**
 ```bash
 dtale --json-path /home/jdoe/my_json.json --json-parse_dates date
@@ -474,6 +479,9 @@ It will be used for the following operations:
 I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples (the last working if you've installed `dtale[arctic]`):
 - `dtale.show_csv(path='test.csv', parse_dates=['date'])`
 - `dtale.show_csv(path='http://csv-endpoint', index_col=0)`
+- `dtale.show_excel(path='test.xlsx', parse_dates=['date'])`
+- `dtale.show_excel(path='test.xls', sheet=)`
+- `dtale.show_excel(path='http://excel-endpoint', index_col=0)`
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
