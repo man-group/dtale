@@ -7,7 +7,6 @@ import pandas as pd
 import random
 import socket
 import sys
-import _thread
 import time
 import traceback
 from builtins import map, str
@@ -21,6 +20,7 @@ from flask.testing import FlaskClient
 
 import requests
 from flask_compress import Compress
+from six import PY3
 
 import dtale.global_state as global_state
 import dtale.config as dtale_config
@@ -38,6 +38,11 @@ from dtale.utils import (
     running_with_flask_debug,
 )
 from dtale.views import DtaleData, head_endpoint, is_up, kill, startup
+
+if PY3:
+    import _thread
+else:
+    import thread as _thread
 
 logger = getLogger(__name__)
 
@@ -645,6 +650,11 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
         setup_logging(logfile, log_level or "info", verbose)
 
         if USE_NGROK:
+            if not PY3:
+                raise Exception(
+                    "In order to use ngrok you must be using Python 3 or higher!"
+                )
+
             from flask_ngrok import _run_ngrok
 
             ACTIVE_HOST = _run_ngrok()

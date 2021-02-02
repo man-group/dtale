@@ -1,11 +1,7 @@
 import pytest
 
-from dtale.app import build_app
-
 from tests.dtale.dash.test_dash import build_dash_request
-
-URL = "http://localhost:40000"
-app = build_app(url=URL)
+from tests.dtale.test_views import app
 
 
 @pytest.mark.unit

@@ -4,7 +4,6 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 from dtale.app import build_app
 from dtale.dash_application.charts import (
@@ -18,8 +17,10 @@ from dtale.dash_application.charts import (
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq
 from dtale.utils import make_list
+from tests import ExitStack
+from tests.dtale.test_views import URL
 
-URL = "http://localhost:40000"
+
 app = build_app(url=URL)
 
 

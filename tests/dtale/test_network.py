@@ -1,11 +1,9 @@
 import mock
 import pytest
-from contextlib import ExitStack
 
 from dtale.app import build_app
-
-URL = "http://localhost:40000"
-app = build_app(url=URL)
+from tests import ExitStack
+from tests.dtale.test_views import URL
 
 
 @pytest.mark.unit

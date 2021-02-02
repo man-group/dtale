@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
-from contextlib import ExitStack
+
+from tests import ExitStack
 
 
 @pytest.mark.unit
@@ -455,6 +456,7 @@ def test_show_ngrok(unittest, builtin_pkg):
             mock.patch("{}.__import__".format(builtin_pkg), side_effect=import_mock)
         )
         stack.enter_context(mock.patch("dtale.app.USE_NGROK", True))
+        stack.enter_context(mock.patch("dtale.app.PY3", True))
         mock_run = stack.enter_context(
             mock.patch("dtale.app.DtaleFlask.run", mock.Mock())
         )
@@ -488,6 +490,12 @@ def test_show_ngrok(unittest, builtin_pkg):
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://ngrok_host/shutdown"
         assert global_state.METADATA["1"]["name"] == "foo"
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.USE_NGROK", True))
+        stack.enter_context(mock.patch("dtale.app.PY3", False))
+        with pytest.raises(Exception):
+            show(data=test_data)
 
 
 @pytest.mark.unit

@@ -2,10 +2,11 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 from numpy.random import randn
+from six import PY3
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
+from tests import ExitStack
 
 
 def verify_builder(builder, checker):
@@ -176,25 +177,26 @@ def test_similarity():
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == 1)
 
-        cfg = {
-            "left": "a",
-            "right": "b",
-            "algo": "jaccard",
-            "k": "4",
-            "normalized": False,
-        }
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
+        if PY3:
+            cfg = {
+                "left": "a",
+                "right": "b",
+                "algo": "jaccard",
+                "k": "4",
+                "normalized": False,
+            }
+            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+            verify_builder(builder, lambda col: col.values[-1] == 1)
 
-        cfg = {
-            "left": "a",
-            "right": "b",
-            "algo": "jaccard",
-            "k": "4",
-            "normalized": True,
-        }
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
+            cfg = {
+                "left": "a",
+                "right": "b",
+                "algo": "jaccard",
+                "k": "4",
+                "normalized": True,
+            }
+            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+            verify_builder(builder, lambda col: col.values[-1] == 1)
 
 
 @pytest.mark.unit

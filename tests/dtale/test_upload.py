@@ -3,11 +3,10 @@ import os
 import mock
 import pandas as pd
 import pytest
-from contextlib import ExitStack
-from six import BytesIO
+from six import BytesIO, PY3
 
 from dtale.app import build_app
-
+from tests import ExitStack
 
 URL = "http://localhost:40000"
 
@@ -56,20 +55,21 @@ def test_upload():
                 )
             )
             assert len(data) == 1
-            c.post(
-                "/dtale/upload",
-                data={
-                    "test_df.xlsx": (
-                        os.path.join(
-                            os.path.dirname(__file__), "..", "data/test_df.xlsx"
-                        ),
-                        "test_df.xlsx",
-                    )
-                },
-            )
-            assert len(data) == 2
-            new_key = next((k for k in data if k != c.port), None)
-            assert list(data[new_key].columns) == ["a", "b", "c"]
+            if PY3:
+                c.post(
+                    "/dtale/upload",
+                    data={
+                        "test_df.xlsx": (
+                            os.path.join(
+                                os.path.dirname(__file__), "..", "data/test_df.xlsx"
+                            ),
+                            "test_df.xlsx",
+                        )
+                    },
+                )
+                assert len(data) == 2
+                new_key = next((k for k in data if k != c.port), None)
+                assert list(data[new_key].columns) == ["a", "b", "c"]
 
 
 @pytest.mark.unit

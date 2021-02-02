@@ -1,4 +1,5 @@
 import logging
+import requests
 import socket
 import sys
 from builtins import str
@@ -6,7 +7,7 @@ from datetime import datetime
 
 import click
 import pkg_resources
-from six import string_types
+from six import PY3, BytesIO, StringIO, string_types
 
 logger = logging.getLogger(__name__)
 
@@ -207,3 +208,19 @@ def run(click_wrapper):
 
 def loader_prop_keys(prop_cfgs):
     return [p if isinstance(p, string_types) else p["name"] for p in prop_cfgs]
+
+
+def handle_str_content(resp):
+    return BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
+
+
+def handle_path(path, kwargs, resp_handler=handle_str_content):
+    if path.startswith("http://") or path.startswith("https://"):
+        proxy = kwargs.pop("proxy", None)
+        req_kwargs = {}
+        if proxy is not None:
+            req_kwargs["proxies"] = dict(http=proxy, https=proxy)
+        resp = requests.get(path, **req_kwargs)
+        assert resp.status_code == 200
+        return resp_handler(resp)
+    return path

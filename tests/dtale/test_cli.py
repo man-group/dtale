@@ -6,10 +6,11 @@ import mock
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
-from contextlib import ExitStack
+from six import PY3
 
 from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
+from tests import ExitStack
 
 
 @pytest.mark.unit
@@ -87,41 +88,46 @@ def test_main(unittest):
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
         )
 
-    with ExitStack() as stack:
-        mock_show = stack.enter_context(
-            mock.patch("dtale.cli.script.show", mock.Mock())
-        )
-        mock_find_free_port = stack.enter_context(
-            mock.patch("dtale.cli.script.find_free_port", mock.Mock(return_value=9999))
-        )
-        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.xlsx")
-        args = ["--excel-path", csv_path, "--debug", "--no-reaper"]
-        script.main(args, standalone_mode=False)
-        mock_show.assert_called_once()
-        mock_find_free_port.assert_called_once()
-        _, kwargs = mock_show.call_args
-        (
-            host,
-            port,
-            debug,
-            subprocess,
-            data_loader,
-            reaper_on,
-            show_columns,
-            hide_columns,
-        ) = map(kwargs.get, props)
-        assert host is None
-        assert not subprocess
-        assert debug
-        assert port == 9999
-        assert not reaper_on
-        assert data_loader is not None
-        assert show_columns is None
-        assert hide_columns is None
-        df = data_loader()
-        pdt.assert_frame_equal(
-            df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load xlsx"
-        )
+    if PY3:
+        with ExitStack() as stack:
+            mock_show = stack.enter_context(
+                mock.patch("dtale.cli.script.show", mock.Mock())
+            )
+            mock_find_free_port = stack.enter_context(
+                mock.patch(
+                    "dtale.cli.script.find_free_port", mock.Mock(return_value=9999)
+                )
+            )
+            xlsx_path = os.path.join(
+                os.path.dirname(__file__), "..", "data/test_df.xlsx"
+            )
+            args = ["--excel-path", xlsx_path, "--debug", "--no-reaper"]
+            script.main(args, standalone_mode=False)
+            mock_show.assert_called_once()
+            mock_find_free_port.assert_called_once()
+            _, kwargs = mock_show.call_args
+            (
+                host,
+                port,
+                debug,
+                subprocess,
+                data_loader,
+                reaper_on,
+                show_columns,
+                hide_columns,
+            ) = map(kwargs.get, props)
+            assert host is None
+            assert not subprocess
+            assert debug
+            assert port == 9999
+            assert not reaper_on
+            assert data_loader is not None
+            assert show_columns is None
+            assert hide_columns is None
+            df = data_loader()
+            pdt.assert_frame_equal(
+                df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load xlsx"
+            )
 
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
         json_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.json")
@@ -585,6 +591,18 @@ def test_loader_retrieval():
     with ExitStack() as stack:
         stack.enter_context(
             mock.patch(
+                "platform.python_version_tuple", mock.Mock(return_value=(2, 7, 3))
+            )
+        )
+        mock_loader = stack.enter_context(
+            mock.patch("dtale.cli.loaders.get_py2_loader", mock.Mock())
+        )
+        custom_module_loader()("custom.loaders", "loader.py")
+        assert mock_loader.called_once()
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch(
                 "platform.python_version_tuple", mock.Mock(return_value=(3, 0, 0))
             )
         )
@@ -621,7 +639,7 @@ def test_loader_retrieval():
 
 @pytest.mark.unit
 def test_loader_retrievers(builtin_pkg):
-    from dtale.cli.loaders import get_py35_loader, get_py33_loader
+    from dtale.cli.loaders import get_py35_loader, get_py33_loader, get_py2_loader
 
     orig_import = __import__
     mock_importlib_util = mock.Mock()
@@ -652,6 +670,8 @@ def test_loader_retrievers(builtin_pkg):
         assert mock_importlib_machinery.SourceFileLoader.called_once()
         mock_sourcefileloader = mock_importlib_machinery.SourceFileLoader.return_value
         assert mock_sourcefileloader.load_module.called_once()
+        assert get_py2_loader("custom.loaders", "loader.py") is not None
+        assert mock_imp.load_source.called_once()
 
 
 @pytest.mark.unit

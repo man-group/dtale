@@ -2,9 +2,9 @@
 import mock
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 from dtale.column_builders import ColumnBuilder
+from tests import ExitStack
 from tests.dtale.column_builders.test_column_builders import verify_builder
 
 

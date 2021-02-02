@@ -1,8 +1,8 @@
 import mock
 import pytest
-from contextlib import ExitStack
 
 import dtale.charts.utils as chart_utils
+from tests import ExitStack
 
 
 @pytest.mark.unit

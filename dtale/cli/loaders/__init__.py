@@ -45,6 +45,16 @@ def get_py33_loader(fname, path):
     return SourceFileLoader(*build_custom_module_loader_args(fname, path)).load_module()
 
 
+def get_py2_loader(fname, path):
+    """
+    Utility function for loading dynamic modules (CLI configurations) when python_version < 3
+
+    """
+    import imp
+
+    return imp.load_source(*build_custom_module_loader_args(fname, path))
+
+
 def unsupported_python_version(version_tuple):
     return (
         "Unsupported version of python used for custom CLI loaders, {}. If you do not plan on using any custom "
@@ -61,6 +71,8 @@ def custom_module_loader():
 
     """
     major, minor, revision = [int(i) for i in platform.python_version_tuple()]
+    if major == 2:
+        return get_py2_loader
     if major == 3:
         if minor >= 5:
             return get_py35_loader

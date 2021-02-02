@@ -1,10 +1,10 @@
 import mock
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 import dtale.global_state as global_state
 from dtale.views import build_dtypes_state
+from tests import ExitStack
 
 
 def setup_module(module):

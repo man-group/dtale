@@ -2,7 +2,8 @@ sphinx==1.6.7
 nbsphinx==0.4.3
 nbconvert<=6.0.2
 matplotlib
-prompt-toolkit<2.1.0,>=2.0.0
+prompt-toolkit<2.0.0,>=1.0.4,!=1.0.17; python_version < '3.0'
+prompt-toolkit<2.1.0,>=2.0.0; python_version > '3.0'
 ipython[notebook]
 pyyaml
 bs4
@@ -12,8 +13,8 @@ future
 Flask
 scipy
 scikit-learn
-statsmodels
+statsmodels==0.10.2; python_version < '3.0'
+statsmodels; python_version > '3.0'
 xarray
 pyarrow
 xlrd
-openpyxl

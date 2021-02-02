@@ -2,10 +2,10 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 from dtale.column_builders import ColumnBuilder
 from tests.dtale.column_builders.test_column_builders import verify_builder
+from tests import ExitStack
 
 
 def conversion_data():

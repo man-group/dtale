@@ -1,8 +1,8 @@
 import mock
 import pytest
-from contextlib import ExitStack
 
 from dtale.app import build_app
+from tests import ExitStack
 
 
 @pytest.mark.unit

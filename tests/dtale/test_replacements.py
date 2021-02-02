@@ -5,11 +5,12 @@ import numpy as np
 import pandas as pd
 import pytest
 import sklearn as skl
-from contextlib import ExitStack
 from pkg_resources import parse_version
+from six import PY3
 
 from dtale.column_replacements import ColumnReplacement
 from tests.dtale.test_views import app
+from tests import ExitStack
 
 
 def replacements_data():
@@ -231,7 +232,7 @@ def test_view(unittest):
                 list(data[c.port]["e2"].values), ["a", "for test", "b"]
             )
             assert dtypes[c.port][-1]["name"] == "e2"
-            assert dtypes[c.port][-1]["dtype"] == "string"
+            assert dtypes[c.port][-1]["dtype"] == "string" if PY3 else "mixed"
             assert not dtypes[c.port][-1]["hasMissing"]
 
             del params["name"]

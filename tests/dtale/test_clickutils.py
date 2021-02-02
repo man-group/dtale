@@ -3,7 +3,6 @@ from builtins import getattr
 
 import mock
 import pytest
-from contextlib import ExitStack
 
 from dtale.cli.clickutils import (
     get_loader_options,
@@ -11,6 +10,7 @@ from dtale.cli.clickutils import (
     retrieve_meta_info_and_version,
     setup_logging,
 )
+from tests import ExitStack
 
 
 @pytest.mark.unit

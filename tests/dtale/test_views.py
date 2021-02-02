@@ -8,11 +8,14 @@ import pandas as pd
 import pandas.util.testing as pdt
 import platform
 import pytest
-from contextlib import ExitStack
 from pandas.tseries.offsets import Day
+from pkg_resources import parse_version
+from six import PY3
 
 from dtale.app import build_app
 from dtale.utils import DuplicateDataError
+from tests import ExitStack
+
 
 URL = "http://localhost:40000"
 app = build_app(url=URL)
@@ -1264,16 +1267,17 @@ def test_test_filter(test_data):
             )
             response_data = json.loads(response.data)
             assert response_data["success"]
-    df = pd.DataFrame([dict(a=1)])
-    df["a.b"] = 2
-    with app.test_client() as c:
-        with mock.patch("dtale.global_state.DATA", {c.port: df}):
-            response = c.get(
-                "/dtale/test-filter/{}".format(c.port),
-                query_string=dict(query="a.b == 2"),
-            )
-            response_data = json.loads(response.data)
-            assert not response_data["success"]
+    if PY3:
+        df = pd.DataFrame([dict(a=1)])
+        df["a.b"] = 2
+        with app.test_client() as c:
+            with mock.patch("dtale.global_state.DATA", {c.port: df}):
+                response = c.get(
+                    "/dtale/test-filter/{}".format(c.port),
+                    query_string=dict(query="a.b == 2"),
+                )
+                response_data = json.loads(response.data)
+                assert not response_data["success"]
 
 
 @pytest.mark.unit
@@ -2094,7 +2098,10 @@ def test_get_correlations(unittest, test_data, rolling_data):
             )
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(
+    parse_version(platform.python_version()) < parse_version("3.6.0"),
+    reason="requires python 3.6 or higher",
+)
 def test_get_pps_matrix(unittest, test_data):
     import dtale.views as views
 
@@ -2179,6 +2186,8 @@ def test_get_correlations_ts(unittest, rolling_data):
         build_ts_data(size=50), columns=["date", "security_id", "foo", "bar"]
     )
 
+    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
+
     with app.test_client() as c:
         with mock.patch("dtale.global_state.DATA", {c.port: test_data}):
             params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]))
@@ -2201,7 +2210,9 @@ def test_get_correlations_ts(unittest, rolling_data):
                 },
                 "max": {"corr": 1.0, "x": "2000-01-05"},
                 "min": {"corr": 1.0, "x": "2000-01-01"},
-                "pps": {
+                "pps": None
+                if no_pps
+                else {
                     "baseline_score": 12.5,
                     "case": "regression",
                     "is_valid_score": True,
@@ -2301,6 +2312,7 @@ only_in_s1 = len(scatter_data[scatter_data['bar'].isnull()])"""
 def test_get_scatter(unittest, rolling_data):
     import dtale.views as views
 
+    no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
     test_data = pd.DataFrame(
         build_ts_data(), columns=["date", "security_id", "foo", "bar"]
     )
@@ -2329,7 +2341,9 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "spearman": 0.9999999999999999,
-                    "pps": {
+                    "pps": None
+                    if no_pps
+                    else {
                         "baseline_score": 1.2,
                         "case": "regression",
                         "is_valid_score": True,
@@ -2411,7 +2425,9 @@ def test_get_scatter(unittest, rolling_data):
                     "only_in_s0": 0,
                     "only_in_s1": 0,
                     "pearson": 1.0,
-                    "pps": {
+                    "pps": None
+                    if no_pps
+                    else {
                         "baseline_score": 3736.0678,
                         "case": "regression",
                         "is_valid_score": True,

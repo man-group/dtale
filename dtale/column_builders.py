@@ -939,9 +939,11 @@ def clean(s, cleaner, cfg):
     if cleaner == "drop_multispace":
         return s.str.replace(r"[ ]+", " ")
     elif cleaner == "drop_punctuation":
-        return apply(
-            s, lambda x: x.translate(str.maketrans("", "", string.punctuation))
-        )
+        if six.PY3:
+            return apply(
+                s, lambda x: x.translate(str.maketrans("", "", string.punctuation))
+            )
+        return apply(s, lambda x: x.translate(None, string.punctuation))
     elif cleaner == "stopwords":
         stopwords = cfg.get("stopwords") or []
 
@@ -1033,9 +1035,11 @@ def clean_code(cleaner, cfg):
     if cleaner == "drop_multispace":
         return ["s = s.str.replace(r'[ ]+', ' ')"]
     elif cleaner == "drop_punctuation":
-        return [
-            "s = s.apply(lambda x: x.translate(str.maketrans('', '', string.punctuation))"
-        ]
+        if six.PY3:
+            return [
+                "s = s.apply(lambda x: x.translate(str.maketrans('', '', string.punctuation))"
+            ]
+        return ["s = s.apply(lambda x: x.translate(None, string.punctuation))"]
     elif cleaner == "stopwords":
         stopwords = cfg.get("stopwords") or []
         return [

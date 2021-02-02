@@ -17,7 +17,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 from plotly.io import write_html, write_image
-from six import BytesIO, StringIO, string_types
+from six import PY3, BytesIO, StringIO, string_types
 
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -90,7 +90,15 @@ def get_url_parser():
     """
     Returns URL parser based on whether Python 2 or 3 is being used.
     """
-    return urllib.parse.parse_qsl
+    if PY3:
+        return urllib.parse.parse_qsl
+    else:
+        try:
+            return urllib.parse_qsl
+        except BaseException:
+            from urlparse import parse_qsl
+
+            return parse_qsl
 
 
 def chart_url_params(search):
@@ -162,7 +170,7 @@ def chart_url_params(search):
 
 
 def url_encode_func():
-    return urllib.parse.urlencode
+    return urllib.parse.urlencode if PY3 else urllib.urlencode
 
 
 def chart_url_querystring(params, data=None, group_filter=None):

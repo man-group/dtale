@@ -1,9 +1,8 @@
 import pandas as pd
-import requests
 from pkg_resources import parse_version
 
 from dtale.app import show
-from dtale.cli.clickutils import get_loader_options, loader_prop_keys
+from dtale.cli.clickutils import get_loader_options, handle_path, loader_prop_keys
 
 """
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
@@ -30,18 +29,12 @@ def is_pandas1():
 
 
 def loader_func(**kwargs):
-    path = kwargs.pop("path")
     normalize = kwargs.pop("normalize", False)
-    if path.startswith("http://") or path.startswith(
-        "https://"
-    ):  # add support for URLs
-        proxy = kwargs.pop("proxy", None)
-        req_kwargs = {}
-        if proxy is not None:
-            req_kwargs["proxies"] = dict(http=proxy, https=proxy)
-        resp = requests.get(path, **req_kwargs)
-        assert resp.status_code == 200
-        path = resp.json() if normalize else resp.text
+
+    def resp_handler(resp):
+        return resp.json() if normalize else resp.text
+
+    path = handle_path(kwargs.pop("path"), kwargs, resp_handler=resp_handler)
     if normalize:
         normalize_func = (
             pd.json_normalize if is_pandas1() else pd.io.json.json_normalize

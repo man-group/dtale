@@ -1,9 +1,7 @@
 import pandas as pd
-import requests
-from six import PY3, BytesIO, StringIO
 
 from dtale.app import show
-from dtale.cli.clickutils import get_loader_options, loader_prop_keys
+from dtale.cli.clickutils import get_loader_options, handle_path, loader_prop_keys
 
 """
   IMPORTANT!!! These global variables are required for building any customized CLI loader.
@@ -31,14 +29,7 @@ def loader_func(**kwargs):
     path = kwargs.pop("path")
     engine = "xlrd" if path.endswith("xls") else "openpyxl"
     sheet_name = kwargs.pop("sheet", None)
-    if path.startswith("http://") or path.startswith("https://"):
-        proxy = kwargs.pop("proxy", None)
-        req_kwargs = {}
-        if proxy is not None:
-            req_kwargs["proxies"] = dict(http=proxy, https=proxy)
-        resp = requests.get(path, **req_kwargs)
-        assert resp.status_code == 200
-        path = BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
+    path = handle_path(path, kwargs)
     dfs = pd.read_excel(
         path,
         sheet_name=sheet_name,

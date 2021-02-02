@@ -3,9 +3,9 @@ from collections import namedtuple
 import mock
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 from dtale.dash_application.charts import get_url_parser
+from tests import ExitStack
 
 
 @pytest.mark.unit

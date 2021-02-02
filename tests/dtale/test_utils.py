@@ -4,9 +4,10 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
-from contextlib import ExitStack
+from six import PY3
 
 import dtale.utils as utils
+from tests import ExitStack
 
 
 def build_req_tuple(args):
@@ -236,7 +237,10 @@ def test_json_string2(builtin_pkg):
 
     class MockStr(object):
         def __init__(self, string=""):
-            raise UnicodeEncodeError("", "", 0, 0, "")
+            if PY3:
+                raise UnicodeEncodeError("", "", 0, 0, "")
+            else:
+                raise UnicodeEncodeError("", u"", 0, 0, "")
 
     class TestStr(object):
         def encode(self, encoding=None, errors=None):

@@ -2,7 +2,6 @@ import json
 import mock
 import pandas as pd
 import pytest
-from contextlib import ExitStack
 
 from dtale.duplicate_checks import (
     DuplicateCheck,
@@ -11,6 +10,7 @@ from dtale.duplicate_checks import (
     RemoveAllDataException,
 )
 from tests.dtale.test_views import app
+from tests import ExitStack
 
 
 def duplicates_data():

@@ -4,7 +4,9 @@ import pandas as pd
 
 import mock
 import pytest
-from contextlib import ExitStack
+from six import PY3
+
+from tests import ExitStack
 
 
 @pytest.mark.unit
@@ -28,7 +30,7 @@ def test_show_csv():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.content = csv_txt.encode()
+                    self.content = csv_txt.encode() if PY3 else csv_txt
                     self.status_code = 200
 
             stack.enter_context(
@@ -49,17 +51,19 @@ def test_show_excel(unittest):
     excel_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.xlsx")
 
     mock_show = mock.Mock()
-    with mock.patch("dtale.cli.loaders.excel_loader.show", mock_show):
-        dtale.show_excel(path=excel_path)
-        mock_show.call_args.kwargs["data_loader"]()
-        mock_show.reset_mock()
-
-        with pytest.raises(Exception) as e:
-            dtale.show_excel(path=excel_path, sheet="Worksheet")
+    if PY3:
+        with mock.patch("dtale.cli.loaders.excel_loader.show", mock_show):
+            dtale.show_excel(path=excel_path)
+            mock_show.call_args.kwargs["data_loader"]()
             mock_show.reset_mock()
-            assert (
-                str(e) == "Excel file loaded but there was no sheet named 'Worksheet'."
-            )
+
+            with pytest.raises(Exception) as e:
+                dtale.show_excel(path=excel_path, sheet="Worksheet")
+                mock_show.reset_mock()
+                assert (
+                    str(e)
+                    == "Excel file loaded but there was no sheet named 'Worksheet'."
+                )
 
     with ExitStack() as stack:
         stack.enter_context(
@@ -116,7 +120,7 @@ def test_show_json():
 
             class MockRequest(object):
                 def __init__(self):
-                    self.text = json_txt.encode()
+                    self.text = json_txt.encode() if PY3 else json_txt
                     self.status_code = 200
 
                 def json(self):

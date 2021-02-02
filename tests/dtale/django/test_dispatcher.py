@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from contextlib import ExitStack
+from tests import ExitStack
 
 
 @pytest.mark.unit

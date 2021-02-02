@@ -218,6 +218,14 @@ jobs:
     docker:
       - image: circleci/node:latest
     <<: *javascript
+  build_2_7:
+    working_directory: ~/man-group/dtale_2_7
+    docker:
+      - image: circleci/python:2.7-buster
+    environment:
+      <<: *python_variables
+      RUN_BLACK: false
+    <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
     docker:
@@ -251,6 +259,9 @@ workflows:
   build_all:
     jobs:
       - build_JS
+      - build_2_7:
+          requires:
+            - build_JS
       - build_3_6:
           requires:
             - build_JS
