@@ -76,10 +76,10 @@ function getHeatActive(column) {
   return (_.has(column, "min") || column.name === EXPORTS.IDX) && column.visible;
 }
 
-EXPORTS.getActiveCols = ({ columns, backgroundMode }) => {
-  const heatmapActive = _.includes(["heatmap-col", "heatmap-all"], backgroundMode);
-  return _.filter(columns || [], c => (heatmapActive ? getHeatActive(c) : c.visible));
-};
+EXPORTS.heatmapActive = backgroundMode => _.includes(["heatmap-col", "heatmap-all"], backgroundMode);
+
+EXPORTS.getActiveCols = ({ columns, backgroundMode }) =>
+  _.filter(columns || [], c => (EXPORTS.heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible));
 
 EXPORTS.getCol = (index, { columns, backgroundMode }) =>
   _.get(EXPORTS.getActiveCols({ columns, backgroundMode }), index, {});

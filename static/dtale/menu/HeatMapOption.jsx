@@ -2,6 +2,7 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { exports as gu } from "../gridUtils";
 import Descriptions from "../menu-descriptions.json";
 
 class HeatMapOption extends React.Component {
@@ -11,13 +12,14 @@ class HeatMapOption extends React.Component {
 
   render() {
     const { backgroundMode, toggleBackground } = this.props;
-    const heatmapActive = _.startsWith(backgroundMode, "heatmap");
     return (
       <li className="hoverable" style={{ color: "#565b68" }}>
         <span className="toggler-action">
-          <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
+          <i className={`fa fa-${gu.heatmapActive(backgroundMode) ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
         </span>
-        <span className={`font-weight-bold pl-2${heatmapActive ? " flames" : ""}`}>{"Heat Map"}</span>
+        <span className={`font-weight-bold pl-2${gu.heatmapActive(backgroundMode) ? " flames" : ""}`}>
+          {"Heat Map"}
+        </span>
         <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" style={{ fontSize: "75%" }}>
           {_.map(
             [
