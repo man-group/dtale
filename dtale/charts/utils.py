@@ -456,6 +456,33 @@ def build_agg_data(df, x, y, inputs, agg, z=None, group_col=None, animate_by=Non
                 agg=func,
             )
             code = [code]
+        elif agg in ["first", "last"]:
+            agg_func = "head" if agg == "first" else "tail"
+
+            def _build_first_last():
+                for col in agg_cols:
+                    yield groups[[col]].apply(
+                        lambda x: getattr(
+                            x.sort_values(by=col, ascending=True), agg_func
+                        )(1)
+                    ).reset_index(-1, drop=True)
+
+            groups = pd.concat(list(_build_first_last()), axis=1)
+            code = [
+                (
+                    "groups = chart_data.groupby(['{cols}'])\n"
+                    "\ndef _build_first_last():\n"
+                    "\tfor col in ['{agg_cols}']:\n"
+                    "\t\tyield groups[[col]].apply(\n"
+                    "\t\t\tlambda x: x.sort_values(by=col, ascending=True).{agg_func}(1)\n"
+                    "\t\t)\n\n"
+                    "chart_data = pd.DataFrame(list(_build_first_last()), columns=['{agg_cols}']).reset_index()"
+                ).format(
+                    cols="', '".join(idx_cols),
+                    agg_cols="', '".join(agg_cols),
+                    agg_func=agg_func,
+                )
+            ]
         else:
             groups = getattr(groups[agg_cols], agg)()
             code = [
