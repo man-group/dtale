@@ -5,13 +5,14 @@ import React from "react";
 import Dropzone from "react-dropzone";
 import { connect } from "react-redux";
 
-import { Bouncer } from "../Bouncer";
-import { BouncerWrapper } from "../BouncerWrapper";
-import { RemovableError } from "../RemovableError";
-import { buildURLString } from "../actions/url-utils";
-import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
-import { fetchJson } from "../fetcher";
-import { buildForwardURL } from "./reshape/Reshape";
+import { Bouncer } from "../../Bouncer";
+import { BouncerWrapper } from "../../BouncerWrapper";
+import { RemovableError } from "../../RemovableError";
+import { buildURLString } from "../../actions/url-utils";
+import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
+import { fetchJson } from "../../fetcher";
+import SheetSelector from "./SheetSelector";
+import { jumpToDataset } from "./uploadUtils";
 
 require("./Upload.css");
 
@@ -52,7 +53,6 @@ export class ReactUpload extends React.Component {
     this.loadFromWeb = this.loadFromWeb.bind(this);
     this.loadDataset = this.loadDataset.bind(this);
     this.handleResponse = this.handleResponse.bind(this);
-    this.saveSheets = this.saveSheets.bind(this);
   }
 
   handleResponse(data) {
@@ -72,18 +72,7 @@ export class ReactUpload extends React.Component {
       });
       return;
     }
-    if (_.startsWith(window.location.pathname, "/dtale/popup/upload")) {
-      if (window.opener) {
-        window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
-        window.close();
-      } else {
-        // when we've started D-Tale with no data
-        window.location.assign(window.location.origin);
-      }
-      return;
-    }
-    const newLoc = buildForwardURL(window.location.href, data.data_id);
-    window.location.assign(newLoc);
+    jumpToDataset(data.data_id);
   }
 
   onDrop(files) {
@@ -114,18 +103,14 @@ export class ReactUpload extends React.Component {
     fetchJson(buildURLString("/dtale/datasets", { dataset }), this.handleResponse);
   }
 
-  saveSheets() {
-    alert("Saved Sheets!");
-
-  }
-
   render() {
     const { error, file, loading, loadingDataset, loadingURL, sheets } = this.state;
+    const propagateState = state => this.setState(state);
     return (
       <div key="body" className="modal-body">
         <h3>Load File</h3>
         <div className="row">
-          <div className={`col-md-${sheets ? "8" : "12"}`}>
+          <div className="col-md-12">
             <Dropzone
               onDrop={this.onDrop}
               disabled={false}
@@ -176,33 +161,6 @@ export class ReactUpload extends React.Component {
               )}
             </Dropzone>
           </div>
-          {sheets && (
-            <div style={{ maxHeight: 300, overflowY: "auto" }} className="col-md-4">
-              <ul>
-                {_.map(sheets, (sheet, i) => (
-                  <li key={i}>
-                    <i
-                      className={`ico-check-box${sheet.selected ? "" : "-outline-blank"} pointer pb-2 pr-3`}
-                      onClick={() =>
-                        this.updateState({
-                          sheets: _.map(sheets, s =>
-                            s.name === sheet.name ? { ...s, selected: !s.selected } : { ...s }
-                          ),
-                        })
-                      }
-                    />
-                    <b>{sheet.name}</b>
-                  </li>
-                ))}
-              </ul>
-              <button
-                className="btn btn-primary"
-                disabled={_.find(sheets, "selected") === undefined}
-                onClick={this.saveSheets}>
-                <span>Load Sheets</span>
-              </button>
-            </div>
-          )}
         </div>
         <div className="row pt-5">
           <div className="col-auto">
@@ -299,6 +257,7 @@ export class ReactUpload extends React.Component {
             </label>
           </div>
         </div>
+        <SheetSelector sheets={sheets} propagateState={propagateState} />
       </div>
     );
   }

@@ -45,6 +45,7 @@ javascript: &javascript
             bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
             yarn run report-duplicate-code
             cp -r ./JS_coverage /tmp/circleci-test-results
+          no_output_timeout: 1200
       - run:
           name: Build JS
           command: |
@@ -214,7 +215,7 @@ python: &python
 version: 2
 jobs:
   build_JS:
-    working_directory: ~/man-group/dtale_JS
+    working_directory: /mnt/ramdisk
     docker:
       - image: circleci/node:latest
     <<: *javascript

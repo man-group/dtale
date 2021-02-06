@@ -38,7 +38,7 @@ class Instances extends React.Component {
   }
 
   cleanup(instance) {
-    fetchJson(`/dtale/cleanup/${instance.data_id}`, data => {
+    fetchJson(`/dtale/cleanup-datasets?dataIds=${instance.data_id}`, data => {
       if (data.success) {
         const currProcesses = _.get(this.state, "processes.data") || [];
         const processes = _.map(_.reject(currProcesses, { data_id: instance.data_id }), p => _.assignIn({}, p));

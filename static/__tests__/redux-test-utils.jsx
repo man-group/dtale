@@ -265,7 +265,7 @@ function urlFetcher(url) {
     return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
   } else if (_.startsWith(url, "/dtale/code-export")) {
     return { code: "test code" };
-  } else if (_.startsWith(url, "/dtale/cleanup")) {
+  } else if (_.startsWith(url, "/dtale/cleanup-datasets")) {
     return { success: true };
   } else if (_.startsWith(url, "/dtale/column-filter-data")) {
     return { success: true, hasMissing: false, uniques: [1, 2, 3] };

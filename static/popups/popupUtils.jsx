@@ -11,7 +11,6 @@ import { Error } from "./ErrorPopup";
 import { Filter } from "./Filter";
 import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
-import { Upload } from "./Upload";
 import { XArrayDimensions } from "./XArrayDimensions";
 import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
@@ -21,6 +20,7 @@ import Instances from "./instances/Instances";
 import { PredictivePowerScore } from "./pps/PredictivePowerScore";
 import { CreateReplacement } from "./replacement/CreateReplacement";
 import { Reshape } from "./reshape/Reshape";
+import { Upload } from "./upload/Upload";
 import { Variance } from "./variance/Variance";
 
 function buildFilter() {
