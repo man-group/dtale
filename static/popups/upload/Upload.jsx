@@ -35,7 +35,7 @@ const DATASET_DESCRIPTIONS = {
   time_dataframe: "Output from running pandas.util.testing.makeTimeDataFrame()",
 };
 
-class ReactUpload extends React.Component {
+export class ReactUpload extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -45,19 +45,30 @@ class ReactUpload extends React.Component {
       proxy: null,
       loadingDataset: null,
       loadingURL: false,
+      sheets: null,
+      webSheets: null,
     };
     this.onDrop = this.onDrop.bind(this);
     this.loadFromWeb = this.loadFromWeb.bind(this);
     this.loadDataset = this.loadDataset.bind(this);
     this.handleResponse = this.handleResponse.bind(this);
+    this.saveSheets = this.saveSheets.bind(this);
   }
 
   handleResponse(data) {
     if (data.error) {
       this.setState({
         error: <RemovableError {...data} />,
+        loading: false,
         loadingURL: false,
         loadingDataset: null,
+      });
+      return;
+    }
+    if (data.sheets) {
+      this.setState({
+        sheets: _.map(data.sheets, sheet => ({ ...sheet, selected: true })),
+        loading: false,
       });
       return;
     }
@@ -80,6 +91,7 @@ class ReactUpload extends React.Component {
     files.forEach(file => {
       fd.append(file.name, file);
     });
+    this.setState({ loading: true });
     $.ajax({
       type: "POST",
       url: menuFuncs.fullPath("/dtale/upload"),
@@ -102,13 +114,18 @@ class ReactUpload extends React.Component {
     fetchJson(buildURLString("/dtale/datasets", { dataset }), this.handleResponse);
   }
 
+  saveSheets() {
+    alert("Saved Sheets!");
+
+  }
+
   render() {
-    const { error, file, loading, loadingDataset, loadingURL } = this.state;
+    const { error, file, loading, loadingDataset, loadingURL, sheets } = this.state;
     return (
       <div key="body" className="modal-body">
         <h3>Load File</h3>
         <div className="row">
-          <div className="col-md-12">
+          <div className={`col-md-${sheets ? "8" : "12"}`}>
             <Dropzone
               onDrop={this.onDrop}
               disabled={false}
@@ -159,6 +176,33 @@ class ReactUpload extends React.Component {
               )}
             </Dropzone>
           </div>
+          {sheets && (
+            <div style={{ maxHeight: 300, overflowY: "auto" }} className="col-md-4">
+              <ul>
+                {_.map(sheets, (sheet, i) => (
+                  <li key={i}>
+                    <i
+                      className={`ico-check-box${sheet.selected ? "" : "-outline-blank"} pointer pb-2 pr-3`}
+                      onClick={() =>
+                        this.updateState({
+                          sheets: _.map(sheets, s =>
+                            s.name === sheet.name ? { ...s, selected: !s.selected } : { ...s }
+                          ),
+                        })
+                      }
+                    />
+                    <b>{sheet.name}</b>
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="btn btn-primary"
+                disabled={_.find(sheets, "selected") === undefined}
+                onClick={this.saveSheets}>
+                <span>Load Sheets</span>
+              </button>
+            </div>
+          )}
         </div>
         <div className="row pt-5">
           <div className="col-auto">
@@ -266,6 +310,4 @@ ReactUpload.propTypes = {
   }),
 };
 
-const ReduxUpload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);
-
-export { ReactUpload, ReduxUpload as Upload };
+export const Upload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);
