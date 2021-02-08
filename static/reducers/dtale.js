@@ -24,6 +24,8 @@ function dataId(state = null, action = {}) {
   switch (action.type) {
     case "init-params":
       return getHiddenValue("data_id");
+    case "load-preview":
+      return action.dataId;
     default:
       return state;
   }
@@ -54,6 +56,8 @@ function hideShutdown(state = false, action = {}) {
   switch (action.type) {
     case "init-params":
       return toBool(getHiddenValue("hide_shutdown"));
+    case "load-preview":
+      return true;
     default:
       return state;
   }
@@ -63,6 +67,8 @@ function allowCellEdits(state = true, action = {}) {
   switch (action.type) {
     case "init-params":
       return toBool(getHiddenValue("allow_cell_edits"));
+    case "load-preview":
+      return false;
     default:
       return state;
   }
@@ -160,7 +166,8 @@ function settings(state = {}, action = {}) {
 
 function pythonVersion(state = null, action = {}) {
   switch (action.type) {
-    case "init-params": {
+    case "init-params":
+    case "load-preview": {
       const version = getHiddenValue("python_version");
       if (version) {
         const versionNumbers = _.map(_.split(version, "."), _.parseInt);
@@ -168,6 +175,15 @@ function pythonVersion(state = null, action = {}) {
       }
       return state;
     }
+    default:
+      return state;
+  }
+}
+
+function isPreview(state = false, action = {}) {
+  switch (action.type) {
+    case "load-preview":
+      return true;
     default:
       return state;
   }
@@ -189,6 +205,7 @@ const dtaleStore = combineReducers({
   filteredRanges,
   settings,
   pythonVersion,
+  isPreview,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

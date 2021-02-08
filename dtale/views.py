@@ -27,6 +27,7 @@ from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_builders import clean, clean_code, ColumnBuilder, printable
 from dtale.column_filters import ColumnFilter
 from dtale.column_replacements import ColumnReplacement
+from dtale.combine_data import CombineData
 from dtale.duplicate_checks import DuplicateCheck
 from dtale.dash_application.charts import (
     build_raw_chart,
@@ -1002,6 +1003,7 @@ POPUP_TITLES = {
     "filter": "Custom Filter",
     "upload": "Load Data",
     "pps": "Predictive Power Score",
+    "merge": "Merge & Stack",
 }
 
 
@@ -1018,7 +1020,7 @@ def view_popup(popup_type, data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None and popup_type != "upload":
+    if data_id is None and popup_type not in ["upload", "merge"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
     curr_metadata = global_state.get_metadata(data_id) or {}
     title = "D-Tale"
@@ -1098,6 +1100,8 @@ def get_processes():
     }
     """
 
+    load_dtypes = get_bool_arg(request, "dtypes")
+
     def _load_process(data_id):
         data = global_state.get_data(data_id)
         dtypes = global_state.get_dtypes(data_id)
@@ -1106,7 +1110,7 @@ def get_processes():
             data_id=data_id,
             rows=len(data),
             columns=len(dtypes),
-            names=",".join([c["name"] for c in dtypes]),
+            names=dtypes if load_dtypes else ",".join([c["name"] for c in dtypes]),
             start=json_date(mdata["start"], fmt="%-I:%M:%S %p"),
             ts=json_timestamp(mdata["start"]),
             name=mdata["name"],
@@ -3393,3 +3397,14 @@ def get_sorted_sequential_diffs(data_id, column, sort):
     df = global_state.get_data(data_id)
     metrics, _ = build_sequential_diffs(df[column], column, sort=sort)
     return jsonify(metrics)
+
+
+@dtale.route("/merge", methods=["POST"])
+@exception_decorator
+def build_merge():
+    cfg = request.form
+    name = cfg.get("name")
+    builder = CombineData(cfg)
+    data = builder.build_data()
+    code = builder.build_code()
+    return load_new_data(data, code, name)

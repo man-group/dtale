@@ -14,6 +14,7 @@ import DuplicatesOption from "./DuplicatesOption";
 import HeatMapOption from "./HeatMapOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
+import MergeOption from "./MergeOption";
 import NetworkOption from "./NetworkOption";
 import RangeHighlightOption from "./RangeHighlightOption";
 import { ThemeOption } from "./ThemeOption";
@@ -80,6 +81,7 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.build}</div>
           </li>
+          <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
           <li className="hoverable">
             <span className="toggler-action">
               <button className="btn btn-plain" onClick={openPopup("reshape", 400, 770)}>

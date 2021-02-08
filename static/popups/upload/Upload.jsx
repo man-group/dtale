@@ -72,7 +72,7 @@ export class ReactUpload extends React.Component {
       });
       return;
     }
-    jumpToDataset(data.data_id);
+    jumpToDataset(data.data_id, this.props.mergeRefresher);
   }
 
   onDrop(files) {
@@ -104,6 +104,7 @@ export class ReactUpload extends React.Component {
   }
 
   render() {
+    const { mergeRefresher } = this.props;
     const { error, file, loading, loadingDataset, loadingURL, sheets } = this.state;
     const propagateState = state => this.setState(state);
     return (
@@ -257,16 +258,17 @@ export class ReactUpload extends React.Component {
             </label>
           </div>
         </div>
-        <SheetSelector sheets={sheets} propagateState={propagateState} />
+        <SheetSelector sheets={sheets} propagateState={propagateState} mergeRefresher={mergeRefresher} />
       </div>
     );
   }
 }
-ReactUpload.displayName = "Upload";
+ReactUpload.displayName = "ReactUpload";
 ReactUpload.propTypes = {
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
   }),
+  mergeRefresher: PropTypes.func,
 };
 
 export const Upload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);

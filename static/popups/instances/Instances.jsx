@@ -161,7 +161,7 @@ class Instances extends React.Component {
                   {cleanupCol}
                   <Column
                     dataKey="start"
-                    label="Process"
+                    label="Instance"
                     width={200}
                     flexGrow={1}
                     style={{ textAlign: "left", paddingLeft: ".5em" }}

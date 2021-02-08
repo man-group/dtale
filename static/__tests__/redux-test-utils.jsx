@@ -126,7 +126,7 @@ const DESCRIBE = {
   },
 };
 
-const PROCESSES = [
+export const PROCESSES = [
   {
     rows: 50,
     ts: 1525106204000,
@@ -294,13 +294,9 @@ function urlFetcher(url) {
   return {};
 }
 
-function createDtaleStore() {
-  return createStore(dtaleApp.store);
-}
-
 export default {
   urlFetcher,
-  createDtaleStore,
+  createDtaleStore: () => createStore(dtaleApp.store),
   DATA,
   DTYPES,
 };

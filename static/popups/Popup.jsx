@@ -8,6 +8,7 @@ import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
 import { closeChart } from "../actions/charts";
+import mergeActions from "../actions/merge";
 import { buildRangeState } from "../dtale/rangeSelectUtils";
 import DraggableModalDialog from "./DraggableModalDialog";
 import * as popupUtils from "./popupUtils";
@@ -91,11 +92,15 @@ ReactPopup.propTypes = {
     rowIndex: PropTypes.number,
   }),
   propagateState: PropTypes.func,
+  mergeRefresher: PropTypes.func,
 };
 
 const ReduxPopup = connect(
   state => _.pick(state, ["dataId", "iframe", "chartData"]),
-  dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
+  dispatch => ({
+    onClose: chartData => dispatch(closeChart(chartData || {})),
+    mergeRefresher: () => dispatch(mergeActions.loadDatasets()),
+  })
 )(ReactPopup);
 
 export { ReactPopup, ReduxPopup as Popup };

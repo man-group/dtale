@@ -43,7 +43,7 @@ describe("SheetSelector", () => {
 
   it("calls jumpToDataset without clearing data", async () => {
     result.find("button").last().simulate("click");
-    expect(jumpToDatasetSpy).toHaveBeenLastCalledWith(1);
+    expect(jumpToDatasetSpy.mock.calls[0][0]).toBe(1);
   });
 
   it("calls jumpToDataset with clearing data", async () => {
@@ -56,7 +56,7 @@ describe("SheetSelector", () => {
     result.update();
     result.find("button").last().simulate("click");
     fetchJsonSpy.mock.calls[0][1]({ success: true });
-    expect(jumpToDatasetSpy).toHaveBeenCalledWith(2);
+    expect(jumpToDatasetSpy.mock.calls[0][0]).toBe(2);
   });
 
   it("propagates state to clear sheets", async () => {
