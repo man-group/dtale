@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.34.0 (2021-2-7)
+* [#423](https://github.com/man-group/dtale/issues/423): y-axis scale toggle
+* [#422](https://github.com/man-group/dtale/issues/422): sheet selection on excel uploads
+* [#421](https://github.com/man-group/dtale/issues/421): replacements not replacing zeroes
+
 ### 1.33.1 (2021-2-1)
 * [#420](https://github.com/man-group/dtale/issues/420): Added python2.7 support back
 * [#416](https://github.com/man-group/dtale/issues/416): aggregating charts by "first" or "last"
