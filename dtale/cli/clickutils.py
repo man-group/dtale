@@ -214,8 +214,12 @@ def handle_str_content(resp):
     return BytesIO(resp.content) if PY3 else StringIO(resp.content.decode("utf-8"))
 
 
+def is_url(path):
+    return path.startswith("http://") or path.startswith("https://")
+
+
 def handle_path(path, kwargs, resp_handler=handle_str_content):
-    if path.startswith("http://") or path.startswith("https://"):
+    if is_url(path):
         proxy = kwargs.pop("proxy", None)
         req_kwargs = {}
         if proxy is not None:

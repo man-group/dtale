@@ -5,13 +5,14 @@ import React from "react";
 import Dropzone from "react-dropzone";
 import { connect } from "react-redux";
 
-import { Bouncer } from "../Bouncer";
-import { BouncerWrapper } from "../BouncerWrapper";
-import { RemovableError } from "../RemovableError";
-import { buildURLString } from "../actions/url-utils";
-import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
-import { fetchJson } from "../fetcher";
-import { buildForwardURL } from "./reshape/Reshape";
+import { Bouncer } from "../../Bouncer";
+import { BouncerWrapper } from "../../BouncerWrapper";
+import { RemovableError } from "../../RemovableError";
+import { buildURLString } from "../../actions/url-utils";
+import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
+import { fetchJson } from "../../fetcher";
+import SheetSelector from "./SheetSelector";
+import { jumpToDataset } from "./uploadUtils";
 
 require("./Upload.css");
 
@@ -35,7 +36,7 @@ const DATASET_DESCRIPTIONS = {
   time_dataframe: "Output from running pandas.util.testing.makeTimeDataFrame()",
 };
 
-class ReactUpload extends React.Component {
+export class ReactUpload extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -45,6 +46,8 @@ class ReactUpload extends React.Component {
       proxy: null,
       loadingDataset: null,
       loadingURL: false,
+      sheets: null,
+      webSheets: null,
     };
     this.onDrop = this.onDrop.bind(this);
     this.loadFromWeb = this.loadFromWeb.bind(this);
@@ -56,23 +59,20 @@ class ReactUpload extends React.Component {
     if (data.error) {
       this.setState({
         error: <RemovableError {...data} />,
+        loading: false,
         loadingURL: false,
         loadingDataset: null,
       });
       return;
     }
-    if (_.startsWith(window.location.pathname, "/dtale/popup/upload")) {
-      if (window.opener) {
-        window.opener.location.assign(buildForwardURL(window.opener.location.href, data.data_id));
-        window.close();
-      } else {
-        // when we've started D-Tale with no data
-        window.location.assign(window.location.origin);
-      }
+    if (data.sheets) {
+      this.setState({
+        sheets: _.map(data.sheets, sheet => ({ ...sheet, selected: true })),
+        loading: false,
+      });
       return;
     }
-    const newLoc = buildForwardURL(window.location.href, data.data_id);
-    window.location.assign(newLoc);
+    jumpToDataset(data.data_id);
   }
 
   onDrop(files) {
@@ -80,6 +80,7 @@ class ReactUpload extends React.Component {
     files.forEach(file => {
       fd.append(file.name, file);
     });
+    this.setState({ loading: true });
     $.ajax({
       type: "POST",
       url: menuFuncs.fullPath("/dtale/upload"),
@@ -103,7 +104,8 @@ class ReactUpload extends React.Component {
   }
 
   render() {
-    const { error, file, loading, loadingDataset, loadingURL } = this.state;
+    const { error, file, loading, loadingDataset, loadingURL, sheets } = this.state;
+    const propagateState = state => this.setState(state);
     return (
       <div key="body" className="modal-body">
         <h3>Load File</h3>
@@ -255,6 +257,7 @@ class ReactUpload extends React.Component {
             </label>
           </div>
         </div>
+        <SheetSelector sheets={sheets} propagateState={propagateState} />
       </div>
     );
   }
@@ -266,6 +269,4 @@ ReactUpload.propTypes = {
   }),
 };
 
-const ReduxUpload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);
-
-export { ReactUpload, ReduxUpload as Upload };
+export const Upload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);

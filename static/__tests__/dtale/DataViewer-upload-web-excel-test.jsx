@@ -1,8 +1,7 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
+import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
@@ -40,12 +39,12 @@ describe("DataViewer tests", () => {
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../redux-test-utils").default;
         if (_.startsWith(url, "/dtale/web-upload")) {
-          return { success: true, data_id: "2" };
-        }
-        if (_.startsWith(url, "/dtale/datasets")) {
           return {
             success: true,
-            data_id: qs.parse(url.split("?")[1]).dataset,
+            sheets: [
+              { name: "Sheet 1", dataId: 1 },
+              { name: "Sheet 2", dataId: 2 },
+            ],
           };
         }
         return urlFetcher(url);
@@ -86,9 +85,9 @@ describe("DataViewer tests", () => {
 
   const upload = () => result.find(Upload).first();
 
-  it("DataViewer: upload from web", async () => {
+  it("DataViewer: upload from excel web", async () => {
     let uploadModal = upload();
-    uploadModal.find("div.form-group").first().find("button").first().simulate("click");
+    uploadModal.find("div.form-group").first().find("button").last().simulate("click");
     uploadModal
       .find("div.form-group")
       .at(1)
@@ -104,13 +103,8 @@ describe("DataViewer tests", () => {
     uploadModal.find("div.row").at(1).find("button").first().simulate("click");
     await tickUpdate(result);
     await tickUpdate(result);
-    expect(window.location.assign).toBeCalledWith("/2");
-  });
-
-  it("DataViewer: upload dataset", async () => {
-    upload().find("div.form-group").last().find("button").first().simulate("click");
-    await tickUpdate(result);
-    await tickUpdate(result);
-    expect(window.location.assign).toBeCalledWith("/covid");
+    const sheetSelector = result.find("SheetSelector").find("Modal").first();
+    expect(sheetSelector.props().show).toBe(true);
+    expect(sheetSelector.find("Resizable").find(Modal.Body).text()).toEqual("Sheet 1Sheet 2");
   });
 });

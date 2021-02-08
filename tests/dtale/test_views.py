@@ -902,7 +902,7 @@ def test_cleanup_error(unittest):
                     "dtale.global_state.cleanup", mock.Mock(side_effect=Exception)
                 )
             )
-            resp = c.get("/dtale/cleanup/1")
+            resp = c.get("/dtale/cleanup-datasets", query_string=dict(dataIds="1"))
             assert "error" in json.loads(resp.data)
 
 
@@ -938,7 +938,7 @@ def test_reshape(custom_data, unittest):
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
 
-            resp = c.get("/dtale/cleanup/{}".format(new_key))
+            resp = c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
             assert json.loads(resp.data)["success"]
             assert len(data.keys()) == 1
 
@@ -959,7 +959,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg["columnNameHeaders"] = False
             reshape_cfg["values"] = ["Col0", "Col1"]
@@ -978,7 +978,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg = dict(
                 index="date",
@@ -999,7 +999,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg = dict(
                 index="date", agg=dict(type="func", func="mean", cols=["Col0", "Col1"])
@@ -1018,7 +1018,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg = dict(index="date", agg=dict(type="func", func="mean"))
             resp = c.get(
@@ -1036,7 +1036,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 365
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg = dict(index=["security_id"], columns=["Col0"])
             resp = c.get(
@@ -1070,7 +1070,7 @@ def test_reshape(custom_data, unittest):
             )
             assert len(data[new_key]) == 1
             assert settings[new_key].get("startup_code") is not None
-            c.get("/dtale/cleanup/{}".format(new_key))
+            c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
             reshape_cfg = dict(index=["date", "security_id"])
             resp = c.get(

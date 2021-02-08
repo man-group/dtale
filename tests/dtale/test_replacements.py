@@ -131,6 +131,37 @@ def test_value(unittest):
         )
 
 
+@pytest.mark.unit
+def test_number_value(unittest):
+
+    df = pd.DataFrame(
+        {
+            "year": [
+                1992.0,
+                2005.0,
+                2011.0,
+                0.0,
+                2008.0,
+                1999.0,
+                1983.0,
+                2010.0,
+                0.0,
+                2002.0,
+            ]
+        }
+    )
+    data_id, replacement_type = "1", "value"
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+
+        cfg = {"value": [dict(value=0, type="raw", replace="nan")]}
+        builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
+        verify_builder(
+            builder,
+            lambda col: unittest.assertEqual(np.isnan(col.values[-2]), True),
+        )
+
+
 @pytest.mark.skipif(
     parse_version(skl.__version__) < parse_version("0.21.0"),
     reason="requires scikit-learn 0.21.0",

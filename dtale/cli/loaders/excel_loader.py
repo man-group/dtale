@@ -25,10 +25,9 @@ def show_loader(**kwargs):
     return show(data_loader=lambda: loader_func(**kwargs), **kwargs)
 
 
-def loader_func(**kwargs):
+def load_file(sheet_name=None, **kwargs):
     path = kwargs.pop("path")
     engine = "xlrd" if path.endswith("xls") else "openpyxl"
-    sheet_name = kwargs.pop("sheet", None)
     path = handle_path(path, kwargs)
     dfs = pd.read_excel(
         path,
@@ -38,6 +37,12 @@ def loader_func(**kwargs):
     )
     if dfs is None or not len(dfs):
         raise Exception("Failed to load Excel file. Returned no data.")
+    return dfs
+
+
+def loader_func(**kwargs):
+    sheet_name = kwargs.pop("sheet", None)
+    dfs = load_file(sheet_name=sheet_name, **kwargs)
     if sheet_name:
         if sheet_name not in dfs:
             raise Exception(

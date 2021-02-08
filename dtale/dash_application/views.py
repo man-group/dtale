@@ -594,10 +594,19 @@ def init_callbacks(dash_app):
             Input("animate-toggle", "on"),
             Input("animate-by-dropdown", "value"),
             Input("trendline-dropdown", "value"),
+            Input("yaxis-scale", "value"),
         ],
     )
     def chart_input_data(
-        cpg, barmode, barsort, top_bars, colorscale, animate, animate_by, trendline
+        cpg,
+        barmode,
+        barsort,
+        top_bars,
+        colorscale,
+        animate,
+        animate_by,
+        trendline,
+        scale,
     ):
         """
         dash callback for maintaining selections in chart-formatting inputs
@@ -614,6 +623,7 @@ def init_callbacks(dash_app):
             animate=animate,
             animate_by=animate_by,
             trendline=trendline,
+            scale=scale,
         )
 
     @dash_app.callback(

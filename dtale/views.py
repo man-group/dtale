@@ -3119,21 +3119,38 @@ def chart_csv_export(data_id):
     return send_file(csv_buffer.getvalue(), filename, "text/csv")
 
 
-@dtale.route("/cleanup/<data_id>")
+@dtale.route("/cleanup-datasets")
 @exception_decorator
-def run_cleanup(data_id):
-    global_state.cleanup(data_id)
+def cleanup_datasets():
+    data_ids = get_str_arg(request, "dataIds")
+    data_ids = (data_ids or "").split(",")
+    for data_id in data_ids:
+        global_state.cleanup(data_id)
     return jsonify(success=True)
 
 
-def load_new_data(df, startup_code):
-    instance = startup(data=df, ignore_duplicate=True)
+def load_new_data(df, startup_code, name=None, return_id=False):
+    instance = startup(data=df, name=name, ignore_duplicate=True)
     curr_settings = global_state.get_settings(instance._data_id)
     global_state.set_settings(
         instance._data_id,
         dict_merge(curr_settings, dict(startup_code=startup_code)),
     )
+    if return_id:
+        return instance._data_id
     return jsonify(success=True, data_id=instance._data_id)
+
+
+def handle_excel_upload(dfs):
+    sheet_names = list(dfs.keys())
+    data_ids = []
+    for sheet_name in sheet_names:
+        df, code = dfs[sheet_name]
+        if len(sheet_names) == 1:
+            return load_new_data(df, code, name=sheet_name)
+        data_id = load_new_data(df, code, name=sheet_name, return_id=True)
+        data_ids.append(dict(name=sheet_name, dataId=data_id))
+    return jsonify(dict(sheets=data_ids, success=True))
 
 
 @dtale.route("/upload", methods=["POST"])
@@ -3155,18 +3172,17 @@ def upload():
         if ext in [".xls", ".xlsx"]:
             engine = "xlrd" if ext == ".xls" else "openpyxl"
             dfs = pd.read_excel(contents, sheet_name=None, engine=engine)
-            if not dfs:
-                raise Exception("Failed to load Excel file. Returned no data.")
-            sheet_names = list(dfs.keys())
-            for sheet_name in sheet_names:
-                df = dfs[sheet_name]
-                code = "df = pd.read_excel('{}', sheet_name='{}', engine='{}')".format(
+
+            def build_xls_code(sheet_name):
+                return "df = pd.read_excel('{}', sheet_name='{}', engine='{}')".format(
                     filename, sheet_name, engine
                 )
-                if sheet_name == sheet_names[-1]:
-                    return load_new_data(df, code)
-                else:
-                    load_new_data(df, code)
+
+            dfs = {
+                sheet_name: (df, build_xls_code(sheet_name))
+                for sheet_name, df in dfs.items()
+            }
+            return handle_excel_upload(dfs)
         raise Exception("File type of {} is not supported!".format(ext))
 
 
@@ -3175,7 +3191,7 @@ def upload():
 def web_upload():
     from dtale.cli.loaders.csv_loader import loader_func as load_csv
     from dtale.cli.loaders.json_loader import loader_func as load_json
-    from dtale.cli.loaders.excel_loader import loader_func as load_excel
+    from dtale.cli.loaders.excel_loader import load_file as load_excel
 
     data_type = get_str_arg(request, "type")
     url = get_str_arg(request, "url")
@@ -3199,11 +3215,23 @@ def web_upload():
             "df = load_csv(path='{url}'{proxy})"
         ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
     elif data_type == "excel":
-        df = load_excel(path=url, proxy=proxy)
-        startup_code = (
-            "from dtale.cli.loaders.excel_loader import loader_func as load_excel\n\n"
-            "df = load_excel(path='{url}'{proxy})"
-        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
+        dfs = load_excel(path=url, proxy=proxy)
+
+        def build_xls_code(sheet_name):
+            return (
+                "from dtale.cli.loaders.excel_loader import load_file as load_excel\n\n"
+                "df = load_excel(sheet_name='{sheet_name}', path='{url}'{proxy})"
+            ).format(
+                sheet_name=sheet_name,
+                url=url,
+                proxy=", '{}'".format(proxy) if proxy else "",
+            )
+
+        dfs = {
+            sheet_name: (df, build_xls_code(sheet_name))
+            for sheet_name, df in dfs.items()
+        }
+        return handle_excel_upload(dfs)
 
     return load_new_data(df, startup_code)
 

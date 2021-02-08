@@ -48,7 +48,7 @@ describe("DataViewer tests", () => {
     mockChartJS();
 
     DataViewer = require("../../dtale/DataViewer").DataViewer;
-    Upload = require("../../popups/Upload").ReactUpload;
+    Upload = require("../../popups/upload/Upload").ReactUpload;
   });
 
   beforeEach(async () => {

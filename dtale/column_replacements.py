@@ -36,7 +36,8 @@ def get_inner_replacement_value(val):
 
 
 def get_replacement_value(cfg, prop):
-    value = (cfg or {}).get(prop) or "nan"
+    value = (cfg or {}).get(prop)
+    value = "nan" if value is None else value
     return get_inner_replacement_value(value)
 
 
