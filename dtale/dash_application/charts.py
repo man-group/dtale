@@ -186,6 +186,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "group_type",
         "bins_val",
         "bin_type",
+        "scale",
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
@@ -247,7 +248,9 @@ def build_colorscale(colorscale):
     return [[i / (len(colorscale) - 1), rgb] for i, rgb in enumerate(colorscale)]
 
 
-def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None):
+def build_axes(
+    data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None, scale="linear"
+):
     """
     Returns helper function for building axis configurations against a specific y-axis.
 
@@ -286,7 +289,9 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None)
             for i, y2 in enumerate(y, 0):
                 right = i % 2 == 1
                 axis_ct = int(i / 2)
-                value = dict(title=_add_agg_label(update_label_for_freq(y2)))
+                value = dict(
+                    title=_add_agg_label(update_label_for_freq(y2)), type=scale
+                )
                 if i == 0:
                     key = "yaxis"
                 else:
@@ -313,7 +318,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None)
                     value["tickformat"] = ".0f"
                 axes[key] = value
         elif axis_type == "single":
-            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)))
+            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)), type=scale)
             all_range = axis_data.get("all") or {}
             all_range = [
                 all_range.get(p) for p in ["min", "max"] if all_range.get(p) is not None
@@ -326,7 +331,7 @@ def build_axes(data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None)
                 yaxis_cfg["tickformat"] = ".0f"
             axes["yaxis"] = yaxis_cfg
         else:
-            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)))
+            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)), type=scale)
             if classify_type(dtypes.get(y[0])) == "I":
                 yaxis_cfg["tickformat"] = ".0f"
             axes["yaxis"] = yaxis_cfg
@@ -2800,9 +2805,9 @@ def build_chart(data_id=None, data=None, **inputs):
         range_data = dict(min=data["min"], max=data["max"])
         axis_inputs = inputs.get("yaxis") or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
-        x, y, z, agg, group, animate_by, trendline = (
+        x, y, z, agg, group, animate_by, trendline, scale = (
             inputs.get(p)
-            for p in ["x", "y", "z", "agg", "group", "animate_by", "trendline"]
+            for p in ["x", "y", "z", "agg", "group", "animate_by", "trendline", "scale"]
         )
         x = str("x") if x is None else x
         z = z if chart_type in ZAXIS_CHARTS else None
@@ -2832,7 +2837,7 @@ def build_chart(data_id=None, data=None, **inputs):
             )
 
         axes_builder = build_axes(
-            data_id, x, axis_inputs, data["min"], data["max"], z=z, agg=agg
+            data_id, x, axis_inputs, data["min"], data["max"], z=z, agg=agg, scale=scale
         )
         if chart_type in ["scatter", "3d_scatter"]:
             kwargs = dict(agg=agg)

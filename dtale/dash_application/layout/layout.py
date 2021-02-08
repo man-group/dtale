@@ -781,6 +781,13 @@ def get_yaxis_type_tabs(y):
     return tabs + [build_tab("Multi", "multi", {"padding": "2px", "minWidth": "4em"})]
 
 
+def get_yaxis_scale_tabs():
+    return [
+        build_tab("Linear", "linear", {"padding": "2px", "minWidth": "4em"}),
+        build_tab("Log", "log", {"padding": "2px", "minWidth": "4em"}),
+    ]
+
+
 def build_group_val_options(df, group_cols):
     group_vals = find_group_vals(df, group_cols)
     return [
@@ -1763,11 +1770,19 @@ def charts_layout(df, settings, data_id, **inputs):
                                 className="input-group-addon",
                             ),
                             html.Div(
-                                dcc.Tabs(
-                                    id="yaxis-type",
-                                    value=yaxis_type,
-                                    children=get_yaxis_type_tabs(y),
-                                ),
+                                [
+                                    dcc.Tabs(
+                                        id="yaxis-scale",
+                                        value=inputs.get("scale") or "linear",
+                                        children=get_yaxis_scale_tabs(),
+                                        className="pr-5",
+                                    ),
+                                    dcc.Tabs(
+                                        id="yaxis-type",
+                                        value=yaxis_type,
+                                        children=get_yaxis_type_tabs(y),
+                                    ),
+                                ],
                                 id="yaxis-type-div",
                                 className="form-control col-auto pt-3",
                                 style=yaxis_type_style,
