@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
 import actions from "./actions/dtale";
+import mergeActions from "./actions/merge";
 import "./adapter-for-react-16";
 import { DataViewer } from "./dtale/DataViewer";
 import { CodeExport } from "./popups/CodeExport";
@@ -15,12 +16,14 @@ import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn"
 import { Describe } from "./popups/describe/Describe";
 import { ReactDuplicates as Duplicates } from "./popups/duplicates/Duplicates";
 import Instances from "./popups/instances/Instances";
+import MergeDatasets from "./popups/merge/MergeDatasets";
 import { PredictivePowerScore } from "./popups/pps/PredictivePowerScore";
 import { ReactCreateReplacement as CreateReplacement } from "./popups/replacement/CreateReplacement";
 import { ReactReshape as Reshape } from "./popups/reshape/Reshape";
 import { ReactUpload as Upload } from "./popups/upload/Upload";
 import { Variance } from "./popups/variance/Variance";
 import app from "./reducers/dtale";
+import mergeApp from "./reducers/merge";
 import { createStore } from "./reducers/store";
 
 require("./publicPath");
@@ -38,13 +41,19 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
   const pathSegs = _.split(pathname, "/");
   const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];
-
+  let store = createStore(app.store);
+  let appActions = actions;
   switch (popupType) {
     case "filter":
       rootNode = <Filter {...{ dataId, chartData }} />;
       break;
     case "correlations":
       rootNode = <Correlations {...{ dataId, chartData }} />;
+      break;
+    case "merge":
+      store = createStore(mergeApp);
+      appActions = mergeActions;
+      rootNode = <MergeDatasets />;
       break;
     case "pps":
       rootNode = <PredictivePowerScore {...{ dataId, chartData }} />;
@@ -98,8 +107,7 @@ if (_.startsWith(pathname, "/dtale/popup")) {
       rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
-  const store = createStore(app.store);
-  store.dispatch(actions.init());
+  store.dispatch(appActions.init());
   ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById("popup-content"));
 } else if (_.startsWith(pathname, "/dtale/code-popup")) {
   require("./dtale/DataViewer.css");

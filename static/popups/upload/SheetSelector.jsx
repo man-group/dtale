@@ -42,7 +42,7 @@ export default class SheetSelector extends React.Component {
     const sheetsToDelete = _.join(_.map(_.reject(this.state.sheets, "selected"), "dataId"), ",");
     const dataId = _.find(this.state.sheets, "selected").dataId;
     if (!sheetsToDelete.length) {
-      jumpToDataset(dataId);
+      jumpToDataset(dataId, this.props.mergeRefresher);
       return;
     }
     fetchJson(buildURLString("/dtale/cleanup-datasets", { dataIds: sheetsToDelete }), data => {
@@ -50,7 +50,7 @@ export default class SheetSelector extends React.Component {
         this.setState({ error: <RemovableError {...data} /> });
         return;
       }
-      jumpToDataset(dataId);
+      jumpToDataset(dataId, this.props.mergeRefresher);
     });
   }
 
@@ -110,4 +110,5 @@ SheetSelector.displayName = "SheetSelector";
 SheetSelector.propTypes = {
   sheets: PropTypes.arrayOf(PropTypes.object),
   propagateState: PropTypes.func,
+  mergeRefresher: PropTypes.func,
 };

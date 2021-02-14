@@ -38,9 +38,9 @@ function buildCaretClass(caretPct = 90) {
   $("head").append(caretStyle);
 }
 
-function positionMenu(selectedToggle, menuDiv) {
+function positionMenu(selectedToggle, menuDiv, isPreview) {
   const currLeft = _.get(selectedToggle.offset(), "left", 0);
-  const currTop = _.get(selectedToggle.offset(), "top", 0);
+  const currTop = isPreview ? 0 : _.get(selectedToggle.offset(), "top", 0);
   const divWidth = menuDiv.width();
   const css = {};
   if (currLeft + divWidth > window.innerWidth) {
@@ -54,6 +54,9 @@ function positionMenu(selectedToggle, menuDiv) {
     buildCaretClass();
   }
   css.top = currTop + ROW_HEIGHT - 6;
+  if (isPreview) {
+    css.left -= 40;
+  }
   menuDiv.css(css);
 }
 
@@ -82,7 +85,7 @@ class ReactColumnMenu extends React.Component {
 
   updatePosition() {
     if (!_.isNull(this.props.selectedCol)) {
-      positionMenu($(`div.${this.props.selectedToggle}`), $(this._div));
+      positionMenu($(`div.${this.props.selectedToggle}`), $(this._div), this.props.isPreview);
     }
   }
 
@@ -267,10 +270,11 @@ ReactColumnMenu.propTypes = {
   hideColumnMenu: PropTypes.func,
   outlierFilters: PropTypes.object,
   backgroundMode: PropTypes.string,
+  isPreview: PropTypes.bool,
 };
 
 const ReduxColumnMenu = connect(
-  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle"]),
+  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle", "isPreview"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
