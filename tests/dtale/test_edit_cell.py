@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tests import ExitStack
+from tests import *
 from tests.dtale.test_views import app
 
 
@@ -36,11 +36,11 @@ def test_edit_int():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/a".format(c.port),
                 query_string=dict(rowIndex=0, updated=2),
@@ -58,11 +58,11 @@ def test_edit_float():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/b".format(c.port),
                 query_string=dict(rowIndex=0, updated=2.5),
@@ -80,11 +80,11 @@ def test_edit_date():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/d".format(c.port),
                 query_string=dict(rowIndex=0, updated="20000102"),
@@ -104,11 +104,11 @@ def test_edit_timestamp():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/e".format(c.port),
                 query_string=dict(rowIndex=0, updated="20000101 11:58:59.999999999"),
@@ -128,11 +128,11 @@ def test_edit_bool():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/f".format(c.port),
                 query_string=dict(rowIndex=0, updated="False"),
@@ -150,11 +150,11 @@ def test_edit_timedelta():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/g".format(c.port),
                 query_string=dict(rowIndex=0, updated="0 days 00:09:20"),
@@ -174,11 +174,11 @@ def test_edit_string():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             resp = c.get(
                 "/dtale/edit-cell/{}/h".format(c.port),
                 query_string=dict(rowIndex=0, updated="cbd"),
@@ -196,11 +196,11 @@ def test_edit_to_nan():
     with app.test_client() as c:
         with ExitStack() as stack:
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+            build_data_inst(data)
             settings = {c.port: {"locked": ["a"]}}
-            stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
+            build_settings(settings)
             dtypes = {c.port: build_dtypes_state(df)}
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_dtypes(dtypes)
             c.get(
                 "/dtale/edit-cell/{}/a".format(c.port),
                 query_string=dict(rowIndex=0, updated="nan"),

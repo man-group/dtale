@@ -24,7 +24,7 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     if startup_code and not startup_code.endswith("\n"):
         startup_code += "\n"
     xarray_setup = ""
-    if data_id in global_state.DATASETS:
+    if global_state.get_dataset(data_id) is not None:
         xarray_dims = global_state.get_dataset_dim(data_id)
         if len(xarray_dims):
             xarray_setup = (

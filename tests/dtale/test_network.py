@@ -2,7 +2,7 @@ import mock
 import pytest
 
 from dtale.app import build_app
-from tests import ExitStack
+from tests import *
 from tests.dtale.test_views import URL
 
 
@@ -13,8 +13,7 @@ def test_network_data(network_data):
     df, _ = views.format_data(network_data)
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
-
+            build_data_inst({c.port: df})
             resp = c.get(
                 "/dtale/network-data/{}".format(c.port),
                 query_string={
@@ -36,7 +35,7 @@ def test_shortest_path(network_data, unittest):
     df, _ = views.format_data(network_data)
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port: df})
 
             resp = c.get(
                 "/dtale/shortest-path/{}".format(c.port),
@@ -58,7 +57,7 @@ def test_network_analysis(network_data, unittest):
     df, _ = views.format_data(network_data)
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port: df})
 
             resp = c.get(
                 "/dtale/network-analysis/{}".format(c.port),

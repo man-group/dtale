@@ -1,4 +1,6 @@
 import string
+import inspect
+
 
 from six import PY3
 
@@ -7,19 +9,257 @@ try:
 except ImportError:
     from collections import MutableMapping
 
-DATA = {}
-DATASETS = {}
-DATASET_DIM = {}
-DTYPES = {}
-SETTINGS = {}
-METADATA = {}
-CONTEXT_VARIABLES = {}
-HISTORY = {}
+
 APP_SETTINGS = {
     "theme": "light",
     "github_fork": False,
     "hide_shutdown": False,
 }
+
+
+class DtaleInstance:
+
+    _dataset = None
+    _dataset_dim = None
+    _dtypes = None
+    _metadata = None
+    _context_variables = None
+    _history = None
+    _settings = None
+    _name = ""
+
+    def __init__(self, data):
+        self._data = data
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def dataset_dim(self):
+        return self._dataset_dim
+
+    @property
+    def dtypes(self):
+        return self._dtypes
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    @property
+    def context_variables(self):
+        return self._context_variables
+
+    @property
+    def history(self):
+        return self._history
+
+    @property
+    def settings(self):
+        return self._settings
+
+    @property
+    def is_xarray_dataset(self):
+        if self._dataset != None:
+            return True
+        return False
+
+    @data.setter
+    def data(self, data):
+        self._data = data
+
+    @name.setter
+    def name(self, name):
+        self._name = name
+
+    @dataset.setter
+    def dataset(self, dataset):
+        self._dataset = dataset
+
+    @dataset_dim.setter
+    def dataset_dim(self, dataset_dim):
+        self._dataset_dim = dataset_dim
+
+    @dtypes.setter
+    def dtypes(self, dtypes):
+        self._dtypes = dtypes
+
+    @context_variables.setter
+    def context_variables(self, context_variables):
+        self._context_variables = context_variables
+
+    @metadata.setter
+    def metadata(self, metadata):
+        self._metadata = metadata
+
+    @history.setter
+    def history(self, history):
+        self._history = history
+
+    @settings.setter
+    def settings(self, settings):
+        self._settings = settings
+
+
+class DefaultStore:
+
+    def __init__(self):
+        self._data_store = dict()
+        self._data_names = dict()
+
+    # Use int for data_id for easier sorting
+    def build_data_id(self):
+        if len(self._data_store) == 0:
+            return 1
+        return max(list(map(lambda x: int(x), self._data_store.keys()))) + 1
+
+    # exposing  _data_store for custom data store plugins.
+    @property
+    def store(self):
+        return self._data_store
+
+    @store.setter
+    def store(self, new_store):
+        self._data_store = new_store
+
+    def keys(self):
+        return list(self._data_store.keys())
+
+    def items(self):
+        return self._data_store.items()
+
+    #this should be a property but somehow it stays 0 no matter what.
+    def size(self):
+        return len(self._data_store)
+
+    def __len__(self):
+        return len(self._data_store)
+
+    def get_data_inst(self, data_id):
+        # handle non-exist data_id
+        if data_id is None or int(data_id) not in self._data_store:
+            return DtaleInstance(None)
+
+        # force convert data_id to int
+        data_id = int(data_id)
+        return self._data_store.get(data_id)
+
+    def new_data_inst(self, data_id=None):
+        if data_id is None:
+            data_id = self.build_data_id()
+        new_data = DtaleInstance(None)
+        data_id = int(data_id)
+        self._data_store[data_id] = new_data
+        return data_id
+
+    def get_data(self, data_id):
+        return self.get_data_inst(data_id).data
+
+    def get_data_inst_by_name(self, data_name):
+        return self._data_names[data_name]
+
+    def get_dataset(self, data_id):
+        return self.get_data_inst(data_id).dataset
+
+    def get_dataset_dim(self, data_id):
+        return self.get_data_inst(data_id).dataset_dim
+
+    def get_dtypes(self, data_id):
+        return self.get_data_inst(data_id).dtypes
+
+    def get_context_variables(self, data_id):
+        return self.get_data_inst(data_id).context_variables
+
+    def get_history(self, data_id):
+        return self.get_data_inst(data_id).history
+
+    def get_name(self, data_id):
+        return self.get_data_inst(data_id).name
+
+    def get_settings(self, data_id):
+        return self.get_data_inst(data_id).settings
+
+    def get_metadata(self, data_id):
+        return self.get_data_inst(data_id).metadata
+
+    def set_data(self, data_id=None, val=None):
+        if data_id is None:
+            data_id = self.new_data_inst()
+        if int(data_id) not in self._data_store.keys():
+            data_id = self.new_data_inst(int(data_id))
+        data_inst = self.get_data_inst(data_id)
+        data_inst.data = val
+
+    def set_dataset(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.dataset = val
+
+    def set_dataset_dim(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.dataset_dim = val
+
+    def set_dtypes(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.dtypes = val
+
+    def set_name(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        self._data_names[val] = data_inst
+        data_inst.name = val
+
+    def set_context_variables(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.context_variables = val
+
+    def set_settings(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.settings = val
+
+    def set_metadata(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.metadata = val
+
+    def set_history(self, data_id, val):
+        data_inst = self.get_data_inst(data_id)
+        data_inst.history = val
+
+    def delete_instance(self, data_id):
+        data_id = int(data_id)
+        try:
+            del self._data_store[data_id]
+        except:
+            pass
+
+    def clear_store(self):
+        self._data_store.clear()
+        self._data_names.clear()
+
+
+"""
+This block dynamically exports functions from DefaultStore class.
+It's here for backward compatiability reasons.
+It may trigger linter errors in other py files because functions are not statically exported.
+"""
+_default_store = DefaultStore()
+fn_list = list(filter(
+    lambda x: not x.startswith("_"),
+    [x[0] for x in inspect.getmembers(DefaultStore)]))
+for fn_name in fn_list:
+    globals()[fn_name] = getattr(_default_store, fn_name)
+
+
+# for tests. default_store is always initialized.
+def use_default_store():
+    pass
 
 
 def drop_punctuation(val):
@@ -36,145 +276,14 @@ def convert_name_to_url_path(name):
     return "_".join(url_name.split(" "))
 
 
-def find_data_id(data_id_or_name):
-    if data_id_or_name in get_data():
-        return data_id_or_name
-    for data_id, metadata in get_metadata().items():
-        url_name = convert_name_to_url_path(metadata.get("name"))
-        if data_id_or_name == url_name:
-            return data_id
-    return None
-
-
-def get_data(data_id=None):
-    global DATA
-
-    if data_id is None:
-        return _as_dict(DATA)
-    return DATA.get(data_id)
-
-
-def build_data_id():
-    if not len(get_data()):
-        return "1"
-    current_ids = [int(data_id) for data_id in get_data().keys()]
-    new_id = max(current_ids) + 1
-    return str(new_id)
-
-
-def get_dataset(data_id=None):
-    global DATASETS
-
-    if data_id is None:
-        return _as_dict(DATASETS)
-    return DATASETS.get(data_id)
-
-
-def get_dataset_dim(data_id=None):
-    global DATASET_DIM
-
-    if data_id is None:
-        return _as_dict(DATASET_DIM)
-    return DATASET_DIM.get(data_id)
-
-
-def get_dtypes(data_id=None):
-    global DTYPES
-
-    if data_id is None:
-        return _as_dict(DTYPES)
-    return DTYPES.get(data_id)
-
-
 def get_dtype_info(data_id, col):
     dtypes = get_dtypes(data_id)
     return next((c for c in dtypes or [] if c["name"] == col), None)
 
 
-def get_settings(data_id=None):
-    global SETTINGS
-
-    if data_id is None:
-        return _as_dict(SETTINGS)
-    return SETTINGS.get(data_id)
-
-
-def get_metadata(data_id=None):
-    global METADATA
-
-    if data_id is None:
-        return _as_dict(METADATA)
-    return METADATA.get(data_id)
-
-
-def get_context_variables(data_id=None):
-    global CONTEXT_VARIABLES
-
-    if data_id is None:
-        return _as_dict(CONTEXT_VARIABLES)
-    return CONTEXT_VARIABLES.get(data_id)
-
-
-def get_history(data_id=None):
-    global HISTORY
-
-    if data_id is None:
-        return _as_dict(HISTORY)
-    return HISTORY.get(data_id)
-
-
 def get_app_settings():
     global APP_SETTINGS
-
     return APP_SETTINGS
-
-
-def set_data(data_id, val):
-    global DATA
-
-    DATA[data_id] = val
-
-
-def set_dataset(data_id, val):
-    global DATASETS
-
-    DATASETS[data_id] = val
-
-
-def set_dataset_dim(data_id, val):
-    global DATASET_DIM
-
-    DATASET_DIM[data_id] = val
-
-
-def set_dtypes(data_id, val):
-    global DTYPES
-
-    DTYPES[data_id] = val
-
-
-def set_settings(data_id, val):
-    global SETTINGS
-
-    SETTINGS[data_id] = val
-
-
-def set_metadata(data_id, val):
-    global METADATA
-
-    METADATA[data_id] = val
-
-
-def set_context_variables(data_id, val):
-    global CONTEXT_VARIABLES
-
-    CONTEXT_VARIABLES[data_id] = val
-
-
-def set_history(data_id, val):
-    global HISTORY
-
-    HISTORY[data_id] = val
 
 
 def set_app_settings(settings):
@@ -185,36 +294,10 @@ def set_app_settings(settings):
 
 
 def cleanup(data_id=None):
-    """
-    Helper function for cleanup up state related to a D-Tale process with a specific port
-
-    :param port: integer string for a D-Tale process's port
-    :type port: str
-    """
-    global DATA, DATASETS, DATASET_DIM, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY
-
     if data_id is None:
-        DATA.clear()
-        DATASETS.clear()
-        DATASET_DIM.clear()
-        SETTINGS.clear()
-        DTYPES.clear()
-        METADATA.clear()
-        CONTEXT_VARIABLES.clear()
-        HISTORY.clear()
+        _default_store.clear_store()
     else:
-        for store in [
-            DATA,
-            DATASETS,
-            DATASET_DIM,
-            DTYPES,
-            SETTINGS,
-            METADATA,
-            CONTEXT_VARIABLES,
-            HISTORY,
-        ]:
-            if data_id in store:
-                del store[data_id]
+        _default_store.delete_instance(data_id)
 
 
 def load_flag(data_id, flag_name, default):
@@ -245,13 +328,12 @@ def use_store(store_class, create_store):
     Ex: a web server with multiple workers (processes) for processing requests.
 
     :param store_class: Class providing an interface to the data store. To be valid, it must:
-                        1. Implement get, clear, __setitem__, __delitem__, __iter__, __len__, __contains__.
+                        1. Implement get, keys, items clear, __setitem__, __delitem__, __iter__, __len__, __contains__.
                         2. Either be a subclass of MutableMapping or implement the 'to_dict' method.
     :param create_store: Factory function for producing instances of <store_class>.
                          Must take 'name' as the only parameter.
     :return: None
     """
-    import inspect
 
     assert inspect.isclass(store_class), "Must be a class"
     assert all(
@@ -259,6 +341,8 @@ def use_store(store_class, create_store):
         for a in (
             "get",
             "clear",
+            "keys",
+            "items",
             "__setitem__",
             "__delitem__",
             "__len__",
@@ -281,7 +365,6 @@ def use_store(store_class, create_store):
 
     def convert(old_store, name):
         """Convert a data store to the new type
-
         :param old_store: old data store
         :param name: name associated with this data store
         :return: new data store
@@ -294,24 +377,7 @@ def use_store(store_class, create_store):
         old_store.clear()
         return new_store
 
-    global DATA, DTYPES, SETTINGS, METADATA, CONTEXT_VARIABLES, HISTORY, APP_SETTINGS
-
-    DATA = convert(DATA, "DATA")
-    DTYPES = convert(DTYPES, "DTYPES")
-    SETTINGS = convert(SETTINGS, "SETTINGS")
-    METADATA = convert(METADATA, "METADATA")
-    CONTEXT_VARIABLES = convert(CONTEXT_VARIABLES, "CONTEXT_VARIABLES")
-    HISTORY = convert(HISTORY, "HISTORY")
-    APP_SETTINGS = convert(APP_SETTINGS, "APP_SETTINGS")
-
-
-def use_default_store():
-    """Use the default global data store, which is dictionaries in memory."""
-
-    def create_dict(name):
-        return dict()
-
-    use_store(dict, create_dict)
+    _default_store.store = convert(_default_store.store, "default_store")
 
 
 def use_shelve_store(directory):
@@ -323,69 +389,61 @@ def use_shelve_store(directory):
     :return: None
     """
     import shelve
+    import time
     from os.path import join
     from functools import wraps
-
-    def with_db_access(flag):
-        """
-        Factory for creating decorators that will handle opening the database file
-        with the given access and then close it after executing the method.
-        """
-
-        def decorator(func):
-            @wraps(func)
-            def wrapper(self, *args, **kwargs):
-                self.db = shelve.open(self.filename, flag=flag)
-                result = func(self, *args, **kwargs)
-                self.db.close()
-                return result
-
-            return wrapper
-
-        return decorator
-
-    read = with_db_access("r")
-    write = with_db_access("w")
+    from threading import Thread
 
     class DtaleShelf:
         """Interface allowing dtale to use 'shelf' databases for global data storage."""
 
         def __init__(self, filename):
             self.filename = filename
-            self.db = shelve.open(self.filename, flag="n")
-            self.db.close()
+            self.db = shelve.open(self.filename, flag="c", writeback=True)
+            # super hacky autosave
+            t = Thread(target=self.save_db)
+            t.daemon = True
+            t.start()
 
-        @read
         def get(self, key):
+            # using str here because shelve doesn't support int keys
+            key = str(key)
             return self.db.get(key)
 
-        @write
         def __setitem__(self, key, value):
+            key = str(key)
             self.db[key] = value
+            self.db.sync()
 
-        @write
         def __delitem__(self, key):
+            key = str(key)
             del self.db[key]
+            self.db.sync()
 
-        @read
         def __contains__(self, key):
+            key = str(key)
             return key in self.db
 
-        @write
         def clear(self):
             self.db.clear()
+            self.db.sync()
 
-        @read
         def to_dict(self):
             return dict(self.db)
 
-        @read
         def items(self):
             return self.to_dict().items()
 
-        @read
+        def keys(self):
+            return self.to_dict().keys()
+
         def __len__(self):
             return len(self.db)
+
+        def save_db(self):
+            while True:
+                self.db.sync()
+                time.sleep(5)
 
     def create_shelf(name):
         file_path = join(directory, name)
@@ -431,6 +489,9 @@ def use_redis_store(directory, *args, **kwargs):
 
         def items(self):
             return self.to_dict().items()
+
+        def keys(self):
+            return self.to_dict().keys()
 
         def __len__(self):
             return len(self.keys())

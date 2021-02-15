@@ -5,7 +5,7 @@ import pytest
 
 from dtale.column_builders import ColumnBuilder
 from tests.dtale.column_builders.test_column_builders import verify_builder
-from tests import ExitStack
+from tests import *
 
 
 def conversion_data():
@@ -41,7 +41,7 @@ def test_from_string():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "str_num", "to": "int", "from": "str"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -67,7 +67,7 @@ def test_from_string():
         )
     )
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "a", "to": "float", "from": "mixed-integer"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -92,7 +92,7 @@ def test_from_object():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "str_date", "to": "date", "from": "object", "fmt": "%Y%m%d"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -119,7 +119,7 @@ def test_from_int():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "int", "to": "float", "from": "int"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -166,7 +166,7 @@ def test_from_float():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "float", "to": "int", "from": "float"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -187,7 +187,7 @@ def test_from_date():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "date", "to": "str", "from": "datetime64", "fmt": "%m/%d/%Y"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -199,6 +199,7 @@ def test_from_date():
 
         cfg = {"col": "date", "to": "int", "from": "datetime64", "unit": "ms"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+        # this fails due to local machine timezone. The time here is "Jan 01 2020 05:00:00 GMT+0000"
         verify_builder(builder, lambda col: col.values[0] == 1577854800)
 
 
@@ -208,7 +209,7 @@ def test_from_bool():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "bool", "to": "int", "from": "bool"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -225,7 +226,7 @@ def test_from_category():
     data_id, column_type = "1", "type_conversion"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "cat_int", "to": "int", "from": "category"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)

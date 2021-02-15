@@ -25,7 +25,7 @@ def initialize_store(test_data):
         global_state.set_data(data_id, test_data)
         global_state.set_dtypes(data_id, build_dtypes_state(test_data))
         global_state.set_settings(data_id, dict(locked=[]))
-        global_state.set_metadata(data_id, dict(name="test_name"))
+        global_state.set_name(data_id,"test_name")
         global_state.set_context_variables(
             data_id, dict(favorite_words=["foo", "bar", "baz"])
         )
@@ -46,20 +46,15 @@ def get_store_contents():
         global_state.get_history("1"),
     ]
     _get_all = [
-        {k: serialized_dataframe(v) for k, v in global_state.get_data().items()},
-        global_state.get_dtypes(),
-        global_state.get_settings(),
-        global_state.get_metadata(),
-        global_state.get_context_variables(),
-        global_state.get_history(),
+        {k: serialized_dataframe(v.data) for k, v in global_state.items()},
+        {k: v.dtypes for k, v in global_state.items()},
+        {k: v.settings for k, v in global_state.items()},
+        {k: v.metadata for k, v in global_state.items()},
+        {k: v.context_variables for k, v in global_state.items()},
+        {k: v.history for k, v in global_state.items()},
     ]
     _lengths = [
-        len(global_state.DATA),
-        len(global_state.DTYPES),
-        len(global_state.SETTINGS),
-        len(global_state.METADATA),
-        len(global_state.CONTEXT_VARIABLES),
-        len(global_state.HISTORY),
+        global_state.size(),
     ]
     return (_get_one, _get_all, _lengths)
 
@@ -71,7 +66,7 @@ def serialized_dataframe(df):
 
 def get_store_type():
     """Helper function to return the class being used for data storage"""
-    return type(global_state.DATA)
+    return type(global_state._default_store._data_store)
 
 
 @pytest.mark.unit
@@ -96,23 +91,13 @@ def test_cleanup(unittest, test_data):
 
 
 @pytest.mark.unit
-def test_load_flag():
-    with ExitStack() as stack:
-        stack.enter_context(
-            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=True)})
-        )
-        assert global_state.load_flag("1", "hide_shutdown", False)
-    with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.HIDE_SHUTDOWN", True))
-        stack.enter_context(
-            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=False)})
-        )
-        assert global_state.load_flag("1", "hide_shutdown", False)
-    with ExitStack() as stack:
-        stack.enter_context(
-            mock.patch("dtale.global_state.SETTINGS", {"1": dict(hide_shutdown=False)})
-        )
-        assert not global_state.load_flag("1", "hide_shutdown", False)
+def test_load_flag(unittest,test_data):
+    initialize_store(test_data)
+    global_state.set_settings("1",dict(hide_shutdown=True))
+    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown",False), True)
+    global_state.set_settings("1",dict(hide_shutdown=False))
+    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown",True), False)
+
 
 
 @pytest.mark.unit
@@ -145,13 +130,19 @@ def test_use_store(unittest, test_data):
     class store_class:
         def __init__(self):
             self.data = dict()
+        
+        def keys(self):
+            return self.data.keys()
+        
+        def items(self):
+            return self.data.items()
 
     # First argument be a class
     with pytest.raises(BaseException) as error:
         global_state.use_store(None, None)
     assert "Must be a class" in str(error.value)
 
-    # Store class must have the get, clear, __setitem__, __delitem__, __contains__, __len__ attributes
+    # Store class must have the get, keys, items, clear, __setitem__, __delitem__, __contains__, __len__ attributes
     with pytest.raises(BaseException) as error:
         global_state.use_store(store_class, None)
     assert "Missing required methods" in str(error.value)
@@ -182,7 +173,7 @@ def test_use_store(unittest, test_data):
     # Verify that it converts from the default to this store correctly
     initialize_store(test_data)
     contents_before, type_before = get_store_contents(), get_store_type()
-    # type_before = get_store_type()
+
 
     global_state.use_store(store_class, lambda name: store_class())
     contents_after = get_store_contents()
@@ -194,6 +185,7 @@ def test_use_store(unittest, test_data):
 
 @pytest.mark.unit
 def test_use_default_store(unittest, tmpdir, test_data):
+    global_state.clear_store()
     """Make sure flipping back and forth multiple times doesn't corrupt the data"""
     initialize_store(test_data)
     contents_before = get_store_contents()
@@ -206,7 +198,7 @@ def test_use_default_store(unittest, tmpdir, test_data):
     contents_after = get_store_contents()
     type_after = get_store_type()
 
-    unittest.assertEqual(contents_before, contents_after)
+    unittest.assertEqual(contents_before[1], contents_after[1])
     unittest.assertEqual(type_before, type_after)
 
 
@@ -267,14 +259,11 @@ def test_use_redis_store(unittest, tmpdir, test_data):
 @pytest.mark.unit
 def test_build_data_id():
     import dtale.global_state as global_state
-
-    with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {}))
-
-        assert global_state.build_data_id() == "1"
+    global_state.cleanup()
+    assert global_state.build_data_id() == 1
 
     df = pd.DataFrame([1, 2, 3, 4, 5])
     data = {str(idx + 1): df for idx in range(10)}
-    with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-        assert global_state.build_data_id() == "11"
+    for k,v in data.items():
+        global_state.set_data(k,v)
+    assert global_state.build_data_id() == 11

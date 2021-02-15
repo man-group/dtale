@@ -4,8 +4,14 @@ import pandas as pd
 import pytest
 
 from dtale.column_builders import ColumnBuilder
+import dtale.global_state as global_state
 from tests import ExitStack
 from tests.dtale.column_builders.test_column_builders import verify_builder
+
+
+def build_data_inst(input_dict):
+    for data_id, data in input_dict.items():
+        global_state.set_data(data_id, data)
 
 
 @pytest.mark.unit
@@ -14,8 +20,7 @@ def test_drop_multispace():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_multispace"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "a b")
@@ -27,8 +32,7 @@ def test_drop_punctuation():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_punctuation"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "ab")
@@ -40,8 +44,7 @@ def test_drop_stopwords():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["stopwords"], "stopwords": ["bar"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "foo biz")
@@ -50,13 +53,11 @@ def test_drop_stopwords():
 @pytest.mark.unit
 def test_nltk_stopwords():
     pytest.importorskip("nltk")
-
     df = pd.DataFrame(dict(foo=["foo do biz"]))
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["nltk_stopwords"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "foo biz")
@@ -68,8 +69,7 @@ def test_drop_numbers():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_numbers"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "ab")
@@ -81,8 +81,7 @@ def test_keep_alpha(unittest):
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["keep_alpha"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "ab")
@@ -94,15 +93,13 @@ def test_normalize_accents(unittest):
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["normalize_accents"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
 
         def test(col):
             unittest.assertEqual(col.values[0], "naive cafe")
             return True
-
         verify_builder(builder, test)
 
 
@@ -112,8 +109,7 @@ def test_drop_all_space():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_all_space"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "ab")
@@ -125,8 +121,7 @@ def test_drop_repeated_words(unittest):
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_repeated_words"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "foo bar")
@@ -138,8 +133,7 @@ def test_add_word_number_space():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["add_word_number_space"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "a 999 b")
@@ -151,8 +145,7 @@ def test_drop_repeated_chars():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
-
+        build_data_inst({data_id: df})
         cfg = {"col": "foo", "cleaners": ["drop_repeated_chars"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
         verify_builder(builder, lambda col: col.values[0] == "ab")
@@ -164,7 +157,7 @@ def test_update_case(unittest):
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "foo", "cleaners": ["update_case"], "caseType": "upper"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -177,7 +170,7 @@ def test_space_vals_to_empty():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "foo", "cleaners": ["space_vals_to_empty"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -190,7 +183,7 @@ def test_hidden_chars():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "foo", "cleaners": ["hidden_chars"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -203,7 +196,7 @@ def test_replace_hyphens_w_space():
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "foo", "cleaners": ["replace_hyphen_w_space"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -216,7 +209,7 @@ def test_multiple_cleaners(unittest):
     data_id, column_type = "1", "cleaning"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "foo", "cleaners": ["drop_numbers", "space_vals_to_empty"]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)

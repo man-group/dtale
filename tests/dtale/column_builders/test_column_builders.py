@@ -6,7 +6,7 @@ from numpy.random import randn
 from six import PY3
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
-from tests import ExitStack
+from tests import *
 
 
 def verify_builder(builder, checker):
@@ -27,7 +27,7 @@ def test_random():
     data_id, column_type = "1", "random"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "i", "type": "float", "low": 0, "high": 5}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -62,7 +62,7 @@ def test_transform():
     data_id, column_type = "1", "transform"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "i", "group": ["a"], "agg": "mean"}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -89,7 +89,7 @@ def test_winsorize():
     data_id, column_type = "1", "winsorize"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "i", "inclusive": [True, False], "limits": [0.1, 0.1]}
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
@@ -115,7 +115,7 @@ def test_zscore_normalize():
     data_id, column_type = "1", "zscore_normalize"
     i = 0
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
         verify_builder(builder, lambda col: col.sum() == 4.440892098500626e-16)
@@ -133,7 +133,7 @@ def test_string():
     df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
     data_id, column_type = "1", "string"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"cols": list(df.columns), "joinChar": "-"}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
@@ -145,7 +145,7 @@ def test_similarity():
     df = pd.DataFrame(dict(a=["a", "b", "c"], b=["d", "d", "d"]))
     data_id, column_type = "1", "similarity"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": False}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
@@ -204,7 +204,7 @@ def test_standardize():
     df = pd.DataFrame(dict(a=randn(1000)))
     data_id, column_type = "1", "standardize"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "a", "algo": "power"}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
@@ -228,7 +228,7 @@ def test_encoder():
     )
     data_id, column_type = "1", "encoder"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "car", "algo": "one_hot"}
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
@@ -257,7 +257,7 @@ def test_diff():
     df = pd.DataFrame({"A": [9, 4, 2, 1]})
     data_id, column_type = "1", "diff"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "A", "periods": "1"}
         builder = ColumnBuilder(data_id, column_type, "dA", cfg)
@@ -272,7 +272,7 @@ def test_data_slope():
     df = pd.DataFrame({"entity": [5, 7, 5, 5, 5, 6, 3, 2, 0, 5]})
     data_id, column_type = "1", "data_slope"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "entity"}
         builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
@@ -289,7 +289,7 @@ def test_rolling(rolling_data):
     df, _ = views.format_data(rolling_data)
     data_id, column_type = "1", "rolling"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
         builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
@@ -320,7 +320,7 @@ def test_exponential_smoothing(rolling_data):
     df, _ = views.format_data(rolling_data)
     data_id, column_type = "1", "exponential_smoothing"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"col": "0", "alpha": 0.3}
         builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)

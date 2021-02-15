@@ -95,7 +95,7 @@ class NoDataLoadedException(Exception):
 
 
 def head_endpoint(popup_type=None):
-    data_keys = global_state.get_data().keys()
+    data_keys = global_state.keys()
     if not len(data_keys):
         return "popup/upload"
     head_id = sorted(data_keys)[0]
@@ -171,19 +171,16 @@ class DtaleData(object):
     """
 
     def __init__(self, data_id, url):
+        if data_id!=None:
+            data_id=int(data_id)
         self._data_id = data_id
         self._url = url
-        self._name_or_data_id = global_state.convert_name_to_url_path(
-            (global_state.get_metadata(self._data_id) or {}).get("name")
-        )
-        if self._name_or_data_id is None:
-            self._name_or_data_id = self._data_id
         self._main_url = self.build_main_url()
         self._notebook_handle = None
         self.started_with_open_browser = False
 
     def build_main_url(self, data_id=None):
-        return "{}/dtale/main/{}".format(self._url, data_id or self._name_or_data_id)
+        return "{}/dtale/main/{}".format(self._url, self._data_id)
 
     @property
     def data(self):
@@ -705,9 +702,9 @@ def check_duplicate_data(data):
     """
     cols = [str(col) for col in data.columns]
 
-    for d_id, d_df in global_state.get_data().items():
-        d_cols = [str(col) for col in d_df.columns]
-        if d_df.shape == data.shape and cols == d_cols:
+    for d_id, datainst in global_state.items():
+        d_cols = [str(col) for col in datainst.data.columns]
+        if datainst.data.shape == data.shape and cols == d_cols:
             raise DuplicateDataError(d_id)
 
 
@@ -803,7 +800,7 @@ def startup(
     if (
         data_loader is None and data is None
     ):  # scenario where we'll force users to upload a CSV/TSV
-        return DtaleData("1", url)
+        return DtaleData(1, url)
 
     if data_loader is not None:
         data = data_loader()
@@ -871,9 +868,9 @@ def startup(
             )
 
         if data_id is None:
-            data_id = global_state.build_data_id()
+            data_id = global_state.new_data_inst()
 
-        if data_id in global_state.get_settings():
+        if global_state.get_settings(data_id) is not None:
             curr_settings = global_state.get_settings(data_id)
             curr_locked = curr_settings.get("locked", [])
             # filter out previous locked columns that don't exist
@@ -888,9 +885,9 @@ def startup(
             )
             curr_locked = curr_index
             global_state.set_metadata(
-                data_id, dict(start=pd.Timestamp("now"), name=name)
+                data_id, dict(start=pd.Timestamp("now"))
             )
-
+        global_state.set_name(data_id, name)
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         base_settings = dict(
             locked=curr_locked,
@@ -930,11 +927,11 @@ def base_render_template(template, data_id, **kwargs):
     return render_template(
         template,
         data_id=data_id,
-        xarray=data_id in global_state.DATASETS,
+        xarray=global_state.get_data_inst(data_id).is_xarray_dataset,
         xarray_dim=json.dumps(global_state.get_dataset_dim(data_id)),
         settings=json.dumps(curr_settings),
         version=str(version),
-        processes=len(global_state.get_data()),
+        processes=global_state.size(),
         allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
         python_version=platform.python_version(),
         **dict_merge(kwargs, curr_app_settings)
@@ -951,10 +948,10 @@ def _view_main(data_id, iframe=False):
     :type iframe: bool, optional
     :return: HTML
     """
-    curr_metadata = global_state.get_metadata(data_id) or {}
     title = "D-Tale"
-    if curr_metadata.get("name"):
-        title = "{} ({})".format(title, curr_metadata["name"])
+    name=global_state.get_name(data_id)
+    if name:
+        title = "{} ({})".format(title, name)
     return base_render_template("dtale/main.html", data_id, title=title, iframe=iframe)
 
 
@@ -968,7 +965,7 @@ def view_main(data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None or data_id not in global_state.get_data().keys():
+    if data_id is None or int(data_id) not in global_state.keys():
         return redirect("/dtale/{}".format(head_endpoint()))
     return _view_main(data_id)
 
@@ -1020,10 +1017,10 @@ def view_popup(popup_type, data_id=None):
     """
     if data_id is None and popup_type != "upload":
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
-    curr_metadata = global_state.get_metadata(data_id) or {}
     title = "D-Tale"
-    if curr_metadata.get("name"):
-        title = "{} ({})".format(title, curr_metadata["name"])
+    name=global_state.get_name(data_id)
+    if name:
+        title = "{} ({})".format(title, name)
     popup_title = POPUP_TITLES.get(popup_type) or " ".join(
         [pt.capitalize() for pt in popup_type.split("-")]
     )
@@ -1059,7 +1056,7 @@ def view_network(data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None or data_id not in global_state.get_data().keys():
+    if data_id is None or global_state.get_data_inst(data_id) is None:
         return redirect("/dtale/network/{}".format(head_endpoint()))
     return base_render_template(
         "dtale/network.html", data_id, title="Network Viewer", iframe=False
@@ -1109,11 +1106,11 @@ def get_processes():
             names=",".join([c["name"] for c in dtypes]),
             start=json_date(mdata["start"], fmt="%-I:%M:%S %p"),
             ts=json_timestamp(mdata["start"]),
-            name=mdata["name"],
+            name=global_state.get_name(data_id),
         )
 
     processes = sorted(
-        [_load_process(data_id) for data_id in global_state.get_data()],
+        [_load_process(data_id) for data_id in global_state.keys()],
         key=lambda p: p["ts"],
     )
     return jsonify(dict(data=processes, success=True))
@@ -2218,7 +2215,7 @@ def get_data(data_id):
         for sub_range in ids:
             sub_range = list(map(int, sub_range.split("-")))
             if len(sub_range) == 1:
-                sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
+                sub_df = data.iloc[sub_range[0]: sub_range[0] + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
             else:
@@ -2226,7 +2223,7 @@ def get_data(data_id):
                 sub_df = (
                     data.iloc[start:]
                     if end >= len(data) - 1
-                    else data.iloc[start : end + 1]
+                    else data.iloc[start: end + 1]
                 )
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
@@ -2888,7 +2885,7 @@ def get_scatter(data_id):
     if rolling:
         window = get_int_arg(request, "window")
         idx = min(data[data[date_col] == date].index) + 1
-        data = data.iloc[max(idx - window, 0) : idx]
+        data = data.iloc[max(idx - window, 0): idx]
         data = data[cols + [date_col]].dropna(how="any")
         y_cols.append(date_col)
         code.append(
@@ -3280,7 +3277,7 @@ def build_row_text(data_id):
     else:
         start = int(start)
         end = int(end)
-        data = data.iloc[(start - 1) : end, :]
+        data = data.iloc[(start - 1): end, :]
     return data[columns].to_csv(index=False, sep="\t", header=False)
 
 

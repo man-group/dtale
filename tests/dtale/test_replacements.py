@@ -10,7 +10,7 @@ from six import PY3
 
 from dtale.column_replacements import ColumnReplacement
 from tests.dtale.test_views import app
-from tests import ExitStack
+from tests import *
 
 
 def replacements_data():
@@ -35,7 +35,7 @@ def test_spaces(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "spaces"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         builder = ColumnReplacement(data_id, "b", replacement_type, {})
         verify_builder(
@@ -55,7 +55,7 @@ def test_string(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "strings"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"value": "unknown", "ignoreCase": True, "isChar": False}
         builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
@@ -103,7 +103,7 @@ def test_value(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "value"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"value": [dict(value="nan", type="raw", replace="for test")]}
         builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
@@ -152,7 +152,7 @@ def test_number_value(unittest):
     )
     data_id, replacement_type = "1", "value"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"value": [dict(value=0, type="raw", replace="nan")]}
         builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
@@ -170,7 +170,7 @@ def test_iterative_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"type": "iterative"}
         builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
@@ -187,7 +187,7 @@ def test_knn_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"type": "knn", "n_neighbors": 3}
         builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
@@ -204,7 +204,7 @@ def test_simple_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
     with ExitStack() as stack:
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {data_id: df}))
+        build_data_inst({data_id: df})
 
         cfg = {"type": "simple"}
         builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
@@ -221,53 +221,54 @@ def test_view(unittest):
     with app.test_client() as c:
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
-        with ExitStack() as stack:
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
-            resp = c.get(
-                "/dtale/build-replacement/{}".format(c.port),
-                query_string=dict(
-                    type="not_implemented", name="test", cfg=json.dumps({})
-                ),
-            )
-            response_data = resp.json
-            assert (
-                response_data["error"]
-                == "'not_implemented' replacement not implemented yet!"
-            )
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        resp = c.get(
+            "/dtale/build-replacement/{}".format(c.port),
+            query_string=dict(
+                type="not_implemented", name="test", cfg=json.dumps({})
+            ),
+        )
+        response_data = resp.json
+        assert (
+            response_data["error"]
+            == "'not_implemented' replacement not implemented yet!"
+        )
 
-            params = dict(
-                type="value",
-                col="e",
-                name="a",
-                cfg=json.dumps(
-                    {"value": [dict(value="nan", type="raw", replace="for test")]}
-                ),
-            )
-            resp = c.get(
-                "/dtale/build-replacement/{}".format(c.port), query_string=params
-            )
-            response_data = resp.json
-            assert response_data["error"] == "A column named 'a' already exists!"
+        params = dict(
+            type="value",
+            col="e",
+            name="a",
+            cfg=json.dumps(
+                {"value": [dict(value="nan", type="raw", replace="for test")]}
+            ),
+        )
+        resp = c.get(
+            "/dtale/build-replacement/{}".format(c.port), query_string=params
+        )
+        response_data = resp.json
+        assert response_data["error"] == "A column named 'a' already exists!"
 
-            params = dict(
-                type="value",
-                col="e",
-                name="e2",
-                cfg=json.dumps(
-                    {"value": [dict(value="nan", type="raw", replace="for test")]}
-                ),
-            )
-            c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
-            unittest.assertEqual(
-                list(data[c.port]["e2"].values), ["a", "for test", "b"]
-            )
-            assert dtypes[c.port][-1]["name"] == "e2"
-            assert dtypes[c.port][-1]["dtype"] == "string" if PY3 else "mixed"
-            assert not dtypes[c.port][-1]["hasMissing"]
+        params = dict(
+            type="value",
+            col="e",
+            name="e2",
+            cfg=json.dumps(
+                {"value": [dict(value="nan", type="raw", replace="for test")]}
+            ),
+        )
+        c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
+        unittest.assertEqual(
+            list(data[c.port]["e2"].values), ["a", "for test", "b"]
+        )
+        dtypes=global_state.get_dtypes(c.port)
+        assert dtypes[-1]["name"] == "e2"
+        assert dtypes[-1]["dtype"] == "string" if PY3 else "mixed"
+        assert not dtypes[-1]["hasMissing"]
 
-            del params["name"]
-            c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
-            unittest.assertEqual(list(data[c.port]["e"].values), ["a", "for test", "b"])
-            e_dtype = next((d for d in dtypes[c.port] if d["name"] == "e"))
-            assert not e_dtype["hasMissing"]
+        del params["name"]
+        c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
+        dtypes=global_state.get_dtypes(c.port)
+        unittest.assertEqual(list(data[c.port]["e"].values), ["a", "for test", "b"])
+        e_dtype = next((d for d in dtypes if d["name"] == "e"))
+        assert not e_dtype["hasMissing"]

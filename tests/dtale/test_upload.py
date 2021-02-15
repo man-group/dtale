@@ -6,7 +6,7 @@ import pytest
 from six import BytesIO, PY3
 
 from dtale.app import build_app
-from tests import ExitStack
+from tests import *
 
 URL = "http://localhost:40000"
 
@@ -22,64 +22,53 @@ def build_upload_data(
 @pytest.mark.unit
 def test_upload(unittest):
     import dtale.views as views
-
+    import dtale.global_state as global_state
+    global_state.clear_store()
     df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
     with build_app(url=URL).test_client() as c:
-        with ExitStack() as stack:
-            data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(
-                mock.patch(
-                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
-                )
-            )
+        data = {c.port: df}
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
 
-            resp = c.post("/dtale/upload")
-            assert not resp.get_json()["success"]
+        resp = c.post("/dtale/upload")
+        assert not resp.get_json()["success"]
 
+        c.post(
+            "/dtale/upload",
+            data={"tests_df.csv": (build_upload_data(), "test_df.csv")},
+        )
+        assert global_state.size() == 2
+        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
+
+    with build_app(url=URL).test_client() as c:
+        global_state.clear_store()
+        data = {c.port: df}
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        assert global_state.size() == 1
+        if PY3:
             c.post(
                 "/dtale/upload",
-                data={"test_df.csv": (build_upload_data(), "test_df.csv")},
+                data={
+                    "test_df.xlsx": (
+                        os.path.join(
+                            os.path.dirname(__file__), "..", "data/test_df.xlsx"
+                        ),
+                        "test_df.xlsx",
+                    )
+                },
             )
-            assert len(data) == 2
-            new_key = next((k for k in data if k != c.port), None)
-            assert list(data[new_key].columns) == ["a", "b", "c"]
+            assert global_state.size() == 2
+            new_key = next((k for k in global_state.keys() if k != c.port), None)
+            assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
+            global_state.clear_store()
             data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(
-                mock.patch(
-                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
-                )
-            )
-            assert len(data) == 1
-            if PY3:
-                c.post(
-                    "/dtale/upload",
-                    data={
-                        "test_df.xlsx": (
-                            os.path.join(
-                                os.path.dirname(__file__), "..", "data/test_df.xlsx"
-                            ),
-                            "test_df.xlsx",
-                        )
-                    },
-                )
-                assert len(data) == 2
-                new_key = next((k for k in data if k != c.port), None)
-                assert list(data[new_key].columns) == ["a", "b", "c"]
-
-    with build_app(url=URL).test_client() as c:
-        with ExitStack() as stack:
-            data = {c.port: df}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(
-                mock.patch(
-                    "dtale.global_state.DTYPES", {c.port: views.build_dtypes_state(df)}
-                )
-            )
+            build_data_inst({c.port: df})
+            global_state.set_dtypes(c.port, views.build_dtypes_state(df))
             stack.enter_context(
                 mock.patch(
                     "dtale.views.pd.read_excel",
@@ -102,7 +91,7 @@ def test_upload(unittest):
                     )
                 },
             )
-            assert len(data) == 3
+            assert global_state.size() == 3
             sheets = resp.json["sheets"]
             assert len(sheets) == 2
             unittest.assertEqual(
@@ -113,10 +102,9 @@ def test_upload(unittest):
 
 @pytest.mark.unit
 def test_web_upload(unittest):
+    global_state.clear_store()
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            data = {}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
             load_csv = stack.enter_context(
                 mock.patch(
                     "dtale.cli.loaders.csv_loader.loader_func",
@@ -144,7 +132,7 @@ def test_web_upload(unittest):
                 load_csv.call_args.kwargs,
                 {"path": "http://test.com", "proxy": None},
             )
-            assert len(data) == 1
+            assert global_state.size() == 1
             load_csv.reset_mock()
 
             params = {"type": "tsv", "url": "http://test.com"}
@@ -154,7 +142,7 @@ def test_web_upload(unittest):
                 load_csv.call_args.kwargs,
                 {"path": "http://test.com", "proxy": None, "delimiter": "\t"},
             )
-            assert len(data) == 2
+            assert global_state.size() == 2
 
             params = {
                 "type": "json",
@@ -167,7 +155,7 @@ def test_web_upload(unittest):
                 load_json.call_args.kwargs,
                 {"path": "http://test.com", "proxy": "http://testproxy.com"},
             )
-            assert len(data) == 3
+            assert global_state.size() == 3
 
             params = {"type": "excel", "url": "http://test.com"}
             c.get("/dtale/web-upload", query_string=params)
@@ -176,7 +164,7 @@ def test_web_upload(unittest):
                 load_excel.call_args.kwargs,
                 {"path": "http://test.com", "proxy": None},
             )
-            assert len(data) == 4
+            assert global_state.size() == 4
 
             load_excel.reset_mock()
             load_excel.return_value = {
@@ -194,6 +182,7 @@ def test_web_upload(unittest):
 
 @pytest.mark.unit
 def test_covid_dataset():
+    global_state.clear_store()
     def mock_load_csv(**kwargs):
         if (
             kwargs.get("path")
@@ -209,36 +198,31 @@ def test_covid_dataset():
 
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            data = {}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
             stack.enter_context(
                 mock.patch("dtale.cli.loaders.csv_loader.loader_func", mock_load_csv)
             )
             c.get("/dtale/datasets", query_string=dict(dataset="covid"))
-            assert data["1"].state_code.values[0] == "A"
+            assert global_state.get_data(1).state_code.values[0] == "A"
 
 
 @pytest.mark.unit
 def test_seinfeld_dataset():
+    global_state.clear_store()
     def mock_load_csv(**kwargs):
         return pd.DataFrame(dict(SEID=["a"]))
 
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
-            data = {}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
             stack.enter_context(
                 mock.patch("dtale.cli.loaders.csv_loader.loader_func", mock_load_csv)
             )
             c.get("/dtale/datasets", query_string=dict(dataset="seinfeld"))
-            assert data["1"].SEID.values[0] == "a"
+            assert global_state.get_data(1).SEID.values[0] == "a"
 
 
 @pytest.mark.unit
 def test_time_dataframe_dataset():
+    global_state.clear_store()
     with build_app(url=URL).test_client() as c:
-        with ExitStack() as stack:
-            data = {}
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            c.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))
-            assert data["1"]["A"].isnull().sum() == 0
+        c.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))
+        assert global_state.get_data(1)["A"].isnull().sum() == 0

@@ -290,10 +290,7 @@ def json_timestamp(x, nan_display="", **kwargs):
     """
     try:
         output = pd.Timestamp(x) if isinstance(x, np.datetime64) else x
-        output = int(
-            (time.mktime(output.timetuple()) + (old_div(output.microsecond, 1000000.0)))
-            * 1000
-        )
+        output = x.timestamp() * 1000
         return str(output) if kwargs.get("as_string", False) else output
     except BaseException:
         return nan_display

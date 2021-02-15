@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from dtale.dash_application.charts import get_url_parser
-from tests import ExitStack
+from tests import *
 
 
 @pytest.mark.unit
@@ -27,7 +27,7 @@ def test_ipython_import_error(builtin_pkg):
         stack.enter_context(
             mock.patch("dtale.views.in_ipython_frontend", return_value=False)
         )
-        stack.enter_context(mock.patch("dtale.global_state.DATA", {9999: df}))
+        build_data_inst({9999: df})
         getter = namedtuple("get", "ok")
         stack.enter_context(
             mock.patch("dtale.app.requests.get", return_value=getter(False))
@@ -55,9 +55,7 @@ def test_ipython_import_error(builtin_pkg):
         stack.enter_context(
             mock.patch("dtale.views.in_ipython_frontend", return_value=True)
         )
-        stack.enter_context(
-            mock.patch("dtale.global_state.DATA", return_value={9999: df})
-        )
+        build_data_inst({9999: df})
         instance = DtaleData(9999, "http://localhost:9999")
 
         instance.notebook = mock.Mock()
@@ -86,9 +84,7 @@ def test_ipython_notebook_funcs():
         stack.enter_context(
             mock.patch("dtale.views.in_ipython_frontend", return_value=True)
         )
-        stack.enter_context(
-            mock.patch("dtale.global_state.DATA", return_value={9999: df})
-        )
+        build_data_inst({9999: df})
         instance = DtaleData(9999, "http://localhost:9999")
         instance.notebook_correlations(col1="col1", col2="col2")
         mock_iframe.assert_called_once()

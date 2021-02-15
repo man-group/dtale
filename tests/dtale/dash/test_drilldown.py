@@ -2,7 +2,7 @@ import mock
 import pandas as pd
 import pytest
 
-from tests import ExitStack
+from tests import *
 from tests.dtale.dash.test_dash import (
     build_dash_request,
     path_builder,
@@ -84,7 +84,7 @@ def test_build_x_dropdown():
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port:  df})
             fig_data_outputs = (
                 "..drilldown-x-dropdown-1.options...drilldown-x-dropdown-1.value.."
             )
@@ -171,7 +171,7 @@ def test_update_click_data():
     with app.test_client() as c:
         with ExitStack() as stack:
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port:  df})
             fig_data_outputs = (
                 "..chart-click-data-1.data...drilldown-modal-header-1.children.."
             )
@@ -297,7 +297,7 @@ def test_load_drilldown_content(custom_data):
         with ExitStack() as stack:
             custom_data.loc[:, "Col4"] = 4
             df, _ = views.format_data(custom_data)
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port:  df})
             fig_data_outputs = (
                 "..drilldown-content-1.children...drilldown-x-input-1.style.."
             )

@@ -10,7 +10,7 @@ from dtale.duplicate_checks import (
     RemoveAllDataException,
 )
 from tests.dtale.test_views import app
-from tests import ExitStack
+from tests import *
 
 
 def duplicates_data():
@@ -33,52 +33,52 @@ def non_duplicate_data():
 @pytest.mark.unit
 def test_columns(unittest):
     data_id, duplicates_type = "1", "columns"
-    with ExitStack() as stack:
-        data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
 
-        builder = DuplicateCheck(data_id, duplicates_type, {"keep": "first"})
-        unittest.assertEqual(builder.test(), {"Foo": ["foo"]})
-        new_data_id = builder.execute()
-        unittest.assertEqual(
-            list(data[new_data_id].columns), ["Foo", "fOo", "foO", "bar"]
-        )
+    data = {data_id: duplicates_data()}
+    build_data_inst(data)
 
-    with ExitStack() as stack:
-        data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+    builder = DuplicateCheck(data_id, duplicates_type, {"keep": "first"})
+    unittest.assertEqual(builder.test(), {"Foo": ["foo"]})
+    new_data_id = builder.execute()
+    unittest.assertEqual(
+        list(global_state.get_data(new_data_id).columns), ["Foo", "fOo", "foO", "bar"]
+    )
 
-        builder = DuplicateCheck(data_id, duplicates_type, {"keep": "last"})
-        unittest.assertEqual(builder.test(), {"foo": ["Foo"]})
-        new_data_id = builder.execute()
-        unittest.assertEqual(
-            list(data[new_data_id].columns), ["foo", "fOo", "foO", "bar"]
-        )
 
-    with ExitStack() as stack:
-        data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+    data = {data_id: duplicates_data()}
+    build_data_inst(data)
 
-        builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
-        unittest.assertEqual(builder.test(), {"Foo": ["foo"]})
-        new_data_id = builder.execute()
-        unittest.assertEqual(list(data[new_data_id].columns), ["fOo", "foO", "bar"])
+    builder = DuplicateCheck(data_id, duplicates_type, {"keep": "last"})
+    unittest.assertEqual(builder.test(), {"foo": ["Foo"]})
+    new_data_id = builder.execute()
+    unittest.assertEqual(
+        list(global_state.get_data(new_data_id).columns), ["foo", "fOo", "foO", "bar"]
+    )
 
-    with ExitStack() as stack:
-        data = {data_id: duplicates_data().drop(["fOo", "foO", "bar"], axis=1)}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
 
-        builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
-        with pytest.raises(RemoveAllDataException):
-            builder.execute()
+    data = {data_id: duplicates_data()}
+    build_data_inst(data)
 
-    with ExitStack() as stack:
-        data = {data_id: non_duplicate_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+    builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
+    unittest.assertEqual(builder.test(), {"Foo": ["foo"]})
+    new_data_id = builder.execute()
+    unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["fOo", "foO", "bar"])
 
-        builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
-        with pytest.raises(NoDuplicatesException):
-            builder.checker.remove(data[data_id])
+
+    data = {data_id: duplicates_data().drop(["fOo", "foO", "bar"], axis=1)}
+    build_data_inst(data)
+
+    builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
+    with pytest.raises(RemoveAllDataException):
+        builder.execute()
+
+
+    data = {data_id: non_duplicate_data()}
+    build_data_inst(data)
+
+    builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
+    with pytest.raises(NoDuplicatesException):
+        builder.checker.remove(data[data_id])
 
 
 @pytest.mark.unit
@@ -86,34 +86,34 @@ def test_column_names(unittest):
     data_id, duplicates_type = "1", "column_names"
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "first"})
         unittest.assertEqual(builder.test(), {"foo": ["Foo", "foo", "fOo", "foO"]})
         new_data_id = builder.execute()
-        unittest.assertEqual(list(data[new_data_id].columns), ["Foo", "bar"])
+        unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["Foo", "bar"])
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "last"})
         unittest.assertEqual(builder.test(), {"foo": ["Foo", "foo", "fOo", "foO"]})
         new_data_id = builder.execute()
-        unittest.assertEqual(list(data[new_data_id].columns), ["foO", "bar"])
+        unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["foO", "bar"])
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
         unittest.assertEqual(builder.test(), {"foo": ["Foo", "foo", "fOo", "foO"]})
         new_data_id = builder.execute()
-        unittest.assertEqual(list(data[new_data_id].columns), ["bar"])
+        unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["bar"])
 
     with ExitStack() as stack:
         data = {data_id: non_duplicate_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
         with pytest.raises(NoDuplicatesException):
@@ -121,7 +121,7 @@ def test_column_names(unittest):
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data().drop("bar", axis=1)}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
         with pytest.raises(RemoveAllDataException):
@@ -133,7 +133,7 @@ def test_rows(unittest):
     data_id, duplicates_type = "1", "rows"
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "first", "subset": "foo"}
@@ -141,35 +141,35 @@ def test_rows(unittest):
         unittest.assertEqual(builder.test(), dict(removed=0, total=5, remaining=5))
         pre_length = len(data[data_id])
         new_data_id = builder.execute()
-        assert pre_length == len(data[new_data_id])
+        assert pre_length == len(global_state.get_data(new_data_id))
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "first", "subset": ["foO", "bar"]}
         )
         unittest.assertEqual(builder.test(), dict(removed=3, total=5, remaining=2))
         new_data_id = builder.execute()
-        assert len(data[new_data_id]) == 2
-        unittest.assertEqual(data[new_data_id]["Foo"].tolist(), [1, 4])
+        assert len(global_state.get_data(new_data_id)) == 2
+        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 4])
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "last", "subset": ["foO", "bar"]}
         )
         unittest.assertEqual(builder.test(), dict(removed=3, total=5, remaining=2))
         new_data_id = builder.execute()
-        assert len(data[new_data_id]) == 2
-        unittest.assertEqual(data[new_data_id]["Foo"].tolist(), [3, 5])
+        assert len(global_state.get_data(new_data_id)) == 2
+        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [3, 5])
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(
             data_id, duplicates_type, {"keep": "none", "subset": ["foO", "bar"]}
@@ -181,10 +181,11 @@ def test_rows(unittest):
 
 @pytest.mark.unit
 def test_show_duplicates(unittest):
+    global_state.clear_store()
     data_id, duplicates_type = "1", "show"
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"group": ["foo"]})
         unittest.assertEqual(builder.test(), {})
@@ -193,7 +194,7 @@ def test_show_duplicates(unittest):
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(data_id, duplicates_type, {"group": ["foO", "bar"]})
         unittest.assertEqual(
@@ -204,19 +205,18 @@ def test_show_duplicates(unittest):
             },
         )
         new_data_id = builder.execute()
-        assert new_data_id == "2"
-        unittest.assertEqual(data[new_data_id]["Foo"].tolist(), [1, 2, 3, 4, 5])
+        assert new_data_id == 2
+        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3, 4, 5])
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
-        stack.enter_context(mock.patch("dtale.global_state.DATA", data))
+        build_data_inst(data)
 
         builder = DuplicateCheck(
             data_id, duplicates_type, {"group": ["foO", "bar"], "filter": ["4", "5"]}
         )
         new_data_id = builder.execute()
-        assert new_data_id == "2"
-        unittest.assertEqual(data[new_data_id]["Foo"].tolist(), [1, 2, 3])
+        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3])
 
 
 @pytest.mark.unit
@@ -228,8 +228,8 @@ def test_view(unittest):
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
-            stack.enter_context(mock.patch("dtale.global_state.DATA", data))
-            stack.enter_context(mock.patch("dtale.global_state.DTYPES", dtypes))
+            build_data_inst(data)
+            global_state.set_dtypes(c.port,build_dtypes_state(df))
             resp = c.get(
                 "/dtale/duplicates/{}".format(c.port),
                 query_string=dict(

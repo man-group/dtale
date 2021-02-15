@@ -47,7 +47,7 @@ def test_show_colab(unittest, builtin_pkg):
         tmp["biz"] = 2.5
         instance.data = tmp
         unittest.assertEqual(
-            global_state.DTYPES[instance._data_id],
+            global_state.get_dtypes(instance._data_id),
             views.build_dtypes_state(tmp),
             "should update app data/dtypes",
         )
@@ -61,7 +61,7 @@ def test_show_colab(unittest, builtin_pkg):
         instance.kill()
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://colab_host/shutdown"
-        assert global_state.METADATA["1"]["name"] == "foo"
+
 
 
 @pytest.mark.unit
