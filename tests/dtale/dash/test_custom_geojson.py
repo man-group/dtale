@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import pytest
 
-from tests import *
+from tests import ExitStack, build_data_inst
 from tests.dtale.dash.test_dash import build_chart_params, path_builder
 from tests.dtale.test_views import app
 

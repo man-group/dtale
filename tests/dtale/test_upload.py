@@ -6,7 +6,7 @@ import pytest
 from six import BytesIO, PY3
 
 from dtale.app import build_app
-from tests import *
+from tests import ExitStack, build_data_inst
 
 URL = "http://localhost:40000"
 
@@ -68,7 +68,7 @@ def test_upload(unittest):
         with ExitStack() as stack:
             global_state.clear_store()
             data = {c.port: df}
-            build_data_inst({c.port: df})
+            build_data_inst(data)
             global_state.set_dtypes(c.port, views.build_dtypes_state(df))
             stack.enter_context(
                 mock.patch(
@@ -103,6 +103,8 @@ def test_upload(unittest):
 
 @pytest.mark.unit
 def test_web_upload(unittest):
+    import dtale.global_state as global_state
+
     global_state.clear_store()
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
@@ -183,6 +185,8 @@ def test_web_upload(unittest):
 
 @pytest.mark.unit
 def test_covid_dataset():
+    import dtale.global_state as global_state
+
     global_state.clear_store()
 
     def mock_load_csv(**kwargs):
@@ -209,6 +213,8 @@ def test_covid_dataset():
 
 @pytest.mark.unit
 def test_seinfeld_dataset():
+    import dtale.global_state as global_state
+
     global_state.clear_store()
 
     def mock_load_csv(**kwargs):
@@ -225,6 +231,8 @@ def test_seinfeld_dataset():
 
 @pytest.mark.unit
 def test_time_dataframe_dataset():
+    import dtale.global_state as global_state
+
     global_state.clear_store()
     with build_app(url=URL).test_client() as c:
         c.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))

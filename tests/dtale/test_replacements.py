@@ -1,6 +1,5 @@
 import json
 
-import mock
 import numpy as np
 import pandas as pd
 import pytest
@@ -10,7 +9,7 @@ from six import PY3
 
 from dtale.column_replacements import ColumnReplacement
 from tests.dtale.test_views import app
-from tests import *
+from tests import build_data_inst, build_dtypes
 
 
 def replacements_data():
@@ -34,101 +33,98 @@ def verify_builder(builder, checker):
 def test_spaces(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "spaces"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        builder = ColumnReplacement(data_id, "b", replacement_type, {})
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["", np.nan, " - "]),
-        )
+    builder = ColumnReplacement(data_id, "b", replacement_type, {})
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["", np.nan, " - "]),
+    )
 
-        builder = ColumnReplacement(data_id, "b", replacement_type, {"value": "blah"})
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["", "blah", " - "]),
-        )
+    builder = ColumnReplacement(data_id, "b", replacement_type, {"value": "blah"})
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["", "blah", " - "]),
+    )
 
 
 @pytest.mark.unit
 def test_string(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "strings"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"value": "unknown", "ignoreCase": True, "isChar": False}
-        builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["a", np.nan, "b"]),
-        )
+    cfg = {"value": "unknown", "ignoreCase": True, "isChar": False}
+    builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["a", np.nan, "b"]),
+    )
 
-        cfg = {"value": "unknown", "ignoreCase": False, "isChar": False}
-        builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["a", "UNknown", "b"]),
-        )
+    cfg = {"value": "unknown", "ignoreCase": False, "isChar": False}
+    builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["a", "UNknown", "b"]),
+    )
 
-        cfg = {
-            "value": "unknown",
-            "ignoreCase": True,
-            "isChar": False,
-            "replace": "missing",
-        }
-        builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["a", "missing", "b"]),
-        )
+    cfg = {
+        "value": "unknown",
+        "ignoreCase": True,
+        "isChar": False,
+        "replace": "missing",
+    }
+    builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["a", "missing", "b"]),
+    )
 
-        cfg = {"value": "-", "ignoreCase": True, "isChar": True}
-        builder = ColumnReplacement(data_id, "b", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["", " ", np.nan]),
-        )
+    cfg = {"value": "-", "ignoreCase": True, "isChar": True}
+    builder = ColumnReplacement(data_id, "b", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["", " ", np.nan]),
+    )
 
-        cfg = {"value": "-", "ignoreCase": True, "isChar": True, "replace": "missing"}
-        builder = ColumnReplacement(data_id, "b", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["", " ", "missing"]),
-        )
+    cfg = {"value": "-", "ignoreCase": True, "isChar": True, "replace": "missing"}
+    builder = ColumnReplacement(data_id, "b", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["", " ", "missing"]),
+    )
 
 
 @pytest.mark.unit
 def test_value(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "value"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"value": [dict(value="nan", type="raw", replace="for test")]}
-        builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["a", "for test", "b"]),
-        )
+    cfg = {"value": [dict(value="nan", type="raw", replace="for test")]}
+    builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["a", "for test", "b"]),
+    )
 
-        cfg = {
-            "value": [
-                dict(value="nan", type="raw", replace="for test"),
-                dict(value="a", type="raw", replace="d"),
-            ]
-        }
-        builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(list(col.values), ["d", "for test", "b"]),
-        )
+    cfg = {
+        "value": [
+            dict(value="nan", type="raw", replace="for test"),
+            dict(value="a", type="raw", replace="d"),
+        ]
+    }
+    builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(list(col.values), ["d", "for test", "b"]),
+    )
 
-        cfg = {"value": [dict(value="nan", type="agg", replace="median")]}
-        builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
-        verify_builder(
-            builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
-        )
+    cfg = {"value": [dict(value="nan", type="agg", replace="median")]}
+    builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
+    verify_builder(
+        builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
+    )
 
 
 @pytest.mark.unit
@@ -151,15 +147,14 @@ def test_number_value(unittest):
         }
     )
     data_id, replacement_type = "1", "value"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"value": [dict(value=0, type="raw", replace="nan")]}
-        builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
-        verify_builder(
-            builder,
-            lambda col: unittest.assertEqual(np.isnan(col.values[-2]), True),
-        )
+    cfg = {"value": [dict(value=0, type="raw", replace="nan")]}
+    builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
+    verify_builder(
+        builder,
+        lambda col: unittest.assertEqual(np.isnan(col.values[-2]), True),
+    )
 
 
 @pytest.mark.skipif(
@@ -169,14 +164,13 @@ def test_number_value(unittest):
 def test_iterative_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"type": "iterative"}
-        builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
-        verify_builder(
-            builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
-        )
+    cfg = {"type": "iterative"}
+    builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
+    verify_builder(
+        builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
+    )
 
 
 @pytest.mark.skipif(
@@ -186,14 +180,13 @@ def test_iterative_imputers(unittest):
 def test_knn_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"type": "knn", "n_neighbors": 3}
-        builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
-        verify_builder(
-            builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
-        )
+    cfg = {"type": "knn", "n_neighbors": 3}
+    builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
+    verify_builder(
+        builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
+    )
 
 
 @pytest.mark.skipif(
@@ -203,20 +196,21 @@ def test_knn_imputers(unittest):
 def test_simple_imputers(unittest):
     df = replacements_data()
     data_id, replacement_type = "1", "imputer"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"type": "simple"}
-        builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
-        verify_builder(
-            builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
-        )
+    cfg = {"type": "simple"}
+    builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
+    verify_builder(
+        builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
+    )
 
 
 @pytest.mark.unit
 def test_view(unittest):
     from dtale.views import build_dtypes_state
+    import dtale.global_state as global_state
 
+    global_state.clear_store()
     df = replacements_data()
     with app.test_client() as c:
         data = {c.port: df}

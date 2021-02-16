@@ -5,7 +5,6 @@ import json
 import os
 import socket
 import sys
-import time
 import traceback
 from builtins import map, object
 from logging import getLogger
@@ -14,7 +13,6 @@ from flask import jsonify as _jsonify
 
 import numpy as np
 import pandas as pd
-from past.utils import old_div
 from six import StringIO
 
 logger = getLogger(__name__)

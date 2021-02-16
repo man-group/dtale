@@ -9,7 +9,7 @@ import pandas as pd
 import pandas.util.testing as pdt
 import pytest
 
-from tests import *
+from tests import ExitStack
 
 
 @pytest.mark.unit
@@ -673,9 +673,10 @@ def test_build_startup_url_and_app_root():
 
 @pytest.mark.unit
 def test_show_columns():
-    import dtale.global_state
+    import dtale.global_state as global_state
     from dtale.app import show
 
+    global_state.clear_store()
     df = pd.DataFrame(dict(a=[1, 2], b=[2, 3]))
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
@@ -693,14 +694,16 @@ def test_show_columns():
         instance = show(
             data=df, ignore_duplicate=True, show_columns=["a"], subprocess=False
         )
-        assert global_state.get_dtypes(instance._data_id)[0]["visible"] == True
-        assert not global_state.get_dtypes(instance._data_id)[1]["visible"] == True
+        assert global_state.get_dtypes(instance._data_id)[0]["visible"] is True
+        assert not global_state.get_dtypes(instance._data_id)[1]["visible"] is True
 
 
 @pytest.mark.unit
 def test_hide_columns():
     from dtale.app import show
+    import dtale.global_state as global_state
 
+    global_state.clear_store()
     df = pd.DataFrame(dict(a=[1, 2], b=[2, 3]))
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
@@ -718,5 +721,5 @@ def test_hide_columns():
         instance = show(
             data=df, ignore_duplicate=True, hide_columns=["b"], subprocess=False
         )
-        assert global_state.get_dtypes(instance._data_id)[0]["visible"] == True
-        assert not global_state.get_dtypes(instance._data_id)[1]["visible"] == True
+        assert global_state.get_dtypes(instance._data_id)[0]["visible"] is True
+        assert not global_state.get_dtypes(instance._data_id)[1]["visible"] is True

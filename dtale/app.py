@@ -756,7 +756,6 @@ def instances():
         def _instance_msgs():
             for data_id in global_state.keys():
                 data_obj = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST))
-                metadata = global_state.get_metadata(data_id)
                 name = global_state.get_name(data_id)
                 yield [data_id, name or "", data_obj.build_main_url(data_id=data_id)]
                 if name is not None:

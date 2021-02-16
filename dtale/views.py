@@ -172,7 +172,7 @@ class DtaleData(object):
     """
 
     def __init__(self, data_id, url):
-        if data_id != None:
+        if data_id is not None:
             data_id = int(data_id)
         self._data_id = data_id
         self._url = url

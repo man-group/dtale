@@ -1,4 +1,3 @@
-import mock
 import numpy as np
 import pandas as pd
 import pytest
@@ -6,7 +5,7 @@ from numpy.random import randn
 from six import PY3
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
-from tests import *
+from tests import build_data_inst
 
 
 def verify_builder(builder, checker):
@@ -26,12 +25,11 @@ def test_random():
     df = pd.DataFrame(list(_data()))
     data_id, column_type = "1", "random"
     i = 0
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "i", "type": "float", "low": 0, "high": 5}
-        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: sum((col < 0) | (col > 5)) == 0)
+    cfg = {"col": "i", "type": "float", "low": 0, "high": 5}
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    verify_builder(builder, lambda col: sum((col < 0) | (col > 5)) == 0)
 
 
 @pytest.mark.unit
@@ -61,19 +59,18 @@ def test_transform():
     ]
     data_id, column_type = "1", "transform"
     i = 0
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "i", "group": ["a"], "agg": "mean"}
+    cfg = {"col": "i", "group": ["a"], "agg": "mean"}
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    verify_builder(
+        builder, lambda col: col.values[0] == 47.5 and col.values[-1] == 51.5
+    )
+
+    for agg in aggs:
+        cfg["agg"] = agg
         builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(
-            builder, lambda col: col.values[0] == 47.5 and col.values[-1] == 51.5
-        )
-
-        for agg in aggs:
-            cfg["agg"] = agg
-            builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-            verify_builder(builder, lambda col: len(col[col.isnull()]) == 0)
+        verify_builder(builder, lambda col: len(col[col.isnull()]) == 0)
 
 
 @pytest.mark.unit
@@ -88,20 +85,19 @@ def test_winsorize():
     df = pd.DataFrame(list(_data()))
     data_id, column_type = "1", "winsorize"
     i = 0
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "i", "inclusive": [True, False], "limits": [0.1, 0.1]}
-        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: col.sum() == 4950)
+    cfg = {"col": "i", "inclusive": [True, False], "limits": [0.1, 0.1]}
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    verify_builder(builder, lambda col: col.sum() == 4950)
 
-        cfg = {"col": "i", "group": ["b"], "limits": [0.1, 0.1]}
-        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: col.sum() == 4950)
+    cfg = {"col": "i", "group": ["b"], "limits": [0.1, 0.1]}
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    verify_builder(builder, lambda col: col.sum() == 4950)
 
-        cfg = {"col": "i"}
-        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-        verify_builder(builder, lambda col: col.sum() == 4950)
+    cfg = {"col": "i"}
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    verify_builder(builder, lambda col: col.sum() == 4950)
 
 
 @pytest.mark.unit
@@ -114,51 +110,72 @@ def test_zscore_normalize():
 
     data_id, column_type = "1", "zscore_normalize"
     i = 0
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
-        verify_builder(builder, lambda col: col.sum() == 4.440892098500626e-16)
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
+    verify_builder(builder, lambda col: col.sum() == 4.440892098500626e-16)
 
-        with pytest.raises(BaseException) as error:
-            builder = ColumnBuilder(
-                data_id, column_type, "Col{}".format(++i), {"col": "a"}
-            )
-            builder.build_column()
-            assert ZERO_STD_ERROR in str(error.value)
+    with pytest.raises(BaseException) as error:
+        builder = ColumnBuilder(
+            data_id, column_type, "Col{}".format(++i), {"col": "a"}
+        )
+        builder.build_column()
+        assert ZERO_STD_ERROR in str(error.value)
 
 
 @pytest.mark.unit
 def test_string():
     df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
     data_id, column_type = "1", "string"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"cols": list(df.columns), "joinChar": "-"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == "1-2-a-True")
+    cfg = {"cols": list(df.columns), "joinChar": "-"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == "1-2-a-True")
 
 
 @pytest.mark.unit
 def test_similarity():
     df = pd.DataFrame(dict(a=["a", "b", "c"], b=["d", "d", "d"]))
     data_id, column_type = "1", "similarity"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": False}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
+    cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": False}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == 1)
 
-        cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": True}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
+    cfg = {"left": "a", "right": "b", "algo": "levenshtein", "normalized": True}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == 1)
 
+    cfg = {
+        "left": "a",
+        "right": "b",
+        "algo": "damerau-leveneshtein",
+        "normalized": False,
+    }
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == 1)
+
+    cfg = {
+        "left": "a",
+        "right": "b",
+        "algo": "damerau-leveneshtein",
+        "normalized": True,
+    }
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == 1)
+
+    cfg = {"left": "a", "right": "b", "algo": "jaro-winkler"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.values[-1] == 1)
+
+    if PY3:
         cfg = {
             "left": "a",
             "right": "b",
-            "algo": "damerau-leveneshtein",
+            "algo": "jaccard",
+            "k": "4",
             "normalized": False,
         }
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
@@ -167,56 +184,31 @@ def test_similarity():
         cfg = {
             "left": "a",
             "right": "b",
-            "algo": "damerau-leveneshtein",
+            "algo": "jaccard",
+            "k": "4",
             "normalized": True,
         }
         builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
         verify_builder(builder, lambda col: col.values[-1] == 1)
-
-        cfg = {"left": "a", "right": "b", "algo": "jaro-winkler"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.values[-1] == 1)
-
-        if PY3:
-            cfg = {
-                "left": "a",
-                "right": "b",
-                "algo": "jaccard",
-                "k": "4",
-                "normalized": False,
-            }
-            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-            verify_builder(builder, lambda col: col.values[-1] == 1)
-
-            cfg = {
-                "left": "a",
-                "right": "b",
-                "algo": "jaccard",
-                "k": "4",
-                "normalized": True,
-            }
-            builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-            verify_builder(builder, lambda col: col.values[-1] == 1)
 
 
 @pytest.mark.unit
 def test_standardize():
     df = pd.DataFrame(dict(a=randn(1000)))
     data_id, column_type = "1", "standardize"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "a", "algo": "power"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    cfg = {"col": "a", "algo": "power"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-        cfg = {"col": "a", "algo": "quantile"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    cfg = {"col": "a", "algo": "quantile"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-        cfg = {"col": "a", "algo": "robust"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    cfg = {"col": "a", "algo": "robust"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit
@@ -227,59 +219,56 @@ def test_encoder():
         }
     )
     data_id, column_type = "1", "encoder"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "car", "algo": "one_hot"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(
-            builder,
-            lambda col: all(
-                [col[c].isnull().sum() == 0 for c in ["car_Ford", "car_Honda"]]
-            ),
-        )
+    cfg = {"col": "car", "algo": "one_hot"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(
+        builder,
+        lambda col: all(
+            [col[c].isnull().sum() == 0 for c in ["car_Ford", "car_Honda"]]
+        ),
+    )
 
-        cfg = {"col": "car", "algo": "ordinal"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    cfg = {"col": "car", "algo": "ordinal"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-        cfg = {"col": "car", "algo": "label"}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    cfg = {"col": "car", "algo": "label"}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-        cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
-        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-        verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
+    cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
+    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+    verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
 
 
 @pytest.mark.unit
 def test_diff():
     df = pd.DataFrame({"A": [9, 4, 2, 1]})
     data_id, column_type = "1", "diff"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "A", "periods": "1"}
-        builder = ColumnBuilder(data_id, column_type, "dA", cfg)
-        verify_builder(
-            builder,
-            lambda col: col.isnull().sum() == 1 and col.sum() == -8,
-        )
+    cfg = {"col": "A", "periods": "1"}
+    builder = ColumnBuilder(data_id, column_type, "dA", cfg)
+    verify_builder(
+        builder,
+        lambda col: col.isnull().sum() == 1 and col.sum() == -8,
+    )
 
 
 @pytest.mark.unit
 def test_data_slope():
     df = pd.DataFrame({"entity": [5, 7, 5, 5, 5, 6, 3, 2, 0, 5]})
     data_id, column_type = "1", "data_slope"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "entity"}
-        builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
-        verify_builder(
-            builder,
-            lambda col: col.sum() == 35,
-        )
+    cfg = {"col": "entity"}
+    builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
+    verify_builder(
+        builder,
+        lambda col: col.sum() == 35,
+    )
 
 
 @pytest.mark.unit
@@ -288,29 +277,28 @@ def test_rolling(rolling_data):
 
     df, _ = views.format_data(rolling_data)
     data_id, column_type = "1", "rolling"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
-        builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-        verify_builder(
-            builder,
-            lambda col: col.isnull().sum() == 0,
-        )
+    cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
+    builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
+    verify_builder(
+        builder,
+        lambda col: col.isnull().sum() == 0,
+    )
 
-        cfg = {
-            "col": "0",
-            "comp": "mean",
-            "window": "5",
-            "min_periods": 1,
-            "on": "date",
-            "center": True,
-        }
-        builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-        verify_builder(
-            builder,
-            lambda col: col.isnull().sum() == 0,
-        )
+    cfg = {
+        "col": "0",
+        "comp": "mean",
+        "window": "5",
+        "min_periods": 1,
+        "on": "date",
+        "center": True,
+    }
+    builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
+    verify_builder(
+        builder,
+        lambda col: col.isnull().sum() == 0,
+    )
 
 
 @pytest.mark.unit
@@ -319,12 +307,11 @@ def test_exponential_smoothing(rolling_data):
 
     df, _ = views.format_data(rolling_data)
     data_id, column_type = "1", "exponential_smoothing"
-    with ExitStack() as stack:
-        build_data_inst({data_id: df})
+    build_data_inst({data_id: df})
 
-        cfg = {"col": "0", "alpha": 0.3}
-        builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)
-        verify_builder(
-            builder,
-            lambda col: col.isnull().sum() == 0,
-        )
+    cfg = {"col": "0", "alpha": 0.3}
+    builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)
+    verify_builder(
+        builder,
+        lambda col: col.isnull().sum() == 0,
+    )

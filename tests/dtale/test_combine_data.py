@@ -1,11 +1,9 @@
 import json
-
-import mock
 import pandas as pd
 import pytest
 
 from tests.dtale.test_views import app
-from tests import *
+from tests import build_data_inst, build_settings, build_dtypes
 
 
 @pytest.mark.unit
@@ -112,6 +110,7 @@ def test_merge(unittest):
 @pytest.mark.unit
 def test_stack(unittest):
     from dtale.views import build_dtypes_state
+    import dtale.global_state as global_state
 
     global_state.clear_store()
     df1 = pd.DataFrame(

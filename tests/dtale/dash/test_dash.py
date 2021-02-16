@@ -4,6 +4,8 @@ import mock
 import numpy as np
 import pandas as pd
 import pytest
+import dtale.global_state as global_state
+
 
 from dtale.app import build_app
 from dtale.dash_application.charts import (
@@ -17,7 +19,7 @@ from dtale.dash_application.charts import (
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq
 from dtale.utils import make_list
-from tests import *
+from tests import ExitStack, build_data_inst
 from tests.dtale.test_views import URL
 
 
@@ -84,29 +86,28 @@ def test_query_changes():
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            params = {
-                "output": "..query-data.data...query-input.style...query-input.title...load-input.marks..",
-                "changedPropIds": ["query-input.value"],
-                "inputs": [{"id": "query-input", "property": "value", "value": "d"}],
-                "state": [
-                    pathname,
-                    {"id": "query-data", "property": "data"},
-                    {"id": "load-input", "property": "marks"},
-                ],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["query-data"]["data"] is None
-            assert resp_data["query-input"]["title"] == "name 'd' is not defined"
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        params = {
+            "output": "..query-data.data...query-input.style...query-input.title...load-input.marks..",
+            "changedPropIds": ["query-input.value"],
+            "inputs": [{"id": "query-input", "property": "value", "value": "d"}],
+            "state": [
+                pathname,
+                {"id": "query-data", "property": "data"},
+                {"id": "load-input", "property": "marks"},
+            ],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["query-data"]["data"] is None
+        assert resp_data["query-input"]["title"] == "name 'd' is not defined"
 
-            params["inputs"][0]["value"] = "a == 1"
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["query-data"]["data"] == "a == 1"
+        params["inputs"][0]["value"] = "a == 1"
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["query-data"]["data"] == "a == 1"
 
 
 @pytest.mark.unit
@@ -122,87 +123,86 @@ def test_input_changes(unittest):
         )
     )
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            params = {
-                "output": (
-                    "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
-                    "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
-                    "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
-                    "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style.."
-                ),
-                "changedPropIds": ["chart-tabs.value"],
-                "inputs": [
-                    ts_builder("query-data"),
-                    {"id": "chart-tabs", "property": "value", "value": "line"},
-                    {"id": "x-dropdown", "property": "value"},
-                    {"id": "y-multi-dropdown", "property": "value"},
-                    {"id": "y-single-dropdown", "property": "value"},
-                    {"id": "z-dropdown", "property": "value"},
-                    {"id": "group-dropdown", "property": "value"},
-                    {"id": "group-type", "property": "value"},
-                    {"id": "group-val-dropdown", "property": "value"},
-                    {"id": "bins-val-input", "property": "value"},
-                    {"id": "bins-type", "property": "value"},
-                    {"id": "agg-dropdown", "property": "value"},
-                    {"id": "window-input", "property": "value"},
-                    {"id": "rolling-comp-dropdown", "property": "value"},
-                    {"id": "load-input", "property": "value"},
-                ],
-                "state": [pathname, {"id": "query-data", "property": "data"}],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()
-            unittest.assertEqual(
-                resp_data["response"]["input-data"]["data"],
-                {
-                    "chart_type": "line",
-                    "x": None,
-                    "y": [],
-                    "z": None,
-                    "group": None,
-                    "group_val": None,
-                    "agg": "raw",
-                    "window": None,
-                    "rolling_comp": None,
-                    "query": None,
-                    "load": None,
-                    "bins_val": None,
-                    "bin_type": "width",
-                    "group_type": "groups",
-                },
-            )
-            unittest.assertEqual(
-                resp_data["response"]["x-dropdown"]["options"],
-                [
-                    {"label": "a", "value": "a"},
-                    {"label": "b", "value": "b"},
-                    {"label": "c", "value": "c"},
-                    {"label": "d (Hourly)", "value": "d|H"},
-                    {"label": "d (Hour)", "value": "d|H2"},
-                    {"label": "d (Weekday)", "value": "d|WD"},
-                    {"label": "d", "value": "d"},
-                    {"label": "d (Weekly)", "value": "d|W"},
-                    {"label": "d (Monthly)", "value": "d|M"},
-                    {"label": "d (Quarterly)", "value": "d|Q"},
-                    {"label": "d (Yearly)", "value": "d|Y"},
-                ],
-            )
-            params["inputs"][2]["value"] = "a"
-            params["inputs"][3]["value"] = ["b", "c"]
-            params["inputs"][6]["value"] = ["d"]
-            params["inputs"][7]["value"] = [json.dumps(dict(d="20200101"))]
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(
-                [o["value"] for o in resp_data["barsort-dropdown"]["options"]],
-                ["a", "b", "c"],
-            )
-            unittest.assertEqual(
-                [o["value"] for o in resp_data["yaxis-dropdown"]["options"]], ["b", "c"]
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        params = {
+            "output": (
+                "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
+                "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
+                "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
+                "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style.."
+            ),
+            "changedPropIds": ["chart-tabs.value"],
+            "inputs": [
+                ts_builder("query-data"),
+                {"id": "chart-tabs", "property": "value", "value": "line"},
+                {"id": "x-dropdown", "property": "value"},
+                {"id": "y-multi-dropdown", "property": "value"},
+                {"id": "y-single-dropdown", "property": "value"},
+                {"id": "z-dropdown", "property": "value"},
+                {"id": "group-dropdown", "property": "value"},
+                {"id": "group-type", "property": "value"},
+                {"id": "group-val-dropdown", "property": "value"},
+                {"id": "bins-val-input", "property": "value"},
+                {"id": "bins-type", "property": "value"},
+                {"id": "agg-dropdown", "property": "value"},
+                {"id": "window-input", "property": "value"},
+                {"id": "rolling-comp-dropdown", "property": "value"},
+                {"id": "load-input", "property": "value"},
+            ],
+            "state": [pathname, {"id": "query-data", "property": "data"}],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()
+        unittest.assertEqual(
+            resp_data["response"]["input-data"]["data"],
+            {
+                "chart_type": "line",
+                "x": None,
+                "y": [],
+                "z": None,
+                "group": None,
+                "group_val": None,
+                "agg": "raw",
+                "window": None,
+                "rolling_comp": None,
+                "query": None,
+                "load": None,
+                "bins_val": None,
+                "bin_type": "width",
+                "group_type": "groups",
+            },
+        )
+        unittest.assertEqual(
+            resp_data["response"]["x-dropdown"]["options"],
+            [
+                {"label": "a", "value": "a"},
+                {"label": "b", "value": "b"},
+                {"label": "c", "value": "c"},
+                {"label": "d (Hourly)", "value": "d|H"},
+                {"label": "d (Hour)", "value": "d|H2"},
+                {"label": "d (Weekday)", "value": "d|WD"},
+                {"label": "d", "value": "d"},
+                {"label": "d (Weekly)", "value": "d|W"},
+                {"label": "d (Monthly)", "value": "d|M"},
+                {"label": "d (Quarterly)", "value": "d|Q"},
+                {"label": "d (Yearly)", "value": "d|Y"},
+            ],
+        )
+        params["inputs"][2]["value"] = "a"
+        params["inputs"][3]["value"] = ["b", "c"]
+        params["inputs"][6]["value"] = ["d"]
+        params["inputs"][7]["value"] = [json.dumps(dict(d="20200101"))]
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            [o["value"] for o in resp_data["barsort-dropdown"]["options"]],
+            ["a", "b", "c"],
+        )
+        unittest.assertEqual(
+            [o["value"] for o in resp_data["yaxis-dropdown"]["options"]], ["b", "c"]
+        )
 
 
 @pytest.mark.unit
@@ -219,90 +219,87 @@ def test_map_data(unittest):
         )
     )
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            params = {
-                "output": (
-                    "..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options..."
-                    "map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style..."
-                    "map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style..."
-                    "map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children..."
-                    "loc-mode-hover.style...loc-mode-hover.children...custom-geojson-input.style.."
-                ),
-                "changedPropIds": ["map-type-tabs.value"],
-                "inputs": [
-                    {"id": "map-type-tabs", "property": "value", "value": "scattergeo"},
-                    {"id": "map-loc-mode-dropdown", "property": "value", "value": None},
-                    {"id": "map-loc-dropdown", "property": "value", "value": None},
-                    {"id": "map-lat-dropdown", "property": "value", "value": None},
-                    {"id": "map-lon-dropdown", "property": "value", "value": None},
-                    {"id": "map-val-dropdown", "property": "value", "value": None},
-                    {"id": "map-scope-dropdown", "property": "value", "value": "world"},
-                    {
-                        "id": "map-mapbox-style-dropdown",
-                        "property": "value",
-                        "value": "open-street-map",
-                    },
-                    {"id": "map-proj-dropdown", "property": "value", "value": None},
-                    {"id": "map-group-dropdown", "property": "value", "value": None},
-                    {"id": "geojson-dropdown", "property": "value", "value": None},
-                    {"id": "featureidkey-dropdown", "property": "value", "value": None},
-                ],
-                "state": [pathname],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(
-                resp_data["map-input-data"]["data"],
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        params = {
+            "output": (
+                "..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options..."
+                "map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style..."
+                "map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style..."
+                "map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children..."
+                "loc-mode-hover.style...loc-mode-hover.children...custom-geojson-input.style.."
+            ),
+            "changedPropIds": ["map-type-tabs.value"],
+            "inputs": [
+                {"id": "map-type-tabs", "property": "value", "value": "scattergeo"},
+                {"id": "map-loc-mode-dropdown", "property": "value", "value": None},
+                {"id": "map-loc-dropdown", "property": "value", "value": None},
+                {"id": "map-lat-dropdown", "property": "value", "value": None},
+                {"id": "map-lon-dropdown", "property": "value", "value": None},
+                {"id": "map-val-dropdown", "property": "value", "value": None},
+                {"id": "map-scope-dropdown", "property": "value", "value": "world"},
                 {
-                    "map_type": "scattergeo",
-                    "lat": None,
-                    "lon": None,
-                    "map_val": None,
-                    "scope": "world",
-                    "proj": None,
+                    "id": "map-mapbox-style-dropdown",
+                    "property": "value",
+                    "value": "open-street-map",
                 },
-            )
+                {"id": "map-proj-dropdown", "property": "value", "value": None},
+                {"id": "map-group-dropdown", "property": "value", "value": None},
+                {"id": "geojson-dropdown", "property": "value", "value": None},
+                {"id": "featureidkey-dropdown", "property": "value", "value": None},
+            ],
+            "state": [pathname],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["map-input-data"]["data"],
+            {
+                "map_type": "scattergeo",
+                "lat": None,
+                "lon": None,
+                "map_val": None,
+                "scope": "world",
+                "proj": None,
+            },
+        )
 
-            unittest.assertEqual(
-                resp_data["map-loc-dropdown"]["options"], [{"label": "e", "value": "e"}]
-            )
-            unittest.assertEqual(
-                resp_data["map-loc-mode-input"]["style"], {"display": "none"}
-            )
-            unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
-            unittest.assertEqual(
-                resp_data["map-lat-dropdown"]["options"],
-                [{"label": "lat", "value": "lat"}],
-            )
-            unittest.assertEqual(
-                resp_data["map-lon-dropdown"]["options"],
-                [{"label": "lon", "value": "lon"}],
-            )
+        unittest.assertEqual(
+            resp_data["map-loc-dropdown"]["options"], [{"label": "e", "value": "e"}]
+        )
+        unittest.assertEqual(
+            resp_data["map-loc-mode-input"]["style"], {"display": "none"}
+        )
+        unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
+        unittest.assertEqual(
+            resp_data["map-lat-dropdown"]["options"],
+            [{"label": "lat", "value": "lat"}],
+        )
+        unittest.assertEqual(
+            resp_data["map-lon-dropdown"]["options"],
+            [{"label": "lon", "value": "lon"}],
+        )
 
-            params["inputs"][0]["value"] = "mapbox"
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(
-                resp_data["map-loc-mode-input"]["style"], {"display": "none"}
-            )
-            unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
+        params["inputs"][0]["value"] = "mapbox"
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["map-loc-mode-input"]["style"], {"display": "none"}
+        )
+        unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
 
-            params["inputs"][0]["value"] = "choropleth"
-            params["inputs"][-3]["value"] = "foo"
-            params["inputs"][-4]["value"] = "hammer"
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(resp_data["map-loc-mode-input"]["style"], {})
-            unittest.assertEqual(
-                resp_data["map-lat-input"]["style"], {"display": "none"}
-            )
-            img_src = resp_data["proj-hover"]["children"][1]["props"]["children"][1][
-                "props"
-            ]["src"]
-            assert img_src == "../static/images/projections/hammer.png"
+        params["inputs"][0]["value"] = "choropleth"
+        params["inputs"][-3]["value"] = "foo"
+        params["inputs"][-4]["value"] = "hammer"
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(resp_data["map-loc-mode-input"]["style"], {})
+        unittest.assertEqual(resp_data["map-lat-input"]["style"], {"display": "none"})
+        img_src = resp_data["proj-hover"]["children"][1]["props"]["children"][1][
+            "props"
+        ]["src"]
+        assert img_src == "../static/images/projections/hammer.png"
 
 
 @pytest.mark.unit
@@ -510,86 +507,85 @@ def test_chart_type_changes():
         )
     )
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            fig_data_outputs = (
-                "..y-multi-input.style...y-single-input.style...z-input.style...group-input.style..."
-                "rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style..."
-                "top-bars-input.style...yaxis-input.style...animate-input.style...animate-by-input.style..."
-                "animate-by-dropdown.options...trendline-input.style.."
-            )
-            inputs = {
-                "id": "input-data",
-                "property": "data",
-                "value": {
-                    "chart_type": "line",
-                    "x": "a",
-                    "y": ["b"],
-                    "z": None,
-                    "group": None,
-                    "agg": None,
-                    "window": None,
-                    "rolling_comp": None,
-                },
-            }
-            params = {
-                "output": fig_data_outputs,
-                "changedPropIds": ["input-data.modified_timestamp"],
-                "inputs": [ts_builder()],
-                "state": [inputs, path_builder(c.port)],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            for id in [
-                "z-input",
-                "rolling-inputs",
-                "cpg-input",
-                "barmode-input",
-                "barsort-input",
-            ]:
-                assert resp_data[id]["style"]["display"] == "none"
-            for id in ["group-input", "yaxis-input"]:
-                assert resp_data[id]["style"]["display"] == "block"
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        fig_data_outputs = (
+            "..y-multi-input.style...y-single-input.style...z-input.style...group-input.style..."
+            "rolling-inputs.style...cpg-input.style...barmode-input.style...barsort-input.style..."
+            "top-bars-input.style...yaxis-input.style...animate-input.style...animate-by-input.style..."
+            "animate-by-dropdown.options...trendline-input.style.."
+        )
+        inputs = {
+            "id": "input-data",
+            "property": "data",
+            "value": {
+                "chart_type": "line",
+                "x": "a",
+                "y": ["b"],
+                "z": None,
+                "group": None,
+                "agg": None,
+                "window": None,
+                "rolling_comp": None,
+            },
+        }
+        params = {
+            "output": fig_data_outputs,
+            "changedPropIds": ["input-data.modified_timestamp"],
+            "inputs": [ts_builder()],
+            "state": [inputs, path_builder(c.port)],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        for id in [
+            "z-input",
+            "rolling-inputs",
+            "cpg-input",
+            "barmode-input",
+            "barsort-input",
+        ]:
+            assert resp_data[id]["style"]["display"] == "none"
+        for id in ["group-input", "yaxis-input"]:
+            assert resp_data[id]["style"]["display"] == "block"
 
-            inputs["value"]["chart_type"] = "bar"
-            inputs["value"]["y"] = ["b", "c"]
-            params = {
-                "output": fig_data_outputs,
-                "changedPropIds": ["input-data.modified_timestamp"],
-                "inputs": [ts_builder()],
-                "state": [inputs, path_builder(c.port)],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["barmode-input"]["style"]["display"] == "block"
-            assert resp_data["barsort-input"]["style"]["display"] == "block"
+        inputs["value"]["chart_type"] = "bar"
+        inputs["value"]["y"] = ["b", "c"]
+        params = {
+            "output": fig_data_outputs,
+            "changedPropIds": ["input-data.modified_timestamp"],
+            "inputs": [ts_builder()],
+            "state": [inputs, path_builder(c.port)],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["barmode-input"]["style"]["display"] == "block"
+        assert resp_data["barsort-input"]["style"]["display"] == "block"
 
-            inputs["value"]["chart_type"] = "line"
-            inputs["value"]["y"] = ["b"]
-            inputs["value"]["group"] = ["c"]
-            params = {
-                "output": fig_data_outputs,
-                "changedPropIds": ["input-data.modified_timestamp"],
-                "inputs": [ts_builder()],
-                "state": [inputs, path_builder(c.port)],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["cpg-input"]["style"]["display"] == "block"
+        inputs["value"]["chart_type"] = "line"
+        inputs["value"]["y"] = ["b"]
+        inputs["value"]["group"] = ["c"]
+        params = {
+            "output": fig_data_outputs,
+            "changedPropIds": ["input-data.modified_timestamp"],
+            "inputs": [ts_builder()],
+            "state": [inputs, path_builder(c.port)],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["cpg-input"]["style"]["display"] == "block"
 
-            inputs["value"]["chart_type"] = "heatmap"
-            inputs["value"]["group"] = None
-            inputs["value"]["z"] = "c"
-            params = {
-                "output": fig_data_outputs,
-                "changedPropIds": ["input-data.modified_timestamp"],
-                "inputs": [ts_builder()],
-                "state": [inputs, path_builder(c.port)],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["z-input"]["style"]["display"] == "block"
+        inputs["value"]["chart_type"] = "heatmap"
+        inputs["value"]["group"] = None
+        inputs["value"]["z"] = "c"
+        params = {
+            "output": fig_data_outputs,
+            "changedPropIds": ["input-data.modified_timestamp"],
+            "inputs": [ts_builder()],
+            "state": [inputs, path_builder(c.port)],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["z-input"]["style"]["display"] == "block"
 
 
 @pytest.mark.unit
@@ -949,39 +945,38 @@ def test_chart_building_wordcloud():
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "wordcloud",
-                "x": "a",
-                "y": ["b"],
-                "z": None,
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-                "load": 80,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": None}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
-                == "Wordcloud"
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "wordcloud",
+            "x": "a",
+            "y": ["b"],
+            "z": None,
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+            "load": 80,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": None}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
+            == "Wordcloud"
+        )
 
-            inputs["y"] = None
-            inputs["agg"] = "count"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
-                == "Wordcloud"
-            )
+        inputs["y"] = None
+        inputs["agg"] = "count"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
+            == "Wordcloud"
+        )
 
 
 @pytest.mark.unit
@@ -1284,67 +1279,65 @@ def test_chart_building_line(unittest):
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "line",
-                "x": "a",
-                "y": ["b"],
-                "z": None,
-                "group": ["c"],
-                "group_val": [dict(c=7)],
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": True, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 1
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "line",
+            "x": "a",
+            "y": ["b"],
+            "z": None,
+            "group": ["c"],
+            "group_val": [dict(c=7)],
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": True, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"]) == 1
 
-            inputs["group"] = None
-            inputs["group_val"] = None
-            chart_inputs["cpg"] = False
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["chart-content"]["children"]["type"] == "Div"
+        inputs["group"] = None
+        inputs["group_val"] = None
+        chart_inputs["cpg"] = False
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["chart-content"]["children"]["type"] == "Div"
 
-            chart_inputs["animate"] = True
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
+        chart_inputs["animate"] = True
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "frames"
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
+        )
 
     df = pd.DataFrame([dict(sec_id=i, y=1) for i in range(15500)])
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "line",
-                "x": "sec_id",
-                "y": ["y"],
-                "z": None,
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": None}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert "chart-content" in resp_data
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "line",
+            "x": "sec_id",
+            "y": ["y"],
+            "z": None,
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": None}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert "chart-content" in resp_data
 
 
 @pytest.mark.unit
@@ -1355,60 +1348,58 @@ def test_chart_building_pie():
         dict(a=[1, 2, 3, 4, 5, 6], b=[7, 8, 9, 10, 11, 12], c=[13, 14, 15, 16, 17, 18])
     )
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "pie",
-                "x": "a",
-                "y": ["b"],
-                "z": None,
-                "group": ["c"],
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": True, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 3
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "pie",
+            "x": "a",
+            "y": ["b"],
+            "z": None,
+            "group": ["c"],
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": True, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"]) == 3
 
-            inputs["group"] = None
-            chart_inputs["cpg"] = False
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert resp_data["chart-content"]["children"][0]["type"] == "Div"
+        inputs["group"] = None
+        chart_inputs["cpg"] = False
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert resp_data["chart-content"]["children"][0]["type"] == "Div"
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, -6]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "pie",
-                "x": "a",
-                "y": ["b"],
-                "z": None,
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            error = resp_data["chart-content"]["children"][0]["props"]["children"][0][
-                "props"
-            ]["children"]
-            assert (
-                error["props"]["children"][2]["props"]["children"]["props"]["children"]
-                == "3 (-6)"
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "pie",
+            "x": "a",
+            "y": ["b"],
+            "z": None,
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        error = resp_data["chart-content"]["children"][0]["props"]["children"][0][
+            "props"
+        ]["children"]
+        assert (
+            error["props"]["children"][2]["props"]["children"]["props"]["children"]
+            == "3 (-6)"
+        )
 
 
 @pytest.mark.unit
@@ -1417,79 +1408,77 @@ def test_chart_building_heatmap(unittest, test_data):
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "heatmap",
-                "x": "a",
-                "y": ["b"],
-                "z": None,
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            assert response.get_json()["response"]["chart-content"]["children"] is None
-            inputs["z"] = "c"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "b by a weighted by c"},
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "heatmap",
+            "x": "a",
+            "y": ["b"],
+            "z": None,
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        assert response.get_json()["response"]["chart-content"]["children"] is None
+        inputs["z"] = "c"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "b by a weighted by c"},
+        )
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(test_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "heatmap",
-                "x": "date",
-                "y": ["security_id"],
-                "z": "bar",
-                "group": None,
-                "agg": "mean",
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "security_id by date weighted by bar (Mean)"},
-            )
-            inputs["animate_by"] = "foo"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "security_id by date weighted by bar (Mean)"},
-            )
-            del inputs["animate_by"]
-            inputs["agg"] = "corr"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            error = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["children"]
-            assert error == "No data returned for this computation!"
+        df, _ = views.format_data(test_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "heatmap",
+            "x": "date",
+            "y": ["security_id"],
+            "z": "bar",
+            "group": None,
+            "agg": "mean",
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "security_id by date weighted by bar (Mean)"},
+        )
+        inputs["animate_by"] = "foo"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "security_id by date weighted by bar (Mean)"},
+        )
+        del inputs["animate_by"]
+        inputs["agg"] = "corr"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        error = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "children"
+        ]
+        assert error == "No data returned for this computation!"
 
     def _data():
         for sec_id in range(10):
@@ -1499,31 +1488,30 @@ def test_chart_building_heatmap(unittest, test_data):
     df = pd.DataFrame(list(_data()))
     df["val"] = np.random.randn(len(df), 1)
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "heatmap",
-                "x": "date",
-                "y": ["security_id"],
-                "z": "val",
-                "group": None,
-                "agg": "corr",
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            title = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]["layout"]["title"]
-            assert (
-                title["text"]
-                == "security_id1 by security_id0 weighted by val (Correlation)"
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "heatmap",
+            "x": "date",
+            "y": ["security_id"],
+            "z": "val",
+            "group": None,
+            "agg": "corr",
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        title = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "figure"
+        ]["layout"]["title"]
+        assert (
+            title["text"]
+            == "security_id1 by security_id0 weighted by val (Correlation)"
+        )
 
 
 @pytest.mark.unit
@@ -1532,88 +1520,86 @@ def test_chart_building_3D_scatter(unittest, test_data):
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9], d=[10, 11, 12]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "3d_scatter",
-                "x": "a",
-                "y": ["b"],
-                "z": "c",
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "b by a weighted by c"},
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "3d_scatter",
+            "x": "a",
+            "y": ["b"],
+            "z": "c",
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "b by a weighted by c"},
+        )
 
-            inputs["group"] = ["d"]
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            assert len(chart_markup["props"]["figure"]["data"]) == 3
+        inputs["group"] = ["d"]
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        assert len(chart_markup["props"]["figure"]["data"]) == 3
 
-            inputs["agg"] = "sum"
-            inputs["group"] = None
-            chart_inputs["animate_by"] = "d"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"][0]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
+        inputs["agg"] = "sum"
+        inputs["group"] = None
+        chart_inputs["animate_by"] = "d"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "frames"
+            in resp_data["chart-content"]["children"][0]["props"]["children"][1][
+                "props"
+            ]["figure"]
+        )
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(test_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "3d_scatter",
-                "x": "date",
-                "y": ["security_id"],
-                "z": "bar",
-                "group": None,
-                "agg": "mean",
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "security_id by date weighted by bar (Mean)"},
-            )
+        df, _ = views.format_data(test_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "3d_scatter",
+            "x": "date",
+            "y": ["security_id"],
+            "z": "bar",
+            "group": None,
+            "agg": "mean",
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "security_id by date weighted by bar (Mean)"},
+        )
 
-            inputs["agg"] = "pctsum"
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "security_id by date weighted by bar (Percentage Sum)"},
-            )
+        inputs["agg"] = "pctsum"
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "security_id by date weighted by bar (Percentage Sum)"},
+        )
 
 
 @pytest.mark.unit
@@ -1622,56 +1608,54 @@ def test_chart_building_surface(unittest, test_data):
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(df)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "surface",
-                "x": "a",
-                "y": ["b"],
-                "z": "c",
-                "group": None,
-                "agg": None,
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "b by a weighted by c"},
-            )
+        df, _ = views.format_data(df)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "surface",
+            "x": "a",
+            "y": ["b"],
+            "z": "c",
+            "group": None,
+            "agg": None,
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "b by a weighted by c"},
+        )
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(test_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "surface",
-                "x": "date",
-                "y": ["security_id"],
-                "z": "bar",
-                "group": None,
-                "agg": "mean",
-                "window": None,
-                "rolling_comp": None,
-            }
-            chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
-            params = build_chart_params(pathname, inputs, chart_inputs)
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                0
-            ]["props"]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "security_id by date weighted by bar (Mean)"},
-            )
+        df, _ = views.format_data(test_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "surface",
+            "x": "date",
+            "y": ["security_id"],
+            "z": "bar",
+            "group": None,
+            "agg": "mean",
+            "window": None,
+            "rolling_comp": None,
+        }
+        chart_inputs = {"cpg": False, "barmode": "group", "barsort": "b"}
+        params = build_chart_params(pathname, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][0][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "security_id by date weighted by bar (Mean)"},
+        )
 
 
 @pytest.mark.unit
@@ -1679,77 +1663,75 @@ def test_chart_building_map_choropleth(unittest, state_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(state_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {"chart_type": "maps", "agg": "raw"}
-            map_inputs = {
-                "map_type": "choropleth",
-                "loc_mode": "USA-states",
-                "loc": "Code",
-            }
-            chart_inputs = {"colorscale": REDS}
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            assert response.get_json()["response"]["chart-content"]["children"] is None
-            map_inputs["map_val"] = "val"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "Map of val (No Aggregation)"},
-            )
+        df, _ = views.format_data(state_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {"chart_type": "maps", "agg": "raw"}
+        map_inputs = {
+            "map_type": "choropleth",
+            "loc_mode": "USA-states",
+            "loc": "Code",
+        }
+        chart_inputs = {"colorscale": REDS}
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        assert response.get_json()["response"]["chart-content"]["children"] is None
+        map_inputs["map_val"] = "val"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "Map of val (No Aggregation)"},
+        )
 
-            chart_inputs["animate_by"] = "cat"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
+        chart_inputs["animate_by"] = "cat"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "frames"
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
+        )
 
     # test duplicate data
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(
-                pd.concat([state_data, state_data], ignore_index=True)
-            )
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {"chart_type": "maps", "agg": "raw"}
-            map_inputs = {
-                "map_type": "choropleth",
-                "loc_mode": "USA-states",
-                "loc": "Code",
-                "map_val": "val",
-            }
-            chart_inputs = {"colorscale": REDS}
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            content = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["children"]
-            error_msg = (
-                "'No Aggregation' is not a valid aggregation for a choropleth map!  Code contains duplicates, please "
-                "select a different aggregation or additional filtering."
-            )
-            assert content == error_msg
+        df, _ = views.format_data(
+            pd.concat([state_data, state_data], ignore_index=True)
+        )
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {"chart_type": "maps", "agg": "raw"}
+        map_inputs = {
+            "map_type": "choropleth",
+            "loc_mode": "USA-states",
+            "loc": "Code",
+            "map_val": "val",
+        }
+        chart_inputs = {"colorscale": REDS}
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        content = resp_data["chart-content"]["children"]["props"]["children"][1][
+            "props"
+        ]["children"]
+        error_msg = (
+            "'No Aggregation' is not a valid aggregation for a choropleth map!  Code contains duplicates, please "
+            "select a different aggregation or additional filtering."
+        )
+        assert content == error_msg
 
 
 @pytest.mark.unit
@@ -1757,72 +1739,71 @@ def test_chart_building_map_scattergeo(unittest, scattergeo_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(scattergeo_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {"chart_type": "maps", "agg": "raw"}
-            map_inputs = {
-                "map_type": "scattergeo",
-                "lat": "lat",
-                "lon": "lon",
-                "map_val": "val",
-                "scope": "world",
-                "proj": "mercator",
-            }
-            chart_inputs = {"colorscale": REDS}
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "Map of val (No Aggregation)"},
-            )
+        df, _ = views.format_data(scattergeo_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {"chart_type": "maps", "agg": "raw"}
+        map_inputs = {
+            "map_type": "scattergeo",
+            "lat": "lat",
+            "lon": "lon",
+            "map_val": "val",
+            "scope": "world",
+            "proj": "mercator",
+        }
+        chart_inputs = {"colorscale": REDS}
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "Map of val (No Aggregation)"},
+        )
 
-            map_inputs["map_group"] = "cat"
-            group_val = str(df["cat"].values[0])
-            inputs["group_val"] = [dict(cat=group_val)]
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            title = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]["layout"]["title"]
-            assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
-                group_val
-            )
+        map_inputs["map_group"] = "cat"
+        group_val = str(df["cat"].values[0])
+        inputs["group_val"] = [dict(cat=group_val)]
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        title = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "figure"
+        ]["layout"]["title"]
+        assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
+            group_val
+        )
 
-            map_inputs["map_group"] = None
-            inputs["group_val"] = None
-            chart_inputs["animate_by"] = "cat"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
+        map_inputs["map_group"] = None
+        inputs["group_val"] = None
+        chart_inputs["animate_by"] = "cat"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "frames"
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
+        )
 
-            map_inputs["map_val"] = "foo"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            error = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["children"]
-            assert "'foo'" in error
+        map_inputs["map_val"] = "foo"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        error = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "children"
+        ]
+        assert "'foo'" in error
 
 
 @pytest.mark.unit
@@ -1830,70 +1811,69 @@ def test_chart_building_map_mapbox(unittest, scattergeo_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(scattergeo_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {"chart_type": "maps", "agg": "raw"}
-            map_inputs = {
-                "map_type": "mapbox",
-                "lat": "lat",
-                "lon": "lon",
-                "map_val": "val",
-            }
-            chart_inputs = {"colorscale": REDS}
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            chart_markup = response.get_json()["response"]["chart-content"]["children"][
-                "props"
-            ]["children"][1]
-            unittest.assertEqual(
-                chart_markup["props"]["figure"]["layout"]["title"],
-                {"text": "Map of val (No Aggregation)"},
-            )
+        df, _ = views.format_data(scattergeo_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {"chart_type": "maps", "agg": "raw"}
+        map_inputs = {
+            "map_type": "mapbox",
+            "lat": "lat",
+            "lon": "lon",
+            "map_val": "val",
+        }
+        chart_inputs = {"colorscale": REDS}
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        chart_markup = response.get_json()["response"]["chart-content"]["children"][
+            "props"
+        ]["children"][1]
+        unittest.assertEqual(
+            chart_markup["props"]["figure"]["layout"]["title"],
+            {"text": "Map of val (No Aggregation)"},
+        )
 
-            map_inputs["map_group"] = "cat"
-            group_val = str(df["cat"].values[0])
-            inputs["group_val"] = [dict(cat=group_val)]
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            title = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]["layout"]["title"]
-            assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
-                group_val
-            )
+        map_inputs["map_group"] = "cat"
+        group_val = str(df["cat"].values[0])
+        inputs["group_val"] = [dict(cat=group_val)]
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        title = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "figure"
+        ]["layout"]["title"]
+        assert title["text"] == "Map of val (No Aggregation) (cat: {})".format(
+            group_val
+        )
 
-            map_inputs["map_group"] = None
-            inputs["group_val"] = None
-            chart_inputs["animate_by"] = "cat"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                "frames"
-                in resp_data["chart-content"]["children"]["props"]["children"][1][
-                    "props"
-                ]["figure"]
-            )
+        map_inputs["map_group"] = None
+        inputs["group_val"] = None
+        chart_inputs["animate_by"] = "cat"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "frames"
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
+        )
 
-            map_inputs["map_val"] = "foo"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            error = resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["children"]
-            assert "'foo'" in error
+        map_inputs["map_val"] = "foo"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, map_inputs=map_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        error = resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+            "children"
+        ]
+        assert "'foo'" in error
 
 
 @pytest.mark.unit
@@ -1901,60 +1881,59 @@ def test_candlestick_data(candlestick_data, unittest):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(candlestick_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            params = {
-                "output": (
-                    "..candlestick-input-data.data...candlestick-x-dropdown.options."
-                    "..candlestick-open-dropdown.options...candlestick-close-dropdown.options."
-                    "..candlestick-high-dropdown.options...candlestick-low-dropdown.options.."
-                ),
-                "changedPropIds": ["candlestick-x-dropdown.value"],
-                "inputs": [
-                    {"id": "candlestick-x-dropdown", "property": "value", "value": "x"},
-                    {
-                        "id": "candlestick-open-dropdown",
-                        "property": "value",
-                        "value": "open",
-                    },
-                    {
-                        "id": "candlestick-close-dropdown",
-                        "property": "value",
-                        "value": "close",
-                    },
-                    {
-                        "id": "candlestick-high-dropdown",
-                        "property": "value",
-                        "value": "high",
-                    },
-                    {
-                        "id": "candlestick-low-dropdown",
-                        "property": "value",
-                        "value": "low",
-                    },
-                    {
-                        "id": "candlestick-group-dropdown",
-                        "property": "value",
-                        "value": ["symbol"],
-                    },
-                ],
-                "state": [pathname],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(
-                resp_data["candlestick-input-data"]["data"],
+        df, _ = views.format_data(candlestick_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        params = {
+            "output": (
+                "..candlestick-input-data.data...candlestick-x-dropdown.options."
+                "..candlestick-open-dropdown.options...candlestick-close-dropdown.options."
+                "..candlestick-high-dropdown.options...candlestick-low-dropdown.options.."
+            ),
+            "changedPropIds": ["candlestick-x-dropdown.value"],
+            "inputs": [
+                {"id": "candlestick-x-dropdown", "property": "value", "value": "x"},
                 {
-                    "cs_x": "x",
-                    "cs_open": "open",
-                    "cs_close": "close",
-                    "cs_high": "high",
-                    "cs_low": "low",
-                    "cs_group": ["symbol"],
+                    "id": "candlestick-open-dropdown",
+                    "property": "value",
+                    "value": "open",
                 },
-            )
+                {
+                    "id": "candlestick-close-dropdown",
+                    "property": "value",
+                    "value": "close",
+                },
+                {
+                    "id": "candlestick-high-dropdown",
+                    "property": "value",
+                    "value": "high",
+                },
+                {
+                    "id": "candlestick-low-dropdown",
+                    "property": "value",
+                    "value": "low",
+                },
+                {
+                    "id": "candlestick-group-dropdown",
+                    "property": "value",
+                    "value": ["symbol"],
+                },
+            ],
+            "state": [pathname],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["candlestick-input-data"]["data"],
+            {
+                "cs_x": "x",
+                "cs_open": "open",
+                "cs_close": "close",
+                "cs_high": "high",
+                "cs_low": "low",
+                "cs_group": ["symbol"],
+            },
+        )
 
 
 @pytest.mark.unit
@@ -1962,46 +1941,39 @@ def test_chart_building_candlestick(candlestick_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(candlestick_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "candlestick",
-                "agg": "mean",
-            }
-            chart_inputs = {}
-            cs_inputs = {
-                "cs_x": "x",
-                "cs_open": "open",
-                "cs_close": "close",
-                "cs_high": "high",
-                "cs_low": "low",
-                "cs_group": ["symbol"],
-            }
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 3
+        df, _ = views.format_data(candlestick_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "candlestick",
+            "agg": "mean",
+        }
+        chart_inputs = {}
+        cs_inputs = {
+            "cs_x": "x",
+            "cs_open": "open",
+            "cs_close": "close",
+            "cs_high": "high",
+            "cs_low": "low",
+            "cs_group": ["symbol"],
+        }
+        params = build_chart_params(pathname, inputs, chart_inputs, cs_inputs=cs_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"]) == 3
 
-            inputs["query"] = "symbol == 'a'"
-            cs_inputs["cs_group"] = None
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 3
+        inputs["query"] = "symbol == 'a'"
+        cs_inputs["cs_group"] = None
+        params = build_chart_params(pathname, inputs, chart_inputs, cs_inputs=cs_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"]) == 3
 
-            inputs["query"] = "symbol == 'c'"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, cs_inputs=cs_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            exception = print_traceback(response, return_output=True)
-            assert "found no data" in exception
+        inputs["query"] = "symbol == 'c'"
+        params = build_chart_params(pathname, inputs, chart_inputs, cs_inputs=cs_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        exception = print_traceback(response, return_output=True)
+        assert "found no data" in exception
 
 
 @pytest.mark.unit
@@ -2009,44 +1981,43 @@ def test_treemap_data(treemap_data, unittest):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(treemap_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            params = {
-                "output": (
-                    "..treemap-input-data.data...treemap-value-dropdown.options...treemap-label-dropdown.options.."
-                ),
-                "changedPropIds": ["candlestick-value-dropdown.value"],
-                "inputs": [
-                    {
-                        "id": "treemap-value-dropdown",
-                        "property": "value",
-                        "value": "volume",
-                    },
-                    {
-                        "id": "treemap-label-dropdown",
-                        "property": "value",
-                        "value": "label",
-                    },
-                    {
-                        "id": "treemap-group-dropdown",
-                        "property": "value",
-                        "value": ["group"],
-                    },
-                ],
-                "state": [pathname],
-            }
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            unittest.assertEqual(
-                resp_data["treemap-input-data"]["data"],
+        df, _ = views.format_data(treemap_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        params = {
+            "output": (
+                "..treemap-input-data.data...treemap-value-dropdown.options...treemap-label-dropdown.options.."
+            ),
+            "changedPropIds": ["candlestick-value-dropdown.value"],
+            "inputs": [
                 {
-                    "treemap_value": "volume",
-                    "treemap_label": "label",
-                    "treemap_group": ["group"],
+                    "id": "treemap-value-dropdown",
+                    "property": "value",
+                    "value": "volume",
                 },
-            )
+                {
+                    "id": "treemap-label-dropdown",
+                    "property": "value",
+                    "value": "label",
+                },
+                {
+                    "id": "treemap-group-dropdown",
+                    "property": "value",
+                    "value": ["group"],
+                },
+            ],
+            "state": [pathname],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["treemap-input-data"]["data"],
+            {
+                "treemap_value": "volume",
+                "treemap_label": "label",
+                "treemap_group": ["group"],
+            },
+        )
 
 
 @pytest.mark.unit
@@ -2054,45 +2025,42 @@ def test_chart_building_treemap(treemap_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(treemap_data)
-            build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
-            inputs = {
-                "chart_type": "treemap",
-                "agg": "mean",
-            }
-            chart_inputs = {}
-            treemap_inputs = {
-                "treemap_value": "volume",
-                "treemap_label": "label",
-                "treemap_group": ["group"],
-            }
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert (
-                len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
-            )
+        df, _ = views.format_data(treemap_data)
+        build_data_inst({c.port: df})
+        pathname = path_builder(c.port)
+        inputs = {
+            "chart_type": "treemap",
+            "agg": "mean",
+        }
+        chart_inputs = {}
+        treemap_inputs = {
+            "treemap_value": "volume",
+            "treemap_label": "label",
+            "treemap_group": ["group"],
+        }
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
 
-            inputs["query"] = "group == 'group1'"
-            treemap_inputs["treemap_group"] = None
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            resp_data = response.get_json()["response"]
-            assert len(resp_data["chart-content"]["children"]) == 1
+        inputs["query"] = "group == 'group1'"
+        treemap_inputs["treemap_group"] = None
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert len(resp_data["chart-content"]["children"]) == 1
 
-            inputs["query"] = "group == 'group3'"
-            params = build_chart_params(
-                pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
-            )
-            response = c.post("/dtale/charts/_dash-update-component", json=params)
-            exception = print_traceback(response, return_output=True)
-            assert "found no data" in exception
+        inputs["query"] = "group == 'group3'"
+        params = build_chart_params(
+            pathname, inputs, chart_inputs, treemap_inputs=treemap_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        exception = print_traceback(response, return_output=True)
+        assert "found no data" in exception
 
 
 @pytest.mark.unit
@@ -2601,13 +2569,12 @@ def test_build_chart_type():
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
-            df, _ = views.format_data(
-                pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
-            )
-            build_data_inst({c.port: df})
-            output = build_chart(c.port, chart_type="unknown", x="a", y="b")
-            assert output[0].children[1].children == "chart type: unknown"
+        df, _ = views.format_data(
+            pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6], c=[7, 8, 9]))
+        )
+        build_data_inst({c.port: df})
+        output = build_chart(c.port, chart_type="unknown", x="a", y="b")
+        assert output[0].children[1].children == "chart type: unknown"
 
 
 @pytest.mark.unit

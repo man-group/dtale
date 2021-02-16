@@ -1,10 +1,8 @@
-import mock
 import pandas as pd
 import pytest
 from six import PY3
 
 import dtale.query as query
-from tests import ExitStack
 
 
 @pytest.mark.unit

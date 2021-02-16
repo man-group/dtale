@@ -69,7 +69,7 @@ class DtaleInstance:
 
     @property
     def is_xarray_dataset(self):
-        if self._dataset != None:
+        if self._dataset is not None:
             return True
         return False
 
@@ -235,7 +235,7 @@ class DefaultStore:
         data_id = int(data_id)
         try:
             del self._data_store[data_id]
-        except:
+        except KeyError:
             pass
 
     def clear_store(self):
@@ -284,7 +284,7 @@ def convert_name_to_url_path(name):
 
 
 def get_dtype_info(data_id, col):
-    dtypes = get_dtypes(data_id)
+    dtypes = get_dtypes(data_id)  # noqa: F821
     return next((c for c in dtypes or [] if c["name"] == col), None)
 
 
@@ -309,8 +309,7 @@ def cleanup(data_id=None):
 
 def load_flag(data_id, flag_name, default):
     import dtale
-
-    curr_settings = get_settings(data_id) or {}
+    curr_settings = get_settings(data_id) or {}  # noqa: F821
     global_flag = getattr(dtale, flag_name.upper())
     if global_flag != default:
         return global_flag
@@ -398,7 +397,6 @@ def use_shelve_store(directory):
     import shelve
     import time
     from os.path import join
-    from functools import wraps
     from threading import Thread
 
     class DtaleShelf:
