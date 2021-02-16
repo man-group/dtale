@@ -63,7 +63,6 @@ def test_show_colab(unittest, builtin_pkg):
         assert mock_requests.call_args[0][0] == "http://colab_host/shutdown"
 
 
-
 @pytest.mark.unit
 def test_failing_show_colab():
     from dtale.app import show

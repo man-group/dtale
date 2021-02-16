@@ -320,7 +320,7 @@ def test_group_values(unittest):
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        global_state.set_dtypes(c.port,views.build_dtypes_state(df))
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         pathname = path_builder(c.port)
         params = {
             "output": "..group-val-dropdown.options...group-val-dropdown.value..",
@@ -413,7 +413,7 @@ def test_main_input_styling(unittest):
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        global_state.set_dtypes(c.port,views.build_dtypes_state(df))
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         pathname = path_builder(c.port)
         params = {
             "output": (
@@ -479,8 +479,7 @@ def test_main_input_styling(unittest):
         params["state"][1]["value"]["group"] = ["c"]
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert (
-            response.get_json()["response"]["bins-input"]["style"]["display"]
-            == "none"
+            response.get_json()["response"]["bins-input"]["style"]["display"] == "none"
         )
         assert (
             response.get_json()["response"]["group-val-input"]["style"]["display"]
@@ -490,8 +489,7 @@ def test_main_input_styling(unittest):
         params["state"][1]["value"]["group"] = ["c|WD"]
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert (
-            response.get_json()["response"]["bins-input"]["style"]["display"]
-            == "none"
+            response.get_json()["response"]["bins-input"]["style"]["display"] == "none"
         )
         assert (
             response.get_json()["response"]["group-val-input"]["style"]["display"]
@@ -1009,9 +1007,9 @@ def test_chart_building_scatter():
         params = build_chart_params(pathname, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
-            1
-        ]["props"]
+        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][1][
+            "props"
+        ]
         assert plot_data["id"] == "chart-1"
         assert len(plot_data["figure"]["data"]) == 1
 
@@ -1019,9 +1017,9 @@ def test_chart_building_scatter():
         params = build_chart_params(pathname, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
-            1
-        ]["props"]
+        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][1][
+            "props"
+        ]
         assert plot_data["id"] == "chart-1"
         assert len(plot_data["figure"]["data"]) == 2
 
@@ -1029,9 +1027,9 @@ def test_chart_building_scatter():
         params = build_chart_params(pathname, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
-            1
-        ]["props"]
+        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][1][
+            "props"
+        ]
         assert plot_data["id"] == "chart-1"
         assert len(plot_data["figure"]["data"]) == 2
 
@@ -1062,7 +1060,7 @@ def test_chart_building_scatter_trendline_with_dates():
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        global_state.set_dtypes(c.port,views.build_dtypes_state(df))
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         pathname = path_builder(c.port)
         inputs = {
             "chart_type": "scatter",
@@ -1083,9 +1081,9 @@ def test_chart_building_scatter_trendline_with_dates():
         params = build_chart_params(pathname, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][
-            1
-        ]["props"]
+        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][1][
+            "props"
+        ]
         assert plot_data["id"] == "chart-1"
         assert len(plot_data["figure"]["data"]) == 2
 
@@ -1098,7 +1096,7 @@ def test_chart_building_bar_and_popup(unittest):
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        global_state.set_dtypes(c.port,views.build_dtypes_state(df))
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         pathname = path_builder(c.port)
         inputs = {
             "chart_type": "bar",
@@ -1180,9 +1178,9 @@ def test_chart_building_bar_and_popup(unittest):
         resp_data = response.get_json()["response"]
         assert (
             "frames"
-            in resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
         )
 
         inputs["y"] = ["b"]
@@ -1194,9 +1192,9 @@ def test_chart_building_bar_and_popup(unittest):
         resp_data = response.get_json()["response"]
         assert (
             "frames"
-            in resp_data["chart-content"]["children"]["props"]["children"][1][
-                "props"
-            ]["figure"]
+            in resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
+                "figure"
+            ]
         )
 
         inputs["y"] = ["b", "c"]
@@ -2104,7 +2102,7 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(rolling_data)
         build_data_inst({c.port: df})
-        global_state.set_dtypes(c.port,views.build_dtypes_state(df))
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         pathname = path_builder(c.port)
         inputs = {
             "chart_type": "treemap",
@@ -2124,9 +2122,7 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
         )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        assert (
-            len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
-        )
+        assert len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
 
         inputs["bin_type"] = "width"
         params = build_chart_params(
@@ -2134,13 +2130,11 @@ def test_chart_building_treemap_bins(rolling_data, unittest):
         )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        assert (
-            len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
-        )
+        assert len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
 
-        charts_div = resp_data["chart-content"]["children"][0]["props"]["children"][
-            0
-        ]["props"]["children"]
+        charts_div = resp_data["chart-content"]["children"][0]["props"]["children"][0][
+            "props"
+        ]["children"]
         links_div = charts_div["props"]["children"][0]["props"]["children"]
         url = links_div[0]["props"]["children"][0]["props"]["href"]
         assert url.startswith("/dtale/charts/{}?".format(c.port))
@@ -2279,9 +2273,7 @@ def test_build_axes(unittest):
     y = ["b", "c", "d"]
     yaxis_data = dict(
         type="multi",
-        data=dict(
-            b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)
-        ),
+        data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)),
     )
     mins = dict(b=2, c=5, d=8)
     maxs = dict(b=4, c=6, d=10)
@@ -2434,14 +2426,12 @@ def test_build_axes(unittest):
     )
 
     df = pd.DataFrame(dict(a=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6]))
-    build_data_inst({1:df})
+    build_data_inst({1: df})
 
     y = ["b"]
     yaxis_data = dict(
         type="multi",
-        data=dict(
-            b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)
-        ),
+        data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)),
     )
     mins = dict(b=2, c=5, d=8)
     maxs = dict(b=4, c=6, d=10)

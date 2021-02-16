@@ -25,7 +25,7 @@ def initialize_store(test_data):
         global_state.set_data(data_id, test_data)
         global_state.set_dtypes(data_id, build_dtypes_state(test_data))
         global_state.set_settings(data_id, dict(locked=[]))
-        global_state.set_name(data_id,"test_name")
+        global_state.set_name(data_id, "test_name")
         global_state.set_context_variables(
             data_id, dict(favorite_words=["foo", "bar", "baz"])
         )
@@ -46,12 +46,12 @@ def get_store_contents():
         global_state.get_history("1"),
     ]
     _get_all = [
-        {k: serialized_dataframe(v.data) for k, v in global_state.items()},
-        {k: v.dtypes for k, v in global_state.items()},
-        {k: v.settings for k, v in global_state.items()},
-        {k: v.metadata for k, v in global_state.items()},
-        {k: v.context_variables for k, v in global_state.items()},
-        {k: v.history for k, v in global_state.items()},
+        {int(k): serialized_dataframe(v.data) for k, v in global_state.items()},
+        {int(k): v.dtypes for k, v in global_state.items()},
+        {int(k): v.settings for k, v in global_state.items()},
+        {int(k): v.metadata for k, v in global_state.items()},
+        {int(k): v.context_variables for k, v in global_state.items()},
+        {int(k): v.history for k, v in global_state.items()},
     ]
     _lengths = [
         global_state.size(),
@@ -91,13 +91,12 @@ def test_cleanup(unittest, test_data):
 
 
 @pytest.mark.unit
-def test_load_flag(unittest,test_data):
+def test_load_flag(unittest, test_data):
     initialize_store(test_data)
-    global_state.set_settings("1",dict(hide_shutdown=True))
-    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown",False), True)
-    global_state.set_settings("1",dict(hide_shutdown=False))
-    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown",True), False)
-
+    global_state.set_settings("1", dict(hide_shutdown=True))
+    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown", False), True)
+    global_state.set_settings("1", dict(hide_shutdown=False))
+    unittest.assertEqual(global_state.load_flag("1", "hide_shutdown", True), False)
 
 
 @pytest.mark.unit
@@ -130,10 +129,10 @@ def test_use_store(unittest, test_data):
     class store_class:
         def __init__(self):
             self.data = dict()
-        
+
         def keys(self):
             return self.data.keys()
-        
+
         def items(self):
             return self.data.items()
 
@@ -173,7 +172,6 @@ def test_use_store(unittest, test_data):
     # Verify that it converts from the default to this store correctly
     initialize_store(test_data)
     contents_before, type_before = get_store_contents(), get_store_type()
-
 
     global_state.use_store(store_class, lambda name: store_class())
     contents_after = get_store_contents()
@@ -259,11 +257,12 @@ def test_use_redis_store(unittest, tmpdir, test_data):
 @pytest.mark.unit
 def test_build_data_id():
     import dtale.global_state as global_state
+
     global_state.cleanup()
     assert global_state.build_data_id() == 1
 
     df = pd.DataFrame([1, 2, 3, 4, 5])
     data = {str(idx + 1): df for idx in range(10)}
-    for k,v in data.items():
-        global_state.set_data(k,v)
+    for k, v in data.items():
+        global_state.set_data(k, v)
     assert global_state.build_data_id() == 11

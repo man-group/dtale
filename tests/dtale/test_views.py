@@ -26,11 +26,9 @@ app = build_app(url=URL)
 def test_head_endpoint():
     import dtale.views as views
 
-
     build_data_inst({"1": None, "2": None})
     assert views.head_endpoint() == "main/1"
     assert views.head_endpoint("test_popup") == "popup/test_popup/1"
-
 
     global_state.clear_store()
     assert views.head_endpoint() == "popup/upload"
@@ -40,6 +38,7 @@ def test_head_endpoint():
 def test_startup(unittest):
     import dtale.views as views
     import dtale.global_state as global_state
+
     global_state.clear_store()
     with ExitStack() as stack:
 
@@ -283,8 +282,8 @@ def test_processes(test_data, unittest):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: build_dtypes_state(test_data)})
-        global_state.set_metadata(c.port,dict(start=now))
-        global_state.set_name(c.port,"foo")
+        global_state.set_metadata(c.port, dict(start=now))
+        global_state.set_name(c.port, "foo")
 
         response = c.get("/dtale/processes")
         response_data = json.loads(response.data)
@@ -307,14 +306,14 @@ def test_processes(test_data, unittest):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: build_dtypes_state(test_data)})
-        global_state.set_metadata(c.port,{})
+        global_state.set_metadata(c.port, {})
         response = c.get("/dtale/processes")
         response_data = json.loads(response.data)
         assert "error" in response_data
 
 
 @pytest.mark.unit
-def test_update_settings(test_data,unittest):
+def test_update_settings(test_data, unittest):
     settings = json.dumps(dict(locked=["a", "b"]))
 
     with app.test_client() as c:
@@ -341,7 +340,7 @@ def test_update_settings(test_data,unittest):
     settings = "a"
     with app.test_client() as c:
         with ExitStack() as stack:
-            global_state.set_data(c.port,None)
+            global_state.set_data(c.port, None)
             response = c.get(
                 "/dtale/update-settings/{}".format(c.port),
                 query_string=dict(settings=settings),
@@ -387,7 +386,7 @@ def test_update_formats():
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            global_state.set_dtypes(c.port,None)
+            global_state.set_dtypes(c.port, None)
             response = c.get(
                 "/dtale/update-formats/{}".format(c.port),
                 query_string=dict(
@@ -488,7 +487,11 @@ def test_delete_col():
             c.get("/dtale/delete-col/{}/a".format(c.port))
             assert "a" not in global_state.get_data(c.port).columns
             assert (
-                next((dt for dt in global_state.get_dtypes(c.port) if dt["name"] == "a"), None) is None
+                next(
+                    (dt for dt in global_state.get_dtypes(c.port) if dt["name"] == "a"),
+                    None,
+                )
+                is None
             )
             assert len(global_state.get_settings(c.port)["locked"]) == 0
 
@@ -514,7 +517,11 @@ def test_rename_col():
             )
             assert "a" not in global_state.get_data(c.port).columns
             assert (
-                next((dt for dt in global_state.get_dtypes(c.port) if dt["name"] == "a"), None) is None
+                next(
+                    (dt for dt in global_state.get_dtypes(c.port) if dt["name"] == "a"),
+                    None,
+                )
+                is None
             )
             assert len(global_state.get_settings(c.port)["locked"]) == 1
 
@@ -595,7 +602,10 @@ def test_toggle_outlier_filter(unittest):
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
             assert resp["outlierFilters"]["a"]["query"] == "`a` > 339.75"
-            assert global_state.get_settings(c.port)["outlierFilters"]["a"]["query"] == "`a` > 339.75"
+            assert (
+                global_state.get_settings(c.port)["outlierFilters"]["a"]["query"]
+                == "`a` > 339.75"
+            )
             resp = c.get("/dtale/toggle-outlier-filter/{}/a".format(c.port))
             resp = resp.get_json()
             assert "a" not in resp["outlierFilters"]
@@ -617,11 +627,13 @@ def test_update_visibility(unittest):
                 data=dict(visibility=json.dumps({"a": True, "b": True, "c": False})),
             )
             unittest.assertEqual(
-                [True, True, False], [col["visible"] for col in global_state.get_dtypes(c.port)]
+                [True, True, False],
+                [col["visible"] for col in global_state.get_dtypes(c.port)],
             )
             c.post("/dtale/update-visibility/{}".format(c.port), data=dict(toggle="c"))
             unittest.assertEqual(
-                [True, True, True], [col["visible"] for col in global_state.get_dtypes(c.port)]
+                [True, True, True],
+                [col["visible"] for col in global_state.get_dtypes(c.port)],
             )
 
             resp = c.post("/dtale/update-visibility/-1", data=dict(toggle="foo"))
@@ -838,7 +850,12 @@ def test_build_column_bins():
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="cut2", cfg=json.dumps(cfg)),
             )
-            assert global_state.get_data(c.port)["cut2"].values[0] in ["foo", "bar", "biz", "baz"]
+            assert global_state.get_data(c.port)["cut2"].values[0] in [
+                "foo",
+                "bar",
+                "biz",
+                "baz",
+            ]
             assert global_state.get_dtypes(c.port)[-1]["name"] == "cut2"
             assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
 
@@ -870,7 +887,12 @@ def test_build_column_bins():
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(type="bins", name="qcut2", cfg=json.dumps(cfg)),
             )
-            assert global_state.get_data(c.port)["qcut2"].values[0] in ["foo", "bar", "biz", "baz"]
+            assert global_state.get_data(c.port)["qcut2"].values[0] in [
+                "foo",
+                "bar",
+                "biz",
+                "baz",
+            ]
             assert global_state.get_dtypes(c.port)[-1]["name"] == "qcut2"
             assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
 
@@ -892,6 +914,7 @@ def test_cleanup_error(unittest):
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_reshape(custom_data, unittest):
     from dtale.views import build_dtypes_state
+
     global_state.clear_store()
     with app.test_client() as c:
         data = {c.port: custom_data}
@@ -916,7 +939,8 @@ def test_reshape(custom_data, unittest):
             assert response_data["data_id"] == new_key
             assert len(global_state.keys()) == 2
             unittest.assertEqual(
-                [d["name"] for d in global_state.get_dtypes(new_key)], ["date", "100000", "100001"]
+                [d["name"] for d in global_state.get_dtypes(new_key)],
+                ["date", "100000", "100001"],
             )
             assert len(global_state.get_data(new_key)) == 365
             assert global_state.get_settings(new_key).get("startup_code") is not None
@@ -997,7 +1021,8 @@ def test_reshape(custom_data, unittest):
             assert response_data["data_id"] == new_key
             assert len(global_state.keys()) == 2
             unittest.assertEqual(
-                [d["name"] for d in global_state.get_dtypes(new_key)], ["date", "Col0", "Col1"]
+                [d["name"] for d in global_state.get_dtypes(new_key)],
+                ["date", "Col0", "Col1"],
             )
             assert len(global_state.get_data(new_key)) == 365
             assert global_state.get_settings(new_key).get("startup_code") is not None
@@ -1032,7 +1057,9 @@ def test_reshape(custom_data, unittest):
             assert "error" in response_data
 
             min_date = custom_data["date"].min().strftime("%Y-%m-%d")
-            global_state.set_settings(c.port,dict(query="date == '{}'".format(min_date)))
+            global_state.set_settings(
+                c.port, dict(query="date == '{}'".format(min_date))
+            )
             reshape_cfg = dict(index=["date", "security_id"], columns=["Col0"])
             resp = c.get(
                 "/dtale/reshape/{}".format(c.port),
@@ -1136,6 +1163,7 @@ def test_dtypes(test_data):
 @pytest.mark.unit
 def test_variance(unittest):
     from dtale.views import build_dtypes_state, format_data
+
     global_state.clear_store()
     with open(
         os.path.join(os.path.dirname(__file__), "..", "data/test_variance.json"), "r"
@@ -1212,10 +1240,7 @@ def test_test_filter(test_data):
         )
         response_data = json.loads(response.data)
         assert not response_data["success"]
-        assert (
-            response_data["error"]
-            == 'query "bar > 1.5" found no data, please alter'
-        )
+        assert response_data["error"] == 'query "bar > 1.5" found no data, please alter'
 
         response = c.get(
             "/dtale/test-filter/{}".format(c.port),
@@ -1519,7 +1544,7 @@ def test_get_data(unittest, test_data):
 
             tmp = global_state.get_data(c.port).copy()
             tmp["biz"] = 2.5
-            global_state.set_data(c.port ,tmp)
+            global_state.set_data(c.port, tmp)
             response = c.get(
                 "/dtale/data/{}".format(c.port),
                 query_string=dict(ids=json.dumps(["1"])),
@@ -1675,7 +1700,7 @@ def test_get_column_analysis(unittest, test_data):
                 expected,
                 "should return 5-bin histogram for foo",
             )
-            global_state.set_settings(c.port,dict(query="security_id > 10"))
+            global_state.set_settings(c.port, dict(query="security_id > 10"))
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", bins=5),
@@ -1708,7 +1733,7 @@ def test_get_column_analysis(unittest, test_data):
                 expected,
                 "should return a filtered 5-bin histogram for foo",
             )
-            global_state.set_settings(c.port,{})
+            global_state.set_settings(c.port, {})
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", type="value_counts", top=2),
@@ -2545,6 +2570,7 @@ def test_version_info():
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_chart_exports(custom_data, state_data):
     import dtale.views as views
+
     global_state.clear_store()
     with app.test_client() as c:
         with ExitStack() as stack:
@@ -2756,6 +2782,7 @@ def test_chart_png_export(custom_data, state_data):
 @pytest.mark.unit
 def test_main():
     import dtale.views as views
+
     global_state.clear_store()
     test_data = pd.DataFrame(
         build_ts_data(), columns=["date", "security_id", "foo", "bar"]
@@ -2763,7 +2790,7 @@ def test_main():
     test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
-        global_state.set_name(c.port,"test_name")
+        global_state.set_name(c.port, "test_name")
         build_settings({c.port: dict(locked=[])})
         response = c.get("/dtale/main/{}".format(c.port))
         assert "<title>D-Tale (test_name)</title>" in str(response.data)
@@ -2778,16 +2805,14 @@ def test_main():
         response = c.get(
             "/dtale/popup/reshape/{}".format(c.port), query_string=dict(col="foo")
         )
-        assert (
-            "<title>D-Tale (test_name) - Summarize Data (col: foo)</title>"
-            in str(response.data)
+        assert "<title>D-Tale (test_name) - Summarize Data (col: foo)</title>" in str(
+            response.data
         )
         response = c.get(
             "/dtale/popup/filter/{}".format(c.port), query_string=dict(col="foo")
         )
-        assert (
-            "<title>D-Tale (test_name) - Custom Filter (col: foo)</title>"
-            in str(response.data)
+        assert "<title>D-Tale (test_name) - Custom Filter (col: foo)</title>" in str(
+            response.data
         )
 
     with app.test_client() as c:
@@ -2823,17 +2848,17 @@ def test_200():
         for path in paths:
             final_path = path.format(port=c.port)
             response = c.get(final_path)
-            assert (
-                response.status_code == 200
-            ), "{} should return 200 response".format(final_path)
+            assert response.status_code == 200, "{} should return 200 response".format(
+                final_path
+            )
     with app.test_client(app_root="/test_route") as c:
         build_data_inst({c.port: None})
         for path in paths:
             final_path = path.format(port=c.port)
             response = c.get(final_path)
-            assert (
-                response.status_code == 200
-            ), "{} should return 200 response".format(final_path)
+            assert response.status_code == 200, "{} should return 200 response".format(
+                final_path
+            )
 
 
 @pytest.mark.unit
@@ -2964,23 +2989,23 @@ def test_build_context_variables():
 
     # verify that pre-existing variables are not dropped when new ones are added
     with ExitStack() as stack:
-        global_state.set_context_variables(data_id,views.build_context_variables(
-            data_id, {"1": "cat"}
-        )) 
-        global_state.set_context_variables(data_id,views.build_context_variables(
-            data_id, {"2": "dog"}
-            ))
+        global_state.set_context_variables(
+            data_id, views.build_context_variables(data_id, {"1": "cat"})
+        )
+        global_state.set_context_variables(
+            data_id, views.build_context_variables(data_id, {"2": "dog"})
+        )
         assert (global_state.get_context_variables(data_id)["1"] == "cat") & (
             global_state.get_context_variables(data_id)["2"] == "dog"
         )
     # verify that new values will replace old ones if they share the same name
     with ExitStack() as stack:
-        global_state.set_context_variables(data_id,views.build_context_variables(
-            data_id, {"1": "cat"}
-        ))
-        global_state.set_context_variables(data_id,views.build_context_variables(
-            data_id, {"1": "dog"}
-        ))
+        global_state.set_context_variables(
+            data_id, views.build_context_variables(data_id, {"1": "cat"})
+        )
+        global_state.set_context_variables(
+            data_id, views.build_context_variables(data_id, {"1": "dog"})
+        )
         assert global_state.get_context_variables(data_id)["1"] == "dog"
 
 
@@ -2999,7 +3024,7 @@ def test_get_filter_info(unittest):
                 dict(name=k, value=str(v)[:1000]) for k, v in context_vars.items()
             ]
             build_data_inst({data_id: None})
-            global_state.set_context_variables(data_id,context_vars)
+            global_state.set_context_variables(data_id, context_vars)
             response = c.get("/dtale/filter-info/{}".format(data_id))
             response_data = json.loads(response.data)
             assert response_data["success"]
@@ -3011,12 +3036,10 @@ def test_get_filter_info(unittest):
 
     with app.test_client() as c:
         with ExitStack() as stack:
-            global_state.set_context_variables(data_id,None)
+            global_state.set_context_variables(data_id, None)
             response = c.get("/dtale/filter-info/{}".format(data_id))
             response_data = json.loads(response.data)
-            unittest.assertEqual(
-                len(response_data["contextVars"]),0
-                )
+            unittest.assertEqual(len(response_data["contextVars"]), 0)
 
 
 @pytest.mark.unit

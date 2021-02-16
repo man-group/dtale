@@ -44,7 +44,6 @@ def test_columns(unittest):
         list(global_state.get_data(new_data_id).columns), ["Foo", "fOo", "foO", "bar"]
     )
 
-
     data = {data_id: duplicates_data()}
     build_data_inst(data)
 
@@ -55,15 +54,15 @@ def test_columns(unittest):
         list(global_state.get_data(new_data_id).columns), ["foo", "fOo", "foO", "bar"]
     )
 
-
     data = {data_id: duplicates_data()}
     build_data_inst(data)
 
     builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
     unittest.assertEqual(builder.test(), {"Foo": ["foo"]})
     new_data_id = builder.execute()
-    unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["fOo", "foO", "bar"])
-
+    unittest.assertEqual(
+        list(global_state.get_data(new_data_id).columns), ["fOo", "foO", "bar"]
+    )
 
     data = {data_id: duplicates_data().drop(["fOo", "foO", "bar"], axis=1)}
     build_data_inst(data)
@@ -71,7 +70,6 @@ def test_columns(unittest):
     builder = DuplicateCheck(data_id, duplicates_type, {"keep": "none"})
     with pytest.raises(RemoveAllDataException):
         builder.execute()
-
 
     data = {data_id: non_duplicate_data()}
     build_data_inst(data)
@@ -91,7 +89,9 @@ def test_column_names(unittest):
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "first"})
         unittest.assertEqual(builder.test(), {"foo": ["Foo", "foo", "fOo", "foO"]})
         new_data_id = builder.execute()
-        unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["Foo", "bar"])
+        unittest.assertEqual(
+            list(global_state.get_data(new_data_id).columns), ["Foo", "bar"]
+        )
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
@@ -100,7 +100,9 @@ def test_column_names(unittest):
         builder = DuplicateCheck(data_id, duplicates_type, {"keep": "last"})
         unittest.assertEqual(builder.test(), {"foo": ["Foo", "foo", "fOo", "foO"]})
         new_data_id = builder.execute()
-        unittest.assertEqual(list(global_state.get_data(new_data_id).columns), ["foO", "bar"])
+        unittest.assertEqual(
+            list(global_state.get_data(new_data_id).columns), ["foO", "bar"]
+        )
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
@@ -206,7 +208,9 @@ def test_show_duplicates(unittest):
         )
         new_data_id = builder.execute()
         assert new_data_id == 2
-        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3, 4, 5])
+        unittest.assertEqual(
+            global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3, 4, 5]
+        )
 
     with ExitStack() as stack:
         data = {data_id: duplicates_data()}
@@ -216,7 +220,9 @@ def test_show_duplicates(unittest):
             data_id, duplicates_type, {"group": ["foO", "bar"], "filter": ["4", "5"]}
         )
         new_data_id = builder.execute()
-        unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3])
+        unittest.assertEqual(
+            global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3]
+        )
 
 
 @pytest.mark.unit
@@ -229,7 +235,7 @@ def test_view(unittest):
         dtypes = {c.port: build_dtypes_state(df)}
         with ExitStack() as stack:
             build_data_inst(data)
-            global_state.set_dtypes(c.port,build_dtypes_state(df))
+            global_state.set_dtypes(c.port, build_dtypes_state(df))
             resp = c.get(
                 "/dtale/duplicates/{}".format(c.port),
                 query_string=dict(

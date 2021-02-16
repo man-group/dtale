@@ -23,6 +23,7 @@ def build_upload_data(
 def test_upload(unittest):
     import dtale.views as views
     import dtale.global_state as global_state
+
     global_state.clear_store()
     df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
     with build_app(url=URL).test_client() as c:
@@ -183,6 +184,7 @@ def test_web_upload(unittest):
 @pytest.mark.unit
 def test_covid_dataset():
     global_state.clear_store()
+
     def mock_load_csv(**kwargs):
         if (
             kwargs.get("path")
@@ -208,6 +210,7 @@ def test_covid_dataset():
 @pytest.mark.unit
 def test_seinfeld_dataset():
     global_state.clear_store()
+
     def mock_load_csv(**kwargs):
         return pd.DataFrame(dict(SEID=["a"]))
 

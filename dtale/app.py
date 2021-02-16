@@ -79,7 +79,7 @@ class DtaleFlaskTesting(FlaskClient):
         self.port = kwargs.pop("port", str(random.randint(0, 65535))) or str(
             random.randint(0, 65535)
         )
-        self.port=int(self.port)
+        self.port = int(self.port)
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
         self.application.config["SERVER_NAME"] = "{host}:{port}".format(
             host=self.host, port=self.port
@@ -752,6 +752,7 @@ def instances():
     Prints all urls to the current pieces of data being viewed
     """
     if global_state.size() > 0:
+
         def _instance_msgs():
             for data_id in global_state.keys():
                 data_obj = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST))

@@ -30,6 +30,9 @@ def test_run_query():
 @pytest.mark.unit
 def test_build_query():
     import dtale.global_state as global_state
-    data_id=global_state.new_data_inst()
-    global_state.set_settings(data_id,{"columnFilters": {"foo": {"query": "`foo` == 1"}}})
+
+    data_id = global_state.new_data_inst()
+    global_state.set_settings(
+        data_id, {"columnFilters": {"foo": {"query": "`foo` == 1"}}}
+    )
     assert query.build_query(data_id) == "`foo` == 1"

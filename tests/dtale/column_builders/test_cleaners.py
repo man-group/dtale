@@ -100,6 +100,7 @@ def test_normalize_accents(unittest):
         def test(col):
             unittest.assertEqual(col.values[0], "naive cafe")
             return True
+
         verify_builder(builder, test)
 
 

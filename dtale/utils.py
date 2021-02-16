@@ -282,7 +282,6 @@ def json_date(x, fmt="%Y-%m-%d %H:%M:%S", nan_display="", **kwargs):
 def json_timestamp(x, nan_display="", **kwargs):
     """
     Convert value to timestamp (milliseconds) to be used within JSON output
-
     :param x: value to be converted to milliseconds
     :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: millisecond value
@@ -290,7 +289,7 @@ def json_timestamp(x, nan_display="", **kwargs):
     """
     try:
         output = pd.Timestamp(x) if isinstance(x, np.datetime64) else x
-        output = x.timestamp() * 1000
+        output = int(output.timestamp() * 1000)
         return str(output) if kwargs.get("as_string", False) else output
     except BaseException:
         return nan_display

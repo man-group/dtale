@@ -225,9 +225,7 @@ def test_view(unittest):
         build_dtypes(dtypes)
         resp = c.get(
             "/dtale/build-replacement/{}".format(c.port),
-            query_string=dict(
-                type="not_implemented", name="test", cfg=json.dumps({})
-            ),
+            query_string=dict(type="not_implemented", name="test", cfg=json.dumps({})),
         )
         response_data = resp.json
         assert (
@@ -243,9 +241,7 @@ def test_view(unittest):
                 {"value": [dict(value="nan", type="raw", replace="for test")]}
             ),
         )
-        resp = c.get(
-            "/dtale/build-replacement/{}".format(c.port), query_string=params
-        )
+        resp = c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
         response_data = resp.json
         assert response_data["error"] == "A column named 'a' already exists!"
 
@@ -258,17 +254,15 @@ def test_view(unittest):
             ),
         )
         c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
-        unittest.assertEqual(
-            list(data[c.port]["e2"].values), ["a", "for test", "b"]
-        )
-        dtypes=global_state.get_dtypes(c.port)
+        unittest.assertEqual(list(data[c.port]["e2"].values), ["a", "for test", "b"])
+        dtypes = global_state.get_dtypes(c.port)
         assert dtypes[-1]["name"] == "e2"
         assert dtypes[-1]["dtype"] == "string" if PY3 else "mixed"
         assert not dtypes[-1]["hasMissing"]
 
         del params["name"]
         c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
-        dtypes=global_state.get_dtypes(c.port)
+        dtypes = global_state.get_dtypes(c.port)
         unittest.assertEqual(list(data[c.port]["e"].values), ["a", "for test", "b"])
         e_dtype = next((d for d in dtypes if d["name"] == "e"))
         assert not e_dtype["hasMissing"]

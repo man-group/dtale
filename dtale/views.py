@@ -172,8 +172,8 @@ class DtaleData(object):
     """
 
     def __init__(self, data_id, url):
-        if data_id!=None:
-            data_id=int(data_id)
+        if data_id != None:
+            data_id = int(data_id)
         self._data_id = data_id
         self._url = url
         self._main_url = self.build_main_url()
@@ -885,9 +885,7 @@ def startup(
                 )
             )
             curr_locked = curr_index
-            global_state.set_metadata(
-                data_id, dict(start=pd.Timestamp("now"))
-            )
+            global_state.set_metadata(data_id, dict(start=pd.Timestamp("now")))
         global_state.set_name(data_id, name)
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         base_settings = dict(
@@ -950,7 +948,7 @@ def _view_main(data_id, iframe=False):
     :return: HTML
     """
     title = "D-Tale"
-    name=global_state.get_name(data_id)
+    name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
     return base_render_template("dtale/main.html", data_id, title=title, iframe=iframe)
@@ -1020,7 +1018,7 @@ def view_popup(popup_type, data_id=None):
     if data_id is None and popup_type not in ["upload", "merge"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
     title = "D-Tale"
-    name=global_state.get_name(data_id)
+    name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
     popup_title = POPUP_TITLES.get(popup_type) or " ".join(
@@ -2219,7 +2217,7 @@ def get_data(data_id):
         for sub_range in ids:
             sub_range = list(map(int, sub_range.split("-")))
             if len(sub_range) == 1:
-                sub_df = data.iloc[sub_range[0]: sub_range[0] + 1]
+                sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
                 sub_df = f.format_dicts(sub_df.itertuples())
                 results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
             else:
@@ -2227,7 +2225,7 @@ def get_data(data_id):
                 sub_df = (
                     data.iloc[start:]
                     if end >= len(data) - 1
-                    else data.iloc[start: end + 1]
+                    else data.iloc[start : end + 1]
                 )
                 sub_df = f.format_dicts(sub_df.itertuples())
                 for i, d in zip(range(start, end + 1), sub_df):
@@ -2889,7 +2887,7 @@ def get_scatter(data_id):
     if rolling:
         window = get_int_arg(request, "window")
         idx = min(data[data[date_col] == date].index) + 1
-        data = data.iloc[max(idx - window, 0): idx]
+        data = data.iloc[max(idx - window, 0) : idx]
         data = data[cols + [date_col]].dropna(how="any")
         y_cols.append(date_col)
         code.append(
@@ -3281,7 +3279,7 @@ def build_row_text(data_id):
     else:
         start = int(start)
         end = int(end)
-        data = data.iloc[(start - 1): end, :]
+        data = data.iloc[(start - 1) : end, :]
     return data[columns].to_csv(index=False, sep="\t", header=False)
 
 

@@ -138,11 +138,9 @@ def test_show(unittest):
             mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
         )
         mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
-        instance = show(
-            data=test_data, subprocess=False, ignore_duplicate=True
-        )
+        instance = show(data=test_data, subprocess=False, ignore_duplicate=True)
         assert "http://localhost:9999" == instance._url
-        #removed name. wait for proper data name implementation.
+        # removed name. wait for proper data name implementation.
         # TODO: test data name after implementation.
         assert "http://localhost:9999/dtale/main/1" == instance.main_url()
         mock_run.assert_called_once()
@@ -160,7 +158,7 @@ def test_show(unittest):
 
         instance2 = get_instance(instance._data_id)
         assert instance2._url == instance._url
-         #removed data name test. wait for proper data name implementation.
+        # removed data name test. wait for proper data name implementation.
 
         instances()
 
@@ -169,9 +167,9 @@ def test_show(unittest):
         instance.kill()
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://localhost:9999/shutdown"
-        
-        #removed name. wait for proper data name implementation.
-        #assert global_state.get_name(1) == "foo"
+
+        # removed name. wait for proper data name implementation.
+        # assert global_state.get_name(1) == "foo"
 
         instance3 = show(
             data=test_data, subprocess=False, name="It's Here", ignore_duplicate=True
@@ -491,7 +489,7 @@ def test_show_ngrok(unittest, builtin_pkg):
         instance.kill()
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://ngrok_host/shutdown"
-        #assert global_state.get_name(1) == "foo"
+        # assert global_state.get_name(1) == "foo"
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.USE_NGROK", True))
@@ -545,8 +543,8 @@ def test_show_jupyter_server_proxy(unittest):
         assert mock_requests.call_args[0][0] == "/user/{}/proxy/40000/shutdown".format(
             getpass.getuser()
         )
-        # remove name check. waiting for proper impl. 
-        #assert global_state.get_name(1) == "foo"
+        # remove name check. waiting for proper impl.
+        # assert global_state.get_name(1) == "foo"
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))

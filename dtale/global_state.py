@@ -111,7 +111,6 @@ class DtaleInstance:
 
 
 class DefaultStore:
-
     def __init__(self):
         self._data_store = dict()
         self._data_names = dict()
@@ -137,7 +136,7 @@ class DefaultStore:
     def items(self):
         return self._data_store.items()
 
-    #this should be a property but somehow it stays 0 no matter what.
+    # this should be a property but somehow it stays 0 no matter what.
     def size(self):
         return len(self._data_store)
 
@@ -250,15 +249,23 @@ It's here for backward compatiability reasons.
 It may trigger linter errors in other py files because functions are not statically exported.
 """
 _default_store = DefaultStore()
-fn_list = list(filter(
-    lambda x: not x.startswith("_"),
-    [x[0] for x in inspect.getmembers(DefaultStore)]))
+fn_list = list(
+    filter(
+        lambda x: not x.startswith("_"),
+        [x[0] for x in inspect.getmembers(DefaultStore)],
+    )
+)
 for fn_name in fn_list:
     globals()[fn_name] = getattr(_default_store, fn_name)
 
 
 # for tests. default_store is always initialized.
 def use_default_store():
+    new_store = dict()
+    for k, v in _as_dict(_default_store.store).items():
+        new_store[int(k)] = v
+    _default_store.store.clear()
+    _default_store.store = new_store
     pass
 
 
