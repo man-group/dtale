@@ -599,7 +599,7 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype_data["coord"] = coord_type(s)
 
         if classification in ["D"] and not s.isnull().all():
-            timestamps = apply(s, json_timestamp)
+            timestamps = apply(s, lambda x: json_timestamp(x, np.nan))
             dtype_data["skew"] = json_float(timestamps.skew())
             dtype_data["kurt"] = json_float(timestamps.kurt())
 
