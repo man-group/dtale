@@ -34,6 +34,8 @@ function loadingDatasets(state = false, action = {}) {
 
 function loadingError(state = null, action = {}) {
   switch (action.type) {
+    case "clear-errors":
+      return null;
     case "load-instances":
       return action.instances.error ? action.instances : null;
     default:
@@ -56,8 +58,10 @@ function loadingMerge(state = false, action = {}) {
 function mergeError(state = null, action = {}) {
   switch (action.type) {
     case "load-merge":
-      return null;
     case "load-merge-data":
+    case "clear-errors":
+      return null;
+    case "load-merge-error":
       return action.error || null;
     default:
       return state;

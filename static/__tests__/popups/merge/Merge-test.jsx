@@ -87,6 +87,26 @@ describe("DataViewer tests", () => {
     expect(store.getState().mergeDataId).toBeNull();
   });
 
+  it("MergeDatasets: merge error", async () => {
+    let mergeDatasets = result.find("ReactMergeDatasets");
+    expect(mergeDatasets.instance().props.instances).toHaveLength(4);
+    const datasetBtn = mergeDatasets.find("ul").at(2).find("button").at(2);
+    datasetBtn.simulate("click");
+    datasetBtn.simulate("click");
+    mergeDatasets = result.find("ReactMergeDatasets");
+    expect(mergeDatasets.instance().props.datasets).toHaveLength(2);
+    postSpy.mockImplementation((_url, _params, callback) => callback({ success: false, error: "Bad Merge" }));
+    mergeDatasets.find("ReactMergeOutput").find("button").simulate("click");
+    await tickUpdate(result);
+    result.update();
+    expect(postSpy).toHaveBeenCalled();
+    expect(result.find("RemovableError")).toHaveLength(1);
+    expect(result.find("RemovableError").props().error).toBe("Bad Merge");
+    result.find("RemovableError").props().onRemove();
+    result.update();
+    expect(result.find("RemovableError")).toHaveLength(0);
+  });
+
   it("MergeDatasets: stack", async () => {
     let mergeDatasets = result.find("ReactMergeDatasets");
     const actionConfig = mergeDatasets.find("ReactActionConfig");
