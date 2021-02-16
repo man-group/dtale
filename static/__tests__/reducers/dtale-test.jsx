@@ -31,6 +31,7 @@ describe("reducer tests", () => {
       filteredRanges: {},
       settings: {},
       pythonVersion: null,
+      isPreview: false,
     };
     expect(state).toEqual(store.getState());
   });

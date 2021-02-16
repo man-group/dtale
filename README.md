@@ -81,7 +81,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Charts](#charts)
@@ -632,6 +632,18 @@ This video shows you how to build the following:
  - Dates: retrieving date properties (hour, weekday, month...) as well as conversions (month end)
  - Random: columns of data type (int, float, string & date) populated with random uniformly distributed values.
   - Type Conversion: switch columns from one data type to another, fun. :smile:
+
+
+#### Merge & Stack
+
+[![](http://img.youtube.com/vi/ignDS6OaGVQ/0.jpg)](http://www.youtube.com/watch?v=ignDS6OaGVQ "Merge & Stack")
+
+This feature allows users to merge or stack (vertically concatenate) dataframes they have loaded into D-Tale.  They can also upload additional data to D-Tale while wihin this feature.  The demo shown above goes over the following actions:
+- Editing of parameters to either a pandas merge or stack (vertical concatenation) of dataframes
+  - Viewing direct examples of each from the pandas documentation
+- Selection of dataframes
+- Uploading of additional dataframes from an excel file
+- Viewing code & resulting data from a merge or stack
 
 #### Summarize Data
 

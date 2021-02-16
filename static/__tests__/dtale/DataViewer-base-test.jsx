@@ -60,10 +60,11 @@ describe("DataViewer tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Summarize Data", "Duplicates"],
-        ["Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes"],
-        ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
-        ["Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Shutdown"]
+        ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Merge & Stack", "Summarize Data"],
+        ["Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
+        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
+        ["Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data"],
+        ["Shutdown"]
       )
     );
     await tick();

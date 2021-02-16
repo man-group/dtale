@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.35.0 (2021-2-14)
+* [#261](https://github.com/man-group/dtale/issues/261): Merging & Stacking UI
+
 ### 1.34.0 (2021-2-7)
 * [#423](https://github.com/man-group/dtale/issues/423): y-axis scale toggle
 * [#422](https://github.com/man-group/dtale/issues/422): sheet selection on excel uploads

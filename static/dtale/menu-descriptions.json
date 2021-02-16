@@ -23,5 +23,6 @@
   "theme": "Toggle between light & dark themes for your viewing pleasure (only affects grid, not popups or charts).",
   "pps": "PPS is an asymmetric, data-type-agnostic score that can detect linear or non-linear relationships between two columns. The score ranges from 0 (no predictive power) to 1 (perfect predictive power). It can be used as an alternative to the correlation (matrix). WARNING: This could take a while to load.",
   "network": "If you're currently viewing data containing information for a directed graph then try feeding it into our \"Network Viewer\"",
-  "reload_data": "Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website."
+  "reload_data": "Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.",
+  "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for taht purpose."
 }

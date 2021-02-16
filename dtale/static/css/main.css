@@ -1,49 +1,65 @@
-body.dark-mode {
+body.dark-mode,
+div.preview.dark-mode {
   background-color: black !important;
   color: white !important;
 }
 
-body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar {
+div.preview.light-mode {
+  background-color: white !important;
+  color: black !important;
+}
+
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar,
+div.preview.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar {
   border-color: white !important;
   width: 5px !important;
   height: 5px !important;
 }
 
-body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-track {
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-track,
+div.preview.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-track {
   border: none !important;
 }
 
-body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-thumb {
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-thumb,
+div.preview.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-thumb {
   background-color: white !important;
   border-width: 0px;
   border-radius: 5px !important;
 }
 
-body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-corner {
+body.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-corner,
+div.preview.dark-mode div.ReactVirtualized__Grid::-webkit-scrollbar-corner {
   border-width: 0;
 }
 
-body.dark-mode .cell.editable:hover {
+body.dark-mode .cell.editable:hover,
+div.preview.dark-mode .cell.editable:hover {
   color: black;
 }
 
-body.dark-mode div.dz-message > span {
+body.dark-mode div.dz-message > span,
+div.preview.dark-mode div.dz-message > span {
   color: black;
 }
 
-body.dark-mode [class^='ico-'] {
+body.dark-mode [class^='ico-'],
+div.preview.dark-mode [class^='ico-'] {
   color: #656c7e;
 }
 
-body.dark-mode div.background {
+body.dark-mode div.background,
+div.preview.dark-mode div.background {
   color: black;
 }
 
-body.dark-mode div.background:hover {
+body.dark-mode div.background:hover,
+div.preview.dark-mode div.background:hover {
   font-weight: bold;
 }
 
-body.dark-mode div.modal-content div.modal-resizable {
+body.dark-mode div.modal-content div.modal-resizable,
+div.preview.dark-mode div.modal-content div.modal-resizable {
   color: black;
 }
 
@@ -80,7 +96,7 @@ body.dark-mode div.container-fluid.correlations dt {
 }
 
 @charset "UTF-8";
-.logo--man-grail::before, .app-security__collapse-button::before, .btn-settings::before, .btn-hint::before, [class^='ico-']::before, .rejected .badge::before, .review .badge::before, .unapproved .badge::before, .cleared .badge::before, .approved .badge::before {
+.btn-settings::before, .btn-hint::before, [class^='ico-']::before, .rejected .badge::before, .review .badge::before, .unapproved .badge::before, .cleared .badge::before, .approved .badge::before {
   display: inline-block;
   vertical-align: middle;
   text-align: center;
@@ -8368,25 +8384,6 @@ div.debug {
   margin: 0;
   line-height: 1;
   font-size: 1.27rem;
-}
-
-.logo--man-grail {
-  display: inline-block;
-  padding: .5rem 2rem 0 1rem;
-  font-weight: normal;
-}
-
-@media (max-width: 991px) {
-  .logo--man-grail {
-    padding-right: 1em;
-  }
-}
-
-.logo--man-grail::before {
-  margin-right: .3em;
-  margin-bottom: .2em;
-  font-size: 2rem;
-  content: "";
 }
 
 .app-header__nav--main a, .app-header__nav--secondary a {
