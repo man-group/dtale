@@ -46,7 +46,7 @@ def build_code_data(datasets, is_merge=False):
 
     for idx, dataset in enumerate(datasets, 1):
         code.append(
-            "df{idx} = dtale.get_instance('{id}'){index}{cols}".format(
+            "df{idx} = dtale.get_instance('{id}').data{index}{cols}".format(
                 idx=idx,
                 id=dataset["dataId"],
                 index="" if is_merge else build_idx(dataset["index"]),
