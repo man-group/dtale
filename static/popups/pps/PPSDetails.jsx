@@ -30,7 +30,7 @@ export default class PPSDetails extends React.Component {
         </li>
         <li>
           {"Is Valid Score: "}
-          {buildSpan(ppsInfo.is_valid_score ? "Yes" : "No")}
+          {buildSpan(ppsInfo.is_valid_score === "True" ? "Yes" : "No")}
         </li>
         <li>
           {"Score: "}
