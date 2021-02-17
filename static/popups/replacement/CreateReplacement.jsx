@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
@@ -23,13 +24,6 @@ const TYPES = [
   ["strings", "Contains Char/Substring", colType => colType === "string"],
   ["imputer", "Scikit-Learn Imputer", colType => _.includes(["float", "int"], colType)],
 ];
-
-const TYPE_DESC = {
-  value: "Replace specific values in a column",
-  spaces: "Replace strings which consist of spaces only",
-  strings: "Replace string values which contain either a specific character or substring",
-  imputer: "Use Scikit-Learn imputers (iterative, KNN or simple) to fill in nan numeric values",
-};
 
 class ReactCreateReplacement extends React.Component {
   constructor(props) {
@@ -69,6 +63,7 @@ class ReactCreateReplacement extends React.Component {
   }
 
   save() {
+    const { t } = this.props;
     const col = _.get(this.props, "chartData.selectedCol");
     const { columns, type, cfg, saveAs, name } = this.state;
     if (_.find(this.state.columns, { name })) {
@@ -80,25 +75,25 @@ class ReactCreateReplacement extends React.Component {
     let error;
     switch (type) {
       case "spaces":
-        error = validateSpacesCfg(cfg);
+        error = validateSpacesCfg(t, cfg);
         break;
       case "strings":
-        error = validateStringsCfg(cfg);
+        error = validateStringsCfg(t, cfg);
         break;
       case "imputer":
-        error = validateImputerCfg(cfg);
+        error = validateImputerCfg(t, cfg);
         break;
       case "values":
       default:
-        error = validateValueCfg(cfg);
+        error = validateValueCfg(t, cfg);
         break;
     }
     const createParams = { col, type, cfg: JSON.stringify(cfg) };
     if (saveAs === "new") {
       if (_.isNull(name) || name === "") {
-        error = "Please enter a name!";
+        error = t("Please enter a name!");
       } else if (_.find(columns, { name })) {
-        error = `A column already exists with the name, ${name}!`;
+        error = `${t("A column already exists with the name,")} ${name}!`;
       } else {
         createParams.name = name;
       }
@@ -128,6 +123,7 @@ class ReactCreateReplacement extends React.Component {
   }
 
   renderBody() {
+    const { t } = this.props;
     const col = _.get(this.props, "chartData.selectedCol");
     const { columns, colType, types } = this.state;
     const updateState = state => {
@@ -157,7 +153,7 @@ class ReactCreateReplacement extends React.Component {
       <div key="body" className="modal-body">
         <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Replacement Type</label>
+          <label className="col-md-3 col-form-label text-right">{t("replacement:Replacement Type")}</label>
           <div className="col-md-8">
             <div className="btn-group">
               {_.map(types, ([type, label, _filterer], i) => {
@@ -170,12 +166,12 @@ class ReactCreateReplacement extends React.Component {
                 }
                 return (
                   <button key={i} {...buttonProps}>
-                    {label}
+                    {t(`replacement:${label}`)}
                   </button>
                 );
               })}
             </div>
-            {this.state.type && <small className="d-block pt-3">{TYPE_DESC[this.state.type]}</small>}
+            {this.state.type && <small className="d-block pt-3">{t(`replacement:${this.state.type}`)}</small>}
           </div>
         </div>
         {body}
@@ -209,7 +205,7 @@ class ReactCreateReplacement extends React.Component {
       }
       return (
         <div className="col" style={{ paddingRight: 0 }}>
-          <span className="pr-3">Code:</span>
+          <span className="pr-3">{this.props.t("reshape:Code")}:</span>
           {markup}
         </div>
       );
@@ -235,7 +231,7 @@ class ReactCreateReplacement extends React.Component {
         {this.renderCode()}
         <button className="btn btn-primary" onClick={this.state.loadingColumn ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingReplacement}>
-            <span>Replace</span>
+            <span>{this.props.t("replacement:Replace")}</span>
           </BouncerWrapper>
         </button>
       </div>,
@@ -250,10 +246,11 @@ ReactCreateReplacement.propTypes = {
     selectedCol: PropTypes.string,
   }),
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactCreateReplacement = withTranslation(["reshape", "replacement"])(ReactCreateReplacement);
 const ReduxCreateReplacement = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactCreateReplacement);
-export { ReactCreateReplacement, ReduxCreateReplacement as CreateReplacement };
+)(TranslateReactCreateReplacement);
+export { TranslateReactCreateReplacement as ReactCreateReplacement, ReduxCreateReplacement as CreateReplacement };

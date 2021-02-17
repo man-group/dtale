@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import AsyncValueSelect from "./AsyncValueSelect";
 import ValueSelect from "./ValueSelect";
@@ -169,7 +170,7 @@ class NumericFilter extends React.Component {
                   style={active ? {} : { color: "#565b68" }}
                   className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
                   onClick={() => this.updateState({ operand })}
-                  title={hint}
+                  title={this.props.t(hint)}
                   disabled={active || this.props.missing}>
                   {operand}
                 </button>
@@ -193,6 +194,7 @@ NumericFilter.propTypes = {
   min: PropTypes.number,
   max: PropTypes.number,
   missing: PropTypes.bool,
+  t: PropTypes.func,
 };
-
-export { NumericFilter, EQ_TOGGLE, NE };
+const TranslatedNumericFilter = withTranslation("column_filter")(NumericFilter);
+export { TranslatedNumericFilter as NumericFilter, EQ_TOGGLE, NE };

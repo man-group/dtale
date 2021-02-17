@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateRandom } from "../../../popups/create/CreateRandom";
+import CreateRandom from "../../../popups/create/CreateRandom";
 import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";

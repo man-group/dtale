@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -41,7 +49,7 @@ describe("DataViewer tests", () => {
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateDatetime = require("../../../popups/create/CreateDatetime").CreateDatetime;
+    CreateDatetime = require("../../../popups/create/CreateDatetime").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
@@ -96,6 +104,6 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build datetime cfg validation", () => {
     const { validateDatetimeCfg } = require("../../../popups/create/CreateDatetime");
-    expect(validateDatetimeCfg({ col: null })).toBe("Missing a column selection!");
+    expect(validateDatetimeCfg(t, { col: null })).toBe("Missing a column selection!");
   });
 });

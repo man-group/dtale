@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
@@ -42,6 +43,7 @@ class Rows extends React.Component {
   }
 
   test() {
+    const { t } = this.props;
     this.setState({ loadingTest: true });
     const cfg = buildCfg(this.state);
     const params = {
@@ -57,21 +59,21 @@ class Rows extends React.Component {
         });
         return;
       }
-      let testOutput = `No duplicate rows exist for the column(s): ${_.join(cfg.subset, ", ")}`;
+      let testOutput = `${t("No duplicate rows exist for the column(s)")}: ${_.join(cfg.subset, ", ")}`;
       if (testData.results) {
         testOutput = (
           <React.Fragment>
-            <span className="pr-3">{"From"}</span>
+            <span className="pr-3">{t("From")}</span>
             <b>{testData.results.total}</b>
-            <span className="pl-3">{` rows:`}</span>
+            <span className="pl-3">{` ${t("rows")}:`}</span>
             <ul>
               <li>
                 <b>{testData.results.removed}</b>
-                {" duplicate rows will be removed"}
+                {t(" duplicate rows will be removed")}
               </li>
               <li>
                 <b>{testData.results.remaining}</b>
-                {" rows will remain"}
+                {t(" rows will remain")}
               </li>
             </ul>
           </React.Fragment>
@@ -82,11 +84,12 @@ class Rows extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <Keep value={this.state.keep} updateState={this.updateState} />
         <ColumnSelect
-          label="Column(s)"
+          label={t("Column(s)")}
           prop="subset"
           parent={this.state}
           updateState={this.updateState}
@@ -97,7 +100,7 @@ class Rows extends React.Component {
           <div className="col-md-3" />
           <div className="col-md-8">
             <button className="col-auto btn btn-secondary" onClick={this.test}>
-              {"View Duplicates"}
+              {t("View Duplicates")}
             </button>
           </div>
         </div>
@@ -119,6 +122,7 @@ Rows.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   selectedCol: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { Rows, validateRowsCfg };
+const TranslateRows = withTranslation("duplicate")(Rows);
+export { TranslateRows as Rows, validateRowsCfg };

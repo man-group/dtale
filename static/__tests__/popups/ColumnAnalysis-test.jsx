@@ -138,7 +138,7 @@ describe("ColumnAnalysis tests", () => {
   beforeEach(async () => {
     const ColumnAnalysis = require("../../popups/analysis/ColumnAnalysis").ReactColumnAnalysis;
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
-    ColumnAnalysisFilters = require("../../popups/analysis/filters/ColumnAnalysisFilters").ColumnAnalysisFilters;
+    ColumnAnalysisFilters = require("../../popups/analysis/filters/ColumnAnalysisFilters").default;
 
     buildInnerHTML();
     result = mount(<ColumnAnalysis {...props} />, {

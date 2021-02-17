@@ -10,7 +10,7 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateReplacement, Value;
@@ -92,7 +92,7 @@ describe("DataViewer tests", () => {
     findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({
       value: [{ type: "agg", value: "nan", replace: "median" }],
     });
   });
@@ -107,13 +107,13 @@ describe("DataViewer tests", () => {
     findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({
       value: [{ type: "col", value: "nan", replace: "col2" }],
     });
   });
 
   it("DataViewer: value cfg validation", () => {
     const { validateValueCfg } = require("../../../popups/replacement/Value");
-    expect(validateValueCfg([])).toBe("Please add (+) a replacement!");
+    expect(validateValueCfg(t, [])).toBe("Please add (+) a replacement!");
   });
 });

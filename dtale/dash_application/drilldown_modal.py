@@ -35,6 +35,7 @@ from dtale.charts.utils import (
     build_group_inputs_filter,
     convert_date_val_to_date,
 )
+from dtale.translations import text
 
 
 def combine_inputs(dash_app, inputs, chart_inputs={}, yaxis_data={}, map_data={}):
@@ -78,8 +79,8 @@ def build_histogram(data_id, col, query, point_filter):
         modal=True,
     )
     bars.figure["layout"]["xaxis"]["type"] = "category"
-    bars.figure["layout"]["title"]["text"] = "Histogram of {} ({} data points)".format(
-        col, len(s)
+    bars.figure["layout"]["title"]["text"] = "{} {} ({} {})".format(
+        text("Histogram of"), col, len(s), text("data points")
     )
     return bars
 
@@ -97,7 +98,7 @@ def build_drilldown_title(data_id, all_inputs, click_point, props, val_prop):
         for dim in click_point["text"].split("<br>"):
             prop, val = dim.split(": ")
             strs.append("{} ({})".format(prop, val))
-        return "Drilldown for: {}".format(", ".join(strs))
+        return "{}: {}".format(text("Drilldown for"), ", ".join(strs))
 
     strs = []
     frame_col = all_inputs.get("animate_by")
@@ -119,7 +120,7 @@ def build_drilldown_title(data_id, all_inputs, click_point, props, val_prop):
     strs.append(
         "{} {} ({})".format(agg, val_col, _build_val(val_col, click_point.get(val_key)))
     )
-    return "Drilldown for: {}".format(", ".join(strs))
+    return "{}: {}".format(text("Drilldown for"), ", ".join(strs))
 
 
 def init_callbacks(dash_app):

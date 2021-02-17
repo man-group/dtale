@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import { fetchJson } from "../fetcher";
 import { buildURLString } from "../actions/url-utils";
@@ -42,7 +43,7 @@ class ReactShortestPath extends React.Component {
       return (
         <div className="row m-3 mt-3 shortest-path">
           <div className="col">
-            {`Shortest path between nodes ${this.state.start} & ${this.state.end}: `}
+            {`${this.props.t("Shortest path between nodes")} ${this.state.start} & ${this.state.end}: `}
             <b>{_.join(this.state.shortestPath, " -> ")}</b>
           </div>
           <div className="col-auto">
@@ -62,8 +63,9 @@ ReactShortestPath.propTypes = {
   allNodes: PropTypes.object,
   dataId: PropTypes.string,
   highlightPath: PropTypes.func,
+  t: PropTypes.func,
 };
+const TranslateReactShortestPath = withTranslation("network")(ReactShortestPath);
+const ReduxShortestPath = connect(({ dataId }) => ({ dataId }))(TranslateReactShortestPath);
 
-const ReduxShortestPath = connect(({ dataId }) => ({ dataId }))(ReactShortestPath);
-
-export { ReduxShortestPath as ShortestPath, ReactShortestPath };
+export { ReduxShortestPath as ShortestPath, TranslateReactShortestPath as ReactShortestPath };

@@ -10413,6 +10413,12 @@ div.hoverable.label > div.hoverable__content {
     right: inherit;
     transform: rotate(270deg);
 }
+.hoverable__content.menu-description.bottom::before {
+    left: -0.7em;
+    top: calc(100% - 0.8em);
+    right: inherit;
+    transform: rotate(270deg);
+}
 .hoverable__content.edit-cell::before {
     left: -0.7em;
     top: 2.75em;
@@ -10464,6 +10470,12 @@ div.hoverable.label > div.hoverable__content {
 .hoverable__content.menu-description::after {
     left: -0.6em;
     top: 1em;
+    right: inherit;
+    transform: rotate(270deg);
+}
+.hoverable__content.menu-description.bottom::after {
+    left: -0.6em;
+    top: calc(100% - 0.8em);
     right: inherit;
     transform: rotate(270deg);
 }

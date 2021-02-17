@@ -1,12 +1,13 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ButtonToggle from "../../../ButtonToggle";
 import { exports as gu } from "../../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../../CodePopup";
 import CategoryInputs from "./CategoryInputs";
-import { ANALYSIS_AGGS, TITLES } from "./Constants";
+import { analysisAggs, titles } from "./Constants";
 import { default as GeoFilters, hasCoords, loadCoordVals } from "./GeoFilters";
 import OrdinalInputs from "./OrdinalInputs";
 import TextEnterFilter from "./TextEnterFilter";
@@ -22,8 +23,8 @@ class ColumnAnalysisFilters extends React.Component {
       categoryCol: null,
       ...loadCoordVals(props.selectedCol, props.cols),
     };
-    this.state.ordinalAgg = _.find(ANALYSIS_AGGS, { value: "sum" });
-    this.state.categoryAgg = _.find(ANALYSIS_AGGS, { value: "mean" });
+    this.state.ordinalAgg = _.find(analysisAggs(props.t), { value: "sum" });
+    this.state.categoryAgg = _.find(analysisAggs(props.t), { value: "mean" });
     this.buildChart = this.buildChart.bind(this);
     this.buildChartTypeToggle = this.buildChartTypeToggle.bind(this);
     this.buildFilter = this.buildFilter.bind(this);
@@ -47,22 +48,32 @@ class ColumnAnalysisFilters extends React.Component {
 
   buildChartTypeToggle() {
     const colType = gu.findColType(this.props.dtype);
-    let options = [{ label: TITLES.histogram, value: "histogram" }];
+    const translatedTitles = titles(this.props.t);
+    let options = [{ label: translatedTitles.histogram, value: "histogram" }];
     if (colType === "string") {
       options = [
-        { label: TITLES.value_counts, value: "value_counts" },
-        { label: TITLES.word_value_counts, value: "word_value_counts" },
+        { label: translatedTitles.value_counts, value: "value_counts" },
+        {
+          label: translatedTitles.word_value_counts,
+          value: "word_value_counts",
+        },
       ];
     } else if (colType === "float") {
-      options.push({ label: TITLES.categories, value: "categories" });
+      options.push({ label: translatedTitles.categories, value: "categories" });
     } else {
-      options.push({ label: TITLES.value_counts, value: "value_counts" });
+      options.push({
+        label: translatedTitles.value_counts,
+        value: "value_counts",
+      });
     }
     if (hasCoords(this.props.selectedCol, this.props.cols)) {
-      options.push({ label: TITLES.geolocation, value: "geolocation" });
+      options.push({
+        label: translatedTitles.geolocation,
+        value: "geolocation",
+      });
     }
     if (colType !== "string") {
-      options.push({ label: TITLES.qq, value: "qq" });
+      options.push({ label: translatedTitles.qq, value: "qq" });
     }
     const update = value => this.setState({ type: value, top: null }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
@@ -110,7 +121,7 @@ class ColumnAnalysisFilters extends React.Component {
     if (_.isNull(this.props.type)) {
       return null;
     }
-    const { code, dtype, selectedCol, cols } = this.props;
+    const { code, dtype, selectedCol, cols, t } = this.props;
     const colType = gu.findColType(dtype);
     const title = this.state.type === "histogram" ? "Histogram" : "Value Counts";
     let filterMarkup = null;
@@ -159,7 +170,7 @@ class ColumnAnalysisFilters extends React.Component {
         <div className="form-group row small-gutters mb-4">
           <div className="col type-toggle">{this.buildChartTypeToggle()}</div>
           <div className="col-auto">
-            <div>{renderCodePopupAnchor(code, title)}</div>
+            <div>{renderCodePopupAnchor(code, t(title))}</div>
           </div>
         </div>
         <div className="form-group row small-gutters mb-0">{filterMarkup}</div>
@@ -176,6 +187,7 @@ ColumnAnalysisFilters.propTypes = {
   type: PropTypes.string,
   top: PropTypes.number,
   buildChart: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export { ColumnAnalysisFilters };
+export default withTranslation("constants")(ColumnAnalysisFilters);

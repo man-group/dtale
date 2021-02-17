@@ -8,7 +8,7 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateReplacement, Imputer;
@@ -85,7 +85,7 @@ describe("DataViewer tests", () => {
       .simulate("change", { target: { value: "3" } });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({
       type: "knn",
       nNeighbors: "3",
     });
@@ -99,11 +99,11 @@ describe("DataViewer tests", () => {
     findImputerInputRow().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({ type: "simple" });
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({ type: "simple" });
   });
 
   it("DataViewer: imputer cfg validation", () => {
     const { validateImputerCfg } = require("../../../popups/replacement/Imputer");
-    expect(validateImputerCfg({ type: null })).toBe("Please select an imputer!");
+    expect(validateImputerCfg(t, { type: null })).toBe("Please select an imputer!");
   });
 });

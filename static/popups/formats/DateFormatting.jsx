@@ -3,6 +3,7 @@ import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
+import { withTranslation } from "react-i18next";
 
 const BASE_STATE = { fmt: null };
 
@@ -18,6 +19,7 @@ class DateFormatting extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const m = moment(new Date("2000-01-01"));
     const exampleStr = m.format("MMMM Do YYYY, h:mm:ss a");
     const exampleOutput = _.isNull(this.state.fmt) ? exampleStr : m.format(this.state.fmt);
@@ -25,7 +27,7 @@ class DateFormatting extends React.Component {
       <Modal.Body>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">
-            <span>moment.js Format</span>
+            <span>{t("moment.js Format")}</span>
             <i
               style={{ cursor: "help" }}
               className="ico-info-outline pl-5"
@@ -50,11 +52,11 @@ class DateFormatting extends React.Component {
         </div>
         <div className="row text-left" style={{ fontSize: "80%" }}>
           <div className="col-md-12">
-            <span className="font-weight-bold pr-3">Raw:</span>
+            <span className="font-weight-bold pr-3">{t("Raw")}:</span>
             <span>{exampleStr}</span>
           </div>
           <div className="col-md-12">
-            <span className="font-weight-bold pr-3">Formatted:</span>
+            <span className="font-weight-bold pr-3">{t("Formatted")}:</span>
             <span>{exampleOutput}</span>
           </div>
         </div>
@@ -67,6 +69,7 @@ DateFormatting.propTypes = {
   updateState: PropTypes.func,
   columnFormats: PropTypes.object,
   selectedCol: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default DateFormatting;
+export default withTranslation("formatting")(DateFormatting);

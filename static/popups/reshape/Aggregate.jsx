@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { PIVOT_AGGS } from "../analysis/filters/Constants";
+import { pivotAggs } from "../analysis/filters/Constants";
 
 function validateAggregateCfg(cfg) {
   const { index, agg } = cfg;
@@ -112,6 +113,7 @@ class Aggregate extends React.Component {
   }
 
   renderAggregation() {
+    const { t } = this.props;
     const agg = _.get(this.state, "agg") || {};
     let input = null;
     if (agg.type === "col") {
@@ -140,18 +142,18 @@ class Aggregate extends React.Component {
           <div key={0} className="row pb-4">
             <div className="col-md-5 pr-2">
               <div className="input-group mr-3 col-agg-col-input">
-                <span className="pt-4 mr-4">Col:</span>
+                <span className="pt-4 mr-4">{t("Col")}:</span>
                 {this.renderSelect(null, "index", false, "_curr_agg_col")}
               </div>
             </div>
             <div className="col-md-7 pl-0">
               <div className="input-group">
-                <span className="pt-4 mr-4">Agg:</span>
+                <span className="pt-4 mr-4">{t("Agg")}:</span>
                 <Select
                   ref={r => (this._curr_agg_func = r)}
                   className="Select is-clearable is-searchable Select--single"
                   classNamePrefix="Select"
-                  options={PIVOT_AGGS}
+                  options={pivotAggs(t)}
                   getOptionLabel={_.property("label")}
                   getOptionValue={_.property("value")}
                   isClearable
@@ -167,7 +169,7 @@ class Aggregate extends React.Component {
           <div key={`saved-agg-${col}`} className="row">
             <div className="col-auto pr-2">
               <div className="input-group mr-3 col-agg-col-input">
-                <span className="mt-auto mb-auto mr-4">Col:</span>
+                <span className="mt-auto mb-auto mr-4">{t("Col")}:</span>
                 <span className="font-weight-bold" style={{ minWidth: "10em" }}>
                   {col}
                 </span>
@@ -175,7 +177,7 @@ class Aggregate extends React.Component {
             </div>
             <div className="col pl-0">
               <div className="input-group">
-                <span className="mt-auto mb-auto mr-4">Func:</span>
+                <span className="mt-auto mb-auto mr-4">{t("Func")}:</span>
                 <span className="font-weight-bold w-100">{_.join(aggs, ", ")}</span>
                 <i className="ico-remove-circle pointer mt-auto mb-auto ml-4" onClick={removeAgg(col)} />
               </div>
@@ -188,11 +190,11 @@ class Aggregate extends React.Component {
         <div key={0} className="row pb-4">
           <div className="col-auto pr-2">
             <div className="input-group mr-3 col-agg-col-input">
-              <span className="mt-auto mb-auto mr-4">Func:</span>
+              <span className="mt-auto mb-auto mr-4">{t("Func")}:</span>
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={PIVOT_AGGS}
+                options={pivotAggs(t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={_.get(this.state.agg, "func", null)}
@@ -208,7 +210,7 @@ class Aggregate extends React.Component {
           </div>
           <div className="col pl-0">
             <div className="input-group">
-              <span className="mt-auto mb-auto mr-4">Cols:</span>
+              <span className="mt-auto mb-auto mr-4">{t("Cols:")}</span>
               {this.renderSelect("columns", "index", true)}
             </div>
           </div>
@@ -237,7 +239,7 @@ class Aggregate extends React.Component {
                 }
                 return (
                   <button key={`agg-${val}`} {...buttonProps}>
-                    {label}
+                    {t(label)}
                   </button>
                 );
               }
@@ -252,7 +254,7 @@ class Aggregate extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Column(s) to GroupBy</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Column(s) to GroupBy")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("index", ["columns"], true)}</div>
         </div>
@@ -265,6 +267,7 @@ Aggregate.displayName = "Aggregate";
 Aggregate.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { Aggregate, validateAggregateCfg, buildCode };
+const TranslateAggregate = withTranslation("reshape")(Aggregate);
+export { TranslateAggregate as Aggregate, validateAggregateCfg, buildCode };

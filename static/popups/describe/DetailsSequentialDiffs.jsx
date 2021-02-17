@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import ButtonToggle from "../../ButtonToggle";
@@ -8,10 +9,10 @@ import { RemovableError } from "../../RemovableError";
 import { fetchJson } from "../../fetcher";
 import { buildStat } from "./detailUtils";
 
-const SORT_OPTIONS = [
-  { label: "None", value: null },
-  { label: "Asc", value: "ASC" },
-  { label: "Desc", value: "DESC" },
+const sortOptions = t => [
+  { label: t("None"), value: null },
+  { label: t("Asc"), value: "ASC" },
+  { label: t("Desc"), value: "DESC" },
 ];
 
 class ReactDetailsSequentialDiffs extends React.Component {
@@ -46,7 +47,7 @@ class ReactDetailsSequentialDiffs extends React.Component {
   }
 
   render() {
-    const { data } = this.props;
+    const { data, t } = this.props;
     const { sort, sortedDiffs } = this.state;
     const currData = sort === null ? data : sortedDiffs[sort];
 
@@ -57,12 +58,12 @@ class ReactDetailsSequentialDiffs extends React.Component {
         <li>
           <div>
             <h4 className="d-inline">Sequential Diffs</h4>
-            <ButtonToggle options={SORT_OPTIONS} update={updateSort} defaultValue={this.state.sort} />
+            <ButtonToggle options={sortOptions(t)} update={updateSort} defaultValue={this.state.sort} />
           </div>
           <ul>
-            <li>{buildStat("Min", currData.min)}</li>
-            <li>{buildStat("Average", currData.avg)}</li>
-            <li>{buildStat("Max", currData.max)}</li>
+            <li>{buildStat(t, "Min", currData.min)}</li>
+            <li>{buildStat(t, "Average", currData.avg)}</li>
+            <li>{buildStat(t, "Max", currData.max)}</li>
           </ul>
         </li>
       </React.Fragment>
@@ -74,8 +75,11 @@ ReactDetailsSequentialDiffs.propTypes = {
   data: PropTypes.object,
   dataId: PropTypes.string,
   column: PropTypes.string,
+  t: PropTypes.func,
 };
-
-const ReduxDetailsSequentialDiffs = connect(({ dataId }) => ({ dataId }))(ReactDetailsSequentialDiffs);
-
-export { ReduxDetailsSequentialDiffs as DetailsSequentialDiffs, ReactDetailsSequentialDiffs };
+const TranslateReactDetailsSequentialDiffs = withTranslation("describe")(ReactDetailsSequentialDiffs);
+const ReduxDetailsSequentialDiffs = connect(({ dataId }) => ({ dataId }))(TranslateReactDetailsSequentialDiffs);
+export {
+  ReduxDetailsSequentialDiffs as DetailsSequentialDiffs,
+  TranslateReactDetailsSequentialDiffs as ReactDetailsSequentialDiffs,
+};

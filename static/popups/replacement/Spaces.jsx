@@ -1,10 +1,11 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-function validateSpacesCfg({ replace }) {
+function validateSpacesCfg(t, { replace }) {
   if (_.isNull(replace) || "") {
-    return "Please enter a replacement value!";
+    return t("Please enter a replacement value!");
   }
   return null;
 }
@@ -48,7 +49,7 @@ class Spaces extends React.Component {
   render() {
     return (
       <div className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Replace With</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Replace With")}</label>
         <div className="col-md-8">
           <input
             type="text"
@@ -56,7 +57,7 @@ class Spaces extends React.Component {
             value={this.state.replace || ""}
             onChange={e => this.updateState({ replace: e.target.value })}
           />
-          <small>{`To replace with missings, please enter the string "nan"`}</small>
+          <small>{this.props.t("replace_missings")}</small>
         </div>
       </div>
     );
@@ -66,6 +67,7 @@ Spaces.displayName = "Spaces";
 Spaces.propTypes = {
   updateState: PropTypes.func,
   col: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { Spaces, validateSpacesCfg, buildCode };
+const TranslateSpaces = withTranslation("replacement")(Spaces);
+export { TranslateSpaces as Spaces, validateSpacesCfg, buildCode };

@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
@@ -142,6 +143,7 @@ class DtypesGrid extends React.Component {
     if (!_.isEmpty(this.state.error)) {
       return this.state.error;
     }
+    const { t } = this.props;
     const { sortBy, sortDirection } = this.state;
     const toggleVisibility = ({ name, visible }) => e => {
       this.setState({
@@ -190,7 +192,7 @@ class DtypesGrid extends React.Component {
             />
             <Column
               dataKey="visible"
-              label="Visible"
+              label={t("Visible")}
               headerRenderer={this._headerRenderer}
               width={60}
               style={{ textAlign: "left", paddingLeft: ".5em" }}
@@ -203,7 +205,7 @@ class DtypesGrid extends React.Component {
             />
             <Column
               dataKey="name"
-              label="Column Name"
+              label={t("Column Name")}
               headerRenderer={this._headerRenderer}
               width={200}
               flexGrow={1}
@@ -213,7 +215,7 @@ class DtypesGrid extends React.Component {
             <Column
               width={100}
               dataKey="dtype"
-              label="Data Type"
+              label={t("Data Type")}
               headerRenderer={this._headerRenderer}
               style={{
                 textAlign: "right",
@@ -233,6 +235,7 @@ DtypesGrid.displayName = "DtypesGrid";
 DtypesGrid.propTypes = {
   dtypes: PropTypes.array,
   propagateState: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export { DtypesGrid };
+export default withTranslation("describe", { withRef: true })(DtypesGrid);

@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import menuUtils from "../../menuUtils";
 
@@ -33,6 +34,7 @@ class AxisEditor extends React.Component {
   }
 
   closeMenu() {
+    const { t } = this.props;
     const settings = {
       min: _.assign({}, this.props.data.min),
       max: _.assign({}, this.props.data.max),
@@ -44,13 +46,13 @@ class AxisEditor extends React.Component {
         if (curr !== "" && !_.isNaN(parseFloat(curr))) {
           settings[prop][value] = parseFloat(curr);
         } else {
-          errors.push(`${value} has invalid ${prop}!`);
+          errors.push(`${value} ${t("has invalid")} ${prop}!`);
         }
       });
     });
     _.forEach(this.props.y, ({ value }) => {
       if (settings.min[value] > settings.max[value]) {
-        errors.push(`${value} must have a min < max!`);
+        errors.push(`${value} ${t("must have a min < max!")}`);
       }
     });
     if (_.size(errors)) {
@@ -65,14 +67,14 @@ class AxisEditor extends React.Component {
       return null;
     }
     const { min, max } = this.props.data;
-    const { y } = this.props;
+    const { t, y } = this.props;
     const axisMarkup = _.map(y, ({ value }, idx) => {
       const minProp = `${value}-min`;
       const maxProp = `${value}-max`;
       return (
         <li key={idx}>
           <span className="mb-auto mt-auto font-weight-bold">{value}</span>
-          <span className="mb-auto mt-auto">Min:</span>
+          <span className="mb-auto mt-auto">{t("Min")}:</span>
           <span>
             <input
               className="axis-input form-control input-sm"
@@ -81,7 +83,7 @@ class AxisEditor extends React.Component {
               onChange={e => this.setState({ [minProp]: e.target.value })}
             />
           </span>
-          <span className="mb-auto mt-auto">Max:</span>
+          <span className="mb-auto mt-auto">{t("Max")}:</span>
           <span>
             <input
               className="axis-input form-control input-sm"
@@ -97,7 +99,7 @@ class AxisEditor extends React.Component {
     return (
       <div className="toolbar__axis">
         <div className="input-group">
-          <span className="input-group-addon">Axis Ranges</span>
+          <span className="input-group-addon">{t("Axis Ranges")}</span>
           <div className="input-group column-toggle">
             <span className="form-control custom-select axis-select" onClick={menuHandler}>
               {_.truncate(
@@ -121,6 +123,7 @@ AxisEditor.propTypes = {
   data: PropTypes.object,
   y: PropTypes.arrayOf(PropTypes.object),
   updateAxis: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export default AxisEditor;
+export default withTranslation("charts")(AxisEditor);

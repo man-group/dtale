@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -41,7 +49,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateZScoreNormalize = require("../../../popups/create/CreateZScoreNormalize").CreateZScoreNormalize;
+    CreateZScoreNormalize = require("../../../popups/create/CreateZScoreNormalize").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -74,9 +82,9 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build z-score normalize cfg validation", () => {
     const { validateZScoreNormalizeCfg } = require("../../../popups/create/CreateZScoreNormalize");
-    expect(validateZScoreNormalizeCfg({})).toBe("Please select a column to normalize!");
+    expect(validateZScoreNormalizeCfg(t, {})).toBe("Please select a column to normalize!");
     expect(
-      validateZScoreNormalizeCfg({
+      validateZScoreNormalizeCfg(t, {
         col: "col1",
       })
     ).toBeNull();

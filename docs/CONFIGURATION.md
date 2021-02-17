@@ -14,6 +14,8 @@ Here is an example of the `.ini` file with all the properties available and what
 theme = light
 github_fork = False
 hide_shutdown = False
+pin_menu = False
+language = en
 
 [show]
 host = localhost

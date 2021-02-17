@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
@@ -10,7 +11,6 @@ import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import ColumnSaveType from "../replacement/ColumnSaveType";
 import * as createUtils from "./createUtils";
-import Descriptions from "./creation-descriptions.json";
 
 require("./CreateColumn.css");
 
@@ -57,7 +57,7 @@ class ReactCreateColumn extends React.Component {
       }
       createParams.name = name;
     }
-    const error = createUtils.validateCfg(type, cfg);
+    const error = createUtils.validateCfg(this.props.t, type, cfg);
     if (!_.isNull(error)) {
       this.setState({ error: <RemovableError error={error} /> });
       return;
@@ -84,6 +84,7 @@ class ReactCreateColumn extends React.Component {
   }
 
   renderBody() {
+    const { t } = this.props;
     const updateState = state => {
       if (_.has(state, "code")) {
         state.code = _.assign({}, this.state.code, {
@@ -97,7 +98,7 @@ class ReactCreateColumn extends React.Component {
       <div key="body" className="modal-body">
         {createUtils.renderNameInput(this.state) === "name" && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Name</label>
+            <label className="col-md-3 col-form-label text-right">{t("Name")}</label>
             <div className="col-md-8">
               <input
                 type="text"
@@ -118,7 +119,7 @@ class ReactCreateColumn extends React.Component {
         )}
         {!_.has(this.props, "prePopulated.type") && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Column Type</label>
+            <label className="col-md-3 col-form-label text-right">{t("Column Type")}</label>
             <div className="col-md-8 builders">
               <div className="row">
                 {_.map(createUtils.TYPES, (type, i) => {
@@ -145,13 +146,13 @@ class ReactCreateColumn extends React.Component {
                   }
                   return (
                     <div key={i} className="col-md-3 p-1">
-                      <button {...buttonProps}>{createUtils.buildLabel(type)}</button>
+                      <button {...buttonProps}>{t(createUtils.buildLabel(type))}</button>
                     </div>
                   );
                 })}
               </div>
               <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
-                {_.get(Descriptions, this.state.type, "")}
+                {t(this.state.type)}
               </label>
             </div>
           </div>
@@ -162,6 +163,7 @@ class ReactCreateColumn extends React.Component {
   }
 
   renderCode() {
+    const { t } = this.props;
     if (_.get(this.state, ["code", this.state.type])) {
       const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
       let markup = null;
@@ -171,7 +173,7 @@ class ReactCreateColumn extends React.Component {
           <div className="font-weight-bold hoverable">
             <div>{code[0]}</div>
             <div>{code[1]}</div>
-            <div style={{ fontSize: "85%" }}>{"hover to see more..."}</div>
+            <div style={{ fontSize: "85%" }}>{t("hover to see more...")}</div>
             <div className={`hoverable__content build-code${isWindow ? "-window" : ""}`}>
               <pre className="mb-0">{_.join(code, "\n")}</pre>
             </div>
@@ -214,7 +216,7 @@ class ReactCreateColumn extends React.Component {
         {this.renderCode()}
         <button className="btn btn-primary" onClick={this.state.loadingColumn ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingColumn}>
-            <span>{this.state.saveAs === "new" ? "Create" : "Apply"}</span>
+            <span>{this.props.t(this.state.saveAs === "new" ? "Create" : "Apply")}</span>
           </BouncerWrapper>
         </button>
       </div>,
@@ -229,10 +231,11 @@ ReactCreateColumn.propTypes = {
   }),
   prePopulated: PropTypes.object,
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactCreateColumn = withTranslation("builders")(ReactCreateColumn);
 const ReduxCreateColumn = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactCreateColumn);
-export { ReactCreateColumn, ReduxCreateColumn as CreateColumn };
+)(TranslateReactCreateColumn);
+export { TranslateReactCreateColumn as ReactCreateColumn, ReduxCreateColumn as CreateColumn };

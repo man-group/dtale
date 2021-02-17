@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { closeChart } from "../actions/charts";
@@ -26,10 +27,10 @@ class ReactConfirmation extends React.Component {
       </div>,
       <div key="footer" className="modal-footer confirmation">
         <button className="btn btn-primary" onClick={fullYesAction}>
-          <span>Yes</span>
+          <span>{this.props.t("Yes")}</span>
         </button>
         <button className="btn btn-secondary" onClick={this.props.onClose}>
-          <span>No</span>
+          <span>{this.props.t("No")}</span>
         </button>
       </div>,
     ];
@@ -44,11 +45,12 @@ ReactConfirmation.propTypes = {
     yesAction: PropTypes.func,
   }),
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateConfirmation = withTranslation("popup")(ReactConfirmation);
 const ReduxConfirmation = connect(
   state => _.pick(state, ["chartData"]),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactConfirmation);
+)(TranslateConfirmation);
 
-export { ReactConfirmation, ReduxConfirmation as Confirmation };
+export { TranslateConfirmation as ReactConfirmation, ReduxConfirmation as Confirmation };

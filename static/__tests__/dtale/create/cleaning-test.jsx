@@ -10,7 +10,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -54,7 +62,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateCleaning = require("../../../popups/create/CreateCleaning").CreateCleaning;
+    CreateCleaning = require("../../../popups/create/CreateCleaning").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -141,23 +149,23 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build conversion cfg validation", () => {
     const { validateCleaningCfg } = require("../../../popups/create/CreateCleaning");
-    expect(validateCleaningCfg({ col: null })).toBe("Please select a column to clean!");
-    expect(validateCleaningCfg({ col: "col1" })).toBe("Please apply function(s)!");
+    expect(validateCleaningCfg(t, { col: null })).toBe("Please select a column to clean!");
+    expect(validateCleaningCfg(t, { col: "col1" })).toBe("Please apply function(s)!");
     expect(
-      validateCleaningCfg({
+      validateCleaningCfg(t, {
         col: "col2",
         cleaners: ["update_case"],
       })
     ).toBe("Please select a case to apply!");
     expect(
-      validateCleaningCfg({
+      validateCleaningCfg(t, {
         col: "col2",
         cleaners: ["update_case", "stopwords"],
         caseType: "upper",
       })
     ).toBe("Please enter a comma-separated string of stop words!");
     expect(
-      validateCleaningCfg({
+      validateCleaningCfg(t, {
         col: "col2",
         cleaners: ["hidden_chars", "update_case", "stopwords"],
         caseType: "upper",

@@ -1,26 +1,27 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
 
-function validateNumericCfg(cfg) {
+export function validateNumericCfg(t, cfg) {
   const left = _.get(cfg, "left", {});
   const right = _.get(cfg, "right", {});
   const operation = _.get(cfg, "operation") || null;
   if (_.isNull(operation)) {
-    return "Please select an operation!";
+    return t("Please select an operation!");
   }
   if (left.type === "col" && _.isNull(left.col)) {
-    return "Left side is missing a column selection!";
+    return t("Left side is missing a column selection!");
   } else if (_.isNull(left.val) || left.val === "") {
-    return "Left side is missing a static value!";
+    return t("Left side is missing a static value!");
   }
   if (right.type === "col" && _.isNull(right.col)) {
-    return "Right side is missing a column selection!";
+    return t("Right side is missing a column selection!");
   } else if (_.isNull(right.val) || right.val === "") {
-    return "Right side is missing a static value!";
+    return t("Right side is missing a static value!");
   }
   return null;
 }
@@ -32,7 +33,7 @@ const OPERATION_MAPPING = {
   divide: " \\ ",
 };
 
-function buildCode({ left, operation, right }) {
+export function buildCode({ left, operation, right }) {
   let code = "";
   if (left.type === "col") {
     const col = _.get(left, "col.value");
@@ -121,7 +122,7 @@ class CreateNumeric extends React.Component {
                 [prop]: _.assign({}, this.state[prop], { col: selected }),
               })
             }
-            noOptionsText={() => "No columns found"}
+            noOptionsText={() => this.props.t("No columns found")}
             isClearable
             filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
           />
@@ -155,7 +156,7 @@ class CreateNumeric extends React.Component {
               }
               return (
                 <button key={`${prop}-${t}`} {...buttonProps}>
-                  {_.capitalize(t)}
+                  {this.props.t(_.capitalize(t))}
                 </button>
               );
             })}
@@ -167,9 +168,10 @@ class CreateNumeric extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Operation</label>
+        <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
         <div className="col-md-8">
           <div className="btn-group">
             {_.map(["sum", "difference", "multiply", "divide"], operation => {
@@ -182,7 +184,7 @@ class CreateNumeric extends React.Component {
               }
               return (
                 <button key={operation} {...buttonProps}>
-                  {_.capitalize(operation)}
+                  {t(_.capitalize(operation))}
                 </button>
               );
             })}
@@ -198,6 +200,7 @@ CreateNumeric.displayName = "CreateNumeric";
 CreateNumeric.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
 
-export { CreateNumeric, validateNumericCfg, buildCode };
+export default withTranslation("builders")(CreateNumeric);

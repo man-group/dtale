@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
@@ -8,7 +9,7 @@ import { dtypesUrl } from "../../actions/url-utils";
 import serverState from "../../dtale/serverStateManagement";
 import { fetchJson } from "../../fetcher";
 import { Details } from "./Details";
-import { DtypesGrid } from "./DtypesGrid";
+import DtypesGrid from "./DtypesGrid";
 
 class Describe extends React.Component {
   constructor(props) {
@@ -78,7 +79,7 @@ class Describe extends React.Component {
       </div>,
       <div key="footer" className="modal-footer">
         <button className="btn btn-primary" onClick={save}>
-          <span>Update Grid</span>
+          <span>{this.props.t("Update Grid")}</span>
         </button>
       </div>,
     ];
@@ -91,6 +92,7 @@ Describe.propTypes = {
     visible: PropTypes.bool.isRequired,
     selectedCol: PropTypes.string,
   }),
+  t: PropTypes.func,
 };
-
-export { Describe };
+const TranslateDescribe = withTranslation("describe")(Describe);
+export { TranslateDescribe as Describe };

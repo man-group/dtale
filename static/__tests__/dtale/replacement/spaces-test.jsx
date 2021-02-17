@@ -8,7 +8,7 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateReplacement, Spaces;
@@ -90,12 +90,12 @@ describe("DataViewer tests", () => {
       .simulate("change", { target: { value: "nan" } });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({ replace: "nan" });
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({ replace: "nan" });
   });
 
   it("DataViewer: spaces cfg validation", () => {
     const { validateSpacesCfg } = require("../../../popups/replacement/Spaces");
     const cfg = { replace: null };
-    expect(validateSpacesCfg(cfg)).toBe("Please enter a replacement value!");
+    expect(validateSpacesCfg(t, cfg)).toBe("Please enter a replacement value!");
   });
 });

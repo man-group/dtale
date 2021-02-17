@@ -43,7 +43,7 @@ describe("Charts tests", () => {
   afterAll(dimensions.afterAll);
 
   it("Charts: rendering", async () => {
-    const Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
+    const Aggregations = require("../../../popups/charts/Aggregations").default;
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     const ChartsBody = require("../../../popups/charts/ChartsBody").default;
     buildInnerHTML({ settings: "" });

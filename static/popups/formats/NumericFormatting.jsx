@@ -5,6 +5,7 @@ import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
@@ -98,7 +99,7 @@ class NumericFormatting extends React.Component {
   buildSimpleToggle(prop, label) {
     return (
       <div className="form-group row">
-        <label className="col-md-4 col-form-label text-right">{label}</label>
+        <label className="col-md-4 col-form-label text-right">{this.props.t(label)}</label>
         <div className="col-md-6">
           <div className="btn-group">
             {_.map([true, false], (val, i) => {
@@ -111,7 +112,7 @@ class NumericFormatting extends React.Component {
               }
               return (
                 <button key={i} {...buttonProps}>
-                  {val ? "On" : "Off"}
+                  {this.props.t(val ? "On" : "Off")}
                 </button>
               );
             })}
@@ -122,13 +123,14 @@ class NumericFormatting extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const exampleNum = -123456.789;
     let exampleOutput = this.state.fmt ? numeral(exampleNum).format(this.state.fmt) : exampleNum;
     exampleOutput = <span style={menuFuncs.buildStyling(exampleNum, "float", this.state)}>{exampleOutput}</span>;
     return (
       <Modal.Body>
         <div className="form-group row">
-          <label className="col-md-4 col-form-label text-right">Precision</label>
+          <label className="col-md-4 col-form-label text-right">{t("Precision")}</label>
           <div className="col-md-6">
             <div className="btn-group">
               {_.map(_.range(7), precision => {
@@ -154,7 +156,7 @@ class NumericFormatting extends React.Component {
         {this.buildSimpleToggle("bps", "BPS")}
         {this.buildSimpleToggle("redNegs", "Red Negatives")}
         <div className="form-group row">
-          <label className="col-md-4 col-form-label text-right">Currency</label>
+          <label className="col-md-4 col-form-label text-right">{t("Currency")}</label>
           <div className="col-md-6">
             <Select
               className="Select is-clearable is-searchable Select--single"
@@ -171,7 +173,7 @@ class NumericFormatting extends React.Component {
         </div>
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">
-            <span>Numeral.js Format</span>
+            <span>{t("Numeral.js Format")}</span>
             <i
               style={{ cursor: "help" }}
               className="ico-info-outline pl-5"
@@ -196,7 +198,7 @@ class NumericFormatting extends React.Component {
         </div>
         <div className="row text-center">
           <small className="col-md-10">
-            {`EX: ${exampleNum} => `}
+            {`${t("EX")}: ${exampleNum} => `}
             {exampleOutput}
           </small>
         </div>
@@ -209,6 +211,7 @@ NumericFormatting.propTypes = {
   updateState: PropTypes.func,
   columnFormats: PropTypes.object,
   selectedCol: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default NumericFormatting;
+export default withTranslation("formatting")(NumericFormatting);

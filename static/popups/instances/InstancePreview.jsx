@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
@@ -15,7 +16,7 @@ class InstancePreview extends React.Component {
   }
 
   render() {
-    const { preview } = this.props;
+    const { preview, t } = this.props;
     if (_.isNull(preview)) {
       return null;
     }
@@ -41,7 +42,7 @@ class InstancePreview extends React.Component {
       <h4 key={0} className="preview-header">
         <div>
           <ProcessLabel process={preview.instance} />
-          <span className="d-inline pl-3">Preview</span>
+          <span className="d-inline pl-3">{t("Preview")}</span>
         </div>
       </h4>,
       <AutoSizer key={1} disableHeight>
@@ -72,7 +73,7 @@ class InstancePreview extends React.Component {
                   if (rowIndex == 5) {
                     return "...";
                   }
-                  return _.get(rowData, dataKey, "N/A");
+                  return _.get(rowData, dataKey, t("N/A"));
                 }}
               />
             ))}
@@ -86,6 +87,7 @@ class InstancePreview extends React.Component {
 InstancePreview.displayName = "InstancePreview";
 InstancePreview.propTypes = {
   preview: PropTypes.object,
+  t: PropTypes.func,
 };
 
-export default InstancePreview;
+export default withTranslation("instance")(InstancePreview);

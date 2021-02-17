@@ -38,10 +38,10 @@ describe("DataViewer tests", () => {
     mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
 
-    DtypesGrid = require("../../popups/describe/DtypesGrid").DtypesGrid;
+    DtypesGrid = require("../../popups/describe/DtypesGrid").default;
     Details = require("../../popups/describe/Details").Details;
     Describe = require("../../popups/describe/Describe").Describe;
-    DescribeFilters = require("../../popups/analysis/filters/DescribeFilters").DescribeFilters;
+    DescribeFilters = require("../../popups/analysis/filters/DescribeFilters").default;
     DetailsCharts = require("../../popups/describe/DetailsCharts").default;
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
     CategoryInputs = require("../../popups/analysis/filters/CategoryInputs").default;

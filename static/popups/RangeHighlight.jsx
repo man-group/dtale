@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import ColumnSelect from "./create/ColumnSelect";
@@ -13,12 +14,12 @@ const BASE_RANGE = {
   isLessThan: false,
   lessThan: null,
 };
-const ALL_OPTION = {
+const allOption = t => ({
   name: "all",
   value: "all",
-  label: "Apply To All Columns",
+  label: t("range_highlight:Apply To All Columns"),
   dtype: "int",
-};
+});
 const MODES = [
   ["Equals", "isEquals", "equals", (val, equals) => val === equals],
   ["Greater Than", "isGreaterThan", "greaterThan", (val, greaterThan) => val > greaterThan],
@@ -57,9 +58,9 @@ class ReactRangeHighlight extends React.Component {
     super(props);
     this.state = {
       ranges: _.get(props, "chartData.rangeHighlight", {}),
-      col: ALL_OPTION,
+      col: allOption(props.t),
     };
-    this.state.currRange = retrieveRange(ALL_OPTION, this.state.ranges);
+    this.state.currRange = retrieveRange(allOption(props.t), this.state.ranges);
     this.updateHighlights = this.updateHighlights.bind(this);
     this.applyRange = this.applyRange.bind(this);
     this.removeRange = this.removeRange.bind(this);
@@ -111,7 +112,7 @@ class ReactRangeHighlight extends React.Component {
   }
 
   render() {
-    const cols = _.concat([ALL_OPTION], _.get(this.props, "chartData.columns", []));
+    const cols = _.concat([allOption(this.props.t)], _.get(this.props, "chartData.columns", []));
     const setCol = ({ col }) => {
       const currRange = retrieveRange(col, this.state.ranges);
       this.setState({ col: col, currRange });
@@ -133,7 +134,7 @@ class ReactRangeHighlight extends React.Component {
                 className={`ico-check-box${this.state.currRange[flag] ? "" : "-outline-blank"} pointer mr-3 float-left`}
                 onClick={() => this.updateHighlights({ [flag]: !this.state.currRange[flag] })}
               />
-              {label}
+              {this.props.t(`column_filter:${label}`)}
             </label>
             <div className="col-md-7">
               <input
@@ -150,7 +151,7 @@ class ReactRangeHighlight extends React.Component {
           <div className="col-md-4" />
           <div className="col-md-7">
             <button className="btn btn-primary float-right" onClick={this.applyRange}>
-              {"Apply"}
+              {this.props.t("range_highlight:Apply")}
             </button>
           </div>
         </div>
@@ -163,7 +164,7 @@ class ReactRangeHighlight extends React.Component {
               />
             </div>
             <div className="col-md-9">
-              <b>{col === "all" ? ALL_OPTION.label : col}</b>
+              <b>{col === "all" ? allOption(this.props.t).label : col}</b>
               {`: ${rangeAsStr(range)}`}
             </div>
             <div className="col-md-2 p-0">
@@ -183,8 +184,8 @@ ReactRangeHighlight.propTypes = {
     backgroundMode: PropTypes.string,
   }),
   propagateState: PropTypes.func,
+  t: PropTypes.func,
 };
-
-const ReduxRangeHighlight = connect(state => _.pick(state, ["chartData"]))(ReactRangeHighlight);
-
-export { ReactRangeHighlight, ReduxRangeHighlight as RangeHighlight, MODES };
+const TranslateReactRangeHighlight = withTranslation(["column_filter", "range_highlight"])(ReactRangeHighlight);
+const ReduxRangeHighlight = connect(state => _.pick(state, ["chartData"]))(TranslateReactRangeHighlight);
+export { TranslateReactRangeHighlight as ReactRangeHighlight, ReduxRangeHighlight as RangeHighlight, MODES };

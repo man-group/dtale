@@ -1,24 +1,25 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-import { AGGREGATION_OPTS, ROLLING_COMPS } from "../analysis/filters/Constants";
+import { aggregationOpts, rollingComps } from "../analysis/filters/Constants";
 
-function buildLabel({ x, y, group, aggregation, rollingWindow, rollingComputation }) {
+function buildLabel({ x, y, group, aggregation, rollingWindow, rollingComputation, t }) {
   const yLabel = _.join(_.map(y, "value"), ", ");
   let labelStr = yLabel;
   if (aggregation) {
-    const aggLabel = _.find(AGGREGATION_OPTS, { value: aggregation }).label;
+    const aggLabel = _.find(aggregationOpts(t), { value: aggregation }).label;
     if (aggregation === "rolling") {
-      const compLabel = _.find(ROLLING_COMPS, { value: rollingComputation }).label;
-      labelStr = `${aggLabel} ${compLabel} (window: ${rollingWindow}) of ${yLabel}`;
+      const compLabel = _.find(rollingComps(t), { value: rollingComputation }).label;
+      labelStr = `${aggLabel} ${compLabel} (${t("window")}: ${rollingWindow}) ${t("of")} ${yLabel}`;
     } else {
       labelStr = `${aggLabel} of ${yLabel}`;
     }
   }
-  labelStr = `${labelStr} by ${_.get(x, "value")}`;
+  labelStr = `${labelStr} ${t("by")} ${_.get(x, "value")}`;
   if (!_.isEmpty(group)) {
-    labelStr = `${labelStr} grouped by ${_.join(_.map(group, "value"), ", ")}`;
+    labelStr = `${labelStr} ${t("grouped by")} ${_.join(_.map(group, "value"), ", ")}`;
   }
   return labelStr;
 }
@@ -50,6 +51,7 @@ ChartLabel.propTypes = {
   y: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
   group: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
   aggregation: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
+  t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 
-export default ChartLabel;
+export default withTranslation(["constants", "charts"])(ChartLabel);

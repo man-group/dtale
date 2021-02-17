@@ -1,21 +1,22 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ColumnSelect from "./ColumnSelect";
 import { StyledSlider, Thumb, Track } from "./CreateWinsorize";
 
-function validateExponentialSmoothingCfg({ col, alpha }) {
+export function validateExponentialSmoothingCfg(t, { col, alpha }) {
   if (!col) {
-    return "Please select a column to smooth!";
+    return t("Please select a column to smooth!");
   }
   if (!alpha) {
-    return "Please enter a valid float for alpha!";
+    return t("Please enter a valid float for alpha!");
   }
   return null;
 }
 
-function buildCode({ col, alpha }) {
+export function buildCode({ col, alpha }) {
   if (!col) {
     return null;
   }
@@ -54,10 +55,11 @@ class CreateExponentialSmoothing extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Col"
+          label={t("Col")}
           prop="col"
           parent={this.state}
           updateState={this.updateState}
@@ -65,7 +67,7 @@ class CreateExponentialSmoothing extends React.Component {
           dtypes={["int", "float"]}
         />
         <div key={2} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Alpha</label>
+          <label className="col-md-3 col-form-label text-right">{t("Alpha")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <input
@@ -85,10 +87,7 @@ class CreateExponentialSmoothing extends React.Component {
                 onAfterChange={alpha => this.updateState({ alpha })}
               />
             </div>
-            <small>
-              {`Alpha is a smoothing factor that takes values between 0 and 1. The alpha number near 0 makes data `}
-              {`more abstract and smoother than 1.`}
-            </small>
+            <small>{t("alpha_description")}</small>
           </div>
         </div>
       </React.Fragment>
@@ -100,6 +99,7 @@ CreateExponentialSmoothing.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateExponentialSmoothing, validateExponentialSmoothingCfg, buildCode };
+export default withTranslation("builders")(CreateExponentialSmoothing);

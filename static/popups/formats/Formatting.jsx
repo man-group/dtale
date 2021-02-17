@@ -4,6 +4,7 @@ import { Resizable } from "re-resizable";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
@@ -119,12 +120,12 @@ class ReactFormatting extends React.Component {
   }
 
   renderApplyAll() {
-    const { columns, selectedCol } = this.props;
+    const { columns, selectedCol, t } = this.props;
     return (
       <div className="row mb-5">
         <div className="col" />
         <label className="col-auto col-form-label pr-3">
-          {`Apply this formatting to all columns of dtype, ${gu.getDtype(selectedCol, columns)}?`}
+          {`${t("Apply this formatting to all columns of dtype,")} ${gu.getDtype(selectedCol, columns)}?`}
         </label>
         <div className="col-auto p-0">
           <i
@@ -142,10 +143,11 @@ class ReactFormatting extends React.Component {
   }
 
   renderNanDisplay() {
+    const { t } = this.props;
     return (
       <div className="form-group row">
         <label className="col-md-4 col-form-label text-right">
-          <span>{`Display "nan" values as`}</span>
+          <span>{t(`Display "nan" values as`)}</span>
         </label>
         <div className="col-md-6">
           <Select
@@ -164,7 +166,7 @@ class ReactFormatting extends React.Component {
   }
 
   render() {
-    const { visible } = this.props;
+    const { visible, t } = this.props;
     const hide = () => this.props.propagateState({ formattingOpen: false });
     const onResizeStart = (_e, _dir, refToElement) => {
       this.setState({
@@ -184,7 +186,7 @@ class ReactFormatting extends React.Component {
           <Modal.Header closeButton>
             <Modal.Title>
               <i className="ico-palette" />
-              Formatting
+              {t("formatting:Formatting")}
             </Modal.Title>
           </Modal.Header>
           <div style={{ paddingBottom: "5em" }}>
@@ -194,7 +196,7 @@ class ReactFormatting extends React.Component {
           </div>
           <Modal.Footer>
             <button className="btn btn-primary" onClick={this.save}>
-              <span>Apply</span>
+              <span>{t("builders:Apply")}</span>
             </button>
           </Modal.Footer>
           <span className="resizable-handle" />
@@ -214,11 +216,12 @@ ReactFormatting.propTypes = {
   visible: PropTypes.bool,
   propagateState: PropTypes.func,
   settings: PropTypes.object,
+  t: PropTypes.func,
 };
-
+const TranslateReactFormatting = withTranslation(["formatting", "builders"])(ReactFormatting);
 const ReduxFormatting = connect(({ dataId, settings }) => ({
   dataId,
   settings,
-}))(ReactFormatting);
+}))(TranslateReactFormatting);
 
-export { ReduxFormatting as Formatting, ReactFormatting };
+export { ReduxFormatting as Formatting, TranslateReactFormatting as ReactFormatting };

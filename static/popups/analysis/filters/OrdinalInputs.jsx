@@ -1,26 +1,32 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { exports as gu } from "../../../dtale/gridUtils";
-import { CLEANERS } from "../../create/CreateCleaning";
-import { AGGREGATION_OPTS } from "./Constants";
+import { cleaners } from "../../create/CreateCleaning";
+import { analysisAggs } from "./Constants";
 import FilterSelect from "./FilterSelect";
 
-const ANALYSIS_AGGS = _.concat(AGGREGATION_OPTS, [{ value: "pctsum", label: "Percentage Sum" }]);
-const CLEANER_OPTS = _.concat(
-  [{ value: "underscore_to_space", label: "Replace underscores w/ space" }],
-  _.filter(CLEANERS, "word_count")
-);
+const cleanerOpts = t =>
+  _.concat(
+    [
+      {
+        value: "underscore_to_space",
+        label: t("analysis:Replace underscores w/ space"),
+      },
+    ],
+    _.filter(cleaners(t), "word_count")
+  );
 
 class OrdinalInputs extends React.Component {
   constructor(props) {
     super(props);
     const { type } = props;
-    const hiddenChars = _.find(CLEANER_OPTS, { value: "hidden_chars" });
+    const hiddenChars = _.find(cleanerOpts(props.t), { value: "hidden_chars" });
     this.state = {
       ordinalCol: null,
-      ordinalAgg: _.find(ANALYSIS_AGGS, { value: "sum" }),
+      ordinalAgg: _.find(analysisAggs(props.t), { value: "sum" }),
       cleaners: type === "word_value_counts" || type === "value_counts" ? [{ ...hiddenChars }] : [],
     };
     this.updateOrdinal = this.updateOrdinal.bind(this);
@@ -32,18 +38,18 @@ class OrdinalInputs extends React.Component {
   }
 
   renderCleaners() {
-    const { type, colType } = this.props;
+    const { type, colType, t } = this.props;
     if ((type === "word_value_counts" || type === "value_counts") && colType === "string") {
       return (
-        <div className="row pt-3" data-tip="Clean column of extraneous values">
+        <div className="row pt-3" data-tip={t("Clean column of extraneous values")}>
           <div className="col-auto text-center pr-4 ml-auto mt-auto mb-auto">
-            <b>Cleaner</b>
+            <b>{t("Cleaner")}</b>
           </div>
           <div className="col pl-0 mr-3 ordinal-dd cleaner-dd">
             <FilterSelect
               selectProps={{
                 value: this.state.cleaners,
-                options: CLEANER_OPTS,
+                options: cleanerOpts(t),
                 onChange: v => this.updateOrdinal("cleaners", v),
                 isClearable: true,
                 isMulti: true,
@@ -58,7 +64,7 @@ class OrdinalInputs extends React.Component {
   }
 
   render() {
-    const { cols, selectedCol } = this.props;
+    const { cols, selectedCol, t } = this.props;
     let colOpts = _.filter(cols, c => c.name !== selectedCol && _.includes(["float", "int"], gu.findColType(c.dtype)));
     colOpts = _.sortBy(
       _.map(colOpts, c => ({ value: c.name })),
@@ -69,10 +75,10 @@ class OrdinalInputs extends React.Component {
         <div className="row">
           <div className="col-auto text-center pr-4">
             <div>
-              <b>Ordinal</b>
+              <b>{t("Ordinal")}</b>
             </div>
             <div style={{ marginTop: "-.5em" }}>
-              <small>(Choose Col/Agg)</small>
+              <small>({t("Choose Col/Agg")})</small>
             </div>
           </div>
           <div className="col-auto pl-0 mr-3 ordinal-dd">
@@ -81,7 +87,7 @@ class OrdinalInputs extends React.Component {
                 value: this.state.ordinalCol,
                 options: colOpts,
                 onChange: v => this.updateOrdinal("ordinalCol", v),
-                noOptionsText: () => "No columns found",
+                noOptionsText: () => t("analysis:No columns found"),
                 isClearable: true,
               }}
             />
@@ -90,7 +96,7 @@ class OrdinalInputs extends React.Component {
             <FilterSelect
               selectProps={{
                 value: this.state.ordinalAgg,
-                options: ANALYSIS_AGGS,
+                options: analysisAggs(this.props.t),
                 onChange: v => this.updateOrdinal("ordinalAgg", v),
               }}
               labelProp="label"
@@ -109,6 +115,7 @@ OrdinalInputs.propTypes = {
   updateOrdinal: PropTypes.func,
   type: PropTypes.string,
   colType: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default OrdinalInputs;
+export default withTranslation(["analysis", "builders", "constants"])(OrdinalInputs);

@@ -2,6 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
@@ -65,6 +66,7 @@ class Instances extends React.Component {
   }
 
   render() {
+    const { dataId, t } = this.props;
     if (this.state.loadingProcesses) {
       return <Bouncer />;
     }
@@ -76,10 +78,10 @@ class Instances extends React.Component {
       if (index < 0) {
         return "";
       }
-      return this.props.dataId === _.get(processes, [index, "data_id"]) ? "active" : "clickable";
+      return dataId === _.get(processes, [index, "data_id"]) ? "active" : "clickable";
     };
     const _rowClick = ({ rowData }) => {
-      if (rowData.data_id === this.props.dataId) {
+      if (rowData.data_id === dataId) {
         return;
       }
       const currentHost = window.location.origin;
@@ -109,7 +111,7 @@ class Instances extends React.Component {
             fontSize: "80%",
           }}
           cellRenderer={({ rowData }) =>
-            rowData.data_id !== this.props.dataId && (
+            rowData.data_id !== dataId && (
               <button className="preview-btn" onClick={viewPreview(rowData)}>
                 Preview
               </button>
@@ -129,7 +131,7 @@ class Instances extends React.Component {
           label=""
           style={{ textAlign: "center" }}
           cellRenderer={({ rowData }) => {
-            if (rowData.data_id === this.props.dataId) {
+            if (rowData.data_id === dataId) {
               return null;
             }
             return <i className="ico-delete" onClick={cleanup(rowData)} />;
@@ -161,7 +163,7 @@ class Instances extends React.Component {
                   {cleanupCol}
                   <Column
                     dataKey="start"
-                    label="Instance"
+                    label={t("Instance")}
                     width={200}
                     flexGrow={1}
                     style={{ textAlign: "left", paddingLeft: ".5em" }}
@@ -171,7 +173,7 @@ class Instances extends React.Component {
                   <Column
                     width={50}
                     dataKey="rows"
-                    label="Rows"
+                    label={t("Rows")}
                     style={{
                       textAlign: "right",
                       paddingRight: ".5em",
@@ -182,7 +184,7 @@ class Instances extends React.Component {
                   <Column
                     width={50}
                     dataKey="columns"
-                    label="Cols"
+                    label={t("Cols")}
                     style={{
                       textAlign: "right",
                       paddingRight: ".5em",
@@ -194,7 +196,7 @@ class Instances extends React.Component {
                     width={150}
                     flexGrow={1}
                     dataKey="names"
-                    label="Column Names"
+                    label={t("Column Names")}
                     style={{
                       textAlign: "center",
                       paddingRight: ".5em",
@@ -210,7 +212,7 @@ class Instances extends React.Component {
                   <Column
                     width={150}
                     dataKey="mem_usage"
-                    label="Memory Usage (MB)"
+                    label={t("Memory Usage (MB)")}
                     style={{
                       textAlign: "center",
                       paddingRight: ".5em",
@@ -237,6 +239,7 @@ Instances.displayName = "Instances";
 Instances.propTypes = {
   iframe: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
+  t: PropTypes.func,
 };
 
-export default Instances;
+export default withTranslation("instance")(Instances);

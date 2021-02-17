@@ -4,6 +4,7 @@ import { Resizable } from "re-resizable";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
 import { GlobalHotKeys } from "react-hotkeys";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import ConditionalRender from "../ConditionalRender";
@@ -93,14 +94,15 @@ ReactPopup.propTypes = {
   }),
   propagateState: PropTypes.func,
   mergeRefresher: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactPopup = withTranslation(["popup", "filter", "menu", "column_menu"])(ReactPopup);
 const ReduxPopup = connect(
   state => _.pick(state, ["dataId", "iframe", "chartData"]),
   dispatch => ({
     onClose: chartData => dispatch(closeChart(chartData || {})),
     mergeRefresher: () => dispatch(mergeActions.loadDatasets()),
   })
-)(ReactPopup);
+)(TranslateReactPopup);
 
-export { ReactPopup, ReduxPopup as Popup };
+export { TranslateReactPopup as ReactPopup, ReduxPopup as Popup };

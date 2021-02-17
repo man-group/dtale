@@ -15,11 +15,11 @@ export const LABELS = {
   skew: "Skew",
 };
 
-export function buildStat(key, value) {
+export function buildStat(t, key, value) {
   if (value !== undefined) {
     return (
       <div>
-        <h4 className="d-inline pr-5">{`${_.get(LABELS, key, key)}:`}</h4>
+        <h4 className="d-inline pr-5">{`${t(_.get(LABELS, key, key))}:`}</h4>
         <span className="d-inline">
           {value}
           {key === "skew" && skewMsg(value)}

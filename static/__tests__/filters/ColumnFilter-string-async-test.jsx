@@ -36,7 +36,7 @@ describe("ColumnFilter string tests", () => {
     );
     jest.mock("popsicle", () => mockBuildLibs);
     ColumnFilter = require("../../filters/ColumnFilter").default;
-    StringFilter = require("../../filters/StringFilter").StringFilter;
+    StringFilter = require("../../filters/StringFilter").default;
   });
 
   beforeEach(buildInnerHTML);

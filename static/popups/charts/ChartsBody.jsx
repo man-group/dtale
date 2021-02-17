@@ -3,6 +3,7 @@ import _ from "lodash";
 import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import { Bouncer } from "../../Bouncer";
@@ -259,14 +260,15 @@ class ChartsBody extends React.Component {
   }
 
   renderLabel() {
+    const { t } = this.props;
     const { data, error, zoomed } = this.state;
     return (
       <ConditionalRender display={!_.isEmpty(data) && _.isEmpty(error)}>
         <ChartLabel {..._.assign({}, this.props, this.state)} />
         <ConditionalRender display={!_.isEmpty(zoomed)}>
           <div className="coverage-desc">
-            <span className="pr-3" style={{ marginLeft: "3em" }}>{`Zoomed: ${zoomed}`}</span>
-            <JSAnchor onClick={this.resetZoom}>{"X"}</JSAnchor>
+            <span className="pr-3" style={{ marginLeft: "3em" }}>{`${t("Zoomed")}: ${zoomed}`}</span>
+            <JSAnchor onClick={this.resetZoom}>{t("X")}</JSAnchor>
           </div>
         </ConditionalRender>
       </ConditionalRender>
@@ -295,13 +297,14 @@ class ChartsBody extends React.Component {
   }
 
   renderControls() {
+    const { t } = this.props;
     if (this.props.showControls) {
       const showBarSort = chartType(this.state) === "bar" && _.isNull(this.props.group) && !_.isEmpty(this.state.data);
       return [
         <div key={0} className="row pt-3 pb-3 charts-filters">
           <div className="col-auto">
             <div className="input-group mr-3">
-              <span className="input-group-addon">Chart</span>
+              <span className="input-group-addon">{t("Chart")}</span>
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
@@ -317,7 +320,7 @@ class ChartsBody extends React.Component {
           <ConditionalRender display={_.size(this.props.group || []) > 0}>
             <div className="col-auto">
               <div className="input-group mr-3">
-                <span className="input-group-addon">Chart per Group</span>
+                <span className="input-group-addon">{t("Chart per Group")}</span>
                 <Select
                   className="Select is-clearable is-searchable Select--single"
                   classNamePrefix="Select"
@@ -334,7 +337,7 @@ class ChartsBody extends React.Component {
           <ConditionalRender display={showBarSort}>
             <div className="col-auto">
               <div className="input-group mr-3">
-                <span className="input-group-addon">Sort</span>
+                <span className="input-group-addon">{t("Sort")}</span>
                 <Select
                   className="Select is-clearable is-searchable Select--single"
                   classNamePrefix="Select"
@@ -409,6 +412,7 @@ ChartsBody.propTypes = {
   configHandler: PropTypes.func,
   showControls: PropTypes.bool,
   dataLoadCallback: PropTypes.func,
+  t: PropTypes.func,
 };
 ChartsBody.defaultProps = {
   height: 400,
@@ -419,4 +423,4 @@ ChartsBody.defaultProps = {
   dataLoadCallback: _.noop,
 };
 
-export default ChartsBody;
+export default withTranslation("charts", { withRef: true })(ChartsBody);

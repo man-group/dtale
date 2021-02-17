@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 
 import actions from "../actions/dtale";
 import "../adapter-for-react-16";
+import "../i18n";
 import app from "../reducers/dtale";
 import { createStore } from "../reducers/store";
 import { NetworkDisplay } from "./NetworkDisplay";

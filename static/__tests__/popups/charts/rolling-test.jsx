@@ -37,7 +37,7 @@ describe("Charts rolling tests", () => {
   afterAll(dimensions.afterAll);
 
   it("Charts: rendering", async () => {
-    const Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
+    const Aggregations = require("../../../popups/charts/Aggregations").default;
     const Charts = require("../../../popups/charts/Charts").ReactCharts;
     buildInnerHTML({ settings: "" });
     const result = mount(<Charts chartData={{ visible: true }} dataId="1" />, {

@@ -14,20 +14,28 @@ from tests import ExitStack
 @pytest.mark.unit
 def test_load_app_settings():
     settings = {
-        "theme": "light",
+        "theme": "dark",
         "github_fork": False,
         "hide_shutdown": True,
+        "pin_menu": True,
+        "language": "cn",
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
 
         load_app_settings(None)
         assert settings["hide_shutdown"]
+        assert settings["pin_menu"]
+        assert settings["language"] == "cn"
+        assert settings["theme"] == "dark"
 
         load_app_settings(
             load_config_state(os.path.join(os.path.dirname(__file__), "dtale.ini"))
         )
         assert not settings["hide_shutdown"]
+        assert not settings["pin_menu"]
+        assert settings["language"] == "en"
+        assert settings["theme"] == "light"
 
 
 @pytest.mark.unit
@@ -36,12 +44,16 @@ def test_load_app_settings_w_missing_props():
         "theme": "light",
         "github_fork": False,
         "hide_shutdown": True,
+        "pin_menu": True,
+        "language": "cn",
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
 
         load_app_settings(None)
         assert settings["hide_shutdown"]
+        assert settings["pin_menu"]
+        assert settings["language"] == "cn"
 
         load_app_settings(
             load_config_state(
@@ -49,6 +61,8 @@ def test_load_app_settings_w_missing_props():
             )
         )
         assert not settings["hide_shutdown"]
+        assert settings["pin_menu"]
+        assert settings["language"] == "cn"
 
 
 @pytest.mark.unit

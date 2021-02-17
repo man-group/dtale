@@ -1,11 +1,12 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import { RemovableError } from "../../RemovableError";
 import { exports as gu } from "../../dtale/gridUtils";
-import { AGGREGATION_OPTS } from "../analysis/filters/Constants";
+import { aggregationOpts } from "../analysis/filters/Constants";
 
 function validateValueCfg(cfgs) {
   if (!_.size(cfgs)) {
@@ -14,23 +15,23 @@ function validateValueCfg(cfgs) {
   return null;
 }
 
-function validateCfg({ type, value, replace }, cfgs) {
+function validateCfg(t, { type, value, replace }, cfgs) {
   if (_.isNull(value) || "") {
-    return "Please select a value to search for!";
+    return t("Please select a value to search for!");
   }
   if (_.isNull(type)) {
-    return "Please select a type of replacement!";
+    return t("Please select a type of replacement!");
   }
   if (_.isNull(replace) || "") {
     if (type === "raw") {
-      return "Please enter a raw value!";
+      return t("Please enter a raw value!");
     } else if (type === "col") {
-      return "Please select a column!";
+      return t("Please select a column!");
     }
-    return "Please select an aggregation!";
+    return t("Please select an aggregation!");
   }
   if (type === "raw" && _.find(cfgs, { type: "raw", value })) {
-    return `A replacement for ${value} already exists, please remove it before adding this one!`;
+    return `${t("A replacement for")} ${value} ${t("already exists, please remove it before adding this one!")}`;
   }
   return null;
 }
@@ -130,14 +131,15 @@ class Value extends React.Component {
   }
 
   renderCfg() {
+    const { t } = this.props;
     return _.map(this.state.cfgs, ({ type, value, replace }, i) => {
       let replaceStr;
       if (type === "raw") {
         replaceStr = valConverter(replace, this.props.colType, `"`);
       } else if (type === "col") {
-        replaceStr = `values from column "${replace}"`;
+        replaceStr = `${t("replacement:values from column")} "${replace}"`;
       } else {
-        replaceStr = `the ${replace} of column "${this.props.col}"`;
+        replaceStr = `${t("replacement:the")} ${replace} ${t("replacement:of column")} "${this.props.col}"`;
       }
       return (
         <div key={i + 2} className="row">
@@ -145,9 +147,9 @@ class Value extends React.Component {
           <div className="col-md-8">
             <i className="ico-remove-circle pointer mt-auto mb-auto mr-4" onClick={() => this.removeCfg(i)} />
             <span>
-              {"Search for "}
+              {t("replacement:Search for ")}
               <b>{valConverter(value, this.props.colType, `"`)}</b>
-              {" and replace it with "}
+              {t("replacement: and replace it with ")}
               <b>{replaceStr}</b>
             </span>
           </div>
@@ -199,7 +201,7 @@ class Value extends React.Component {
           />
           {addBtn}
         </div>,
-        <small key="raw-1">{`To replace with missings, please enter the string "nan"`}</small>,
+        <small key="raw-1">{this.props.t("replacement:replace_missings")}</small>,
       ];
     } else {
       input = (
@@ -207,7 +209,9 @@ class Value extends React.Component {
           <Select
             className="Select is-clearable is-searchable Select--single"
             classNamePrefix="Select"
-            options={_.reject(AGGREGATION_OPTS, { value: "rolling" })}
+            options={_.reject(aggregationOpts(this.props.t), {
+              value: "rolling",
+            })}
             getOptionLabel={_.property("value")}
             getOptionValue={_.property("value")}
             value={this.state.agg}
@@ -222,7 +226,7 @@ class Value extends React.Component {
     return _.concat(
       [
         <div key={0} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Search For</label>
+          <label className="col-md-3 col-form-label text-right">{this.props.t("replacement:Search For")}</label>
           <div className="col-md-8">
             <input
               type="text"
@@ -230,11 +234,11 @@ class Value extends React.Component {
               value={this.state.value || ""}
               onChange={e => this.setState({ value: e.target.value })}
             />
-            <small>{`To replace missings, please enter the string "nan"`}</small>
+            <small>{this.props.t("replacement:replace_missings")}</small>
           </div>
         </div>,
         <div key={1} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Replace With</label>
+          <label className="col-md-3 col-form-label text-right">{this.props.t("replacement:Replace With")}</label>
           <div className="col-md-8">
             <div className="row">
               <div className="col-auto btn-group" style={{ height: "fit-content" }}>
@@ -248,7 +252,7 @@ class Value extends React.Component {
                   }
                   return (
                     <button key={`type-${t}`} {...buttonProps}>
-                      {_.capitalize(t)}
+                      {this.props.t(`replacement:${_.capitalize(t)}`)}
                     </button>
                   );
                 })}
@@ -268,6 +272,7 @@ Value.propTypes = {
   col: PropTypes.string,
   columns: PropTypes.array,
   colType: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { Value, validateValueCfg, buildCode };
+const TranslateValue = withTranslation(["replacement", "constant"])(Value);
+export { TranslateValue as Value, validateValueCfg, buildCode };

@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-function buildRandomCode(cfg) {
+export function buildRandomCode(cfg) {
   if (cfg.type === "string") {
     return [
       "pd.Series(",
@@ -53,7 +53,7 @@ function buildRandomCode(cfg) {
   }
 }
 
-function buildCleaningCode(cfg) {
+export function buildCleaningCode(cfg) {
   if (!cfg.col) {
     return null;
   }
@@ -133,5 +133,3 @@ function buildCleaningCode(cfg) {
   });
   return code;
 }
-
-export { buildRandomCode, buildCleaningCode };

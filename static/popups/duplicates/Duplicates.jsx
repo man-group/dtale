@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
@@ -79,7 +80,7 @@ class ReactDuplicates extends React.Component {
         break;
     }
     if (!_.isNull(error)) {
-      this.setState({ error: <RemovableError error={error} /> });
+      this.setState({ error: <RemovableError error={this.props.t(error)} /> });
       return;
     }
     this.setState({ executing: true });
@@ -119,9 +120,10 @@ class ReactDuplicates extends React.Component {
 
   renderBody() {
     let body = null;
+    const { dataId, t } = this.props;
     const bodyProps = {
       updateState: this.updateState,
-      dataId: this.props.dataId,
+      dataId,
     };
     switch (this.state.type) {
       case "columns":
@@ -142,7 +144,7 @@ class ReactDuplicates extends React.Component {
     return (
       <React.Fragment>
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Operation</label>
+          <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
           <div className="col-md-8">
             <div className="btn-group duplicate-types">
               {_.map(TYPES, ([type, label], i) => {
@@ -155,12 +157,12 @@ class ReactDuplicates extends React.Component {
                 }
                 return (
                   <button key={i} {...buttonProps}>
-                    {label}
+                    {t(label)}
                   </button>
                 );
               })}
             </div>
-            {this.state.type && <small className="d-block pt-3">{TYPE_DESC[this.state.type]}</small>}
+            {this.state.type && <small className="d-block pt-3">{t(TYPE_DESC[this.state.type])}</small>}
           </div>
         </div>
         {body}
@@ -186,7 +188,7 @@ class ReactDuplicates extends React.Component {
         <div className="modal-footer">
           <button className="btn btn-primary" onClick={this.state.executing ? _.noop : this.execute}>
             <BouncerWrapper showBouncer={this.state.executing}>
-              <span>Execute</span>
+              <span>{this.props.t("Execute")}</span>
             </BouncerWrapper>
           </button>
         </div>
@@ -202,10 +204,11 @@ ReactDuplicates.propTypes = {
     propagateState: PropTypes.func,
   }),
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactDuplicates = withTranslation("duplicate")(ReactDuplicates);
 const ReduxDuplicates = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactDuplicates);
-export { ReactDuplicates, ReduxDuplicates as Duplicates };
+)(TranslateReactDuplicates);
+export { TranslateReactDuplicates as ReactDuplicates, ReduxDuplicates as Duplicates };

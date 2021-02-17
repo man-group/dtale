@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
@@ -22,14 +23,14 @@ function datasetName(instance) {
 
 const colName = col => `${col.name} (${col.dtype})`;
 
-export class ReactMergeDatasets extends React.Component {
+class ReactMergeDatasets extends React.Component {
   constructor(props) {
     super(props);
     this.renderDatasetInputs = this.renderDatasetInputs.bind(this);
   }
 
   renderDatasetInputs(dataset, datasetIndex) {
-    const { instances, action } = this.props;
+    const { instances, action, t } = this.props;
     const { dataId, isDataOpen } = dataset;
     const instance = _.find(instances, { data_id: dataId });
     const { name, rows, columns } = instance;
@@ -39,15 +40,18 @@ export class ReactMergeDatasets extends React.Component {
         <dt
           className={`dataset accordion-title${dataset.isOpen ? " is-expanded" : ""} pointer pl-3`}
           onClick={() => this.props.toggleDataset(datasetIndex)}>
-          {`Dataset ${datasetIndex + 1}`}
-          <small>{` (ID: ${instance.data_id}${name ? `, Name: ${name}` : ""}, Cols: ${columns}, Rows: ${rows})`}</small>
+          {`${t("Dataset")} ${datasetIndex + 1}`}
+          <small>
+            {` (${t("ID")}: ${instance.data_id}${name ? `, ${t("Name")}: ${name}` : ""}`}
+            {`, ${t("Cols")}: ${columns}, ${t("Rows")}: ${rows})`}
+          </small>
         </dt>
         <dd className={`p-0 dataset accordion-content${dataset.isOpen ? " is-expanded" : ""}`}>
           <div className="row pt-4 ml-0 mr-0">
             {action === "merge" && (
               <div className="col-md-6">
                 <div className="form-group row">
-                  <label className="col-md-2 col-form-label text-right">Index(es)*:</label>
+                  <label className="col-md-2 col-form-label text-right">{t("Index(es)*")}:</label>
                   <div className="col-md-8">
                     <div className="input-group">
                       <Select
@@ -60,7 +64,7 @@ export class ReactMergeDatasets extends React.Component {
                         value={dataset.index}
                         onChange={index => this.props.updateDataset(datasetIndex, "index", index)}
                         filterOption={createFilter({ ignoreAccents: false })}
-                        placeholder="Select Indexes"
+                        placeholder={t("Select Indexes")}
                       />
                     </div>
                   </div>
@@ -69,7 +73,7 @@ export class ReactMergeDatasets extends React.Component {
             )}
             <div className="col-md-6">
               <div className="form-group row">
-                <label className="col-md-2 col-form-label text-right">Column(s):</label>
+                <label className="col-md-2 col-form-label text-right">{t("Column(s)")}:</label>
                 <div className="col-md-8">
                   <div className="input-group">
                     <Select
@@ -83,7 +87,7 @@ export class ReactMergeDatasets extends React.Component {
                       onChange={columns => this.props.updateDataset(datasetIndex, "columns", columns)}
                       isClearable
                       filterOption={createFilter({ ignoreAccents: false })}
-                      placeholder="All Columns Selected"
+                      placeholder={t("All Columns Selected")}
                     />
                   </div>
                 </div>
@@ -92,7 +96,7 @@ export class ReactMergeDatasets extends React.Component {
             {action === "merge" && (
               <div className="col-md-6">
                 <div className="form-group row">
-                  <label className="col-md-2 col-form-label text-right">Suffix:</label>
+                  <label className="col-md-2 col-form-label text-right">{t("Suffix")}:</label>
                   <div className="col-md-8">
                     <input
                       type="text"
@@ -110,7 +114,7 @@ export class ReactMergeDatasets extends React.Component {
                 <div className="col-auto">
                   <button className="btn-sm btn-primary pointer" onClick={() => this.props.removeDataset(datasetIndex)}>
                     <i className="ico-remove-circle pr-3" />
-                    <span>Remove Dataset</span>
+                    <span>{t("Remove Dataset")}</span>
                   </button>
                 </div>
               </div>
@@ -120,12 +124,12 @@ export class ReactMergeDatasets extends React.Component {
                 <dt
                   className={`dataset accordion-title${isDataOpen ? " is-expanded" : ""} pointer pl-3`}
                   onClick={() => this.props.updateDataset(datasetIndex, "isDataOpen", !isDataOpen)}>
-                  {"Data"}
+                  {t("Data")}
                 </dt>
                 <dd className={`p-0 dataset accordion-content${isDataOpen ? " is-expanded" : ""} example`}>
                   <div className="row pt-4 ml-0 mr-0">
                     <div className="col-md-12" style={{ height: 200 }}>
-                      <DataPreview dataId={dataId} />
+                      <DataPreview dataId={dataId + ""} />
                     </div>
                   </div>
                 </dd>
@@ -138,7 +142,7 @@ export class ReactMergeDatasets extends React.Component {
   }
 
   render() {
-    const { instances, clearErrors } = this.props;
+    const { instances, clearErrors, t } = this.props;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openPopup } = buttonHandlers;
     return (
@@ -159,14 +163,14 @@ export class ReactMergeDatasets extends React.Component {
             <li className="list-group-item p-3 section">
               <div className="row ml-0 mr-0">
                 <div className="col-auto pl-4 pr-0">
-                  <h3 className="d-inline">Dataset Selection</h3>
-                  <small>{` (Select By Clicking One of the Names Below)`}</small>
+                  <h3 className="d-inline">{t("Dataset Selection")}</h3>
+                  <small>{t(` (Select By Clicking One of the Names Below)`)}</small>
                 </div>
                 <div className="col" />
                 <div className="col-auto pr-0">
                   <button className="btn-sm btn-primary mr-5 pointer" onClick={openPopup("upload", 450)}>
                     <i className="ico-file-upload pr-3" />
-                    <span>Upload</span>
+                    <span>{t("Upload")}</span>
                   </button>
                 </div>
               </div>
@@ -187,10 +191,11 @@ export class ReactMergeDatasets extends React.Component {
                             {datasetName(instance)}
                             <div className="hoverable__content pt-4 pl-0">
                               <ul>
-                                <li>{buildStat("Rows", instance.rows)}</li>
-                                <li>{buildStat("Columns", instance.columns)}</li>
+                                <li>{buildStat(t, "Rows", instance.rows)}</li>
+                                <li>{buildStat(t, "Columns", instance.columns)}</li>
                                 <li>
                                   {buildStat(
+                                    t,
                                     "Column Names",
                                     `${_.join(_.map(_.take(instance.names, 10), colName), ", ")}${
                                       _.size(instance.names) > 10 ? "..." : ""
@@ -235,9 +240,10 @@ ReactMergeDatasets.propTypes = {
   mergeError: PropTypes.object,
   loadDatasets: PropTypes.func,
   clearErrors: PropTypes.func,
+  t: PropTypes.func,
 };
-
-export default connect(
+const TranslateReactMergeDatasets = withTranslation("merge")(ReactMergeDatasets);
+const ReduxMergeDatasets = connect(
   ({ instances, loading, loadingDatasets, action, datasets, loadingError, mergeError }) => ({
     instances,
     loading,
@@ -255,4 +261,5 @@ export default connect(
     clearErrors: () => dispatch({ type: "clear-errors" }),
     openChart: chartProps => dispatch(openChart(chartProps)),
   })
-)(ReactMergeDatasets);
+)(TranslateReactMergeDatasets);
+export { ReduxMergeDatasets as default, TranslateReactMergeDatasets as ReactMergeDatasets };

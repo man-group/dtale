@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import chartUtils from "../../chartUtils";
 import { DetailsSequentialDiffs } from "./DetailsSequentialDiffs";
@@ -75,7 +76,7 @@ class DetailsBoxplot extends React.Component {
   }
 
   render() {
-    const { details, column } = this.props;
+    const { details, column, t } = this.props;
     const describe = _.get(details, "describe", {});
     const describeKeys = _.keys(
       _.omit(describe, _.concat(["total_count", "freq", "skew", "kurt"], COUNT_STATS, POSITION_STATS))
@@ -84,7 +85,7 @@ class DetailsBoxplot extends React.Component {
     if (details.dtype_counts) {
       dtypeCounts = (
         <li>
-          <h4 className="mb-0">Dtype Counts</h4>
+          <h4 className="mb-0">{t("Dtype Counts")}</h4>
           <ul>
             {_.map(details.dtype_counts, ({ count, dtype }) => (
               <li key={dtype}>
@@ -100,21 +101,21 @@ class DetailsBoxplot extends React.Component {
         <div className="col-md-6">
           <ul>
             <li>
-              {buildStat("total_count", describe.total_count)}
+              {buildStat(t, "total_count", describe.total_count)}
               <ul>
                 {_.map(COUNT_STATS, stat => (
-                  <li key={stat}>{buildStat(stat, describe[stat])}</li>
+                  <li key={stat}>{buildStat(t, stat, describe[stat])}</li>
                 ))}
               </ul>
             </li>
-            {_.map(POSITION_STATS, k => describe[k] !== undefined && <li key={k}>{buildStat(k, describe[k])}</li>)}
+            {_.map(POSITION_STATS, k => describe[k] !== undefined && <li key={k}>{buildStat(t, k, describe[k])}</li>)}
             {describe.freq !== undefined && (
               <ul>
-                <li>{buildStat("freq", describe.freq)}</li>
+                <li>{buildStat(t, "freq", describe.freq)}</li>
               </ul>
             )}
             {_.map(describeKeys, k => (
-              <li key={k}>{buildStat(k, describe[k])}</li>
+              <li key={k}>{buildStat(t, k, describe[k])}</li>
             ))}
             {details.string_metrics && (
               <React.Fragment>
@@ -123,38 +124,40 @@ class DetailsBoxplot extends React.Component {
                     <h4 className="d-inline">Characters</h4>
                   </div>
                   <ul>
-                    <li>{buildStat("Min # Chars", details.string_metrics.char_min)}</li>
-                    <li>{buildStat("Average # Chars", details.string_metrics.char_mean)}</li>
-                    <li>{buildStat("Max # Chars", details.string_metrics.char_max)}</li>
-                    <li>{buildStat("STD # Chars", details.string_metrics.char_std)}</li>
-                    <li>{buildStat("Rows w/ Spaces", details.string_metrics.with_space)}</li>
-                    <li>{buildStat("Rows w/ Accent Chars", details.string_metrics.with_accent)}</li>
-                    <li>{buildStat("Rows w/ Numeric Chars", details.string_metrics.with_num)}</li>
-                    <li>{buildStat("Rows w/ Uppercase Chars", details.string_metrics.with_upper)}</li>
-                    <li>{buildStat("Rows w/ Lowercase Chars", details.string_metrics.with_lower)}</li>
-                    <li>{buildStat("Rows w/ Punctuation", details.string_metrics.with_punc)}</li>
-                    <li>{buildStat("Rows Starting w/ Space", details.string_metrics.space_at_the_first)}</li>
-                    <li>{buildStat("Rows Ending w/ Space", details.string_metrics.space_at_the_end)}</li>
-                    <li>{buildStat("Rows w/ Multi Spacing", details.string_metrics.multi_space_after_each_other)}</li>
-                    <li>{buildStat("Rows w/ Hidden Chars", details.string_metrics.with_hidden)}</li>
+                    <li>{buildStat(t, "Min # Chars", details.string_metrics.char_min)}</li>
+                    <li>{buildStat(t, "Average # Chars", details.string_metrics.char_mean)}</li>
+                    <li>{buildStat(t, "Max # Chars", details.string_metrics.char_max)}</li>
+                    <li>{buildStat(t, "STD # Chars", details.string_metrics.char_std)}</li>
+                    <li>{buildStat(t, "Rows w/ Spaces", details.string_metrics.with_space)}</li>
+                    <li>{buildStat(t, "Rows w/ Accent Chars", details.string_metrics.with_accent)}</li>
+                    <li>{buildStat(t, "Rows w/ Numeric Chars", details.string_metrics.with_num)}</li>
+                    <li>{buildStat(t, "Rows w/ Uppercase Chars", details.string_metrics.with_upper)}</li>
+                    <li>{buildStat(t, "Rows w/ Lowercase Chars", details.string_metrics.with_lower)}</li>
+                    <li>{buildStat(t, "Rows w/ Punctuation", details.string_metrics.with_punc)}</li>
+                    <li>{buildStat(t, "Rows Starting w/ Space", details.string_metrics.space_at_the_first)}</li>
+                    <li>{buildStat(t, "Rows Ending w/ Space", details.string_metrics.space_at_the_end)}</li>
+                    <li>
+                      {buildStat(t, "Rows w/ Multi Spacing", details.string_metrics.multi_space_after_each_other)}
+                    </li>
+                    <li>{buildStat(t, "Rows w/ Hidden Chars", details.string_metrics.with_hidden)}</li>
                   </ul>
                 </li>
                 <li>
                   <div>
-                    <h4 className="d-inline">Words</h4>
+                    <h4 className="d-inline">{t("Words")}</h4>
                   </div>
                   <ul>
-                    <li>{buildStat("Min # Words", details.string_metrics.word_min)}</li>
-                    <li>{buildStat("Average # Words", details.string_metrics.word_mean)}</li>
-                    <li>{buildStat("Max # Words", details.string_metrics.word_max)}</li>
-                    <li>{buildStat("STD # Words", details.string_metrics.word_std)}</li>
+                    <li>{buildStat(t, "Min # Words", details.string_metrics.word_min)}</li>
+                    <li>{buildStat(t, "Average # Words", details.string_metrics.word_mean)}</li>
+                    <li>{buildStat(t, "Max # Words", details.string_metrics.word_max)}</li>
+                    <li>{buildStat(t, "STD # Words", details.string_metrics.word_std)}</li>
                   </ul>
                 </li>
               </React.Fragment>
             )}
             {details.sequential_diffs && <DetailsSequentialDiffs data={details.sequential_diffs} column={column} />}
-            {describe.kurt !== undefined && <li>{buildStat("kurt", describe.kurt)}</li>}
-            {describe.skew !== undefined && <li>{buildStat("skew", describe.skew)}</li>}
+            {describe.kurt !== undefined && <li>{buildStat(t, "kurt", describe.kurt)}</li>}
+            {describe.skew !== undefined && <li>{buildStat(t, "skew", describe.skew)}</li>}
             {dtypeCounts}
           </ul>
         </div>
@@ -171,6 +174,7 @@ DetailsBoxplot.displayName = "DetailsBoxplot";
 DetailsBoxplot.propTypes = {
   details: PropTypes.object,
   column: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default DetailsBoxplot;
+export default withTranslation("describe")(DetailsBoxplot);

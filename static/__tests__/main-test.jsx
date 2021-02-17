@@ -5,6 +5,8 @@ import { expect, it } from "@jest/globals";
 import mockPopsicle from "./MockPopsicle";
 import { buildInnerHTML, withGlobalJquery } from "./test-utils";
 
+jest.mock("../i18n", () => ({}));
+
 describe("main tests", () => {
   const { location, open, top, self, opener } = window;
 

@@ -1,23 +1,23 @@
 import _ from "lodash";
 import React from "react";
 
-import { CreateBins, validateBinsCfg } from "./CreateBins";
-import { CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
-import { CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
-import { CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
-import { CreateDiff, validateDiffCfg } from "./CreateDiff";
-import { CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
-import { CreateExponentialSmoothing, validateExponentialSmoothingCfg } from "./CreateExponentialSmoothing";
-import { CreateNumeric, validateNumericCfg } from "./CreateNumeric";
-import { CreateRandom, validateRandomCfg } from "./CreateRandom";
-import { CreateRolling, validateRollingCfg } from "./CreateRolling";
-import { CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
-import { CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
-import { CreateString, validateStringCfg } from "./CreateString";
-import { CreateTransform, validateTransformCfg } from "./CreateTransform";
-import { CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
-import { CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
-import { CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
+import { default as CreateBins, validateBinsCfg } from "./CreateBins";
+import { default as CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
+import { default as CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
+import { default as CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
+import { default as CreateDiff, validateDiffCfg } from "./CreateDiff";
+import { default as CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
+import { default as CreateExponentialSmoothing, validateExponentialSmoothingCfg } from "./CreateExponentialSmoothing";
+import { default as CreateNumeric, validateNumericCfg } from "./CreateNumeric";
+import { default as CreateRandom, validateRandomCfg } from "./CreateRandom";
+import { default as CreateRolling, validateRollingCfg } from "./CreateRolling";
+import { default as CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
+import { default as CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
+import { default as CreateString, validateStringCfg } from "./CreateString";
+import { default as CreateTransform, validateTransformCfg } from "./CreateTransform";
+import { default as CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
+import { default as CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
+import { default as CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
 
 export const TYPES = _.concat(
   ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
@@ -35,42 +35,42 @@ export function buildLabel(v) {
   return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
 }
 
-export function validateCfg(type, cfg) {
+export function validateCfg(t, type, cfg) {
   switch (type) {
     case "datetime":
-      return validateDatetimeCfg(cfg);
+      return validateDatetimeCfg(t, cfg);
     case "encoder":
-      return validateEncoderCfg(cfg);
+      return validateEncoderCfg(t, cfg);
     case "string":
-      return validateStringCfg(cfg);
+      return validateStringCfg(t, cfg);
     case "bins":
-      return validateBinsCfg(cfg);
+      return validateBinsCfg(t, cfg);
     case "random":
-      return validateRandomCfg(cfg);
+      return validateRandomCfg(t, cfg);
     case "similarity":
-      return validateSimilarityCfg(cfg);
+      return validateSimilarityCfg(t, cfg);
     case "standardize":
-      return validateStandardizedCfg(cfg);
+      return validateStandardizedCfg(t, cfg);
     case "type_conversion":
-      return validateTypeConversionCfg(cfg);
+      return validateTypeConversionCfg(t, cfg);
     case "transform":
-      return validateTransformCfg(cfg);
+      return validateTransformCfg(t, cfg);
     case "winsorize":
-      return validateWinsorizeCfg(cfg);
+      return validateWinsorizeCfg(t, cfg);
     case "zscore_normalize":
-      return validateZScoreNormalizeCfg(cfg);
+      return validateZScoreNormalizeCfg(t, cfg);
     case "numeric":
-      return validateNumericCfg(cfg);
+      return validateNumericCfg(t, cfg);
     case "cleaning":
-      return validateCleaningCfg(cfg);
+      return validateCleaningCfg(t, cfg);
     case "diff":
-      return validateDiffCfg(cfg);
+      return validateDiffCfg(t, cfg);
     case "data_slope":
-      return validateDataSlopeCfg(cfg);
+      return validateDataSlopeCfg(t, cfg);
     case "rolling":
-      return validateRollingCfg(cfg);
+      return validateRollingCfg(t, cfg);
     case "exponential_smoothing":
-      return validateExponentialSmoothingCfg(cfg);
+      return validateExponentialSmoothingCfg(t, cfg);
   }
   return null;
 }

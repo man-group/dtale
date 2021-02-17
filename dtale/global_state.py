@@ -12,6 +12,8 @@ except ImportError:
 
 APP_SETTINGS = {
     "theme": "light",
+    "pin_menu": False,
+    "language": "en",
     "github_fork": False,
     "hide_shutdown": False,
 }

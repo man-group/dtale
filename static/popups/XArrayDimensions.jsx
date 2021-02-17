@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
@@ -75,7 +76,8 @@ class ReactXArrayDimensions extends React.Component {
   }
 
   render() {
-    const currSelections = this.props.xarrayDim;
+    const { xarrayDim, t } = this.props;
+    const currSelections = xarrayDim;
     const updatedSelection = _.reduce(
       this.state.xarrayDim,
       (res, v, prop) => _.assignIn(res, _.get(v, "value") ? { [prop]: v.value } : {}),
@@ -99,7 +101,7 @@ class ReactXArrayDimensions extends React.Component {
                         <span className="font-weight-bold" style={{ fontSize: "18px" }}>
                           {name}
                         </span>
-                        <div>{`(count: ${count}, dtype: ${dtype})`}</div>
+                        <div>{`(${t("count")}: ${count}, ${t("dtype")}: ${dtype})`}</div>
                       </div>
                       <div className="col-md-6">
                         <BouncerWrapper showBouncer={this.state.loadingDimension && this.state.dimension === name}>
@@ -119,7 +121,7 @@ class ReactXArrayDimensions extends React.Component {
                                 },
                               })
                             }
-                            noOptionsText={() => "No dimensions found"}
+                            noOptionsText={() => t("No dimensions found")}
                             isClearable
                             filterOption={createFilter({
                               ignoreAccents: false,
@@ -137,7 +139,7 @@ class ReactXArrayDimensions extends React.Component {
       </div>,
       <div key="footer" className="modal-footer">
         <button className="btn btn-primary" disabled={!canSave} onClick={this.save}>
-          <span>Update Dimensions</span>
+          <span>{t("Update Dimensions")}</span>
         </button>
       </div>,
     ];
@@ -152,13 +154,14 @@ ReactXArrayDimensions.propTypes = {
   xarrayDim: PropTypes.object,
   dataId: PropTypes.string.isRequired,
   updateXArrayDim: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactXArrayDimensions = withTranslation("xarray")(ReactXArrayDimensions);
 const ReduxXArrayDimensions = connect(
   state => _.pick(state, ["chartData", "xarrayDim"]),
   dispatch => ({
     updateXArrayDim: (xarrayDim, callback) => dispatch(actions.updateXArrayDim(xarrayDim, callback)),
   })
-)(ReactXArrayDimensions);
+)(TranslateReactXArrayDimensions);
 
-export { ReactXArrayDimensions, ReduxXArrayDimensions as XArrayDimensions };
+export { TranslateReactXArrayDimensions as ReactXArrayDimensions, ReduxXArrayDimensions as XArrayDimensions };

@@ -147,7 +147,7 @@ function showCode(state = true, action = {}) {
 function mergeDataId(state = null, action = {}) {
   switch (action.type) {
     case "load-merge-data":
-      return action.dataId;
+      return action.dataId + "";
     case "clear-merge-data":
       return null;
     default:

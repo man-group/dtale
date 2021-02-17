@@ -9,10 +9,15 @@ import { expect, it } from "@jest/globals";
 import * as fetcher from "../../../fetcher";
 import mergeApp from "../../../reducers/merge";
 import { createStore } from "../../../reducers/store";
+import { MockComponent } from "../../MockComponent";
 import { PROCESSES } from "../../redux-test-utils";
 import { buildInnerHTML, tickUpdate } from "../../test-utils";
 
 describe("DataViewer tests", () => {
+  jest.mock("../../../dtale/DataViewer", () => ({
+    DataViewer: MockComponent,
+    ReactDataViewer: MockComponent,
+  }));
   let result, store, fetchJsonSpy, postSpy;
 
   beforeEach(async () => {

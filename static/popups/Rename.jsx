@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { RemovableError } from "../RemovableError";
@@ -31,7 +32,7 @@ class ReactRename extends React.Component {
   }
 
   render() {
-    const { dataId, propagateState, onClose } = this.props;
+    const { dataId, propagateState, onClose, t } = this.props;
     const { selectedCol, columns } = this.props.chartData;
     const rename = this.state.name;
     const renameAction = () => {
@@ -56,11 +57,11 @@ class ReactRename extends React.Component {
       <div key="body" className="modal-body">
         {this.state.error}
         <div className="form-group row">
-          <label className="col-md-4 col-form-label text-right">Current</label>
+          <label className="col-md-4 col-form-label text-right">{t("Current")}</label>
           <div className="col-md-6 mt-auto mb-auto font-weight-bold">{selectedCol}</div>
         </div>
         <div className="form-group row">
-          <label className="col-md-4 col-form-label text-right">New</label>
+          <label className="col-md-4 col-form-label text-right">{t("New")}</label>
           <div className="col-md-6">
             <input
               type="text"
@@ -73,10 +74,10 @@ class ReactRename extends React.Component {
       </div>,
       <div key="footer" className="modal-footer confirmation">
         <button className="btn btn-primary" onClick={renameAction}>
-          <span>Update</span>
+          <span>{t("Update")}</span>
         </button>
         <button className="btn btn-secondary" onClick={onClose}>
-          <span>Cancel</span>
+          <span>{t("Cancel")}</span>
         </button>
       </div>,
     ];
@@ -92,11 +93,11 @@ ReactRename.propTypes = {
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactRename = withTranslation("rename")(ReactRename);
 const ReduxRename = connect(
   state => _.pick(state, ["chartData"]),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactRename);
-
-export { ReactRename, ReduxRename as Rename };
+)(TranslateReactRename);
+export { TranslateReactRename as ReactRename, ReduxRename as Rename };

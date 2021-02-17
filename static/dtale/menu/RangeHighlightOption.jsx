@@ -1,9 +1,9 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { Bouncer } from "../../Bouncer";
-import Descriptions from "../menu-descriptions.json";
 import { MenuItem } from "./MenuItem";
 
 class RangeHighlightOption extends React.Component {
@@ -21,7 +21,7 @@ class RangeHighlightOption extends React.Component {
       this.props.propagateState({ rangeHighlight, backgroundMode: null });
     };
     return (
-      <MenuItem description={Descriptions.highlight_range}>
+      <MenuItem description={this.props.t("menu_description:highlight_range")}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={openRangeHightlight}>
             <div style={{ display: "inherit" }}>
@@ -31,7 +31,7 @@ class RangeHighlightOption extends React.Component {
                 </div>
               )}
               {this.props.backgroundMode !== "range" && <div className="bg-range-icon" />}
-              <span className="font-weight-bold pl-4">Highlight Range</span>
+              <span className="font-weight-bold pl-4">{this.props.t("menu:Highlight Range")}</span>
             </div>
           </button>
         </span>
@@ -50,6 +50,7 @@ RangeHighlightOption.propTypes = {
   rangeHighlight: PropTypes.object,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export default RangeHighlightOption;
+export default withTranslation(["menu", "menu_description"])(RangeHighlightOption);

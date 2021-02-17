@@ -2,18 +2,19 @@ import _ from "lodash";
 import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 export function displayScore(pps) {
   return pps?.is_valid_score === true ? numeral(pps.ppscore).format("0.00") : "N/A";
 }
 
-export default class PPSDetails extends React.Component {
+class PPSDetails extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    const { ppsInfo } = this.props;
+    const { ppsInfo, t } = this.props;
     if (_.isEmpty(ppsInfo)) {
       return null;
     }
@@ -21,31 +22,31 @@ export default class PPSDetails extends React.Component {
     return (
       <ul className="ppscore-descriptors">
         <li>
-          {"Baseline Score: "}
+          {`${t("Baseline Score")}: `}
           {buildSpan(numeral(ppsInfo.baseline_score).format("0,000.00"))}
         </li>
         <li>
-          {"Case: "}
+          {`${t("Case")}: `}
           {buildSpan(ppsInfo.case)}
         </li>
         <li>
-          {"Is Valid Score: "}
+          {`${t("Is Valid Score")}: `}
           {buildSpan(ppsInfo.is_valid_score === "True" ? "Yes" : "No")}
         </li>
         <li>
-          {"Score: "}
+          {`${t("Score")}: `}
           {buildSpan(displayScore(ppsInfo))}
         </li>
         <li>
-          {"Metric: "}
+          {`${t("Metric")}: `}
           {buildSpan(ppsInfo.metric)}
         </li>
         <li>
-          {"Model: "}
+          {`${t("Model")}: `}
           {buildSpan(ppsInfo.model)}
         </li>
         <li>
-          {"Model Score: "}
+          {`${t("Model Score")}: `}
           {buildSpan(numeral(ppsInfo.model_score).format("0,000.00"))}
         </li>
       </ul>
@@ -55,4 +56,6 @@ export default class PPSDetails extends React.Component {
 PPSDetails.displayName = "PPSDetails";
 PPSDetails.propTypes = {
   ppsInfo: PropTypes.object,
+  t: PropTypes.func,
 };
+export default withTranslation("pps")(PPSDetails);

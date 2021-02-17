@@ -1,21 +1,22 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-export default class GroupsLegend extends React.Component {
+class GroupsLegend extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    const { groups } = this.props;
+    const { groups, t } = this.props;
     if (!_.size(groups)) {
       return null;
     }
     return (
       <div className="groups-legend">
         <div className="row">
-          <div className="font-weight-bold col-md-12">Groups</div>
+          <div className="font-weight-bold col-md-12">{t("Groups")}</div>
           {_.map(groups, ([group, color], i) => (
             <div key={i} className="col-md-12">
               <div
@@ -34,4 +35,5 @@ export default class GroupsLegend extends React.Component {
   }
 }
 GroupsLegend.displayName = "GroupsLegend";
-GroupsLegend.propTypes = { groups: PropTypes.array };
+GroupsLegend.propTypes = { groups: PropTypes.array, t: PropTypes.func };
+export default withTranslation("network")(GroupsLegend);

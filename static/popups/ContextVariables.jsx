@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import Column from "react-virtualized/dist/commonjs/Table/Column";
 import Table from "react-virtualized/dist/commonjs/Table/Table";
@@ -7,11 +8,6 @@ import Table from "react-virtualized/dist/commonjs/Table/Table";
 import { exports as gu } from "../dtale/gridUtils";
 
 require("./ContextVariables.css");
-
-const displayName = "Context Variables";
-const propTypes = {
-  contextVars: PropTypes.array.isRequired,
-};
 
 class ContextVariables extends React.Component {
   constructor(props) {
@@ -21,23 +17,30 @@ class ContextVariables extends React.Component {
   }
 
   renderInfoForUser() {
+    const { t } = this.props;
     return (
       <div>
-        <h3>Context Variables</h3>
+        <h3>{t("Context Variables")}</h3>
         <p>
-          These are initialized via the <var>context_vars</var> argument to dtale.show(), ex:
+          {t("context_variables_des1")}
+          <var>context_vars</var>
+          {t("context_variables_des2")}
+          {"dtale.show(), ex:"}
           <span className="font-weight-bold"> dtale.show(df, context_vars={"{'foo': [1, 2, 3]}"})</span>
           <br />
-          They can be referenced in filters by prefixing the variable name with {"'@'"}, ex:
-          <span className="font-weight-bold"> Col in @foo </span>to only show rows where {"'Col'"} is in list {"'foo'"}
+          {t("context_variables_des3")}
+          {"ex:"}
+          <span className="font-weight-bold"> Col in @foo </span>
+          {t("context_variables_des4")}
         </p>
       </div>
     );
   }
 
   renderTable() {
-    if (this.props.contextVars.length === 0) {
-      return <p>No context variables are defined.</p>;
+    const { contextVars, t } = this.props;
+    if (contextVars.length === 0) {
+      return <p>{t("No context variables are defined.")}</p>;
     }
     return (
       <div>
@@ -72,7 +75,10 @@ class ContextVariables extends React.Component {
   }
 }
 
-ContextVariables.displayName = displayName;
-ContextVariables.propTypes = propTypes;
+ContextVariables.displayName = "Context Variables";
+ContextVariables.propTypes = {
+  contextVars: PropTypes.array.isRequired,
+  t: PropTypes.func,
+};
 
-export default ContextVariables;
+export default withTranslation("filter")(ContextVariables);

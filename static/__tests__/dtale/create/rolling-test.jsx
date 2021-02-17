@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -43,7 +51,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateRolling = require("../../../popups/create/CreateRolling").CreateRolling;
+    CreateRolling = require("../../../popups/create/CreateRolling").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -95,14 +103,14 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build rolling cfg validation", () => {
     const { validateRollingCfg } = require("../../../popups/create/CreateRolling");
-    expect(validateRollingCfg({})).toBe("Please select a column!");
+    expect(validateRollingCfg(t, {})).toBe("Please select a column!");
     expect(
-      validateRollingCfg({
+      validateRollingCfg(t, {
         col: "col1",
       })
     ).toBe("Please select a computation!");
     expect(
-      validateRollingCfg({
+      validateRollingCfg(t, {
         col: "col1",
         comp: "mean",
       })

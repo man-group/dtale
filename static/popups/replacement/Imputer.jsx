@@ -1,10 +1,11 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-function validateImputerCfg({ type }) {
+function validateImputerCfg(t, { type }) {
   if (_.isNull(type)) {
-    return "Please select an imputer!";
+    return t("Please select an imputer!");
   }
   return null;
 }
@@ -60,7 +61,7 @@ class Imputer extends React.Component {
     }
     return (
       <div key={1} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Neighbors</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Neighbors")}</label>
         <div className="col-md-8">
           <input
             type="number"
@@ -68,7 +69,7 @@ class Imputer extends React.Component {
             value={this.state.nNeighbors ?? ""}
             onChange={e => this.updateState({ nNeighbors: e.target.value })}
           />
-          <small>Default: 2</small>
+          <small>{this.props.t("Default")}: 2</small>
         </div>
       </div>
     );
@@ -77,7 +78,7 @@ class Imputer extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Data Type</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Data Type")}</label>
         <div className="col-md-8">
           <div className="btn-group">
             {_.map(
@@ -96,7 +97,7 @@ class Imputer extends React.Component {
                 }
                 return (
                   <button key={`imputer-${type}`} {...buttonProps}>
-                    {label}
+                    {this.props.t(label)}
                   </button>
                 );
               }
@@ -112,6 +113,7 @@ Imputer.displayName = "Imputer";
 Imputer.propTypes = {
   updateState: PropTypes.func,
   col: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { Imputer, validateImputerCfg, buildCode };
+const TranslateImputer = withTranslation("replacement")(Imputer);
+export { TranslateImputer as Imputer, validateImputerCfg, buildCode };

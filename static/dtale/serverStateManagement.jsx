@@ -156,6 +156,14 @@ function updateTheme(theme, callback) {
   fetchJson(buildURLString("/dtale/update-theme", { theme }), callback);
 }
 
+function updatePinMenu(pinned, callback) {
+  fetchJson(buildURLString("/dtale/update-pin-menu", { pinned }), callback);
+}
+
+function updateLanguage(language, callback) {
+  fetchJson(buildURLString("/dtale/update-language", { language }), callback);
+}
+
 function loadFilteredRanges(dataId, callback) {
   fetchJson(buildURLString(`/dtale/load-filtered-ranges/${dataId}`), callback);
 }
@@ -176,5 +184,7 @@ export default {
   updateFormats,
   editCell,
   updateTheme,
+  updatePinMenu,
+  updateLanguage,
   loadFilteredRanges,
 };

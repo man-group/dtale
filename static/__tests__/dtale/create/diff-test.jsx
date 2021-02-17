@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -43,7 +51,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateDiff = require("../../../popups/create/CreateDiff").CreateDiff;
+    CreateDiff = require("../../../popups/create/CreateDiff").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -83,15 +91,15 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build row difference cfg validation", () => {
     const { validateDiffCfg } = require("../../../popups/create/CreateDiff");
-    expect(validateDiffCfg({})).toBe("Please select a column!");
+    expect(validateDiffCfg(t, {})).toBe("Please select a column!");
     expect(
-      validateDiffCfg({
+      validateDiffCfg(t, {
         col: "col1",
         periods: "a",
       })
     ).toBe("Please select a valid value for periods!");
     expect(
-      validateDiffCfg({
+      validateDiffCfg(t, {
         col: "col1",
         periods: "1",
       })

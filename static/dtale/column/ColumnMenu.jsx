@@ -3,9 +3,9 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import actions from "../../actions/dtale";
 import { buildURLString } from "../../actions/url-utils";
@@ -94,7 +94,7 @@ class ReactColumnMenu extends React.Component {
   }
 
   render() {
-    const { columnMenuOpen, dataId, selectedCol, openChart } = this.props;
+    const { columnMenuOpen, dataId, selectedCol, openChart, t } = this.props;
     if (!selectedCol) {
       return null;
     }
@@ -185,7 +185,7 @@ class ReactColumnMenu extends React.Component {
                     className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
                     onClick={active ? _.noop : () => menuFuncs.updateSort([selectedCol], dir, this.props)}
                     disabled={active}>
-                    {col.label}
+                    {t(`column_menu:${col.label}`)}
                   </button>
                 );
               })}
@@ -202,53 +202,65 @@ class ReactColumnMenu extends React.Component {
                   style={_.assign({ color: "#565b68", width: "2em" }, icnStyle)}
                   className={`btn btn-primary font-weight-bold`}
                   onClick={func(selectedCol, this.props)}
-                  title={hint}>
+                  title={t(`column_menu:${hint}`)}>
                   <i className={`fas fa-${icon}`} />
                 </button>
               ))}
             </div>
           </li>
-          <ConditionalRender display={unlocked}>
+          {unlocked && (
             <ColumnMenuOption
               open={serverState.lockCols([selectedCol], this.props)}
-              label="Lock"
+              label={t("column_menu:Lock")}
               iconClass="fa fa-lock ml-3 mr-4"
             />
-          </ConditionalRender>
-          <ConditionalRender display={!unlocked}>
+          )}
+          {!unlocked && (
             <ColumnMenuOption
               open={serverState.unlockCols([selectedCol], this.props)}
-              label="Unlock"
+              label={t("column_menu:Unlock")}
               iconClass="fa fa-lock-open ml-2 mr-4"
             />
-          </ConditionalRender>
-          <ColumnMenuOption open={hideCol} label="Hide" iconClass="ico-visibility-off" />
-          <ColumnMenuOption open={deleteCol} label="Delete" iconClass="ico-delete" />
-          <ColumnMenuOption open={renameCol} label="Rename" iconClass="ico-edit" />
-          <ColumnMenuOption open={openAction("replacement")} label="Replacements" iconClass="fas fa-backspace mr-3" />
-          <ColumnMenuOption open={openAction("type-conversion")} label="Type Conversion" iconClass="ico-swap-horiz" />
+          )}
+          <ColumnMenuOption open={hideCol} label={t("column_menu:Hide")} iconClass="ico-visibility-off" />
+          <ColumnMenuOption open={deleteCol} label={t("column_menu:Delete")} iconClass="ico-delete" />
+          <ColumnMenuOption open={renameCol} label={t("column_menu:Rename")} iconClass="ico-edit" />
+          <ColumnMenuOption
+            open={openAction("replacement")}
+            label={t("column_menu:Replacements")}
+            iconClass="fas fa-backspace mr-3"
+          />
+          <ColumnMenuOption
+            open={openAction("type-conversion")}
+            label={t("builders:Type Conversion")}
+            iconClass="ico-swap-horiz"
+          />
           {gu.findColType(colCfg.dtype) === "string" && (
             <ColumnMenuOption
               open={openAction("cleaners")}
-              label="Clean Column"
+              label={t("column_menu:Clean Column")}
               iconClass="fas fa-pump-soap ml-3 mr-4"
             />
           )}
-          <ColumnMenuOption open={openAction("duplicates")} label="Duplicates" iconClass="fas fa-clone ml-2 mr-4" />
-          <ColumnMenuOption open={openDescribe} label="Describe" iconClass="ico-view-column" />
+          <ColumnMenuOption
+            open={openAction("duplicates")}
+            label={t("menu:Duplicates")}
+            iconClass="fas fa-clone ml-2 mr-4"
+          />
+          <ColumnMenuOption open={openDescribe} label={t("menu:Describe")} iconClass="ico-view-column" />
           <ColumnMenuOption
             open={openPopup("column-analysis", 425, 810)}
-            label="Column Analysis"
+            label={t("column_menu:Column Analysis")}
             iconClass="ico-equalizer"
           />
           {_.has(colCfg, "lowVariance") && (
             <ColumnMenuOption
               open={openPopup("variance", 400, 770)}
-              label="Variance Report"
+              label={t("column_menu:Variance Report")}
               iconClass="fas fa-chart-bar ml-2 mr-4"
             />
           )}
-          <ColumnMenuOption open={openFormatting} label="Formats" iconClass="ico-palette" />
+          <ColumnMenuOption open={openFormatting} label={t("column_menu:Formats")} iconClass="ico-palette" />
           <HeatMapOption {..._.pick(this.props, ["propagateState", "backgroundMode", "selectedCol"])} colCfg={colCfg} />
           <ColumnFilter {...this.props} />
         </ul>
@@ -271,14 +283,15 @@ ReactColumnMenu.propTypes = {
   outlierFilters: PropTypes.object,
   backgroundMode: PropTypes.string,
   isPreview: PropTypes.bool,
+  t: PropTypes.func,
 };
-
+const TranslatedReactColumnMenu = withTranslation(["menu", "column_menu", "builders"])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
   state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle", "isPreview"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
   })
-)(ReactColumnMenu);
+)(TranslatedReactColumnMenu);
 
-export { ReduxColumnMenu as ColumnMenu, ReactColumnMenu, positionMenu, ignoreMenuClicks };
+export { ReduxColumnMenu as ColumnMenu, TranslatedReactColumnMenu as ReactColumnMenu, positionMenu, ignoreMenuClicks };

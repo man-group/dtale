@@ -3,6 +3,7 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import Dropzone from "react-dropzone";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { Bouncer } from "../../Bouncer";
@@ -25,18 +26,7 @@ const DATASETS = [
   { value: "time_dataframe", label: "makeTimeDataFrame" },
 ];
 
-const DATASET_DESCRIPTIONS = {
-  covid: "US COVID-19 data from the NY Times.",
-  seinfeld:
-    "Dataset of all lines by character & season for the tv show Seinfeld (" +
-    "https://github.com/4m4n5/the-seinfeld-chronicles)",
-  simpsons: "Dataset of all lines by character & season (16 seasons) for the tv show The Simpsons",
-  video_games: "Dataset video games and their sales",
-  movies: "Dataset of movies and their release date, director, sales, reviews, etc...",
-  time_dataframe: "Output from running pandas.util.testing.makeTimeDataFrame()",
-};
-
-export class ReactUpload extends React.Component {
+class ReactUpload extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -104,12 +94,12 @@ export class ReactUpload extends React.Component {
   }
 
   render() {
-    const { mergeRefresher } = this.props;
+    const { mergeRefresher, t } = this.props;
     const { error, file, loading, loadingDataset, loadingURL, sheets } = this.state;
     const propagateState = state => this.setState(state);
     return (
       <div key="body" className="modal-body">
-        <h3>Load File</h3>
+        <h3>{t("Load File")}</h3>
         <div className="row">
           <div className="col-md-12">
             <Dropzone
@@ -142,16 +132,16 @@ export class ReactUpload extends React.Component {
                     <div data-filetype=".xls" className="filepicker-file-icon"></div>
                     <div data-filetype=".xlsx" className="filepicker-file-icon"></div>
                     <div className="dz-default dz-message">
-                      <span>Drop data files here to upload, or click to select files</span>
+                      <span>{t("Drop data files here to upload, or click to select files")}</span>
                     </div>
                   </div>
                   <aside className="dropzone-aside">
                     {file && (
                       <React.Fragment>
-                        <h4>Loading File</h4>
+                        <h4>{t("Loading File")}</h4>
                         <ul>
                           <li>{`${file.name} - ${file.size} bytes`}</li>
-                          <li>{`Last Modified: ${file.lastModified}`}</li>
+                          <li>{`${t("Last Modified:")}: ${file.lastModified}`}</li>
                         </ul>
                       </React.Fragment>
                     )}
@@ -165,20 +155,20 @@ export class ReactUpload extends React.Component {
         </div>
         <div className="row pt-5">
           <div className="col-auto">
-            <h3>Load From The Web</h3>
+            <h3>{t("Load From The Web")}</h3>
           </div>
           <div className="col text-right">
             {this.state.urlDataType && this.state.url && (
               <BouncerWrapper showBouncer={loadingURL}>
                 <button className="btn btn-primary p-3" onClick={this.loadFromWeb}>
-                  Load
+                  {t("Load")}
                 </button>
               </BouncerWrapper>
             )}
           </div>
         </div>
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Data Type</label>
+          <label className="col-md-3 col-form-label text-right">{t("Data Type")}</label>
           <div className="col-md-8 p-0">
             <div className="btn-group">
               {_.map(["csv", "tsv", "json", "excel"], urlDataType => {
@@ -211,8 +201,8 @@ export class ReactUpload extends React.Component {
         </div>
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">
-            {"Proxy"}
-            <small className="pl-3">(Optional)</small>
+            {t("Proxy")}
+            <small className="pl-3">{t("(Optional)")}</small>
           </label>
           <div className="col-md-8 p-0">
             <input
@@ -224,8 +214,8 @@ export class ReactUpload extends React.Component {
           </div>
         </div>
         <div className="pb-5">
-          <h3 className="d-inline">Sample Datasets</h3>
-          <small className="pl-3 d-inline">(Requires access to web)</small>
+          <h3 className="d-inline">{t("Sample Datasets")}</h3>
+          <small className="pl-3 d-inline">{t("(Requires access to web)")}</small>
         </div>
         <div className="form-group row pl-5 pr-5">
           <div className="col-md-12 text-center">
@@ -240,13 +230,13 @@ export class ReactUpload extends React.Component {
                 buttonProps.onClick = () => this.loadDataset(value);
                 buttonProps.onMouseOver = () =>
                   this.setState({
-                    datasetDescription: _.get(DATASET_DESCRIPTIONS, value, ""),
+                    datasetDescription: t(value),
                   });
                 return (
                   <div key={value} className="col-md-4 p-1">
                     <button {...buttonProps}>
                       <BouncerWrapper showBouncer={loadingDataset === value}>
-                        <span>{label || value}</span>
+                        <span>{t(label || value)}</span>
                       </BouncerWrapper>
                     </button>
                   </div>
@@ -269,6 +259,8 @@ ReactUpload.propTypes = {
     visible: PropTypes.bool.isRequired,
   }),
   mergeRefresher: PropTypes.func,
+  t: PropTypes.func,
 };
-
-export const Upload = connect(state => _.pick(state, ["chartData"]))(ReactUpload);
+const TranslateReactUpload = withTranslation("upload")(ReactUpload);
+const Upload = connect(state => _.pick(state, ["chartData"]))(TranslateReactUpload);
+export { Upload, TranslateReactUpload as ReactUpload };

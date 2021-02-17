@@ -2,6 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 function canCopy() {
   return document.queryCommandSupported && document.queryCommandSupported("copy");
@@ -36,7 +37,9 @@ class CopyToClipboard extends React.Component {
           />
           <div className="hoverable-click">
             {this.props.buttonBuilder({ onClick: copy })}
-            <div className={`hoverable__content copy-tt-${this.props.tooltipPosition}`}>{"Copied to clipboard"}</div>
+            <div className={`hoverable__content copy-tt-${this.props.tooltipPosition}`}>
+              {this.props.t("Copied to clipboard")}
+            </div>
           </div>
         </React.Fragment>
       );
@@ -49,7 +52,8 @@ CopyToClipboard.propTypes = {
   text: PropTypes.string,
   buttonBuilder: PropTypes.func,
   tooltipPosition: PropTypes.string,
+  t: PropTypes.func,
 };
 CopyToClipboard.defaultProps = { tooltipPosition: "bottom" };
-
-export { CopyToClipboard, canCopy };
+const TranslateCopyToClipboard = withTranslation("constants")(CopyToClipboard);
+export { TranslateCopyToClipboard as CopyToClipboard, canCopy };
