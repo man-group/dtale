@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -41,7 +49,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateEncoder = require("../../../popups/create/CreateEncoder").CreateEncoder;
+    CreateEncoder = require("../../../popups/create/CreateEncoder").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -91,10 +99,10 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build encoder cfg validation", () => {
     const { validateEncoderCfg } = require("../../../popups/create/CreateEncoder");
-    expect(validateEncoderCfg({ col: null })).toBe("Please select a column!");
-    expect(validateEncoderCfg({ col: "col1", algo: "feature_hasher", n: "0" })).toBe(
+    expect(validateEncoderCfg(t, { col: null })).toBe("Please select a column!");
+    expect(validateEncoderCfg(t, { col: "col1", algo: "feature_hasher", n: "0" })).toBe(
       "Features must be an integer greater than zero!"
     );
-    expect(validateEncoderCfg({ col: "col1", algo: "ordinal" })).toBeNull();
+    expect(validateEncoderCfg(t, { col: "col1", algo: "ordinal" })).toBeNull();
   });
 });

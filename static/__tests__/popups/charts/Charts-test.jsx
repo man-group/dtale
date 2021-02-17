@@ -47,7 +47,7 @@ describe("Charts tests", () => {
 
     Charts = require("../../../popups/charts/Charts").ReactCharts;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
-    Aggregations = require("../../../popups/charts/Aggregations").Aggregations;
+    Aggregations = require("../../../popups/charts/Aggregations").default;
   });
 
   beforeEach(async () => {

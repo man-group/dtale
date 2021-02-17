@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import Collapsible from "../Collapsible";
@@ -20,11 +21,11 @@ const LABELS = {
   avg_weight: "Average Edge Weight",
 };
 
-function buildStat(key, value) {
+function buildStat(t, key, value) {
   if (value !== undefined) {
     return (
       <div>
-        <h4 className="d-inline pr-5">{`${_.get(LABELS, key, key)}:`}</h4>
+        <h4 className="d-inline pr-5">{`${t(_.get(LABELS, key, key))}:`}</h4>
         <span className="d-inline">{value === undefined ? "N/A" : value}</span>
       </div>
     );
@@ -64,6 +65,7 @@ class ReactNetworkAnalysis extends React.Component {
   }
 
   renderAnalysis() {
+    const { t } = this.props;
     return (
       <BouncerWrapper showBouncer={this.state.loading}>
         {this.state.error}
@@ -72,7 +74,7 @@ class ReactNetworkAnalysis extends React.Component {
             {_.map(LABELS, (_, key) => (
               <div key={key} className="col-md-6 network-analysis">
                 <ul>
-                  <li>{buildStat(key, this.state.analysis[key])}</li>
+                  <li>{buildStat(t, key, this.state.analysis[key])}</li>
                 </ul>
               </div>
             ))}
@@ -83,10 +85,11 @@ class ReactNetworkAnalysis extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const title = (
       <React.Fragment>
-        {`Network Analysis `}
-        <small>(expand to load)</small>
+        {t("Network Analysis ")}
+        <small>({t("expand to load")})</small>
       </React.Fragment>
     );
     return (
@@ -104,7 +107,8 @@ ReactNetworkAnalysis.propTypes = {
   from: PropTypes.object,
   weight: PropTypes.object,
   dataId: PropTypes.string,
+  t: PropTypes.func,
 };
-
-const ReduxNetworkAnalysis = connect(({ dataId }) => ({ dataId }))(ReactNetworkAnalysis);
-export { ReduxNetworkAnalysis as NetworkAnalysis, ReactNetworkAnalysis };
+const TranslateReactNetworkAnalysis = withTranslation("network")(ReactNetworkAnalysis);
+const ReduxNetworkAnalysis = connect(({ dataId }) => ({ dataId }))(TranslateReactNetworkAnalysis);
+export { ReduxNetworkAnalysis as NetworkAnalysis, TranslateReactNetworkAnalysis as ReactNetworkAnalysis };

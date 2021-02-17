@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -42,7 +50,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateTransform = require("../../../popups/create/CreateTransform").CreateTransform;
+    CreateTransform = require("../../../popups/create/CreateTransform").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -91,17 +99,17 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build transform cfg validation", () => {
     const { validateTransformCfg } = require("../../../popups/create/CreateTransform");
-    expect(validateTransformCfg({ group: null })).toBe("Please select a group!");
-    expect(validateTransformCfg({ col: null, group: ["col1"] })).toBe("Please select a column to transform!");
+    expect(validateTransformCfg(t, { group: null })).toBe("Please select a group!");
+    expect(validateTransformCfg(t, { col: null, group: ["col1"] })).toBe("Please select a column to transform!");
     expect(
-      validateTransformCfg({
+      validateTransformCfg(t, {
         col: "col1",
         group: ["col2"],
         agg: null,
       })
     ).toBe("Please select an aggregation!");
     expect(
-      validateTransformCfg({
+      validateTransformCfg(t, {
         col: "col1",
         group: ["col2"],
         agg: "mean",

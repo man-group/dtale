@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import AsyncValueSelect from "./AsyncValueSelect";
 import { EQ_TOGGLE, NE } from "./NumericFilter";
@@ -43,7 +44,7 @@ class StringFilter extends React.Component {
                   style={active ? {} : { color: "#565b68" }}
                   className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
                   onClick={() => this.updateState({ operand })}
-                  title={hint}
+                  title={this.props.t(hint)}
                   disabled={active || this.props.missing}>
                   {operand}
                 </button>
@@ -73,6 +74,6 @@ StringFilter.propTypes = {
   uniques: PropTypes.array,
   missing: PropTypes.bool,
   uniqueCt: PropTypes.number,
+  t: PropTypes.func,
 };
-
-export { StringFilter };
+export default withTranslation("column_filter")(StringFilter);

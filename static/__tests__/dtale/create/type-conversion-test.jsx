@@ -10,7 +10,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -55,7 +63,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateTypeConversion = require("../../../popups/create/CreateTypeConversion").CreateTypeConversion;
+    CreateTypeConversion = require("../../../popups/create/CreateTypeConversion").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -182,10 +190,10 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build conversion cfg validation", () => {
     const { validateTypeConversionCfg } = require("../../../popups/create/CreateTypeConversion");
-    expect(validateTypeConversionCfg({ col: null })).toBe("Missing a column selection!");
-    expect(validateTypeConversionCfg({ col: "col1", to: null })).toBe("Missing a conversion selection!");
+    expect(validateTypeConversionCfg(t, { col: null })).toBe("Missing a column selection!");
+    expect(validateTypeConversionCfg(t, { col: "col1", to: null })).toBe("Missing a conversion selection!");
     expect(
-      validateTypeConversionCfg({
+      validateTypeConversionCfg(t, {
         col: "col2",
         to: "date",
         from: "int64",
@@ -193,7 +201,7 @@ describe("DataViewer tests", () => {
       })
     ).toBe("Missing a unit selection!");
     expect(
-      validateTypeConversionCfg({
+      validateTypeConversionCfg(t, {
         col: "col2",
         to: "int",
         from: "datetime64[ns]",
@@ -201,7 +209,7 @@ describe("DataViewer tests", () => {
       })
     ).toBe("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'");
     expect(
-      validateTypeConversionCfg({
+      validateTypeConversionCfg(t, {
         col: "col2",
         to: "int",
         from: "datetime64[ns]",

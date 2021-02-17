@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from dtale.dash_application.layout.utils import build_input, build_option
+from dtale.translations import text
 
 CUSTOM_GEOJSON = []
 
@@ -38,7 +39,7 @@ def load_geojson(contents, filename):
     if contents is None and filename is None:
         return None
     if not filename.endswith(".json"):
-        raise Exception("geojson files must be JSON!")
+        raise Exception(text("geojson files must be JSON!"))
     _, content_string = contents.split(",")
     decoded = base64.b64decode(content_string)
     geojson = json.loads(decoded.decode("utf-8"))
@@ -60,7 +61,7 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
 
     featureidkey_options = []
     featureidkey_value = featureidkey
-    featureidkey_placeholder = "Select uploaded data"
+    featureidkey_placeholder = text("Select Uploaded Data")
     disabled = False
     if curr_geojson and not isinstance(curr_geojson, list):
         if curr_geojson.get("type") == "FeatureCollection":
@@ -81,7 +82,8 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
                             html.Div(
                                 html.Span(
                                     html.Span(
-                                        "Upload File", style=dict(whiteSpace="pre-line")
+                                        text("Upload File"),
+                                        style=dict(whiteSpace="pre-line"),
                                     ),
                                     className="input-group-addon d-block pt-1 pb-0 pointer",
                                 ),
@@ -100,11 +102,11 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
         html.Div(
             [
                 build_input(
-                    "geojson",
+                    text("geojson"),
                     dcc.Dropdown(
                         id="geojson-dropdown",
                         options=[build_option(ct["key"]) for ct in CUSTOM_GEOJSON],
-                        placeholder="Select uploaded data",
+                        placeholder=text("Select Uploaded Data"),
                         style=dict(width="inherit"),
                         value=geojson_key if loc_mode == "geojson-id" else None,
                     ),
@@ -112,7 +114,7 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
                     id="geojson-input",
                 ),
                 build_input(
-                    "featureidkey",
+                    text("featureidkey"),
                     dcc.Dropdown(
                         id="featureidkey-dropdown",
                         options=featureidkey_options,
@@ -135,7 +137,9 @@ def build_modal(map_type, loc_mode):
         [
             html.Div(
                 html.Span(
-                    html.Span("GeoJSON Options", style=dict(whiteSpace="pre-line")),
+                    html.Span(
+                        text("GeoJSON Options"), style=dict(whiteSpace="pre-line")
+                    ),
                     className="input-group-addon d-block pt-1 pb-0 pointer",
                 ),
                 className="input-group mr-3",
@@ -143,11 +147,11 @@ def build_modal(map_type, loc_mode):
             ),
             dbc.Modal(
                 [
-                    dbc.ModalHeader("Custom GeoJSON Options"),
+                    dbc.ModalHeader(text("Custom GeoJSON Options")),
                     dbc.ModalBody(build_geojson_upload(loc_mode)),
                     dbc.ModalFooter(
                         dbc.Button(
-                            "Close", id="close-geojson-modal", className="ml-auto"
+                            text("Close"), id="close-geojson-modal", className="ml-auto"
                         )
                     ),
                 ],
@@ -180,7 +184,7 @@ def init_callbacks(dash_app):
         try:
             geojson_key = load_geojson(contents, filename)
             geojson_options.append(build_option(geojson_key))
-            return "{} uploaded!".format(geojson_key), geojson_options
+            return "{} {}!".format(geojson_key, text("uploaded")), geojson_options
         except BaseException as ex:
             return str(ex), geojson_options
 
@@ -194,7 +198,7 @@ def init_callbacks(dash_app):
     )
     def update_featureidkey_options(geojson):
         geojson_data = get_custom_geojson(geojson)
-        placeholder = "Select uploaded data"
+        placeholder = text("Select Uploaded Data")
         if geojson_data is None or isinstance(geojson_data, list):
             return [], False, placeholder
         disabled = geojson_data["type"] != "FeatureCollection"

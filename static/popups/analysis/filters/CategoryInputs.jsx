@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { exports as gu } from "../../../dtale/gridUtils";
-import { ANALYSIS_AGGS } from "./Constants";
+import { analysisAggs } from "./Constants";
 import FilterSelect from "./FilterSelect";
 
 class CategoryInputs extends React.Component {
@@ -17,7 +18,7 @@ class CategoryInputs extends React.Component {
     this.state = {
       categoryCol: _.head(colOpts),
       colOpts,
-      categoryAgg: _.find(ANALYSIS_AGGS, { value: "mean" }),
+      categoryAgg: _.find(analysisAggs(props.t), { value: "mean" }),
     };
   }
 
@@ -28,15 +29,16 @@ class CategoryInputs extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const updateCategory = (prop, val) => this.setState({ [prop]: val }, () => this.props.updateCategory(prop, val));
     return (
       <React.Fragment>
         <div className="col-auto text-center pr-4">
           <div>
-            <b>Category Breakdown</b>
+            <b>{t("analysis:Category Breakdown")}</b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>(Choose Col/Agg)</small>
+            <small>{`(${t("analysis:Choose Col/Agg")})`}</small>
           </div>
         </div>
         <div className="col-auto pl-0 mr-3 ordinal-dd">
@@ -45,7 +47,7 @@ class CategoryInputs extends React.Component {
               value: this.state.categoryCol,
               options: this.state.colOpts,
               onChange: v => updateCategory("categoryCol", v),
-              noOptionsText: () => "No columns found",
+              noOptionsText: () => t("No columns found"),
               isClearable: true,
             }}
           />
@@ -54,7 +56,7 @@ class CategoryInputs extends React.Component {
           <FilterSelect
             selectProps={{
               value: this.state.categoryAgg,
-              options: _.reject(ANALYSIS_AGGS, ({ value }) => value === "count"),
+              options: _.reject(analysisAggs(this.props.t), ({ value }) => value === "count"),
               onChange: v => updateCategory("categoryAgg", v),
             }}
             labelProp="label"
@@ -69,6 +71,7 @@ CategoryInputs.propTypes = {
   selectedCol: PropTypes.string,
   cols: PropTypes.array,
   updateCategory: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export default CategoryInputs;
+export default withTranslation(["analysis", "constants"])(CategoryInputs);

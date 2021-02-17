@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import ReactSlider from "react-slider";
 import styled from "styled-components";
 
@@ -35,14 +36,14 @@ export const StyledTrack = styled.div`
 
 export const Track = (props, state) => <StyledTrack {...props} index={state.index} />;
 
-function validateWinsorizeCfg({ col }) {
+export function validateWinsorizeCfg(t, { col }) {
   if (!col) {
-    return "Please select a column to winsorize!";
+    return t("Please select a column to winsorize!");
   }
   return null;
 }
 
-function buildCode({ col, group, limits, inclusive }) {
+export function buildCode({ col, group, limits, inclusive }) {
   if (!col) {
     return null;
   }
@@ -93,10 +94,11 @@ class CreateWinsorize extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Col"
+          label={t("Col")}
           prop="col"
           otherProps={["group"]}
           parent={this.state}
@@ -105,7 +107,7 @@ class CreateWinsorize extends React.Component {
           dtypes={["int", "float"]}
         />
         <ColumnSelect
-          label="Group By"
+          label={t("Group By")}
           prop="group"
           otherProps={["col"]}
           parent={this.state}
@@ -114,7 +116,7 @@ class CreateWinsorize extends React.Component {
           isMulti
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Limits</label>
+          <label className="col-md-3 col-form-label text-right">{t("Limits")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <input
@@ -150,12 +152,12 @@ class CreateWinsorize extends React.Component {
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">Include Limits</label>
           <div className="col-md-8 mt-auto mb-auto">
-            <span>Lower:</span>
+            <span>{t("Lower")}:</span>
             <i
               className={`ico-check-box${this.state.includeLower ? "" : "-outline-blank"} pointer pl-3 pr-5`}
               onClick={() => this.updateState({ includeLower: !this.state.includeLower })}
             />
-            <span>Upper:</span>
+            <span>{t("Upper")}:</span>
             <i
               className={`ico-check-box${this.state.includeUpper ? "" : "-outline-blank"} pointer pl-3`}
               onClick={() => this.updateState({ includeUpper: !this.state.includeUpper })}
@@ -171,6 +173,7 @@ CreateWinsorize.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateWinsorize, validateWinsorizeCfg, buildCode };
+export default withTranslation("builders")(CreateWinsorize);

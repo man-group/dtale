@@ -37,7 +37,7 @@ describe("DataViewer tests", () => {
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateBins = require("../../../popups/create/CreateBins").CreateBins;
+    CreateBins = require("../../../popups/create/CreateBins").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);

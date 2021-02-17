@@ -5,7 +5,7 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import { DateFilter } from "../../filters/DateFilter";
+import DateFilter from "../../filters/DateFilter";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 

@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -42,7 +50,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateStandardized = require("../../../popups/create/CreateStandardized").CreateStandardized;
+    CreateStandardized = require("../../../popups/create/CreateStandardized").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -82,7 +90,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build standardized cfg validation", () => {
     const { validateStandardizedCfg } = require("../../../popups/create/CreateStandardized");
-    expect(validateStandardizedCfg({ col: null })).toBe("Please select a column!");
-    expect(validateStandardizedCfg({ col: "col1", algo: "power" })).toBeNull();
+    expect(validateStandardizedCfg(t, { col: null })).toBe("Please select a column!");
+    expect(validateStandardizedCfg(t, { col: "col1", algo: "power" })).toBeNull();
   });
 });

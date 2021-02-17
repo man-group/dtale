@@ -1,20 +1,21 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ColumnSelect from "./ColumnSelect";
 
-function validateDiffCfg({ col, periods }) {
+export function validateDiffCfg(t, { col, periods }) {
   if (!col) {
-    return "Please select a column!";
+    return t("Please select a column!");
   }
   if (!periods || !parseInt(periods)) {
-    return "Please select a valid value for periods!";
+    return t("Please select a valid value for periods!");
   }
   return null;
 }
 
-function buildCode({ col, periods }) {
+export function buildCode({ col, periods }) {
   if (!col) {
     return null;
   }
@@ -48,10 +49,11 @@ class CreateDiff extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Col"
+          label={t("Col")}
           prop="col"
           parent={this.state}
           updateState={this.updateState}
@@ -59,7 +61,7 @@ class CreateDiff extends React.Component {
           dtypes={["int", "float"]}
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Periods</label>
+          <label className="col-md-3 col-form-label text-right">{t("Periods")}</label>
           <div className="col-md-8">
             <input
               className="form-control"
@@ -77,6 +79,7 @@ CreateDiff.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateDiff, validateDiffCfg, buildCode };
+export default withTranslation("builders")(CreateDiff);

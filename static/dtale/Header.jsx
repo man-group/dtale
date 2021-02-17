@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import actions from "../actions/dtale";
@@ -17,7 +18,7 @@ const SORT_CHARS = {
   DESC: String.fromCharCode("9660"),
 };
 
-function buildMarkup(colCfg, colName, backgroundMode) {
+function buildMarkup(t, colCfg, colName, backgroundMode) {
   let headerStyle = {};
   let className = "";
   let colNameMarkup = colName;
@@ -28,15 +29,15 @@ function buildMarkup(colCfg, colName, backgroundMode) {
     className = _.size(dtypeStyle) ? " background" : "";
   }
   if (backgroundMode === "missing" && colCfg.hasMissing) {
-    colNameMarkup = <div title={`Missing Values: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
+    colNameMarkup = <div title={`${t("Missing Values")}: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
     className = " background";
   }
   if (backgroundMode === "outliers" && colCfg.hasOutliers) {
-    colNameMarkup = <div title={`Outliers: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
+    colNameMarkup = <div title={`${t("Outliers")}: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
     className = " background";
   }
   if (backgroundMode === "lowVariance" && colCfg.lowVariance) {
-    colNameMarkup = <div title={`Low Variance: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
+    colNameMarkup = <div title={`${t("Low Variance")}: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
     className = " background";
   }
   return { headerStyle, colNameMarkup, className };
@@ -47,7 +48,7 @@ function buildCopyHandler(menuHandler, props) {
   return e => {
     if (e.shiftKey) {
       if (columnRange) {
-        const title = "Copy Columns to Clipboard?";
+        const title = props.t("Copy Columns to Clipboard?");
         const callback = copyText =>
           openChart({
             ...copyText,
@@ -101,7 +102,7 @@ class ReactHeader extends React.Component {
   }
 
   render() {
-    const { columnIndex, style, toggleColumnMenu, hideColumnMenu, propagateState } = this.props;
+    const { columnIndex, style, toggleColumnMenu, hideColumnMenu, propagateState, t } = this.props;
     const { columns, menuOpen, sortInfo, backgroundMode, columnRange, rowCount, ctrlCols } = this.props;
     if (columnIndex == 0) {
       return (
@@ -128,7 +129,7 @@ class ReactHeader extends React.Component {
     const copyHandler = buildCopyHandler(menuHandler, this.props);
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === colName) || [null, null])[1];
     let headerStyle = _.assignIn({}, style);
-    const markupProps = buildMarkup(colCfg, colName, backgroundMode);
+    const markupProps = buildMarkup(t, colCfg, colName, backgroundMode);
     headerStyle = { ...headerStyle, ...markupProps.headerStyle };
     const rangeClass =
       isInRowOrColumnRange(columnIndex, columnRange) || _.includes(ctrlCols, columnIndex) ? " in-range" : "";
@@ -162,14 +163,15 @@ ReactHeader.propTypes = {
   openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactHeader = withTranslation("main")(ReactHeader);
 const ReduxHeader = connect(
   ({ dataId }) => ({ dataId }),
   dispatch => ({
     toggleColumnMenu: (colName, toggleId) => dispatch(actions.toggleColumnMenu(colName, toggleId)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
   })
-)(ReactHeader);
+)(TranslateReactHeader);
 
-export { ReduxHeader as Header, ReactHeader };
+export { ReduxHeader as Header, TranslateReactHeader as ReactHeader };

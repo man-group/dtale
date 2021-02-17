@@ -144,6 +144,17 @@ function theme(state = "light", action = {}) {
   }
 }
 
+function language(state = "en", action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return getHiddenValue("language");
+    case "set-language":
+      return action.language;
+    default:
+      return state;
+  }
+}
+
 function filteredRanges(state = {}, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -191,6 +202,8 @@ function isPreview(state = false, action = {}) {
 
 function menuPinned(state = false, action = {}) {
   switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("pin_menu"));
     case "toggle-menu-pinned":
       return !state;
     default:
@@ -222,6 +235,7 @@ const dtaleStore = combineReducers({
   xarray,
   xarrayDim,
   theme,
+  language,
   filteredRanges,
   settings,
   pythonVersion,

@@ -23,6 +23,7 @@ class Correlations extends React.Component {
     super(props);
     this.state = corrUtils.buildState();
     _.forEach(["buildTs", "buildScatter", "viewScatter", "viewScatterRow"], f => (this[f] = this[f].bind(this)));
+    this._ts_chart = React.createRef();
   }
 
   shouldComponentUpdate(newProps, newState) {
@@ -179,7 +180,7 @@ class Correlations extends React.Component {
   }
 
   viewScatter(evt) {
-    const chart = _.get(this, "_ts_chart.state.charts.0");
+    const chart = _.get(this, "_ts_chart.current.state.charts.0");
     if (chart) {
       const selectedPoint = _.head(chart.getElementsAtXAxis(evt));
       if (selectedPoint) {
@@ -207,7 +208,7 @@ class Correlations extends React.Component {
               <PPSCollapsible ppsInfo={this.state.tsPps} />
               <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
               <ChartsBody
-                ref={r => (this._ts_chart = r)}
+                ref={this._ts_chart}
                 visible={true}
                 url={tsUrl}
                 columns={[

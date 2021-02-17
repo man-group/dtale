@@ -74,6 +74,7 @@ from dtale.utils import (
     sort_df_for_grid,
     optimize_df,
 )
+from dtale.translations import text
 
 logger = getLogger(__name__)
 IDX_COL = str("dtale_index")
@@ -1038,8 +1039,9 @@ def view_popup(popup_type, data_id=None):
     name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
-    popup_title = POPUP_TITLES.get(popup_type) or " ".join(
-        [pt.capitalize() for pt in popup_type.split("-")]
+    popup_title = text(
+        POPUP_TITLES.get(popup_type)
+        or " ".join([pt.capitalize() for pt in popup_type.split("-")])
     )
     title = "{} - {}".format(title, popup_title)
     params = request.args.to_dict()
@@ -1167,6 +1169,26 @@ def update_theme():
     theme = get_str_arg(request, "theme")
     curr_app_settings = global_state.get_app_settings()
     curr_app_settings["theme"] = theme
+    global_state.set_app_settings(curr_app_settings)
+    return jsonify(dict(success=True))
+
+
+@dtale.route("/update-pin-menu")
+@exception_decorator
+def update_pin_menu():
+    pinned = get_bool_arg(request, "pinned")
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["pin_menu"] = pinned
+    global_state.set_app_settings(curr_app_settings)
+    return jsonify(dict(success=True))
+
+
+@dtale.route("/update-language")
+@exception_decorator
+def update_language():
+    language = get_str_arg(request, "language")
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["language"] = language
     global_state.set_app_settings(curr_app_settings)
     return jsonify(dict(success=True))
 

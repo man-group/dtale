@@ -43,6 +43,10 @@ function setTheme(theme) {
   return dispatch => dispatch({ type: "set-theme", theme });
 }
 
+function setLanguage(language) {
+  return dispatch => dispatch({ type: "set-language", language });
+}
+
 function isPopup() {
   return _.startsWith(window.location.pathname, "/dtale/popup");
 }
@@ -91,5 +95,6 @@ export default {
   isPopup,
   getParams,
   setTheme,
+  setLanguage,
   updateFilteredRanges,
 };

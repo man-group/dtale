@@ -28,6 +28,7 @@ describe("reducer tests", () => {
       xarrayDim: {},
       allowCellEdits: true,
       theme: "light",
+      language: "en",
       filteredRanges: {},
       settings: {},
       pythonVersion: null,

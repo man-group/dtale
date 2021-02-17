@@ -1,12 +1,13 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ButtonToggle from "../../../ButtonToggle";
 import { exports as gu } from "../../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../../CodePopup";
 import CategoryInputs from "./CategoryInputs";
-import { ANALYSIS_AGGS, TITLES } from "./Constants";
+import { analysisAggs, titles } from "./Constants";
 import { default as GeoFilters, hasCoords, loadCoordVals } from "./GeoFilters";
 import OrdinalInputs from "./OrdinalInputs";
 import TextEnterFilter from "./TextEnterFilter";
@@ -25,9 +26,9 @@ function buildState(props) {
     bins: "20",
     top: (props.top || 100) + "",
     ordinalCol: null,
-    ordinalAgg: _.find(ANALYSIS_AGGS, { value: "sum" }),
+    ordinalAgg: _.find(analysisAggs(props.t), { value: "sum" }),
     categoryCol: null,
-    categoryAgg: _.find(ANALYSIS_AGGS, { value: "mean" }),
+    categoryAgg: _.find(analysisAggs(props.t), { value: "mean" }),
     ...loadCoordVals(props.selectedCol, props.cols),
   };
 }
@@ -61,27 +62,37 @@ class DescribeFilters extends React.Component {
   buildChartTypeToggle() {
     const { dtype, cols, selectedCol } = this.props;
     const colType = gu.findColType(dtype);
-    const options = [{ label: TITLES.boxplot, value: "boxplot" }];
+    const translatedTitles = titles(this.props.t);
+    const options = [{ label: translatedTitles.boxplot, value: "boxplot" }];
     const isFid = _.includes(["float", "int", "date"], colType);
     if (isFid) {
-      options.push({ label: TITLES.histogram, value: "histogram" });
+      options.push({ label: translatedTitles.histogram, value: "histogram" });
     }
     if (colType === "float") {
-      options.push({ label: TITLES.categories, value: "categories" });
+      options.push({ label: translatedTitles.categories, value: "categories" });
     } else if (colType == "string") {
       options.push({
-        label: TITLES.word_value_counts,
+        label: translatedTitles.word_value_counts,
         value: "word_value_counts",
       });
-      options.push({ label: TITLES.value_counts, value: "value_counts" });
+      options.push({
+        label: translatedTitles.value_counts,
+        value: "value_counts",
+      });
     } else {
-      options.push({ label: TITLES.value_counts, value: "value_counts" });
+      options.push({
+        label: translatedTitles.value_counts,
+        value: "value_counts",
+      });
     }
     if (hasCoords(selectedCol, cols)) {
-      options.push({ label: TITLES.geolocation, value: "geolocation" });
+      options.push({
+        label: translatedTitles.geolocation,
+        value: "geolocation",
+      });
     }
     if (isFid) {
-      options.push({ label: TITLES.qq, value: "qq" });
+      options.push({ label: translatedTitles.qq, value: "qq" });
     }
     const update = value => this.setState({ type: value }, this.buildChart);
     return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
@@ -176,7 +187,7 @@ class DescribeFilters extends React.Component {
         <div className="form-group row small-gutters mb-5 mt-3">
           <div className="col p-0 type-toggle">{this.buildChartTypeToggle()}</div>
           <div className="col-auto">
-            <div>{renderCodePopupAnchor(code, TITLES[this.state.type])}</div>
+            <div>{renderCodePopupAnchor(code, titles(this.props.t)[this.state.type])}</div>
           </div>
         </div>
         {filterMarkup}
@@ -194,6 +205,7 @@ DescribeFilters.propTypes = {
   top: PropTypes.number,
   buildChart: PropTypes.func,
   details: PropTypes.object,
+  t: PropTypes.func,
 };
 
-export { DescribeFilters };
+export default withTranslation("constants")(DescribeFilters);

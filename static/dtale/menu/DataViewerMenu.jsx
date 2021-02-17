@@ -3,21 +3,22 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import ConditionalRender from "../../ConditionalRender";
 import { openChart } from "../../actions/charts";
 import bu from "../backgroundUtils";
-import Descriptions from "../menu-descriptions.json";
 import DescribeOption from "./DescribeOption";
 import DuplicatesOption from "./DuplicatesOption";
 import HeatMapOption from "./HeatMapOption";
 import InstancesOption from "./InstancesOption";
+import { LanguageOption } from "./LanguageOption";
 import LowVarianceOption from "./LowVarianceOption";
 import { MenuItem } from "./MenuItem";
 import { MenuTooltip } from "./MenuTooltip";
 import MergeOption from "./MergeOption";
 import NetworkOption from "./NetworkOption";
+import { PinMenuOption } from "./PinMenuOption";
 import RangeHighlightOption from "./RangeHighlightOption";
 import { ThemeOption } from "./ThemeOption";
 import UploadOption from "./UploadOption";
@@ -26,7 +27,7 @@ import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId, menuOpen, menuPinned, backgroundMode, pythonVersion } = this.props;
+    const { hideShutdown, dataId, menuOpen, menuPinned, backgroundMode, pythonVersion, t } = this.props;
     const iframe = global.top !== global.self;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup } = buttonHandlers;
@@ -78,86 +79,86 @@ class ReactDataViewerMenu extends React.Component {
           <ul>
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <DescribeOption open={buttonHandlers.DESCRIBE} />
-            <MenuItem description={Descriptions.filter}>
+            <MenuItem description={t("menu_description:filter")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={buttonHandlers.FILTER}>
                   <i className="fa fa-filter ml-2 mr-4" />
-                  <span className="font-weight-bold">Custom Filter</span>
+                  <span className="font-weight-bold">{t("menu:Custom Filter")}</span>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem description={Descriptions.build}>
+            <MenuItem description={t("menu_description:build")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={buttonHandlers.BUILD}>
                   <i className="ico-build" />
-                  <span className="font-weight-bold">Build Column</span>
+                  <span className="font-weight-bold">{t("menu:Build Column")}</span>
                 </button>
               </span>
             </MenuItem>
             <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
-            <MenuItem description={Descriptions.reshape}>
+            <MenuItem description={t("menu_description:reshape")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={openPopup("reshape", 400, 770)}>
                   <i className="fas fa-tools ml-2 mr-4" />
-                  <span className="font-weight-bold">Summarize Data</span>
+                  <span className="font-weight-bold">{t("menu:Summarize Data")}</span>
                 </button>
               </span>
             </MenuItem>
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
-            <MenuItem description={Descriptions.corr}>
+            <MenuItem description={t("menu_description:corr")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={openTab("correlations")}>
                   <i className="ico-bubble-chart" />
-                  <span className="font-weight-bold">Correlations</span>
+                  <span className="font-weight-bold">{t("menu:Correlations")}</span>
                 </button>
               </span>
             </MenuItem>
             {(!pythonVersion || (pythonVersion[0] >= 3 && pythonVersion[1] >= 6)) && (
-              <MenuItem description={Descriptions.pps}>
+              <MenuItem description={t("menu_description:pps")}>
                 <span className="toggler-action">
                   <button className="btn btn-plain" onClick={openTab("pps")}>
                     <i className="ico-bubble-chart" />
-                    <span className="font-weight-bold">Predictive Power Score</span>
+                    <span className="font-weight-bold">{t("menu:Predictive Power Score")}</span>
                   </button>
                 </span>
               </MenuItem>
             )}
-            <MenuItem description={Descriptions.charts}>
+            <MenuItem description={t("menu_description:charts")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={buttonHandlers.CHARTS}>
                   <i className="ico-show-chart" />
-                  <span className="font-weight-bold">Charts</span>
+                  <span className="font-weight-bold">{t("menu:Charts")}</span>
                 </button>
               </span>
             </MenuItem>
             <NetworkOption open={buttonHandlers.NETWORK} />
             <HeatMapOption backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
-            <MenuItem description={Descriptions.highlight_dtypes}>
+            <MenuItem description={t("menu_description:highlight_dtypes")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={toggleBackground("dtypes")}>
                   <div style={{ display: "inherit" }}>
                     <div className={`bg-icon dtype-bg${backgroundMode === "dtypes" ? " spin" : ""}`} />
-                    <span className="font-weight-bold pl-4">Highlight Dtypes</span>
+                    <span className="font-weight-bold pl-4">{t("menu:Highlight Dtypes")}</span>
                   </div>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem description={Descriptions.highlight_missings}>
+            <MenuItem description={t("menu_description:highlight_missings")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={toggleBackground("missing")}>
                   <div style={{ display: "inherit" }}>
                     <div className={`bg-icon missing-bg${backgroundMode === "missing" ? " spin" : ""}`} />
-                    <span className="font-weight-bold pl-4">Highlight Missing</span>
+                    <span className="font-weight-bold pl-4">{t("menu:Highlight Missing")}</span>
                   </div>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem description={Descriptions.highlight_outliers}>
+            <MenuItem description={t("menu_description:highlight_outliers")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={toggleOutlierBackground}>
                   <div style={{ display: "inherit" }}>
                     <div className={`bg-icon outliers-bg${backgroundMode === "outliers" ? " spin" : ""}`} />
-                    <span className="font-weight-bold pl-4">Highlight Outliers</span>
+                    <span className="font-weight-bold pl-4">{t("menu:Highlight Outliers")}</span>
                   </div>
                 </button>
               </span>
@@ -168,19 +169,19 @@ class ReactDataViewerMenu extends React.Component {
               backgroundMode={backgroundMode}
             />
             <InstancesOption open={openPopup("instances", 450, 750)} />
-            <MenuItem description={Descriptions.code}>
+            <MenuItem description={t("menu_description:code")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={buttonHandlers.CODE}>
                   <i className="ico-code" />
-                  <span className="font-weight-bold">Code Export</span>
+                  <span className="font-weight-bold">{t("code_export:Code Export")}</span>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem style={{ color: "#565b68" }} description={Descriptions.export}>
+            <MenuItem style={{ color: "#565b68" }} description={t("menu_description:export")}>
               <span className="toggler-action">
                 <i className="far fa-file" />
               </span>
-              <span className="font-weight-bold pl-2">Export</span>
+              <span className="font-weight-bold pl-2">{t("menu:Export")}</span>
               <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
                 {_.map(
                   [
@@ -193,22 +194,22 @@ class ReactDataViewerMenu extends React.Component {
                       style={{ color: "#565b68" }}
                       className="btn btn-primary font-weight-bold"
                       onClick={exportFile(tsv)}>
-                      {label}
+                      {t(`menu:${label}`)}
                     </button>
                   )
                 )}
               </div>
             </MenuItem>
             <UploadOption open={openPopup("upload", 450)} />
-            <MenuItem description={Descriptions.widths}>
+            <MenuItem description={t("menu_description:widths")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={refreshWidths}>
                   <i className="fas fa-columns ml-2 mr-4" />
-                  <span className="font-weight-bold">Refresh Widths</span>
+                  <span className="font-weight-bold">{t("menu:Refresh Widths")}</span>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem description={Descriptions.about}>
+            <MenuItem description={t("menu_description:about")}>
               <span className="toggler-action">
                 <button
                   className="btn btn-plain"
@@ -220,47 +221,41 @@ class ReactDataViewerMenu extends React.Component {
                     })
                   }>
                   <i className="fa fa-info-circle la-lg mr-4 ml-1" />
-                  <span className="font-weight-bold">About</span>
+                  <span className="font-weight-bold">{t("menu:About")}</span>
                 </button>
               </span>
             </MenuItem>
             <ThemeOption />
-            <MenuItem description={Descriptions.reload_data}>
+            <MenuItem description={t("menu_description:reload_data")}>
               <span className="toggler-action">
                 <button className="btn btn-plain" onClick={() => window.location.reload()}>
                   <i className="ico-sync" />
-                  <span className="font-weight-bold">Reload Data</span>
+                  <span className="font-weight-bold">{t("menu:Reload Data")}</span>
                 </button>
               </span>
             </MenuItem>
-            <MenuItem description={Descriptions.pin_menu}>
-              <span className="toggler-action">
-                <button className="btn btn-plain" onClick={this.props.toggleMenuPinned}>
-                  <i className="fa fa-anchor la-lg mr-3 ml-1" />
-                  <span className="font-weight-bold">{menuPinned ? "Unpin menu" : "Pin menu"}</span>
-                </button>
-              </span>
-            </MenuItem>
-            <ConditionalRender display={iframe}>
+            <PinMenuOption />
+            <LanguageOption />
+            {iframe && (
               <li>
                 <span className="toggler-action">
                   <button className="btn btn-plain" onClick={() => window.open(window.location.pathname, "_blank")}>
                     <i className="ico-open-in-new" />
-                    <span className="font-weight-bold">Open In New Tab</span>
+                    <span className="font-weight-bold">{t("menu:Open In New Tab")}</span>
                   </button>
                 </span>
               </li>
-            </ConditionalRender>
-            <ConditionalRender display={hideShutdown == false}>
-              <MenuItem description={Descriptions.shutdown}>
+            )}
+            {hideShutdown == false && (
+              <MenuItem description={t("menu_description:shutdown")}>
                 <span className="toggler-action">
                   <a className="btn btn-plain" href="/shutdown">
                     <i className="fa fa-power-off ml-2 mr-4" />
-                    <span className="font-weight-bold">Shutdown</span>
+                    <span className="font-weight-bold">{t("menu:Shutdown")}</span>
                   </a>
                 </span>
               </MenuItem>
-            </ConditionalRender>
+            )}
           </ul>
         </div>
       </div>
@@ -279,15 +274,13 @@ ReactDataViewerMenu.propTypes = {
   dataId: PropTypes.string.isRequired,
   pythonVersion: PropTypes.arrayOf(PropTypes.number),
   menuPinned: PropTypes.bool,
-  toggleMenuPinned: PropTypes.func,
+  t: PropTypes.func,
 };
 
+const TranslatedReactDataViewMenu = withTranslation(["menu", "menu_description", "code_export"])(ReactDataViewerMenu);
 const ReduxDataViewerMenu = connect(
   state => _.pick(state, ["dataId", "hideShutdown", "pythonVersion", "menuPinned"]),
-  dispatch => ({
-    openChart: chartProps => dispatch(openChart(chartProps)),
-    toggleMenuPinned: () => dispatch({ type: "toggle-menu-pinned" }),
-  })
-)(ReactDataViewerMenu);
+  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
+)(TranslatedReactDataViewMenu);
 
-export { ReduxDataViewerMenu as DataViewerMenu, ReactDataViewerMenu };
+export { ReduxDataViewerMenu as DataViewerMenu, TranslatedReactDataViewMenu as ReactDataViewerMenu };

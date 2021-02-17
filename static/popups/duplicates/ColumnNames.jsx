@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
@@ -45,14 +46,14 @@ class ColumnNames extends React.Component {
         });
         return;
       }
-      let testOutput = "No duplicate column names exist.";
+      let testOutput = this.props.t("No duplicate column names exist.");
       if (_.size(testData.results)) {
         testOutput = (
           <ul>
             {_.map(testData.results, (dupeCols, string) => (
               <li key={string}>
                 <b>{string}</b>
-                {" matches columns "}
+                {this.props.t(" matches columns ")}
                 <b>{_.join(dupeCols, ", ")}</b>
               </li>
             ))}
@@ -71,7 +72,7 @@ class ColumnNames extends React.Component {
           <div className="col-md-3" />
           <div className="col-md-8">
             <button className="col-auto btn btn-secondary" onClick={this.test}>
-              {"View Duplicates"}
+              {this.props.t("View Duplicates")}
             </button>
           </div>
         </div>
@@ -92,6 +93,7 @@ ColumnNames.propTypes = {
   dataId: PropTypes.string,
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { ColumnNames, validateColumnNamesCfg };
+const TranslateColumnNames = withTranslation("duplicate")(ColumnNames);
+export { TranslateColumnNames as ColumnNames, validateColumnNamesCfg };

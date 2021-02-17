@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { dataLoader } from "../analysis/columnAnalysisUtils";
 import TextEnterFilter from "../analysis/filters/TextEnterFilter";
@@ -48,7 +49,7 @@ class VarianceChart extends React.Component {
         <div className="form-group row small-gutters mb-3 mt-3">
           <div className="col row">
             <div style={{ fontSize: 16 }} className="col font-weight-bold m-auto">
-              {"HISTOGRAM"}
+              {this.props.t("HISTOGRAM")}
             </div>
             <TextEnterFilter
               {...{
@@ -75,7 +76,8 @@ VarianceChart.propTypes = {
     selectedCol: PropTypes.string,
   }),
   height: PropTypes.number,
+  t: PropTypes.func,
 };
 VarianceChart.defaultProps = { height: 400 };
 
-export default VarianceChart;
+export default withTranslation("variance")(VarianceChart);

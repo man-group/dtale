@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -61,24 +62,24 @@ function buildCode({ action, datasets, mergeConfig, stackConfig }, name) {
   return code;
 }
 
-export class ReactMergeOutput extends React.Component {
+class ReactMergeOutput extends React.Component {
   constructor(props) {
     super(props);
     this.state = { name: "" };
   }
 
   render() {
-    const { mergeDataId, showCode } = this.props;
+    const { mergeDataId, showCode, t } = this.props;
     return (
       <ul className="list-group ml-3 mr-3 pt-3">
         <li className="list-group-item p-3 section">
           <div className="row ml-0 mr-0">
             <div className="col-auto pl-4 pr-0">
-              <h3 className="m-auto">{`${_.capitalize(this.props.action)} Output`}</h3>
+              <h3 className="m-auto">{`${t(_.capitalize(this.props.action))} ${t("Output")}`}</h3>
             </div>
           </div>
           <div className="form-group row p-4 ml-0 mr-0 mb-0">
-            <label className="col-form-label text-right">Name</label>
+            <label className="col-form-label text-right">{t("Name")}</label>
             <div className="col-md-4">
               <input
                 type="text"
@@ -96,7 +97,7 @@ export class ReactMergeOutput extends React.Component {
             <div className="col-auto">
               <button className="btn-sm btn-primary pointer" onClick={() => this.props.buildMerge(this.state.name)}>
                 <i className="ico-remove-circle pr-3" />
-                <span>{`Build ${_.capitalize(this.props.action)}`}</span>
+                <span>{`${t("Build")} ${t(_.capitalize(this.props.action))}`}</span>
               </button>
             </div>
           </div>
@@ -106,7 +107,7 @@ export class ReactMergeOutput extends React.Component {
                 <dt
                   className={`dataset accordion-title${showCode ? " is-expanded" : ""} pointer pl-3`}
                   onClick={this.props.toggleShowCode}>
-                  {"Code"}
+                  {t("Code")}
                 </dt>
                 <dd className={`p-0 dataset accordion-content${showCode ? " is-expanded" : ""}`}>
                   <div className="row pt-4 ml-0 mr-0">
@@ -126,19 +127,19 @@ export class ReactMergeOutput extends React.Component {
                 <div className="col" />
                 <div className="col-auto">
                   <button className="btn btn-primary pointer" onClick={() => jumpToDataset(mergeDataId, _.noop, true)}>
-                    <span>Keep Data & Jump To Grid</span>
+                    <span>{t("Keep Data & Jump To Grid")}</span>
                   </button>
                 </div>
                 <div className="col-auto">
                   <button className="btn btn-secondary pointer" onClick={this.props.clearMerge}>
-                    <span>Clear Data & Keep Editing</span>
+                    <span>{t("Clear Data & Keep Editing")}</span>
                   </button>
                 </div>
                 <div className="col" />
               </div>
               <div className="row p-4 ml-0 mr-0">
                 <div className="col-md-12 p-0" style={{ height: 200 }}>
-                  <DataPreview dataId={mergeDataId} />
+                  <DataPreview dataId={mergeDataId + ""} />
                 </div>
               </div>
             </React.Fragment>
@@ -157,9 +158,10 @@ ReactMergeOutput.propTypes = {
   clearMerge: PropTypes.func,
   showCode: PropTypes.bool,
   toggleShowCode: PropTypes.func,
+  t: PropTypes.func,
 };
-
-export default connect(
+const TranslateReactMergeOutput = withTranslation("merge")(ReactMergeOutput);
+const ReduxMergeOutput = connect(
   ({ instances, action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode }) => ({
     instances,
     action,
@@ -175,4 +177,5 @@ export default connect(
     clearMerge: () => dispatch(actions.clearMerge()),
     toggleShowCode: () => dispatch({ type: "toggle-show-code" }),
   })
-)(ReactMergeOutput);
+)(TranslateReactMergeOutput);
+export { TranslateReactMergeOutput as ReactMergeOutput, ReduxMergeOutput as default };

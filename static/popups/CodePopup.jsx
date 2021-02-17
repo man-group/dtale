@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
@@ -33,12 +34,12 @@ class CodePopup extends React.Component {
       const buttonBuilder = props => (
         <button className="btn btn-primary" {...props}>
           <i className="far fa-copy pr-3" />
-          <span>Copy</span>
+          <span>{this.props.t("Copy")}</span>
         </button>
       );
       return (
         <div key="footer" className="modal-footer">
-          <CopyToClipboard key={1} text={this.props.code} buttonBuilder={buttonBuilder} tooltipPosition="top" />
+          <CopyToClipboard text={this.props.code} buttonBuilder={buttonBuilder} tooltipPosition="top" />
         </div>
       );
     }
@@ -59,6 +60,7 @@ class CodePopup extends React.Component {
 CodePopup.displayName = "CodePopup";
 CodePopup.propTypes = {
   code: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { CodePopup, renderCodePopupAnchor };
+const TranslateCodePopup = withTranslation("code_export")(CodePopup);
+export { TranslateCodePopup as CodePopup, renderCodePopupAnchor };

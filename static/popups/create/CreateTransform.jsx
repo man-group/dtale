@@ -1,25 +1,26 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { AGGREGATION_OPTS } from "../analysis/filters/Constants";
+import { aggregationOpts } from "../analysis/filters/Constants";
 import ColumnSelect from "./ColumnSelect";
 
-function validateTransformCfg({ group, agg, col }) {
+export function validateTransformCfg(t, { group, agg, col }) {
   if (!group) {
-    return "Please select a group!";
+    return t("Please select a group!");
   }
   if (!col) {
-    return "Please select a column to transform!";
+    return t("Please select a column to transform!");
   }
   if (!agg) {
-    return "Please select an aggregation!";
+    return t("Please select an aggregation!");
   }
   return null;
 }
 
-function buildCode({ group, agg, col }) {
+export function buildCode({ group, agg, col }) {
   if (!col || !group || !agg) {
     return null;
   }
@@ -51,10 +52,11 @@ class CreateTransform extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Group By"
+          label={t("Group By")}
           prop="group"
           otherProps={["col"]}
           parent={this.state}
@@ -63,7 +65,7 @@ class CreateTransform extends React.Component {
           isMulti
         />
         <ColumnSelect
-          label="Col"
+          label={t("Col")}
           prop="col"
           otherProps={["group"]}
           parent={this.state}
@@ -72,13 +74,13 @@ class CreateTransform extends React.Component {
           dtypes={["int", "float"]}
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Aggregation</label>
+          <label className="col-md-3 col-form-label text-right">{t("Aggregation")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={_.reject(AGGREGATION_OPTS, { value: "rolling" })}
+                options={_.reject(aggregationOpts(t), { value: "rolling" })}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={this.state.agg}
@@ -98,6 +100,7 @@ CreateTransform.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateTransform, validateTransformCfg, buildCode };
+export default withTranslation(["builders", "constants"])(CreateTransform);

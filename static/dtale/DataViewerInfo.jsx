@@ -2,6 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { RemovableError } from "../RemovableError";
@@ -56,13 +57,13 @@ class ReactDataViewerInfo extends React.Component {
   }
 
   renderSort() {
-    const { sortInfo, propagateState } = this.props;
+    const { sortInfo, propagateState, t } = this.props;
     if (_.isEmpty(sortInfo)) {
       return null;
     }
     const label = (
       <div key={0} className="font-weight-bold d-inline-block">
-        {"Sort:"}
+        {t("Sort")}:
       </div>
     );
     const clearAll = (
@@ -85,7 +86,7 @@ class ReactDataViewerInfo extends React.Component {
       ", "
     );
     if (_.size(sortText) > 60) {
-      sortText = `${_.size(sortInfo)} Sorts`;
+      sortText = `${_.size(sortInfo)} ${t("Sorts")}`;
     }
     const clickHandler = buildMenuHandler("sort", state => this.setState(state));
     return [
@@ -189,13 +190,13 @@ class ReactDataViewerInfo extends React.Component {
   }
 
   renderHidden() {
-    const { columns, dataId, propagateState } = this.props;
+    const { columns, dataId, propagateState, t } = this.props;
     if (gu.noHidden(columns)) {
       return null;
     }
     const label = (
       <div key={0} className="font-weight-bold d-inline-block">
-        Hidden:
+        {t("Hidden")}:
       </div>
     );
     const hidden = _.map(_.filter(columns, { visible: false }), "name");
@@ -222,7 +223,7 @@ class ReactDataViewerInfo extends React.Component {
     const clickHandler = buildMenuHandler("hidden", state => this.setState(state));
     let hiddenText = _.join(hidden, ", ");
     if (_.size(hiddenText) > 30) {
-      hiddenText = `${_.size(hidden)} Columns`;
+      hiddenText = `${_.size(hidden)} ${t("Columns")}`;
     }
     return [
       label,
@@ -292,7 +293,8 @@ ReactDataViewerInfo.propTypes = {
   dataId: PropTypes.string,
   columnFilters: PropTypes.object,
   outlierFilters: PropTypes.object,
+  t: PropTypes.func,
 };
-
-const ReduxDataViewerInfo = connect(({ dataId }) => ({ dataId }))(ReactDataViewerInfo);
-export { ReduxDataViewerInfo as DataViewerInfo, ReactDataViewerInfo };
+const TranslateDataViewerInfo = withTranslation("main")(ReactDataViewerInfo);
+const ReduxDataViewerInfo = connect(({ dataId }) => ({ dataId }))(TranslateDataViewerInfo);
+export { ReduxDataViewerInfo as DataViewerInfo, TranslateDataViewerInfo as ReactDataViewerInfo };

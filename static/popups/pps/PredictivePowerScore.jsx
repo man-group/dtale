@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { RemovableError } from "../../RemovableError";
 import { buildURL } from "../../actions/url-utils";
@@ -59,6 +60,7 @@ class PredictivePowerScore extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const { error, pps, selectedCols } = this.state;
     const ppsInfo = _.find(pps, { x: selectedCols?.[0], y: selectedCols?.[1] });
     return (
@@ -75,7 +77,8 @@ class PredictivePowerScore extends React.Component {
             {ppsInfo !== undefined && (
               <React.Fragment>
                 <h2 className="pt-5">
-                  {`Prediction Power Score for ${ppsInfo.x} vs. ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
+                  {`${t("pps:Prediction Power Score for")} ${ppsInfo.x} `}
+                  {`${t("correlations:vs.")} ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
                 </h2>
                 <PPSDetails ppsInfo={ppsInfo} />
               </React.Fragment>
@@ -97,6 +100,7 @@ PredictivePowerScore.propTypes = {
     col2: PropTypes.string,
   }),
   propagateState: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export { PredictivePowerScore };
+export default withTranslation(["pps", "correlations"])(PredictivePowerScore);

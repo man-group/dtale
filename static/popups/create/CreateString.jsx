@@ -1,17 +1,18 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ColumnSelect from "./ColumnSelect";
 
-function validateStringCfg({ cols }) {
+export function validateStringCfg(t, { cols }) {
   if (!cols || _.size(cols) < 2) {
-    return "Please select at least 2 columns to concatenate!";
+    return t("Please select at least 2 columns to concatenate!");
   }
   return null;
 }
 
-function buildCode({ cols, joinChar }) {
+export function buildCode({ cols, joinChar }) {
   if (!cols || _.size(cols) < 2) {
     return null;
   }
@@ -35,17 +36,18 @@ class CreateString extends React.Component {
       },
     };
     updatedState.code = buildCode(updatedState.cfg);
-    if (validateStringCfg(updatedState.cfg) === null && !this.props.namePopulated) {
+    if (validateStringCfg(this.props.t, updatedState.cfg) === null && !this.props.namePopulated) {
       updatedState.name = `${_.join(updatedState.cfg.cols, "_")}_concat`;
     }
     this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Columns"
+          label={t("Columns")}
           prop="cols"
           parent={this.state}
           updateState={this.updateState}
@@ -53,7 +55,7 @@ class CreateString extends React.Component {
           isMulti
         />
         <div key={3} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Join Character</label>
+          <label className="col-md-3 col-form-label text-right">{t("Join Character")}</label>
           <div className="col-md-8">
             <input
               type="text"
@@ -72,6 +74,7 @@ CreateString.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateString, validateStringCfg, buildCode };
+export default withTranslation("builders")(CreateString);

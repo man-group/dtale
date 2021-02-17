@@ -1,71 +1,90 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import ColumnSelect from "./ColumnSelect";
-import Descriptions from "./cleaning-descriptions.json";
 import { buildCleaningCode as buildCode } from "./codeSnippets";
 import Languages from "./nltk-languages.json";
 
-function validateCleaningCfg({ col, cleaners, stopwords, caseType }) {
+export function validateCleaningCfg(t, { col, cleaners, stopwords, caseType }) {
   if (!col) {
-    return "Please select a column to clean!";
+    return t("Please select a column to clean!");
   }
   if (!cleaners) {
-    return "Please apply function(s)!";
+    return t("Please apply function(s)!");
   }
   if (_.includes(cleaners, "update_case") && !caseType) {
-    return "Please select a case to apply!";
+    return t("Please select a case to apply!");
   }
   if (_.includes(cleaners, "stopwords") && !stopwords) {
-    return "Please enter a comma-separated string of stop words!";
+    return t("Please enter a comma-separated string of stop words!");
   }
   return null;
 }
 
-const CLEANERS = [
-  { value: "drop_multispace", label: "Replace Multi-Space w/ Single-Space" },
-  { value: "drop_punctuation", label: "Remove Punctuation", word_count: true },
-  { value: "stopwords", label: "Drop Stop Words" },
-  { value: "nltk_stopwords", label: "Drop NLTK Stop Words" },
-  { value: "drop_numbers", label: "Remove Numbers", word_count: true },
-  { value: "keep_alpha", label: "Keep Only Alpha", word_count: true },
+export const cleaners = t => [
   {
-    value: "normalize_accents",
-    label: "Normalize Accent Characters",
+    value: "drop_multispace",
+    label: t("builders:Replace Multi-Space w/ Single-Space"),
+  },
+  {
+    value: "drop_punctuation",
+    label: t("builders:Remove Punctuation"),
     word_count: true,
   },
-  { value: "drop_all_space", label: "Remove Spaces", word_count: true },
+  { value: "stopwords", label: t("builders:Drop Stop Words") },
+  { value: "nltk_stopwords", label: t("builders:Drop NLTK Stop Words") },
+  {
+    value: "drop_numbers",
+    label: t("builders:Remove Numbers"),
+    word_count: true,
+  },
+  {
+    value: "keep_alpha",
+    label: t("builders:Keep Only Alpha"),
+    word_count: true,
+  },
+  {
+    value: "normalize_accents",
+    label: t("builders:Normalize Accent Characters"),
+    word_count: true,
+  },
+  {
+    value: "drop_all_space",
+    label: t("builders:Remove Spaces"),
+    word_count: true,
+  },
   {
     value: "drop_repeated_words",
-    label: "Drop Repeated Words",
+    label: t("builders:Drop Repeated Words"),
     word_count: true,
   },
   {
     value: "add_word_number_space",
-    label: "Add Space Between Word and Numbers",
+    label: t("builders:Add Space Between Word and Numbers"),
     word_count: true,
   },
   {
     value: "drop_repeated_chars",
-    label: "Remove Repeated Chars",
+    label: t("builders:Remove Repeated Chars"),
     word_count: true,
   },
-  { value: "update_case", label: "Update Word Case" },
+  { value: "update_case", label: t("builders:Update Word Case") },
   {
     value: "space_vals_to_empty",
-    label: "Update Space Values to Empty String",
+    label: t("builders:Update Space Values to Empty String"),
     word_count: true,
   },
   {
     value: "hidden_chars",
-    label: "Remove Hidden Characters",
+    label: t("builders:Remove Hidden Characters"),
     word_count: true,
   },
   {
     value: "replace_hyphen_w_space",
-    label: "Replace Hyphens w/ Space",
+    label: t("builders:Replace Hyphens w/ Space"),
     word_count: true,
   },
 ];
@@ -123,12 +142,13 @@ class CreateCleaning extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const prePopulatedCol = _.get(this.props, "prePopulated.col");
     return (
       <React.Fragment>
         {!prePopulatedCol && (
           <ColumnSelect
-            label="Col"
+            label={t("Col")}
             prop="col"
             parent={this.state}
             updateState={this.updateState}
@@ -137,10 +157,10 @@ class CreateCleaning extends React.Component {
           />
         )}
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Function(s)</label>
+          <label className="col-md-3 col-form-label text-right">{t("Function(s)")}</label>
           <div className="col-md-8 builders">
             <div className="row">
-              {_.map(CLEANERS, (cleaner, i) => {
+              {_.map(cleaners(t), (cleaner, i) => {
                 const buttonProps = {
                   className: "btn w-100",
                   style: {
@@ -152,7 +172,7 @@ class CreateCleaning extends React.Component {
                   onClick: () => this.updateCleaners(cleaner.value),
                   onMouseEnter: () =>
                     this.setState({
-                      description: _.get(Descriptions, cleaner.value),
+                      description: this.props.t(cleaner.value),
                     }),
                   onMouseLeave: () => this.setState({ description: null }),
                 };
@@ -176,7 +196,7 @@ class CreateCleaning extends React.Component {
         </div>
         {_.includes(this.state.cleaners, "stopwords") && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Stop Words</label>
+            <label className="col-md-3 col-form-label text-right">{t("Stop Words")}</label>
             <div className="col-md-8">
               <input
                 type="text"
@@ -189,7 +209,7 @@ class CreateCleaning extends React.Component {
         )}
         {_.includes(this.state.cleaners, "nltk_stopwords") && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">NLTK Language</label>
+            <label className="col-md-3 col-form-label text-right">{t("NLTK Language")}</label>
             <div className="col-md-8">
               <Select
                 className="Select is-clearable is-searchable Select--single"
@@ -207,7 +227,7 @@ class CreateCleaning extends React.Component {
         )}
         {_.includes(this.state.cleaners, "update_case") && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Case</label>
+            <label className="col-md-3 col-form-label text-right">{t("Case")}</label>
             <div className="col-md-8">
               <div className="btn-group">
                 {_.map(
@@ -226,7 +246,7 @@ class CreateCleaning extends React.Component {
                     }
                     return (
                       <button key={caseType} {...buttonProps}>
-                        {label}
+                        {t(label)}
                       </button>
                     );
                   }
@@ -245,6 +265,6 @@ CreateCleaning.propTypes = {
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
   prePopulated: PropTypes.object,
+  t: PropTypes.func,
 };
-
-export { CreateCleaning, validateCleaningCfg, buildCode, CLEANERS };
+export default withTranslation("builders")(CreateCleaning);

@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
@@ -17,7 +18,7 @@ function handleRangeSelect(props, cellIdx) {
   const { columns, data, rangeSelect } = props.gridState;
   if (rangeSelect) {
     const copyText = buildCopyText(data, columns, rangeSelect.start, cellIdx);
-    const title = "Copy Range to Clipboard?";
+    const title = props.t("Copy Range to Clipboard?");
     props.openChart({
       ...copyText,
       type: "copy-range",
@@ -34,7 +35,7 @@ function handleRowSelect(props, cellIdx) {
   const { columns, rowRange } = props.gridState;
   if (rowRange) {
     const coords = convertCellIdxToCoords(cellIdx);
-    const title = "Copy Rows to Clipboard?";
+    const title = props.t("Copy Rows to Clipboard?");
     const callback = copyText =>
       props.openChart({
         ...copyText,
@@ -161,14 +162,15 @@ ReactGridEventHandler.propTypes = {
   allowCellEdits: PropTypes.bool,
   openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   editCell: PropTypes.func,
+  t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
-
+const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
   ({ allowCellEdits, dataId }) => ({ allowCellEdits, dataId }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),
   })
-)(ReactGridEventHandler);
+)(TranslateReactGridEventHandler);
 
-export { ReduxGridEventHandler as GridEventHandler, ReactGridEventHandler };
+export { ReduxGridEventHandler as GridEventHandler, TranslateReactGridEventHandler as ReactGridEventHandler };

@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -42,7 +50,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateSimilarity = require("../../../popups/create/CreateSimilarity").CreateSimilarity;
+    CreateSimilarity = require("../../../popups/create/CreateSimilarity").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -96,17 +104,17 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build similarity cfg validation", () => {
     const { validateSimilarityCfg } = require("../../../popups/create/CreateSimilarity");
-    expect(validateSimilarityCfg({ left: null })).toBe("Please select a left column!");
-    expect(validateSimilarityCfg({ left: "col1", right: null })).toBe("Please select a right column!");
+    expect(validateSimilarityCfg(t, { left: null })).toBe("Please select a left column!");
+    expect(validateSimilarityCfg(t, { left: "col1", right: null })).toBe("Please select a right column!");
     expect(
-      validateSimilarityCfg({
+      validateSimilarityCfg(t, {
         left: "col1",
         right: "col2",
         algo: "jaccard",
       })
     ).toBe("Please select a valid value for k!");
     expect(
-      validateSimilarityCfg({
+      validateSimilarityCfg(t, {
         left: "col1",
         right: "col2",
         algo: "jaccard",

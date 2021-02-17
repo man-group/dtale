@@ -1,14 +1,15 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-function validateStringsCfg(cfg) {
+function validateStringsCfg(t, cfg) {
   const { value, replace } = cfg;
   if (_.isNull(value)) {
-    return "Please enter a character or substring!";
+    return t("Please enter a character or substring!");
   }
   if (_.isNull(replace) || "") {
-    return "Please enter a replacement value!";
+    return t("Please enter a replacement value!");
   }
   return null;
 }
@@ -67,7 +68,7 @@ class Strings extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row mb-0">
-        <label className="col-md-3 col-form-label text-right">Search For</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Search For")}</label>
         <div className="col-md-8">
           <input
             type="text"
@@ -78,7 +79,7 @@ class Strings extends React.Component {
         </div>
       </div>,
       <div key={1} className="form-group row mb-0">
-        <label className="col-md-3 col-form-label text-right">Is Character?</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Is Character?")}</label>
         <div className="col-md-8 mt-auto mb-auto">
           <i
             className={`ico-check-box${this.state.isChar ? "" : "-outline-blank"} pointer`}
@@ -87,7 +88,7 @@ class Strings extends React.Component {
         </div>
       </div>,
       <div key={2} className="form-group row mb-0">
-        <label className="col-md-3 col-form-label text-right">Ignore case?</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Ignore case?")}</label>
         <div className="col-md-8 mt-auto mb-auto">
           <i
             className={`ico-check-box${this.state.ignoreCase ? "" : "-outline-blank"} pointer`}
@@ -96,7 +97,7 @@ class Strings extends React.Component {
         </div>
       </div>,
       <div key={3} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Replace With</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Replace With")}</label>
         <div className="col-md-8">
           <input
             type="text"
@@ -104,7 +105,7 @@ class Strings extends React.Component {
             value={this.state.replace || ""}
             onChange={e => this.updateState({ replace: e.target.value })}
           />
-          <small>{`To replace with missings, please enter the string "nan"`}</small>
+          <small>{this.props.t("replace_missings")}</small>
         </div>
       </div>,
     ];
@@ -115,6 +116,7 @@ Strings.propTypes = {
   updateState: PropTypes.func,
   col: PropTypes.string,
   colType: PropTypes.string,
+  t: PropTypes.func,
 };
-
-export { Strings, validateStringsCfg, buildCode };
+const TranslateStrings = withTranslation("replacement")(Strings);
+export { TranslateStrings as Strings, validateStringsCfg, buildCode };

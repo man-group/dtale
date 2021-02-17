@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { renderCodePopupAnchor } from "../CodePopup";
 
@@ -27,14 +28,16 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   renderDescription() {
-    const { selectedCols, rolling, window } = this.props;
-    let description = `Timeseries of Pearson Correlation for ${selectedCols[0]} vs. ${selectedCols[1]}`;
+    const { selectedCols, rolling, window, t } = this.props;
+    let description = `${t("Timeseries of Pearson Correlation for")} ${selectedCols[0]} ${t("vs.")} ${selectedCols[1]}`;
     if (rolling) {
-      description = `Rolling Pearson Correlation (window: ${window}) for ${selectedCols[0]} vs. ${selectedCols[1]}`;
+      description =
+        `${t("Rolling Pearson Correlation (window")}: ${window})${t(" for ")}${selectedCols[0]}` +
+        `${t("vs.")} ${selectedCols[1]}`;
     }
-    let clicker = "Click on any point in the chart to view a scatter plot of the data in that correlation";
+    let clicker = t("Click on any point in the chart to view a scatter plot of the data in that correlation");
     if (rolling) {
-      clicker = "Click on any point in the chart to view a scatter plot of the data in that rolling correlation";
+      clicker = t("Click on any point in the chart to view a scatter plot of the data in that rolling correlation");
     }
     return (
       <div className="col pl-0 pr-0">
@@ -70,17 +73,17 @@ class CorrelationsTsOptions extends React.Component {
       );
     };
     const { useRolling } = this.state;
-    const { rolling } = this.props;
+    const { rolling, t } = this.props;
     return (
       <React.Fragment>
         {!rolling && (
           <React.Fragment>
             <div className="col text-center pr-0">
               <div>
-                <b>Use Rolling?</b>
+                <b>{t("Use Rolling?")}</b>
               </div>
               <div style={{ marginTop: "-.5em" }}>
-                <small>(Rolling Mean)</small>
+                <small>{t("(Rolling Mean)")}</small>
               </div>
             </div>
             <div style={{ marginTop: ".3em" }}>
@@ -91,16 +94,16 @@ class CorrelationsTsOptions extends React.Component {
         <div className="col text-center">
           <div>
             <b>
-              Rolling
+              {t("Rolling")}
               <br />
-              Window
+              {t("Window")}
             </b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>(Please edit)</small>
+            <small>{t("(Please edit)")}</small>
           </div>
         </div>
-        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+        <div style={{ width: "3em" }} data-tip={t("Press ENTER to submit")}>
           <input
             type="text"
             className="form-control text-center"
@@ -112,13 +115,13 @@ class CorrelationsTsOptions extends React.Component {
         </div>
         <div className="col text-center">
           <div>
-            <b>Min Periods</b>
+            <b>{t("Min Periods")}</b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>(Please edit)</small>
+            <small>{t("(Please edit)")}</small>
           </div>
         </div>
-        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+        <div style={{ width: "3em" }} data-tip={t("Press ENTER to submit")}>
           <input
             type="text"
             className="form-control text-center"
@@ -133,10 +136,10 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   renderDateDropdown() {
-    const { dates, selectedDate } = this.props;
+    const { dates, selectedDate, t } = this.props;
     return [
       <label key="date-label" className="col-form-label text-right">
-        Date Column
+        {t("Date Column")}
       </label>,
       <div key="date-input">
         <select className="form-control custom-select" defaultValue={selectedDate} onChange={this.changeDate}>
@@ -149,7 +152,7 @@ class CorrelationsTsOptions extends React.Component {
   }
 
   render() {
-    const { hasDate, selectedCols } = this.props;
+    const { hasDate, selectedCols, t } = this.props;
     if (!hasDate) {
       return null;
     }
@@ -166,7 +169,7 @@ class CorrelationsTsOptions extends React.Component {
           </div>
         </div>
         <div className="col-auto pl-0 pr-0 text-right" style={{ marginTop: ".3em" }}>
-          {renderCodePopupAnchor(this.props.tsCode, "Correlations Timeseries")}
+          {renderCodePopupAnchor(this.props.tsCode, t("Correlations Timeseries"))}
         </div>
       </div>
     );
@@ -184,6 +187,7 @@ CorrelationsTsOptions.propTypes = {
   minPeriods: PropTypes.number,
   buildTs: PropTypes.func,
   tsCode: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default CorrelationsTsOptions;
+export default withTranslation("correlations")(CorrelationsTsOptions);

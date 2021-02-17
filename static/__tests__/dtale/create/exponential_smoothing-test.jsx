@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -43,8 +51,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateExponentialSmoothing = require("../../../popups/create/CreateExponentialSmoothing")
-      .CreateExponentialSmoothing;
+    CreateExponentialSmoothing = require("../../../popups/create/CreateExponentialSmoothing").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -85,14 +92,14 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build exponential smoothing cfg validation", () => {
     const { validateExponentialSmoothingCfg } = require("../../../popups/create/CreateExponentialSmoothing");
-    expect(validateExponentialSmoothingCfg({})).toBe("Please select a column to smooth!");
+    expect(validateExponentialSmoothingCfg(t, {})).toBe("Please select a column to smooth!");
     expect(
-      validateExponentialSmoothingCfg({
+      validateExponentialSmoothingCfg(t, {
         col: "col1",
       })
     ).toBe("Please enter a valid float for alpha!");
     expect(
-      validateExponentialSmoothingCfg({
+      validateExponentialSmoothingCfg(t, {
         col: "col1",
         alpha: 0.3,
       })

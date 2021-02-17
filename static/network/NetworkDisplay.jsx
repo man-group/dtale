@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import vis from "vis-network/dist/vis-network";
 
@@ -187,6 +188,7 @@ class ReactNetworkDisplay extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const { dtypes, error, to, from, loadingDtypes, loadingData } = this.state;
     const loadDisabled = !(to && from);
     return (
@@ -198,7 +200,7 @@ class ReactNetworkDisplay extends React.Component {
           <div className="row">
             <div className="col-md-5 p-0">
               <ColumnSelect
-                label="To"
+                label={t("To")}
                 prop="to"
                 parent={this.state}
                 updateState={state => this.setState(state)}
@@ -206,7 +208,7 @@ class ReactNetworkDisplay extends React.Component {
                 otherProps={["from"]}
               />
               <ColumnSelect
-                label="From"
+                label={t("From")}
                 prop="from"
                 parent={this.state}
                 updateState={state => this.setState(state)}
@@ -216,7 +218,7 @@ class ReactNetworkDisplay extends React.Component {
             </div>
             <div className="col-md-5 p-0">
               <ColumnSelect
-                label="Group"
+                label={t("Group")}
                 prop="group"
                 parent={this.state}
                 updateState={state => this.setState(state)}
@@ -224,7 +226,7 @@ class ReactNetworkDisplay extends React.Component {
                 otherProps={["to", "from"]}
               />
               <ColumnSelect
-                label="Weight"
+                label={t("Weight")}
                 prop="weight"
                 parent={this.state}
                 updateState={state => this.setState(state)}
@@ -238,7 +240,7 @@ class ReactNetworkDisplay extends React.Component {
                 onClick={loadingData ? _.noop : this.load}
                 disabled={loadDisabled}>
                 <BouncerWrapper showBouncer={this.state.loadingData}>
-                  <span>Load</span>
+                  <span>{t("Load")}</span>
                 </BouncerWrapper>
               </button>
             </div>
@@ -272,8 +274,9 @@ ReactNetworkDisplay.propTypes = {
   from: PropTypes.string,
   group: PropTypes.string,
   weight: PropTypes.string,
+  t: PropTypes.func,
 };
+const TranslateReactNetworkDisplay = withTranslation("network")(ReactNetworkDisplay);
+const ReduxNetworkDisplay = connect(({ dataId }) => ({ dataId }))(TranslateReactNetworkDisplay);
 
-const ReduxNetworkDisplay = connect(({ dataId }) => ({ dataId }))(ReactNetworkDisplay);
-
-export { ReduxNetworkDisplay as NetworkDisplay, ReactNetworkDisplay };
+export { ReduxNetworkDisplay as NetworkDisplay, TranslateReactNetworkDisplay as ReactNetworkDisplay };

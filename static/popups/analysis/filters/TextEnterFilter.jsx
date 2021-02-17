@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { exports as gu } from "../../../dtale/gridUtils";
 
@@ -24,7 +25,7 @@ class TextEnterFilter extends React.Component {
   }
 
   render() {
-    const { prop, dtype, buildChart } = this.props;
+    const { prop, dtype, buildChart, t } = this.props;
     const colType = gu.findColType(dtype);
     const updateFilter = e => {
       if (e.key === "Enter") {
@@ -38,13 +39,13 @@ class TextEnterFilter extends React.Component {
       <React.Fragment>
         <div className={`col-auto text-center pr-4 ${colType === "int" ? "pl-0" : ""}`}>
           <div>
-            <b>{_.capitalize(prop)}</b>
+            <b>{t(_.capitalize(prop))}</b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>(Please edit)</small>
+            <small>{`(${t("Please edit")})`}</small>
           </div>
         </div>
-        <div style={{ width: "3em" }} data-tip="Press ENTER to submit">
+        <div style={{ width: "3em" }} data-tip={t("Press ENTER to submit")}>
           <input
             type="text"
             className="form-control text-center column-analysis-filter"
@@ -64,6 +65,7 @@ TextEnterFilter.propTypes = {
   propagateState: PropTypes.func,
   buildChart: PropTypes.func,
   defaultValue: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default TextEnterFilter;
+export default withTranslation("text_enter")(TextEnterFilter);

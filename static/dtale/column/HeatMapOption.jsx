@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import bu from "../backgroundUtils";
 
@@ -21,7 +22,7 @@ class HeatMapOption extends React.Component {
   }
 
   render() {
-    const { backgroundMode, colCfg } = this.props;
+    const { backgroundMode, colCfg, t } = this.props;
     if (!_.has(colCfg, "min")) {
       return null;
     }
@@ -31,7 +32,7 @@ class HeatMapOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.toggleBackground}>
             <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
-            <span className={`font-weight-bold pl-3${heatmapActive ? " flames" : ""}`}>Heatmap</span>
+            <span className={`font-weight-bold pl-3${heatmapActive ? " flames" : ""}`}>{t("menu:Heat Map")}</span>
           </button>
         </span>
       </li>
@@ -44,6 +45,7 @@ HeatMapOption.propTypes = {
   backgroundMode: PropTypes.string,
   propagateState: PropTypes.func,
   colCfg: PropTypes.object,
+  t: PropTypes.func,
 };
 
-export default HeatMapOption;
+export default withTranslation("menu")(HeatMapOption);

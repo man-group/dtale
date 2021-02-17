@@ -75,7 +75,7 @@ describe("DataViewer within iframe tests", () => {
         ["Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
         ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
         ["Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data"],
-        ["Pin menu", "Open In New Tab", "Shutdown"]
+        ["Pin menu", "Language", "Open In New Tab", "Shutdown"]
       )
     );
     clickMainMenuButton(result, "Open In New Tab");

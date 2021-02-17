@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -9,22 +10,23 @@ import ButtonToggle from "../../ButtonToggle";
 import actions from "../../actions/merge";
 import ExampleCode from "./code.json";
 
-const ACTIONS = [
-  { label: "Merge", value: "merge" },
-  { label: "Stack", value: "stack" },
+const actionOpts = t => [
+  { label: t("Merge"), value: "merge" },
+  { label: t("Stack"), value: "stack" },
 ];
 
-const HOW = _.map(["left", "right", "inner", "outer"], h => ({
-  value: h,
-  label: _.capitalize(h),
-}));
+const howOpts = t =>
+  _.map(["left", "right", "inner", "outer"], h => ({
+    value: h,
+    label: t(_.capitalize(h)),
+  }));
 
 const exampleImage = name => `https://raw.githubusercontent.com/aschonfeld/dtale-media/master/merge_images/${name}.png`;
 
 // Look to add images from pandas documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
 // Example image URL: https://pandas.pydata.org/pandas-docs/stable/_images/merging_join_multi_df.png
 
-export class ReactActionConfig extends React.Component {
+class ReactActionConfig extends React.Component {
   constructor(props) {
     super(props);
     this.state = { description: false };
@@ -33,16 +35,16 @@ export class ReactActionConfig extends React.Component {
   }
 
   renderMerge() {
-    const { action, mergeConfig, updateActionConfig } = this.props;
+    const { action, mergeConfig, updateActionConfig, t } = this.props;
     const { how, sort, indicator } = mergeConfig;
     return (
       <React.Fragment>
         <div className="row ml-0 mr-0">
           <div className="col-md-4">
             <div className="form-group row">
-              <label className="col-auto col-form-label text-right pr-0">How:</label>
+              <label className="col-auto col-form-label text-right pr-0">{t("How")}:</label>
               <ButtonToggle
-                options={HOW}
+                options={howOpts(t)}
                 update={value => updateActionConfig({ action, prop: "how", value })}
                 defaultValue={how}
               />
@@ -50,7 +52,7 @@ export class ReactActionConfig extends React.Component {
           </div>
           <div className="col-md-4">
             <div className="form-group row">
-              <label className="col-auto col-form-label text-right pr-5">Sort:</label>
+              <label className="col-auto col-form-label text-right pr-5">{t("Sort")}:</label>
               <i
                 className={`ico-check-box${sort ? "" : "-outline-blank"} pointer mb-auto mt-auto`}
                 onClick={() => updateActionConfig({ action, prop: "sort", value: !sort })}
@@ -59,7 +61,7 @@ export class ReactActionConfig extends React.Component {
           </div>
           <div className="col-md-4">
             <div className="form-group row">
-              <label className="col-md-3 col-form-label text-right pr-5">Indicator:</label>
+              <label className="col-md-3 col-form-label text-right pr-5">{t("Indicator")}:</label>
               <i
                 className={`ico-check-box${indicator ? "" : "-outline-blank"} pointer mb-auto mt-auto`}
                 onClick={() =>
@@ -77,7 +79,7 @@ export class ReactActionConfig extends React.Component {
           <dt
             className={`dataset accordion-title${this.state.example ? " is-expanded" : ""} pointer pl-3`}
             onClick={() => this.setState({ example: !this.state.example })}>
-            {"Example"}
+            {t("Example")}
           </dt>
           <dd className={`p-0 dataset accordion-content${this.state.example ? " is-expanded" : ""} example`}>
             <div className="row pt-4 ml-0 mr-0">
@@ -100,14 +102,14 @@ export class ReactActionConfig extends React.Component {
   }
 
   renderStack() {
-    const { action, stackConfig, updateActionConfig } = this.props;
+    const { action, stackConfig, updateActionConfig, t } = this.props;
     const { ignoreIndex } = stackConfig;
     return (
       <React.Fragment>
         <div className="row ml-0 mr-0">
           <div className="col-md-6">
             <div className="form-group row">
-              <label className="col-auto col-form-label text-right pr-3">Ignore Index:</label>
+              <label className="col-auto col-form-label text-right pr-3">{t("Ignore Index")}:</label>
               <i
                 className={`ico-check-box${ignoreIndex ? "" : "-outline-blank"} pointer mb-auto mt-auto`}
                 onClick={() =>
@@ -125,7 +127,7 @@ export class ReactActionConfig extends React.Component {
           <dt
             className={`dataset accordion-title${this.state.example ? " is-expanded" : ""} pointer pl-3`}
             onClick={() => this.setState({ example: !this.state.example })}>
-            {"Example"}
+            {t("Example")}
           </dt>
           <dd className={`p-0 dataset accordion-content${this.state.example ? " is-expanded" : ""} example`}>
             <div className="row pt-4 ml-0 mr-0">
@@ -145,16 +147,16 @@ export class ReactActionConfig extends React.Component {
   }
 
   render() {
-    const { action } = this.props;
+    const { action, t } = this.props;
     return (
       <ul className="list-group ml-3 mr-3 pt-3">
         <li className="list-group-item p-3 section">
           <div className="row ml-0 mr-0">
             <div className="col-auto pl-4 pr-0">
-              <h3 className="m-auto">Action</h3>
+              <h3 className="m-auto">{t("Action")}</h3>
             </div>
             <ButtonToggle
-              options={ACTIONS}
+              options={actionOpts(t)}
               update={action => this.props.updateActionType(action)}
               defaultValue={action}
             />
@@ -178,9 +180,11 @@ ReactActionConfig.propTypes = {
   stackConfig: PropTypes.object,
   updateActionType: PropTypes.func,
   updateActionConfig: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export default connect(
+const TranslateReactActionConfig = withTranslation("merge")(ReactActionConfig);
+const ReduxActionConfig = connect(
   ({ action, mergeConfig, stackConfig }) => ({
     action,
     mergeConfig,
@@ -190,4 +194,5 @@ export default connect(
     updateActionType: action => dispatch(actions.updateActionType(action)),
     updateActionConfig: actionUpdate => dispatch(actions.updateActionConfig(actionUpdate)),
   })
-)(ReactActionConfig);
+)(TranslateReactActionConfig);
+export { ReduxActionConfig as default, TranslateReactActionConfig as ReactActionConfig };

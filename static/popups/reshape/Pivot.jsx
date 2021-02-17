@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { PIVOT_AGGS } from "../analysis/filters/Constants";
+import { pivotAggs } from "../analysis/filters/Constants";
 
 function validatePivotCfg(cfg) {
   const { index, columns, values } = cfg;
@@ -41,7 +42,7 @@ class Pivot extends React.Component {
       index: null,
       columns: null,
       values: null,
-      aggfunc: _.find(PIVOT_AGGS, { value: "mean" }),
+      aggfunc: _.find(pivotAggs(props.t), { value: "mean" }),
       columnNameHeaders: false,
     };
     this.renderSelect = this.renderSelect.bind(this);
@@ -81,20 +82,21 @@ class Pivot extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Rows</label>
+        <label className="col-md-3 col-form-label text-right">{t("Rows")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("index", ["columns", "values"], true)}</div>
         </div>
       </div>,
       <div key={1} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Columns</label>
+        <label className="col-md-3 col-form-label text-right">{t("Columns")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("columns", ["index", "values"], true)}</div>
           <div className="row mb-0">
             <label className="col-auto col-form-label pr-3" style={{ fontSize: "85%" }}>
-              {"Include Column Names in Headers?"}
+              {t("Include Column Names in Headers?")}
             </label>
             <div className="col-auto p-0">
               <i
@@ -110,19 +112,19 @@ class Pivot extends React.Component {
         </div>
       </div>,
       <div key={2} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Value(s)</label>
+        <label className="col-md-3 col-form-label text-right">{t("Value(s)")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("values", ["index", "columns"], true)}</div>
         </div>
       </div>,
       <div key={3} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Aggregation</label>
+        <label className="col-md-3 col-form-label text-right">{t("Aggregation")}</label>
         <div className="col-md-8">
           <div className="input-group">
             <Select
               className="Select is-clearable is-searchable Select--single"
               classNamePrefix="Select"
-              options={PIVOT_AGGS}
+              options={pivotAggs(t)}
               getOptionLabel={_.property("label")}
               getOptionValue={_.property("value")}
               value={this.state.aggfunc}
@@ -139,6 +141,7 @@ Pivot.displayName = "Pivot";
 Pivot.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { Pivot, validatePivotCfg, buildCode };
+const TranslatePivot = withTranslation("reshape")(Pivot);
+export { TranslatePivot as Pivot, validatePivotCfg, buildCode };

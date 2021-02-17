@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Resizable } from "re-resizable";
 import React from "react";
 import Modal from "react-bootstrap/Modal";
+import { withTranslation } from "react-i18next";
 
 import { RemovableError } from "../../RemovableError";
 import { buildURLString } from "../../actions/url-utils";
@@ -10,7 +11,7 @@ import { fetchJson } from "../../fetcher";
 import DraggableModalDialog from "../DraggableModalDialog";
 import { jumpToDataset } from "./uploadUtils";
 
-export default class SheetSelector extends React.Component {
+class SheetSelector extends React.Component {
   constructor(props) {
     super(props);
     this.state = { sheets: [], minHeight: null, minWidth: null };
@@ -55,6 +56,7 @@ export default class SheetSelector extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const { sheets } = this.state;
     const onResizeStart = (_e, _dir, refToElement) => {
       this.setState({
@@ -71,7 +73,7 @@ export default class SheetSelector extends React.Component {
           minWidth={this.state.minWidth}
           onResizeStart={onResizeStart}>
           <Modal.Header>
-            <Modal.Title>Sheet Selection</Modal.Title>
+            <Modal.Title>{t("Sheet Selection")}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             {this.state.error}
@@ -91,13 +93,13 @@ export default class SheetSelector extends React.Component {
           </Modal.Body>
           <Modal.Footer>
             <button className="btn btn-secondary" onClick={this.clearSheets}>
-              <span>Clear Sheets</span>
+              <span>{t("Clear Sheets")}</span>
             </button>
             <button
               className="btn btn-primary"
               disabled={_.find(sheets, "selected") === undefined}
               onClick={this.loadSheets}>
-              <span>Load Sheets</span>
+              <span>{t("Load Sheets")}</span>
             </button>
           </Modal.Footer>
           <span className="resizable-handle" />
@@ -111,4 +113,6 @@ SheetSelector.propTypes = {
   sheets: PropTypes.arrayOf(PropTypes.object),
   propagateState: PropTypes.func,
   mergeRefresher: PropTypes.func,
+  t: PropTypes.func,
 };
+export default withTranslation("upload")(SheetSelector);

@@ -39,7 +39,7 @@ describe("DataViewer tests", () => {
     );
 
     jest.mock("popsicle", () => mockBuildLibs);
-    PredictivePowerScore = require("../../popups/pps/PredictivePowerScore").PredictivePowerScore;
+    PredictivePowerScore = require("../../popups/pps/PredictivePowerScore").default;
   });
 
   beforeEach(async () => {

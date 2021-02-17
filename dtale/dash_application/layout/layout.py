@@ -22,6 +22,7 @@ from dtale.dash_application.layout.utils import (
     FREQS,
     FREQ_LABELS,
 )
+from dtale.translations import text
 from dtale.query import build_query, inner_build_query, run_query
 from dtale.utils import (
     ChartBuildingError,
@@ -75,14 +76,14 @@ def base_layout(app_root, **kwargs):
                         <div class="col-auto">
                             <header>
                                 <span class="title-font">D-TALE</span>
-                                <span style="font-size: 16px" class="pl-4">Charts</span>
+                                <span style="font-size: 16px" class="pl-4">{title}</span>
                             </header>
                         </div>
                         <div class="col"></div>
                         <div class="col-auto mt-4">
                             <a href="#" onclick="javascript:backToData()">
                                 <i class="fas fa-th mr-4"></i>
-                                <span>Back To Data</span>
+                                <span>{back_to_data}</span>
                             </a>
                         </div>
                     </div>
@@ -111,6 +112,8 @@ def base_layout(app_root, **kwargs):
         webroot_html=webroot_html,
         app_root=app_root if is_app_root_defined(app_root) else "",
         favicon_path=favicon_path,
+        title=text("Charts"),
+        back_to_data=text("Back To Data"),
     )
 
 
@@ -123,7 +126,7 @@ CHARTS = [
     dict(value="heatmap"),
     dict(value="3d_scatter", label="3D Scatter"),
     dict(value="surface"),
-    dict(value="maps", label="Maps"),
+    dict(value="maps"),
     dict(value="candlestick"),
     dict(value="treemap"),
 ]
@@ -233,43 +236,49 @@ PROJECTIONS = [
     "sinusoidal",
 ]
 
-AUTO_LOAD_MSG = (
-    "By default, the chart builder will try to build a chart everytime you change your chart settings. If you "
-    "toggle off 'Auto-Load' then you can change the settings as much as you like without triggering a chart build. "
-    "In order to trigger a chart build with 'Auto-Load' off you must click the 'Load' button."
-)
 
-BIN_TYPE_MSG = [
-    html.Div(
-        [
-            html.H3("Bin Types", style=dict(display="inline"), className="pr-3"),
-            html.A(
-                "(Binning in Data Mining)",
-                href="https://www.geeksforgeeks.org/binning-in-data-mining/",
-            ),
-            html.Br(),
-        ]
-    ),
-    html.Ul(
-        [
-            html.Li(
-                [
-                    html.B("Equal Width"),
-                    html.Span(": the bins are of equal sized ranges"),
-                ],
-                className="mb-0",
-            ),
-            html.Li(
-                [
-                    html.B("Equal Frquency"),
-                    html.Span(": the bins contain an equal amount of values"),
-                ],
-                className="mb-0",
-            ),
-        ],
-        className="mb-0",
-    ),
-]
+def auto_load_msg():
+    return text("auto_load_msg")
+
+
+def bin_type_msg():
+    return [
+        html.Div(
+            [
+                html.H3("Bin Types", style=dict(display="inline"), className="pr-3"),
+                html.A(
+                    "({})".format(text("Binning in Data Mining")),
+                    href="https://www.geeksforgeeks.org/binning-in-data-mining/",
+                ),
+                html.Br(),
+            ]
+        ),
+        html.Ul(
+            [
+                html.Li(
+                    [
+                        html.B(text("Equal Width")),
+                        html.Span(
+                            ": {}".format(text("the bins are of equal sized ranges"))
+                        ),
+                    ],
+                    className="mb-0",
+                ),
+                html.Li(
+                    [
+                        html.B(text("Equal Frequency")),
+                        html.Span(
+                            ": {}".format(
+                                text("the bins contain an equal amount of values")
+                            )
+                        ),
+                    ],
+                    className="mb-0",
+                ),
+            ],
+            className="mb-0",
+        ),
+    ]
 
 
 def build_img_src(proj, img_type="projections"):
@@ -292,7 +301,7 @@ def build_proj_hover_children(proj):
 def build_proj_hover(proj):
     return html.Span(
         [
-            "Projection",
+            text("Projection"),
             html.Div(
                 build_proj_hover_children(proj),
                 className="ml-3 hoverable",
@@ -309,14 +318,14 @@ def build_proj_hover(proj):
 def build_mapbox_token_children():
     from dtale.charts.utils import get_mapbox_token
 
-    msg = "To access additional styles enter a token here..."
+    msg = text("To access additional styles enter a token here...")
     if get_mapbox_token() is None:
-        msg = "Change your token here..."
+        msg = text("Change your token here...")
     return [
         html.I(className="ico-help-outline", style=dict(color="white")),
         html.Div(
             [
-                html.Span("Mapbox Access Token:"),
+                html.Span("{}:".format("Mapbox Access Token")),
                 dcc.Input(
                     id="mapbox-token-input",
                     type="text",
@@ -335,7 +344,7 @@ def build_mapbox_token_children():
 def build_mapbox_token_hover():
     return html.Span(
         [
-            "Style",
+            text("Style"),
             html.Div(
                 build_mapbox_token_children(),
                 className="ml-3 hoverable",
@@ -347,44 +356,48 @@ def build_mapbox_token_hover():
     )
 
 
-LOC_MODE_INFO = {
-    "ISO-3": dict(
-        url=html.A(
-            "ISO-3",
-            href="https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3",
-            target="_blank",
+def loc_mode_info():
+    return {
+        "ISO-3": dict(
+            url=html.A(
+                text("ISO-3"),
+                href="https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3",
+                target="_blank",
+            ),
+            examples=["USA (United States)", "CAN (Canada)", "GBR (United Kingdom)"],
         ),
-        examples=["USA (United States)", "CAN (Canada)", "GBR (United Kingdom)"],
-    ),
-    "USA-states": dict(
-        url=html.A(
-            "USA-states (use ISO)",
-            href="https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations",
-            target="_blank",
+        "USA-states": dict(
+            url=html.A(
+                text("USA-states (use ISO)"),
+                href="https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations",
+                target="_blank",
+            ),
+            examples=["NY (New York)", "CA (California)", "MA (Massachusetts)"],
         ),
-        examples=["NY (New York)", "CA (California)", "MA (Massachusetts)"],
-    ),
-    "country names": dict(
-        url=html.A(
-            "country names (case-insensitive)",
-            href="https://simple.wikipedia.org/wiki/List_of_countries",
-            target="_blank",
+        "country names": dict(
+            url=html.A(
+                text("country names (case-insensitive)"),
+                href="https://simple.wikipedia.org/wiki/List_of_countries",
+                target="_blank",
+            ),
+            examples=["United States", "United Kingdom", "Germany"],
         ),
-        examples=["United States", "United Kingdom", "Germany"],
-    ),
-    "geojson-id": dict(label="Custom GeoJSON", desc="Load custom geojson into D-Tale"),
-}
+        "geojson-id": dict(
+            label="Custom GeoJSON", desc=text("Load custom geojson into D-Tale")
+        ),
+    }
 
 
 def build_loc_mode_hover_children(loc_mode):
     if loc_mode is None:
         return None
-    loc_mode_cfg = LOC_MODE_INFO[loc_mode]
+    loc_modes = loc_mode_info()
+    loc_mode_cfg = loc_modes[loc_mode]
     url, examples, desc = (loc_mode_cfg.get(p) for p in ["url", "examples", "desc"])
     body = []
     if url is not None:
         body.append(
-            html.Div([html.Span("View", className="mr-3"), loc_mode_cfg["url"]])
+            html.Div([html.Span(text("View"), className="mr-3"), loc_mode_cfg["url"]])
         )
     if examples is not None:
         body.append(
@@ -411,7 +424,7 @@ def build_loc_mode_hover_children(loc_mode):
 def build_loc_mode_hover(loc_mode):
     return html.Span(
         [
-            html.Span("Location Mode", style=dict(whiteSpace="pre-line")),
+            html.Span(text("Location Mode"), style=dict(whiteSpace="pre-line")),
             html.Div(
                 build_loc_mode_hover_children(loc_mode),
                 className="ml-3 hoverable",
@@ -509,7 +522,7 @@ def update_label_for_freq(val):
             if sub_val.endswith("|{}".format(freq)):
                 col, freq = sub_val.split("|")
                 if freq in FREQ_LABELS:
-                    return "{} ({})".format(col, FREQ_LABELS[freq])
+                    return "{} ({})".format(col, text(FREQ_LABELS[freq]))
                 return col
         return sub_val
 
@@ -773,18 +786,20 @@ def show_yaxis_ranges(**inputs):
 
 def get_yaxis_type_tabs(y):
     tabs = [
-        build_tab("Default", "default", {"padding": "2px", "minWidth": "4em"}),
-        build_tab("Single", "single", {"padding": "2px", "minWidth": "4em"}),
+        build_tab(text("Default"), "default", {"padding": "2px", "minWidth": "4em"}),
+        build_tab(text("Single"), "single", {"padding": "2px", "minWidth": "4em"}),
     ]
     if len(y) <= 1:
         return tabs
-    return tabs + [build_tab("Multi", "multi", {"padding": "2px", "minWidth": "4em"})]
+    return tabs + [
+        build_tab(text("Multi"), "multi", {"padding": "2px", "minWidth": "4em"})
+    ]
 
 
 def get_yaxis_scale_tabs():
     return [
-        build_tab("Linear", "linear", {"padding": "2px", "minWidth": "4em"}),
-        build_tab("Log", "log", {"padding": "2px", "minWidth": "4em"}),
+        build_tab(text("Linear"), "linear", {"padding": "2px", "minWidth": "4em"}),
+        build_tab(text("Log"), "log", {"padding": "2px", "minWidth": "4em"}),
     ]
 
 
@@ -804,7 +819,7 @@ def build_map_type_tabs(map_type):
             if t.get("image", False):
                 yield html.Div(
                     [
-                        html.Span(t.get("label", t["value"].capitalize())),
+                        html.Span(text(t.get("label", t["value"].capitalize()))),
                         html.Img(src=build_img_src(t["value"], img_type="map_type")),
                     ],
                     className="col-md-4",
@@ -816,7 +831,7 @@ def build_map_type_tabs(map_type):
                 id="map-type-tabs",
                 value=map_type or "choropleth",
                 children=[
-                    build_tab(t.get("label", t["value"].capitalize()), t["value"])
+                    build_tab(text(t.get("label", t["value"].capitalize())), t["value"])
                     for t in MAP_TYPES
                 ],
                 style=dict(height="36px"),
@@ -904,6 +919,7 @@ def charts_layout(df, settings, data_id, **inputs):
     chart_type, x, y, z, group, agg, load = (
         inputs.get(p) for p in ["chart_type", "x", "y", "z", "group", "agg", "load"]
     )
+    loc_modes = loc_mode_info()
     y = y or []
     show_input = show_input_handler(chart_type)
     show_cpg = show_chart_per_group(**inputs)
@@ -922,14 +938,14 @@ def charts_layout(df, settings, data_id, **inputs):
         barsort_options,
         yaxis_options,
     ) = options
-    query_placeholder = "Enter pandas query (ex: col1 == 1)"
+    query_placeholder = "{} (ex: col1 == 1)".format(text("Enter pandas query"))
     query_value = inputs.get("query") or inner_build_query(
         settings, settings.get("query")
     )
 
     query_label = html.Div(
         [
-            html.Span("Query"),
+            html.Span(text("Query")),
             html.A(
                 html.I(className="fa fa-info-circle ml-4"),
                 href="https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query",
@@ -1056,7 +1072,9 @@ def charts_layout(df, settings, data_id, **inputs):
                     id="chart-tabs",
                     value=chart_type or "line",
                     children=[
-                        build_tab(t.get("label", t["value"].capitalize()), t["value"])
+                        build_tab(
+                            text(t.get("label", t["value"].capitalize())), t["value"]
+                        )
                         for t in CHARTS
                     ],
                     style=dict(height="36px"),
@@ -1093,9 +1111,11 @@ def charts_layout(df, settings, data_id, **inputs):
                     html.Div(
                         [
                             build_hoverable(
-                                html.Span("Load"),
+                                html.Span(text("Load")),
                                 html.Span(
-                                    "Load a random percentage of rows from your dataset."
+                                    text(
+                                        "Load a random percentage of rows from your dataset."
+                                    )
                                 ),
                             ),
                             dcc.Slider(
@@ -1126,23 +1146,28 @@ def charts_layout(df, settings, data_id, **inputs):
                         html.Div(
                             [
                                 build_input(
-                                    [html.Div("X"), html.Small("(Agg By)")],
+                                    [
+                                        html.Div(text("X")),
+                                        html.Small("({})".format(text("Agg By"))),
+                                    ],
                                     dcc.Dropdown(
                                         id="x-dropdown",
                                         options=x_options,
-                                        placeholder="Default Index (1, 2, ..., N)",
+                                        placeholder="{} (1, 2, ..., N)".format(
+                                            text("Default Index")
+                                        ),
                                         value=x,
                                         style=dict(width="inherit"),
                                     ),
                                     label_class="input-group-addon d-block pt-1 pb-0",
                                 ),
                                 build_input(
-                                    "Y",
+                                    text("Y"),
                                     dcc.Dropdown(
                                         id="y-multi-dropdown",
                                         options=y_multi_options,
                                         multi=True,
-                                        placeholder="Select a column(s)",
+                                        placeholder=text("Select Column(s)"),
                                         style=dict(width="inherit"),
                                         value=y if show_input("y", "multi") else None,
                                     ),
@@ -1151,11 +1176,14 @@ def charts_layout(df, settings, data_id, **inputs):
                                     style=show_style(show_input("y", "multi")),
                                 ),
                                 build_input(
-                                    [html.Div("Y"), html.Small("(Agg By)")],
+                                    [
+                                        html.Div(text("Y")),
+                                        html.Small("({})".format(text("Agg By"))),
+                                    ],
                                     dcc.Dropdown(
                                         id="y-single-dropdown",
                                         options=y_single_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=y[0]
                                         if show_input("y") and len(y)
@@ -1167,11 +1195,11 @@ def charts_layout(df, settings, data_id, **inputs):
                                     style=show_style(show_input("y")),
                                 ),
                                 build_input(
-                                    "Z",
+                                    text("Z"),
                                     dcc.Dropdown(
                                         id="z-dropdown",
                                         options=z_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=z,
                                     ),
@@ -1180,12 +1208,12 @@ def charts_layout(df, settings, data_id, **inputs):
                                     style=show_style(show_input("z")),
                                 ),
                                 build_input(
-                                    "Group",
+                                    text("Group"),
                                     dcc.Dropdown(
                                         id="group-dropdown",
                                         options=group_options,
                                         multi=True,
-                                        placeholder="Select a group(s)",
+                                        placeholder=text("Select Group(s)"),
                                         value=group,
                                         style=dict(width="inherit"),
                                     ),
@@ -1215,9 +1243,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                     options=[
                                                         build_option(
                                                             v,
-                                                            LOC_MODE_INFO[v].get(
-                                                                "label"
-                                                            ),
+                                                            loc_modes[v].get("label"),
                                                         )
                                                         for v in [
                                                             "ISO-3",
@@ -1239,11 +1265,14 @@ def charts_layout(df, settings, data_id, **inputs):
                                 ),
                                 custom_geojson.build_modal(map_type, loc_mode),
                                 build_input(
-                                    [html.Div("Locations"), html.Small("(Agg By)")],
+                                    [
+                                        html.Div(text("Locations")),
+                                        html.Small("({})".format(text("Agg By"))),
+                                    ],
                                     dcc.Dropdown(
                                         id="map-loc-dropdown",
                                         options=loc_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         value=loc,
                                         style=dict(width="inherit"),
                                     ),
@@ -1252,7 +1281,10 @@ def charts_layout(df, settings, data_id, **inputs):
                                     style=show_map_style(map_type == "choropleth"),
                                 ),
                                 build_input(
-                                    [html.Div("Lat"), html.Small("(Agg By)")],
+                                    [
+                                        html.Div(text("Lat")),
+                                        html.Small("({})".format(text("Agg By"))),
+                                    ],
                                     dcc.Dropdown(
                                         id="map-lat-dropdown",
                                         options=lat_options,
@@ -1267,7 +1299,10 @@ def charts_layout(df, settings, data_id, **inputs):
                                     ),
                                 ),
                                 build_input(
-                                    [html.Div("Lon"), html.Small("(Agg By)")],
+                                    [
+                                        html.Div(text("Lon")),
+                                        html.Small("({})".format(text("Agg By"))),
+                                    ],
                                     dcc.Dropdown(
                                         id="map-lon-dropdown",
                                         options=lon_options,
@@ -1282,7 +1317,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                     ),
                                 ),
                                 build_input(
-                                    "Scope",
+                                    text("Scope"),
                                     dcc.Dropdown(
                                         id="map-scope-dropdown",
                                         options=[build_option(v) for v in SCOPES],
@@ -1335,22 +1370,22 @@ def charts_layout(df, settings, data_id, **inputs):
                                     className="col-auto",
                                 ),
                                 build_input(
-                                    "Value",
+                                    text("Value"),
                                     dcc.Dropdown(
                                         id="map-val-dropdown",
                                         options=map_val_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=map_val,
                                     ),
                                 ),
                                 build_input(
-                                    "Group",
+                                    text("Group"),
                                     dcc.Dropdown(
                                         id="map-group-dropdown",
                                         options=group_options,
                                         multi=True,
-                                        placeholder="Select a group(s)",
+                                        placeholder=text("Select Group(s)"),
                                         value=inputs.get("map_group"),
                                         style=dict(width="inherit"),
                                     ),
@@ -1365,62 +1400,62 @@ def charts_layout(df, settings, data_id, **inputs):
                         html.Div(
                             [
                                 build_input(
-                                    "X",
+                                    text("X"),
                                     dcc.Dropdown(
                                         id="candlestick-x-dropdown",
                                         options=cs_x_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=cs_x,
                                     ),
                                 ),
                                 build_input(
-                                    "Open",
+                                    text("Open"),
                                     dcc.Dropdown(
                                         id="candlestick-open-dropdown",
                                         options=open_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=cs_open,
                                     ),
                                 ),
                                 build_input(
-                                    "High",
+                                    text("High"),
                                     dcc.Dropdown(
                                         id="candlestick-high-dropdown",
                                         options=high_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=cs_high,
                                     ),
                                 ),
                                 build_input(
-                                    "Low",
+                                    text("Low"),
                                     dcc.Dropdown(
                                         id="candlestick-low-dropdown",
                                         options=low_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=cs_low,
                                     ),
                                 ),
                                 build_input(
-                                    "Close",
+                                    text("Close"),
                                     dcc.Dropdown(
                                         id="candlestick-close-dropdown",
                                         options=close_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=cs_close,
                                     ),
                                 ),
                                 build_input(
-                                    "Group",
+                                    text("Group"),
                                     dcc.Dropdown(
                                         id="candlestick-group-dropdown",
                                         options=group_options,
                                         multi=True,
-                                        placeholder="Select a group(s)",
+                                        placeholder=text("Select Group(s)"),
                                         value=inputs.get("cs_group"),
                                         style=dict(width="inherit"),
                                     ),
@@ -1435,7 +1470,7 @@ def charts_layout(df, settings, data_id, **inputs):
                         html.Div(
                             [
                                 build_input(
-                                    "Value",
+                                    text("Value"),
                                     dcc.Dropdown(
                                         id="treemap-value-dropdown",
                                         options=treemap_value_options,
@@ -1445,22 +1480,22 @@ def charts_layout(df, settings, data_id, **inputs):
                                     ),
                                 ),
                                 build_input(
-                                    "Labels",
+                                    text("Labels"),
                                     dcc.Dropdown(
                                         id="treemap-label-dropdown",
                                         options=treemap_label_options,
-                                        placeholder="Select a column",
+                                        placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
                                         value=treemap_label,
                                     ),
                                 ),
                                 build_input(
-                                    "Group",
+                                    text("Group"),
                                     dcc.Dropdown(
                                         id="treemap-group-dropdown",
                                         options=group_options,
                                         multi=True,
-                                        placeholder="Select a group(s)",
+                                        placeholder=text("Select Group(s)"),
                                         value=inputs.get("treemap_group"),
                                         style=dict(width="inherit"),
                                     ),
@@ -1475,11 +1510,11 @@ def charts_layout(df, settings, data_id, **inputs):
                         html.Div(
                             [
                                 build_input(
-                                    "Aggregation",
+                                    text("Aggregation"),
                                     dcc.Dropdown(
                                         id="agg-dropdown",
                                         options=[
-                                            build_option(v, AGGS[v])
+                                            build_option(v, text(AGGS[v]))
                                             for v in [
                                                 "count",
                                                 "nunique",
@@ -1501,7 +1536,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                 "pctct",
                                             ]
                                         ],
-                                        placeholder="No Aggregation",
+                                        placeholder=text("No Aggregation"),
                                         style=dict(width="inherit"),
                                         value=agg or "raw",
                                     ),
@@ -1509,37 +1544,54 @@ def charts_layout(df, settings, data_id, **inputs):
                                 html.Div(
                                     [
                                         build_input(
-                                            "Window",
+                                            text("Window"),
                                             dcc.Input(
                                                 id="window-input",
                                                 type="number",
-                                                placeholder="Enter days",
+                                                placeholder=text("Enter Days"),
                                                 className="form-control text-center",
                                                 style={"lineHeight": "inherit"},
                                                 value=inputs.get("window"),
                                             ),
                                         ),
                                         build_input(
-                                            "Computation",
+                                            text("Computation"),
                                             dcc.Dropdown(
                                                 id="rolling-comp-dropdown",
                                                 options=[
-                                                    build_option("corr", "Correlation"),
-                                                    build_option("count", "Count"),
-                                                    build_option("cov", "Covariance"),
-                                                    build_option("kurt", "Kurtosis"),
-                                                    build_option("max", "Maximum"),
-                                                    build_option("mean", "Mean"),
-                                                    build_option("median", "Median"),
-                                                    build_option("min", "Minimum"),
-                                                    build_option("skew", "Skew"),
                                                     build_option(
-                                                        "std", "Standard Deviation"
+                                                        "corr", text("Correlation")
                                                     ),
-                                                    build_option("sum", "Sum"),
-                                                    build_option("var", "Variance"),
+                                                    build_option(
+                                                        "count", text("Count")
+                                                    ),
+                                                    build_option(
+                                                        "cov", text("Covariance")
+                                                    ),
+                                                    build_option(
+                                                        "kurt", text("Kurtosis")
+                                                    ),
+                                                    build_option(
+                                                        "max", text("Maximum")
+                                                    ),
+                                                    build_option("mean", text("Mean")),
+                                                    build_option(
+                                                        "median", text("Median")
+                                                    ),
+                                                    build_option(
+                                                        "min", text("Minimum")
+                                                    ),
+                                                    build_option("skew", text("Skew")),
+                                                    build_option(
+                                                        "std",
+                                                        text("Standard Deviation"),
+                                                    ),
+                                                    build_option("sum", text("Sum")),
+                                                    build_option(
+                                                        "var", text("Variance")
+                                                    ),
                                                 ],
-                                                placeholder="Select an computation",
+                                                placeholder=text("Select Computation"),
                                                 style=dict(width="inherit"),
                                                 value=inputs.get("rolling_comp"),
                                             ),
@@ -1549,7 +1601,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                     style=show_style(agg == "rolling"),
                                 ),
                                 build_input(
-                                    "Drilldowns",
+                                    text("Drilldowns"),
                                     html.Div(
                                         daq.BooleanSwitch(
                                             id="drilldown-toggle",
@@ -1575,7 +1627,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                 html.Div(
                                     [
                                         html.Span(
-                                            "Group Type",
+                                            text("Group Type"),
                                             className="input-group-addon",
                                         ),
                                         html.Div(
@@ -1585,7 +1637,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                 or "groups",
                                                 children=[
                                                     build_tab(
-                                                        "Values",
+                                                        text("Values"),
                                                         "groups",
                                                         {
                                                             "padding": "2px",
@@ -1593,7 +1645,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                         },
                                                     ),
                                                     build_tab(
-                                                        "Bins",
+                                                        text("Bins"),
                                                         "bins",
                                                         {
                                                             "padding": "2px",
@@ -1615,11 +1667,11 @@ def charts_layout(df, settings, data_id, **inputs):
                             style=group_type_style,
                         ),
                         build_input(
-                            "Group(s)",
+                            text("Group(s)"),
                             dcc.Dropdown(
                                 id="group-val-dropdown",
                                 multi=True,
-                                placeholder="Select a group value(s)",
+                                placeholder=text("Select Group Value(s)"),
                                 value=group_val,
                                 style=dict(width="inherit"),
                             ),
@@ -1628,7 +1680,7 @@ def charts_layout(df, settings, data_id, **inputs):
                             style=group_val_style,
                         ),
                         build_input(
-                            "Bins",
+                            text("Bins"),
                             [
                                 daq.NumericInput(
                                     id="bins-val-input",
@@ -1640,7 +1692,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                     html.Div(
                                         [
                                             html.Span(
-                                                "Binning",
+                                                text("Binning"),
                                                 className="input-group-addon",
                                             ),
                                             html.Div(
@@ -1651,7 +1703,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                         or "width",
                                                         children=[
                                                             build_tab(
-                                                                "Width",
+                                                                text("Width"),
                                                                 "width",
                                                                 {
                                                                     "padding": "2px",
@@ -1659,7 +1711,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                                 },
                                                             ),
                                                             build_tab(
-                                                                "Freq",
+                                                                text("Freq"),
                                                                 "freq",
                                                                 {
                                                                     "padding": "2px",
@@ -1668,7 +1720,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                                             ),
                                                         ],
                                                     ),
-                                                    BIN_TYPE_MSG,
+                                                    bin_type_msg(),
                                                     "",
                                                     top="120%",
                                                 ),
@@ -1697,7 +1749,7 @@ def charts_layout(df, settings, data_id, **inputs):
         html.Div(
             [
                 build_input(
-                    "Chart Per\nGroup",
+                    text("Chart Per\nGroup"),
                     html.Div(
                         daq.BooleanSwitch(
                             id="cpg-toggle",
@@ -1710,7 +1762,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     className="col-auto",
                 ),
                 build_input(
-                    "Trendline",
+                    text("Trendline"),
                     dcc.Dropdown(
                         id="trendline-dropdown",
                         options=[
@@ -1724,23 +1776,23 @@ def charts_layout(df, settings, data_id, **inputs):
                     id="trendline-input",
                 ),
                 build_input(
-                    "Barmode",
+                    text("Barmode"),
                     dcc.Dropdown(
                         id="barmode-dropdown",
                         options=[
-                            build_option("group", "Group"),
-                            build_option("stack", "Stack"),
-                            build_option("relative", "Relative"),
+                            build_option("group", text("Group")),
+                            build_option("stack", text("Stack")),
+                            build_option("relative", text("Relative")),
                         ],
                         value=inputs.get("barmode") or "group",
-                        placeholder="Select a mode",
+                        placeholder=text("Select Mode"),
                     ),
                     className="col-auto addon-min-width",
                     style=bar_style,
                     id="barmode-input",
                 ),
                 build_input(
-                    "Barsort",
+                    text("Barsort"),
                     dcc.Dropdown(
                         id="barsort-dropdown",
                         options=barsort_options,
@@ -1751,7 +1803,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     id="barsort-input",
                 ),
                 build_input(
-                    "Top",
+                    text("Top"),
                     dcc.Dropdown(
                         id="top-bars",
                         options=[build_option(v) for v in [5, 10, 20, 50]],
@@ -1766,7 +1818,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     html.Div(
                         [
                             html.Span(
-                                "Y-Axis",
+                                text("Y-Axis"),
                                 className="input-group-addon",
                             ),
                             html.Div(
@@ -1792,7 +1844,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                 options=yaxis_options,
                             ),
                             html.Span(
-                                "Min:",
+                                "{}:".format(text("Min")),
                                 className="input-group-addon col-auto",
                                 id="yaxis-min-label",
                             ),
@@ -1803,7 +1855,7 @@ def charts_layout(df, settings, data_id, **inputs):
                                 style={"lineHeight": "inherit"},
                             ),
                             html.Span(
-                                "Max:",
+                                "{}:".format(text("Max")),
                                 className="input-group-addon col-auto",
                                 id="yaxis-max-label",
                             ),
@@ -1822,7 +1874,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     style=show_style(show_yaxis),
                 ),
                 build_input(
-                    "Colorscale",
+                    text("Colorscale"),
                     dcs.DashColorscales(
                         id="colorscale-picker",
                         colorscale=inputs.get("colorscale") or default_cscale,
@@ -1832,7 +1884,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     id="colorscale-input",
                 ),
                 build_input(
-                    "Animate",
+                    text("Animate"),
                     html.Div(
                         daq.BooleanSwitch(
                             id="animate-toggle",
@@ -1845,7 +1897,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     className="col-auto",
                 ),
                 build_input(
-                    "Animate By",
+                    text("Animate By"),
                     dcc.Dropdown(
                         id="animate-by-dropdown",
                         options=animate_opts,
@@ -1856,15 +1908,15 @@ def charts_layout(df, settings, data_id, **inputs):
                     id="animate-by-input",
                 ),
                 dbc.Button(
-                    "Lock Zoom",
+                    text("Lock Zoom"),
                     id="lock-zoom-btn",
                     className="ml-auto",
                     style=lock_zoom_style(chart_type),
                 ),
                 build_input(
                     build_hoverable(
-                        html.Div("Auto-Load", style=dict(color="white")),
-                        AUTO_LOAD_MSG,
+                        html.Div(text("Auto-Load"), style=dict(color="white")),
+                        auto_load_msg(),
                         "",
                         top="120%",
                     ),
@@ -1880,7 +1932,7 @@ def charts_layout(df, settings, data_id, **inputs):
                     className="ml-auto col-auto",
                 ),
                 dbc.Button(
-                    "Load",
+                    text("Load"),
                     id="load-btn",
                     color="primary",
                     style=dict(display="none"),
@@ -1897,7 +1949,9 @@ def charts_layout(df, settings, data_id, **inputs):
     if settings.get("github_fork", False):
         body_items.append(
             html.Span(
-                html.A("Fork me on Github", href="https://github.com/man-group/dtale"),
+                html.A(
+                    text("Fork me on Github"), href="https://github.com/man-group/dtale"
+                ),
                 id="forkongithub",
             )
         )

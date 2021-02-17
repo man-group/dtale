@@ -10,13 +10,21 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateColumn;
 
   function findNumericInputs(r) {
-    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
+    const CreateNumeric = require("../../../popups/create/CreateNumeric").default;
     return r.find(CreateNumeric).first();
   }
 
@@ -73,21 +81,21 @@ describe("DataViewer tests", () => {
   it("DataViewer: build numeric cfg validation", () => {
     const { validateNumericCfg } = require("../../../popups/create/CreateNumeric");
     const cfg = {};
-    expect(validateNumericCfg(cfg)).toBe("Please select an operation!");
+    expect(validateNumericCfg(t, cfg)).toBe("Please select an operation!");
     cfg.operation = "x";
     cfg.left = { type: "col", col: null };
-    expect(validateNumericCfg(cfg)).toBe("Left side is missing a column selection!");
+    expect(validateNumericCfg(t, cfg)).toBe("Left side is missing a column selection!");
     cfg.left = { type: "val", val: null };
-    expect(validateNumericCfg(cfg)).toBe("Left side is missing a static value!");
+    expect(validateNumericCfg(t, cfg)).toBe("Left side is missing a static value!");
     cfg.left.val = "x";
     cfg.right = { type: "col", col: null };
-    expect(validateNumericCfg(cfg)).toBe("Right side is missing a column selection!");
+    expect(validateNumericCfg(t, cfg)).toBe("Right side is missing a column selection!");
     cfg.right = { type: "val", val: null };
-    expect(validateNumericCfg(cfg)).toBe("Right side is missing a static value!");
+    expect(validateNumericCfg(t, cfg)).toBe("Right side is missing a static value!");
   });
 
   it("DataViewer: build numeric column", async () => {
-    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
+    const CreateNumeric = require("../../../popups/create/CreateNumeric").default;
     expect(result.find(CreateColumn).length).toBe(1);
     result.find(Modal.Header).first().find("button").simulate("click");
     expect(result.find(CreateColumn).length).toBe(0);

@@ -5,12 +5,20 @@ import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
-import { CreateRandom } from "../../../popups/create/CreateRandom";
+import CreateRandom from "../../../popups/create/CreateRandom";
 import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -185,9 +193,11 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build random cfg validation", () => {
     const { validateRandomCfg } = require("../../../popups/create/CreateRandom");
-    expect(validateRandomCfg({ type: "int", low: "3", high: "2" })).toBe(
+    expect(validateRandomCfg(t, { type: "int", low: "3", high: "2" })).toBe(
       "Invalid range specification, low must be less than high!"
     );
-    expect(validateRandomCfg({ type: "date", start: "20000101", end: "19991231" })).toBe("Start must be before End!");
+    expect(validateRandomCfg(t, { type: "date", start: "20000101", end: "19991231" })).toBe(
+      "Start must be before End!"
+    );
   });
 });

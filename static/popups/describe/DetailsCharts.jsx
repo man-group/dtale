@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { dataLoader } from "../analysis/columnAnalysisUtils";
-import { DescribeFilters } from "../analysis/filters/DescribeFilters";
+import DescribeFilters from "../analysis/filters/DescribeFilters";
 import DetailsBoxplot from "./DetailsBoxplot";
 
 class DetailsCharts extends React.Component {

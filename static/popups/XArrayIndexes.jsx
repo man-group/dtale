@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
@@ -47,7 +48,7 @@ class ReactXArrayIndexes extends React.Component {
       <div key="body" className="modal-body">
         {this.state.error}
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Index</label>
+          <label className="col-md-3 col-form-label text-right">{this.props.t("menu:Index")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
@@ -58,7 +59,7 @@ class ReactXArrayIndexes extends React.Component {
                 getOptionValue={_.property("value")}
                 value={this.state.index}
                 onChange={index => this.setState({ index })}
-                noOptionsText={() => "No columns found"}
+                noOptionsText={() => this.props.t("correlations:No columns found")}
                 isClearable
                 isMulti
                 filterOption={createFilter({
@@ -71,7 +72,7 @@ class ReactXArrayIndexes extends React.Component {
       </div>,
       <div key="footer" className="modal-footer">
         <button className="btn btn-primary" disabled={_.size(this.state.index) === 0} onClick={this.convert}>
-          <span>Convert to XArray</span>
+          <span>{this.props.t("menu:Convert To XArray")}</span>
         </button>
       </div>,
     ];
@@ -86,13 +87,14 @@ ReactXArrayIndexes.propTypes = {
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,
   convertToXArray: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactXArrayIndexes = withTranslation(["menu", "correlations"])(ReactXArrayIndexes);
 const ReduxXArrayIndexes = connect(
   state => _.pick(state, ["chartData"]),
   dispatch => ({
     convertToXArray: callback => dispatch(actions.convertToXArray(callback)),
   })
-)(ReactXArrayIndexes);
+)(TranslateReactXArrayIndexes);
 
-export { ReactXArrayIndexes, ReduxXArrayIndexes as XArrayIndexes };
+export { TranslateReactXArrayIndexes as ReactXArrayIndexes, ReduxXArrayIndexes as XArrayIndexes };

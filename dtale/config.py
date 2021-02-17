@@ -47,6 +47,10 @@ def load_app_settings(config):
         return
     curr_app_settings = global_state.get_app_settings()
     theme = get_config_val(config, curr_app_settings, "theme", section="app")
+    pin_menu = get_config_val(
+        config, curr_app_settings, "pin_menu", section="app", getter="getboolean"
+    )
+    language = get_config_val(config, curr_app_settings, "language", section="app")
     github_fork = get_config_val(
         config,
         curr_app_settings,
@@ -62,7 +66,13 @@ def load_app_settings(config):
         getter="getboolean",
     )
     global_state.set_app_settings(
-        dict(theme=theme, github_fork=github_fork, hide_shutdown=hide_shutdown)
+        dict(
+            theme=theme,
+            pin_menu=pin_menu,
+            language=language,
+            github_fork=github_fork,
+            hide_shutdown=hide_shutdown,
+        )
     )
 
 

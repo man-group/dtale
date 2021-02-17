@@ -1,27 +1,28 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ButtonToggle from "../ButtonToggle";
 
-export default class HierarchyToggle extends React.Component {
+class HierarchyToggle extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hierarchy: null };
   }
 
   render() {
-    const { updateHierarchy } = this.props;
+    const { updateHierarchy, t } = this.props;
     const options = [
-      { label: "Up-Down", value: "UD" },
-      { label: "Down-Up", value: "DU" },
-      { label: "Left-Right", value: "LR" },
-      { label: "Right-Left", value: "RL" },
+      { label: t("Up-Down"), value: "UD" },
+      { label: t("Down-Up"), value: "DU" },
+      { label: t("Left-Right"), value: "LR" },
+      { label: t("Right-Left"), value: "RL" },
     ];
     const update = value => this.setState({ hierarchy: value }, () => updateHierarchy(value));
     return (
       <div className="row pt-3">
         <div className="col">
-          <b>Hierarchical Layout</b>
+          <b>{t("Hierarchical Layout")}</b>
           <ButtonToggle options={options} update={update} defaultValue={this.state.hierarchy} allowDeselect />
         </div>
       </div>
@@ -29,4 +30,8 @@ export default class HierarchyToggle extends React.Component {
   }
 }
 HierarchyToggle.displayName = "HierarchyToggle";
-HierarchyToggle.propTypes = { updateHierarchy: PropTypes.func };
+HierarchyToggle.propTypes = {
+  updateHierarchy: PropTypes.func,
+  t: PropTypes.func,
+};
+export default withTranslation("network")(HierarchyToggle);

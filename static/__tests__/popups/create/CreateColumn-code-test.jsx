@@ -4,7 +4,7 @@ import { buildCode as buildBinsCode } from "../../../popups/create/CreateBins";
 import { buildCode as buildDatetimeCode } from "../../../popups/create/CreateDatetime";
 import { buildCode as buildNumericCode } from "../../../popups/create/CreateNumeric";
 import { buildCode as buildStringCode } from "../../../popups/create/CreateString";
-import { buildCode as buildTypeConversionCode } from "../../../popups/create/CreateTypeConversion";
+import { default as buildTypeConversionCode } from "../../../popups/create/typeConversionCodeUtils";
 
 describe("CreateColumn buildCode tests", () => {
   it("String buildCode tests", () => {

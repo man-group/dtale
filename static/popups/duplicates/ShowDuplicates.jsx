@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
@@ -57,6 +58,7 @@ class ShowDuplicates extends React.Component {
   }
 
   renderTestOutput() {
+    const { t } = this.props;
     const { testOutput } = this.state;
     const cfg = buildCfg(this.state);
     if (testOutput === null) {
@@ -68,7 +70,7 @@ class ShowDuplicates extends React.Component {
     if (_.size(testOutput.results)) {
       return (
         <React.Fragment>
-          <span>{`Duplicates exist for the following (${_.join(cfg.group, ", ")}) groups:`}</span>
+          <span>{`${t("Duplicates exist for the following")} (${_.join(cfg.group, ", ")}) ${t("groups")}:`}</span>
           <br />
           <b>Total Duplicates</b>
           {`: ${_.sum(_.map(testOutput.results, "count"))}`}
@@ -95,14 +97,15 @@ class ShowDuplicates extends React.Component {
         </React.Fragment>
       );
     }
-    return `No duplicates exist in any of the (${_.join(cfg.group, ", ")}) groups`;
+    return `${t("No duplicates exist in any of the")} (${_.join(cfg.group, ", ")}) ${t("groups")}`;
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Column(s)"
+          label={t("Column(s)")}
           prop="group"
           parent={this.state}
           updateState={state => this.updateState({ ...state, filter: null })}
@@ -113,7 +116,7 @@ class ShowDuplicates extends React.Component {
           <div className="col-md-3" />
           <div className="col-md-8">
             <button className="col-auto btn btn-secondary" onClick={this.test}>
-              {"View Duplicates"}
+              {t("View Duplicates")}
             </button>
           </div>
         </div>
@@ -134,6 +137,7 @@ ShowDuplicates.propTypes = {
   dataId: PropTypes.string,
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { ShowDuplicates, validateShowDuplicatesCfg };
+const TranslateShowDuplicates = withTranslation("duplicate")(ShowDuplicates);
+export { TranslateShowDuplicates as ShowDuplicates, validateShowDuplicatesCfg };

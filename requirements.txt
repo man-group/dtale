@@ -10,7 +10,8 @@ Flask-Compress
 flask-ngrok; python_version > '3.0'
 future>=0.14.0
 itsdangerous
-kaleido
+kaleido==0.1.0; python_version <= '3.6'
+kaleido; python_version > '3.6'
 networkx==2.2; python_version < '3.0'
 networkx; python_version >= '3.0'
 pandas

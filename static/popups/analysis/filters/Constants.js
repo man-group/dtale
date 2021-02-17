@@ -1,49 +1,51 @@
 import _ from "lodash";
 
-export const AGGREGATION_OPTS = [
-  { value: "count", label: "Count" },
-  { value: "nunique", label: "Unique Count" },
-  { value: "sum", label: "Sum" },
-  { value: "mean", label: "Mean" },
-  { value: "rolling", label: "Rolling" },
-  { value: "first", label: "Keep First" },
-  { value: "last", label: "Keep Last" },
-  { value: "median", label: "Median" },
-  { value: "min", label: "Minimum" },
-  { value: "max", label: "Maximum" },
-  { value: "std", label: "Standard Deviation" },
-  { value: "var", label: "Variance" },
-  { value: "mad", label: "Mean Absolute Deviation" },
-  { value: "prod", label: "Product of All Items" },
+export const aggregationOpts = t => [
+  { value: "count", label: t("constants:Count") },
+  { value: "nunique", label: t("constants:Unique Count") },
+  { value: "sum", label: t("constants:Sum") },
+  { value: "mean", label: t("constants:Mean") },
+  { value: "rolling", label: t("constants:Rolling") },
+  { value: "first", label: t("constants:Keep First") },
+  { value: "last", label: t("constants:Keep Last") },
+  { value: "median", label: t("constants:Median") },
+  { value: "min", label: t("constants:Minimum") },
+  { value: "max", label: t("constants:Maximum") },
+  { value: "std", label: t("constants:Standard Deviation") },
+  { value: "var", label: t("constants:Variance") },
+  { value: "mad", label: t("constants:Mean Absolute Deviation") },
+  { value: "prod", label: t("constants:Product of All Items") },
 ];
 
-export const PIVOT_AGGS = _.reject(AGGREGATION_OPTS, { value: "rolling" });
+export const pivotAggs = t => _.reject(aggregationOpts(t), { value: "rolling" });
 
-export const ROLLING_COMPS = [
-  { value: "corr", label: "Correlation" },
-  { value: "count", label: "Count" },
-  { value: "cov", label: "Covariance" },
-  { value: "kurt", label: "Kurtosis" },
-  { value: "max", label: "Maximum" },
-  { value: "mean", label: "Mean" },
-  { value: "median", label: "Median" },
-  { value: "min", label: "Minimum" },
-  { value: "skew", label: "Skew" },
-  { value: "std", label: "Standard Deviation" },
-  { value: "sum", label: "Sum" },
-  { value: "var", label: "Variance" },
+export const rollingComps = t => [
+  { value: "corr", label: t("constants:Correlation") },
+  { value: "count", label: t("constants:Count") },
+  { value: "cov", label: t("constants:Covariance") },
+  { value: "kurt", label: t("constants:Kurtosis") },
+  { value: "max", label: t("constants:Maximum") },
+  { value: "mean", label: t("constants:Mean") },
+  { value: "median", label: t("constants:Median") },
+  { value: "min", label: t("constants:Minimum") },
+  { value: "skew", label: t("constants:Skew") },
+  { value: "std", label: t("constants:Standard Deviation") },
+  { value: "sum", label: t("constants:Sum") },
+  { value: "var", label: t("constants:Variance") },
 ];
 
-export const ANALYSIS_AGGS = _.concat(
-  _.reject(AGGREGATION_OPTS, ({ value }) => value === "rolling"),
-  [{ value: "pctsum", label: "Percentage Sum" }]
-);
-export const TITLES = {
-  histogram: "Histogram",
-  value_counts: "Value Counts",
-  boxplot: "Describe",
-  categories: "Categories",
-  word_value_counts: "Word Value Counts",
-  geolocation: "Geolocation",
-  qq: "Q-Q Plot",
-};
+export const analysisAggs = t =>
+  _.concat(
+    _.reject(aggregationOpts(t), ({ value }) => value === "rolling"),
+    [{ value: "pctsum", label: t("constants:Percentage Sum") }]
+  );
+
+export const titles = t => ({
+  histogram: t("constants:Histogram"),
+  value_counts: t("constants:Value Counts"),
+  boxplot: t("constants:Describe"),
+  categories: t("constants:Categories"),
+  word_value_counts: t("constants:Word Value Counts"),
+  geolocation: t("constants:Geolocation"),
+  qq: t("constants:Q-Q Plot"),
+});

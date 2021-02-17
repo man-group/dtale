@@ -1,25 +1,27 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BinsTester } from "./BinsTester";
 import ColumnSelect from "./ColumnSelect";
 
-function validateBinsCfg(cfg) {
+export function validateBinsCfg(t, cfg) {
   const { col, bins, labels } = cfg;
   if (_.isNull(col)) {
-    return "Missing a column selection!";
+    return t("Missing a column selection!");
   }
   if (bins === "") {
-    return "Missing a bins selection!";
+    return t("Missing a bins selection!");
   }
   if (!_.isNull(labels) && _.size(_.split(labels, ",")) != parseInt(bins)) {
-    return `There are ${bins} bins, but you have only specified ${_.size(_.split(labels, ","))} labels!`;
+    const labelCt = _.size(_.split(labels, ","));
+    return `${t("There are")} ${bins} ${t("bins, but you have only specified")} ${labelCt} labels!`;
   }
   return null;
 }
 
-function buildCode({ col, operation, bins, labels }) {
+export function buildCode({ col, operation, bins, labels }) {
   if (_.isNull(col)) {
     return null;
   }
@@ -64,12 +66,13 @@ class CreateBins extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const cfg = buildCfg(this.state);
     return (
       <div className="row">
         <div className="col-md-8 pr-0">
           <ColumnSelect
-            label="Column"
+            label={t("Column")}
             prop="col"
             parent={this.state}
             updateState={this.updateState}
@@ -77,7 +80,7 @@ class CreateBins extends React.Component {
             dtypes={["int", "float"]}
           />
           <div key={1} className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Operation</label>
+            <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
             <div className="col-md-8">
               <div className="btn-group">
                 {_.map(
@@ -95,7 +98,7 @@ class CreateBins extends React.Component {
                     }
                     return (
                       <button key={operation} {...buttonProps}>
-                        {label}
+                        {t(label)}
                       </button>
                     );
                   }
@@ -104,7 +107,7 @@ class CreateBins extends React.Component {
             </div>
           </div>
           <div key={2} className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Bins</label>
+            <label className="col-md-3 col-form-label text-right">{t("Bins")}</label>
             <div className="col-md-8">
               <input
                 type="number"
@@ -115,7 +118,7 @@ class CreateBins extends React.Component {
             </div>
           </div>
           <div key={3} className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Labels</label>
+            <label className="col-md-3 col-form-label text-right">{t("Labels")}</label>
             <div className="col-md-8">
               <input
                 type="text"
@@ -127,7 +130,7 @@ class CreateBins extends React.Component {
           </div>
         </div>
         <div className="col-md-4 pl-0">
-          <BinsTester valid={validateBinsCfg(cfg) === null} cfg={cfg} />
+          <BinsTester valid={validateBinsCfg(t, cfg) === null} cfg={cfg} />
         </div>
       </div>
     );
@@ -138,6 +141,6 @@ CreateBins.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
-
-export { CreateBins, validateBinsCfg, buildCode };
+export default withTranslation("builders")(CreateBins);

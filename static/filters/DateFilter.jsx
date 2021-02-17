@@ -3,6 +3,7 @@ import _ from "lodash";
 import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { DateInput } from "@blueprintjs/datetime";
 
@@ -58,7 +59,7 @@ class DateFilter extends React.Component {
         inputProps={{ inputRef: c => (this.startInput = c) }}
         {...inputProps}
       />,
-      <span key={1}>to</span>,
+      <span key={1}>{this.props.t("to")}</span>,
       <DateInput
         key={2}
         value={_.isNull(end) ? null : new Date(moment(end))}
@@ -78,6 +79,6 @@ DateFilter.propTypes = {
   min: PropTypes.string,
   max: PropTypes.string,
   missing: PropTypes.bool,
+  t: PropTypes.func,
 };
-
-export { DateFilter };
+export default withTranslation("column_filter")(DateFilter);

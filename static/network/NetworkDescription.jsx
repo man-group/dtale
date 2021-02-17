@@ -1,18 +1,21 @@
+import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import Collapsible from "../Collapsible";
 
-export default class NetworkDescription extends React.Component {
+class NetworkDescription extends React.Component {
   constructor(props) {
     super(props);
     this.renderDescription = this.renderDescription.bind(this);
   }
 
   renderDescription() {
+    const { t } = this.props;
     return (
       <div className="row pt-3 pb-3">
         <div className="col-auto">
-          <h3>Example Data</h3>
+          <h3>{t("Example Data")}</h3>
           <table border="1" className="text-center">
             <thead>
               <tr>
@@ -38,40 +41,36 @@ export default class NetworkDescription extends React.Component {
         <div className="col">
           <ul>
             <li>
-              {`For this example, you would select the columns `}
+              {t("description1")}
               <b>to</b>
-              {` and `}
+              {` ${t("and")} `}
               <b>from</b>
-              {` for "To" & "From" and optionally the column `}
+              {t("description2")}
               <b>group</b>
-              {` can be used for "Group" and/or "Weight" (the weight of an edge)`}
+              {t("description3")}
             </li>
             <li>
-              {`The "Group" input will associate the group value to the value of "From". So in this example the node `}
+              {t("description4")}
               <b>a</b>
-              {` would get the group value, N/A.`}
+              {t("description5")}
             </li>
-            <li>{`Arrows will point in the direction of "To" -> "From"`}</li>
+            <li>{t("description6")}</li>
+            <li>{t("description7")}</li>
             <li>
-              {`The "Weight" input will apply scaling to the edges of the network based on the weight and if you `}
-              {` hover over the edge it will show you the exact weight`}
-            </li>
-            <li>
-              <b>Clicking</b>
-              {` on a node will highlight the node and its direct ancestors and clicking in the `}
-              {`whitespace will highlight all nodes.`}
+              <b>{t("Clicking")}</b>
+              {t("description8")}
             </li>
             <li>
-              <b>Double Clicking</b>
-              {` on a node will zoom in on it and pressing `}
-              <b>Esc</b>
-              {` will reset the zoom`}
+              <b>{t("Double Clicking")}</b>
+              {t("description9")}
+              <b>{t("Esc")}</b>
+              {t("description10")}
             </li>
             <li>
-              <b>Shift+Clicking</b>
-              {` two nodes will calculate and highlight the `}
-              <b>Shortest Path</b>
-              {` between those two nodes`}
+              <b>{t("description11")}</b>
+              {t("description12")}
+              <b>{t("Shortest Path")}</b>
+              {t("description13")}
             </li>
           </ul>
         </div>
@@ -80,10 +79,11 @@ export default class NetworkDescription extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const title = (
       <React.Fragment>
-        {`Network Viewer `}
-        <small>(expand for directions)</small>
+        {t("Network Viewer ")}
+        <small>({t("expand for directions")})</small>
       </React.Fragment>
     );
     return (
@@ -95,3 +95,5 @@ export default class NetworkDescription extends React.Component {
     );
   }
 }
+NetworkDescription.propTypes = { t: PropTypes.func };
+export default withTranslation("network")(NetworkDescription);

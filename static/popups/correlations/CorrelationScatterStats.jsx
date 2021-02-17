@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { renderCodePopupAnchor } from "../CodePopup";
 import { default as PPSDetails, displayScore } from "../pps/PPSDetails";
@@ -13,57 +14,63 @@ class CorrelationScatterStats extends React.Component {
   }
 
   renderDescription() {
-    const [col0, col1] = this.props.selectedCols;
-    return <b>{`${col0} vs. ${col1}${this.props.date || ""}`}</b>;
+    const { selectedCols, t } = this.props;
+    const [col0, col1] = selectedCols;
+    return <b>{`${col0} ${t("correlations:vs.")} ${col1}${this.props.date || ""}`}</b>;
   }
 
   render() {
-    const [col0, col1] = this.props.selectedCols;
+    const { selectedCols, t } = this.props;
+    const [col0, col1] = selectedCols;
     const stats = this.props.stats || {};
     if (_.isEmpty(stats)) {
       return null;
     }
     const { pearson, spearman, pps, correlated } = stats;
     let i = 0;
-    const pearsonInfo = [<dt key={i++}>Pearson</dt>, <dd key={i++}>{corrUtils.percent(pearson)}</dd>];
-    const spearmanInfo = [<dt key={i++}>Spearman</dt>, <dd key={i++}>{corrUtils.percent(spearman)}</dd>];
     return [
       <div key={0} className="pt-5">
         <dl className="property-pair inline">
           <dt>{this.renderDescription()}</dt>
         </dl>
-        <dl className="property-pair inline">{pearsonInfo}</dl>
-        <dl className="property-pair inline">{spearmanInfo}</dl>
+        <dl className="property-pair inline">
+          <dt key={i++}>{t("correlations:Pearson")}</dt>
+          <dd key={i++}>{corrUtils.percent(pearson)}</dd>
+        </dl>
+        <dl className="property-pair inline">
+          <dt key={i++}>{t("correlations:Spearman")}</dt>
+          <dd key={i++}>{corrUtils.percent(spearman)}</dd>
+        </dl>
         {pps && (
           <dl className="property-pair inline">
-            <dt>PPS</dt>
+            <dt>{t("correlations:PPS")}</dt>
             <dd className="hoverable">
               {displayScore(pps)}
               <div className="hoverable__content">
-                <h4>Predictive Power Score</h4>
+                <h4>{t("menu:Predictive Power Score")}</h4>
                 <PPSDetails ppsInfo={pps} />
               </div>
             </dd>
           </dl>
         )}
         <dl className="property-pair inline">
-          <dt>Correlated</dt>
+          <dt>{t("correlations:Correlated")}</dt>
           <dd>{correlated}</dd>
         </dl>
         <dl className="property-pair inline">
-          <dt>{`Only in ${col0}`}</dt>
+          <dt>{`${t("correlations:Only in")} ${col0}`}</dt>
           <dd>{stats.only_in_s0}</dd>
         </dl>
         <dl className="property-pair inline">
-          <dt>{`Only in ${col1}`}</dt>
+          <dt>{`${t("correlations:Only in")} ${col1}`}</dt>
           <dd>{stats.only_in_s1}</dd>
         </dl>
         <dl className="property-pair inline float-right">
-          {renderCodePopupAnchor(this.props.scatterCode, "Correlations Scatter")}
+          {renderCodePopupAnchor(this.props.scatterCode, t("correlations:Correlations Scatter"))}
         </dl>
       </div>,
       <div key={1} style={{ marginTop: "-.5em" }}>
-        <small>(Click on any point in the scatter to filter the grid down to that record)</small>
+        <small>{t("correlations:(Click on any point in the scatter to filter the grid down to that record)")}</small>
       </div>,
     ];
   }
@@ -80,6 +87,7 @@ CorrelationScatterStats.propTypes = {
     only_in_s1: PropTypes.number,
   }),
   scatterCode: PropTypes.string,
+  t: PropTypes.func,
 };
 
-export default CorrelationScatterStats;
+export default withTranslation(["menu", "correlations"])(CorrelationScatterStats);

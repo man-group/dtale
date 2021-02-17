@@ -1,27 +1,28 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { ROLLING_COMPS } from "../analysis/filters/Constants";
+import { rollingComps } from "../analysis/filters/Constants";
 import ColumnSelect from "./ColumnSelect";
 
-const WINDOW_TYPES = [
-  { value: "triang", label: "Triangular" },
-  { value: "gaussian", label: "Gaussian" },
+const windowTypes = t => [
+  { value: "triang", label: t("builders:Triangular") },
+  { value: "gaussian", label: t("builders:Gaussian") },
 ];
 
-function validateRollingCfg({ col, comp }) {
+export function validateRollingCfg(t, { col, comp }) {
   if (!col) {
-    return "Please select a column!";
+    return t("builders:Please select a column!");
   }
   if (!comp) {
-    return "Please select a computation!";
+    return t("builders:Please select a computation!");
   }
   return null;
 }
 
-function buildCode(cfg) {
+export function buildCode(cfg) {
   if (!cfg.col || !cfg.comp) {
     return null;
   }
@@ -80,17 +81,18 @@ class CreateRolling extends React.Component {
       },
     };
     updatedState.code = buildCode(updatedState.cfg);
-    if (validateRollingCfg(updatedState.cfg) === null && !this.props.namePopulated) {
+    if (validateRollingCfg(this.props.t, updatedState.cfg) === null && !this.props.namePopulated) {
       updatedState.name = `${updatedState.cfg.col}_rolling_${updatedState.cfg.comp}`;
     }
     this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <ColumnSelect
-          label="Column*"
+          label={`${t("builders:Column")}*`}
           prop="col"
           otherProps={["on"]}
           parent={this.state}
@@ -99,13 +101,13 @@ class CreateRolling extends React.Component {
           dtypes={["int", "float"]}
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Computation*</label>
+          <label className="col-md-3 col-form-label text-right">{t("builders:Computation")}*</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={ROLLING_COMPS}
+                options={rollingComps(this.props.t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={this.state.comp}
@@ -116,7 +118,7 @@ class CreateRolling extends React.Component {
           </div>
         </div>
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Window</label>
+          <label className="col-md-3 col-form-label text-right">{t("builders:Window")}</label>
           <div className="col-md-2">
             <input
               type="number"
@@ -125,7 +127,7 @@ class CreateRolling extends React.Component {
               onChange={e => this.updateState({ window: e.target.value })}
             />
           </div>
-          <label className="col-auto col-form-label text-right">Min Periods</label>
+          <label className="col-auto col-form-label text-right">{t("builders:Min Periods")}</label>
           <div className="col-md-2">
             <input
               type="number"
@@ -134,7 +136,7 @@ class CreateRolling extends React.Component {
               onChange={e => this.updateState({ min_periods: e.target.value })}
             />
           </div>
-          <label className="col-auto col-form-label text-right">Center</label>
+          <label className="col-auto col-form-label text-right">{t("builders:Center")}</label>
           <div className="col-md-1 mt-auto mb-auto">
             <i
               className={`ico-check-box${this.state.center ? "" : "-outline-blank"} pointer`}
@@ -143,7 +145,7 @@ class CreateRolling extends React.Component {
           </div>
         </div>
         <ColumnSelect
-          label="On"
+          label={t("builders:On")}
           prop="on"
           otherProps={["col"]}
           parent={this.state}
@@ -151,12 +153,12 @@ class CreateRolling extends React.Component {
           columns={this.props.columns}
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Window Type</label>
+          <label className="col-md-3 col-form-label text-right">{t("builders:Window Type")}</label>
           <div className="col-md-3">
             <Select
               className="Select is-clearable is-searchable Select--single"
               classNamePrefix="Select"
-              options={WINDOW_TYPES}
+              options={windowTypes(t)}
               getOptionLabel={_.property("label")}
               getOptionValue={_.property("value")}
               value={this.state.win_type}
@@ -164,9 +166,9 @@ class CreateRolling extends React.Component {
               isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
             />
-            <small>{"* Required"}</small>
+            <small>{`* ${t("builders:Required")}`}</small>
           </div>
-          <label className="col-auto col-form-label text-right ml-5">Closed</label>
+          <label className="col-auto col-form-label text-right ml-5">{t("builders:Closed")}</label>
           <div className="col-auto">
             <div className="btn-group">
               {_.map(["right", "left", "both", "neither"], closed => {
@@ -179,7 +181,7 @@ class CreateRolling extends React.Component {
                 }
                 return (
                   <button key={closed} {...buttonProps}>
-                    {_.capitalize(closed)}
+                    {t(`builders:${_.capitalize(closed)}`)}
                   </button>
                 );
               })}
@@ -195,6 +197,7 @@ CreateRolling.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateRolling, validateRollingCfg, buildCode };
+export default withTranslation(["builders", "constants"])(CreateRolling);

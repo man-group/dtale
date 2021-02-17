@@ -3,6 +3,7 @@ import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
@@ -70,7 +71,7 @@ class CorrelationsGrid extends React.Component {
   }
 
   renderSelect(prop, otherProp) {
-    const { correlations } = this.props;
+    const { correlations, t } = this.props;
     const { columns } = this.state;
     const finalOptions = _.isNull(this.state[otherProp]) ? columns : _.reject(columns, this.state[otherProp]);
     const onChange = selected => {
@@ -93,7 +94,7 @@ class CorrelationsGrid extends React.Component {
           getOptionValue={_.property("value")}
           value={this.state[prop]}
           onChange={onChange}
-          noOptionsText={() => "No columns found"}
+          noOptionsText={() => t("correlations:No columns found")}
           isClearable
           filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
         />
@@ -102,19 +103,22 @@ class CorrelationsGrid extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const { correlations, columns, col1, col2 } = this.state;
     return (
       <BouncerWrapper showBouncer={_.isEmpty(this.props.correlations)}>
-        <b>Pearson Correlation Matrix</b>
-        <small className="pl-3">(Click on any cell to view the details of that correlation)</small>
+        <b>{t("correlations:Pearson Correlation Matrix")}</b>
+        <small className="pl-3">{t("correlations:(Click on any cell to view the details of that correlation)")}</small>
         <AutoSizer className="correlations-grid" disableHeight>
           {({ width }) => [
             <div key={0} style={{ width }} className="row pt-3 pb-3 correlations-filters">
-              <span className="mb-auto mt-auto">View Correlation(s) For</span>
+              <span className="mb-auto mt-auto">{t("correlations:View Correlation(s) For")}</span>
               <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
-              <span className="mb-auto mt-auto">vs.</span>
+              <span className="mb-auto mt-auto">{t("correlations:vs.")}</span>
               <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
-              <div className="col pr-0 text-right">{renderCodePopupAnchor(this.props.gridCode, "Correlations")}</div>
+              <div className="col pr-0 text-right">
+                {renderCodePopupAnchor(this.props.gridCode, t("menu:Correlations"))}
+              </div>
             </div>,
             <MultiGrid
               key={1}
@@ -153,7 +157,8 @@ CorrelationsGrid.propTypes = {
   gridCode: PropTypes.string,
   theme: PropTypes.string,
   colorScale: PropTypes.func,
+  t: PropTypes.func,
 };
 CorrelationsGrid.defaultProps = { colorScale: corrUtils.colorScale };
 
-export default CorrelationsGrid;
+export default withTranslation(["correlations", "menu"])(CorrelationsGrid);

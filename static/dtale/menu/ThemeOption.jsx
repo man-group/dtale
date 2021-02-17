@@ -1,11 +1,11 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import actions from "../../actions/dtale";
 import { exports as gu } from "../gridUtils";
-import Descriptions from "../menu-descriptions.json";
 import serverStateManagement from "../serverStateManagement";
 import { MenuItem } from "./MenuItem";
 
@@ -15,10 +15,10 @@ class ReactThemeOption extends React.Component {
   }
 
   render() {
-    const { setTheme, theme } = this.props;
+    const { setTheme, theme, t } = this.props;
     const updateTheme = newTheme => () => serverStateManagement.updateTheme(newTheme, () => setTheme(newTheme));
     return (
-      <MenuItem style={{ color: "#565b68" }} description={Descriptions.theme}>
+      <MenuItem style={{ color: "#565b68" }} description={t("menu_description:theme")}>
         <span className="toggler-action">
           <i className="fas fa-adjust" />
         </span>
@@ -30,7 +30,7 @@ class ReactThemeOption extends React.Component {
               style={{ color: "#565b68" }}
               className={`btn btn-primary ${value === theme ? "active" : ""} font-weight-bold`}
               onClick={value === theme ? _.noop : updateTheme(value)}>
-              {_.capitalize(value)}
+              {t(`menu:${_.capitalize(value)}`)}
             </button>
           ))}
         </div>
@@ -42,11 +42,13 @@ ReactThemeOption.displayName = "ReactThemeOption";
 ReactThemeOption.propTypes = {
   setTheme: PropTypes.func,
   theme: PropTypes.string,
+  t: PropTypes.func,
 };
 
+const TranslatedReactThemeOption = withTranslation(["menu", "menu_description"])(ReactThemeOption);
 const ReduxThemeOption = connect(
   ({ theme }) => ({ theme }),
   dispatch => ({ setTheme: theme => dispatch(actions.setTheme(theme)) })
-)(ReactThemeOption);
+)(TranslatedReactThemeOption);
 
-export { ReduxThemeOption as ThemeOption, ReactThemeOption };
+export { ReduxThemeOption as ThemeOption, TranslatedReactThemeOption as ReactThemeOption };

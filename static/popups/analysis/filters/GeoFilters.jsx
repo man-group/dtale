@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import FilterSelect from "./FilterSelect";
 
@@ -26,13 +27,13 @@ export function loadCoordVals(col, columns) {
   return { latCol: latCol ? { value: latCol } : null, lonCol: lonCol ? { value: lonCol } : null };
 }
 
-export default class GeoFilters extends React.Component {
+class GeoFilters extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    const { col, columns, update, latCol, lonCol } = this.props;
+    const { col, columns, update, latCol, lonCol, t } = this.props;
     const coordType = _.find(columns, { name: col })?.coord;
     let latInput, lonInput;
     if (coordType === "lat") {
@@ -50,7 +51,7 @@ export default class GeoFilters extends React.Component {
                   value: c.name,
                 })),
                 onChange: v => update({ lonCol: v }),
-                noOptionsText: () => "No columns found",
+                noOptionsText: () => t("No columns found"),
                 isClearable: true,
               }}
             />
@@ -72,7 +73,7 @@ export default class GeoFilters extends React.Component {
                   value: c.name,
                 })),
                 onChange: v => update({ latCol: v }),
-                noOptionsText: () => "No columns found",
+                noOptionsText: () => t("No columns found"),
                 isClearable: true,
               }}
             />
@@ -82,9 +83,9 @@ export default class GeoFilters extends React.Component {
     }
     return (
       <React.Fragment>
-        <b className="pl-5 pr-5 mt-auto mb-auto">Latitude:</b>
+        <b className="pl-5 pr-5 mt-auto mb-auto">{t("Latitude")}:</b>
         {latInput}
-        <b className="pl-5 pr-5 mt-auto mb-auto">Longitude:</b>
+        <b className="pl-5 pr-5 mt-auto mb-auto">{t("Longitude")}:</b>
         {lonInput}
       </React.Fragment>
     );
@@ -97,4 +98,6 @@ GeoFilters.propTypes = {
   update: PropTypes.func,
   latCol: PropTypes.object,
   lonCol: PropTypes.object,
+  t: PropTypes.func,
 };
+export default withTranslation("analysis")(GeoFilters);

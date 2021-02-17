@@ -1,17 +1,18 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import ColumnSelect from "./ColumnSelect";
 
-function validateDataSlopeCfg({ col }) {
+export function validateDataSlopeCfg(t, { col }) {
   if (!col) {
-    return "Please select a column!";
+    return t("Please select a column!");
   }
   return null;
 }
 
-function buildCode({ col }) {
+export function buildCode({ col }) {
   if (!col) {
     return null;
   }
@@ -47,7 +48,7 @@ class CreateDataSlope extends React.Component {
   render() {
     return (
       <ColumnSelect
-        label="Col"
+        label={this.props.t("Col")}
         prop="col"
         parent={this.state}
         updateState={this.updateState}
@@ -62,6 +63,7 @@ CreateDataSlope.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateDataSlope, validateDataSlopeCfg, buildCode };
+export default withTranslation("builders")(CreateDataSlope);

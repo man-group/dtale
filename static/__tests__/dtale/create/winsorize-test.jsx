@@ -10,7 +10,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -44,7 +52,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateWinsorize = require("../../../popups/create/CreateWinsorize").CreateWinsorize;
+    CreateWinsorize = require("../../../popups/create/CreateWinsorize").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -114,9 +122,9 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build winsorize cfg validation", () => {
     const { validateWinsorizeCfg } = require("../../../popups/create/CreateWinsorize");
-    expect(validateWinsorizeCfg({ col: null })).toBe("Please select a column to winsorize!");
+    expect(validateWinsorizeCfg(t, { col: null })).toBe("Please select a column to winsorize!");
     expect(
-      validateWinsorizeCfg({
+      validateWinsorizeCfg(t, {
         col: "col1",
         group: ["col2"],
         limits: [0.1, 0.1],

@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -42,7 +50,7 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    CreateString = require("../../../popups/create/CreateString").CreateString;
+    CreateString = require("../../../popups/create/CreateString").default;
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
@@ -82,9 +90,9 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build string cfg validation", () => {
     const { validateStringCfg } = require("../../../popups/create/CreateString");
-    expect(validateStringCfg({ cols: null })).toBe("Please select at least 2 columns to concatenate!");
+    expect(validateStringCfg(t, { cols: null })).toBe("Please select at least 2 columns to concatenate!");
     expect(
-      validateStringCfg({
+      validateStringCfg(t, {
         cols: ["col1", "col2"],
         joinChar: "_",
       })

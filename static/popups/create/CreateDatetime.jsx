@@ -1,21 +1,22 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import { exports as gu } from "../../dtale/gridUtils";
 
-function validateDatetimeCfg(cfg) {
+export function validateDatetimeCfg(t, cfg) {
   const { col } = cfg;
   if (_.isNull(col)) {
-    return "Missing a column selection!";
+    return t("Missing a column selection!");
   }
   return null;
 }
 
 const FREQ_MAPPING = { month: "'M'", quarter: "'Q'", year: "'Y'" };
 
-function buildCode({ col, operation, property, conversion }) {
+export function buildCode({ col, operation, property, conversion }) {
   if (_.isNull(col)) {
     return null;
   }
@@ -57,6 +58,7 @@ class CreateDatetime extends React.Component {
   }
 
   renderOperationOptions() {
+    const { t } = this.props;
     const { operation } = this.state;
     let label = null,
       options = null,
@@ -71,7 +73,7 @@ class CreateDatetime extends React.Component {
     }
     return (
       <div key={2} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">{label}</label>
+        <label className="col-md-3 col-form-label text-right">{t(label)}</label>
         <div className="col-md-8">
           <div className="btn-group">
             {_.map(options, option => {
@@ -84,7 +86,7 @@ class CreateDatetime extends React.Component {
               }
               return (
                 <button key={option} {...buttonProps}>
-                  {_.join(_.map(_.split(option, "_"), _.capitalize), " ")}
+                  {t(_.join(_.map(_.split(option, "_"), _.capitalize), " "))}
                 </button>
               );
             })}
@@ -95,13 +97,14 @@ class CreateDatetime extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const columnOptions = _.map(
       _.filter(this.props.columns || [], c => gu.findColType(c.dtype) == "date"),
       ({ name }) => ({ value: name })
     );
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Column</label>
+        <label className="col-md-3 col-form-label text-right">{t("Column")}</label>
         <div className="col-md-8">
           <div className="input-group">
             <Select
@@ -112,7 +115,7 @@ class CreateDatetime extends React.Component {
               getOptionValue={_.property("value")}
               value={this.state.col}
               onChange={selected => this.updateState({ col: selected })}
-              noOptionsText={() => "No columns found"}
+              noOptionsText={() => t("No columns available")}
               isClearable
               filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
             />
@@ -120,7 +123,7 @@ class CreateDatetime extends React.Component {
         </div>
       </div>,
       <div key={1} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Operation</label>
+        <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
         <div className="col-md-8">
           <div className="btn-group">
             {_.map(["property", "conversion"], operation => {
@@ -133,7 +136,7 @@ class CreateDatetime extends React.Component {
               }
               return (
                 <button key={operation} {...buttonProps}>
-                  {_.capitalize(operation)}
+                  {t(_.capitalize(operation))}
                 </button>
               );
             })}
@@ -148,6 +151,7 @@ CreateDatetime.displayName = "CreateDatetime";
 CreateDatetime.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
 
-export { CreateDatetime, validateDatetimeCfg, buildCode };
+export default withTranslation("builders")(CreateDatetime);

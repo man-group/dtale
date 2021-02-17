@@ -1,26 +1,27 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import ColumnSelect from "./ColumnSelect";
 
-const ALGOS = [
-  { value: "levenshtein", label: "Levenshtein" },
-  { value: "damerau-leveneshtein", label: "Damerau-Leveneshtein" },
-  { value: "jaro-winkler", label: "Jaro-Winkler" },
-  { value: "jaccard", label: "Jaccard Index" },
+const algos = t => [
+  { value: "levenshtein", label: t("Levenshtein") },
+  { value: "damerau-leveneshtein", label: t("Damerau-Leveneshtein") },
+  { value: "jaro-winkler", label: t("Jaro-Winkler") },
+  { value: "jaccard", label: t("Jaccard Index") },
 ];
 
-function validateSimilarityCfg({ left, right, k, algo }) {
+export function validateSimilarityCfg(t, { left, right, k, algo }) {
   if (!left) {
-    return "Please select a left column!";
+    return t("Please select a left column!");
   }
   if (!right) {
-    return "Please select a right column!";
+    return t("Please select a right column!");
   }
   if (algo === "jaccard" && (!k || parseInt(k) < 1)) {
-    return "Please select a valid value for k!";
+    return t("Please select a valid value for k!");
   }
   return null;
 }
@@ -34,7 +35,7 @@ function buildNormalizedCode(code, normalized) {
   return code;
 }
 
-function buildCode({ left, right, algo, k, normalized }) {
+export function buildCode({ left, right, algo, k, normalized }) {
   if (!left || !right) {
     return null;
   }
@@ -72,7 +73,7 @@ class CreateSimilarity extends React.Component {
     this.state = {
       left: null,
       right: null,
-      algo: ALGOS[0],
+      algo: algos(props.t)[0],
       k: "3",
       normalized: false,
     };
@@ -95,23 +96,24 @@ class CreateSimilarity extends React.Component {
       updatedState.cfg.normalized = currState.normalized;
     }
     updatedState.code = buildCode(updatedState.cfg);
-    if (validateSimilarityCfg(updatedState.cfg) === null && !this.props.namePopulated) {
+    if (validateSimilarityCfg(this.props.t, updatedState.cfg) === null && !this.props.namePopulated) {
       updatedState.name = `${updatedState.cfg.left}_${updatedState.cfg.right}_distance`;
     }
     this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Aggregation</label>
+          <label className="col-md-3 col-form-label text-right">{t("Aggregation")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={ALGOS}
+                options={algos(t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={this.state.algo}
@@ -123,7 +125,7 @@ class CreateSimilarity extends React.Component {
           </div>
         </div>
         <ColumnSelect
-          label="Left"
+          label={t("Left")}
           prop="left"
           otherProps={["right"]}
           parent={this.state}
@@ -132,7 +134,7 @@ class CreateSimilarity extends React.Component {
           dtypes={["string"]}
         />
         <ColumnSelect
-          label="Right"
+          label={t("Right")}
           prop="right"
           otherProps={["left"]}
           parent={this.state}
@@ -142,7 +144,7 @@ class CreateSimilarity extends React.Component {
         />
         {_.get(this.state, "algo.value") !== "jaro-winkler" && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">Normalized</label>
+            <label className="col-md-3 col-form-label text-right">{t("Normalized")}</label>
             <div className="col-md-8 mt-auto mb-auto">
               <i
                 className={`ico-check-box${this.state.normalized ? "" : "-outline-blank"} pointer`}
@@ -153,7 +155,7 @@ class CreateSimilarity extends React.Component {
         )}
         {_.get(this.state, "algo.value") === "jaccard" && (
           <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">n-gram</label>
+            <label className="col-md-3 col-form-label text-right">{t("n-gram")}</label>
             <div className="col-md-8">
               <input
                 type="number"
@@ -173,6 +175,7 @@ CreateSimilarity.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateSimilarity, validateSimilarityCfg, buildCode };
+export default withTranslation("builders")(CreateSimilarity);

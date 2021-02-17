@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
@@ -35,32 +36,33 @@ class Variance extends React.Component {
   }
 
   renderCheck2() {
+    const { t } = this.props;
     const { varianceData } = this.state;
     const { check2 } = varianceData;
     if (!check2) {
-      return <li>Check 2: N/A</li>;
+      return <li>{t("Check 2")}: N/A</li>;
     }
     const val1 = check2.val1.val;
     const val2 = check2.val2.val;
-    const check2Msg = `Count of most common value / Count of second most common value > 20`;
+    const check2Msg = t(`Count of most common value / Count of second most common value > 20`);
     const check2Ratio = _.round(check2.val1.ct / check2.val2.ct, 2);
     return (
       <React.Fragment>
         <li>
-          <span className="mr-3">{`Check 2: ${check2Msg} =>`}</span>
+          <span className="mr-3">{`${t("Check 2")}: ${check2Msg} =>`}</span>
           <b>{check2.result + ""}</b>
         </li>
         <ul>
           <li>
-            <span className="mr-3">{`Count of most common "${val1}":`}</span>
+            <span className="mr-3">{`${t("Count of most common")} "${val1}":`}</span>
             <b>{check2.val1.ct}</b>
           </li>
           <li>
-            <span className="mr-3">{`Count of second most common "${val2}":`}</span>
+            <span className="mr-3">{`${t("Count of second most common")} "${val2}":`}</span>
             <b>{check2.val2.ct}</b>
           </li>
           <li>
-            <span className="mr-3">Ratio:</span>
+            <span className="mr-3">{t("Ratio")}:</span>
             <b>{check2Ratio}</b>
           </li>
         </ul>
@@ -69,6 +71,7 @@ class Variance extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     if (this.state.error) {
       return (
         <div key="body" className="modal-body">
@@ -83,13 +86,19 @@ class Variance extends React.Component {
     }
     const { code, check1, check2, size, outlierCt, missingCt, jarqueBera, shapiroWilk } = varianceData;
     const check1Pct = _.round(100 * (check1.unique / check1.size), 2);
-    const check1Msg = "Check 1: Count of unique values in a feature / sample size < 10%";
+    const check1Msg = `${t("Check 1")}: ${t("Count of unique values in a feature / sample size < 10%")}`;
     const check2res = _.get(check2, "result", false);
     const lowVariance = check1.result && check2res;
+    const header = [
+      t("Based on checks 1 & 2"),
+      `"${column}"`,
+      lowVariance ? t("has") : t("does not have"),
+      t("Low Variance"),
+    ].join(" ");
     return (
       <div key="body" className="modal-body describe-body">
         <BouncerWrapper showBouncer={this.state.loadingVariance}>
-          <h1>{`Based on checks 1 & 2 "${column}" ${lowVariance ? "has" : "does not have"} Low Variance`}</h1>
+          <h1>{header}</h1>
           <ul>
             <li>
               <span className="mr-3">{`${check1Msg} =>`}</span>
@@ -97,43 +106,43 @@ class Variance extends React.Component {
             </li>
             <ul>
               <li>
-                <span className="mr-3">Unique Values:</span>
+                <span className="mr-3">{t("Unique Values")}:</span>
                 <b>{check1.unique}</b>
               </li>
               <li>
-                <span className="mr-3">Sample Size:</span>
+                <span className="mr-3">{t("Sample Size")}:</span>
                 <b>{check1.size}</b>
               </li>
               <li>
-                <span className="mr-3">Percentage:</span>
+                <span className="mr-3">{t("Percentage")}:</span>
                 <b>{check1Pct}%</b>
               </li>
             </ul>
             {this.renderCheck2()}
             <li>
-              <span className="mr-3">Percentage Missing:</span>
+              <span className="mr-3">{t("Percentage Missing")}:</span>
               <b>{_.round(100 * (missingCt / size), 2)}%</b>
             </li>
             <li>
-              <span className="mr-3">Percentage Outliers:</span>
+              <span className="mr-3">{t("Percentage Outliers")}:</span>
               <b>{_.round(100 * (outlierCt / size), 2)}%</b>
             </li>
-            <li>Jarque-Bera</li>
+            <li>{t("Jarque-Bera")}</li>
             <ul>
               <li>
-                Statistic: <b>{_.round(jarqueBera.statistic, 2)}</b>
+                {t("Statistic")}: <b>{_.round(jarqueBera.statistic, 2)}</b>
               </li>
               <li>
-                P-value: <b>{_.round(jarqueBera.pvalue, 2)}</b>
+                {t("P-value")}: <b>{_.round(jarqueBera.pvalue, 2)}</b>
               </li>
             </ul>
-            <li>Shapiro-Wilk</li>
+            <li>{t("Shapiro-Wilk")}</li>
             <ul>
               <li>
-                Statistic: <b>{_.round(shapiroWilk.statistic, 2)}</b>
+                {t("Statistic")}: <b>{_.round(shapiroWilk.statistic, 2)}</b>
               </li>
               <li>
-                P-value: <b>{_.round(shapiroWilk.pvalue, 2)}</b>
+                {t("P-value")}: <b>{_.round(shapiroWilk.pvalue, 2)}</b>
               </li>
             </ul>
           </ul>
@@ -143,7 +152,7 @@ class Variance extends React.Component {
               right: 25,
               top: 60,
             }}>
-            {renderCodePopupAnchor(code, "Variance")}
+            {renderCodePopupAnchor(code, t("Variance"))}
           </div>
           <div
             style={{
@@ -167,6 +176,7 @@ Variance.propTypes = {
     visible: PropTypes.bool.isRequired,
     selectedCol: PropTypes.string,
   }),
+  t: PropTypes.func,
 };
-
-export { Variance };
+const TranslateVariance = withTranslation("variance")(Variance);
+export { TranslateVariance as Variance };

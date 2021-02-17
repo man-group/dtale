@@ -1,28 +1,29 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import ColumnSelect from "./ColumnSelect";
 
-const ALGOS = [
-  { value: "label", label: "LabelEncoder" },
-  { value: "one_hot", label: "OneHotEncoder" },
-  { value: "ordinal", label: "OrdinalEncoder" },
-  { value: "feature_hasher", label: "FeatureHasher" },
+const algos = t => [
+  { value: "label", label: t("LabelEncoder") },
+  { value: "one_hot", label: t("OneHotEncoder") },
+  { value: "ordinal", label: t("OrdinalEncoder") },
+  { value: "feature_hasher", label: t("FeatureHasher") },
 ];
 
-function validateEncoderCfg({ col, n, algo }) {
+export function validateEncoderCfg(t, { col, n, algo }) {
   if (!col) {
-    return "Please select a column!";
+    return t("Please select a column!");
   }
   if (algo === "feature_hasher" && (!n || parseInt(n) < 1)) {
-    return "Features must be an integer greater than zero!";
+    return t("Features must be an integer greater than zero!");
   }
   return null;
 }
 
-function buildCode({ col, n, algo }) {
+export function buildCode({ col, n, algo }) {
   if (!col) {
     return null;
   }
@@ -58,7 +59,7 @@ class CreateEncoder extends React.Component {
     this.state = {
       left: null,
       right: null,
-      algo: ALGOS[0],
+      algo: algos(props.t)[0],
       n: "1",
       normalized: false,
     };
@@ -77,24 +78,27 @@ class CreateEncoder extends React.Component {
       updatedState.cfg.n = currState.n;
     }
     updatedState.code = buildCode(updatedState.cfg);
-    if (validateEncoderCfg(updatedState.cfg) === null && !this.props.namePopulated) {
-      const algoKey = _.find(ALGOS, { value: updatedState.cfg.algo });
+    if (validateEncoderCfg(this.props.t, updatedState.cfg) === null && !this.props.namePopulated) {
+      const algoKey = _.find(algos(this.props.t), {
+        value: updatedState.cfg.algo,
+      });
       updatedState.name = `${updatedState.cfg.col}_${_.get(algoKey, "value", updatedState.cfg.algo)}`;
     }
     this.setState(currState, () => this.props.updateState(updatedState));
   }
 
   render() {
+    const { t } = this.props;
     return (
       <React.Fragment>
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Encoder</label>
+          <label className="col-md-3 col-form-label text-right">{t("Encoder")}</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={ALGOS}
+                options={algos(t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={this.state.algo}
@@ -135,6 +139,7 @@ CreateEncoder.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
   namePopulated: PropTypes.bool,
+  t: PropTypes.func,
 };
 
-export { CreateEncoder, validateEncoderCfg, buildCode };
+export default withTranslation("builders")(CreateEncoder);

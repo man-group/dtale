@@ -6,7 +6,7 @@ import { expect, it } from "@jest/globals";
 
 import ButtonToggle from "../../../../ButtonToggle";
 import CategoryInputs from "../../../../popups/analysis/filters/CategoryInputs";
-import { DescribeFilters } from "../../../../popups/analysis/filters/DescribeFilters";
+import DescribeFilters from "../../../../popups/analysis/filters/DescribeFilters";
 import OrdinalInputs from "../../../../popups/analysis/filters/OrdinalInputs";
 import TextEnterFilter from "../../../../popups/analysis/filters/TextEnterFilter";
 

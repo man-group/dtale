@@ -9,7 +9,15 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import reduxUtils from "../../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  mockT as t,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../../test-utils";
 
 import { clickBuilder } from "./create-test-utils";
 
@@ -37,7 +45,7 @@ describe("DataViewer tests", () => {
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateBins = require("../../../popups/create/CreateBins").CreateBins;
+    CreateBins = require("../../../popups/create/CreateBins").default;
     validateBinsCfg = require("../../../popups/create/CreateBins").validateBinsCfg;
     ColumnAnalysisChart = require("../../../popups//analysis/ColumnAnalysisChart").default;
     BinsTester = require("../../../popups/create/BinsTester").ReactBinsTester;
@@ -86,12 +94,12 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
 
     const cfg = { col: null };
-    expect(validateBinsCfg(cfg)).toBe("Missing a column selection!");
+    expect(validateBinsCfg(t, cfg)).toBe("Missing a column selection!");
     cfg.col = "x";
     cfg.bins = "";
-    expect(validateBinsCfg(cfg)).toBe("Missing a bins selection!");
+    expect(validateBinsCfg(t, cfg)).toBe("Missing a bins selection!");
     cfg.bins = "4";
     cfg.labels = "foo";
-    expect(validateBinsCfg(cfg)).toBe("There are 4 bins, but you have only specified 1 labels!");
+    expect(validateBinsCfg(t, cfg)).toBe("There are 4 bins, but you have only specified 1 labels!");
   });
 });

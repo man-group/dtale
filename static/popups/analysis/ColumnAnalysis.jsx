@@ -1,11 +1,12 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import actions from "../../actions/dtale";
 import { dataLoader } from "./columnAnalysisUtils";
-import { ColumnAnalysisFilters } from "./filters/ColumnAnalysisFilters";
+import ColumnAnalysisFilters from "./filters/ColumnAnalysisFilters";
 
 require("./ColumnAnalysis.css");
 
@@ -39,13 +40,15 @@ class ReactColumnAnalysis extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     let description = null;
     if (actions.isPopup()) {
       description = (
         <div key="description" className="modal-header">
           <h4 className="modal-title">
             <i className="ico-equalizer" />
-            {` ${this.state.type === "histogram" ? "Histogram" : "Value Counts"} for `}
+            {` ${t(`constants:${this.state.type === "histogram" ? "Histogram" : "Value Counts"}`)} `}
+            {`${t("analysis:for")} `}
             <strong>{_.get(this.props, "chartData.selectedCol")}</strong>
             {this.state.query && <small>{this.state.query}</small>}
             <div id="describe" />
@@ -85,9 +88,9 @@ ReactColumnAnalysis.propTypes = {
     query: PropTypes.string,
   }),
   height: PropTypes.number,
+  t: PropTypes.func,
 };
 ReactColumnAnalysis.defaultProps = { height: 400 };
-
-const ReduxColumnAnalysis = connect(state => _.pick(state, ["dataId", "chartData"]))(ReactColumnAnalysis);
-
-export { ReactColumnAnalysis, ReduxColumnAnalysis as ColumnAnalysis };
+const TranslateReactColumnAnalysis = withTranslation(["constants", "analysis"])(ReactColumnAnalysis);
+const ReduxColumnAnalysis = connect(state => _.pick(state, ["dataId", "chartData"]))(TranslateReactColumnAnalysis);
+export { TranslateReactColumnAnalysis as ReactColumnAnalysis, ReduxColumnAnalysis as ColumnAnalysis };

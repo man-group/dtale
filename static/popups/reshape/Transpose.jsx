@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 function validateTransposeCfg(cfg) {
@@ -71,13 +72,13 @@ class Transpose extends React.Component {
   render() {
     return [
       <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Index</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Index")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("index", ["columns"], true)}</div>
         </div>
       </div>,
       <div key={1} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Column(s)</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Column(s)")}</label>
         <div className="col-md-8">
           <div className="input-group">{this.renderSelect("columns", ["index"], true)}</div>
         </div>
@@ -89,6 +90,7 @@ Transpose.displayName = "Transpose";
 Transpose.propTypes = {
   updateState: PropTypes.func,
   columns: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { Transpose, validateTransposeCfg, buildCode };
+const TranslateTranspose = withTranslation("reshape")(Transpose);
+export { TranslateTranspose as Transpose, validateTransposeCfg, buildCode };

@@ -2,6 +2,7 @@ import _ from "lodash";
 import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { Bouncer } from "../Bouncer";
@@ -48,7 +49,7 @@ class ReactFilter extends React.Component {
   }
 
   renderColumnFilters(prop, label) {
-    const { dataId } = this.props;
+    const { dataId, t } = this.props;
     const filters = this.state[prop];
     if (_.size(filters)) {
       const dropColFilter = col => () => {
@@ -66,7 +67,7 @@ class ReactFilter extends React.Component {
       return _.concat(
         [
           <div key="col-filter-label" className="font-weight-bold">
-            {`Active ${label}:`}
+            {`${t("Active")} ${label}:`}
           </div>,
         ],
         _.map(filters, (v, k) => (
@@ -84,15 +85,16 @@ class ReactFilter extends React.Component {
     if (this.state.loading) {
       return <Bouncer />;
     }
+    const { t } = this.props;
     return [
       <RemovableError key={0} {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />,
       <div key={1} className="row">
         <div className="col-md-7">
           <div className="row h-100">
             <div className="col-md-12 h-100">
-              {this.renderColumnFilters("columnFilters", "Column Filters")}
-              {this.renderColumnFilters("outlierFilters", "Outlier Filters")}
-              <div className="font-weight-bold pt-3 pb-3">Custom Filter:</div>
+              {this.renderColumnFilters("columnFilters", t("Column Filters"))}
+              {this.renderColumnFilters("outlierFilters", t("Outlier Filters"))}
+              <div className="font-weight-bold pt-3 pb-3">{`${t("Custom Filter")}:`}</div>
               <textarea
                 style={{ width: "100%", height: 150 }}
                 value={this.state.query || ""}
@@ -102,46 +104,46 @@ class ReactFilter extends React.Component {
           </div>
         </div>
         <div className="col-md-5">
-          <p className="font-weight-bold">Example queries</p>
+          <p className="font-weight-bold">{t("Example Queries")}</p>
           <ul>
             <li>
-              {"wrap column names in backticks that are protected words or containing spaces/periods: "}
+              {`${t("wrap column names in backticks that are protected words or containing spaces/periods")}: `}
               <span className="font-weight-bold">{"`from` == 5 and `Col 1` == 2 and `Col.1` == 3"}</span>
             </li>
             <li>
-              {"drop NaN values: "}
+              {`${t("drop NaN values")}: `}
               <span className="font-weight-bold">{"Col == Col"}</span>
             </li>
             <li>
-              {"show only NaN values: "}
+              {`${t("show only NaN values")}: `}
               <span className="font-weight-bold">{"Col != Col"}</span>
             </li>
             <li>
-              {"date filtering: "}
+              {`${t("date filtering")}: `}
               <span className="font-weight-bold">{`Col == '${moment().format("YYYYMMDD")}'`}</span>
             </li>
             <li>
-              {"in-clause on string column: "}
+              {`${t("in-clause on string column")}: `}
               <span className="font-weight-bold">{"Col in ('foo','bar')"}</span>
             </li>
             <li>
-              {"and-clause on numeric column: "}
+              {`${t("and-clause on numeric column")}: `}
               <span className="font-weight-bold">{"Col1 > 1 and Col2 <= 1"}</span>
             </li>
             <li>
-              {"or-clause on numeric columns: "}
+              {`${t("or-clause on numeric columns")}: `}
               <span className="font-weight-bold">{"Col1 > 1 or Col2 < 1"}</span>
             </li>
             <li>
-              {"negative-clause: "}
+              {`${t("negative-clause")}: `}
               <span className="font-weight-bold">{"~(Col > 1)"}</span>
             </li>
             <li>
-              {"parenthesis usage: "}
+              {`${t("parenthesis usage")}: `}
               <span className="font-weight-bold">{"(Col1 > 1 or Col2 < 1) and (Col3 == 3)"}</span>
             </li>
             <li>
-              {"regex usage (search for substrings 'foo' or 'bar'):"}
+              {`${t("regex usage (search for substrings 'foo' or 'bar')")}:`}
               <br />
               <span className="font-weight-bold">{"Col.str.contains('(foo|bar)', case=False)"}</span>
             </li>
@@ -182,13 +184,13 @@ class ReactFilter extends React.Component {
               "titlebar=1,location=1,status=1,width=990,height=450"
             );
           }}>
-          <span>Help</span>
+          <span>{this.props.t("Help")}</span>
         </button>
         <button className="btn btn-primary" onClick={clear}>
-          <span>Clear</span>
+          <span>{this.props.t("Clear")}</span>
         </button>
         <button className="btn btn-primary" onClick={this.save}>
-          <span>Apply</span>
+          <span>{this.props.t("Apply")}</span>
         </button>
       </div>,
     ];
@@ -202,11 +204,12 @@ ReactFilter.propTypes = {
     propagateState: PropTypes.func,
   }),
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactFilter = withTranslation("filter")(ReactFilter);
 const ReduxFilter = connect(
   state => _.pick(state, ["dataId", "chartData"]),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactFilter);
+)(TranslateReactFilter);
 
-export { ReactFilter, ReduxFilter as Filter, saveFilter };
+export { TranslateReactFilter as ReactFilter, ReduxFilter as Filter, saveFilter };

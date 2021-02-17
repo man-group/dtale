@@ -1,5 +1,7 @@
 import _ from "lodash";
+import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { fetchJson } from "../fetcher";
 
@@ -26,9 +28,9 @@ class About extends React.Component {
         <div className="row">
           <div className="col-md-12">
             <div className="dtale-alert alert alert-danger text-center" role="alert">
-              <span>{"Your version is currently out of sync with PyPi."}</span>
+              <span>{this.props.t("Your version is currently out of sync with PyPi.")}</span>
               <br />
-              <span>{"Please upgrade."}</span>
+              <span>{this.props.t("Please upgrade.")}</span>
             </div>
           </div>
         </div>
@@ -38,13 +40,13 @@ class About extends React.Component {
       <div key="body" className="modal-body">
         <div className="row">
           <div className="col-md-12">
-            <span>{"Your Version:"}</span>
+            <span>{`${this.props.t("Your Version")}:`}</span>
             <span className="font-weight-bold pl-5">{currentVersion || ""}</span>
           </div>
         </div>
         <div className="row">
           <div className="col-md-12">
-            <span>{"PyPi Version:"}</span>
+            <span>{`${this.props.t("PyPi Version")}:`}</span>
             <span className="font-weight-bold pl-5">{pypiVersion || ""}</span>
           </div>
         </div>
@@ -56,7 +58,7 @@ class About extends React.Component {
               rel="noopener noreferrer"
               target="_blank">
               <i className="fab fa-github mr-4" />
-              {"GitHub"}
+              {this.props.t("GitHub")}
             </a>
           </div>
         </div>
@@ -64,7 +66,7 @@ class About extends React.Component {
           <div className="col-md-12">
             <a href={`https://dtale.readthedocs.io/en/v${currentVersion}`} rel="noopener noreferrer" target="_blank">
               <i className="fas fa-book-open mr-4" />
-              {"readthedocs.io"}
+              {this.props.t("readthedocs.io")}
             </a>
           </div>
         </div>
@@ -73,5 +75,6 @@ class About extends React.Component {
   }
 }
 About.displayName = "About";
+About.propTypes = { t: PropTypes.func };
 
-export default About;
+export default withTranslation("about")(About);

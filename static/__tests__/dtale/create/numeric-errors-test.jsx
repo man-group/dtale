@@ -15,7 +15,7 @@ describe("DataViewer tests", () => {
   let result, CreateColumn;
 
   function findNumericInputs(r) {
-    const { CreateNumeric } = require("../../../popups/create/CreateNumeric");
+    const CreateNumeric = require("../../../popups/create/CreateNumeric").default;
     return r.find(CreateNumeric).first();
   }
 

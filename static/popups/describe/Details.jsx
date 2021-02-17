@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
@@ -13,16 +14,16 @@ import DetailsCharts from "./DetailsCharts";
 
 const BASE_DESCRIBE_URL = "/dtale/describe";
 
-function displayUniques(uniques, dtype = null, baseTitle = "Unique") {
+function displayUniques(uniques, t, dtype = null, baseTitle = "Unique") {
   if (_.isEmpty(uniques.data)) {
     return null;
   }
-  let title = `${baseTitle} Values`;
+  let title = `${t(baseTitle)} ${t("Values")}`;
   if (dtype) {
-    title = `${title} of type '${dtype}'`;
+    title = `${title} ${t("of type")} '${dtype}'`;
   }
   if (uniques.top) {
-    title = `${title} (top 100 most common)`;
+    title = `${title} (${t("top 100 most common")})`;
   }
   return (
     <div key={dtype} className="row">
@@ -98,16 +99,17 @@ class Details extends React.Component {
   }
 
   renderUniques() {
+    const { t } = this.props;
     if (this.state.deepData !== "uniques") {
       return null;
     }
     if (this.state.viewWordValues) {
       const { wordValues } = this.state;
-      return displayUniques({ data: wordValues }, null, "Word");
+      return displayUniques({ data: wordValues }, t, null, "Word");
     }
     const uniques = _.get(this.state, "details.uniques") || {};
     const dtypeCt = _.size(uniques);
-    return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, dtypeCt > 1 ? dtype : null));
+    return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, t, dtypeCt > 1 ? dtype : null));
   }
 
   renderDiffs() {
@@ -116,7 +118,7 @@ class Details extends React.Component {
     }
 
     const diffs = _.get(this.state, "details.sequential_diffs.diffs") || {};
-    return displayUniques(diffs, null, "Sequential Difference");
+    return displayUniques(diffs, this.props.t, null, "Sequential Difference");
   }
 
   loadOutliers() {
@@ -127,6 +129,7 @@ class Details extends React.Component {
   }
 
   renderDeepDataToggle() {
+    const { t } = this.props;
     const { deepData } = this.state;
     const colType = gu.findColType(this.props.selected.dtype);
     if (_.includes(["float", "int"], colType)) {
@@ -140,9 +143,9 @@ class Details extends React.Component {
         <div className="row pb-5">
           <div className="col-auto pl-0">
             <div className="btn-group compact col-auto">
-              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>Uniques</button>
-              <button {...buildButton(deepData === "outliers", toggle("outliers"))}>Outliers</button>
-              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>Diffs</button>
+              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>{t("Uniques")}</button>
+              <button {...buildButton(deepData === "outliers", toggle("outliers"))}>{t("Outliers")}</button>
+              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>{t("Diffs")}</button>
             </div>
           </div>
         </div>
@@ -153,8 +156,8 @@ class Details extends React.Component {
         <div className="row pb-5">
           <div className="col-auto pl-0">
             <div className="btn-group compact col-auto">
-              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>Uniques</button>
-              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>Diffs</button>
+              <button {...buildButton(deepData === "uniques", toggle("uniques"))}>{t("Uniques")}</button>
+              <button {...buildButton(deepData === "diffs", toggle("diffs"))}>{t("Diffs")}</button>
             </div>
           </div>
         </div>
@@ -164,6 +167,7 @@ class Details extends React.Component {
   }
 
   renderOutliers() {
+    const { t } = this.props;
     if (this.state.deepData !== "outliers") {
       return null;
     }
@@ -177,7 +181,7 @@ class Details extends React.Component {
         <div key={3} className="row">
           <div className="col-sm-12">
             <span className="font-weight-bold" style={{ fontSize: "120%" }}>
-              No Outliers Detected
+              {t("No Outliers Detected")}
             </span>
           </div>
         </div>
@@ -204,7 +208,7 @@ class Details extends React.Component {
       <div key={1} className="row">
         <div className="col">
           <span className="font-weight-bold" style={{ fontSize: "120%" }}>
-            {`${_.size(outlierValues)} Outliers Found${outliers.top ? " (top 100)" : ""}:`}
+            {`${_.size(outlierValues)} ${t("Outliers Found")}${outliers.top ? ` (${t("top 100")})` : ""}:`}
           </span>
           <JSAnchor onClick={saveFilter} className="d-block">
             <span className="pr-3">{`${outliers.queryApplied ? "Remove" : "Apply"} outlier filter:`}</span>
@@ -214,7 +218,7 @@ class Details extends React.Component {
         <div className="col-auto">
           <div className="hoverable" style={{ borderBottom: "none" }}>
             <i className="ico-code pr-3" />
-            <span>View Code</span>
+            <span>{t("View Code")}</span>
             <div className="hoverable__content" style={{ width: "auto" }}>
               <pre className="mb-0">{outliers.code}</pre>
             </div>
@@ -274,6 +278,7 @@ Details.propTypes = {
   selected: PropTypes.object,
   dataId: PropTypes.string,
   dtypes: PropTypes.array,
+  t: PropTypes.func,
 };
-
-export { Details };
+const TranslateDetails = withTranslation("describe")(Details);
+export { TranslateDetails as Details };

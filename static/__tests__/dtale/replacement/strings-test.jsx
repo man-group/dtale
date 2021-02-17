@@ -9,7 +9,7 @@ import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import { clickColMenuButton } from "../../iframe/iframe-utils";
 import reduxUtils from "../../redux-test-utils";
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
+import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 describe("DataViewer tests", () => {
   let result, CreateReplacement, Strings;
@@ -98,7 +98,7 @@ describe("DataViewer tests", () => {
       .simulate("change", { target: { value: "nan" } });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(validationSpy.mock.calls[0][0]).toStrictEqual({
+    expect(validationSpy.mock.calls[0][1]).toStrictEqual({
       value: "A",
       isChar: true,
       ignoreCase: true,
@@ -132,8 +132,8 @@ describe("DataViewer tests", () => {
   it("DataViewer: strings cfg validation", () => {
     const { validateStringsCfg } = require("../../../popups/replacement/Strings");
     let cfg = { value: null };
-    expect(validateStringsCfg(cfg)).toBe("Please enter a character or substring!");
+    expect(validateStringsCfg(t, cfg)).toBe("Please enter a character or substring!");
     cfg = { value: "A", replace: null };
-    expect(validateStringsCfg(cfg)).toBe("Please enter a replacement value!");
+    expect(validateStringsCfg(t, cfg)).toBe("Please enter a replacement value!");
   });
 });

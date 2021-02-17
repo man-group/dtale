@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
@@ -63,7 +64,7 @@ class ReactReshape extends React.Component {
         break;
     }
     if (!_.isNull(error)) {
-      this.setState({ error: <RemovableError error={error} /> });
+      this.setState({ error: <RemovableError error={this.props.t(error)} /> });
       return;
     }
     this.setState({ loadingReshape: true });
@@ -94,6 +95,7 @@ class ReactReshape extends React.Component {
   }
 
   renderBody() {
+    const { t } = this.props;
     const updateState = state => {
       if (_.has(state, "code")) {
         state.code = _.assign({}, this.state.code, {
@@ -118,7 +120,7 @@ class ReactReshape extends React.Component {
     return (
       <div key="body" className="modal-body">
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Operation</label>
+          <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
           <div className="col-md-8">
             <div className="btn-group">
               {_.map(
@@ -140,7 +142,7 @@ class ReactReshape extends React.Component {
                   }
                   return (
                     <button key={i} {...buttonProps}>
-                      <span className="d-block">{label}</span>
+                      <span className="d-block">{t(label)}</span>
                     </button>
                   );
                 }
@@ -150,7 +152,7 @@ class ReactReshape extends React.Component {
         </div>
         {body}
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">Output</label>
+          <label className="col-md-3 col-form-label text-right">{t("Output")}</label>
           <div className="col-md-8">
             <div className="btn-group">
               {_.map(
@@ -168,7 +170,7 @@ class ReactReshape extends React.Component {
                   }
                   return (
                     <button key={i} {...buttonProps}>
-                      {label}
+                      {t(label)}
                     </button>
                   );
                 }
@@ -181,6 +183,7 @@ class ReactReshape extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     let error = null;
     if (this.state.error) {
       error = (
@@ -193,7 +196,7 @@ class ReactReshape extends React.Component {
     if (_.get(this.state, ["code", this.state.type])) {
       codeMarkup = (
         <div className="col" style={{ paddingRight: 0 }}>
-          <span className="pr-3">Code:</span>
+          <span className="pr-3">{t("Code")}:</span>
           <span className="font-weight-bold">{_.get(this.state, ["code", this.state.type])}</span>
         </div>
       );
@@ -207,7 +210,7 @@ class ReactReshape extends React.Component {
         {codeMarkup}
         <button className="btn btn-primary" onClick={this.state.loadingReshape ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingReshape}>
-            <span>Execute</span>
+            <span>{t("Execute")}</span>
           </BouncerWrapper>
         </button>
       </div>,
@@ -221,10 +224,11 @@ ReactReshape.propTypes = {
     propagateState: PropTypes.func,
   }),
   onClose: PropTypes.func,
+  t: PropTypes.func,
 };
-
+const TranslateReactReshape = withTranslation("reshape")(ReactReshape);
 const ReduxReshape = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),
   dispatch => ({ onClose: chartData => dispatch(closeChart(chartData || {})) })
-)(ReactReshape);
-export { buildForwardURL, ReactReshape, ReduxReshape as Reshape };
+)(TranslateReactReshape);
+export { buildForwardURL, TranslateReactReshape as ReactReshape, ReduxReshape as Reshape };

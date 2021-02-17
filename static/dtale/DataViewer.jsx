@@ -3,6 +3,7 @@ import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import InfiniteLoader from "react-virtualized/dist/commonjs/InfiniteLoader";
@@ -21,7 +22,6 @@ import { GridEventHandler } from "./GridEventHandler";
 import { MeasureText } from "./MeasureText";
 import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
-import Descriptions from "./menu-descriptions.json";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
 
 require("./DataViewer.css");
@@ -214,7 +214,6 @@ class ReactDataViewer extends React.Component {
   }
 
   render() {
-    const { formattingOpen } = this.state;
     return (
       <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
         <DtaleHotkeys propagateState={this.propagateState} {...this.state} />
@@ -253,7 +252,7 @@ class ReactDataViewer extends React.Component {
         <Formatting
           {..._.pick(this.state, ["data", "columns", "columnFormats", "nanDisplay"])}
           selectedCol={_.get(this.state.selectedCols, "0")}
-          visible={formattingOpen}
+          visible={this.state.formattingOpen}
           propagateState={this.propagateState}
         />
         <MeasureText />
@@ -264,7 +263,7 @@ class ReactDataViewer extends React.Component {
           noInfo={gu.hasNoInfo(this.state)}
         />
         <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
-          {Descriptions.editing}
+          {this.props.t("editing")}
         </div>
       </GridEventHandler>
     );
@@ -280,8 +279,9 @@ ReactDataViewer.propTypes = {
   theme: PropTypes.string,
   updateFilteredRanges: PropTypes.func,
   menuPinned: PropTypes.bool,
+  t: PropTypes.func,
 };
-
+const TranslateReactDataViewer = withTranslation("menu_description")(ReactDataViewer);
 const ReduxDataViewer = connect(
   ({ dataId, iframe, theme, settings, menuPinned }) => ({
     dataId,
@@ -295,6 +295,5 @@ const ReduxDataViewer = connect(
     openChart: chartProps => dispatch(openChart(chartProps)),
     updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
   })
-)(ReactDataViewer);
-
-export { ReduxDataViewer as DataViewer, ReactDataViewer };
+)(TranslateReactDataViewer);
+export { ReduxDataViewer as DataViewer, TranslateReactDataViewer as ReactDataViewer };

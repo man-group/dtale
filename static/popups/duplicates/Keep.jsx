@@ -1,9 +1,10 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-export default class Keep extends React.Component {
+class Keep extends React.Component {
   constructor(props) {
     super(props);
     this.state = { value: { value: props.value || "first" } };
@@ -17,7 +18,7 @@ export default class Keep extends React.Component {
   render() {
     return (
       <div className="form-group row">
-        <label className="col-md-3 col-form-label text-right">Keep</label>
+        <label className="col-md-3 col-form-label text-right">{this.props.t("Keep")}</label>
         <div className="col-md-8">
           <Select
             className="Select is-clearable is-searchable Select--single"
@@ -26,7 +27,7 @@ export default class Keep extends React.Component {
               _.sortBy(["first", "last", "none"], o => _.toLower(o)),
               o => ({ value: o })
             )}
-            getOptionLabel={v => _.capitalize(v.value)}
+            getOptionLabel={v => this.props.t(_.capitalize(v.value))}
             getOptionValue={_.property("value")}
             value={this.state.value}
             onChange={selected => this.updateState(selected)}
@@ -42,4 +43,6 @@ Keep.displayName = "Keep";
 Keep.propTypes = {
   value: PropTypes.string,
   updateState: PropTypes.func,
+  t: PropTypes.func,
 };
+export default withTranslation("duplicate")(Keep);

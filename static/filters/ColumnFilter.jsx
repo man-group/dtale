@@ -1,16 +1,16 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { components } from "react-select";
 
 import { buildURLString, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
-import Descriptions from "../dtale/column/column-menu-descriptions.json";
 import { exports as gu } from "../dtale/gridUtils";
 import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
 import { fetchJson } from "../fetcher";
-import { DateFilter } from "./DateFilter";
+import DateFilter from "./DateFilter";
 import { NumericFilter } from "./NumericFilter";
-import { StringFilter } from "./StringFilter";
+import StringFilter from "./StringFilter";
 
 require("./ColumnFilter.css");
 
@@ -108,7 +108,7 @@ class ColumnFilter extends React.Component {
           {this.renderIcon(showIcon)}
           <div className="m-auto">
             <div className="column-filter m-2">
-              <span className="font-weight-bold pr-3">Show Only Missing</span>
+              <span className="font-weight-bold pr-3">{this.props.t("Show Only Missing")}</span>
               <i className={`ico-check-box${missing ? "" : "-outline-blank"} pointer`} onClick={toggleMissing} />
             </div>
           </div>
@@ -133,7 +133,7 @@ class ColumnFilter extends React.Component {
           {this.renderIcon(showIcon)}
           <div className="m-auto">
             <div className="column-filter m-2">
-              <span className="font-weight-bold pr-3">Filter Outliers</span>
+              <span className="font-weight-bold pr-3">{this.props.t("Filter Outliers")}</span>
               <i className={`ico-check-box${queryApplied ? "" : "-outline-blank"} pointer`} onClick={toggleFilter} />
             </div>
           </div>
@@ -153,7 +153,7 @@ class ColumnFilter extends React.Component {
               <components.LoadingIndicator getStyles={getStyles} cx={() => ""} />
             </div>
           </div>
-          <div className="hoverable__content col-menu-desc">{Descriptions.filter}</div>
+          <div className="hoverable__content col-menu-desc">{this.props.t("filter")}</div>
         </li>
       );
     }
@@ -188,7 +188,7 @@ class ColumnFilter extends React.Component {
           <div className="m-auto">
             <div className="column-filter m-2">{markup}</div>
           </div>
-          <div className="hoverable__content col-menu-desc">{Descriptions.filter}</div>
+          <div className="hoverable__content col-menu-desc">{this.props.t("filter")}</div>
         </li>
       );
       missingToggle = this.renderMissingToggle(false);
@@ -210,6 +210,7 @@ ColumnFilter.propTypes = {
   propagateState: PropTypes.func,
   dataId: PropTypes.string.isRequired,
   outlierFilters: PropTypes.object,
+  t: PropTypes.func,
 };
 
-export default ColumnFilter;
+export default withTranslation("column_filter")(ColumnFilter);

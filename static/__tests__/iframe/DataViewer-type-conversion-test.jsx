@@ -35,7 +35,7 @@ describe("DataViewer iframe tests", () => {
     const postSpy = jest.spyOn($, "post");
     const { DataViewer } = require("../../dtale/DataViewer");
     const CreateColumn = require("../../popups/create/CreateColumn").ReactCreateColumn;
-    const CreateTypeConversion = require("../../popups/create/CreateTypeConversion").CreateTypeConversion;
+    const CreateTypeConversion = require("../../popups/create/CreateTypeConversion").default;
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);

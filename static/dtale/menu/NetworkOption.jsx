@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 
-import Descriptions from "../menu-descriptions.json";
 import { MenuItem } from "./MenuItem";
 
 class NetworkOption extends React.Component {
@@ -11,11 +11,11 @@ class NetworkOption extends React.Component {
 
   render() {
     return (
-      <MenuItem description={Descriptions.network}>
+      <MenuItem description={this.props.t("menu_description:network")}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.props.open}>
             <i className="fas fa-project-diagram ml-2 mr-4" />
-            <span className="font-weight-bold">Network Viewer</span>
+            <span className="font-weight-bold">{this.props.t("menu:Network Viewer")}</span>
           </button>
         </span>
       </MenuItem>
@@ -25,6 +25,7 @@ class NetworkOption extends React.Component {
 NetworkOption.displayName = "NetworkOption";
 NetworkOption.propTypes = {
   open: PropTypes.func,
+  t: PropTypes.func,
 };
 
-export default NetworkOption;
+export default withTranslation(["menu", "menu_description"])(NetworkOption);

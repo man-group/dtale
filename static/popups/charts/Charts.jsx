@@ -1,16 +1,17 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
 import { RemovableError } from "../../RemovableError";
 import { buildURLString } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
-import { Aggregations } from "./Aggregations";
+import Aggregations from "./Aggregations";
 import ChartsBody from "./ChartsBody";
 
-function generateChartState(state, { dataId }) {
+function generateChartState(state, { dataId, t }) {
   const { group, x, y, query, aggregation, rollingWindow, rollingComputation } = state;
   if (_.isNull(x) || _.isNull(y)) {
     return { url: null };
@@ -25,14 +26,17 @@ function generateChartState(state, { dataId }) {
       if (rollingWindow && parseInt(rollingWindow)) {
         params.rollingWin = parseInt(rollingWindow);
       } else {
-        return { url: null, error: "Aggregation (rolling) requires a window" };
+        return {
+          url: null,
+          error: t("Aggregation (rolling) requires a window"),
+        };
       }
       if (rollingComputation) {
         params.rollingComp = rollingComputation;
       } else {
         return {
           url: null,
-          error: "Aggregation (rolling) requires a computation",
+          error: t("Aggregation (rolling) requires a computation"),
         };
       }
     }
@@ -79,7 +83,7 @@ class ReactCharts extends React.Component {
     finalOptions = _.difference(finalOptions, otherValues);
     return (
       <div className="input-group mr-3">
-        <span className="input-group-addon">{label}</span>
+        <span className="input-group-addon">{this.props.t(label)}</span>
         <Select
           isMulti={isMulti}
           className="Select is-clearable is-searchable Select--single"
@@ -100,6 +104,7 @@ class ReactCharts extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     const { columns, query, error } = this.state;
     if (_.isEmpty(columns)) {
       return error;
@@ -109,7 +114,7 @@ class ReactCharts extends React.Component {
         <div className="row pt-3 pb-3 charts-filters">
           <div className="col">
             <div className="input-group">
-              <span className="input-group-addon">Query</span>
+              <span className="input-group-addon">{t("Query")}</span>
               <input
                 className="form-control input-sm"
                 type="text"
@@ -130,7 +135,7 @@ class ReactCharts extends React.Component {
             <button
               className="btn btn-primary float-right"
               onClick={() => this.setState(generateChartState(this.state, this.props))}>
-              <span>Load</span>
+              <span>{t("Load")}</span>
             </button>
           </div>
         </div>
@@ -159,8 +164,9 @@ ReactCharts.propTypes = {
     chartType: PropTypes.string,
     chartPerGroup: PropTypes.bool,
   }),
+  t: PropTypes.func,
 };
+const TranslateReactCharts = withTranslation("charts")(ReactCharts);
+const ReduxCharts = connect(({ dataId, chartData }) => ({ dataId, chartData }))(TranslateReactCharts);
 
-const ReduxCharts = connect(({ dataId, chartData }) => ({ dataId, chartData }))(ReactCharts);
-
-export { ReactCharts, ReduxCharts as Charts };
+export { TranslateReactCharts as ReactCharts, ReduxCharts as Charts };
