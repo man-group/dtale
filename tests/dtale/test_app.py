@@ -122,6 +122,7 @@ def test_show(unittest):
     import dtale.views as views
     import dtale.global_state as global_state
 
+    global_state.clear_store()
     instances()
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
@@ -140,8 +141,6 @@ def test_show(unittest):
         mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
         instance = show(data=test_data, subprocess=False, ignore_duplicate=True)
         assert "http://localhost:9999" == instance._url
-        # removed name. wait for proper data name implementation.
-        # TODO: test data name after implementation.
         assert "http://localhost:9999/dtale/main/1" == instance.main_url()
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
@@ -167,9 +166,6 @@ def test_show(unittest):
         instance.kill()
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://localhost:9999/shutdown"
-
-        # removed name. wait for proper data name implementation.
-        # assert global_state.get_name(1) == "foo"
 
         instance3 = show(
             data=test_data, subprocess=False, name="It's Here", ignore_duplicate=True
@@ -262,7 +258,7 @@ def test_show(unittest):
         instance = show(
             data=test_data,
             subprocess=True,
-            name="foo",
+            name="foo1",
             notebook=True,
             ignore_duplicate=True,
         )
@@ -316,7 +312,7 @@ def test_show(unittest):
             mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
         )
         stack.enter_context(mock.patch("requests.get", mock.Mock()))
-        show(data=test_data, subprocess=False, name="foo", ignore_duplicate=True)
+        show(data=test_data, subprocess=False, name="foo2", ignore_duplicate=True)
 
         _, kwargs = mock_build_app.call_args
         unittest.assertEqual(
@@ -341,7 +337,7 @@ def test_show(unittest):
         instance = show(
             data=pd.DataFrame([dict(a=1, b=2)]),
             subprocess=False,
-            name="foo",
+            name="foo3",
             ignore_duplicate=True,
         )
         with pytest.raises(Exception):
@@ -504,6 +500,7 @@ def test_show_jupyter_server_proxy(unittest):
     import dtale.views as views
     import dtale.global_state as global_state
 
+    global_state.clear_store()
     test_data = pd.DataFrame([dict(a=1, b=2)])
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))
@@ -543,8 +540,6 @@ def test_show_jupyter_server_proxy(unittest):
         assert mock_requests.call_args[0][0] == "/user/{}/proxy/40000/shutdown".format(
             getpass.getuser()
         )
-        # remove name check. waiting for proper impl.
-        # assert global_state.get_name(1) == "foo"
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))

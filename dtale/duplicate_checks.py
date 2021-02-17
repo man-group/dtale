@@ -217,7 +217,6 @@ class ShowDuplicates(object):
             )
             duplicates = run_query(duplicates, group_filter)
         code = self._build_code(group_filter)
-        self.startup_kwargs["name"] = "{group}_duplicates".format(group="_".join(group))
         return duplicates, code
 
     def _build_code(self, group_filter=None):

@@ -168,7 +168,7 @@ def test_web_upload(unittest):
                 {"path": "http://test.com", "proxy": None},
             )
             assert global_state.size() == 4
-
+            global_state.clear_store()
             load_excel.reset_mock()
             load_excel.return_value = {
                 "Sheet 1": pd.DataFrame(dict(a=[1], b=[2])),

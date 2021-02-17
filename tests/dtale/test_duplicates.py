@@ -9,7 +9,7 @@ from dtale.duplicate_checks import (
     RemoveAllDataException,
 )
 from tests.dtale.test_views import app
-from tests import build_data_inst
+from tests import build_data_inst, build_dtypes
 
 
 def duplicates_data():
@@ -232,7 +232,7 @@ def test_view(unittest):
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
         build_data_inst(data)
-        global_state.set_dtypes(dtypes)
+        build_dtypes(dtypes)
         resp = c.get(
             "/dtale/duplicates/{}".format(c.port),
             query_string=dict(
