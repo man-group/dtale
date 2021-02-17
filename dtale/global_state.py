@@ -242,7 +242,7 @@ class DefaultStore:
 
 """
 This block dynamically exports functions from DefaultStore class.
-It's here for backward compatiability reasons.
+It's here for backward compatibility reasons.
 It may trigger linter errors in other py files because functions are not statically exported.
 """
 _default_store = DefaultStore()
