@@ -57,9 +57,7 @@ def test_startup(unittest):
         in str(error.value)
     )
 
-    test_data = pd.DataFrame(
-        [dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)]
-    )
+    test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)])
     test_data = test_data.set_index(["date", "security_id"])
     instance = views.startup(URL, data_loader=lambda: test_data)
 
@@ -173,31 +171,23 @@ def test_startup(unittest):
 
     test_data = np.array([1, 2, 3])
     instance = views.startup(URL, data_loader=lambda: test_data)
-    unittest.assertEqual(
-        list(instance.data.iloc[:, 0].tolist()), test_data.tolist()
-    )
+    unittest.assertEqual(list(instance.data.iloc[:, 0].tolist()), test_data.tolist())
 
     test_data = np.ndarray(shape=(2, 2), dtype=float, order="F")
     instance = views.startup(URL, data_loader=lambda: test_data)
     unittest.assertEqual(instance.data.values.tolist(), test_data.tolist())
 
     test_data = [1, 2, 3]
-    instance = views.startup(
-        URL, data_loader=lambda: test_data, ignore_duplicate=True
-    )
+    instance = views.startup(URL, data_loader=lambda: test_data, ignore_duplicate=True)
     unittest.assertEqual(instance.data.iloc[:, 0].tolist(), test_data)
 
     test_data = dict(a=[1, 2, 3], b=[4, 5, 6])
-    instance = views.startup(
-        URL, data_loader=lambda: test_data, ignore_duplicate=True
-    )
+    instance = views.startup(URL, data_loader=lambda: test_data, ignore_duplicate=True)
     unittest.assertEqual(instance.data["a"].values.tolist(), test_data["a"])
     unittest.assertEqual(instance.data["b"].values.tolist(), test_data["b"])
 
     test_data = dict(a=1, b=2, c=3)
-    instance = views.startup(
-        URL, data_loader=lambda: test_data, ignore_duplicate=True
-    )
+    instance = views.startup(URL, data_loader=lambda: test_data, ignore_duplicate=True)
     unittest.assertEqual(
         sorted(instance.data["index"].values.tolist()), sorted(test_data.keys())
     )
@@ -502,9 +492,7 @@ def test_rename_col():
         build_settings(settings)
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
-        c.get(
-            "/dtale/rename-col/{}/a".format(c.port), query_string=dict(rename="d")
-        )
+        c.get("/dtale/rename-col/{}/a".format(c.port), query_string=dict(rename="d"))
         assert "a" not in global_state.get_data(c.port).columns
         assert (
             next(
@@ -639,9 +627,7 @@ def test_build_column():
         build_dtypes(dtypes)
         resp = c.get(
             "/dtale/build-column/{}".format(c.port),
-            query_string=dict(
-                type="not_implemented", name="test", cfg=json.dumps({})
-            ),
+            query_string=dict(type="not_implemented", name="test", cfg=json.dumps({})),
         )
         response_data = json.loads(resp.data)
         assert (
@@ -735,9 +721,7 @@ def test_build_column():
         cfg = dict(col="d", conversion="month_end")
         c.get(
             "/dtale/build-column/{}".format(c.port),
-            query_string=dict(
-                type="datetime", name="month_end", cfg=json.dumps(cfg)
-            ),
+            query_string=dict(type="datetime", name="month_end", cfg=json.dumps(cfg)),
         )
         assert (
             pd.Timestamp(data[c.port]["month_end"].values[0]).strftime("%Y%m%d")
@@ -787,9 +771,7 @@ def test_build_column():
         cfg = dict(type="date", timestamps=True, businessDay=True)
         c.get(
             "/dtale/build-column/{}".format(c.port),
-            query_string=dict(
-                type="random", name="random_date2", cfg=json.dumps(cfg)
-            ),
+            query_string=dict(type="random", name="random_date2", cfg=json.dumps(cfg)),
         )
 
         response = c.get("/dtale/code-export/{}".format(c.port))
@@ -914,9 +896,7 @@ def test_reshape(custom_data, unittest):
         )
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
-            query_string=dict(
-                output="new", type="pivot", cfg=json.dumps(reshape_cfg)
-            ),
+            query_string=dict(output="new", type="pivot", cfg=json.dumps(reshape_cfg)),
         )
         response_data = json.loads(resp.data)
         new_key = int(c.port) + 1
@@ -937,9 +917,7 @@ def test_reshape(custom_data, unittest):
         reshape_cfg["aggfunc"] = "sum"
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
-            query_string=dict(
-                output="new", type="pivot", cfg=json.dumps(reshape_cfg)
-            ),
+            query_string=dict(output="new", type="pivot", cfg=json.dumps(reshape_cfg)),
         )
         response_data = json.loads(resp.data)
         assert response_data["data_id"] == new_key
@@ -956,9 +934,7 @@ def test_reshape(custom_data, unittest):
         reshape_cfg["values"] = ["Col0", "Col1"]
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
-            query_string=dict(
-                output="new", type="pivot", cfg=json.dumps(reshape_cfg)
-            ),
+            query_string=dict(output="new", type="pivot", cfg=json.dumps(reshape_cfg)),
         )
         response_data = json.loads(resp.data)
         assert response_data["data_id"] == new_key
@@ -1041,9 +1017,7 @@ def test_reshape(custom_data, unittest):
         assert "error" in response_data
 
         min_date = custom_data["date"].min().strftime("%Y-%m-%d")
-        global_state.set_settings(
-            c.port, dict(query="date == '{}'".format(min_date))
-        )
+        global_state.set_settings(c.port, dict(query="date == '{}'".format(min_date)))
         reshape_cfg = dict(index=["date", "security_id"], columns=["Col0"])
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
@@ -1359,9 +1333,7 @@ def test_get_data(unittest, test_data):
                 ),
             ],
         )
-        unittest.assertEqual(
-            response_data, expected, "should return data at index 1"
-        )
+        unittest.assertEqual(response_data, expected, "should return data at index 1")
 
         response = c.get(
             "/dtale/data/{}".format(c.port),
@@ -1390,9 +1362,7 @@ def test_get_data(unittest, test_data):
             response_data["results"], expected, "should return data at indexes 1-2"
         )
 
-        params = dict(
-            ids=json.dumps(["1"]), sort=json.dumps([["security_id", "DESC"]])
-        )
+        params = dict(ids=json.dumps(["1"]), sort=json.dumps([["security_id", "DESC"]]))
         response = c.get("/dtale/data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = {
@@ -1416,9 +1386,7 @@ def test_get_data(unittest, test_data):
             "should update settings",
         )
 
-        params = dict(
-            ids=json.dumps(["1"]), sort=json.dumps([["security_id", "ASC"]])
-        )
+        params = dict(ids=json.dumps(["1"]), sort=json.dumps([["security_id", "ASC"]]))
         response = c.get("/dtale/data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = {
@@ -2194,9 +2162,7 @@ def test_get_scatter(unittest, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
-        params = dict(
-            dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101"
-        )
+        params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = dict(
@@ -2267,9 +2233,7 @@ def test_get_scatter(unittest, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
-        params = dict(
-            dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101"
-        )
+        params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = dict(
@@ -2306,9 +2270,7 @@ def test_get_scatter(unittest, rolling_data):
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
-        params = dict(
-            dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101"
-        )
+        params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         unittest.assertEqual(
@@ -2441,9 +2403,7 @@ def test_get_chart_data(unittest, rolling_data):
         params = dict(x="a", y=json.dumps(["b"]), allowDupes=True)
         response = c.get("/dtale/chart-data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
-        unittest.assertEqual(
-            response_data["error"], 'All data for column "b" is NaN!'
-        )
+        unittest.assertEqual(response_data["error"], 'All data for column "b" is NaN!')
 
     df = pd.DataFrame([dict(a=i, b=i) for i in range(15500)])
     df, _ = views.format_data(df)
@@ -2540,9 +2500,7 @@ def test_chart_exports(custom_data, state_data):
         build_data_inst({c.port: custom_data})
         build_dtypes({c.port: views.build_dtypes_state(custom_data)})
         params = dict(chart_type="invalid")
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "application/json"
 
         params = dict(
@@ -2552,15 +2510,11 @@ def test_chart_exports(custom_data, state_data):
             agg="sum",
             query="Col5 == 50",
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "application/json"
 
         params = dict(chart_type="bar", x="date", y=json.dumps(["Col0"]), agg="sum")
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2568,12 +2522,8 @@ def test_chart_exports(custom_data, state_data):
         )
         assert response.content_type == "text/csv"
 
-        params = dict(
-            chart_type="line", x="date", y=json.dumps(["Col0"]), agg="sum"
-        )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        params = dict(chart_type="line", x="date", y=json.dumps(["Col0"]), agg="sum")
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2582,15 +2532,11 @@ def test_chart_exports(custom_data, state_data):
         assert response.content_type == "text/csv"
 
         params = dict(chart_type="scatter", x="Col0", y=json.dumps(["Col1"]))
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         params["trendline"] = "ols"
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2604,9 +2550,7 @@ def test_chart_exports(custom_data, state_data):
             y=json.dumps(["security_id"]),
             z="Col0",
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2617,9 +2561,7 @@ def test_chart_exports(custom_data, state_data):
         params = dict(
             chart_type="surface", x="date", y=json.dumps(["security_id"]), z="Col0"
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2634,9 +2576,7 @@ def test_chart_exports(custom_data, state_data):
             agg="sum",
             query="security_id >= 100000 and security_id <= 100010",
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2647,9 +2587,7 @@ def test_chart_exports(custom_data, state_data):
         params = dict(
             chart_type="heatmap", x="date", y=json.dumps(["security_id"]), z="Col0"
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2674,9 +2612,7 @@ def test_chart_exports(custom_data, state_data):
             map_val="val",
             agg="raw",
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2703,9 +2639,7 @@ def test_chart_exports(custom_data, state_data):
             scope="world",
             agg="raw",
         )
-        response = c.get(
-            "/dtale/chart-export/{}".format(c.port), query_string=params
-        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
         assert response.content_type == "text/html"
 
         response = c.get(
@@ -2842,16 +2776,16 @@ def test_302():
             "/dtale/iframe/popup/describe/{}".format(c.port),
         ]:
             response = c.get(path)
-            assert (
-                response.status_code == 302
-            ), "{} should return 302 response".format(path)
+            assert response.status_code == 302, "{} should return 302 response".format(
+                path
+            )
     with app.test_client() as c:
         build_data_inst({c.port: df})
         for path in ["/"]:
             response = c.get(path)
-            assert (
-                response.status_code == 302
-            ), "{} should return 302 response".format(path)
+            assert response.status_code == 302, "{} should return 302 response".format(
+                path
+            )
 
 
 @pytest.mark.unit
@@ -3007,9 +2941,7 @@ def test_get_column_filter_data(unittest, custom_data):
         build_data_inst({c.port: df})
         build_dtypes({c.port: views.build_dtypes_state(df)})
 
-        response = c.get(
-            "/dtale/column-filter-data/{}/{}".format(c.port, "bool_val")
-        )
+        response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "bool_val"))
         response_data = json.loads(response.data)
         unittest.assertEqual(
             response_data,
@@ -3019,17 +2951,11 @@ def test_get_column_filter_data(unittest, custom_data):
                 u"success": True,
             },
         )
-        response = c.get(
-            "/dtale/column-filter-data/{}/{}".format(c.port, "str_val")
-        )
+        response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "str_val"))
         response_data = json.loads(response.data)
         assert response_data["hasMissing"]
-        assert all(
-            k in response_data for k in [u"hasMissing", u"uniques", u"success"]
-        )
-        response = c.get(
-            "/dtale/column-filter-data/{}/{}".format(c.port, "int_val")
-        )
+        assert all(k in response_data for k in [u"hasMissing", u"uniques", u"success"])
+        response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "int_val"))
         response_data = json.loads(response.data)
         assert not response_data["hasMissing"]
         assert all(
@@ -3039,15 +2965,11 @@ def test_get_column_filter_data(unittest, custom_data):
         response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "Col0"))
         response_data = json.loads(response.data)
         assert not response_data["hasMissing"]
-        assert all(
-            k in response_data for k in ["max", "hasMissing", "success", u"min"]
-        )
+        assert all(k in response_data for k in ["max", "hasMissing", "success", u"min"])
         response = c.get("/dtale/column-filter-data/{}/{}".format(c.port, "date"))
         response_data = json.loads(response.data)
         assert not response_data["hasMissing"]
-        assert all(
-            k in response_data for k in ["max", "hasMissing", "success", u"min"]
-        )
+        assert all(k in response_data for k in ["max", "hasMissing", "success", u"min"])
 
         response = c.get(
             "/dtale/column-filter-data/{}/{}".format(c.port, "missing_col")
@@ -3113,9 +3035,7 @@ def test_save_column_filter(unittest, custom_data):
         build_settings(settings)
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "bool_val"),
-            query_string=dict(
-                cfg=json.dumps({"type": "string", "value": ["False"]})
-            ),
+            query_string=dict(cfg=json.dumps({"type": "string", "value": ["False"]})),
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["bool_val"],
@@ -3123,9 +3043,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "str_val"),
-            query_string=dict(
-                cfg=json.dumps({"type": "string", "value": ["a", "b"]})
-            ),
+            query_string=dict(cfg=json.dumps({"type": "string", "value": ["a", "b"]})),
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["str_val"],
@@ -3138,9 +3056,7 @@ def test_save_column_filter(unittest, custom_data):
         ]:
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, col),
-                query_string=dict(
-                    cfg=json.dumps({"type": f_type, "missing": True})
-                ),
+                query_string=dict(cfg=json.dumps({"type": f_type, "missing": True})),
             )
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"][col],
@@ -3157,9 +3073,7 @@ def test_save_column_filter(unittest, custom_data):
             response = c.get(
                 "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
                 query_string=dict(
-                    cfg=json.dumps(
-                        {"type": "int", "operand": operand, "value": "5"}
-                    )
+                    cfg=json.dumps({"type": "int", "operand": operand, "value": "5"})
                 ),
             )
             query = "`int_val` {} 5".format("==" if operand == "=" else operand)
@@ -3180,9 +3094,7 @@ def test_save_column_filter(unittest, custom_data):
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
             query_string=dict(
-                cfg=json.dumps(
-                    {"type": "int", "operand": "[]", "min": "4", "max": "5"}
-                )
+                cfg=json.dumps({"type": "int", "operand": "[]", "min": "4", "max": "5"})
             ),
         )
         unittest.assertEqual(
@@ -3197,9 +3109,7 @@ def test_save_column_filter(unittest, custom_data):
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
             query_string=dict(
-                cfg=json.dumps(
-                    {"type": "int", "operand": "()", "min": "4", "max": "5"}
-                )
+                cfg=json.dumps({"type": "int", "operand": "()", "min": "4", "max": "5"})
             ),
         )
         unittest.assertEqual(
@@ -3238,9 +3148,7 @@ def test_save_column_filter(unittest, custom_data):
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "int_val"),
             query_string=dict(
-                cfg=json.dumps(
-                    {"type": "int", "operand": "()", "min": "4", "max": "4"}
-                )
+                cfg=json.dumps({"type": "int", "operand": "()", "min": "4", "max": "4"})
             ),
         )
         unittest.assertEqual(
@@ -3250,9 +3158,7 @@ def test_save_column_filter(unittest, custom_data):
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "date"),
             query_string=dict(
-                cfg=json.dumps(
-                    {"type": "date", "start": "20000101", "end": "20000101"}
-                )
+                cfg=json.dumps({"type": "date", "start": "20000101", "end": "20000101"})
             ),
         )
         unittest.assertEqual(
@@ -3266,9 +3172,7 @@ def test_save_column_filter(unittest, custom_data):
         response = c.get(
             "/dtale/save-column-filter/{}/{}".format(c.port, "date"),
             query_string=dict(
-                cfg=json.dumps(
-                    {"type": "date", "start": "20000101", "end": "20000102"}
-                )
+                cfg=json.dumps({"type": "date", "start": "20000101", "end": "20000102"})
             ),
         )
         unittest.assertEqual(

@@ -140,9 +140,6 @@ class DefaultStore:
     def size(self):
         return len(self._data_store)
 
-    def __len__(self):
-        return len(self._data_store)
-
     def get_data_inst(self, data_id):
         # handle non-exist data_id
         if data_id is None or int(data_id) not in self._data_store:
@@ -309,6 +306,7 @@ def cleanup(data_id=None):
 
 def load_flag(data_id, flag_name, default):
     import dtale
+
     curr_settings = get_settings(data_id) or {}  # noqa: F821
     global_flag = getattr(dtale, flag_name.upper())
     if global_flag != default:

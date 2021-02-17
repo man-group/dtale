@@ -116,9 +116,7 @@ def test_zscore_normalize():
     verify_builder(builder, lambda col: col.sum() == 4.440892098500626e-16)
 
     with pytest.raises(BaseException) as error:
-        builder = ColumnBuilder(
-            data_id, column_type, "Col{}".format(++i), {"col": "a"}
-        )
+        builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "a"})
         builder.build_column()
         assert ZERO_STD_ERROR in str(error.value)
 

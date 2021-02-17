@@ -191,6 +191,4 @@ def test_multiple_cleaners(unittest):
 
     cfg = {"col": "foo", "cleaners": ["drop_numbers", "space_vals_to_empty"]}
     builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-    verify_builder(
-        builder, lambda col: sum(col == "") == 1 and col.values[0] == "ab"
-    )
+    verify_builder(builder, lambda col: sum(col == "") == 1 and col.values[0] == "ab")

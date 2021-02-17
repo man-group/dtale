@@ -135,10 +135,7 @@ def test_build_x_dropdown():
             "map_val": "b",
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert (
-            response.get_json()["response"]["drilldown-x-dropdown-1"]["value"]
-            == "a"
-        )
+        assert response.get_json()["response"]["drilldown-x-dropdown-1"]["value"] == "a"
 
         params["state"][-1]["value"] = {
             "map_type": "scattergeo",
@@ -222,12 +219,8 @@ def test_update_click_data():
             "points": [{"x": "x", "y": "y", "z": "z", "customdata": "customdata"}]
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        header = response.get_json()["response"]["drilldown-modal-header-1"][
-            "children"
-        ]
-        assert (
-            header == "Drilldown for: date (customdata), a (x), b (y), Mean c (z)"
-        )
+        header = response.get_json()["response"]["drilldown-modal-header-1"]["children"]
+        assert header == "Drilldown for: date (customdata), a (x), b (y), Mean c (z)"
 
         # Heatmap Animation
         params["inputs"][0]["value"] = {
@@ -242,9 +235,7 @@ def test_update_click_data():
         }
         params["state"][1]["value"]["chart_type"] = "heatmap"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        header = response.get_json()["response"]["drilldown-modal-header-1"][
-            "children"
-        ]
+        header = response.get_json()["response"]["drilldown-modal-header-1"]["children"]
         assert header == "Drilldown for: date (date), x (x), y (y), z (z)"
 
         # Choropleth
@@ -258,16 +249,12 @@ def test_update_click_data():
             "map_val": "c",
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        header = response.get_json()["response"]["drilldown-modal-header-1"][
-            "children"
-        ]
+        header = response.get_json()["response"]["drilldown-modal-header-1"]["children"]
         assert header == "Drilldown for: date (customdata), b (x), Mean c (z)"
 
         # Scattergeo
         params["inputs"][0]["value"] = {
-            "points": [
-                {"lat": "x", "lon": "y", "z": "z", "customdata": "customdata"}
-            ]
+            "points": [{"lat": "x", "lon": "y", "z": "z", "customdata": "customdata"}]
         }
         params["state"][1]["value"]["chart_type"] = "maps"
         params["state"][4]["value"] = {
@@ -277,12 +264,8 @@ def test_update_click_data():
             "map_val": "c",
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        header = response.get_json()["response"]["drilldown-modal-header-1"][
-            "children"
-        ]
-        assert (
-            header == "Drilldown for: date (customdata), b (x), e (y), Mean c (z)"
-        )
+        header = response.get_json()["response"]["drilldown-modal-header-1"]["children"]
+        assert header == "Drilldown for: date (customdata), b (x), e (y), Mean c (z)"
 
 
 @pytest.mark.unit
@@ -363,9 +346,7 @@ def test_load_drilldown_content(custom_data):
                 {
                     "x": 100000,
                     "y": 1.23,
-                    "customdata": pd.Timestamp(df.date.values[0]).strftime(
-                        "%Y%m%d"
-                    ),
+                    "customdata": pd.Timestamp(df.date.values[0]).strftime("%Y%m%d"),
                 }
             ]
         }
@@ -379,9 +360,9 @@ def test_load_drilldown_content(custom_data):
 
         def _chart_title(resp, histogram=False):
             if histogram:
-                return resp.get_json()["response"]["drilldown-content-1"][
-                    "children"
-                ]["props"]["figure"]["layout"]["title"]["text"]
+                return resp.get_json()["response"]["drilldown-content-1"]["children"][
+                    "props"
+                ]["figure"]["layout"]["title"]["text"]
             return resp.get_json()["response"]["drilldown-content-1"]["children"][
                 "props"
             ]["children"][1]["props"]["figure"]["layout"]["title"]["text"]

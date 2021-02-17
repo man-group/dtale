@@ -218,9 +218,7 @@ def test_show_duplicates(unittest):
         data_id, duplicates_type, {"group": ["foO", "bar"], "filter": ["4", "5"]}
     )
     new_data_id = builder.execute()
-    unittest.assertEqual(
-        global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3]
-    )
+    unittest.assertEqual(global_state.get_data(new_data_id)["Foo"].tolist(), [1, 2, 3])
 
 
 @pytest.mark.unit

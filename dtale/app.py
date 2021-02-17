@@ -76,10 +76,9 @@ class DtaleFlaskTesting(FlaskClient):
         Constructor method
         """
         self.host = kwargs.pop("hostname", "localhost")
-        self.port = kwargs.pop("port", str(random.randint(0, 65535))) or str(
-            random.randint(0, 65535)
+        self.port = kwargs.pop("port", random.randint(1025, 65535)) or random.randint(
+            1025, 65535
         )
-        self.port = int(self.port)
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
         self.application.config["SERVER_NAME"] = "{host}:{port}".format(
             host=self.host, port=self.port
