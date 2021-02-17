@@ -2719,6 +2719,30 @@ def test_main():
 
 
 @pytest.mark.unit
+def test_view_by_name():
+    import dtale.views as views
+
+    global_state.clear_store()
+    test_data = pd.DataFrame(
+        build_ts_data(), columns=["date", "security_id", "foo", "bar"]
+    )
+    test_data, _ = views.format_data(test_data)
+    with app.test_client() as c:
+        build_data_inst({c.port: test_data})
+        global_state.set_name(c.port, "test_name")
+        build_settings({c.port: dict(locked=[])})
+        response = c.get("/dtale/main/name/{}".format("test_name"))
+        assert "<title>D-Tale (test_name)</title>" in str(response.data)
+
+    with app.test_client() as c:
+        build_data_inst({c.port: test_data})
+        global_state.set_name(c.port, "test_name2")
+        build_settings({c.port: dict(locked=[])})
+        response = c.get("/dtale/main/name/{}".format("test_name2"))
+        assert "<title>D-Tale (test_name2)</title>" in str(response.data)
+
+
+@pytest.mark.unit
 def test_200():
     paths = [
         "/dtale/main/{port}",

@@ -136,6 +136,11 @@ class DefaultStore:
     def items(self):
         return self._data_store.items()
 
+    def contains(self, key):
+        if key is None:
+            return False
+        return int(key) in self._data_store
+
     # this should be a property but somehow it stays 0 no matter what.
     def size(self):
         return len(self._data_store)
@@ -160,7 +165,9 @@ class DefaultStore:
     def get_data(self, data_id):
         return self.get_data_inst(data_id).data
 
-    def get_data_inst_by_name(self, data_name):
+    def get_data_id_by_name(self, data_name):
+        if data_name not in self._data_names:
+            return None
         return self._data_names[data_name]
 
     def get_dataset(self, data_id):
@@ -208,8 +215,12 @@ class DefaultStore:
         data_inst.dtypes = val
 
     def set_name(self, data_id, val):
+        if val in [None, ""]:
+            return
+        if val in self._data_names:
+            raise Exception("Name {} already exists!".format(val))
         data_inst = self.get_data_inst(data_id)
-        self._data_names[val] = data_inst
+        self._data_names[val] = int(data_id)
         data_inst.name = val
 
     def set_context_variables(self, data_id, val):

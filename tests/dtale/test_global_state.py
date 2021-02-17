@@ -24,7 +24,7 @@ def initialize_store(test_data):
         global_state.set_data(data_id, test_data)
         global_state.set_dtypes(data_id, build_dtypes_state(test_data))
         global_state.set_settings(data_id, dict(locked=[]))
-        global_state.set_name(data_id, "test_name")
+        global_state.set_name(data_id, "test_name" + data_id)
         global_state.set_context_variables(
             data_id, dict(favorite_words=["foo", "bar", "baz"])
         )

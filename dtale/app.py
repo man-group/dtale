@@ -785,7 +785,7 @@ def get_instance(data_id):
     :type data_id: int
     :return: :class:`dtale.views.DtaleData`
     """
-    if int(data_id) not in global_state.keys():
+    if not global_state.contains(data_id):
         return None
     if data_id is not None:
         startup_url, _ = build_startup_url_and_app_root()

@@ -964,9 +964,22 @@ def view_main(data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None or int(data_id) not in global_state.keys():
+    if not global_state.contains(data_id):
         return redirect("/dtale/{}".format(head_endpoint()))
     return _view_main(data_id)
+
+
+@dtale.route("/main/name/<data_name>")
+def view_main_by_name(data_name=None):
+    """
+    :class:`flask:flask.Flask` route which serves up base jinja template housing JS files
+
+    :param data_name: integer string identifier for a D-Tale process's data
+    :type data_name: str
+    :return: HTML
+    """
+    data_id = global_state.get_data_id_by_name(data_name)
+    return view_main(data_id)
 
 
 @dtale.route("/iframe")
