@@ -53,6 +53,7 @@ from dtale.utils import (
     find_dtype,
     find_dtype_formatter,
     find_selected_column,
+    format_grid,
     get_bool_arg,
     get_dtypes,
     get_int_arg,
@@ -2738,6 +2739,9 @@ def get_ppscore(df, col1, col2):
 
         pps = ppscore.score(df, col1, col2)
         pps["model"] = pps["model"].__str__()
+        pps["ppscore"] = float(pps["ppscore"])
+        pps["baseline_score"] = float(pps["baseline_score"])
+        pps["model_score"] = float(pps["model_score"])
         return pps
     except BaseException:
         return None
@@ -2754,7 +2758,8 @@ def get_ppscore_matrix(df):
 
         # additional PPS display
         pps_data.loc[:, "model"] = pps_data["model"].astype("str")
-        pps_data = pps_data.to_dict(orient="records")
+        pps_data = format_grid(pps_data)
+        pps_data = pps_data["results"]
         return data, pps_data
     except BaseException:
         return [], None

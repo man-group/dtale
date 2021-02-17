@@ -138,13 +138,21 @@ export class ReactMergeDatasets extends React.Component {
   }
 
   render() {
-    const { instances } = this.props;
+    const { instances, clearErrors } = this.props;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openPopup } = buttonHandlers;
     return (
       <React.Fragment>
-        {this.props.loadingError && <RemovableError {...this.props.loadingError} />}
-        {this.props.mergeError && <RemovableError {...this.props.mergeError} />}
+        {this.props.loadingError && (
+          <div className="ml-5 mr-5">
+            <RemovableError {...this.props.loadingError} onRemove={clearErrors} />
+          </div>
+        )}
+        {this.props.mergeError && (
+          <div className="ml-5 mr-5">
+            <RemovableError {...this.props.mergeError} onRemove={clearErrors} />
+          </div>
+        )}
         <ActionConfig />
         <BouncerWrapper showBouncer={this.props.loading}>
           <ul className="list-group ml-3 mr-3 pt-5">
@@ -226,6 +234,7 @@ ReactMergeDatasets.propTypes = {
   loadingError: PropTypes.object,
   mergeError: PropTypes.object,
   loadDatasets: PropTypes.func,
+  clearErrors: PropTypes.func,
 };
 
 export default connect(
@@ -243,6 +252,7 @@ export default connect(
     removeDataset: index => dispatch({ type: "remove-dataset", index }),
     toggleDataset: index => dispatch({ type: "toggle-dataset", index }),
     updateDataset: (index, prop, value) => dispatch({ type: "update-dataset", index, prop, value }),
+    clearErrors: () => dispatch({ type: "clear-errors" }),
     openChart: chartProps => dispatch(openChart(chartProps)),
   })
 )(ReactMergeDatasets);

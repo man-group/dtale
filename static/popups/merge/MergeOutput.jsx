@@ -23,7 +23,7 @@ function buildCode({ action, datasets, mergeConfig, stackConfig }, name) {
       cols = _.map(columns, "name");
     }
     const colStr = cols.length ? `[['${_.join(cols, "','")}']]` : "";
-    code.push(`df${i + 1} = dtale.get_instance('${dataId}')${colStr}${buildIdx(action, index)}`);
+    code.push(`df${i + 1} = dtale.get_instance('${dataId}').data${colStr}${buildIdx(action, index)}`);
   });
 
   if (action === "merge") {
