@@ -5,6 +5,7 @@ import json
 import os
 import socket
 import sys
+import time
 import traceback
 from builtins import map, object
 from logging import getLogger
@@ -13,6 +14,7 @@ from flask import jsonify as _jsonify
 
 import numpy as np
 import pandas as pd
+from past.utils import old_div
 from six import StringIO
 
 logger = getLogger(__name__)
@@ -287,7 +289,10 @@ def json_timestamp(x, nan_display="", **kwargs):
     """
     try:
         output = pd.Timestamp(x) if isinstance(x, np.datetime64) else x
-        output = int(output.timestamp() * 1000)
+        output = int(
+            (time.mktime(output.timetuple()) + (old_div(output.microsecond, 1000000.0)))
+            * 1000
+        )
         return str(output) if kwargs.get("as_string", False) else output
     except BaseException:
         return nan_display

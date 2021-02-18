@@ -1070,7 +1070,7 @@ def view_network(data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None or global_state.get_data_inst(data_id) is None:
+    if not global_state.contains(data_id):
         return redirect("/dtale/network/{}".format(head_endpoint()))
     return base_render_template(
         "dtale/network.html", data_id, title="Network Viewer", iframe=False
