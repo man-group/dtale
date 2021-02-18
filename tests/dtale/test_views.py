@@ -1990,10 +1990,10 @@ def test_get_pps_matrix(unittest, test_data):
         expected = {
             "baseline_score": 12.5,
             "case": "regression",
-            "is_valid_score": True,
+            "is_valid_score": "True",
             "metric": "mean absolute error",
             "model": "DecisionTreeRegressor()",
-            "model_score": 12.635071306123939,
+            "model_score": 12.635071,
             "ppscore": 0,
             "x": "foo",
             "y": "security_id",
