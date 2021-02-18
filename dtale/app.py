@@ -76,8 +76,8 @@ class DtaleFlaskTesting(FlaskClient):
         Constructor method
         """
         self.host = kwargs.pop("hostname", "localhost")
-        self.port = kwargs.pop("port", str(random.randint(0, 65535))) or str(
-            random.randint(0, 65535)
+        self.port = kwargs.pop("port", random.randint(1025, 65535)) or random.randint(
+            1025, 65535
         )
         super(DtaleFlaskTesting, self).__init__(*args, **kwargs)
         self.application.config["SERVER_NAME"] = "{host}:{port}".format(
@@ -455,11 +455,6 @@ def build_app(
         """
         return "ok"
 
-    @app.url_value_preprocessor
-    def handle_data_id(_endpoint, values):
-        if values and "data_id" in values:
-            values["data_id"] = global_state.find_data_id(values["data_id"])
-
     with app.app_context():
 
         from .dash_application import views as dash_views
@@ -755,15 +750,12 @@ def instances():
     """
     Prints all urls to the current pieces of data being viewed
     """
-    curr_data = global_state.get_data()
-
-    if len(curr_data):
+    if global_state.size() > 0:
 
         def _instance_msgs():
-            for data_id in curr_data:
+            for data_id in global_state.keys():
                 data_obj = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST))
-                metadata = global_state.get_metadata(data_id)
-                name = metadata.get("name")
+                name = global_state.get_name(data_id)
                 yield [data_id, name or "", data_obj.build_main_url(data_id=data_id)]
                 if name is not None:
                     yield [
@@ -789,14 +781,15 @@ def get_instance(data_id):
     Returns a :class:`dtale.views.DtaleData` object for the data_id passed as input, will return None if the data_id
     does not exist
 
-    :param data_id: integer string identifier for a D-Tale process's data
-    :type data_id: str
+    :param data_id: integer identifier for a D-Tale process's data
+    :type data_id: int
     :return: :class:`dtale.views.DtaleData`
     """
-    data_id_str = global_state.find_data_id(str(data_id))
-    if data_id_str is not None:
+    if not global_state.contains(data_id):
+        return None
+    if data_id is not None:
         startup_url, _ = build_startup_url_and_app_root()
-        return DtaleData(data_id_str, startup_url)
+        return DtaleData(data_id, startup_url)
     return None
 
 

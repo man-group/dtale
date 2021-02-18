@@ -30,10 +30,10 @@ def create_df():
 @app.route("/active-instances")
 def get_all_dtale_servers():
     instances = []
-    for data_id in dtale.global_state.get_data().keys():
+    for data_id in dtale.global_state.keys():
         data_obj = dtale.get_instance(data_id)
-        metadata = dtale.global_state.get_metadata(data_id)
-        name = metadata.get("name")
+        metadata = dtale.global_state.get_name(data_id)
+        name = dtale.global_state.get_data_inst(data_id).name
         # convert pandas timestamp to python dateTime
         time = pd.Timestamp(metadata.get("start"), tz=None).to_pydatetime()
         datetime = time.strftime("%Y-%m-%d %H:%M:%S")

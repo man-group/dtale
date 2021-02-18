@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import pytest
 
-from tests import ExitStack
+from tests import ExitStack, build_data_inst
 from tests.dtale.dash.test_dash import build_chart_params, path_builder
 from tests.dtale.test_views import app
 
@@ -27,7 +27,7 @@ def test_update_geojson():
     with app.test_client() as c:
         with ExitStack() as stack:
             custom_geojson_data = []
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: None}))
+            build_data_inst({c.port: None})
             stack.enter_context(
                 mock.patch(
                     "dtale.dash_application.custom_geojson.CUSTOM_GEOJSON",
@@ -223,7 +223,7 @@ def test_building_choropleth_map_w_custom_geojson(unittest):
             c.post("/dtale/charts/_dash-update-component", json=params)
 
             df, _ = views.format_data(df)
-            stack.enter_context(mock.patch("dtale.global_state.DATA", {c.port: df}))
+            build_data_inst({c.port: df})
             pathname = path_builder(c.port)
             inputs = {"chart_type": "maps", "agg": "raw"}
             map_inputs = {

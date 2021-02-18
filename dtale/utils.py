@@ -282,7 +282,6 @@ def json_date(x, fmt="%Y-%m-%d %H:%M:%S", nan_display="", **kwargs):
 def json_timestamp(x, nan_display="", **kwargs):
     """
     Convert value to timestamp (milliseconds) to be used within JSON output
-
     :param x: value to be converted to milliseconds
     :param nan_display: if `x` is :attr:`numpy:numpy.nan` then return this value
     :return: millisecond value

@@ -1,10 +1,8 @@
-import mock
 import pandas as pd
 import pytest
 from six import PY3
 
 import dtale.query as query
-from tests import ExitStack
 
 
 @pytest.mark.unit
@@ -29,7 +27,10 @@ def test_run_query():
 
 @pytest.mark.unit
 def test_build_query():
-    with ExitStack() as stack:
-        settings = {"1": {"columnFilters": {"foo": {"query": "`foo` == 1"}}}}
-        stack.enter_context(mock.patch("dtale.global_state.SETTINGS", settings))
-        assert query.build_query("1") == "`foo` == 1"
+    import dtale.global_state as global_state
+
+    data_id = global_state.new_data_inst()
+    global_state.set_settings(
+        data_id, {"columnFilters": {"foo": {"query": "`foo` == 1"}}}
+    )
+    assert query.build_query(data_id) == "`foo` == 1"
