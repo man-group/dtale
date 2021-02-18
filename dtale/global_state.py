@@ -504,9 +504,6 @@ def use_redis_store(directory, *args, **kwargs):
         def items(self):
             return self.to_dict().items()
 
-        def keys(self):
-            return self.to_dict().keys()
-
         def __len__(self):
             return len(self.keys())
 

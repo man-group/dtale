@@ -6,12 +6,12 @@ import dtale.global_state as global_state
 from dtale.views import build_dtypes_state
 
 
-def setup_module(module):
+def setup_function(function):
     global_state.cleanup()
     global_state.use_default_store()
 
 
-def teardown_module(module):
+def teardown_function(function):
     global_state.cleanup()
     global_state.use_default_store()
 
