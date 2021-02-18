@@ -6,7 +6,8 @@ import pytest
 from six import BytesIO, PY3
 
 from dtale.app import build_app
-from tests import ExitStack, build_data_inst
+from tests import ExitStack
+from tests.dtale import build_data_inst
 
 URL = "http://localhost:40000"
 

@@ -17,7 +17,7 @@ APP_SETTINGS = {
 }
 
 
-class DtaleInstance:
+class DtaleInstance(object):
 
     _dataset = None
     _dataset_dim = None
@@ -110,7 +110,7 @@ class DtaleInstance:
         self._settings = settings
 
 
-class DefaultStore:
+class DefaultStore(object):
     def __init__(self):
         self._data_store = dict()
         self._data_names = dict()
@@ -408,7 +408,7 @@ def use_shelve_store(directory):
     from os.path import join
     from threading import Thread
 
-    class DtaleShelf:
+    class DtaleShelf(object):
         """Interface allowing dtale to use 'shelf' databases for global data storage."""
 
         def __init__(self, filename):

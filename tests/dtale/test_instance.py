@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 
 from dtale.dash_application.charts import get_url_parser
-from tests import ExitStack, build_data_inst
+from tests import ExitStack
+from tests.dtale import build_data_inst
 
 
 @pytest.mark.unit

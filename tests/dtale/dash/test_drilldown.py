@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from tests import build_data_inst
+from tests.dtale import build_data_inst
 from tests.dtale.dash.test_dash import (
     build_dash_request,
     path_builder,

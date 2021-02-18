@@ -5,7 +5,7 @@ from numpy.random import randn
 from six import PY3
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
-from tests import build_data_inst
+from tests.dtale import build_data_inst
 
 
 def verify_builder(builder, checker):

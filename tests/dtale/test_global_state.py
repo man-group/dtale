@@ -125,7 +125,9 @@ def test_as_dict(unittest):
 
 @pytest.mark.unit
 def test_use_store(unittest, test_data):
-    class store_class:
+    class store_class(object):
+        __name__ = "store_class"
+
         def __init__(self):
             self.data = dict()
 

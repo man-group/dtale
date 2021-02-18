@@ -1,7 +1,7 @@
 import pytest
 
 from dtale.app import build_app
-from tests import build_data_inst
+from tests.dtale import build_data_inst
 from tests.dtale.test_views import URL
 
 

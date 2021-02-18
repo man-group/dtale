@@ -9,7 +9,7 @@ from dtale.duplicate_checks import (
     RemoveAllDataException,
 )
 from tests.dtale.test_views import app
-from tests import build_data_inst, build_dtypes
+from tests.dtale import build_data_inst, build_dtypes
 
 
 def duplicates_data():

@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from dtale.column_builders import ColumnBuilder
-from tests import build_data_inst
+from tests.dtale import build_data_inst
 from tests.dtale.column_builders.test_column_builders import verify_builder
 
 

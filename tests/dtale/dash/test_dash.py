@@ -19,7 +19,8 @@ from dtale.dash_application.charts import (
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq
 from dtale.utils import make_list
-from tests import ExitStack, build_data_inst
+from tests import ExitStack
+from tests.dtale import build_data_inst
 from tests.dtale.test_views import URL
 
 

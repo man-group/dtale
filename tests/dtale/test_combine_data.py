@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from tests.dtale.test_views import app
-from tests import build_data_inst, build_settings, build_dtypes
+from tests.dtale import build_data_inst, build_settings, build_dtypes
 
 
 @pytest.mark.unit

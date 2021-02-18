@@ -15,7 +15,8 @@ from six import PY3
 
 from dtale.app import build_app
 from dtale.utils import DuplicateDataError
-from tests import ExitStack, build_data_inst, build_settings, build_dtypes
+from tests import ExitStack
+from tests.dtale import build_data_inst, build_settings, build_dtypes
 
 
 URL = "http://localhost:40000"

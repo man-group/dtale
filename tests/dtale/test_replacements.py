@@ -9,7 +9,7 @@ from six import PY3
 
 from dtale.column_replacements import ColumnReplacement
 from tests.dtale.test_views import app
-from tests import build_data_inst, build_dtypes
+from tests.dtale import build_data_inst, build_dtypes
 
 
 def replacements_data():
