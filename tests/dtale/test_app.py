@@ -575,7 +575,7 @@ def test_DtaleFlask():
     from dtale.app import DtaleFlask, REAPER_TIMEOUT
 
     with ExitStack() as stack:
-        mock_run = stack.enter_context(mock.patch("flask.Flask.run", mock.Mock()))
+        mock_run = stack.enter_context(mock.patch("bjoern.run", mock.Mock()))
         stack.enter_context(
             mock.patch("socket.gethostname", mock.Mock(return_value="test"))
         )
@@ -598,7 +598,7 @@ def test_DtaleFlask():
         timer_instance.cancel.assert_called_once()
 
     with ExitStack() as stack:
-        mock_run = stack.enter_context(mock.patch("flask.Flask.run", mock.Mock()))
+        mock_run = stack.enter_context(mock.patch("bjoern.run", mock.Mock()))
         stack.enter_context(
             mock.patch("socket.gethostname", mock.Mock(return_value="test"))
         )
@@ -612,7 +612,7 @@ def test_DtaleFlask():
         mock_timer.assert_not_called()
 
     with ExitStack() as stack:
-        mock_run = stack.enter_context(mock.patch("flask.Flask.run", mock.Mock()))
+        mock_run = stack.enter_context(mock.patch("bjoern.run", mock.Mock()))
         stack.enter_context(
             mock.patch("socket.gethostname", mock.Mock(return_value="test"))
         )

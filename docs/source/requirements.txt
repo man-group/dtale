@@ -18,3 +18,4 @@ statsmodels; python_version > '3.0'
 xarray
 pyarrow
 xlrd
+bjoern

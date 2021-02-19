@@ -104,6 +104,7 @@ setup(
         "xlrd",
         "openpyxl == 2.6.4; python_version < '3.0'",
         "openpyxl; python_version >= '3.0'",
+        "bjoern",
     ],
     extras_require={
         "arctic": ["arctic"],

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import bjoern
 import getpass
 import jinja2
 import os
@@ -171,18 +172,22 @@ class DtaleFlask(Flask):
         :param kwargs: Optional keyword arguments to be passed to :meth:`flask:flask.run`
         """
         port_num = kwargs.get("port")
-        self.port = str(port_num or "")
+        self.port = int(port_num)
+        host = kwargs.get("host", "0.0.0.0")
         if not self.base_url:
-            host = kwargs.get("host")
             initialize_process_props(host, port_num)
             app_url = build_url(self.port, host)
             self._setup_url_props(app_url)
         if kwargs.get("debug", False):
             self.reaper_on = False
+        else:
+            self.config["DEBUG"] = True
+        try:
+            del kwargs["debug"]
+        except KeyError:
+            pass
         self.build_reaper()
-        super(DtaleFlask, self).run(
-            use_reloader=kwargs.get("debug", False), *args, **kwargs
-        )
+        bjoern.run(self, *args, **kwargs)
 
     def test_client(self, reaper_on=False, port=None, app_root=None, *args, **kwargs):
         """
@@ -711,15 +716,13 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                 cli = sys.modules.get("flask.cli")
                 if cli is not None:
                     cli.show_server_banner = lambda *x: None
-
                 if USE_NGROK:
-                    app.run(threaded=True)
+                    app.run()
                 else:
                     app.run(
                         host="0.0.0.0",
                         port=ACTIVE_PORT,
                         debug=final_options["debug"],
-                        threaded=True,
                     )
 
         if final_options["subprocess"]:
