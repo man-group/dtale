@@ -733,3 +733,12 @@ def apply(df, func, *args, **kwargs):
         return df.swifter.progress_bar(False).apply(func, *args, **kwargs)
     except ImportError:
         return df.apply(func, *args, **kwargs)
+
+
+def optimize_df(df):
+    for col in df.select_dtypes(include=["object"]):
+        num_unique_values = len(df[col].unique())
+        num_total_values = len(df[col])
+        if num_unique_values / num_total_values < 0.5:
+            df[col] = df[col].astype("category")
+    return df
