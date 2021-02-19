@@ -207,6 +207,17 @@ class Instances extends React.Component {
                     )}
                     className="cell"
                   />
+                   <Column
+                    width={150}
+                    dataKey="mem_usage"
+                    label="Memory Usage (MB)"
+                    style={{
+                      textAlign: "center",
+                      paddingRight: ".5em",
+                      fontSize: "80%",
+                    }}
+                    className="cell"
+                  />
                   {previewCol}
                 </Table>
               )}

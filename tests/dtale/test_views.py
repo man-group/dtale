@@ -284,6 +284,7 @@ def test_processes(test_data, unittest):
                     "names": u"date,security_id,foo,bar,baz",
                     "data_id": c.port,
                     "columns": 5,
+                    "mem_usage": 0,
                 }
             ],
             response_data["data"],

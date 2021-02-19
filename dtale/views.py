@@ -72,6 +72,7 @@ from dtale.utils import (
     running_with_flask_debug,
     running_with_pytest,
     sort_df_for_grid,
+    optimize_df,
 )
 
 logger = getLogger(__name__)
@@ -765,6 +766,7 @@ def startup(
     precision=2,
     show_columns=None,
     hide_columns=None,
+    optimize_dataframe=False,
 ):
     """
     Loads and stores data globally
@@ -871,7 +873,6 @@ def startup(
 
         if data_id is None:
             data_id = global_state.new_data_inst()
-
         if global_state.get_settings(data_id) is not None:
             curr_settings = global_state.get_settings(data_id)
             curr_locked = curr_settings.get("locked", [])
@@ -895,6 +896,8 @@ def startup(
             precision=precision,
         )
         global_state.set_settings(data_id, base_settings)
+        if optimize_dataframe:
+            data = optimize_df(data)
         global_state.set_data(data_id, data)
         dtypes_state = build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
         if show_columns or hide_columns:
@@ -1123,6 +1126,14 @@ def get_processes():
             start=json_date(mdata["start"], fmt="%-I:%M:%S %p"),
             ts=json_timestamp(mdata["start"]),
             name=global_state.get_name(data_id),
+            # mem usage in MB
+            mem_usage=int(
+                global_state.get_data(data_id)
+                .memory_usage(index=False, deep=True)
+                .sum()
+                / 1024
+                / 1024
+            ),
         )
 
     processes = sorted(
