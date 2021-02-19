@@ -207,7 +207,7 @@ class Instances extends React.Component {
                     )}
                     className="cell"
                   />
-                   <Column
+                  <Column
                     width={150}
                     dataKey="mem_usage"
                     label="Memory Usage (MB)"
