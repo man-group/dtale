@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.36.0 (2021-2-18)
+* Turn global_state into interfaces ([#428](https://github.com/man-group/dtale/pull/428))
+* [#434](https://github.com/man-group/dtale/issues/434): Additional PPS formatting
+* [#433](https://github.com/man-group/dtale/issues/433): fixed exception message display in merge UI
+* [#432](https://github.com/man-group/dtale/issues/432): updated calls to "get_instance" in merge code snippets
+* [#431](https://github.com/man-group/dtale/issues/431): fixed stacking code example
+* [#430](https://github.com/man-group/dtale/issues/430): replace empty strings with nans when converting dates to timestamp floats
+
 ### 1.35.0 (2021-2-14)
 * [#261](https://github.com/man-group/dtale/issues/261): Merging & Stacking UI
 
