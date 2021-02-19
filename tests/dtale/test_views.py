@@ -196,6 +196,23 @@ def test_startup(unittest):
         sorted(instance.data["0"].values.tolist()), sorted(test_data.values())
     )
 
+    test_data = pd.DataFrame(
+        dict(
+            a=["{}".format(i) for i in range(10)],
+            b=["{}".format(i % 2) for i in range(10)],
+        )
+    )
+    instance = views.startup(
+        URL,
+        data_loader=lambda: test_data,
+        ignore_duplicate=True,
+        optimize_dataframe=True,
+    )
+    unittest.assertEqual(
+        list(instance.data.dtypes.apply(lambda x: x.name).values),
+        ["object", "category"],
+    )
+
 
 @pytest.mark.unit
 def test_in_ipython_frontend(builtin_pkg):
