@@ -219,53 +219,55 @@ class ReactDataViewer extends React.Component {
     return (
       <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
         <DtaleHotkeys propagateState={this.propagateState} {...this.state} />
-        <InfiniteLoader
-          isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
-          loadMoreRows={_.noop}
-          rowCount={this.state.rowCount}>
-          {({ onRowsRendered }) => {
-            this._onRowsRendered = onRowsRendered;
-            return (
-              <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
-                {({ width, height }) => {
-                  const gridHeight = height - (gu.hasNoInfo(this.state) ? 3 : 23);
-                  return [
-                    <DataViewerInfo key={0} width={width} {...this.state} propagateState={this.propagateState} />,
-                    <MultiGrid
-                      {...this.state}
-                      key={1}
-                      columnCount={gu.getActiveCols(this.state).length}
-                      onScroll={this.props.closeColumnMenu}
-                      cellRenderer={this._cellRenderer}
-                      height={gridHeight}
-                      width={width - 3}
-                      columnWidth={({ index }) => gu.getColWidth(index, this.state)}
-                      onSectionRendered={this._onSectionRendered}
-                      ref={mg => (this._grid = mg)}
-                    />,
-                  ];
-                }}
-              </AutoSizer>
-            );
-          }}
-        </InfiniteLoader>
-        <DataViewerMenu {...this.state} propagateState={this.propagateState} />
-        <Popup propagateState={this.propagateState} />
-        <Formatting
-          {..._.pick(this.state, ["data", "columns", "columnFormats", "nanDisplay"])}
-          selectedCol={_.get(this.state.selectedCols, "0")}
-          visible={formattingOpen}
-          propagateState={this.propagateState}
-        />
-        <MeasureText />
-        <ColumnMenu
-          {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "outlierFilters", "error"])}
-          backgroundMode={this.state.backgroundMode}
-          propagateState={this.propagateState}
-          noInfo={gu.hasNoInfo(this.state)}
-        />
-        <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
-          {Descriptions.editing}
+        <div style={{ display: "flex", width: "100%", height: "100%" }}>
+          <DataViewerMenu {...this.state} propagateState={this.propagateState} />
+          <InfiniteLoader
+            isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
+            loadMoreRows={_.noop}
+            rowCount={this.state.rowCount}>
+            {({ onRowsRendered }) => {
+              this._onRowsRendered = onRowsRendered;
+              return (
+                <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
+                  {({ width, height }) => {
+                    const gridHeight = height - (gu.hasNoInfo(this.state) ? 3 : 23);
+                    return [
+                      <DataViewerInfo key={0} width={width} {...this.state} propagateState={this.propagateState} />,
+                      <MultiGrid
+                        {...this.state}
+                        key={1}
+                        columnCount={gu.getActiveCols(this.state).length}
+                        onScroll={this.props.closeColumnMenu}
+                        cellRenderer={this._cellRenderer}
+                        height={gridHeight}
+                        width={width - 3}
+                        columnWidth={({ index }) => gu.getColWidth(index, this.state)}
+                        onSectionRendered={this._onSectionRendered}
+                        ref={mg => (this._grid = mg)}
+                      />,
+                    ];
+                  }}
+                </AutoSizer>
+              );
+            }}
+          </InfiniteLoader>
+          <Popup propagateState={this.propagateState} />
+          <Formatting
+            {..._.pick(this.state, ["data", "columns", "columnFormats", "nanDisplay"])}
+            selectedCol={_.get(this.state.selectedCols, "0")}
+            visible={formattingOpen}
+            propagateState={this.propagateState}
+          />
+          <MeasureText />
+          <ColumnMenu
+            {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "outlierFilters", "error"])}
+            backgroundMode={this.state.backgroundMode}
+            propagateState={this.propagateState}
+            noInfo={gu.hasNoInfo(this.state)}
+          />
+          <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
+            {Descriptions.editing}
+          </div>
         </div>
       </GridEventHandler>
     );

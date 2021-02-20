@@ -189,6 +189,15 @@ function isPreview(state = false, action = {}) {
   }
 }
 
+function menuPinned(state = false, action = {}) {
+  switch (action.type) {
+    case "toggle-menu-pinned":
+      return !state;
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -206,6 +215,7 @@ const dtaleStore = combineReducers({
   settings,
   pythonVersion,
   isPreview,
+  menuPinned,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

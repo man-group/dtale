@@ -24,7 +24,7 @@ import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { hideShutdown, dataId, menuOpen, backgroundMode, pythonVersion } = this.props;
+    const { hideShutdown, dataId, menuOpen, menuPinned, backgroundMode, pythonVersion } = this.props;
     const iframe = global.top !== global.self;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup } = buttonHandlers;
@@ -53,12 +53,16 @@ class ReactDataViewerMenu extends React.Component {
       $(document).unbind("click.gridActions");
       this.props.propagateState({ menuOpen: false });
     };
+    const containerProps = menuPinned
+      ? { className: "pinned-data-viewer-menu" }
+      : {
+        className: "column-toggle__dropdown",
+        hidden: !menuOpen,
+        style: { minWidth: "13.65em", top: "1em", left: "0.5em" },
+      };
     return (
-      <div
-        className="column-toggle__dropdown"
-        hidden={!menuOpen}
-        style={{ minWidth: "13.65em", top: "1em", left: "0.5em" }}>
-        {menuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
+      <div {...containerProps}>
+        {!menuPinned && menuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <header className="title-font">D-TALE</header>
         <ul>
           <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
@@ -232,6 +236,15 @@ class ReactDataViewerMenu extends React.Component {
             </span>
             <div className="hoverable__content menu-description">{Descriptions.reload_data}</div>
           </li>
+          <li className="hoverable">
+            <span className="toggler-action">
+              <button className="btn btn-plain" onClick={this.props.toggleMenuPinned}>
+                <i className="fa fa-anchor la-lg mr-4 ml-1" />
+                <span className="font-weight-bold">{menuPinned ? "Unpin menu" : "Pin menu"}</span>
+              </button>
+            </span>
+            <div className="hoverable__content menu-description">{Descriptions.pin_menu}</div>
+          </li>
           <ConditionalRender display={iframe}>
             <li>
               <span className="toggler-action">
@@ -269,11 +282,16 @@ ReactDataViewerMenu.propTypes = {
   hideShutdown: PropTypes.bool,
   dataId: PropTypes.string.isRequired,
   pythonVersion: PropTypes.arrayOf(PropTypes.number),
+  menuPinned: PropTypes.bool,
+  toggleMenuPinned: PropTypes.func,
 };
 
 const ReduxDataViewerMenu = connect(
-  state => _.pick(state, ["dataId", "hideShutdown", "pythonVersion"]),
-  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
+  state => _.pick(state, ["dataId", "hideShutdown", "pythonVersion", "menuPinned"]),
+  dispatch => ({
+    openChart: chartProps => dispatch(openChart(chartProps)),
+    toggleMenuPinned: () => dispatch({ type: "toggle-menu-pinned" }),
+   })
 )(ReactDataViewerMenu);
 
 export { ReduxDataViewerMenu as DataViewerMenu, ReactDataViewerMenu };
