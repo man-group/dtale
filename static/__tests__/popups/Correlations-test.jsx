@@ -56,7 +56,7 @@ describe("Correlations tests", () => {
               { name: "col4", rolling: true },
               { name: "col5", rolling: false },
             ];
-            return { data: correlationsData.data, dates };
+            return { data: correlationsData.data, dates, date: "2018-12-19" };
           }
         }
         const { urlFetcher } = require("../redux-test-utils").default;
@@ -170,9 +170,7 @@ describe("Correlations tests", () => {
     result.find(ChartsBody).instance().state.charts[0].cfg.options.onClick({ foo: 1 });
     await tickUpdate(result);
     expect(result.find(Correlations).instance().state.chart).toBeDefined();
-    expect(
-      _.startsWith(result.find(CorrelationScatterStats).text(), "col1 vs. col2 for 2018-12-16 thru 2018-12-19")
-    ).toBe(true);
+    expect(result.find(CorrelationScatterStats).text()).toMatch(/col1 vs. col2 for 2018-12-16 thru 2018-12-19/);
     expect(
       result
         .find(Correlations)

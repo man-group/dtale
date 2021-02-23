@@ -2154,7 +2154,7 @@ if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):
 df = df.reset_index().drop('index', axis=1, errors='ignore')
 df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers
 
-scatter_data = df[df['date'] == '20000101']
+scatter_data = df[df['date'] == '2000-01-01']
 scatter_data = scatter_data['foo', 'bar'].dropna(how='any')
 scatter_data['index'] = scatter_data.index
 s0 = scatter_data['foo']
@@ -2181,7 +2181,7 @@ def test_get_scatter(unittest, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
-        params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
+        params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), index=0)
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = dict(
@@ -2216,6 +2216,7 @@ def test_get_scatter(unittest, rolling_data):
             max={"bar": 4, "index": 4, "x": 4},
             min={"bar": 0, "index": 0, "x": 0},
             x="foo",
+            date="2000-01-01",
         )
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},
@@ -2231,7 +2232,7 @@ def test_get_scatter(unittest, rolling_data):
         params = dict(
             dateCol="date",
             cols=json.dumps(["0", "1"]),
-            date="20191201",
+            index=699,
             rolling=True,
             window="4",
         )

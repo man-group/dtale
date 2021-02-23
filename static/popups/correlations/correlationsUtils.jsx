@@ -60,18 +60,19 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
 
 const BASE_SCATTER_URL = "/dtale/scatter";
 
-function buildScatterParams(selectedCols, date, props, state) {
+function buildScatterParams(selectedCols, index, props, state) {
   const params = { selectedCols, query: props.chartData.query };
-  if (date) {
+  if (index !== undefined) {
     params.dateCol = state.selectedDate;
-    params.date = date;
+    params.index = index;
   }
   if (state.rolling) {
     params.rolling = state.rolling;
     params.window = state.window;
+    params.minPeriods = state.minPeriods;
   }
   const path = `${BASE_SCATTER_URL}/${props.dataId}`;
-  return buildURL(path, params, ["selectedCols", "query", "date", "dateCol", "rolling", "window"]);
+  return buildURL(path, params, ["selectedCols", "query", "index", "dateCol", "rolling", "window", "minPeriods"]);
 }
 
 function findCols(chartData, columns) {

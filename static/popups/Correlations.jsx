@@ -142,8 +142,8 @@ class Correlations extends React.Component {
     }
   }
 
-  buildScatter(selectedCols, date = null, tsCode = null) {
-    const scatterUrl = corrUtils.buildScatterParams(selectedCols, date, this.props, this.state);
+  buildScatter(selectedCols, dateIndex = null, tsCode = null) {
+    const scatterUrl = corrUtils.buildScatterParams(selectedCols, dateIndex, this.props, this.state);
     if (this.state.scatterUrl === scatterUrl) {
       return;
     }
@@ -153,7 +153,7 @@ class Correlations extends React.Component {
       const newState = {
         selectedCols,
         stats: fetchedChartData.stats,
-        date,
+        date: fetchedChartData.date,
         scatterError: null,
         scatterUrl,
         scatterCode: fetchedChartData.code,
@@ -185,7 +185,7 @@ class Correlations extends React.Component {
       if (selectedPoint) {
         chart.getDatasetMeta(0).controller._config.selectedPoint = selectedPoint._index;
         const { selectedCols } = this.state;
-        this.buildScatter(selectedCols, chart.data.labels[selectedPoint._index]);
+        this.buildScatter(selectedCols, selectedPoint._index);
       }
     }
   }
@@ -244,7 +244,7 @@ class Correlations extends React.Component {
                   const tsCode = _.get(data, "code", "");
                   if (selectedDate) {
                     this.setState({ tsPps: _.get(data, "pps") });
-                    this.buildScatter(this.state.selectedCols, selectedDate, tsCode);
+                    this.buildScatter(this.state.selectedCols, 0, tsCode);
                   } else {
                     this.setState({
                       tsCode: _.get(data, "code", ""),

@@ -2899,7 +2899,7 @@ def get_scatter(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     cols = get_json_arg(request, "cols")
-    date = get_str_arg(request, "date")
+    date_index = get_int_arg(request, "index")
     date_col = get_str_arg(request, "dateCol")
     rolling = get_bool_arg(request, "rolling")
 
@@ -2912,10 +2912,14 @@ def get_scatter(data_id):
     idx_col = str("index")
     y_cols = [cols[1], idx_col]
     code = build_code_export(data_id)
-
+    selected_date = None
     if rolling:
         window = get_int_arg(request, "window")
-        idx = min(data[data[date_col] == date].index) + 1
+        min_periods = get_int_arg(request, "minPeriods", default=0)
+        dates = data[date_col].sort_values().unique()
+        selected_date = dates[min(date_index + max(min_periods - 1, 1), len(dates) - 1)]
+        idx = min(data[data[date_col] == selected_date].index) + 1
+        selected_date = json_date(selected_date, nan_display=None)
         data = data.iloc[max(idx - window, 0) : idx]
         data = data[cols + [date_col]].dropna(how="any")
         y_cols.append(date_col)
@@ -2926,20 +2930,23 @@ def get_scatter(data_id):
                 "scatter_data = scatter_data['{cols}'].dropna(how='any')"
             ).format(
                 date_col=date_col,
-                date=date,
+                date=selected_date,
                 window=window,
                 cols="', '".join(sorted(list(set(cols)) + [date_col])),
             )
         )
     else:
-        data = data[data[date_col] == date] if date else data
+        if date_index is not None:
+            selected_date = data[date_col].sort_values().unique()[date_index]
+            data = data[data[date_col] == selected_date]
+            selected_date = json_date(selected_date, nan_display=None)
         data = data[cols].dropna(how="any")
         code.append(
             (
                 "scatter_data = df[df['{date_col}'] == '{date}']"
-                if date
+                if date_index is not None
                 else "scatter_data = df"
-            ).format(date_col=date_col, date=date)
+            ).format(date_col=date_col, date=selected_date)
         )
         code.append(
             "scatter_data = scatter_data['{cols}'].dropna(how='any')".format(
@@ -2987,6 +2994,7 @@ def get_scatter(data_id):
     data["y"] = cols[1]
     data["stats"] = stats
     data["code"] = "\n".join(code)
+    data["date"] = selected_date
     return jsonify(data)
 
 
