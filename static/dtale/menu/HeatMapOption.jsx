@@ -4,6 +4,7 @@ import React from "react";
 
 import { exports as gu } from "../gridUtils";
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 class HeatMapOption extends React.Component {
   constructor(props) {
@@ -13,7 +14,7 @@ class HeatMapOption extends React.Component {
   render() {
     const { backgroundMode, toggleBackground } = this.props;
     return (
-      <li className="hoverable" style={{ color: "#565b68" }}>
+      <MenuItem style={{ color: "#565b68" }} description={Descriptions.heatmap}>
         <span className="toggler-action">
           <i className={`fa fa-${gu.heatmapActive(backgroundMode) ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
         </span>
@@ -38,8 +39,7 @@ class HeatMapOption extends React.Component {
             )
           )}
         </div>
-        <div className="hoverable__content menu-description">{Descriptions.heatmap}</div>
-      </li>
+      </MenuItem>
     );
   }
 }

@@ -198,6 +198,17 @@ function menuPinned(state = false, action = {}) {
   }
 }
 
+function menuTooltip(state = { visible: false }, action = {}) {
+  switch (action.type) {
+    case "show-menu-tooltip":
+      return { visible: true, element: action.element, content: action.content };
+    case "hide-menu-tooltip":
+      return { visible: false };
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -216,6 +227,7 @@ const dtaleStore = combineReducers({
   pythonVersion,
   isPreview,
   menuPinned,
+  menuTooltip,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

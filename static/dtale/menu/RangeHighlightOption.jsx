@@ -4,6 +4,7 @@ import React from "react";
 
 import { Bouncer } from "../../Bouncer";
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 class RangeHighlightOption extends React.Component {
   constructor(props) {
@@ -20,7 +21,7 @@ class RangeHighlightOption extends React.Component {
       this.props.propagateState({ rangeHighlight, backgroundMode: null });
     };
     return (
-      <li className="hoverable">
+      <MenuItem description={Descriptions.highlight_range}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={openRangeHightlight}>
             <div style={{ display: "inherit" }}>
@@ -39,8 +40,7 @@ class RangeHighlightOption extends React.Component {
             <i className="ico-close-circle pointer mr-3 btn-plain" onClick={turnOffRangeHighlight} />
           </div>
         )}
-        <div className="hoverable__content menu-description">{Descriptions.highlight_range}</div>
-      </li>
+      </MenuItem>
     );
   }
 }

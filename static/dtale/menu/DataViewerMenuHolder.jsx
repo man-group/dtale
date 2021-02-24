@@ -22,7 +22,7 @@ class ReactDataViewerMenuHolder extends React.Component {
     return (
       <div style={style} className="menu-toggle">
         <div className="crossed">
-          {menuPinned ? null : (
+          {!menuPinned && (
             <div
               className={`grid-menu ${menuOpen ? "open" : ""}`}
               style={{
@@ -52,7 +52,8 @@ ReactDataViewerMenuHolder.propTypes = {
   propagateState: PropTypes.func,
 };
 
-const ReduxDataViewerMenuHolder = connect(({ theme, menuPinned }) => ({ theme, menuPinned }))(
-  ReactDataViewerMenuHolder
-);
+const ReduxDataViewerMenuHolder = connect(({ theme, menuPinned }) => ({
+  theme,
+  menuPinned,
+}))(ReactDataViewerMenuHolder);
 export { ReduxDataViewerMenuHolder as DataViewerMenuHolder, ReactDataViewerMenuHolder };

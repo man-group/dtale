@@ -139,7 +139,7 @@ class ReactGridEventHandler extends React.Component {
 
   render() {
     return (
-      <div className="h-100 w-100" onMouseOver={this.handleMouseOver} onClick={this.handleClicks}>
+      <div className="h-100 w-100 d-flex" onMouseOver={this.handleMouseOver} onClick={this.handleClicks}>
         {this.props.children}
       </div>
     );

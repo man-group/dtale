@@ -7,6 +7,7 @@ import actions from "../../actions/dtale";
 import { exports as gu } from "../gridUtils";
 import Descriptions from "../menu-descriptions.json";
 import serverStateManagement from "../serverStateManagement";
+import { MenuItem } from "./MenuItem";
 
 class ReactThemeOption extends React.Component {
   constructor(props) {
@@ -17,7 +18,7 @@ class ReactThemeOption extends React.Component {
     const { setTheme, theme } = this.props;
     const updateTheme = newTheme => () => serverStateManagement.updateTheme(newTheme, () => setTheme(newTheme));
     return (
-      <li className="hoverable" style={{ color: "#565b68" }}>
+      <MenuItem style={{ color: "#565b68" }} description={Descriptions.theme}>
         <span className="toggler-action">
           <i className="fas fa-adjust" />
         </span>
@@ -33,8 +34,7 @@ class ReactThemeOption extends React.Component {
             </button>
           ))}
         </div>
-        <div className="hoverable__content menu-description">{Descriptions.theme}</div>
-      </li>
+      </MenuItem>
     );
   }
 }
