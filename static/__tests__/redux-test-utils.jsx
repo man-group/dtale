@@ -202,7 +202,7 @@ function urlFetcher(url) {
       const dates = _.fill(Array(_.size(scatterData.data.all.x)), "2018-04-30");
       return _.assign({ code: "scatter code test" }, scatterData, {
         data: { all: _.assign({}, scatterData.data.all, { date: dates }) },
-        date: "2018-12-19",
+        date: " for 2018-12-16 thru 2018-12-19",
       });
     }
     return scatterData;

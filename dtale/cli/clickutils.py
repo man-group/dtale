@@ -107,7 +107,7 @@ def get_loader_options(key, options):
         segs = option.split("_")
         if len(segs) == 1:
             return ""
-        return "_".join(segs[1:])
+        return option.split("{}_".format(key))[-1]
 
     return dict(
         (

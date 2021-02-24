@@ -1,5 +1,4 @@
 import _ from "lodash";
-import moment from "moment";
 import PropTypes from "prop-types";
 import React from "react";
 
@@ -15,14 +14,7 @@ class CorrelationScatterStats extends React.Component {
 
   renderDescription() {
     const [col0, col1] = this.props.selectedCols;
-    let dateStr = this.props.date ? ` for ${this.props.date}` : "";
-    if (this.props.rolling) {
-      const startDate = moment(this.props.date)
-        .subtract(this.props.window - 1, "days")
-        .format("YYYY-MM-DD");
-      dateStr = ` for ${startDate} thru ${this.props.date}`;
-    }
-    return <b>{`${col0} vs. ${col1}${dateStr}`}</b>;
+    return <b>{`${col0} vs. ${col1}${this.props.date || ""}`}</b>;
   }
 
   render() {
@@ -87,8 +79,6 @@ CorrelationScatterStats.propTypes = {
     only_in_s0: PropTypes.number,
     only_in_s1: PropTypes.number,
   }),
-  rolling: PropTypes.bool,
-  window: PropTypes.number,
   scatterCode: PropTypes.string,
 };
 

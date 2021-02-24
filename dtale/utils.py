@@ -496,9 +496,9 @@ def coord_type(s):
     if classify_type(find_dtype(s)) != "F":
         return None
     if "lat" in s.name.lower():
-        return None if (~s.dropna().between(-90, 90)).sum() else "lat"
+        return None if (~s.dropna().between(-90, 90, inclusive=True)).sum() else "lat"
     if "lon" in s.name.lower():
-        return None if (~s.dropna().between(-180, 180)).sum() else "lon"
+        return None if (~s.dropna().between(-180, 180, inclusive=True)).sum() else "lon"
     return None
 
 

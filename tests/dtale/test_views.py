@@ -2216,7 +2216,7 @@ def test_get_scatter(unittest, rolling_data):
             max={"bar": 4, "index": 4, "x": 4},
             min={"bar": 0, "index": 0, "x": 0},
             x="foo",
-            date="2000-01-01",
+            date=" for 2000-01-01",
         )
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},

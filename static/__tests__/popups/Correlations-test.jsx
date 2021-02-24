@@ -56,7 +56,7 @@ describe("Correlations tests", () => {
               { name: "col4", rolling: true },
               { name: "col5", rolling: false },
             ];
-            return { data: correlationsData.data, dates, date: "2018-12-19" };
+            return { data: correlationsData.data, dates };
           }
         }
         const { urlFetcher } = require("../redux-test-utils").default;

@@ -2917,9 +2917,13 @@ def get_scatter(data_id):
         window = get_int_arg(request, "window")
         min_periods = get_int_arg(request, "minPeriods", default=0)
         dates = data[date_col].sort_values().unique()
-        selected_date = dates[min(date_index + max(min_periods - 1, 1), len(dates) - 1)]
+        date_index = min(date_index + max(min_periods - 1, 1), len(dates) - 1)
+        selected_date = dates[date_index]
         idx = min(data[data[date_col] == selected_date].index) + 1
         selected_date = json_date(selected_date, nan_display=None)
+        selected_date = "{} thru {}".format(
+            json_date(dates[max(date_index - (window - 1), 0)]), selected_date
+        )
         data = data.iloc[max(idx - window, 0) : idx]
         data = data[cols + [date_col]].dropna(how="any")
         y_cols.append(date_col)
@@ -2994,7 +2998,7 @@ def get_scatter(data_id):
     data["y"] = cols[1]
     data["stats"] = stats
     data["code"] = "\n".join(code)
-    data["date"] = selected_date
+    data["date"] = " for {}".format(selected_date)
     return jsonify(data)
 
 
