@@ -23,7 +23,6 @@ import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
 import Descriptions from "./menu-descriptions.json";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
-import { MenuTooltip } from "./menu/MenuTooltip";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
@@ -219,7 +218,6 @@ class ReactDataViewer extends React.Component {
     return (
       <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
         <DtaleHotkeys propagateState={this.propagateState} {...this.state} />
-        <MenuTooltip />
         <DataViewerMenu {...this.state} propagateState={this.propagateState} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ["data", index])}
@@ -240,7 +238,7 @@ class ReactDataViewer extends React.Component {
                       onScroll={this.props.closeColumnMenu}
                       cellRenderer={this._cellRenderer}
                       height={gridHeight}
-                      width={width - 3}
+                      width={width - (this.props.menuPinned ? 185 : 3)}
                       columnWidth={({ index }) => gu.getColWidth(index, this.state)}
                       onSectionRendered={this._onSectionRendered}
                       ref={mg => (this._grid = mg)}
@@ -281,14 +279,16 @@ ReactDataViewer.propTypes = {
   openChart: PropTypes.func,
   theme: PropTypes.string,
   updateFilteredRanges: PropTypes.func,
+  menuPinned: PropTypes.bool,
 };
 
 const ReduxDataViewer = connect(
-  ({ dataId, iframe, theme, settings }) => ({
+  ({ dataId, iframe, theme, settings, menuPinned }) => ({
     dataId,
     iframe,
     theme,
     settings,
+    menuPinned,
   }),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),

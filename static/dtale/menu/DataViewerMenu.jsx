@@ -15,6 +15,7 @@ import HeatMapOption from "./HeatMapOption";
 import InstancesOption from "./InstancesOption";
 import LowVarianceOption from "./LowVarianceOption";
 import { MenuItem } from "./MenuItem";
+import { MenuTooltip } from "./MenuTooltip";
 import MergeOption from "./MergeOption";
 import NetworkOption from "./NetworkOption";
 import RangeHighlightOption from "./RangeHighlightOption";
@@ -66,11 +67,13 @@ class ReactDataViewerMenu extends React.Component {
         {!menuPinned && menuOpen && (
           <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />
         )}
+        <MenuTooltip />
         <header className="title-font pb-1">D-TALE</header>
         <div
           style={{
             height: `calc(100vh - ${menuPinned ? 40 : 68}px)`,
             overflowY: "scroll",
+            overflowX: "hidden",
           }}>
           <ul>
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />

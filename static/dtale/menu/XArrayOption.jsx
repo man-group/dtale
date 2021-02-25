@@ -22,7 +22,6 @@ function renderDimensionSelection(dimensionSelection) {
 class ReactXArrayOption extends React.Component {
   constructor(props) {
     super(props);
-    this.buttonRef = React.createRef();
   }
 
   render() {
@@ -42,7 +41,7 @@ class ReactXArrayOption extends React.Component {
     return (
       <MenuItem description={Descriptions.xarray_conversion}>
         <span className="toggler-action">
-          <button className="btn btn-plain" ref={this.buttonRef} onClick={() => openXArrayPopup("xarray-indexes")}>
+          <button className="btn btn-plain" onClick={() => openXArrayPopup("xarray-indexes")}>
             <i className="ico-tune" />
             <span className="font-weight-bold">Convert To XArray</span>
           </button>
