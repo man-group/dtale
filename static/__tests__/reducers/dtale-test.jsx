@@ -32,6 +32,10 @@ describe("reducer tests", () => {
       settings: {},
       pythonVersion: null,
       isPreview: false,
+      menuPinned: false,
+      menuTooltip: {
+        visible: false,
+      },
     };
     expect(state).toEqual(store.getState());
   });

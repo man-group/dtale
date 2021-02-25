@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 class NetworkOption extends React.Component {
   constructor(props) {
@@ -10,15 +11,14 @@ class NetworkOption extends React.Component {
 
   render() {
     return (
-      <li className="hoverable">
+      <MenuItem description={Descriptions.network}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.props.open}>
             <i className="fas fa-project-diagram ml-2 mr-4" />
             <span className="font-weight-bold">Network Viewer</span>
           </button>
         </span>
-        <div className="hoverable__content menu-description">{Descriptions.network}</div>
-      </li>
+      </MenuItem>
     );
   }
 }

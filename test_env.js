@@ -14,11 +14,6 @@ jest.mock("react-syntax-highlighter/dist/esm/styles/hljs", () => ({ docco: {} })
 // globally mock this until we actually start to test it
 jest.mock("plotly.js-dist", () => ({ newPlot: () => undefined }));
 
-// this is required because cacheable-lookup creates an open handle due to it's use of AsyncResolver
-jest.mock("cacheable-lookup", () => ({
-  default: () => ({ lookup: () => ({}) }),
-}));
-
 jest.mock("chartjs-plugin-zoom", () => ({}));
 jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
 jest.mock("chartjs-plugin-trendline", () => ({}));

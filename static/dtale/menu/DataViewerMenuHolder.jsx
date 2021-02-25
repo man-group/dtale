@@ -11,7 +11,7 @@ class ReactDataViewerMenuHolder extends React.Component {
   }
 
   render() {
-    const { style, propagateState, menuOpen, rowCount, theme, columns, backgroundMode } = this.props;
+    const { style, propagateState, menuOpen, menuPinned, rowCount, theme, columns, backgroundMode } = this.props;
     const activeCols = gu.getActiveCols({ columns, backgroundMode });
     const menuHandler = menuUtils.openMenu(
       "gridActions",
@@ -22,15 +22,17 @@ class ReactDataViewerMenuHolder extends React.Component {
     return (
       <div style={style} className="menu-toggle">
         <div className="crossed">
-          <div
-            className={`grid-menu ${menuOpen ? "open" : ""}`}
-            style={{
-              background: gu.isLight(theme) ? "white" : "black",
-              color: gu.isLight(theme) ? "black" : "white",
-            }}
-            onClick={menuHandler}>
-            <span>&#8227;</span>
-          </div>
+          {!menuPinned && (
+            <div
+              className={`grid-menu ${menuOpen ? "open" : ""}`}
+              style={{
+                background: gu.isLight(theme) ? "white" : "black",
+                color: gu.isLight(theme) ? "black" : "white",
+              }}
+              onClick={menuHandler}>
+              <span>&#8227;</span>
+            </div>
+          )}
           <div className="rows">{rowCount ? rowCount - 1 : 0}</div>
           <div className="cols">{activeCols.length ? activeCols.length - 1 : 0}</div>
         </div>
@@ -45,9 +47,13 @@ ReactDataViewerMenuHolder.propTypes = {
   columns: PropTypes.arrayOf(PropTypes.object),
   backgroundMode: PropTypes.string,
   menuOpen: PropTypes.bool,
+  menuPinned: PropTypes.bool,
   rowCount: PropTypes.number,
   propagateState: PropTypes.func,
 };
 
-const ReduxDataViewerMenuHolder = connect(({ theme }) => ({ theme }))(ReactDataViewerMenuHolder);
+const ReduxDataViewerMenuHolder = connect(({ theme, menuPinned }) => ({
+  theme,
+  menuPinned,
+}))(ReactDataViewerMenuHolder);
 export { ReduxDataViewerMenuHolder as DataViewerMenuHolder, ReactDataViewerMenuHolder };

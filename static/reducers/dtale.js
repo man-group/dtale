@@ -189,6 +189,26 @@ function isPreview(state = false, action = {}) {
   }
 }
 
+function menuPinned(state = false, action = {}) {
+  switch (action.type) {
+    case "toggle-menu-pinned":
+      return !state;
+    default:
+      return state;
+  }
+}
+
+function menuTooltip(state = { visible: false }, action = {}) {
+  switch (action.type) {
+    case "show-menu-tooltip":
+      return { visible: true, element: action.element, content: action.content };
+    case "hide-menu-tooltip":
+      return { visible: false };
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -206,6 +226,8 @@ const dtaleStore = combineReducers({
   settings,
   pythonVersion,
   isPreview,
+  menuPinned,
+  menuTooltip,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

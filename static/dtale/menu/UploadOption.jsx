@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 class UploadOption extends React.Component {
   constructor(props) {
@@ -10,15 +11,14 @@ class UploadOption extends React.Component {
 
   render() {
     return (
-      <li className="hoverable">
+      <MenuItem description={Descriptions.upload}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.props.open}>
             <i className="ico-file-upload" />
             <span className="font-weight-bold">Load Data</span>
           </button>
         </span>
-        <div className="hoverable__content menu-description">{Descriptions.upload}</div>
-      </li>
+      </MenuItem>
     );
   }
 }

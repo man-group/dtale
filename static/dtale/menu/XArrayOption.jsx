@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 
 import { openChart } from "../../actions/charts";
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 const DESCRIPTION = "View individual xarray dimensions. You are currently viewing:";
 
@@ -27,29 +28,25 @@ class ReactXArrayOption extends React.Component {
     const openXArrayPopup = type => this.props.openChart(_.assignIn({ type }, this.props));
     if (this.props.xarray) {
       return (
-        <li className="hoverable">
+        <MenuItem description={`${DESCRIPTION} ${renderDimensionSelection(this.props.xarrayDim)}`}>
           <span className="toggler-action">
             <button className="btn btn-plain" onClick={() => openXArrayPopup("xarray-dimensions")}>
               <i className="ico-key" />
               <span className="font-weight-bold">XArray Dimensions</span>
             </button>
           </span>
-          <div className="hoverable__content menu-description">
-            {`${DESCRIPTION} ${renderDimensionSelection(this.props.xarrayDim)}`}
-          </div>
-        </li>
+        </MenuItem>
       );
     }
     return (
-      <li className="hoverable">
+      <MenuItem description={Descriptions.xarray_conversion}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={() => openXArrayPopup("xarray-indexes")}>
             <i className="ico-tune" />
             <span className="font-weight-bold">Convert To XArray</span>
           </button>
         </span>
-        <div className="hoverable__content menu-description">{Descriptions.xarray_conversion}</div>
-      </li>
+      </MenuItem>
     );
   }
 }

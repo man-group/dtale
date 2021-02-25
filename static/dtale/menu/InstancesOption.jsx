@@ -3,6 +3,7 @@ import React from "react";
 
 import app from "../../reducers/dtale";
 import Descriptions from "../menu-descriptions.json";
+import { MenuItem } from "./MenuItem";
 
 class InstancesOption extends React.Component {
   constructor(props) {
@@ -12,7 +13,7 @@ class InstancesOption extends React.Component {
   render() {
     const processCt = app.getHiddenValue("processes");
     return (
-      <li className="hoverable">
+      <MenuItem description={Descriptions.instances}>
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.props.open}>
             <i className="ico-apps" />
@@ -22,10 +23,7 @@ class InstancesOption extends React.Component {
             </span>
           </button>
         </span>
-        <div className="hoverable__content menu-description">
-          <span>{Descriptions.instances}</span>
-        </div>
-      </li>
+      </MenuItem>
     );
   }
 }
