@@ -3,6 +3,7 @@ import $ from "jquery";
 
 import { logException } from "../fetcher";
 import { exports as gu } from "./gridUtils";
+import menuFuncs from "./menu/dataViewerMenuUtils";
 
 export function convertCellIdxToCoords(cellIdx) {
   return _.map(_.split(cellIdx, "|"), v => parseInt(v));
@@ -77,7 +78,7 @@ function buildColumnCopyPost(columns, callback, dataId) {
   const headers = _.map(columns, "name");
   const postCallback = text => callback({ text, headers });
   try {
-    $.post(`/dtale/build-column-copy/${dataId}`, { columns: JSON.stringify(headers) }, postCallback);
+    $.post(menuFuncs.fullPath("/dtale/build-column-copy", dataId), { columns: JSON.stringify(headers) }, postCallback);
   } catch (e) {
     logException(e, e.stack);
   }
@@ -101,7 +102,11 @@ export function buildRowCopyText(dataId, columns, params, callback) {
   const headers = _.map(selectedColumns, "name");
   const postCallback = text => callback({ text, headers });
   try {
-    $.post(`/dtale/build-row-copy/${dataId}`, { columns: JSON.stringify(headers), ...params }, postCallback);
+    $.post(
+      menuFuncs.fullPath("/dtale/build-row-copy", dataId),
+      { columns: JSON.stringify(headers), ...params },
+      postCallback
+    );
   } catch (e) {
     logException(e, e.stack);
   }

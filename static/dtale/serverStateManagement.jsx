@@ -3,6 +3,7 @@ import _ from "lodash";
 
 import { buildURLString } from "../actions/url-utils";
 import { fetchJson, fetchJsonPromise, logException } from "../fetcher";
+import menuFuncs from "./menu/dataViewerMenuUtils";
 
 function buildCallback(route, dataId, params) {
   return () => fetchJson(buildURLString(`/dtale/${route}/${dataId}?`, params), _.noop);
@@ -108,7 +109,7 @@ function unlockCols(selectedCols, { columns, propagateState, dataId }) {
 
 function persistVisibility(dataId, params, callback) {
   try {
-    $.post(`/dtale/update-visibility/${dataId}`, params, callback);
+    $.post(menuFuncs.fullPath("/dtale/update-visibility", dataId), params, callback);
   } catch (e) {
     logException(e, e.stack);
   }
