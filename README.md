@@ -81,7 +81,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
   - [Charts](#charts)
@@ -94,6 +94,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Linting](#linting)
   - [Formatting JS](#formatting-js)
   - [Docker Development](#docker-development)
+  - [Adding Language Support](#adding-language-support)
 - [Global State/Data Storage](https://github.com/man-group/dtale/blob/master/docs/GLOBAL_STATE.md)
 - [Startup Behavior](#startup-behavior)
 - [Documentation](#documentation)
@@ -256,11 +257,21 @@ Please read this [post](https://github.com/man-group/dtale/blob/master/docs/JUPY
 
 If you have D-Tale installed within your docker container please add the following parameters to your `docker run` command.
 
-**On a Mac**: ```-h `hostname` -p 40000:40000```
+**On a Mac**:
+
+```sh
+docker run -h `hostname` -p 40000:40000
+```
+
 * `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
 * `-p`, access to port 40000 which is the default port for running D-Tale
 
-**On Windows**: ```-p 40000:40000```
+**On Windows**:
+
+```sh
+docker run -p 40000:40000
+```
+
 * `-p`, access to port 40000 which is the default port for running D-Tale
 * D-Tale URL will be http://127.0.0.1:40000/
 
@@ -1001,6 +1012,15 @@ Toggle between light & dark themes for your viewing pleasure (only affects grid,
 #### Reload Data
 Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.
 
+#### Unpin/Pin Menu
+If you would like to keep your menu pinned to the side of your grid all times rather than always having to click the triaangle in the upper left-hand corner simply click this button.  It is persisted back to the server so that it can be applied to all piece of data you've loaded into your session and beyond refreshes.
+
+#### Language
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/chinese_dtale.png)
+
+I am happy to announce that D-Tale now supports both English & Chinese (there is still more of the translation to be completed but the infrastructure is there).  And we are happy to add support for any other languages.  Please see instruction on how, [here](#adding-language-support).
+
 #### Shutdown
 Pretty self-explanatory, kills your D-Tale session (there is also an auto-kill process that will kill your D-Tale after an hour of inactivity)
 
@@ -1245,6 +1265,18 @@ $ python
 >>> dtale.show(df)
 ```
 Then view your D-Tale instance in your browser using the link that gets printed
+
+
+### Adding Language Support
+
+Currently D-Tale support both english & chinese but other languages will gladly be supported.  To add another language simply open a pull request with the following:
+- cake a copy & translate the values in the following JSON english JSON files and save them to the same locations as each file
+ - [Back-End](https://github.com/man-group/dtale/blob/master/dtale/translations/en.json)
+ - [Front-End](https://github.com/man-group/dtale/blob/master/static/translations/en.json)
+- please make the name of these files the name of the language you are adding (currently english -> en, chinese -> cn) 
+- be sure to keep the keys in english, that is important
+
+Looking forward to what languages come next! :smile:
 
 
 ## Global State/Data Storage

@@ -237,7 +237,7 @@ class ReactDataViewer extends React.Component {
                       onScroll={this.props.closeColumnMenu}
                       cellRenderer={this._cellRenderer}
                       height={gridHeight}
-                      width={width - (this.props.menuPinned ? 188 : 3)}
+                      width={width - (this.props.menuPinned ? 198 : 3)}
                       columnWidth={({ index }) => gu.getColWidth(index, this.state)}
                       onSectionRendered={this._onSectionRendered}
                       ref={mg => (this._grid = mg)}

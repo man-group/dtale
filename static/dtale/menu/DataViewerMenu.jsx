@@ -61,7 +61,7 @@ class ReactDataViewerMenu extends React.Component {
       : {
           className: "column-toggle__dropdown",
           hidden: !menuOpen,
-          style: { minWidth: "13.65em", top: "1em", left: "0.5em" },
+          style: { minWidth: "15em", top: "1em", left: "0.5em" },
         };
     return (
       <div {...containerProps}>
@@ -72,7 +72,7 @@ class ReactDataViewerMenu extends React.Component {
         <header className="title-font pb-1">D-TALE</header>
         <div
           style={{
-            height: `calc(100vh - ${menuPinned ? 40 : 68}px)`,
+            [menuPinned ? "height" : "maxHeight"]: `calc(100vh - ${menuPinned ? 35 : 68}px)`,
             overflowY: "scroll",
             overflowX: "hidden",
           }}>
