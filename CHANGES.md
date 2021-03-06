@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.37.1 (2021-3-6)
+* Updated MANIFEST.in to include requirements.txt
+
 ### 1.37.0 (2021-3-5)
 * [#445](https://github.com/man-group/dtale/issues/445): updated URL paths to handle when D-Tale is running with jupyter server proxy
 * [#315](https://github.com/man-group/dtale/issues/315): Internationalization (supports english & chinese currently)
