@@ -1121,7 +1121,7 @@ def get_processes():
         dtypes = global_state.get_dtypes(data_id)
         mdata = global_state.get_metadata(data_id)
         return dict(
-            data_id=data_id,
+            data_id=str(data_id),
             rows=len(data),
             columns=len(dtypes),
             names=dtypes if load_dtypes else ",".join([c["name"] for c in dtypes]),
@@ -1133,8 +1133,6 @@ def get_processes():
                 global_state.get_data(data_id)
                 .memory_usage(index=False, deep=True)
                 .sum()
-                / 1024
-                / 1024
             ),
         )
 

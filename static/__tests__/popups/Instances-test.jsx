@@ -5,6 +5,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import DimensionsHelper from "../DimensionsHelper";
+import { MockComponent } from "../MockComponent";
 import mockPopsicle from "../MockPopsicle";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
@@ -17,6 +18,7 @@ describe("Instances tests", () => {
   });
 
   beforeAll(() => {
+    jest.mock("../../popups/merge/DataPreview", () => MockComponent);
     dimensions.beforeAll();
 
     delete window.location;
@@ -134,13 +136,7 @@ describe("Instances tests", () => {
     result.find("button.preview-btn").first().simulate("click");
     await tickUpdate(result);
     expect(result.find("h4.preview-header").first().text()).toBe("8081 - foo (2018-04-30 12:36:44)Preview");
-    expect(result.find("div.preview").first().find("div.ReactVirtualized__Table__row").length).toBe(6);
-    expect(
-      result.find("div.preview").first().find("div.ReactVirtualized__Table__row").first().find("div.cell").length
-    ).toBe(6);
-    result.find("button.preview-btn").at(1).simulate("click");
-    await tickUpdate(result);
-    expect(result.find("div.dtale-alert").first().text()).toBe("No data found.");
+    expect(result.find(MockComponent)).toHaveLength(1);
     result.find("div.clickable").last().simulate("click");
     expect(assignSpy).toHaveBeenCalledWith("http://localhost:8080/dtale/main/8083");
     result.find(".ico-delete").first().simulate("click");

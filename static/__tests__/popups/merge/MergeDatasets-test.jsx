@@ -8,6 +8,10 @@ describe("MergeDatasets", () => {
   let result;
 
   beforeEach(() => {
+    jest.mock("../../../dtale/DataViewer", () => ({
+      DataViewer: MockComponent,
+      ReactDataViewer: MockComponent,
+    }));
     jest.mock("../../../popups/merge/ActionConfig", () => MockComponent);
     jest.mock("../../../popups/merge/MergeOutput", () => MockComponent);
     jest.mock("../../../popups/Popup", () => ({

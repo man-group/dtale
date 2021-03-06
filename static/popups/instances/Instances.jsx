@@ -1,5 +1,6 @@
 import $ from "jquery";
 import _ from "lodash";
+import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
@@ -11,7 +12,7 @@ import { Bouncer } from "../../Bouncer";
 import { RemovableError } from "../../RemovableError";
 import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
-import InstancePreview from "./InstancePreview";
+import DataPreview from "../merge/DataPreview";
 import ProcessLabel from "./ProcessLabel";
 
 require("./Instances.css");
@@ -25,8 +26,6 @@ class Instances extends React.Component {
       preview: null,
       loadingPreview: false,
     };
-    this.viewPreview = this.viewPreview.bind(this);
-    this.renderPreview = this.renderPreview.bind(this);
   }
 
   componentDidMount() {
@@ -46,23 +45,6 @@ class Instances extends React.Component {
         this.setState({ processes: { data: processes } });
       }
     });
-  }
-
-  viewPreview(instance) {
-    this.setState({ loadingPreview: true });
-    fetchJson(`/dtale/data/${instance.data_id}?ids=${JSON.stringify(["0-5"])}`, preview =>
-      this.setState({
-        preview: _.assignIn({ instance }, preview),
-        loadingPreview: false,
-      })
-    );
-  }
-
-  renderPreview() {
-    if (this.state.loadingPreview) {
-      return <Bouncer />;
-    }
-    return <InstancePreview preview={this.state.preview} />;
   }
 
   render() {
@@ -97,7 +79,7 @@ class Instances extends React.Component {
       cleanupCol = null;
     if (_.size(processes) > 1) {
       const viewPreview = rowData => e => {
-        this.viewPreview(rowData);
+        this.setState({ preview: rowData });
         e.stopPropagation();
       };
       previewCol = (
@@ -218,6 +200,7 @@ class Instances extends React.Component {
                       paddingRight: ".5em",
                       fontSize: "80%",
                     }}
+                    cellRenderer={({ rowData }) => numeral(rowData.mem_usage).format("0.00b")}
                     className="cell"
                   />
                   {previewCol}
@@ -226,11 +209,25 @@ class Instances extends React.Component {
             </AutoSizer>
           </div>
         </div>
-        <div className="row">
-          <div className="col-md-12" style={{ minHeight: 200 }}>
-            {this.renderPreview()}
-          </div>
-        </div>
+        {this.state.preview && (
+          <>
+            <div className="row pt-5">
+              <div className="col-md-12">
+                <h4 key={0} className="preview-header">
+                  <div>
+                    <ProcessLabel process={this.state.preview} />
+                    <span className="d-inline pl-3">{t("Preview")}</span>
+                  </div>
+                </h4>
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-md-12" style={{ height: 200 }}>
+                {this.state.preview && <DataPreview dataId={this.state.preview.data_id} />}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }

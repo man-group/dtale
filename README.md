@@ -263,8 +263,8 @@ If you have D-Tale installed within your docker container please add the followi
 docker run -h `hostname` -p 40000:40000
 ```
 
-* `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
-* `-p`, access to port 40000 which is the default port for running D-Tale
+* `-h` this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
+* `-p` access to port 40000 which is the default port for running D-Tale
 
 **On Windows**:
 
@@ -272,12 +272,17 @@ docker run -h `hostname` -p 40000:40000
 docker run -p 40000:40000
 ```
 
-* `-p`, access to port 40000 which is the default port for running D-Tale
+* `-p` access to port 40000 which is the default port for running D-Tale
 * D-Tale URL will be http://127.0.0.1:40000/
 
-**Everything Else**: ```-h `hostname` --network host```
-* `-h`, this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
-* `--network host`, this will allow access to as many ports as needed for running D-Tale processes
+**Everything Else**:
+
+```sh
+docker run -h `hostname` --network host
+```
+
+* `-h` this will allow the hostname (and not the PID of the docker container) to be available when building D-Tale URLs
+* `--network host` this will allow access to as many ports as needed for running D-Tale processes
 
 ### Google Colab
 

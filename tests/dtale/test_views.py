@@ -299,9 +299,9 @@ def test_processes(test_data, unittest):
                     "ts": 1525106204000,
                     "start": "12:36:44 PM",
                     "names": u"date,security_id,foo,bar,baz",
-                    "data_id": c.port,
+                    "data_id": str(c.port),
                     "columns": 5,
-                    "mem_usage": 0,
+                    "mem_usage": 4600 if PY3 else 4000,
                 }
             ],
             response_data["data"],

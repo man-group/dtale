@@ -1,6 +1,5 @@
 .instances .cell,
-.instances .headerCell,
-.preview .cell {
+.instances .headerCell {
   width: 100%;
   height: 100%;
   display: inherit;
@@ -9,21 +8,8 @@
   border-color: rgba(170, 170, 170, 0.25);
 }
 
-.instances .headerCell,
-.preview .headerCell {
+.instances .headerCell {
   font-weight: bold;
-}
-
-.preview .headerCell span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 45px;
-}
-
-.preview .headerCell.ellipsisCell span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 30px;
 }
 
 .instances .clickable:hover {
