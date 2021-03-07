@@ -122,7 +122,6 @@ def chart_url_params(search):
         "map_group",
         "cs_group",
         "group_val",
-        "candlestick_group",
         "treemap_group",
         "yaxis",
     ]:
@@ -137,6 +136,7 @@ def chart_url_params(search):
             )
             del params["colorscale"]
     params["cpg"] = "true" == params.get("cpg")
+    params["cpy"] = "true" == params.get("cpy")
     if params.get("chart_type") in ANIMATION_CHARTS:
         params["animate"] = "true" == params.get("animate")
     for int_prop in ["window", "load", "top_bars"]:
@@ -157,7 +157,6 @@ def chart_url_params(search):
                     "cs_group",
                     "map_group",
                     "treemap_group",
-                    "candlestick_group",
                 ]
             }
 
@@ -211,6 +210,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
+    final_params["cpy"] = "true" if params.get("cpy") is True else "false"
     if chart_type in ANIMATION_CHARTS:
         final_params["animate"] = "true" if params.get("animate") is True else "false"
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
@@ -498,7 +498,7 @@ def chart_wrapper(data_id, data, url_params=None):
                 export_png_link,
                 export_csv_link,
             ],
-            style={"position": "absolute", "zIndex": 5},
+            style={"position": "absolute", "zIndex": 5, "left": 5, "top": 2},
         )
         return html.Div(
             [links] + make_list(chart), style={"position": "relative", "height": "100%"}
@@ -1045,6 +1045,7 @@ def bar_builder(
     axes_builder,
     wrapper,
     cpg=False,
+    cpy=False,
     barmode="group",
     barsort=None,
     top_bars=None,
@@ -1101,36 +1102,92 @@ def bar_builder(
         elif top_bars:
             _build_sorted_bars(y[0], series, data, hover_text, axes)
 
-    if cpg:
-        charts = [
-            wrapper(
-                graph_wrapper(
-                    figure={
-                        "data": [
-                            dict_merge(
-                                {"x": series["x"], "y": series[y2], "type": "bar"},
-                                name_builder(y2, series_key),
-                                {}
-                                if i == 1 or not allow_multiaxis
-                                else {"yaxis": "y{}".format(i)},
-                                hover_text.get(series_key) or {},
-                            )
-                            for i, y2 in enumerate(y, 1)
-                        ],
-                        "layout": build_layout(
-                            dict_merge(
-                                build_title(x, y, series_key, agg=kwargs.get("agg")),
-                                axes,
-                                dict(barmode=barmode or "group"),
-                            )
+    if cpg or cpy:
+        y_values = [[sub_y] for sub_y in y] if cpy else y
+        charts = []
+        for y_value in y_values:
+            y_axes, _ = axes_builder(y_value)
+            if cpg:
+                charts += [
+                    wrapper(
+                        graph_wrapper(
+                            figure={
+                                "data": [
+                                    dict_merge(
+                                        {
+                                            "x": series["x"],
+                                            "y": series[y2],
+                                            "type": "bar",
+                                        },
+                                        name_builder(y2, series_key),
+                                        {}
+                                        if i == 1 or not allow_multiaxis
+                                        else {"yaxis": "y{}".format(i)},
+                                        hover_text.get(series_key) or {},
+                                    )
+                                    for i, y2 in enumerate(y_value, 1)
+                                ],
+                                "layout": build_layout(
+                                    dict_merge(
+                                        build_title(
+                                            x,
+                                            y_value,
+                                            series_key,
+                                            agg=kwargs.get("agg"),
+                                        ),
+                                        y_axes,
+                                        dict(barmode=barmode or "group"),
+                                    )
+                                ),
+                            },
+                            modal=kwargs.get("modal", False),
                         ),
-                    },
-                    modal=kwargs.get("modal", False),
-                ),
-                group_filter=dict(group=series.pop("_filter_")),
-            )
-            for series_key, series in data["data"].items()
-        ]
+                        group_filter=dict(group=series.pop("_filter_")),
+                    )
+                    for series_key, series in data["data"].items()
+                ]
+            else:
+                charts.append(
+                    wrapper(
+                        graph_wrapper(
+                            figure={
+                                "data": flatten_lists(
+                                    [
+                                        [
+                                            dict_merge(
+                                                {
+                                                    "x": series["x"],
+                                                    "y": series[y2],
+                                                    "type": "bar",
+                                                },
+                                                name_builder(y2, series_key),
+                                                {}
+                                                if i == 1 or not allow_multiaxis
+                                                else {"yaxis": "y{}".format(i)},
+                                                hover_text.get(series_key) or {},
+                                            )
+                                            for i, y2 in enumerate(y_value, 1)
+                                        ]
+                                        for series_key, series in data["data"].items()
+                                    ]
+                                ),
+                                "layout": build_layout(
+                                    dict_merge(
+                                        build_title(
+                                            x,
+                                            y_value,
+                                            series_key,
+                                            agg=kwargs.get("agg"),
+                                        ),
+                                        y_axes,
+                                        dict(barmode=barmode or "group"),
+                                    )
+                                ),
+                            },
+                            modal=kwargs.get("modal", False),
+                        ),
+                    )
+                )
         return cpg_chunker(charts)
 
     data_cfgs = flatten_lists(
@@ -1228,6 +1285,7 @@ def bar_code_builder(
     y,
     axes_builder,
     cpg=False,
+    cpy=False,
     barmode="group",
     barsort=None,
     top_bars=None,
@@ -1303,7 +1361,7 @@ def build_line_cfg(series):
     return {"mode": "lines", "line": {"shape": "spline", "smoothing": 0.3}}
 
 
-def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
+def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inputs):
     """
     Builder function for :plotly:`plotly.graph_objs.Scatter(mode='lines') <plotly.graph_objs.Scatter>`
 
@@ -1319,6 +1377,8 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     :type wrapper: func
     :param cpg: `True` if charts are split by groups, `False` if all are contained within one chart
     :type cpg: bool
+    :param cpy: `True` if charts are split by y-axis, `False` if all are contained within one chart
+    :type cpy: bool
     :param inputs: Optional keyword arguments containing information about which aggregation (if any) has been used
     :type inputs: dict
     :return: line chart
@@ -1331,39 +1391,89 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
     def line_func(s):
         return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
 
-    if cpg:
-        charts = [
-            wrapper(
-                graph_wrapper(
-                    figure={
-                        "data": [
-                            line_func(series)(
-                                **dict_merge(
-                                    build_line_cfg(series),
-                                    {"x": series["x"], "y": series[y2]},
-                                    name_builder(y2, series_key),
-                                    {}
-                                    if i == 1 or not multi_yaxis
-                                    else {"yaxis": "y{}".format(i)},
-                                )
-                            )
-                            for i, y2 in enumerate(y, 1)
-                        ],
-                        "layout": build_layout(
-                            dict_merge(
-                                build_title(
-                                    x, y, group=series_key, agg=inputs.get("agg")
+    if cpg or cpy:
+        y_values = [[sub_y] for sub_y in y] if cpy else y
+        charts = []
+        for y_value in y_values:
+            y_axes, _ = axes_builder(y_value)
+            if cpg:
+                charts += [
+                    wrapper(
+                        graph_wrapper(
+                            figure={
+                                "data": [
+                                    line_func(series)(
+                                        **dict_merge(
+                                            build_line_cfg(series),
+                                            {
+                                                "x": series["x"],
+                                                "y": series[sub_y_value],
+                                            },
+                                            name_builder(sub_y_value, series_key),
+                                            {}
+                                            if i == 1 or not multi_yaxis
+                                            else {"yaxis": "y{}".format(i)},
+                                        )
+                                    )
+                                    for i, sub_y_value in enumerate(y_value, 1)
+                                ],
+                                "layout": build_layout(
+                                    dict_merge(
+                                        build_title(
+                                            x,
+                                            y_value,
+                                            group=series_key,
+                                            agg=inputs.get("agg"),
+                                        ),
+                                        y_axes,
+                                    )
                                 ),
-                                axes,
-                            )
+                            },
+                            modal=inputs.get("modal", False),
                         ),
-                    },
-                    modal=inputs.get("modal", False),
-                ),
-                group_filter=dict(group=series.pop("_filter_")),
-            )
-            for series_key, series in data["data"].items()
-        ]
+                        group_filter=dict(group=series.pop("_filter_")),
+                    )
+                    for series_key, series in data["data"].items()
+                ]
+            else:
+                charts.append(
+                    wrapper(
+                        graph_wrapper(
+                            figure={
+                                "data": flatten_lists(
+                                    [
+                                        [
+                                            line_func(series)(
+                                                **dict_merge(
+                                                    build_line_cfg(series),
+                                                    {
+                                                        "x": series["x"],
+                                                        "y": series[sub_y_value],
+                                                    },
+                                                    name_builder(
+                                                        sub_y_value, series_key
+                                                    ),
+                                                    {}
+                                                    if i == 1 or not multi_yaxis
+                                                    else {"yaxis": "y{}".format(i)},
+                                                )
+                                            )
+                                            for i, sub_y_value in enumerate(y_value, 1)
+                                        ]
+                                        for series_key, series in data["data"].items()
+                                    ]
+                                ),
+                                "layout": build_layout(
+                                    dict_merge(
+                                        build_title(x, y_value, agg=inputs.get("agg")),
+                                        y_axes,
+                                    )
+                                ),
+                            },
+                            modal=inputs.get("modal", False),
+                        )
+                    )
+                )
         return cpg_chunker(charts)
 
     data_cfgs = flatten_lists(
@@ -1410,7 +1520,6 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, **inputs):
                                 "mode": "markers+lines",
                                 "marker": {"size": marker_size},
                             },
-                            # {"x": x, "y": y_vals},
                             name_builder(y2, series_key),
                             {}
                             if j == 1 or not multi_yaxis
@@ -2848,22 +2957,32 @@ def build_chart(data_id=None, data=None, **inputs):
                 kwargs["z"] = z
                 kwargs["animate_by"] = animate_by
                 kwargs["colorscale"] = inputs.get("colorscale")
-            if inputs["cpg"]:
-                scatter_charts = flatten_lists(
-                    [
-                        scatter_builder(
-                            data,
-                            x,
-                            y,
-                            axes_builder,
-                            chart_builder,
-                            group=subgroup,
-                            group_filter=subgroup_cfg.pop("_filter_"),
-                            **kwargs
+            if inputs["cpg"] or inputs["cpy"]:
+                y_values = [[sub_y] for sub_y in y] if inputs["cpy"] else y
+                scatter_charts = []
+                for y_value in y_values:
+                    if inputs["cpg"]:
+                        scatter_charts += flatten_lists(
+                            [
+                                scatter_builder(
+                                    data,
+                                    x,
+                                    y_value,
+                                    axes_builder,
+                                    chart_builder,
+                                    group=subgroup,
+                                    group_filter=subgroup_cfg.pop("_filter_"),
+                                    **kwargs
+                                )
+                                for subgroup, subgroup_cfg in data["data"].items()
+                            ]
                         )
-                        for subgroup, subgroup_cfg in data["data"].items()
-                    ]
-                )
+                    else:
+                        scatter_charts.append(
+                            scatter_builder(
+                                data, x, y_value, axes_builder, chart_builder, **kwargs
+                            )
+                        )
             else:
                 scatter_charts = scatter_builder(
                     data, x, y, axes_builder, chart_builder, **kwargs

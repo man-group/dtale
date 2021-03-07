@@ -8308,13 +8308,17 @@ a.Select__multi-value__label, a.Select-multi-value-label{
   -webkit-box-shadow: 0 3px 0 0 #2a91d1;
           box-shadow: 0 3px 0 0 #2a91d1;
   background: linear-gradient(85deg, #004c93, #2a91d1 70%, #52bbef);
-  height: 3rem;
+  height: 2rem;
   color: white;
   width: 100%;
 }
 
 div.container-fluid.glc > div#content {
   padding-top: 4.95em;
+}
+
+div.container-fluid.charts {
+  padding-top: 3em;
 }
 
 div#content {
@@ -10353,6 +10357,11 @@ li.hoverable:hover {
     right: unset;
     left: 0;
 }
+.hoverable__content.saved-chart-config {
+    min-width: 20em;
+    right: unset;
+    left: -2em;
+}
 .hoverable__content.build-code {
     width: auto;
     right: unset;
@@ -10426,7 +10435,8 @@ div.hoverable.label > div.hoverable__content {
     transform: rotate(270deg);
 }
 .hoverable__content.build-code::before,
-.hoverable__content.map-types::before {
+.hoverable__content.map-types::before,
+.hoverable__content.saved-chart-config::before {
     right: unset;
     left: 2em;
 }
@@ -10486,7 +10496,8 @@ div.hoverable.label > div.hoverable__content {
     transform: rotate(270deg);
 }
 .hoverable__content.build-code::after,
-.hoverable__content.map-types::after {
+.hoverable__content.map-types::after,
+.hoverable__content.saved-chart-config::after {
     right: unset;
     left: 2em;
 }
@@ -10696,10 +10707,15 @@ table tbody tr.highlight-row {
     box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     z-index: 3000;
     right: 1em;
+    top: 2em;
 }
 
 .dropdown-content a {
     display: block;
+    color: black !important;
+    text-decoration: none;
+    padding: 0.2em !important;
+    text-align: center;
 }
 
 .dropdown:hover .dropdown-content {

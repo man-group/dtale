@@ -145,5 +145,13 @@
   "Column Analysis": "Column Analysis",
   "Replacement": "Replacement",
   "Type Conversion": "Type Conversion",
-  "Cleaners": "Cleaners"
+  "Cleaners": "Cleaners",
+  "Delete": "Delete",
+  "Save": "Save",
+  "Saved Chart": "Saved Chart",
+  "Data Selected": "Data Selected",
+  "save_msg": "Snapshot the current chart configuration and display the output at the bottom of the screen. This way you can work on building another chart for comparison.",
+  "Languages": "Languages",
+  "English": "English",
+  "Chinese": "Chinese"
 }

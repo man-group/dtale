@@ -245,3 +245,18 @@ def graph_wrapper(modal=False, export=False, **kwargs):
     graph.figure["id"] = "chart-figure-{}".format(CHART_IDX)
     click_data_store = dcc.Store(id="chart-click-data-{}".format(CHART_IDX))
     return [graph, click_data_store, build_drilldown_modal(CHART_IDX)]
+
+
+def build_hoverable(content, hoverable_content, hover_class="map-types", top="50%"):
+    return html.Div(
+        [
+            content,
+            html.Div(
+                hoverable_content,
+                className="hoverable__content {}".format(hover_class),
+                style=dict(top=top),
+            ),
+        ],
+        style=dict(borderBottom="none"),
+        className="hoverable",
+    )

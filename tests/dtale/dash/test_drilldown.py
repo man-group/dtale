@@ -4,7 +4,6 @@ import pytest
 from tests.dtale import build_data_inst
 from tests.dtale.dash.test_dash import (
     build_dash_request,
-    path_builder,
     print_traceback,
     ts_builder,
 )
@@ -90,6 +89,7 @@ def test_build_x_dropdown():
             "id": "input-data",
             "property": "data",
             "value": {
+                "data_id": c.port,
                 "chart_type": "scatter3d",
                 "x": "a",
                 "y": ["b"],
@@ -106,7 +106,6 @@ def test_build_x_dropdown():
             "chart-1.clickData",
             {"id": "drilldown-modal-1", "property": "is_open", "value": False},
             [
-                path_builder(c.port),
                 inputs,
                 {
                     "id": "chart-input-data",
@@ -173,6 +172,7 @@ def test_update_click_data():
             "id": "input-data",
             "property": "data",
             "value": {
+                "data_id": c.port,
                 "chart_type": "scatter3d",
                 "x": "a",
                 "y": ["b"],
@@ -189,7 +189,6 @@ def test_update_click_data():
             "chart-1.clickData",
             {"id": "chart-1", "property": "clickData", "value": None},
             [
-                path_builder(c.port),
                 inputs,
                 {
                     "id": "chart-input-data",
@@ -209,7 +208,7 @@ def test_update_click_data():
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
-        params["state"][1]["value"]["agg"] = "mean"
+        params["state"][0]["value"]["agg"] = "mean"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
@@ -233,7 +232,7 @@ def test_update_click_data():
                 }
             ]
         }
-        params["state"][1]["value"]["chart_type"] = "heatmap"
+        params["state"][0]["value"]["chart_type"] = "heatmap"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         header = response.get_json()["response"]["drilldown-modal-header-1"]["children"]
         assert header == "Drilldown for: date (date), x (x), y (y), z (z)"
@@ -242,8 +241,8 @@ def test_update_click_data():
         params["inputs"][0]["value"] = {
             "points": [{"location": "x", "z": "z", "customdata": "customdata"}]
         }
-        params["state"][1]["value"]["chart_type"] = "maps"
-        params["state"][4]["value"] = {
+        params["state"][0]["value"]["chart_type"] = "maps"
+        params["state"][-3]["value"] = {
             "map_type": "choropleth",
             "loc": "b",
             "map_val": "c",
@@ -256,8 +255,8 @@ def test_update_click_data():
         params["inputs"][0]["value"] = {
             "points": [{"lat": "x", "lon": "y", "z": "z", "customdata": "customdata"}]
         }
-        params["state"][1]["value"]["chart_type"] = "maps"
-        params["state"][4]["value"] = {
+        params["state"][0]["value"]["chart_type"] = "maps"
+        params["state"][-3]["value"] = {
             "map_type": "scattergeo",
             "lat": "b",
             "lon": "e",
@@ -284,6 +283,7 @@ def test_load_drilldown_content(custom_data):
             "id": "input-data",
             "property": "data",
             "value": {
+                "data_id": c.port,
                 "chart_type": "bar",
                 "x": "security_id",
                 "y": ["Col0"],
@@ -312,7 +312,6 @@ def test_load_drilldown_content(custom_data):
                 },
             ],
             [
-                path_builder(c.port),
                 inputs,
                 {
                     "id": "chart-input-data",
@@ -332,7 +331,7 @@ def test_load_drilldown_content(custom_data):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
-        params["state"][1]["value"]["agg"] = "mean"
+        params["state"][0]["value"]["agg"] = "mean"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json() is None
         assert response.status_code == 204
@@ -373,9 +372,9 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
         params["inputs"][-2]["value"] = "histogram"
-        params["state"][1]["value"]["chart_type"] = "3d_scatter"
-        params["state"][1]["value"]["y"] = "Col4"
-        params["state"][1]["value"]["z"] = "Col0"
+        params["state"][0]["value"]["chart_type"] = "3d_scatter"
+        params["state"][0]["value"]["y"] = "Col4"
+        params["state"][0]["value"]["z"] = "Col0"
         params["state"][-2]["value"]["points"][0]["y"] = 4
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
@@ -384,7 +383,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
         params["inputs"][-2]["value"] = "histogram"
-        params["state"][1]["value"]["chart_type"] = "heatmap"
+        params["state"][0]["value"]["chart_type"] = "heatmap"
         date_val = pd.Timestamp(
             df[(df.security_id == 100000) & (df.Col4 == 4)].date.values[0]
         ).strftime("%Y%m%d")
@@ -408,8 +407,8 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
         params["inputs"][-2]["value"] = "histogram"
-        params["state"][1]["value"]["chart_type"] = "maps"
-        params["state"][4]["value"] = {
+        params["state"][0]["value"]["chart_type"] = "maps"
+        params["state"][-3]["value"] = {
             "map_type": "choropleth",
             "loc": "security_id",
             "map_val": "Col0",
@@ -423,7 +422,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
 
         params["inputs"][-2]["value"] = "histogram"
-        params["state"][4]["value"] = {
+        params["state"][-3]["value"] = {
             "map_type": "scattergeo",
             "lat": "security_id",
             "lon": "Col4",
