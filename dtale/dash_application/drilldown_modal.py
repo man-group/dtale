@@ -11,7 +11,6 @@ from dtale.dash_application.charts import (
     build_axes,
     chart_builder_passthru,
 )
-from dtale.dash_application.utils import get_data_id
 from dtale.dash_application.layout.utils import (
     build_cols,
     build_option,
@@ -133,10 +132,11 @@ def init_callbacks(dash_app):
             return not is_open
         return is_open
 
-    def build_x_dropdown(is_open, pathname, inputs, chart_inputs, yaxis_data, map_data):
+    def build_x_dropdown(is_open, inputs, chart_inputs, yaxis_data, map_data):
         if not is_open:
             raise PreventUpdate
-        df = global_state.get_data(get_data_id(pathname))
+        data_id = inputs["data_id"]
+        df = global_state.get_data(data_id)
         all_inputs = combine_inputs(
             dash_app, inputs, chart_inputs, yaxis_data, map_data
         )
@@ -158,7 +158,6 @@ def init_callbacks(dash_app):
 
     def update_click_data(
         click_data,
-        pathname,
         inputs,
         chart_inputs,
         yaxis_data,
@@ -175,7 +174,7 @@ def init_callbacks(dash_app):
             raise PreventUpdate
         if not click_data:
             raise PreventUpdate
-        data_id = get_data_id(pathname)
+        data_id = inputs["data_id"]
         chart_type = all_inputs.get("chart_type")
         click_data = click_data or current_click_data
         click_point = next((p for p in click_data.get("points", [])), None)
@@ -196,7 +195,6 @@ def init_callbacks(dash_app):
         _click_data_ts,
         drilldown_type,
         drilldown_x,
-        pathname,
         inputs,
         chart_inputs,
         yaxis_data,
@@ -206,6 +204,7 @@ def init_callbacks(dash_app):
     ):
         if not drilldowns_on:
             raise PreventUpdate
+        data_id = inputs["data_id"]
         all_inputs = combine_inputs(
             dash_app, inputs, chart_inputs, yaxis_data, map_data
         )
@@ -220,7 +219,6 @@ def init_callbacks(dash_app):
         if click_data:
             click_point = next((p for p in click_data.get("points", [])), None)
             if click_point:
-                data_id = get_data_id(pathname)
                 curr_settings = global_state.get_settings(data_id) or {}
                 query = build_query(
                     data_id, all_inputs.get("query") or curr_settings.get("query")
@@ -265,7 +263,7 @@ def init_callbacks(dash_app):
                         all_inputs["modal"] = True
                         all_inputs["x"] = drilldown_x
                         all_inputs["y"] = [all_inputs["z"]]
-                        chart, _, _ = build_chart(get_data_id(pathname), **all_inputs)
+                        chart, _, _ = build_chart(**all_inputs)
                         return chart, None
 
                 elif chart_type == "maps":
@@ -299,7 +297,6 @@ def init_callbacks(dash_app):
                         all_inputs["agg"] = "raw"
                         all_inputs["modal"] = True
 
-                        data_id = get_data_id(pathname)
                         data = global_state.get_data(data_id)
                         all_inputs["x"] = drilldown_x
                         x_style = None
@@ -311,7 +308,7 @@ def init_callbacks(dash_app):
                             )
                             x_style = dict(display="none")
                         all_inputs["y"] = [map_val]
-                        chart, _, _ = build_chart(data_id, data=data, **all_inputs)
+                        chart, _, _ = build_chart(data=data, **all_inputs)
                         return chart, x_style
                 else:
                     x_filter = click_point.get("x")
@@ -337,7 +334,7 @@ def init_callbacks(dash_app):
                         all_inputs["agg"] = "raw"
                         all_inputs["modal"] = True
                         all_inputs["x"] = drilldown_x
-                        chart, _, _ = build_chart(get_data_id(pathname), **all_inputs)
+                        chart, _, _ = build_chart(**all_inputs)
                         return chart, None
         return None, dict(display="none")
 
@@ -362,7 +359,6 @@ def init_callbacks(dash_app):
             ],
             [Input("chart-{}".format(i), "clickData")],
             [
-                State("url", "pathname"),
                 State("input-data", "data"),
                 State("chart-input-data", "data"),
                 State("yaxis-data", "data"),
@@ -378,7 +374,6 @@ def init_callbacks(dash_app):
             ],
             [Input("drilldown-modal-{}".format(i), "is_open")],
             [
-                State("url", "pathname"),
                 State("input-data", "data"),
                 State("chart-input-data", "data"),
                 State("yaxis-data", "data"),
@@ -396,7 +391,6 @@ def init_callbacks(dash_app):
                 Input("drilldown-x-dropdown-{}".format(i), "value"),
             ],
             [
-                State("url", "pathname"),
                 State("input-data", "data"),
                 State("chart-input-data", "data"),
                 State("yaxis-data", "data"),

@@ -107,6 +107,7 @@ def test_ipython_notebook_funcs():
             x="col1",
             y='["col2"]',
             cpg="false",
+            cpy="false",
             animate="false",
         )
 
@@ -118,6 +119,7 @@ def test_ipython_notebook_funcs():
             x="col1",
             y='["col2"]',
             cpg="false",
+            cpy="false",
             animate="false",
         )
 
@@ -129,5 +131,6 @@ def test_ipython_notebook_funcs():
             y='["col2"]',
             group='["col3", "col4"]',
             cpg="false",
+            cpy="false",
             animate="false",
         )

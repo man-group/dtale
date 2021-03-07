@@ -8,7 +8,7 @@ import pytest
 
 from tests import ExitStack
 from tests.dtale import build_data_inst
-from tests.dtale.dash.test_dash import build_chart_params, path_builder
+from tests.dtale.dash.test_dash import build_chart_params
 from tests.dtale.test_views import app
 
 
@@ -225,7 +225,6 @@ def test_building_choropleth_map_w_custom_geojson(unittest):
 
             df, _ = views.format_data(df)
             build_data_inst({c.port: df})
-            pathname = path_builder(c.port)
             inputs = {"chart_type": "maps", "agg": "raw"}
             map_inputs = {
                 "map_type": "choropleth",
@@ -237,7 +236,7 @@ def test_building_choropleth_map_w_custom_geojson(unittest):
             }
             chart_inputs = {"colorscale": "Reds"}
             params = build_chart_params(
-                pathname, inputs, chart_inputs, map_inputs=map_inputs
+                c.port, inputs, chart_inputs, map_inputs=map_inputs
             )
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             chart_markup = response.get_json()["response"]["chart-content"]["children"][

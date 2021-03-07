@@ -20,6 +20,8 @@ from dtale.utils import (
 
 YAXIS_CHARTS = ["line", "bar", "scatter"]
 ZAXIS_CHARTS = ["heatmap", "3d_scatter", "surface"]
+ANIMATION_CHARTS = ["line"]
+ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps"]
 MAX_GROUPS = 30
 MAPBOX_TOKEN = None
 

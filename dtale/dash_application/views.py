@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.drilldown_modal as drilldown_modal
+import dtale.dash_application.saved_charts as saved_charts
 import dtale.dash_application.lock_zoom as lock_zoom
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
@@ -16,6 +17,7 @@ from dtale.dash_application.charts import (
     build_chart,
     chart_url_params,
     CHART_EXPORT_CODE,
+    valid_chart,
 )
 from dtale.dash_application.layout.layout import (
     animate_styles,
@@ -32,10 +34,12 @@ from dtale.dash_application.layout.layout import (
     build_treemap_options,
     charts_layout,
     colorscale_input_style,
+    data_selection_text,
     get_yaxis_type_tabs,
     lock_zoom_style,
     main_inputs_and_group_val_display,
     show_chart_per_group,
+    show_chart_per_y,
     get_group_types,
     show_input_handler,
     show_yaxis_ranges,
@@ -141,12 +145,12 @@ def init_callbacks(dash_app):
         ],
         [Input("query-input", "value")],
         [
-            State("url", "pathname"),
             State("query-data", "data"),
             State("load-input", "marks"),
+            State("data-tabs", "value"),
         ],
     )
-    def query_input(query, pathname, curr_query, curr_marks):
+    def query_input(query, curr_query, curr_marks, data_id):
         """
         dash callback for storing valid pandas dataframe queries.  This acts as an intermediary between values typed
         by the user and values that are applied to pandas dataframes.  Most of the time what the user has typed is not
@@ -154,14 +158,14 @@ def init_callbacks(dash_app):
 
         :param query: query input
         :type query: str
-        :param pathname: URL path
+        :param data_id: identifier for the data we are viewing
+        :type data_id: string
         :param curr_query: current valid pandas dataframe query
         :return: tuple of (query (if valid), styling for query input (if invalid input), query input title (containing
         invalid query exception information)
         :rtype: tuple of (str, str, str)
         """
         try:
-            data_id = get_data_id(pathname)
             data = global_state.get_data(data_id)
             ctxt_vars = global_state.get_context_variables(data_id)
             df = run_query(data, query, ctxt_vars)
@@ -214,7 +218,11 @@ def init_callbacks(dash_app):
             Input("rolling-comp-dropdown", "value"),
             Input("load-input", "value"),
         ],
-        [State("url", "pathname"), State("query-data", "data")],
+        [
+            State("url", "pathname"),
+            State("query-data", "data"),
+            State("data-tabs", "value"),
+        ],
     )
     def input_data(
         _ts,
@@ -234,16 +242,19 @@ def init_callbacks(dash_app):
         load,
         pathname,
         query,
+        data_id,
     ):
         """
         dash callback for maintaining chart input state and column-based dropdown options.  This will guard against
         users selecting the same column for multiple axes.
         """
         y_val = make_list(y_single if chart_type in ZAXIS_CHARTS else y_multi)
-        data_id = get_data_id(pathname)
+        data_id = data_id or get_data_id(pathname)
         if group_val is not None:
             group_val = [json.loads(gv) for gv in group_val]
+
         inputs = dict(
+            data_id=data_id,
             query=query,
             chart_type=chart_type,
             x=x,
@@ -300,6 +311,23 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [
+            Output("x-dropdown", "value"),
+            Output("y-multi-dropdown", "value"),
+            Output("y-single-dropdown", "value"),
+            Output("z-dropdown", "value"),
+            Output("group-dropdown", "value"),
+            Output("query-input", "value"),
+        ],
+        Input("data-tabs", "value"),
+        State("input-data", "data"),
+    )
+    def update_data_selection(data_id, input_data):
+        if data_id == input_data["data_id"]:
+            raise PreventUpdate
+        return None, None, None, None, None, None
+
+    @dash_app.callback(
+        [
             Output("map-input-data", "data"),
             Output("map-loc-dropdown", "options"),
             Output("map-lat-dropdown", "options"),
@@ -332,7 +360,7 @@ def init_callbacks(dash_app):
             Input("geojson-dropdown", "value"),
             Input("featureidkey-dropdown", "value"),
         ],
-        [State("url", "pathname")],
+        [State("data-tabs", "value")],
     )
     def map_data(
         map_type,
@@ -347,9 +375,8 @@ def init_callbacks(dash_app):
         group,
         geojson,
         featureidkey,
-        pathname,
+        data_id,
     ):
-        data_id = get_data_id(pathname)
         map_type = map_type or "choropleth"
         if map_type == "choropleth":
             map_data = dict(
@@ -445,7 +472,7 @@ def init_callbacks(dash_app):
             Input("candlestick-low-dropdown", "value"),
             Input("candlestick-group-dropdown", "value"),
         ],
-        [State("url", "pathname")],
+        [State("data-tabs", "value")],
     )
     def cs_data_callback(
         cs_x,
@@ -454,9 +481,8 @@ def init_callbacks(dash_app):
         cs_high,
         cs_low,
         group,
-        pathname,
+        data_id,
     ):
-        data_id = get_data_id(pathname)
         cs_data = dict(
             cs_x=cs_x,
             cs_open=cs_open,
@@ -502,15 +528,14 @@ def init_callbacks(dash_app):
             Input("treemap-label-dropdown", "value"),
             Input("treemap-group-dropdown", "value"),
         ],
-        [State("url", "pathname")],
+        [State("data-tabs", "value")],
     )
     def treemap_data_callback(
         treemap_value,
         treemap_label,
         group,
-        pathname,
+        data_id,
     ):
-        data_id = get_data_id(pathname)
         treemap_data = dict(
             treemap_value=treemap_value,
             treemap_label=treemap_label,
@@ -533,6 +558,7 @@ def init_callbacks(dash_app):
             Output("group-input", "style"),
             Output("rolling-inputs", "style"),
             Output("cpg-input", "style"),
+            Output("cpy-input", "style"),
             Output("barmode-input", "style"),
             Output("barsort-input", "style"),
             Output("top-bars-input", "style"),
@@ -559,6 +585,7 @@ def init_callbacks(dash_app):
         group_style = {"display": "block" if show_input("group") else "none"}
         rolling_style = {"display": "inherit" if agg == "rolling" else "none"}
         cpg_style = {"display": "block" if show_chart_per_group(**inputs) else "none"}
+        cpy_style = {"display": "block" if show_chart_per_y(**inputs) else "none"}
         bar_style, barsort_style = bar_input_style(**inputs)
         yaxis_style = {"display": "block" if show_yaxis_ranges(**inputs) else "none"}
 
@@ -573,6 +600,7 @@ def init_callbacks(dash_app):
             group_style,
             rolling_style,
             cpg_style,
+            cpy_style,
             bar_style,
             barsort_style,
             barsort_style,
@@ -587,6 +615,7 @@ def init_callbacks(dash_app):
         Output("chart-input-data", "data"),
         [
             Input("cpg-toggle", "on"),
+            Input("cpy-toggle", "on"),
             Input("barmode-dropdown", "value"),
             Input("barsort-dropdown", "value"),
             Input("top-bars", "value"),
@@ -599,6 +628,7 @@ def init_callbacks(dash_app):
     )
     def chart_input_data(
         cpg,
+        cpy,
         barmode,
         barsort,
         top_bars,
@@ -616,6 +646,7 @@ def init_callbacks(dash_app):
         """
         return dict(
             cpg=cpg,
+            cpy=cpy,
             barmode=barmode,
             barsort=barsort,
             top_bars=top_bars,
@@ -636,6 +667,17 @@ def init_callbacks(dash_app):
         return dict(display="block" if not auto_load else "none")
 
     @dash_app.callback(
+        [Output("collapse-data", "is_open"), Output("collapse-data-btn", "children")],
+        [Input("collapse-data-btn", "n_clicks")],
+        [State("collapse-data", "is_open")],
+    )
+    def collapse_data_input(n, is_open):
+        final_is_open = is_open
+        if n:
+            final_is_open = not is_open
+        return final_is_open, data_selection_text(final_is_open)
+
+    @dash_app.callback(
         [
             Output("chart-content", "children"),
             Output("last-chart-input-data", "data"),
@@ -643,6 +685,7 @@ def init_callbacks(dash_app):
             Output("chart-code", "value"),
             Output("yaxis-type", "children"),
             Output("load-clicks", "data"),
+            Output("save-btn", "style"),
         ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
@@ -660,7 +703,6 @@ def init_callbacks(dash_app):
             Input("load-btn", "n_clicks"),
         ],
         [
-            State("url", "pathname"),
             State("input-data", "data"),
             State("chart-input-data", "data"),
             State("yaxis-data", "data"),
@@ -680,7 +722,6 @@ def init_callbacks(dash_app):
         _ts5,
         _ts6,
         load,
-        pathname,
         inputs,
         chart_inputs,
         yaxis_data,
@@ -708,7 +749,7 @@ def init_callbacks(dash_app):
             raise PreventUpdate
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             all_inputs["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
-        charts, range_data, code = build_chart(get_data_id(pathname), **all_inputs)
+        charts, range_data, code = build_chart(**all_inputs)
         return (
             charts,
             all_inputs,
@@ -716,6 +757,7 @@ def init_callbacks(dash_app):
             "\n".join(make_list(code) + [CHART_EXPORT_CODE]),
             get_yaxis_type_tabs(make_list(inputs.get("y") or [])),
             load,
+            dict(display="block" if valid_chart(**all_inputs) else "none"),
         )
 
     def get_default_range(range_data, y, max=False):
@@ -854,7 +896,6 @@ def init_callbacks(dash_app):
             Input("treemap-input-data", "modified_timestamp"),
         ],
         [
-            State("url", "pathname"),
             State("input-data", "data"),
             State("map-input-data", "data"),
             State("candlestick-input-data", "data"),
@@ -862,11 +903,10 @@ def init_callbacks(dash_app):
         ],
     )
     def main_input_class(
-        ts_, ts2_, _ts3, _ts4, pathname, inputs, map_inputs, cs_inputs, treemap_inputs
+        _ts, _ts2, _ts3, _ts4, inputs, map_inputs, cs_inputs, treemap_inputs
     ):
         return main_inputs_and_group_val_display(
-            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs),
-            get_data_id(pathname),
+            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs)
         )
 
     @dash_app.callback(
@@ -882,7 +922,6 @@ def init_callbacks(dash_app):
             Input("treemap-group-dropdown", "value"),
         ],
         [
-            State("url", "pathname"),
             State("input-data", "data"),
             State("group-val-dropdown", "value"),
         ],
@@ -893,11 +932,10 @@ def init_callbacks(dash_app):
         map_group_cols,
         cs_group_cols,
         treemap_group_cols,
-        pathname,
         inputs,
         prev_group_vals,
     ):
-        data_id = get_data_id(pathname)
+        data_id = inputs["data_id"]
         group_cols = group_cols
         if chart_type == "maps":
             group_cols = map_group_cols
@@ -906,7 +944,7 @@ def init_callbacks(dash_app):
         elif chart_type == "treemap":
             group_cols = treemap_group_cols
         group_cols = make_list(group_cols)
-        group_types = get_group_types(inputs, data_id, group_cols)
+        group_types = get_group_types(inputs, group_cols)
         if "groups" not in group_types:
             return [], None
         group_vals = run_query(
@@ -935,11 +973,15 @@ def init_callbacks(dash_app):
         if pathname is None:
             raise PreventUpdate
         params = chart_url_params(search)
-        data_id = get_data_id(pathname)
-        df = global_state.get_data(data_id)
-        settings = global_state.get_settings(data_id) or {}
-        return charts_layout(df, settings, data_id, **params)
+        params["data_id"] = params.get("data_id") or get_data_id(pathname)
+        df = global_state.get_data(params["data_id"])
+        settings = global_state.get_settings(params["data_id"]) or {}
+        return html.Div(
+            charts_layout(df, settings, **params) + saved_charts.build_layout(),
+            className="charts-body",
+        )
 
     custom_geojson.init_callbacks(dash_app)
     drilldown_modal.init_callbacks(dash_app)
     lock_zoom.init_callbacks(dash_app)
+    saved_charts.init_callbacks(dash_app)

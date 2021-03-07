@@ -418,7 +418,7 @@ div.charts-body input[type='checkbox'] {
   vertical-align: bottom;
 }
 div.charts-body {
-  padding: 1.25em;
+  padding: 0.25em 1.25em 1.25em 1.25em;
 }
 div.charts-filters > div:first-child span.input-group-addon,
 div.addon-min-width > div:first-child span.input-group-addon:first-child,
@@ -499,6 +499,7 @@ div.tab-container > div.tab:last-child {
     border-radius: 0 0.25rem 0.25rem 0;
 }
 #cpg-input .input-group-addon,
+#cpy-input .input-group-addon,
 #animate-input .input-group-addon,
 #drilldown-input .input-group-addon,
 #map-loc-mode-input .input-group-addon,
@@ -515,12 +516,14 @@ div.tab-container > div.tab:last-child {
   width: 5em;
 }
 #cpg-input > div.input-group div:last-child,
+#cpy-input > div.input-group div:last-child,
 #animate-input > div.input-group div:last-child,
 #drilldown-input > div.input-group div:last-child,
 #auto-load-input > div.input-group div:last-child {
     min-width: 3.75em;
 }
 #cpg-toggle,
+#cpy-toggle,
 #animate-toggle,
 #drilldown-toggle,
 #auto-load-toggle {
@@ -605,6 +608,18 @@ div#bins-val-input input {
 #load-btn {
   margin-top: .3em;
   height: 36px;
+  margin-right: 15px;
+  letter-spacing: inherit;
+  text-transform: none;
+  font-family: "Istok", "Helvetica", Arial, sans-serif;
+}
+
+#save-btn {
+  height: 36px;
+  margin-right: 1.25em;
+  letter-spacing: inherit;
+  text-transform: none;
+  font-family: "Istok", "Helvetica", Arial, sans-serif;
 }
 
 #bins-val-input,
@@ -633,4 +648,44 @@ div#bins-val-input input {
 
 #top-bars div.Select {
   min-width: 6.5em;
+}
+
+#collapse-data-btn {
+  background: none;
+  color: black;
+  padding: 0;
+  line-height: normal;
+  height: auto;
+  letter-spacing: inherit;
+  text-transform: none;
+  font-family: "Istok", "Helvetica", Arial, sans-serif;
+}
+
+#collapse-data-btn:focus,
+#collapse-data-btn:enabled:active {
+  box-shadow: none;
+}
+
+.dash-graph {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.25rem;
+  border-color: grey;
+  padding: 0.2em;
+}
+
+.delete-chart {
+  padding: 0 0.3rem;
+  height: 24px;
+  letter-spacing: inherit;
+  text-transform: none;
+  font-family: "Istok", "Helvetica", Arial, sans-serif;
+}
+
+.nav_menus {
+  float: left;
+}
+
+.app-header > .title-font {
+  margin-left: 1em;
 }

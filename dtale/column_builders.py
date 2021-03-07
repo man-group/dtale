@@ -815,9 +815,9 @@ class SimilarityColumnBuilder(object):
 
         return (
             "{import_str}\n"
-            "distances = data[['{l}', '{r}']].fillna('').apply(lambda rec: similarity.distance(*rec))\n"
+            "distances = data[['{left}', '{right}']].fillna('').apply(lambda rec: similarity.distance(*rec))\n"
             "df.loc[:, '{name}'] = pd.Series(distances, index=data.index, name='{name}')"
-        ).format(name=self.name, l=left_col, r=right_col, import_str=import_str)
+        ).format(name=self.name, left=left_col, right=right_col, import_str=import_str)
 
 
 class StandardizedColumnBuilder(object):

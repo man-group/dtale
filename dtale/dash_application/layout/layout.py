@@ -10,12 +10,19 @@ from pkg_resources import parse_version
 
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
-from dtale.charts.utils import YAXIS_CHARTS, ZAXIS_CHARTS, find_group_vals
+from dtale.charts.utils import (
+    ANIMATION_CHARTS,
+    ANIMATE_BY_CHARTS,
+    YAXIS_CHARTS,
+    ZAXIS_CHARTS,
+    find_group_vals,
+)
 from dtale.dash_application.layout.utils import (
     build_input,
     build_option,
     build_tab,
     build_cols,
+    build_hoverable,
     build_selections,
     show_style,
     AGGS,
@@ -27,9 +34,9 @@ from dtale.query import build_query, inner_build_query, run_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
+    coord_type,
     get_dtypes,
     is_app_root_defined,
-    coord_type,
     make_list,
 )
 
@@ -60,6 +67,36 @@ def base_layout(app_root, **kwargs):
             app_root=app_root
         )
         favicon_path = "{}/dtale/static/images/favicon.png".format(app_root)
+    grid_links = []
+    for id in global_state.keys():
+        label = global_state.get_name(id)
+        if label:
+            label = " ({})".format(label)
+        else:
+            label = ""
+        grid_links.append(
+            (
+                """<a href="{id}" class="dropdown-item data-grid-link">"""
+                """<span class="ml-3">{id}{label}</span>"""
+                """</a>"""
+            ).format(id=id, label=label)
+        )
+    language = global_state.get_app_settings()["language"]
+    language_links = []
+    for value, label in [("en", "English"), ("cn", "Chinese")]:
+        if value == language:
+            language_links.append(
+                """<span class="dropdown-item active">{}</span>""".format(
+                    "&#10003; {}".format(text(label))
+                )
+            )
+        else:
+            language_links.append(
+                """<a href="{}" class="dropdown-item lang-link">{}</a>""".format(
+                    value, text(label)
+                )
+            )
+
     return """
         <!DOCTYPE html>
         <html>
@@ -71,22 +108,31 @@ def base_layout(app_root, **kwargs):
                 {css}
             </head>
             <body>
+                <header class="app-header">
+                    <span class="title-font">D-TALE</span>
+                    <span style="font-size: 16px" class="pl-5 mt-4">{title}</span>
+                    <nav class="app-header__nav--secondary">
+                        <ul class="nav-menus">
+                            <li>
+                                <div class="dropdown">
+                                    <span class="dropbtn nav-link dropdown-toggle">
+                                        {back_to_data}
+                                    </span>
+                                    <div class="dropdown-content">{grid_links}</div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="dropdown">
+                                    <span class="dropbtn nav-link dropdown-toggle">
+                                        {languages}
+                                    </span>
+                                    <div class="dropdown-content">{language_links}</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+                </header>
                 <div class="container-fluid charts">
-                    <div class="row" style="margin: 0">
-                        <div class="col-auto">
-                            <header>
-                                <span class="title-font">D-TALE</span>
-                                <span style="font-size: 16px" class="pl-4">{title}</span>
-                            </header>
-                        </div>
-                        <div class="col"></div>
-                        <div class="col-auto mt-4">
-                            <a href="#" onclick="javascript:backToData()">
-                                <i class="fas fa-th mr-4"></i>
-                                <span>{back_to_data}</span>
-                            </a>
-                        </div>
-                    </div>
                     {app_entry}
                 </div>
                 <footer>
@@ -114,6 +160,9 @@ def base_layout(app_root, **kwargs):
         favicon_path=favicon_path,
         title=text("Charts"),
         back_to_data=text("Back To Data"),
+        grid_links="".join(grid_links),
+        languages=text("Languages"),
+        language_links="".join(language_links),
     )
 
 
@@ -453,8 +502,6 @@ YLORRD = [
 ]
 YLGRBL = ["#ffffd9", "#d5efb3", "#73c9bc", "#1b99c2", "#1c4ea2", "#081d58"]
 DEFAULT_CSALES = {"heatmap": JET, "maps": REDS, "3d_Scatter": YLORRD, "surface": YLGRBL}
-ANIMATION_CHARTS = ["line"]
-ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps"]
 
 
 def show_input_handler(chart_type):
@@ -467,11 +514,11 @@ def show_input_handler(chart_type):
     return _show_input
 
 
-def get_group_types(inputs, data_id, group_cols=None):
+def get_group_types(inputs, group_cols=None):
     def _flags(group_prop):
         final_group_cols = group_cols or make_list(inputs.get(group_prop))
         if len(final_group_cols):
-            dtypes = global_state.get_dtypes(data_id)
+            dtypes = global_state.get_dtypes(inputs["data_id"])
             for dtype_info in dtypes:
                 if dtype_info["name"] in final_group_cols:
                     classifier = classify_type(dtype_info["dtype"])
@@ -742,9 +789,11 @@ def colorscale_input_style(**inputs):
 
 
 def animate_styles(df, **inputs):
-    chart_type, agg, cpg = (inputs.get(p) for p in ["chart_type", "agg", "cpg"])
+    chart_type, agg, cpg, cpy = (
+        inputs.get(p) for p in ["chart_type", "agg", "cpg", "cpy"]
+    )
     opts = []
-    if cpg or agg in ["pctsum", "pctct"]:
+    if cpg or cpy or agg in ["pctsum", "pctct"]:
         return dict(display="none"), dict(display="none"), opts
     if chart_type in ANIMATION_CHARTS:
         return dict(display="block"), dict(display="none"), opts
@@ -767,13 +816,21 @@ def show_chart_per_group(**inputs):
     """
     Boolean function to determine whether "Chart Per Group" toggle should be displayed or not
     """
-    [chart_type, group] = [inputs.get(p) for p in ["chart_type", "group"]]
+    chart_type, group = (inputs.get(p) for p in ["chart_type", "group"])
     invalid_type = chart_type in ["pie", "wordcloud", "maps"]
     return (
         show_input_handler(chart_type)("group")
         and len(group or [])
         and not invalid_type
     )
+
+
+def show_chart_per_y(**inputs):
+    """
+    Boolean function to determine whether "Chart Per Y-Axis" toggle should be displayed or not
+    """
+    chart_type, y = (inputs.get(p) for p in ["chart_type", "y"])
+    return show_input_handler(chart_type)("y", "multi") and len(y or []) > 1
 
 
 def show_yaxis_ranges(**inputs):
@@ -846,23 +903,8 @@ def build_map_type_tabs(map_type):
     )
 
 
-def build_hoverable(content, hoverable_content, hover_class="map-types", top="50%"):
-    return html.Div(
-        [
-            content,
-            html.Div(
-                hoverable_content,
-                className="hoverable__content {}".format(hover_class),
-                style=dict(top=top),
-            ),
-        ],
-        style=dict(borderBottom="none"),
-        className="hoverable",
-    )
-
-
-def main_inputs_and_group_val_display(inputs, data_id):
-    group_types = get_group_types(inputs, data_id)
+def main_inputs_and_group_val_display(inputs):
+    group_types = get_group_types(inputs)
     if len(group_types):
         is_groups = ["groups"] == group_types or (
             "groups" in group_types and inputs.get("group_type") == "groups"
@@ -902,7 +944,11 @@ def build_slider_counts(df, data_id, query_value):
     return slider_counts
 
 
-def charts_layout(df, settings, data_id, **inputs):
+def data_selection_text(is_open):
+    return "{} {}".format("\u25BC" if is_open else "\u25B6", text("Data Selection"))
+
+
+def charts_layout(df, settings, **inputs):
     """
     Builds main dash inputs with dropdown options populated with the columns of the dataframe associated with the
     page. Inputs included are: chart tabs, query, x, y, z, group, aggregation, rolling window/computation,
@@ -912,8 +958,6 @@ def charts_layout(df, settings, data_id, **inputs):
     :type df: :class:`pandas:pandas.DataFrame`
     :param settings: global settings associated with this dataframe (contains properties like "query")
     :type param: dict
-    :param data_id: identifier for the data we are viewing
-    :type data_id: string
     :return: dash markup
     """
     chart_type, x, y, z, group, agg, load = (
@@ -923,6 +967,7 @@ def charts_layout(df, settings, data_id, **inputs):
     y = y or []
     show_input = show_input_handler(chart_type)
     show_cpg = show_chart_per_group(**inputs)
+    show_cpy = show_chart_per_y(**inputs)
     show_yaxis = show_yaxis_ranges(**inputs)
     scatter_input = dict(display="block" if chart_type == "scatter" else "none")
     bar_style, barsort_input_style = bar_input_style(**inputs)
@@ -1005,7 +1050,7 @@ def charts_layout(df, settings, data_id, **inputs):
         bins_style,
         main_input_class,
         show_groups,
-    ) = main_inputs_and_group_val_display(inputs, data_id)
+    ) = main_inputs_and_group_val_display(inputs)
     group_val = [json.dumps(gv) for gv in inputs.get("group_val") or []]
 
     def show_map_style(show):
@@ -1018,13 +1063,15 @@ def charts_layout(df, settings, data_id, **inputs):
             data={
                 k: v
                 for k, v in inputs.items()
-                if k not in ["cpg", "barmode", "barsort"]
+                if k not in ["cpg", "cpy", "barmode", "barsort"]
             },
         ),
         dcc.Store(
             id="chart-input-data",
             data={
-                k: v for k, v in inputs.items() if k in ["cpg", "barmode", "barsort"]
+                k: v
+                for k, v in inputs.items()
+                if k in ["cpg", "cpy", "barmode", "barsort"]
             },
         ),
         dcc.Store(
@@ -1065,7 +1112,37 @@ def charts_layout(df, settings, data_id, **inputs):
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
         dcc.Store(id="load-clicks", data=0),
+        dcc.Store(id="save-clicks", data=0),
         dcc.Input(id="chart-code", type="hidden"),
+        html.Div(
+            [
+                html.Div(
+                    dbc.Button(data_selection_text(False), id="collapse-data-btn"),
+                    className="col-auto pr-0",
+                ),
+                html.Div(
+                    dbc.Collapse(
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Tabs(
+                                    id="data-tabs",
+                                    value=inputs["data_id"],
+                                    children=[
+                                        build_tab(global_state.get_name(k) or k, str(k))
+                                        for k in global_state.keys()
+                                    ],
+                                    style=dict(height="36px"),
+                                ),
+                            )
+                        ),
+                        id="collapse-data",
+                    ),
+                    className="col",
+                ),
+            ],
+            className="row pb-3 charts-filters",
+            style=dict(display="none" if len(global_state.keys()) < 2 else "block"),
+        ),
         html.Div(
             html.Div(
                 dcc.Tabs(
@@ -1125,7 +1202,9 @@ def charts_layout(df, settings, data_id, **inputs):
                                 step=10,
                                 value=100 if load is None else load,
                                 className="w-100",
-                                marks=build_slider_counts(df, data_id, query_value),
+                                marks=build_slider_counts(
+                                    df, inputs["data_id"], query_value
+                                ),
                                 tooltip={
                                     "always_visible": False,
                                     "placement": "left",
@@ -1762,6 +1841,19 @@ def charts_layout(df, settings, data_id, **inputs):
                     className="col-auto",
                 ),
                 build_input(
+                    text("Chart Per\nY"),
+                    html.Div(
+                        daq.BooleanSwitch(
+                            id="cpy-toggle",
+                            on=inputs.get("cpy") or False,
+                        ),
+                        className="toggle-wrapper",
+                    ),
+                    id="cpy-input",
+                    style=show_style(show_cpy),
+                    className="col-auto",
+                ),
+                build_input(
                     text("Trendline"),
                     dcc.Dropdown(
                         id="trendline-dropdown",
@@ -1937,12 +2029,23 @@ def charts_layout(df, settings, data_id, **inputs):
                     color="primary",
                     style=dict(display="none"),
                 ),
+                build_hoverable(
+                    dbc.Button(
+                        text("Save"),
+                        id="save-btn",
+                        color="primary",
+                        style=dict(display="none"),
+                    ),
+                    text("save_msg"),
+                    "",
+                    top="120%",
+                ),
             ],
             className="row pt-3 pb-5 charts-filters",
             id="chart-inputs",
         ),
         dcc.Loading(
-            html.Div(id="chart-content", style={"height": "69vh"}), type="circle"
+            html.Div(id="chart-content", style={"max-height": "69vh"}), type="circle"
         ),
         dcc.Textarea(id="copy-text", style=dict(position="absolute", left="-110%")),
     ]
@@ -1955,4 +2058,4 @@ def charts_layout(df, settings, data_id, **inputs):
                 id="forkongithub",
             )
         )
-    return html.Div(body_items, className="charts-body")
+    return body_items
