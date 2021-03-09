@@ -6,15 +6,15 @@
 ### 1.37.0 (2021-3-5)
 * [#445](https://github.com/man-group/dtale/issues/445): updated URL paths to handle when D-Tale is running with jupyter server proxy
 * [#315](https://github.com/man-group/dtale/issues/315): Internationalization (supports english & chinese currently)
-* Add option to 'pin' the menu to the screen as a fixed side panel ([#441]((https://github.com/man-group/dtale/pull/441))
+* [#441](https://github.com/man-group/dtale/pull/441): Add option to 'pin' the menu to the screen as a fixed side panel
 * [#434](https://github.com/man-group/dtale/issues/434)
   * updated scatter plot date header to be generated server-side 
   * updated scatter plot generation in correlations to use date index rather than date value for filtering
 * update setup.py to load dependencies from requirements.txt
-* optional memory usage optimization and show mem usage ([#437]((https://github.com/man-group/dtale/pull/437))
+* [#437](https://github.com/man-group/dtale/pull/437): optional memory usage optimization and show mem usage
 
 ### 1.36.0 (2021-2-18)
-* Turn global_state into interfaces ([#428](https://github.com/man-group/dtale/pull/428))
+* [#428](https://github.com/man-group/dtale/pull/428): Turn global_state into interfaces
 * [#434](https://github.com/man-group/dtale/issues/434): Additional PPS formatting
 * [#433](https://github.com/man-group/dtale/issues/433): fixed exception message display in merge UI
 * [#432](https://github.com/man-group/dtale/issues/432): updated calls to "get_instance" in merge code snippets
