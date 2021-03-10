@@ -344,7 +344,12 @@ def test_show(unittest):
             instance.data = instance.data.rename(columns={"b": "a"})
 
         curr_instance_ct = global_state.size()
-        show(data=pd.DataFrame([dict(a=1, b=2)]), subprocess=False, name="foo")
+        show(
+            data=pd.DataFrame([dict(a=1, b=2)]),
+            subprocess=False,
+            name="foo",
+            ignore_duplicate=False,
+        )
         assert curr_instance_ct == global_state.size()
 
     # cleanup

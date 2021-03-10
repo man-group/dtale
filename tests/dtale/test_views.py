@@ -75,7 +75,7 @@ def test_startup(unittest):
 
     test_data = test_data.reset_index()
     with pytest.raises(DuplicateDataError):
-        views.startup(URL, data=test_data)
+        views.startup(URL, data=test_data, ignore_duplicate=False)
 
     instance = views.startup(
         URL,

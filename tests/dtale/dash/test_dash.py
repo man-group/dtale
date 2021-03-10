@@ -150,13 +150,13 @@ def test_collapse_data_input():
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "▼ Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25BC Data Selection"
 
         params["state"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert not response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "▶ Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25B6 Data Selection"
 
         params["inputs"][0]["value"] = 0
         response = c.post("/dtale/charts/_dash-update-component", json=params)

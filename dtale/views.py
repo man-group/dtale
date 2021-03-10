@@ -760,7 +760,7 @@ def startup(
     name=None,
     data_id=None,
     context_vars=None,
-    ignore_duplicate=False,
+    ignore_duplicate=True,
     allow_cell_edits=True,
     inplace=False,
     drop_index=False,
