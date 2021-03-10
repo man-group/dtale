@@ -8313,8 +8313,13 @@ a.Select__multi-value__label, a.Select-multi-value-label{
   width: 100%;
 }
 
-div.container-fluid.glc > div#content {
-  padding-top: 4.95em;
+.nav_menus {
+  float: left;
+}
+
+.app-header > .title-font {
+  margin-left: 1em;
+  margin-top: -0.1em;
 }
 
 div.container-fluid.charts {
@@ -8334,9 +8339,6 @@ div.debug {
 }
 
 @media (max-width: 1024px) {
-  .app-header {
-    height: 6rem;
-  }
 
   .app-header__nav--secondary {
     position: fixed;
@@ -8353,12 +8355,6 @@ div.debug {
 
   .Login .row {
     margin-top: 10px;
-  }
-}
-
-@media (max-width: 767px) {
-  .app-header {
-    height: 6rem;
   }
 }
 

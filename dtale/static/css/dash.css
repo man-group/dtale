@@ -681,11 +681,3 @@ div#bins-val-input input {
   text-transform: none;
   font-family: "Istok", "Helvetica", Arial, sans-serif;
 }
-
-.nav_menus {
-  float: left;
-}
-
-.app-header > .title-font {
-  margin-left: 1em;
-}

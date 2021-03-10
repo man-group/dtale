@@ -1051,12 +1051,23 @@ def view_popup(popup_type, data_id=None):
             return ", ".join(["{}: {}".format(k, str(v)) for k, v in obj.items()])
 
         title = "{} ({})".format(title, pretty_print(params))
+
+    grid_links = []
+    for id in global_state.keys():
+        label = global_state.get_name(id)
+        if label:
+            label = " ({})".format(label)
+        else:
+            label = ""
+        grid_links.append((id, "{}{}".format(id, label)))
     return base_render_template(
         "dtale/popup.html",
         data_id,
         title=title,
         popup_title=popup_title,
         js_prefix=popup_type,
+        grid_links=grid_links,
+        back_to_data=text("Back To Data"),
     )
 
 

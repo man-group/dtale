@@ -3,31 +3,55 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block full_content %}
-<div class="container-fluid {{js_prefix}}">
-    <div class="row" style="margin: 0">
-        <div class="col-auto">
-            <header>
-                <span class="title-font">D-TALE</span>
-                <span style="font-size: 16px" class="pl-4">{{'- ' + popup_title}}</span>
-            </header>
-        </div>
-        <div class="col"></div>
-        {% if not popup_title == 'Load Data' %}
-        <div class="col-auto mt-4" style="{{'padding-right: 85px' if github_fork else ''}}">
-            <a href="#" onclick="window.open('/dtale/main/{{data_id}}'); return false;">
-                <i class="fas fa-th mr-4"></i>
-                <span>Back To Data</span>
-            </a>
-        </div>
-        {% endif %}
-    </div>
+<header class="app-header">
+    <span class="title-font">D-TALE</span>
+    <span style="font-size: 16px" class="pl-5 mt-4">{{popup_title}}</span>
+    <nav class="app-header__nav--secondary">
+        <ul class="nav-menus">
+            {% if grid_links|length > 0 %}
+            <li>
+                <div class="dropdown">
+                    <span class="dropbtn nav-link dropdown-toggle">
+                        {{back_to_data}}
+                    </span>
+                    <div class="dropdown-content">
+                        {% for id, label in grid_links %}
+                            <a href="{{id}}" class="dropdown-item data-grid-link">
+                                <span class="ml-3">{{label}}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+<div class="container-fluid {{js_prefix}}" style="padding-top: 3em !important">
     <div id="popup-content" />
 </div>
 {% endblock %}
 
 {% block js %}
 <script type="text/javascript">
-    const backToData = () => window.open('/dtale/main/{{data_id}}');
+    function backToData(e, id) {
+      e.preventDefault();
+      let path = `dtale/main/${id}`;
+      if (window.resourceBaseUrl) {
+        path = `${window.resourceBaseUrl}/${path}`;
+      }
+      window.open(`${window.location.origin}/${path}`);
+      return false;
+    }
+
+    window.onload = function () {
+      $("body").click(function (e) {
+        const target = $(e.target);
+        if (target.is("a.data-grid-link")) {
+          backToData(e, target.attr("href"));
+        }
+      });
+    };
 </script>
 <script type="text/javascript" src="{{ url_for('static', filename='dist/dtale_bundle.js') }}"></script>
 {% endblock %}
