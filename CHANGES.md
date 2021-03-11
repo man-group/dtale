@@ -1,5 +1,18 @@
 ## Changelog
 
+### 1.38.0 (2021-3-10)
+* [#452](https://github.com/man-group/dtale/issues/452): handling of column names with periods & spaces as well as long names
+* updated styling of windows to match that of Charts
+* [#448](https://github.com/man-group/dtale/issues/448): set default value of "ignore_duplicate" to True
+* [#442](https://github.com/man-group/dtale/issues/442): Dash Updates
+  * Split charts by y-axis values if there are multiple
+  * Saving charts off and building new ones
+  * Toggling which piece of data you're viewing
+  * Toggling language nav menu
+* Instances popup changes
+  * updated preview to use DataPreview
+  * updated display of "memory usage" to numeral.js
+
 ### 1.37.1 (2021-3-6)
 * Updated MANIFEST.in to include requirements.txt
 
