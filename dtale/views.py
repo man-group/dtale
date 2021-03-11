@@ -689,7 +689,7 @@ def format_data(data, inplace=False, drop_index=False):
             data.drop("index", axis=1, errors="ignore", inplace=True)
         else:
             data = data.drop("index", axis=1, errors="ignore")
-    data.columns = [str(c) for c in data.columns]
+    data.columns = [str(c).strip() for c in data.columns]
     return data, index
 
 

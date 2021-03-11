@@ -123,7 +123,7 @@ class ReactHeader extends React.Component {
       `${colName}Actions`,
       () => toggleColumnMenu(colName, toggleId),
       () => hideColumnMenu(colName),
-      `div.${toggleId}`,
+      `div[name='${colName}']`,
       ignoreMenuClicks
     );
     const copyHandler = buildCopyHandler(menuHandler, this.props);
@@ -138,7 +138,8 @@ class ReactHeader extends React.Component {
         className={`headerCell ${toggleId}${markupProps.className}${rangeClass}`}
         style={headerStyle}
         onClick={copyHandler}
-        onMouseOver={this.handleMouseOver}>
+        onMouseOver={this.handleMouseOver}
+        name={colName}>
         <div className="text-nowrap">
           {_.get(SORT_CHARS, sortDir, "")}
           {markupProps.colNameMarkup}

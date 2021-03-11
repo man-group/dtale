@@ -4,6 +4,9 @@ import React from "react";
 
 function measureText(str) {
   const o = $("#text-measure").text(str).css({
+    "font-family": `"Istok", "Helvetica", Arial, sans-serif`,
+    "font-weight": "bold",
+    "font-size": "0.8125rem",
     position: "absolute",
     float: "left",
     "white-space": "nowrap",
@@ -20,7 +23,7 @@ class MeasureText extends React.Component {
   }
 
   render() {
-    return <div id="text-measure" />;
+    return <span id="text-measure" />;
   }
 }
 MeasureText.displayName = "MeasureText";
