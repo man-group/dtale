@@ -10,6 +10,7 @@ from dtale.cli.loaders import (
     excel_loader,
     json_loader,
     parquet_loader,
+    r_loader,
     sqlite_loader,
 )
 
@@ -87,6 +88,7 @@ LOADERS = {
     excel_loader.LOADER_KEY: excel_loader,
     json_loader.LOADER_KEY: json_loader,
     parquet_loader.LOADER_KEY: parquet_loader,
+    r_loader.LOADER_KEY: r_loader,
     sqlite_loader.LOADER_KEY: sqlite_loader,
 }
 

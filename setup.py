@@ -75,7 +75,7 @@ setup(
     install_requires=open("requirements.txt").read(),
     extras_require={
         "arctic": ["arctic"],
-        "r": ["rpy2"],
+        "r": ["rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],

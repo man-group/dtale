@@ -697,3 +697,29 @@ def test_streamlit(unittest):
             sys.argv[-4:],
             ["--server.enableCORS", "false", "--server.enableXsrfProtection", "false"],
         )
+
+
+@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
+def test_r_loader_integration(unittest):
+    pytest.importorskip("rpy2")
+
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "admissions.rda")
+
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(
+            mock.patch("dtale.cli.script.show", mock.Mock())
+        )
+        args = ["--port", "9999", "--r-path", path]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        assert kwargs["data_loader"] is not None
+        df = kwargs["data_loader"]()
+        unittest.assertEqual(
+            list(df.columns), ["major", "gender", "admitted", "applicants"]
+        )
+        assert len(df) == 12
+        unittest.assertEqual(
+            df.to_dict(orient="records")[0],
+            dict(major="A", gender="men", admitted=62, applicants=825),
+        )

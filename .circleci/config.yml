@@ -106,14 +106,20 @@ python: &python
 #            sudo chown `whoami` /var/lib/mongo     # Or substitute another user
 #            sudo chown `whoami` /var/log/mongodb   # Or substitute another user
       - run:
-         name: Create and activate virtualenv
-         command: |
-           virtualenv ci
-           . ci/bin/activate
-           pip install six
-           pip install lxml
-           pip install -r docs/source/requirements.txt
-           python setup.py develop
+          name: Install R
+          command: |
+            sudo apt update
+            sudo apt -y upgrade
+            sudo apt -y install r-base
+      - run:
+          name: Create and activate virtualenv
+          command: |
+            virtualenv ci
+            . ci/bin/activate
+            pip install six
+            pip install lxml
+            pip install -r docs/source/requirements.txt
+            python setup.py develop
       # Save dependency cache
       - save_cache:
           key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -149,6 +155,7 @@ python: &python
            export TZ=America/New_York
            pip install -e ".[arctic]"
            pip install -e ".[redis]"
+           pip install -e ".[r]"
            pip install -e ".[tests]"
            python setup.py test
            bash <(curl -s https://codecov.io/bash) -c -F python
