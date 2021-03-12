@@ -25,9 +25,9 @@ class ReactLanguageOption extends React.Component {
         <span className="toggler-action">
           <i className="fas fa-adjust" />
         </span>
-        <span className="font-weight-bold pl-2">Language</span>
+        <span className="font-weight-bold pl-2">{t("Language")}</span>
         <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
-          {_.map(["en", "cn"], value => (
+          {_.map(Object.keys(i18n.options.resources), value => (
             <button
               key={value}
               style={{ color: "#565b68" }}

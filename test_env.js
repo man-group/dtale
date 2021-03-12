@@ -27,7 +27,14 @@ jest.mock("react-i18next", () => ({
       }
       return key;
     };
-    Component.defaultProps = { ...Component.defaultProps, t: convertKey };
+    Component.defaultProps = {
+      ...Component.defaultProps,
+      t: convertKey,
+      i18n: {
+        language: "en",
+        options: { resources: { en: {}, cn: {} } },
+      },
+    };
     return Component;
   },
 }));
