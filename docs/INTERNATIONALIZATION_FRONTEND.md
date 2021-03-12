@@ -1,8 +1,8 @@
 # I updated 133 jsx files w/ react-i18next and lived to tell the tale...
 
-I while back I was asked to update my free software, [D-Tale](https://github.com/man-group/dtale), so that it could support multiple languages (Chinese in particular). This request sat in my to-do list for months because I knew it would be a big undertaking.  Luckily for me the open-source community offered to give me a head start. A branch had been created which started the process of integrating `react-i18next` into my components but with the speed at which changes are made to my software it would have been impossible to maintain. So I offered to take it over. Let me be clear, without the work done by this open-source good samaritan I never would have taken on this project. So once again a huge thanks to them.
+A while back I was asked to update my free software, [D-Tale](https://github.com/man-group/dtale), so that it could support multiple languages (Chinese in particular). This request sat in my to-do list for months because I knew it would be a big undertaking.  Luckily for me the open-source community offered to give me a head start. A branch had been created which started the process of integrating `react-i18next` into my components but with the speed at which changes are made to my software it would have been impossible to maintain. So I offered to take it over. Let me be clear, without the work done by this open-source good samaritan I never would have taken on this project. So once again a huge thanks to them.
 
-So now armed with a good example of how to convert my pre-existing components to use `react-i18next` and a partial Chinese translation of the text in my software I began my trek to update 133 jsx files worth of React components & utility functions (not including unit tests). Here's how I accomplished this feat:
+Now armed with a good example of how to convert my pre-existing components to use `react-i18next` and a partial Chinese translation of the text in my software I began my trek updating 133 jsx files worth of React components & utility functions (not including unit tests). Here's how I accomplished this feat:
 
 ### Install Dependencies
 ```cmd
