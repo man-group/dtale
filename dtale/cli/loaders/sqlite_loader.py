@@ -37,7 +37,7 @@ def find_loader(kwargs):
     :param kwargs: Optional keyword arguments to be passed from `click`
     :return: data loader function for SQLite implementation
     """
-    sqlite_opts = get_loader_options(LOADER_KEY, kwargs)
+    sqlite_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in sqlite_opts.values() if f]):
 
         def _sqlite_loader():

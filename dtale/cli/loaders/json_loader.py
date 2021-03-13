@@ -54,7 +54,7 @@ def find_loader(kwargs):
     :param kwargs: Optional keyword arguments to be passed from `click`
     :return: data loader function for JSON implementation
     """
-    json_opts = get_loader_options(LOADER_KEY, kwargs)
+    json_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in json_opts.values() if f]):
 
         def _json_loader():
