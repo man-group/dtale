@@ -72,7 +72,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: numeric formatting", async () => {
     // select column
-    result.find(".main-grid div.headerCell div").at(1).simulate("click");
+    result.find(".main-grid div.headerCell").at(1).find(".text-nowrap").simulate("click");
     result.update();
     clickColMenuButton(result, "Formats");
     result.update();

@@ -65,13 +65,13 @@ describe("DataViewer highlighting tests", () => {
     expect(
       dataViewer()
         .find("div.headerCell")
-        .map(hc => hc.text())
+        .map(hc => hc.find(".text-nowrap").text())
     ).toEqual(["col1", "col2"]);
     heatMapBtn().find("button").last().simulate("click");
     expect(
       dataViewer()
         .find("div.headerCell")
-        .map(hc => hc.text())
+        .map(hc => hc.find(".text-nowrap").text())
     ).toEqual(["col1", "col2"]);
     heatMapBtn().find("button").last().simulate("click");
     expect(_.filter(dataViewer(result).instance().state.columns, { visible: true }).length).toBe(5);

@@ -50,7 +50,12 @@ describe("DataViewer tests", () => {
     );
     await tickUpdate(result);
     const grid = result.find(MultiGrid).first().instance();
-    expect(result.find(".main-grid div.headerCell").map(hc => hc.text())).toEqual(["col1", "col2", "col3", "col4"]);
+    expect(result.find(".main-grid div.headerCell").map(hc => hc.find(".text-nowrap").text())).toEqual([
+      "col1",
+      "col2",
+      "col3",
+      "col4",
+    ]);
     expect(grid.props.columns).toEqual(COL_PROPS);
     result.find("div.crossed").first().find("div.grid-menu").first().simulate("click");
     expect(

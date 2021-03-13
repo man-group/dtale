@@ -13,4 +13,8 @@ describe("gridUtils tests", () => {
     });
     expect(dataProps.view).toBe("");
   });
+
+  it("gridUtils: calcColWidth resized", () => {
+    expect(gu.calcColWidth({ resized: true, width: 100 }, {})).toBe(100);
+  });
 });

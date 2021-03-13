@@ -29,12 +29,12 @@ function clickColMenuSubButton(result, label, row = 0) {
 }
 
 async function openColMenu(result, colIdx) {
-  result.find(".main-grid div.headerCell div").at(colIdx).simulate("click");
+  result.find(".main-grid div.headerCell").at(colIdx).find(".text-nowrap").simulate("click");
   await tick();
 }
 
 function validateHeaders(result, headers) {
-  expect(result.find(".main-grid div.headerCell").map(hc => hc.text())).toEqual(headers);
+  expect(result.find(".main-grid div.headerCell").map(hc => hc.find(".text-nowrap").text())).toEqual(headers);
 }
 
 export { findColMenuButton, clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders };

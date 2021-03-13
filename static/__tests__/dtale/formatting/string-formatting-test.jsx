@@ -55,7 +55,7 @@ describe("DataViewer tests", () => {
     );
     await tickUpdate(result);
     // select column
-    result.find(".main-grid div.headerCell div").at(2).simulate("click");
+    result.find(".main-grid div.headerCell").at(2).find(".text-nowrap").simulate("click");
     result.update();
     clickColMenuButton(result, "Formats");
     result.update();

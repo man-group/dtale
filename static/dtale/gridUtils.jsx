@@ -103,9 +103,12 @@ EXPORTS.getRanges = array => {
 };
 
 EXPORTS.calcColWidth = (
-  { name, dtype, hasMissing, hasOutliers, lowVariance },
+  { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width },
   { data, rowCount, sortInfo, backgroundMode }
 ) => {
+  if (resized === true) {
+    return width;
+  }
   let w;
   if (name === EXPORTS.IDX) {
     w = measureText(rowCount - 1 + "");

@@ -54,7 +54,7 @@ describe("DataViewer tests", () => {
     );
     await tickUpdate(result);
     let instance = result.find(ReactHeader).at(1);
-    instance.find("div.headerCell").simulate("click", { shiftKey: true });
+    instance.find("div.headerCell").find(".text-nowrap").simulate("click", { shiftKey: true });
     //result.update();
     expect(result.find(ReactDataViewer).instance().state.columnRange).toEqual({
       start: 1,
@@ -68,7 +68,7 @@ describe("DataViewer tests", () => {
       start: 1,
       end: 2,
     });
-    instance.find("div.headerCell").simulate("click", { shiftKey: true });
+    instance.find("div.headerCell").find(".text-nowrap").simulate("click", { shiftKey: true });
     result.update();
     const copyRange = result.find(CopyRangeToClipboard).first();
     expect(copyRange.instance().state.finalText).toBe(text);
@@ -92,13 +92,13 @@ describe("DataViewer tests", () => {
     );
     await tickUpdate(result);
     let instance = result.find(ReactHeader).at(1);
-    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    instance.find("div.headerCell").find(".text-nowrap").simulate("click", { ctrlKey: true });
     expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1]);
     instance = result.find(ReactHeader).at(2);
-    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    instance.find("div.headerCell").find(".text-nowrap").simulate("click", { ctrlKey: true });
     expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1, 2]);
     instance = result.find(ReactHeader).at(1);
-    instance.find("div.headerCell").simulate("click", { ctrlKey: true });
+    instance.find("div.headerCell").find(".text-nowrap").simulate("click", { ctrlKey: true });
     expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([2]);
   });
 });
