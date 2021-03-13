@@ -9,6 +9,8 @@ import click
 import pkg_resources
 from six import PY3, BytesIO, StringIO, string_types
 
+from dtale.utils import make_list
+
 logger = logging.getLogger(__name__)
 
 LOG_LEVELS = dict(
@@ -91,12 +93,14 @@ def loader_options(key, params):
     return decorator
 
 
-def get_loader_options(key, options):
+def get_loader_options(key, properties, options):
     """
     Filters dictionary of click parameters for ones which start with a certain prefix
 
     :param key: click option prefix
     :type key: str
+    :param properties: sub-properties of the click command key
+    :type properties: list of str
     :param options: click options
     :type options: dict
     :return: dictionary of click options with start with key
@@ -109,11 +113,21 @@ def get_loader_options(key, options):
             return ""
         return option.split("{}_".format(key))[-1]
 
+    final_key = "_".join(key.split("-"))
+    selected_opts = (
+        [final_key]
+        if not len(make_list(properties))
+        else [
+            "{}_{}".format(final_key, prop["name"] if isinstance(prop, dict) else prop)
+            for prop in properties
+        ]
+    )
+
     return dict(
         (
             (_build_key(k), v)
             for k, v in options.items()
-            if k.startswith(key)
+            if k in selected_opts
             if v is not None
         )
     )

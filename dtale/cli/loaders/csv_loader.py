@@ -41,7 +41,7 @@ def find_loader(kwargs):
     :param kwargs: Optional keyword arguments to be passed from `click`
     :return: data loader function for CSV implementation
     """
-    csv_opts = get_loader_options(LOADER_KEY, kwargs)
+    csv_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in csv_opts.values() if f]):
 
         def _csv_loader():

@@ -64,7 +64,7 @@ def find_loader(kwargs):
     :param kwargs: Optional keyword arguments to be passed from `click`
     :return: data loader function for arctic implementation
     """
-    arctic_opts = get_loader_options(LOADER_KEY, kwargs)
+    arctic_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in arctic_opts.values() if f]):
 
         def _arctic_loader():

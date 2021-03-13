@@ -99,7 +99,13 @@ def test_loader_options():
 
 @pytest.mark.unit
 def test_get_loader_options():
-    ret = get_loader_options("foo", dict(foo_bar=1, baz_bar=2, biz=3))
+    ret = get_loader_options("foo", None, dict(foo_bar=1, baz_bar=2, biz=3))
+    assert len(ret) == 0
+    ret = get_loader_options("foo", ["bar"], dict(foo_bar=1, baz_bar=2, biz=3))
+    assert ret["bar"] == 1
+    ret = get_loader_options(
+        "foo", [dict(name="bar")], dict(foo_bar=1, baz_bar=2, biz=3)
+    )
     assert ret["bar"] == 1
 
 

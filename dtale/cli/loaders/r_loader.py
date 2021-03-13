@@ -50,7 +50,7 @@ def find_loader(kwargs):
     :param kwargs: Optional keyword arguments to be passed from `click`
     :return: data loader function for R dataset implementation
     """
-    r_opts = get_loader_options(LOADER_KEY, kwargs)
+    r_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in r_opts.values() if f]):
 
         def _r_loader():
