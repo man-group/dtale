@@ -64,7 +64,7 @@ describe("DataViewer tests", () => {
   afterAll(dimensions.afterAll);
 
   it("DataViewer: apply numeric formatting to all", async () => {
-    result.find(".main-grid div.headerCell div").at(0).simulate("click");
+    result.find(".main-grid div.headerCell").at(0).find(".text-nowrap").simulate("click");
     result.update();
     clickColMenuButton(result, "Formats");
     result.update();

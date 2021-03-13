@@ -20,10 +20,17 @@ function buildStyle(rec, valueStyle, gridState, colCfg) {
 
 function buildCellClassName(props) {
   const { columnIndex, rowIndex, allowCellEdits, gridState } = props;
-  let className = "cell";
-  className += allowCellEdits ? " editable" : "";
-  className += isInRange(columnIndex, rowIndex, gridState) ? " in-range" : "";
-  return className;
+  const classes = ["cell"];
+  if (allowCellEdits) {
+    classes.push("editable");
+  }
+  if (isInRange(columnIndex, rowIndex, gridState)) {
+    classes.push("in-range");
+  }
+  if (gu.getCol(columnIndex, gridState).resized) {
+    classes.push("resized");
+  }
+  return _.join(classes, " ");
 }
 
 class ReactGridCell extends React.Component {
@@ -73,7 +80,7 @@ class ReactGridCell extends React.Component {
     }
     let value = "-";
     // wide strings need to be displayed to the left so they are easier to read
-    let valueStyle = style.width > 350 ? { textAlign: "left" } : {};
+    let valueStyle = style.width > 350 && gu.isStringCol(colCfg.dtype) ? { textAlign: "left" } : {};
     const divProps = {};
     let className = buildCellClassName(this.props);
     if (colCfg.name) {

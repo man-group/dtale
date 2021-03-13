@@ -452,7 +452,7 @@ def test_data(rows, columns):
 
 # IMPORTANT!!! This function is required for building any customized CLI loader.
 def find_loader(kwargs):
-    test_data_opts = get_loader_options(LOADER_KEY, kwargs)
+    test_data_opts = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in test_data_opts.values() if f]):
         def _testdata_loader():
             return test_data(int(test_data_opts.get('rows', 1000500)), int(test_data_opts.get('columns', 96)))

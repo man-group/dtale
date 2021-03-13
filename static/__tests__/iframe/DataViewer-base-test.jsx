@@ -169,7 +169,7 @@ describe("DataViewer iframe tests", () => {
         .find("div.TopRightGrid_ScrollWrapper")
         .first()
         .find("div.headerCell")
-        .map(hc => hc.text())
+        .map(hc => hc.find(".text-nowrap").text())
     ).toEqual(["col1", "col2", "col3"]);
     //unlock
     await openColMenu(result, 0);
@@ -180,7 +180,7 @@ describe("DataViewer iframe tests", () => {
         .find("div.TopRightGrid_ScrollWrapper")
         .first()
         .find("div.headerCell")
-        .map(hc => hc.text())
+        .map(hc => hc.find(".text-nowrap").text())
     ).toEqual(["▲col4", "col1", "col2", "col3"]);
     //clear sorts
     result.find(DataViewerInfo).find("i.ico-cancel").first().simulate("click");

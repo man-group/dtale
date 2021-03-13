@@ -19,6 +19,13 @@
   background: lightblue;
 }
 
+.resized {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
 .cell.in-range,
 .cell.in-range.editable:hover,
 .headerCell.in-range {
@@ -101,4 +108,29 @@ body,
   font-size: 10px;
   font-weight: bold;
   padding-right: 4px;
+}
+.DragHandle {
+  flex: 0 0 16px;
+  z-index: 2;
+  cursor: col-resize;
+  color: #0085ff;
+  right: 0;
+  position: absolute;
+}
+.DragHandle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.DragHandleActive,
+.DragHandleActive:hover {
+  color: #0b6fcc;
+  z-index: 3;
+}
+
+.DragHandleIcon {
+  flex: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }

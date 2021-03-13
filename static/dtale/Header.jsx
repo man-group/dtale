@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import Draggable from "react-draggable";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
@@ -79,10 +80,18 @@ function buildCopyHandler(menuHandler, props) {
   };
 }
 
+function cancelEvents(e, func) {
+  e.preventDefault();
+  e.stopPropagation();
+  func();
+}
+
 class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { drag: false };
     this.handleMouseOver = this.handleMouseOver.bind(this);
+    this.resizeCol = this.resizeCol.bind(this);
   }
 
   shouldComponentUpdate(newProps) {
@@ -90,6 +99,9 @@ class ReactHeader extends React.Component {
   }
 
   handleMouseOver(e) {
+    if (this.state.drag) {
+      return;
+    }
     const { columnRange, columnIndex } = this.props;
     const rangeExists = columnRange && columnRange.start;
     if (e.shiftKey) {
@@ -99,6 +111,16 @@ class ReactHeader extends React.Component {
     } else if (rangeExists) {
       this.props.propagateState(buildRangeState());
     }
+  }
+
+  resizeCol(deltaX) {
+    const { columns, columnIndex } = this.props;
+    const colCfg = gu.getCol(columnIndex, this.props);
+    const width = _.max([colCfg.width + deltaX, 10]);
+    const updatedColumns = _.map(columns, col =>
+      col.name === colCfg.name ? { ...col, width, resized: true } : { ...col }
+    );
+    this.props.propagateState({ columns: updatedColumns, triggerResize: true });
   }
 
   render() {
@@ -137,13 +159,30 @@ class ReactHeader extends React.Component {
       <div
         className={`headerCell ${toggleId}${markupProps.className}${rangeClass}`}
         style={headerStyle}
-        onClick={copyHandler}
         onMouseOver={this.handleMouseOver}
         name={colName}>
-        <div className="text-nowrap">
+        <div
+          className={`text-nowrap w-100${colCfg.resized ? " resized" : ""}`}
+          onClick={e => {
+            if (this.state.drag) {
+              return;
+            }
+            copyHandler(e);
+          }}>
           {_.get(SORT_CHARS, sortDir, "")}
           {markupProps.colNameMarkup}
         </div>
+        <Draggable
+          axis="x"
+          defaultClassName="DragHandle"
+          defaultClassNameDragging="DragHandleActive"
+          onStart={e => cancelEvents(e, () => this.setState({ drag: true }))}
+          onDrag={(e, { deltaX }) => cancelEvents(e, () => this.resizeCol(deltaX))}
+          onStop={e => cancelEvents(e, () => this.setState({ drag: false }))}
+          position={{ x: 0 }}
+          zIndex={999}>
+          <div className="DragHandleIcon">⋮</div>
+        </Draggable>
       </div>
     );
   }
