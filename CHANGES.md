@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.39.0 (2021-3-14)
+* resizable columns
+* updated how click loader options are found
+* Added loader for r datasets (*.rda files)
+* updating the language menu option to list options dynamically
+
 ### 1.38.0 (2021-3-10)
 * [#452](https://github.com/man-group/dtale/issues/452): handling of column names with periods & spaces as well as long names
 * updated styling of windows to match that of Charts
