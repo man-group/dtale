@@ -401,6 +401,14 @@ or
 ```bash
 dtale --json-path http://json-endpoint --json-parse_dates date
 ```
+Loading data from **R Datasets**
+```bash
+dtale --r-path /home/jdoe/my_dataset.rda
+```
+Loading data from **SQLite DB Files**
+```bash
+dtale --sqlite-path /home/jdoe/test.sqlite3 --sqlite-table test_table
+```
 
 ### Custom Command-line Loaders
 
@@ -500,6 +508,7 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 - `dtale.show_excel(path='http://excel-endpoint', index_col=0)`
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
+- `dtale.show_r(path='text.rda')`
 - `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
 
 ## UI
