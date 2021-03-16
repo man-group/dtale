@@ -24,10 +24,12 @@ import dtale.global_state as global_state
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
 from dtale.cli.clickutils import retrieve_meta_info_and_version
-from dtale.column_builders import clean, clean_code, ColumnBuilder, printable
+from dtale.column_analysis import ColumnAnalysis
+from dtale.column_builders import ColumnBuilder, printable
 from dtale.column_filters import ColumnFilter
 from dtale.column_replacements import ColumnReplacement
 from dtale.combine_data import CombineData
+from dtale.describe import load_describe
 from dtale.duplicate_checks import DuplicateCheck
 from dtale.dash_application.charts import (
     build_raw_chart,
@@ -52,7 +54,6 @@ from dtale.utils import (
     export_to_csv_buffer,
     find_dtype,
     find_dtype_formatter,
-    find_selected_column,
     format_grid,
     get_bool_arg,
     get_dtypes,
@@ -1614,56 +1615,6 @@ def dtypes(data_id):
     return jsonify(dtypes=global_state.get_dtypes(data_id), success=True)
 
 
-def load_describe(column_series, additional_aggs=None):
-    """
-    Helper function for grabbing the output from :meth:`pandas:pandas.Series.describe` in a JSON serializable format
-
-    :param column_series: data to describe
-    :type column_series: :class:`pandas:pandas.Series`
-    :return: JSON serializable dictionary of the output from calling :meth:`pandas:pandas.Series.describe`
-    """
-    desc = column_series.describe().to_frame().T
-    code = [
-        "# main statistics",
-        "stats = df['{col}'].describe().to_frame().T".format(col=column_series.name),
-    ]
-    if additional_aggs:
-        for agg in additional_aggs:
-            if agg == "mode":
-                mode = column_series.mode().values
-                desc["mode"] = np.nan if len(mode) > 1 else mode[0]
-                code.append(
-                    (
-                        "# mode\n"
-                        "mode = df['{col}'].mode().values\n"
-                        "stats['mode'] = np.nan if len(mode) > 1 else mode[0]"
-                    ).format(col=column_series.name)
-                )
-                continue
-            desc[agg] = getattr(column_series, agg)()
-            code.append(
-                "# {agg}\nstats['{agg}'] = df['{col}'].{agg}()".format(
-                    col=column_series.name, agg=agg
-                )
-            )
-    desc_f_overrides = {
-        "I": lambda f, i, c: f.add_int(i, c, as_string=True),
-        "F": lambda f, i, c: f.add_float(i, c, precision=4, as_string=True),
-    }
-    desc_f = grid_formatter(
-        grid_columns(desc), nan_display="nan", overrides=desc_f_overrides
-    )
-    desc = desc_f.format_dict(next(desc.itertuples(), None))
-    if "count" in desc:
-        # pandas always returns 'count' as a float and it adds useless decimal points
-        desc["count"] = desc["count"].split(".")[0]
-    desc["total_count"] = json_int(len(column_series), as_string=True)
-    missing_ct = column_series.isnull().sum()
-    desc["missing_pct"] = json_float((missing_ct / len(column_series) * 100).round(2))
-    desc["missing_ct"] = json_int(missing_ct, as_string=True)
-    return desc, code
-
-
 def build_sequential_diffs(s, col, sort=None):
     if sort is not None:
         s = s.sort_values(ascending=sort == "ASC")
@@ -2371,264 +2322,8 @@ def get_column_analysis(data_id):
     :returns: JSON {results: DATA, desc: output from pd.DataFrame[col].describe(), success: True/False}
     """
 
-    def handle_top(df, top):
-        if top is not None:
-            top = int(top)
-            return df[:top] if top > 0 else df[top:], top
-        elif len(df) > 100:
-            top = 100
-            return df[:top], top
-        return df, len(df)
-
-    def pctsum_updates(df, group, ret_col):
-        grp_sums = df.groupby(group)[[ret_col]].sum()
-        code = (
-            "ordinal_data = df.groupby('{col}')[['{ret_col}']].sum()\n"
-            "ordinal_data = ordinal_data / ordinal_data.sum()"
-        ).format(col=group, ret_col=ret_col)
-        return grp_sums / grp_sums.sum(), code
-
-    def handle_cleaners(s):
-        cleaners = get_str_arg(request, "cleaners")
-        cleaner_code = []
-        if cleaners:
-            for cleaner in cleaners.split(","):
-                s = clean(s, cleaner, {})
-                cleaner_code += clean_code(cleaner, {})
-        return s, cleaner_code
-
-    def build_kde(s, hist_labels, code, return_data):
-        try:
-            kde = sts.gaussian_kde(s)
-            kde_data = kde.pdf(hist_labels)
-            kde_data = [json_float(k, precision=12) for k in kde_data]
-            code.append("import scipy.stats as sts\n")
-            code.append("kde = sts.gaussian_kde(s['{}'])".format(selected_col))
-            code.append("kde_data = kde.pdf(np.linspace(labels.min(), labels.max()))")
-            return_data["kde"] = kde_data
-        except np.linalg.LinAlgError:
-            pass
-
-    col = get_str_arg(request, "col", "values")
-    bins = get_int_arg(request, "bins", 20)
-    ordinal_col = get_str_arg(request, "ordinalCol")
-    ordinal_agg = get_str_arg(request, "ordinalAgg", "sum")
-    category_col = get_str_arg(request, "categoryCol")
-    category_agg = get_str_arg(request, "categoryAgg", "mean")
-    lat_col = get_str_arg(request, "latCol")
-    lon_col = get_str_arg(request, "lonCol")
-    data_type = get_str_arg(request, "type")
-    curr_settings = global_state.get_settings(data_id) or {}
-    query = build_query(data_id, curr_settings.get("query"))
-    data = run_query(
-        global_state.get_data(data_id),
-        query,
-        global_state.get_context_variables(data_id),
-    )
-    selected_col = find_selected_column(data, col)
-    cols = [selected_col]
-    for col in [ordinal_col, category_col, lat_col, lon_col]:
-        if col is not None:
-            cols.append(col)
-    data = data[~pd.isnull(data[selected_col])][list(set(cols))]
-
-    code = build_code_export(
-        data_id, imports="import numpy as np\nimport pandas as pd\n\n"
-    )
-    dtype = find_dtype(data[selected_col])
-    classifier = classify_type(dtype)
-    if data_type is None:
-        data_type = "histogram" if classifier in ["F", "I", "D"] else "value_counts"
-    if data_type == "geolocation":
-        lat_col = get_str_arg(request, "latCol")
-        lon_col = get_str_arg(request, "lonCol")
-        geo = data[[lat_col, lon_col]].dropna()
-        geo.columns = ["lat", "lon"]
-        code += [
-            "chart = df[~pd.isnull(df['{}'])][['{}', '{}']".format(
-                selected_col, lat_col, lon_col
-            ),
-            "chart.columns = ['lat', 'lon']",
-        ]
-        col_types = grid_columns(geo)
-        f = grid_formatter(col_types, nan_display=None)
-        return_data = f.format_lists(geo)
-    elif data_type == "word_value_counts":
-        s, cleaner_code = handle_cleaners(data[selected_col])
-        hist = (
-            pd.value_counts(s.str.split(expand=True).stack())
-            .to_frame(name="data")
-            .sort_index()
-        )
-        code.append("s = df[~pd.isnull(df['{col}'])]['{col}']".format(col=selected_col))
-        code += cleaner_code
-        code.append("chart = pd.value_counts(s.str.split(expand=True).stack())")
-        if ordinal_col is not None:
-            expanded_words = data[selected_col].str.split(expand=True).stack()
-            expanded_words.name = "label"
-            expanded_words = expanded_words.reset_index()[["level_0", "label"]]
-            expanded_words.columns = ["index", "label"]
-            expanded_words = pd.merge(
-                data[[ordinal_col]],
-                expanded_words.set_index("index"),
-                how="inner",
-                left_index=True,
-                right_index=True,
-            )
-
-            if ordinal_agg == "pctsum":
-                ordinal_data, pctsum_code = pctsum_updates(
-                    expanded_words, "label", ordinal_col
-                )
-                code.append(pctsum_code)
-            else:
-                ordinal_data = getattr(
-                    expanded_words.groupby("label")[[ordinal_col]], ordinal_agg
-                )()
-                code.append(
-                    "ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()".format(
-                        col=selected_col, ordinal=ordinal_col, agg=ordinal_agg
-                    )
-                )
-            hist["ordinal"] = ordinal_data
-            hist = hist.sort_values("ordinal")
-            code.append(
-                (
-                    "chart['ordinal'] = ordinal_data\n"
-                    "chart = chart.sort_values('ordinal')"
-                )
-            )
-        hist.index.name = "labels"
-        hist = hist.reset_index().sort_values(
-            ["data", "labels"], ascending=[False, True]
-        )
-        hist, top = handle_top(hist, get_int_arg(request, "top"))
-        col_types = grid_columns(hist)
-        f = grid_formatter(col_types, nan_display=None)
-        return_data = f.format_lists(hist)
-        return_data["top"] = top
-    elif data_type == "value_counts":
-        s, cleaner_code = handle_cleaners(data[selected_col])
-        hist = pd.value_counts(s).to_frame(name="data")
-        code.append(
-            "chart = pd.value_counts(df[~pd.isnull(df['{col}'])]['{col}'])".format(
-                col=selected_col
-            )
-        )
-        code += cleaner_code
-        if ordinal_col is not None:
-            if ordinal_agg == "pctsum":
-                ordinal_data, pctsum_code = pctsum_updates(
-                    data, selected_col, ordinal_col
-                )
-                code.append(pctsum_code)
-            else:
-                ordinal_data = getattr(
-                    data.groupby(selected_col)[[ordinal_col]], ordinal_agg
-                )()
-                code.append(
-                    "ordinal_data = df.groupby('{col}')[['{ordinal}']].{agg}()".format(
-                        col=selected_col, ordinal=ordinal_col, agg=ordinal_agg
-                    )
-                )
-            hist["ordinal"] = ordinal_data
-            hist = hist.sort_values("ordinal")
-            code.append(
-                (
-                    "chart['ordinal'] = ordinal_data\n"
-                    "chart = chart.sort_values('ordinal')"
-                )
-            )
-        hist.index.name = "labels"
-        hist = hist.reset_index().sort_values(
-            ["data", "labels"], ascending=[False, True]
-        )
-        hist, top = handle_top(hist, get_int_arg(request, "top"))
-        col_types = grid_columns(hist)
-        f = grid_formatter(col_types, nan_display=None)
-        return_data = f.format_lists(hist)
-        return_data["top"] = top
-    elif data_type == "categories":
-        aggs = ["count", "sum" if category_agg == "pctsum" else category_agg]
-        hist = data.groupby(category_col)[[selected_col]].agg(aggs)
-        hist.columns = hist.columns.droplevel(0)
-        hist.columns = ["count", "data"]
-        code.append(
-            "chart = data.groupby('{cat}')[['{col}']].agg(['{aggs}'])".format(
-                cat=category_col, col=selected_col, aggs="', '".join(aggs)
-            )
-        )
-        if category_agg == "pctsum":
-            hist["data"] = hist["data"] / hist["data"].sum()
-            code.append(
-                "chart.loc[:, -1] = chart[chart.columns[-1]] / chart[chart.columns[-1]].sum()"
-            )
-        hist.index.name = "labels"
-        hist = hist.reset_index()
-        hist, top = handle_top(hist, get_int_arg(request, "top"))
-        f = grid_formatter(grid_columns(hist), nan_display=None)
-        return_data = f.format_lists(hist)
-        return_data["top"] = top
-    elif data_type == "histogram":
-        if classifier == "D":
-            data.loc[:, selected_col] = apply(data[selected_col], json_timestamp)
-        hist_data, hist_labels = np.histogram(data, bins=bins)
-        hist_data = [json_float(h) for h in hist_data]
-        code.append("s = df[~pd.isnull(df['{col}'])][['{col}']]")
-        if classifier == "D":
-            code.append(
-                (
-                    "\nimport time\n\n"
-                    "s.loc[:, '{col}'] = s['{col}'].apply(\n"
-                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
-                    ")"
-                )
-            )
-        code.append("chart, labels = np.histogram(s, bins={bins})".format(bins=bins))
-        return_data = dict(
-            labels=[
-                "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
-            ],  # drop the first bin because of just a minimum
-            data=hist_data,
-        )
-        build_kde(data[selected_col], hist_labels, code, return_data)
-        desc, desc_code = load_describe(data[selected_col])
-        dtype_info = global_state.get_dtype_info(data_id, selected_col)
-        for p in ["skew", "kurt"]:
-            if p in dtype_info:
-                desc[p] = dtype_info[p]
-        code += desc_code
-        return_data["desc"] = desc
-    elif data_type == "qq":
-        s = data[selected_col]
-        code.append("s = df[~pd.isnull(df['{col}'])]['{col}']")
-        if classifier == "D":
-            s = apply(s, json_timestamp)
-            code.append(
-                (
-                    "\nimport time\n\n"
-                    "s = s['{col}'].apply(\n"
-                    "\tlambda x: int((time.mktime(x.timetuple()) + (old_div(x.microsecond, 1000000.0))) * 1000\n"
-                    ")"
-                )
-            )
-        qq_x, qq_y = sts.probplot(s, dist="norm", fit=False)
-        qq = pd.DataFrame(dict(x=qq_x, y=qq_y))
-        f = grid_formatter(grid_columns(qq), nan_display=None)
-        return_data = dict(data=f.format_dicts(qq.itertuples()))
-        code.append('qq = sts.probplot(s, dist="norm", fit=False)')
-        return_data["min"] = f.fmts[0][-1](qq.min()[0].min(), None)
-        return_data["max"] = f.fmts[0][-1](qq.max()[0].max(), None)
-
-    cols = global_state.get_dtypes(data_id)
-    return jsonify(
-        code="\n".join(code),
-        query=query,
-        cols=cols,
-        dtype=dtype,
-        chart_type=data_type,
-        **return_data
-    )
+    analysis = ColumnAnalysis(data_id, request)
+    return jsonify(**analysis.build())
 
 
 @dtale.route("/correlations/<data_id>")

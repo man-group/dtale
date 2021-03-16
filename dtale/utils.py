@@ -493,7 +493,7 @@ def get_dtypes(df):
 
 
 def coord_type(s):
-    if classify_type(find_dtype(s)) != "F":
+    if classify_type(find_dtype(s)) not in ["F", "I"]:
         return None
     if "lat" in s.name.lower():
         return None if (~s.dropna().between(-90, 90, inclusive=True)).sum() else "lat"

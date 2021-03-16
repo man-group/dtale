@@ -127,9 +127,11 @@ class DescribeFilters extends React.Component {
 
   updateOrdinal(prop, val) {
     const currState = _.assignIn({}, _.pick(this.state, ["ordinalCol", "ordinalAgg", "cleaners"]), { [prop]: val });
-    const cleanerChange = _.get(currState, "cleaners") !== _.get(this.state, "cleaners");
+    const ordinalUpdate = _.get(currState, "ordinalCol") !== _.get(this.state, "ordinalCol");
+    const ordinalAggUpdate = _.get(currState, "ordinalAgg") !== _.get(this.state, "ordinalAgg");
+    const cleanerUpdate = _.get(currState, "cleaners") !== _.get(this.state, "cleaners");
     this.setState(currState, () => {
-      if ((currState.ordinalCol && currState.ordinalAgg) || cleanerChange) {
+      if (ordinalUpdate || ordinalAggUpdate || cleanerUpdate) {
         this.buildChart();
       }
     });
@@ -137,6 +139,9 @@ class DescribeFilters extends React.Component {
 
   updateCategory(prop, val) {
     const currState = _.assignIn({}, _.pick(this.state, ["categoryCol", "categoryAgg"]), { [prop]: val });
+    if (prop === "categoryCol") {
+      currState.top = "";
+    }
     this.setState(currState, () => {
       if (currState.categoryCol && currState.categoryAgg) {
         this.buildChart();

@@ -13,10 +13,10 @@ import dtale.dash_application.saved_charts as saved_charts
 import dtale.dash_application.lock_zoom as lock_zoom
 import dtale.global_state as global_state
 from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
+from dtale.code_export import CHART_EXPORT_CODE
 from dtale.dash_application.charts import (
     build_chart,
     chart_url_params,
-    CHART_EXPORT_CODE,
     valid_chart,
 )
 from dtale.dash_application.layout.layout import (

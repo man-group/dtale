@@ -1,0 +1,39 @@
+# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objs as go
+
+if isinstance(df, (pd.DatetimeIndex, pd.MultiIndex)):
+	df = df.to_frame(index=False)
+
+# remove any pre-existing indices for ease of use in the D-Tale code, but this is not required
+df = df.reset_index().drop('index', axis=1, errors='ignore')
+df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers
+
+s = df[~pd.isnull(df['foo'])][['foo']]
+chart, labels = np.histogram(s, bins=20)
+# main statistics
+stats = df['foo'].describe().to_frame().T
+charts = [
+	go.Bar(x=labels[1:], y=chart, name='Histogram'),
+	go.Scatter(
+		x=list(range(len(kde_data))), y=kde_data, name='KDE',		yaxis='y2', xaxis='x2',		line={'shape': 'spline', 'smoothing': 0.3}, mode='lines'
+	)
+]
+figure = go.Figure(data=charts, layout=go.Layout({
+    'barmode': 'group',
+    'legend': {'orientation': 'h'},
+    'title': {'text': 'foo Histogram (bins: 20) w/ KDE'},
+    'xaxis2': {'anchor': 'y', 'overlaying': 'x', 'side': 'top'},
+    'yaxis': {'side': 'left', 'title': {'text': 'Frequency'}},
+    'yaxis2': {'overlaying': 'y', 'side': 'right', 'title': {'text': 'KDE'}}
+}))
+
+# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:
+#
+# from plotly.offline import iplot, init_notebook_mode
+#
+# init_notebook_mode(connected=True)
+# chart.pop('id', None) # for some reason iplot does not like 'id'
+# iplot(chart)

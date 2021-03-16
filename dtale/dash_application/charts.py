@@ -39,6 +39,7 @@ from dtale.charts.utils import (
     valid_chart,
     weekday_tick_handler,
 )
+
 from dtale.dash_application.layout.layout import (
     AGGS,
     ANIMATE_BY_CHARTS,
@@ -76,13 +77,6 @@ GROUP_WARNING = (
 Y_AXIS_WARNING = (
     "# WARNING: This is not taking into account all the y-axes you've specified.  For this example we'll\n"
     "           use the first one you've selected, '{}'"
-)
-CHART_EXPORT_CODE = (
-    "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n\n"
-    "# from plotly.offline import iplot, init_notebook_mode\n\n"
-    "# init_notebook_mode(connected=True)\n"
-    "# chart.pop('id', None) # for some reason iplot does not like 'id'\n"
-    "# iplot(chart)"
 )
 
 
@@ -558,7 +552,7 @@ def build_series_name(y, chart_per_group=False):
     :return: helper function for building series names based off y-axis & group values
     :rtype: func
     """
-    multi_y = len(y or []) > 1
+    multi_y = len(make_list(y)) > 1
 
     def _handler(sub_y, group=None):
         name_segs = []
@@ -786,7 +780,7 @@ def scatter_code_builder(
         (
             "\nimport plotly.graph_objs as go\n\n"
             "chart = {scatter_func}(\n"
-            "\tx=chart_data['x'], y=chart_data['{y}'],{z} , mode='markers', opacity=0.7, name='{series_key}',\n"
+            "\tx=chart_data['x'], y=chart_data['{y}'],{z} mode='markers', opacity=0.7, name='{series_key}',\n"
             "\tmarker={marker}\n"
             ")\n"
         ).format(
@@ -1103,7 +1097,7 @@ def bar_builder(
             _build_sorted_bars(y[0], series, data, hover_text, axes)
 
     if cpg or cpy:
-        y_values = [[sub_y] for sub_y in y] if cpy else y
+        y_values = [[sub_y] for sub_y in y] if cpy else [y]
         charts = []
         for y_value in y_values:
             y_axes, _ = axes_builder(y_value)
@@ -1392,7 +1386,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
         return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
 
     if cpg or cpy:
-        y_values = [[sub_y] for sub_y in y] if cpy else y
+        y_values = [[sub_y] for sub_y in y] if cpy else [y]
         charts = []
         for y_value in y_values:
             y_axes, _ = axes_builder(y_value)
@@ -2958,7 +2952,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 kwargs["animate_by"] = animate_by
                 kwargs["colorscale"] = inputs.get("colorscale")
             if inputs["cpg"] or inputs["cpy"]:
-                y_values = [[sub_y] for sub_y in y] if inputs["cpy"] else y
+                y_values = [[sub_y] for sub_y in y] if inputs["cpy"] else [y]
                 scatter_charts = []
                 for y_value in y_values:
                     if inputs["cpg"]:

@@ -2,6 +2,16 @@ import dtale.global_state as global_state
 
 from dtale.utils import triple_quote
 
+CHART_EXPORT_CODE = (
+    "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n"
+    "#\n"
+    "# from plotly.offline import iplot, init_notebook_mode\n"
+    "#\n"
+    "# init_notebook_mode(connected=True)\n"
+    "# chart.pop('id', None) # for some reason iplot does not like 'id'\n"
+    "# iplot(chart)"
+)
+
 
 def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     """
