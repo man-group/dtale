@@ -289,7 +289,7 @@ class CategoryAnalysis(object):
         )
 
         code = [
-            "chart = data.groupby('{cat}')[['{col}']].agg(['{aggs}'])".format(
+            "chart = df.groupby('{cat}')[['{col}']].agg(['{aggs}'])".format(
                 cat=self.category_col,
                 col=parent.selected_col,
                 aggs="', '".join(self.aggs),
@@ -300,7 +300,7 @@ class CategoryAnalysis(object):
         if self.category_agg == "pctsum":
             code.append("chart['data'] = chart['data'] / chart['data'].sum()")
         code += [
-            "chart.index.name = 'labels''",
+            "chart.index.name = 'labels'",
             "chart = chart.reset_index()",
         ]
         code += top_code
