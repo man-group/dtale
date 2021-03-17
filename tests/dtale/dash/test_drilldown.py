@@ -369,7 +369,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
         params["inputs"][-2]["value"] = "bar"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+        assert _chart_title(response) == "Col0 by security_id"
 
         params["inputs"][-2]["value"] = "histogram"
         params["state"][0]["value"]["chart_type"] = "3d_scatter"
@@ -380,7 +380,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
         params["inputs"][-2]["value"] = "bar"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+        assert _chart_title(response) == "Col0 by security_id"
 
         params["inputs"][-2]["value"] = "histogram"
         params["state"][0]["value"]["chart_type"] = "heatmap"
@@ -404,7 +404,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
         params["inputs"][-2]["value"] = "bar"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+        assert _chart_title(response) == "Col0 by security_id"
 
         params["inputs"][-2]["value"] = "histogram"
         params["state"][0]["value"]["chart_type"] = "maps"
@@ -419,7 +419,7 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
         params["inputs"][-2]["value"] = "bar"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert _chart_title(response) == "Col0 by security_id (No Aggregation)"
+        assert _chart_title(response) == "Col0 by security_id"
 
         params["inputs"][-2]["value"] = "histogram"
         params["state"][-3]["value"] = {
@@ -434,4 +434,4 @@ def test_load_drilldown_content(custom_data):
         assert _chart_title(response, True) == "Histogram of Col0 (1 data points)"
         params["inputs"][-2]["value"] = "bar"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert _chart_title(response) == "Col0 by lat_lon (No Aggregation)"
+        assert _chart_title(response) == "Col0 by lat_lon"

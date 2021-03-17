@@ -9,12 +9,16 @@ import plotly
 from pkg_resources import parse_version
 
 import dtale.dash_application.custom_geojson as custom_geojson
+import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.global_state as global_state
 from dtale.charts.utils import (
+    AGGS,
     ANIMATION_CHARTS,
     ANIMATE_BY_CHARTS,
     YAXIS_CHARTS,
     ZAXIS_CHARTS,
+    NON_EXT_AGGREGATION,
+    build_final_cols,
     find_group_vals,
 )
 from dtale.dash_application.layout.utils import (
@@ -25,7 +29,6 @@ from dtale.dash_application.layout.utils import (
     build_hoverable,
     build_selections,
     show_style,
-    AGGS,
     FREQS,
     FREQ_LABELS,
 )
@@ -557,21 +560,32 @@ def get_group_types(inputs, group_cols=None):
     return False, False
 
 
-def update_label_for_freq(val):
+def update_label_for_freq_and_agg(val):
     """
-    Formats sub-values contained within 'val' to display date frequencies if included.
+    Formats sub-values contained within 'val' to display date frequencies & aggregatioms if included.
         - (val=['a', 'b', 'c']) => 'a, b, c'
-        - (val=['a|H', 'b', 'c']) => 'a (Hour), b, c'
+        - (val=['a|H', 'b|mean', 'c']) => 'a (Hour), Mean of b, c'
     """
 
     def _freq_handler(sub_val):
+        selected_agg = None
+        for agg in AGGS:
+            if sub_val.endswith("|{}".format(agg)):
+                selected_agg = "{} of".format(text(AGGS[agg]))
+                sub_val = sub_val.split("|{}".format(agg))[0]
+                break
+
+        selected_freq = None
         for freq in FREQS:
             if sub_val.endswith("|{}".format(freq)):
                 col, freq = sub_val.split("|")
-                if freq in FREQ_LABELS:
-                    return "{} ({})".format(col, text(FREQ_LABELS[freq]))
-                return col
-        return sub_val
+                if freq in FREQS:
+                    sub_val = sub_val.split("|{}".format(freq))[0]
+                    if freq in FREQ_LABELS:
+                        selected_freq = "({})".format(text(FREQ_LABELS[freq]))
+                    break
+
+        return " ".join(list(filter(None, [selected_agg, sub_val, selected_freq])))
 
     return ", ".join([_freq_handler(sub_val) for sub_val in make_list(val)])
 
@@ -601,7 +615,7 @@ def build_error(error, tb):
     )
 
 
-def build_input_options(df, **inputs):
+def build_input_options(df, extended_aggregation=[], **inputs):
     """
     Builds dropdown options for (X, Y, Z, Group, Barsort & Y-Axis Ranges) with filtering based on currently selected
     values for the following inputs: x, y, z, group.
@@ -629,9 +643,14 @@ def build_input_options(df, **inputs):
         for c, l in col_opts
         if c not in build_selections(x, y, z_val)
     ]
-    barsort_options = [build_option(o) for o in build_selections(x, y)]
-    yaxis_options = [build_option(y2) for y2 in y or []]
-
+    final_cols = build_final_cols(
+        y,
+        z,
+        inputs.get("agg"),
+        extended_aggregation if chart_type not in NON_EXT_AGGREGATION else [],
+    )
+    barsort_options = [build_option(o) for o in build_selections(x, final_cols)]
+    yaxis_options = [build_option(y2) for y2 in final_cols or []]
     return (
         x_options,
         y_multi_options,
@@ -1588,38 +1607,70 @@ def charts_layout(df, settings, **inputs):
                         ),
                         html.Div(
                             [
-                                build_input(
-                                    text("Aggregation"),
-                                    dcc.Dropdown(
-                                        id="agg-dropdown",
-                                        options=[
-                                            build_option(v, text(AGGS[v]))
-                                            for v in [
-                                                "count",
-                                                "nunique",
-                                                "sum",
-                                                "mean",
-                                                "rolling",
-                                                "corr",
-                                                "first",
-                                                "last",
-                                                "drop_duplicates",
-                                                "median",
-                                                "min",
-                                                "max",
-                                                "std",
-                                                "var",
-                                                "mad",
-                                                "prod",
-                                                "pctsum",
-                                                "pctct",
-                                            ]
-                                        ],
-                                        placeholder=text("No Aggregation"),
-                                        style=dict(width="inherit"),
-                                        value=agg or "raw",
-                                    ),
+                                html.Div(
+                                    [
+                                        build_input(
+                                            text("Aggregation"),
+                                            dcc.Dropdown(
+                                                id="agg-dropdown",
+                                                options=[
+                                                    build_option(v, text(AGGS[v]))
+                                                    for v in [
+                                                        "count",
+                                                        "nunique",
+                                                        "sum",
+                                                        "mean",
+                                                        "rolling",
+                                                        "corr",
+                                                        "first",
+                                                        "last",
+                                                        "drop_duplicates",
+                                                        "median",
+                                                        "min",
+                                                        "max",
+                                                        "std",
+                                                        "var",
+                                                        "mad",
+                                                        "prod",
+                                                        "pctsum",
+                                                        "pctct",
+                                                    ]
+                                                ],
+                                                placeholder=text("No Aggregation"),
+                                                style=dict(width="inherit"),
+                                                value=agg or "raw",
+                                                disabled=len(
+                                                    inputs.get(
+                                                        "extended_aggregation", []
+                                                    )
+                                                )
+                                                > 0,
+                                            ),
+                                        ),
+                                        html.Span(
+                                            "* {}".format(
+                                                text(
+                                                    "Extended Aggregation is currently populated."
+                                                )
+                                            ),
+                                            id="ext-agg-warning",
+                                            style=show_style(
+                                                len(
+                                                    inputs.get(
+                                                        "extended_aggreation", []
+                                                    )
+                                                )
+                                                > 0
+                                            ),
+                                            className="ext-agg-warning",
+                                        ),
+                                    ]
                                 ),
+                            ]
+                            + extended_aggregations.build_modal(
+                                inputs.get("extended_aggregation", []), chart_type, y
+                            )
+                            + [
                                 html.Div(
                                     [
                                         build_input(

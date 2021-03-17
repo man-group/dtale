@@ -17,7 +17,7 @@ from dtale.dash_application.charts import (
     get_url_parser,
 )
 from dtale.dash_application.components import Wordcloud
-from dtale.dash_application.layout.layout import REDS, update_label_for_freq
+from dtale.dash_application.layout.layout import REDS, update_label_for_freq_and_agg
 from dtale.utils import dict_merge, make_list
 from tests import ExitStack
 from tests.dtale import build_data_inst
@@ -185,11 +185,13 @@ def test_input_changes(unittest):
                 "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
                 "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
                 "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
-                "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style.."
+                "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
+                "..open-extended-agg-modal.style.."
             ),
             "changedPropIds": ["chart-tabs.value"],
             "inputs": [
                 ts_builder("query-data"),
+                ts_builder("extended-aggregations"),
                 {"id": "chart-tabs", "property": "value", "value": "line"},
                 {"id": "x-dropdown", "property": "value"},
                 {"id": "y-multi-dropdown", "property": "value"},
@@ -213,6 +215,7 @@ def test_input_changes(unittest):
                 pathname,
                 {"id": "query-data", "property": "data"},
                 {"id": "data-tabs", "property": "value", "value": c.port},
+                {"id": "extended-aggregations", "property": "data"},
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -253,10 +256,10 @@ def test_input_changes(unittest):
                 {"label": "d (Yearly)", "value": "d|Y"},
             ],
         )
-        params["inputs"][2]["value"] = "a"
-        params["inputs"][3]["value"] = ["b", "c"]
-        params["inputs"][6]["value"] = ["d"]
-        params["inputs"][7]["value"] = [json.dumps(dict(d="20200101"))]
+        params["inputs"][3]["value"] = "a"
+        params["inputs"][4]["value"] = ["b", "c"]
+        params["inputs"][7]["value"] = ["d"]
+        params["inputs"][8]["value"] = [json.dumps(dict(d="20200101"))]
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -671,6 +674,7 @@ def test_yaxis_changes(unittest):
                     property="data",
                     value=dict(min={"b": 4, "c": 5}, max={"b": 6, "c": 7}),
                 ),
+                dict(id="extended-aggregations", property="data"),
             ],
         )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -868,6 +872,11 @@ def test_yaxis_data(unittest):
             ],
             "state": [
                 {"id": "yaxis-dropdown", "property": "value", "value": "Col1"},
+                {
+                    "id": "yaxis-dropdown",
+                    "property": "options",
+                    "value": [{"value": "Col1"}, {"value": "Col2"}],
+                },
                 {"id": "yaxis-data", "property": "data", "value": {}},
                 {
                     "id": "range-data",
@@ -878,6 +887,7 @@ def test_yaxis_data(unittest):
                     },
                 },
                 {"id": "input-data", "property": "data", "value": inputs},
+                {"id": "extended-aggregations", "property": "data"},
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -889,11 +899,11 @@ def test_yaxis_data(unittest):
 
         params["inputs"][0]["value"] = "multi"
         params["inputs"][2]["value"] = 1.42
-        params["state"][1]["value"] = {
+        params["state"][2]["value"] = {
             "data": {"Col1": {"max": 0.42, "min": -1.52}},
             "type": "single",
         }
-        params["state"][3]["value"] = ["Col1", "Col2"]
+        params["state"][4]["value"] = ["Col1", "Col2"]
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()
         unittest.assertEqual(
@@ -903,7 +913,7 @@ def test_yaxis_data(unittest):
 
         params["inputs"][1]["value"] = -0.52
         params["inputs"][2]["value"] = 0.42
-        params["state"][1]["value"] = {
+        params["state"][2]["value"] = {
             "data": {"Col1": {"max": 1.42, "min": -1.52}},
             "type": "single",
         }
@@ -915,9 +925,10 @@ def test_yaxis_data(unittest):
 
         params["state"][0]["value"] = None
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        assert response.get_json() is None
-
-        params["state"][0]["value"] = "Col1"
+        resp_data = response.get_json()
+        unittest.assertEqual(
+            resp_data["response"]["yaxis-data"]["data"], {"data": {}, "type": "multi"}
+        )
 
 
 def build_dash_request(output, changed_prop_id, inputs, state):
@@ -938,11 +949,13 @@ def build_chart_params(
     map_inputs={},
     cs_inputs={},
     treemap_inputs={},
+    extended_aggregation=[],
 ):
     return build_dash_request(
         (
             "..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..."
-            "yaxis-type.children...load-clicks.data...save-btn.style.."
+            "yaxis-type.children...load-clicks.data...save-btn.style...agg-dropdown.disabled..."
+            "extended-aggregation-tooltip.children...ext-agg-warning.style.."
         ),
         "input-data.modified_timestamp",
         [
@@ -954,6 +967,7 @@ def build_chart_params(
                 "map-input-data",
                 "candlestick-input-data",
                 "treemap-input-data",
+                "extended-aggregations",
             ]
         ]
         + [{"id": "load-btn", "property": "n_clicks", "value": 0}],
@@ -971,6 +985,11 @@ def build_chart_params(
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
             {"id": "auto-load-toggle", "property": "on", "value": True},
             {"id": "load-clicks", "property": "data", "value": 0},
+            {
+                "id": "extended-aggregations",
+                "property": "data",
+                "value": extended_aggregation,
+            },
         ],
     )
 
@@ -999,7 +1018,7 @@ def test_chart_building_nones():
             "data_id": c.port,
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
-        resp_data = response.get_json()
+        resp_data = response.get_json()["response"]["chart-content"]["children"]
         assert resp_data is None
 
 
@@ -1278,17 +1297,14 @@ def test_chart_building_bar_and_popup(unittest):
             {
                 "barmode": "stack",
                 "legend": {"orientation": "h"},
-                "title": {"text": "b, c by a (No Aggregation)"},
+                "title": {"text": "b, c by a"},
                 "xaxis": {
                     "tickformat": ".0f",
-                    "tickmode": "array",
-                    "ticktext": [1, 2, 3],
-                    "tickvals": [0, 1, 2],
                     "title": {"text": "a"},
                 },
                 "yaxis": {
                     "tickformat": ".0f",
-                    "title": {"text": "b (No Aggregation)"},
+                    "title": {"text": "b"},
                 },
             },
         )
@@ -1334,11 +1350,11 @@ def test_chart_building_bar_and_popup(unittest):
 
         chart_inputs["top_bars"] = None
         params["inputs"][-1]["value"] = 1
-        params["state"][-2]["value"] = False
+        params["state"][-3]["value"] = False
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.get_json()["response"]["load-clicks"]["data"] == 1
 
-        params["state"][-1]["value"] = 1
+        params["state"][-2]["value"] = 1
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.status_code == 204
 
@@ -1522,7 +1538,7 @@ def test_chart_building_heatmap(unittest, test_data):
         ]["children"][1]
         unittest.assertEqual(
             chart_markup["props"]["figure"]["layout"]["title"],
-            {"text": "security_id by date weighted by bar (Mean)"},
+            {"text": "security_id by date weighted by Mean of bar"},
         )
         inputs["animate_by"] = "foo"
         params = build_chart_params(c.port, inputs, chart_inputs)
@@ -1532,7 +1548,7 @@ def test_chart_building_heatmap(unittest, test_data):
         ]["children"][1]
         unittest.assertEqual(
             chart_markup["props"]["figure"]["layout"]["title"],
-            {"text": "security_id by date weighted by bar (Mean)"},
+            {"text": "security_id by date weighted by Mean of bar"},
         )
         del inputs["animate_by"]
         inputs["agg"] = "corr"
@@ -1648,7 +1664,7 @@ def test_chart_building_3D_scatter(unittest, test_data):
         ]["children"][1]
         unittest.assertEqual(
             chart_markup["props"]["figure"]["layout"]["title"],
-            {"text": "security_id by date weighted by bar (Mean)"},
+            {"text": "security_id by date weighted by Mean of bar"},
         )
 
         inputs["agg"] = "pctsum"
@@ -1659,7 +1675,7 @@ def test_chart_building_3D_scatter(unittest, test_data):
         ]["children"][1]
         unittest.assertEqual(
             chart_markup["props"]["figure"]["layout"]["title"],
-            {"text": "security_id by date weighted by bar (Percentage Sum)"},
+            {"text": "security_id by date weighted by Percentage Sum of bar"},
         )
 
 
@@ -1713,7 +1729,7 @@ def test_chart_building_surface(unittest, test_data):
         ]["children"][1]
         unittest.assertEqual(
             chart_markup["props"]["figure"]["layout"]["title"],
-            {"text": "security_id by date weighted by bar (Mean)"},
+            {"text": "security_id by date weighted by Mean of bar"},
         )
 
 
@@ -2270,9 +2286,12 @@ def test_build_axes(unittest):
         type="multi",
         data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)),
     )
-    mins = dict(b=2, c=5, d=8)
-    maxs = dict(b=4, c=6, d=10)
-    axes = build_axes("1", "a", yaxis_data, mins, maxs)(y)
+    chart_data = dict(
+        data=dict(all=dict(x=[1, 2, 3], b=[1, 2, 3], c=[4, 5, 6], d=[8, 9, 10])),
+        min=dict(b=2, c=5, d=8),
+        max=dict(b=4, c=6, d=10),
+    )
+    axes = build_axes(chart_data, "a", yaxis_data)(y)
     unittest.assertEqual(
         axes,
         (
@@ -2309,9 +2328,10 @@ def test_build_axes(unittest):
 
     y.append("e")
     yaxis_data["data"]["e"] = dict(min=11, max=13)
-    mins["e"] = 11
-    maxs["e"] = 13
-    axes = build_axes("1", "a", yaxis_data, mins, maxs)(y)
+    chart_data["data"]["all"]["e"] = [11, 12, 13]
+    chart_data["min"]["e"] = 11
+    chart_data["max"]["e"] = 13
+    axes = build_axes(chart_data, "a", yaxis_data)(y)
     unittest.assertEqual(
         axes,
         (
@@ -2361,9 +2381,10 @@ def test_build_axes(unittest):
 
     y.append("f")
     yaxis_data["data"]["f"] = dict(min=14, max=17)
-    mins["f"] = 14
-    maxs["f"] = 17
-    axes = build_axes("1", "a", yaxis_data, mins, maxs)(y)
+    chart_data["data"]["all"]["f"] = [14, 15, 16]
+    chart_data["min"]["f"] = 14
+    chart_data["max"]["f"] = 17
+    axes = build_axes(chart_data, "a", yaxis_data)(y)
     unittest.assertEqual(
         axes,
         (
@@ -2426,11 +2447,18 @@ def test_build_axes(unittest):
     y = ["b"]
     yaxis_data = dict(
         type="multi",
-        data=dict(b=dict(min=1, max=4), c=dict(min=5, max=7), d=dict(min=8, max=10)),
+        data={
+            "b": dict(min=1, max=4),
+            "c|corr": dict(min=5, max=7),
+            "d": dict(min=8, max=10),
+        },
     )
-    mins = dict(b=2, c=5, d=8)
-    maxs = dict(b=4, c=6, d=10)
-    axes = build_axes("1", "a", yaxis_data, mins, maxs, z="c")(y)
+    chart_data = dict(
+        data=dict(all={"x": [1, 2, 3], "b": [1, 2, 3], "c|corr": [4, 5, 6]}),
+        min={"b": 2, "c|corr": 5, "d": 8},
+        max={"b": 4, "c|corr": 6, "d": 10},
+    )
+    axes = build_axes(chart_data, "a", yaxis_data, z="c|corr")(y)
     unittest.assertEqual(
         axes,
         (
@@ -2442,12 +2470,12 @@ def test_build_axes(unittest):
                     "tickformat": ".0f",
                     "type": "linear",
                 },
-                "zaxis": {"title": "c", "tickformat": ".0f"},
+                "zaxis": {"title": "Correlation of c", "tickformat": ".0f"},
             },
             False,
         ),
     )
-    axes = build_axes("1", "a", yaxis_data, mins, maxs, z="c", agg="corr")(y)
+    axes = build_axes(chart_data, "a", yaxis_data, z="c|corr")(y)
     unittest.assertEqual(
         axes,
         (
@@ -2459,19 +2487,19 @@ def test_build_axes(unittest):
                     "tickformat": ".0f",
                     "type": "linear",
                 },
-                "zaxis": {"title": "c (Correlation)", "tickformat": ".0f"},
+                "zaxis": {"title": "Correlation of c", "tickformat": ".0f"},
             },
             False,
         ),
     )
-    axes = build_axes("1", "a", yaxis_data, mins, maxs, agg="corr")(y)
+    axes = build_axes(chart_data, "a", yaxis_data)(y)
     unittest.assertEqual(
         axes,
         (
             {
                 "xaxis": {"title": "a", "tickformat": ".0f"},
                 "yaxis": {
-                    "title": "b (Correlation)",
+                    "title": "b",
                     "range": [1, 4],
                     "tickformat": ".0f",
                     "type": "linear",
@@ -2481,7 +2509,7 @@ def test_build_axes(unittest):
         ),
     )
     yaxis_data["type"] = "single"
-    axes = build_axes("1", "a", yaxis_data, mins, maxs, agg="corr")(y)
+    axes = build_axes(chart_data, "a", yaxis_data)(y)
     unittest.assertEqual(
         axes,
         (
@@ -2489,7 +2517,7 @@ def test_build_axes(unittest):
                 "xaxis": {"title": "a", "tickformat": ".0f"},
                 "yaxis": {
                     "tickformat": ".0f",
-                    "title": "b (Correlation)",
+                    "title": "b",
                     "type": "linear",
                 },
             },
@@ -2609,7 +2637,8 @@ def test_build_chart_type():
 @pytest.mark.unit
 def test_update_label_for_freq(unittest):
     unittest.assertEqual(
-        update_label_for_freq(["date|WD", "date|D", "foo"]), "date (Weekday), date, foo"
+        update_label_for_freq_and_agg(["date|WD", "date|D", "foo"]),
+        "date (Weekday), date, foo",
     )
 
 

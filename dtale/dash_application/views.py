@@ -9,10 +9,16 @@ from dash.exceptions import PreventUpdate
 
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.drilldown_modal as drilldown_modal
+import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.dash_application.saved_charts as saved_charts
 import dtale.dash_application.lock_zoom as lock_zoom
 import dtale.global_state as global_state
-from dtale.charts.utils import MAX_GROUPS, ZAXIS_CHARTS
+from dtale.charts.utils import (
+    MAX_GROUPS,
+    ZAXIS_CHARTS,
+    NON_EXT_AGGREGATION,
+    build_final_cols,
+)
 from dtale.code_export import CHART_EXPORT_CODE
 from dtale.dash_application.charts import (
     build_chart,
@@ -46,6 +52,7 @@ from dtale.dash_application.layout.layout import (
 )
 from dtale.dash_application.layout.utils import show_style
 from dtale.dash_application.utils import get_data_id
+from dtale.translations import text
 from dtale.query import run_query
 from dtale.utils import dict_merge, is_app_root_defined, make_list
 
@@ -200,9 +207,11 @@ def init_callbacks(dash_app):
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
+            Output("open-extended-agg-modal", "style"),
         ],
         [
             Input("query-data", "modified_timestamp"),
+            Input("extended-aggregations", "modified_timestamp"),
             Input("chart-tabs", "value"),
             Input("x-dropdown", "value"),
             Input("y-multi-dropdown", "value"),
@@ -222,10 +231,12 @@ def init_callbacks(dash_app):
             State("url", "pathname"),
             State("query-data", "data"),
             State("data-tabs", "value"),
+            State("extended-aggregations", "data"),
         ],
     )
     def input_data(
         _ts,
+        _ts2,
         chart_type,
         x,
         y_multi,
@@ -243,6 +254,7 @@ def init_callbacks(dash_app):
         pathname,
         query,
         data_id,
+        extended_aggregation,
     ):
         """
         dash callback for maintaining chart input state and column-based dropdown options.  This will guard against
@@ -270,7 +282,11 @@ def init_callbacks(dash_app):
             rolling_comp=rolling_comp,
             load=load,
         )
-        options = build_input_options(global_state.get_data(data_id), **inputs)
+        options = build_input_options(
+            global_state.get_data(data_id),
+            extended_aggregation=extended_aggregation,
+            **inputs
+        )
         (
             x_options,
             y_multi_options,
@@ -307,6 +323,7 @@ def init_callbacks(dash_app):
             cscale_style,
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
+            show_style(chart_type not in NON_EXT_AGGREGATION and len(y_val)),
         )
 
     @dash_app.callback(
@@ -686,6 +703,9 @@ def init_callbacks(dash_app):
             Output("yaxis-type", "children"),
             Output("load-clicks", "data"),
             Output("save-btn", "style"),
+            Output("agg-dropdown", "disabled"),
+            Output("extended-aggregation-tooltip", "children"),
+            Output("ext-agg-warning", "style"),
         ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
@@ -700,6 +720,7 @@ def init_callbacks(dash_app):
             Input("map-input-data", "modified_timestamp"),
             Input("candlestick-input-data", "modified_timestamp"),
             Input("treemap-input-data", "modified_timestamp"),
+            Input("extended-aggregations", "modified_timestamp"),
             Input("load-btn", "n_clicks"),
         ],
         [
@@ -712,6 +733,7 @@ def init_callbacks(dash_app):
             State("last-chart-input-data", "data"),
             State("auto-load-toggle", "on"),
             State("load-clicks", "data"),
+            State("extended-aggregations", "data"),
         ],
     )
     def on_data(
@@ -721,7 +743,8 @@ def init_callbacks(dash_app):
         _ts4,
         _ts5,
         _ts6,
-        load,
+        _ts7,
+        load_clicks,
         inputs,
         chart_inputs,
         yaxis_data,
@@ -731,6 +754,7 @@ def init_callbacks(dash_app):
         last_chart_inputs,
         auto_load,
         prev_load_clicks,
+        ext_aggs,
     ):
         """
         dash callback controlling the building of dash charts
@@ -742,22 +766,53 @@ def init_callbacks(dash_app):
             map_data,
             cs_data,
             treemap_data,
+            dict(extended_aggregation=ext_aggs or [])
+            if inputs.get("chart_type") not in NON_EXT_AGGREGATION
+            else {},
         )
-        if not auto_load and load == prev_load_clicks:
+        if not auto_load and load_clicks == prev_load_clicks:
             raise PreventUpdate
         if all_inputs == last_chart_inputs:
             raise PreventUpdate
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             all_inputs["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
         charts, range_data, code = build_chart(**all_inputs)
+        agg_disabled = len(ext_aggs) > 0
+        ext_agg_tt = text("ext_agg_desc")
+        ext_agg_warning = show_style(agg_disabled)
+        if agg_disabled:
+            ext_agg_tt = html.Div(
+                [
+                    html.Span(text("ext_agg_desc")),
+                    html.Br(),
+                    html.Ul(
+                        [
+                            html.Li(
+                                extended_aggregations.build_extended_agg_desc(ext_agg),
+                                className="mb-0",
+                            )
+                            for ext_agg in ext_aggs
+                        ]
+                    ),
+                ]
+            )
+        final_cols = build_final_cols(
+            make_list(inputs.get("y")),
+            inputs.get("z"),
+            inputs.get("agg"),
+            ext_aggs if inputs.get("chart_type") not in NON_EXT_AGGREGATION else [],
+        )
         return (
             charts,
             all_inputs,
             range_data,
             "\n".join(make_list(code) + [CHART_EXPORT_CODE]),
-            get_yaxis_type_tabs(make_list(inputs.get("y") or [])),
-            load,
+            get_yaxis_type_tabs(final_cols),
+            load_clicks,
             dict(display="block" if valid_chart(**all_inputs) else "none"),
+            agg_disabled,
+            ext_agg_tt,
+            ext_agg_warning,
         )
 
     def get_default_range(range_data, y, max=False):
@@ -790,15 +845,24 @@ def init_callbacks(dash_app):
             State("input-data", "data"),
             State("yaxis-data", "data"),
             State("range-data", "data"),
+            State("extended-aggregations", "data"),
         ],
     )
-    def yaxis_min_max_values(yaxis_type, yaxis, inputs, yaxis_inputs, range_data):
+    def yaxis_min_max_values(
+        yaxis_type, yaxis, inputs, yaxis_inputs, range_data, ext_aggs
+    ):
         """
         dash callback controlling values for selected y-axis in y-axis range editor
         """
         y = make_list(inputs.get("y"))
+        final_cols = build_final_cols(
+            y,
+            inputs.get("z"),
+            inputs.get("agg"),
+            ext_aggs if inputs.get("chart_type") not in NON_EXT_AGGREGATION else [],
+        )
         dd_style = dict(
-            display="block" if yaxis_type == "multi" and len(y) > 1 else "none"
+            display="block" if yaxis_type == "multi" and len(final_cols) > 1 else "none"
         )
         type_style = (
             {"borderRadius": "0 0.25rem 0.25rem 0"} if yaxis_type == "default" else None
@@ -820,10 +884,10 @@ def init_callbacks(dash_app):
             curr_vals = (yaxis_inputs or {}).get("data", {}).get("all") or {}
             curr_min = curr_vals.get("min")
             if curr_min is None:
-                curr_min = get_default_range(range_min, y)
+                curr_min = get_default_range(range_min, final_cols)
             curr_max = curr_vals.get("max")
             if curr_max is None:
-                curr_max = get_default_range(range_max, y, max=True)
+                curr_max = get_default_range(range_max, final_cols, max=True)
         return (
             curr_min,
             curr_max,
@@ -844,26 +908,42 @@ def init_callbacks(dash_app):
         ],
         [
             State("yaxis-dropdown", "value"),
+            State("yaxis-dropdown", "options"),
             State("yaxis-data", "data"),
             State("range-data", "data"),
             State("input-data", "data"),
+            State("extended-aggregations", "data"),
         ],
     )
     def update_yaxis_data(
-        yaxis_type, yaxis_min, yaxis_max, yaxis, yaxis_data, range_data, inputs
+        yaxis_type,
+        yaxis_min,
+        yaxis_max,
+        yaxis,
+        yaxes,
+        yaxis_data,
+        range_data,
+        inputs,
+        ext_aggs,
     ):
         """
         dash callback controlling updates to y-axis range state
         """
         yaxis_data = yaxis_data or dict(data={})
         yaxis_data["type"] = yaxis_type
+        yaxis = yaxis or yaxes[0]["value"] if len(yaxes) else None
         yaxis_name = "all" if yaxis_type == "single" else yaxis
         if yaxis_name == "all":
-            y = make_list(inputs.get("y"))
+            final_cols = build_final_cols(
+                make_list(inputs.get("y")),
+                inputs.get("z"),
+                inputs.get("agg"),
+                ext_aggs if inputs.get("chart_type") not in NON_EXT_AGGREGATION else [],
+            )
             mins = range_data.get("min", {})
             maxs = range_data.get("max", {})
-            range_min = get_default_range(mins, y)
-            range_max = get_default_range(maxs, y, max=True)
+            range_min = get_default_range(mins, final_cols)
+            range_max = get_default_range(maxs, final_cols, max=True)
         elif yaxis is None:
             raise PreventUpdate
         else:
@@ -983,5 +1063,6 @@ def init_callbacks(dash_app):
 
     custom_geojson.init_callbacks(dash_app)
     drilldown_modal.init_callbacks(dash_app)
+    extended_aggregations.init_callbacks(dash_app)
     lock_zoom.init_callbacks(dash_app)
     saved_charts.init_callbacks(dash_app)

@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import dtale.global_state as global_state
+from dtale.charts.utils import AGGS
 from dtale.dash_application.charts import (
     build_chart,
     bar_builder,
@@ -15,7 +16,6 @@ from dtale.dash_application.layout.utils import (
     build_cols,
     build_option,
     build_selections,
-    AGGS,
 )
 from dtale.utils import (
     classify_type,
@@ -61,12 +61,13 @@ def build_histogram(data_id, col, query, point_filter):
     hist_data, hist_labels = np.histogram(s, bins=10)
     hist_labels = list(map(lambda x: json_float(x, precision=3), hist_labels[1:]))
     axes_builder = build_axes(
-        None,
+        dict(
+            data=dict(all=dict(Frequency=hist_data, Bins=hist_labels)),
+            min=dict(Frequency=0),
+            max=dict(Frequency=max(hist_data)),
+        ),
         "Bins",
         dict(type="single", data={}),
-        dict(Frequency=0),
-        dict(Frequency=max(hist_data)),
-        data=pd.DataFrame(dict(Frequency=hist_data, Bins=hist_labels)),
     )
     hist_data = dict(data={"all": dict(x=hist_labels, Frequency=hist_data)})
     bars = bar_builder(
