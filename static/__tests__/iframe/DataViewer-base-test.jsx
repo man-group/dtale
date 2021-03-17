@@ -104,11 +104,11 @@ describe("DataViewer iframe tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["XArray Dimensions", "Describe", "Custom Filter", "Build Column", "Merge & Stack", "Summarize Data"],
-        ["Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
-        ["Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data"],
-        ["Pin menu", "Language", "Open In New Tab", "Shutdown"]
+        ["Open In New Tab", "XArray Dimensions", "Describe", "Custom Filter", "Build Column", "Merge & Stack"],
+        ["Summarize Data", "Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer"],
+        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
+        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],
+        ["Reload Data", "Pin menu", "Language", "Shutdown"]
       )
     );
   });

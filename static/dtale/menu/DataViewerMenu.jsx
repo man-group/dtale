@@ -77,6 +77,16 @@ class ReactDataViewerMenu extends React.Component {
             overflowX: "hidden",
           }}>
           <ul>
+            {iframe && (
+              <li>
+                <span className="toggler-action">
+                  <button className="btn btn-plain" onClick={() => window.open(window.location.pathname, "_blank")}>
+                    <i className="ico-open-in-new" />
+                    <span className="font-weight-bold">{t("menu:Open In New Tab")}</span>
+                  </button>
+                </span>
+              </li>
+            )}
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <DescribeOption open={buttonHandlers.DESCRIBE} />
             <MenuItem description={t("menu_description:filter")}>
@@ -236,16 +246,6 @@ class ReactDataViewerMenu extends React.Component {
             </MenuItem>
             <PinMenuOption />
             <LanguageOption />
-            {iframe && (
-              <li>
-                <span className="toggler-action">
-                  <button className="btn btn-plain" onClick={() => window.open(window.location.pathname, "_blank")}>
-                    <i className="ico-open-in-new" />
-                    <span className="font-weight-bold">{t("menu:Open In New Tab")}</span>
-                  </button>
-                </span>
-              </li>
-            )}
             {hideShutdown == false && (
               <MenuItem description={t("menu_description:shutdown")}>
                 <span className="toggler-action">
