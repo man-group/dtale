@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.40.1 (2021-3-16)
+* hotfix for chart code exports of category column analysis
+
 ### 1.40.0 (2021-3-16)
 * moved "Open In New Tab" button
 * [#135](https://github.com/man-group/dtale/issues/135): refactored column analysis code and updated code exports to include plotly charts
