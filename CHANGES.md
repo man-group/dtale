@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.40.0 (2021-3-16)
+* moved "Open In New Tab" button
+* [#135](https://github.com/man-group/dtale/issues/135): refactored column analysis code and updated code exports to include plotly charts
+
 ### 1.39.0 (2021-3-14)
 * resizable columns
 * updated how click loader options are found
