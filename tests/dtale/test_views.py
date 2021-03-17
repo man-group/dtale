@@ -1999,11 +1999,11 @@ def test_get_chart_data(unittest, rolling_data):
                         "2000-01-04",
                         "2000-01-05",
                     ],
-                    u"security_id": [50, 50, 50, 50, 50],
+                    u"security_id|count": [50, 50, 50, 50, 50],
                 }
             },
-            u"max": {"security_id": 50, "x": "2000-01-05"},
-            u"min": {"security_id": 50, "x": "2000-01-01"},
+            u"max": {"security_id|count": 50, "x": "2000-01-05"},
+            u"min": {"security_id|count": 50, "x": "2000-01-01"},
             u"success": True,
         }
         unittest.assertEqual(
@@ -2024,12 +2024,12 @@ def test_get_chart_data(unittest, rolling_data):
         )
         response = c.get("/dtale/chart-data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
-        assert response_data["min"]["security_id"] == 24.5
-        assert response_data["max"]["security_id"] == 24.5
+        assert response_data["min"]["security_id|mean"] == 24.5
+        assert response_data["max"]["security_id|mean"] == 24.5
         series_key = "(baz: baz)"
         assert response_data["data"][series_key]["x"][-1] == "2000-01-05"
-        assert len(response_data["data"][series_key]["security_id"]) == 5
-        assert sum(response_data["data"][series_key]["security_id"]) == 122.5
+        assert len(response_data["data"][series_key]["security_id|mean"]) == 5
+        assert sum(response_data["data"][series_key]["security_id|mean"]) == 122.5
 
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:
@@ -2296,7 +2296,7 @@ def test_chart_exports(custom_data, state_data):
         response = c.get(
             "/dtale/chart-csv-export/{}".format(c.port), query_string=params
         )
-        assert response.content_type == "text/csv"
+        assert response.content_type == "application/json"
 
     with app.test_client() as c:
         build_data_inst({c.port: state_data})

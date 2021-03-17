@@ -61,7 +61,7 @@ def build_saved_header(config):
     chart_type = config["chart_type"]
     final_data = [
         ("Data ID", config["data_id"]),
-        ("Query", config["query"]),
+        ("Query", config.get("query")),
         ("Chart Type", chart_type),
     ]
     if config.get("agg") not in [None, "raw"]:

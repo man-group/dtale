@@ -681,3 +681,21 @@ div#bins-val-input input {
   text-transform: none;
   font-family: "Istok", "Helvetica", Arial, sans-serif;
 }
+
+#extended-agg-body .Select--single {
+  min-width: auto;
+}
+
+.ext-agg-warning {
+  padding-left: 15px;
+  color: red;
+  font-size: 0.6rem;
+}
+
+#extended-aggregation-tooltip li {
+  list-style: disc inside;
+}
+
+.ext-agg-id {
+  min-width: 32px;
+}

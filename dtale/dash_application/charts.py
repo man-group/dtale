@@ -23,30 +23,30 @@ import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
 from dtale.charts.utils import (
+    AGGS,
     DUPES_MSG,
     YAXIS_CHARTS,
     ZAXIS_CHARTS,
     build_agg_data,
     build_base_chart,
-)
-from dtale.charts.utils import build_formatters as chart_formatters
-from dtale.charts.utils import (
+    build_final_cols,
     build_group_inputs_filter,
     check_all_nan,
     check_exceptions,
     date_freq_handler,
+    parse_final_col,
     retrieve_chart_data,
     valid_chart,
     weekday_tick_handler,
 )
+from dtale.charts.utils import build_formatters as chart_formatters
 
 from dtale.dash_application.layout.layout import (
-    AGGS,
     ANIMATE_BY_CHARTS,
     ANIMATION_CHARTS,
     build_error,
     test_plotly_version,
-    update_label_for_freq,
+    update_label_for_freq_and_agg,
 )
 from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
 from dtale.dash_application.topojson_injections import INJECTIONS
@@ -118,6 +118,7 @@ def chart_url_params(search):
         "group_val",
         "treemap_group",
         "yaxis",
+        "extended_aggregation",
     ]:
         if gp in params:
             params[gp] = json.loads(params[gp])
@@ -209,7 +210,15 @@ def chart_url_querystring(params, data=None, group_filter=None):
         final_params["animate"] = "true" if params.get("animate") is True else "false"
     if chart_type in ANIMATE_BY_CHARTS and params.get("animate_by") is not None:
         final_params["animate_by"] = params.get("animate_by")
-    list_props = ["y", "group", "map_group", "cs_group", "treemap_group", "group_val"]
+    list_props = [
+        "y",
+        "group",
+        "map_group",
+        "cs_group",
+        "treemap_group",
+        "group_val",
+        "extended_aggregation",
+    ]
     if chart_type in ["maps", "3d_scatter", "heatmap", "surface"]:
         list_props += ["colorscale"]
     for gp in list_props:
@@ -232,6 +241,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         if group_val:
             final_params["group_filter"] = group_val
         if y_val:
+            y_val, _ = parse_final_col(y_val)
             final_params["y"] = json.dumps([y_val])
     return url_encode_func()(final_params)
 
@@ -243,49 +253,46 @@ def build_colorscale(colorscale):
 
 
 def build_axes(
-    data_id, x, axis_inputs, mins, maxs, z=None, agg=None, data=None, scale="linear"
+    chart_data,
+    x,
+    axis_inputs,
+    z=None,
+    scale="linear",
 ):
     """
     Returns helper function for building axis configurations against a specific y-axis.
 
-    :param data_id: identifier of data to build axis configurations against
-    :type data_id: str
+    :param chart_data: the data configuration to be passed into the plotly chart
+    :type chart_data: dict
     :param x: column to be used as x-axis of chart
     :type x: str
     :param axis_inputs: current settings for y-axis limits
     :type axis_inputs: dict
-    :param mins: minimums for all columns involved in chart
-    :type mins: dict
-    :param maxs: maximums for all columns invloved in chart
-    :param maxs: dict
     :param z: column to use for the Z-Axis
     :type z: str, optional
     :param agg: specific aggregation that can be applied to y or z axes.  Possible values are: count, first, last mean,
                 median, min, max, std, var, mad, prod, sum.  This is included in label of axis it is being applied to.
     :type agg: str, optional
+    :param scale: how to scale the y-axis.  Options are linear or logrithmic.
+    :type scale: str
     :return: handler function to be applied against each y-axis used in chart
     :rtype: func
     """
-    data = data if data is not None else global_state.get_data(data_id)
+    mins = chart_data["min"]
+    maxs = chart_data["max"]
+    data = pd.DataFrame(chart_data["data"][list(chart_data["data"].keys())[0]])
     dtypes = get_dtypes(data)
     axis_type, axis_data = (axis_inputs.get(p) for p in ["type", "data"])
 
-    def _add_agg_label(title):
-        if z is None and agg is not None:
-            return "{} ({})".format(title, AGGS[agg])
-        return title
-
     def _build_axes(y):
-        axes = {"xaxis": dict(title=update_label_for_freq(x))}
+        axes = {"xaxis": dict(title=update_label_for_freq_and_agg(x))}
         has_multiaxis = False
         positions = []
         if axis_type == "multi":  # take the default behavior for plotly
             for i, y2 in enumerate(y, 0):
                 right = i % 2 == 1
                 axis_ct = int(i / 2)
-                value = dict(
-                    title=_add_agg_label(update_label_for_freq(y2)), type=scale
-                )
+                value = dict(title=update_label_for_freq_and_agg(y2), type=scale)
                 if i == 0:
                     key = "yaxis"
                 else:
@@ -312,7 +319,7 @@ def build_axes(
                     value["tickformat"] = ".0f"
                 axes[key] = value
         elif axis_type == "single":
-            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)), type=scale)
+            yaxis_cfg = dict(title=update_label_for_freq_and_agg(y), type=scale)
             all_range = axis_data.get("all") or {}
             all_range = [
                 all_range.get(p) for p in ["min", "max"] if all_range.get(p) is not None
@@ -325,7 +332,7 @@ def build_axes(
                 yaxis_cfg["tickformat"] = ".0f"
             axes["yaxis"] = yaxis_cfg
         else:
-            yaxis_cfg = dict(title=_add_agg_label(update_label_for_freq(y)), type=scale)
+            yaxis_cfg = dict(title=update_label_for_freq_and_agg(y), type=scale)
             if classify_type(dtypes.get(y[0])) == "I":
                 yaxis_cfg["tickformat"] = ".0f"
             axes["yaxis"] = yaxis_cfg
@@ -340,12 +347,10 @@ def build_axes(
                 lower, upper = divide_chunks(sorted(positions), 2)
                 domain = [lower[-1] + 0.05, upper[0] - 0.05]
             axes["xaxis"]["domain"] = domain
-        if classify_type(dtypes.get(x)) == "I":
+        if classify_type(dtypes.get("x")) == "I":
             axes["xaxis"]["tickformat"] = ".0f"
         if z is not None:
-            axes["zaxis"] = dict(
-                title=z if agg is None else "{} ({})".format(z, AGGS[agg])
-            )
+            axes["zaxis"] = dict(title=update_label_for_freq_and_agg(z))
             if classify_type(dtypes.get(z)) == "I":
                 axes["zaxis"]["tickformat"] = ".0f"
         return axes, has_multiaxis
@@ -501,7 +506,7 @@ def chart_wrapper(data_id, data, url_params=None):
     return _chart_wrapper
 
 
-def build_title(x, y, group=None, z=None, agg=None):
+def build_title(x, y, group=None, z=None):
     """
     Helper function to build chart titles based on the inputs for x, y, z, group & aggregation.
         - (x='a', y='b') => 'b by a'
@@ -525,15 +530,12 @@ def build_title(x, y, group=None, z=None, agg=None):
     :return: chart title
     :rtype: str
     """
-    y_title = ", ".join([update_label_for_freq(y2) for y2 in make_list(y)])
-    x_title = update_label_for_freq(x)
+    y_title = ", ".join([update_label_for_freq_and_agg(y2) for y2 in make_list(y)])
+    x_title = update_label_for_freq_and_agg(x)
     title = "{} by {}".format(y_title, x_title)
     if z:
-        title = "{} weighted by {}".format(title, z)
-    if agg:
-        agg_title = AGGS[agg]
-        title = "{} ({})".format(title, agg_title)
-    if group:
+        title = "{} weighted by {}".format(title, update_label_for_freq_and_agg(z))
+    if group and group != "all":
         title = "{} - {}".format(group, title)
     return {"title": {"text": title}}
 
@@ -559,7 +561,7 @@ def build_series_name(y, chart_per_group=False):
         if group != "all" and not chart_per_group:
             name_segs.append(group)
         if multi_y:
-            name_segs.append(sub_y)
+            name_segs.append(update_label_for_freq_and_agg(sub_y))
         if len(name_segs):
             return dict(name="/".join(name_segs))
         return dict()
@@ -594,7 +596,8 @@ def cpg_chunker(charts, columns=2):
         return charts
 
     def _formatter(chart):
-        chart.style.pop("height", None)
+        if hasattr(chart, "style"):
+            chart.style.pop("height", None)
         return html.Div(chart, className="col-md-6")
 
     return [
@@ -653,6 +656,7 @@ def scatter_builder(
     modal=False,
     colorscale=None,
     data_id=None,
+    extended_aggregation=[],
 ):
     """
     Builder function for :plotly:`plotly.graph_objs.Scatter <plotly.graph_objs.Scatter>`
@@ -691,13 +695,15 @@ def scatter_builder(
                     **dict_merge(
                         dict(
                             x=d["x"],
-                            y=d[y_val],
+                            y=d[y[0] if z else y_val],
                             mode="markers",
                             opacity=0.7,
                             name=series_key,
-                            marker=build_scatter_marker(d, z, colorscale),
+                            marker=build_scatter_marker(
+                                d, y_val if z else None, colorscale
+                            ),
                         ),
-                        dict(z=d[z]) if z is not None else dict(),
+                        dict(z=d[y_val]) if z is not None else dict(),
                     )
                 )
                 if trendline:
@@ -709,7 +715,7 @@ def scatter_builder(
             "data": list(_build_data()),
             "layout": build_layout(
                 dict_merge(
-                    build_title(x, y_val, group, z=z, agg=agg),
+                    build_title(x, y if z else y_val, group, z=y_val if z else None),
                     build_scatter_layout(axes_builder([y_val])[0], z),
                 )
             ),
@@ -726,7 +732,9 @@ def scatter_builder(
                                 mode="markers",
                                 opacity=0.7,
                                 name=series_key,
-                                marker=build_scatter_marker(series, z, colorscale),
+                                marker=build_scatter_marker(
+                                    series, y_val if z else None, colorscale
+                                ),
                                 customdata=[frame_name] * len(series["x"]),
                             )
                         )
@@ -742,27 +750,38 @@ def scatter_builder(
             ),
         )
 
-    return [_build_final_scatter(y2) for y2 in y]
+    return [
+        _build_final_scatter(sub_col)
+        for sub_col in build_final_cols(y, z, agg, extended_aggregation)
+    ]
 
 
 def scatter_code_builder(
-    data, x, y, axes_builder, z=None, agg=None, trendline=None, **kwargs
+    data,
+    x,
+    y,
+    axes_builder,
+    z=None,
+    agg=None,
+    trendline=None,
+    extended_aggregation=[],
+    **kwargs
 ):
     scatter_func = "go.Scatter3d" if z is not None else "go.Scattergl"
     pp = pprint.PrettyPrinter(indent=4)
-
+    y_vals = build_final_cols(y, z, agg, extended_aggregation)
     for series_key in data["data"]:
         series = data["data"][series_key]
-        y_val = next((y2 for y2 in y if y2 in series), None)
+        y_val = next((y2 for y2 in y_vals if y2 in series), None)
         if y_val is not None:
             break
-    title = build_title(x, y, group=None, z=z, agg=agg)
+    title = build_title(x, y_vals, group=None, z=z)
     code = []
     if len(data["data"]) > 1:
         code.append(GROUP_WARNING.format(series_key=triple_quote(series_key)))
-        title = build_title(x, y, series_key, z=z, agg=agg)
+        title = build_title(x, y_vals, series_key, z=z)
 
-    if len(y) > 1:
+    if len(y_vals) > 1:
         code.append(Y_AXIS_WARNING.format(y_val))
 
     if z is not None:
@@ -841,6 +860,8 @@ def surface_builder(
     """
     scene = dict(aspectmode="data", camera={"eye": {"x": 2, "y": 1, "z": 1.25}})
 
+    final_cols = build_final_cols(y, z, agg, [])
+    z = final_cols[0]
     df = pd.DataFrame(
         {k: v for k, v in data["data"]["all"].items() if k in ["x", y[0], z]}
     )
@@ -884,7 +905,7 @@ def surface_builder(
             ")\n"
         ).format(colorbar=pp.pformat(colorbar_cfg))
     )
-    layout_cfg = build_layout(dict_merge(build_title(x, y[0], z=z, agg=agg), layout))
+    layout_cfg = build_layout(dict_merge(build_title(x, y[0], z=z), layout))
     code.append(
         "figure = go.Figure(data=[chart], layout=go.{layout})".format(
             layout=pp.pformat(layout_cfg)
@@ -909,7 +930,7 @@ def surface_builder(
                             )
                         ],
                         "layout": build_layout(
-                            dict_merge(build_title(x, y2, z=z, agg=agg), layout)
+                            dict_merge(build_title(x, y2, z=z), layout)
                         ),
                     },
                     modal=modal,
@@ -1043,6 +1064,8 @@ def bar_builder(
     barmode="group",
     barsort=None,
     top_bars=None,
+    agg=None,
+    extended_aggregation=[],
     **kwargs
 ):
     """
@@ -1085,19 +1108,24 @@ def bar_builder(
             axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
         )
 
+    final_cols = build_final_cols(y, None, agg, extended_aggregation)
     hover_text = dict()
     allow_multiaxis = barmode is None or barmode == "group"
-    axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
-    name_builder = build_series_name(y, cpg)
+    axes, allow_multiaxis = (
+        axes_builder(final_cols) if allow_multiaxis else axes_builder([final_cols[0]])
+    )
+    name_builder = build_series_name(final_cols, cpg)
     for series_key, series in data["data"].items():
         barsort_col = "x" if barsort == x or barsort not in series else barsort
-        if barsort_col != "x" or kwargs.get("agg") == "raw":
+        if barsort_col != "x" or (
+            kwargs.get("agg") == "raw" and not len(extended_aggregation)
+        ):
             _build_sorted_bars(barsort_col, series, data, hover_text, axes)
         elif top_bars:
-            _build_sorted_bars(y[0], series, data, hover_text, axes)
+            _build_sorted_bars(final_cols[0], series, data, hover_text, axes)
 
     if cpg or cpy:
-        y_values = [[sub_y] for sub_y in y] if cpy else [y]
+        y_values = [[sub_y] for sub_y in final_cols] if cpy else [final_cols]
         charts = []
         for y_value in y_values:
             y_axes, _ = axes_builder(y_value)
@@ -1127,7 +1155,6 @@ def bar_builder(
                                             x,
                                             y_value,
                                             series_key,
-                                            agg=kwargs.get("agg"),
                                         ),
                                         y_axes,
                                         dict(barmode=barmode or "group"),
@@ -1171,7 +1198,6 @@ def bar_builder(
                                             x,
                                             y_value,
                                             series_key,
-                                            agg=kwargs.get("agg"),
                                         ),
                                         y_axes,
                                         dict(barmode=barmode or "group"),
@@ -1193,19 +1219,19 @@ def bar_builder(
                     {} if i == 1 or not allow_multiaxis else {"yaxis": "y{}".format(i)},
                     hover_text.get(series_key) or {},
                 )
-                for i, y2 in enumerate(y, 1)
+                for i, y2 in enumerate(final_cols, 1)
             ]
             for series_key, series in data["data"].items()
         ]
     )
     if barmode == "group" and allow_multiaxis:
-        data_cfgs = list(build_grouped_bars_with_multi_yaxis(data_cfgs, y))
+        data_cfgs = list(build_grouped_bars_with_multi_yaxis(data_cfgs, final_cols))
 
     figure_cfg = {
         "data": data_cfgs,
         "layout": build_layout(
             dict_merge(
-                build_title(x, y, agg=kwargs.get("agg")),
+                build_title(x, final_cols),
                 axes,
                 dict(barmode=barmode or "group"),
             )
@@ -1234,7 +1260,7 @@ def bar_builder(
                         axes.get("xaxis", {}),
                         build_spaced_ticks(df["x"].values, mode="array"),
                     )
-                for i, y2 in enumerate(y, 1):
+                for i, y2 in enumerate(final_cols, 1):
                     data.append(
                         dict_merge(
                             {
@@ -1255,7 +1281,7 @@ def bar_builder(
                     )
                 if barmode == "group" and allow_multiaxis:
                     data["data"] = list(
-                        build_grouped_bars_with_multi_yaxis(data["data"], y)
+                        build_grouped_bars_with_multi_yaxis(data["data"], final_cols)
                     )
             return dict(data=data, layout=layout, name=frame["name"])
 
@@ -1283,19 +1309,23 @@ def bar_code_builder(
     barmode="group",
     barsort=None,
     top_bars=None,
+    agg=None,
     **kwargs
 ):
     code = []
     base_chart_cfg = []
+    final_cols = build_final_cols(y, None, agg, kwargs.get("extended_aggregation"))
     allow_multiaxis = barmode is None or barmode == "group"
-    axes, allow_multiaxis = axes_builder(y) if allow_multiaxis else axes_builder([y[0]])
-    name_builder = build_series_name(y, cpg)
+    axes, allow_multiaxis = (
+        axes_builder(final_cols) if allow_multiaxis else axes_builder([final_cols[0]])
+    )
+    name_builder = build_series_name(final_cols, cpg)
     series_key = next(iter(data["data"]))
     series = data["data"][series_key]
-    title = build_title(x, y, agg=kwargs.get("agg"))
+    title = build_title(x, final_cols)
     if len(data["data"]) > 1:
         code.append(GROUP_WARNING.format(series_key=series_key))
-        title = build_title(x, y, group=series_key, agg=kwargs.get("agg"))
+        title = build_title(x, final_cols, group=series_key)
 
     barsort_col = "x" if barsort == x or barsort not in series else barsort
     x_data = "chart_data['x']"
@@ -1304,11 +1334,11 @@ def bar_code_builder(
         if top_bars:
             code.append(
                 "chart_data = chart_data.sort_values('{}', ascending=False).head({})".format(
-                    barsort_col, top_bars
+                    sort_col, top_bars
                 )
             )
         else:
-            code.append("chart_data = chart_data.sort_values('{}')".format(barsort_col))
+            code.append("chart_data = chart_data.sort_values('{}')".format(sort_col))
         axes["xaxis"] = dict_merge(
             axes.get("xaxis", {}), {"tickmode": "auto", "nticks": len(series["x"])}
         )
@@ -1324,7 +1354,7 @@ def bar_code_builder(
 
     pp = pprint.PrettyPrinter(indent=4)
     code.append(("\nimport plotly.graph_objs as go\n\n" "charts = []"))
-    for i, y2 in enumerate(y, 1):
+    for i, y2 in enumerate(final_cols, 1):
         name = name_builder(y2, series_key)
         chart_cfg = ["x={}".format(x_data), "y=chart_data['{}']".format(y2)]
         if len(name):
@@ -1379,14 +1409,17 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
     :rtype: :plotly:`plotly.graph_objs.Scatter(mode='lines') <plotly.graph_objs.Scatter>`
     """
 
-    axes, multi_yaxis = axes_builder(y)
-    name_builder = build_series_name(y, cpg)
+    final_cols = build_final_cols(
+        y, None, inputs.get("agg"), inputs.get("extended_aggregation")
+    )
+    axes, multi_yaxis = axes_builder(final_cols)
+    name_builder = build_series_name(final_cols, cpg)
 
     def line_func(s):
         return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
 
     if cpg or cpy:
-        y_values = [[sub_y] for sub_y in y] if cpy else [y]
+        y_values = [[sub_y] for sub_y in final_cols] if cpy else [final_cols]
         charts = []
         for y_value in y_values:
             y_axes, _ = axes_builder(y_value)
@@ -1417,7 +1450,6 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                             x,
                                             y_value,
                                             group=series_key,
-                                            agg=inputs.get("agg"),
                                         ),
                                         y_axes,
                                     )
@@ -1459,7 +1491,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                 ),
                                 "layout": build_layout(
                                     dict_merge(
-                                        build_title(x, y_value, agg=inputs.get("agg")),
+                                        build_title(x, y_value),
                                         y_axes,
                                     )
                                 ),
@@ -1481,7 +1513,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                         {} if i == 1 or not multi_yaxis else {"yaxis": "y{}".format(i)},
                     )
                 )
-                for i, y2 in enumerate(y, 1)
+                for i, y2 in enumerate(final_cols, 1)
             ]
             for series_key, series in data["data"].items()
         ]
@@ -1489,9 +1521,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
 
     figure_cfg = {
         "data": data_cfgs,
-        "layout": build_layout(
-            dict_merge(build_title(x, y, agg=inputs.get("agg")), axes)
-        ),
+        "layout": build_layout(dict_merge(build_title(x, final_cols), axes)),
     }
     if inputs.get("animate") is True:
 
@@ -1500,7 +1530,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
             for series_key, series in data["data"].items():
                 series = pd.DataFrame(series)
                 series = series.set_index("x").reindex(x, fill_value=0).reset_index()
-                for j, y2 in enumerate(y, 1):
+                for j, y2 in enumerate(final_cols, 1):
                     y_vals = list(series[y2].values[:i])
                     y_vals += [np.nan] * (ct - i)
                     marker_size = [0] * ct
@@ -1547,7 +1577,10 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
 
 
 def line_code_builder(data, x, y, axes_builder, **inputs):
-    axes, multi_yaxis = axes_builder(y)
+    final_cols = build_final_cols(
+        y, None, inputs.get("agg"), inputs.get("extended_aggregation")
+    )
+    axes, multi_yaxis = axes_builder(final_cols)
 
     series_key = next(iter(data["data"]))
     series = data["data"][series_key]
@@ -1559,7 +1592,7 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
     code.append("\nimport plotly.graph_objs as go\n\n" "charts = []")
     pp = pprint.PrettyPrinter(indent=4)
     code.append("line_cfg = {}".format(pp.pformat(build_line_cfg(series))))
-    for i, y2 in enumerate(y, 1):
+    for i, y2 in enumerate(final_cols, 1):
         yaxis = "" if i == 1 else ", yaxis='y{}'".format(i)
         code.append(
             (
@@ -1568,9 +1601,7 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
                 "))"
             ).format(line_func=line_func, y=y2, yaxis=yaxis)
         )
-    layout_cfg = build_layout(
-        dict_merge(build_title(x, y, agg=inputs.get("agg")), axes)
-    )
+    layout_cfg = build_layout(dict_merge(build_title(x, final_cols), axes))
     code.append(
         "figure = go.Figure(data=charts, layout=go.{})".format(pp.pformat(layout_cfg))
     )
@@ -1595,7 +1626,10 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
     :rtype: :plotly:`plotly.graph_objs.Pie <plotly.graph_objs.Pie>`
     """
 
-    name_builder = build_series_name(y, True)
+    final_cols = build_final_cols(
+        y, None, inputs.get("agg"), inputs.get("extended_aggregation")
+    )
+    name_builder = build_series_name(final_cols, True)
 
     def build_pie_layout(layout_cfg, series):
         if len(series["x"]) > 5:
@@ -1606,22 +1640,22 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
     def build_pie_code():
         series_key = next(iter(data["data"]), None)
         series = data["data"][series_key]
-        title = build_title(x, y[0], agg=inputs.get("agg"))
+        title = build_title(x, final_cols[0])
         code = []
         if len(data["data"]) > 1:
             code.append(GROUP_WARNING.format(series_key=series_key))
-            title = build_title(x, y[0], group=series_key, agg=inputs.get("agg"))
+            title = build_title(x, final_cols[0], group=series_key)
 
         if len(y) > 1:
-            code.append(Y_AXIS_WARNING.format(y[0]))
+            code.append(Y_AXIS_WARNING.format(final_cols[0]))
 
         code.append(
             "chart_data = chart_data[chart_data['{}'] > 0]  # can't represent negatives in a pie".format(
-                y[0]
+                final_cols[0]
             )
         )
         layout_cfg = build_pie_layout(build_layout(title), series)
-        name = name_builder(y[0], series_key)
+        name = name_builder(final_cols[0], series_key)
         name = ", name='{}'".format(name["name"]) if len(name) else ""
         pp = pprint.PrettyPrinter(indent=4)
         code.append(
@@ -1629,21 +1663,19 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                 "\nimport plotly.graph_objs as go\n\n"
                 "chart = go.Pie(labels=chart_data['x'], y=chart_data['{y}']{name})\n"
                 "figure = go.Figure(data=[chart], layout=go.{layout})"
-            ).format(y=y[0], name=name, layout=pp.pformat(layout_cfg))
+            ).format(y=final_cols[0], name=name, layout=pp.pformat(layout_cfg))
         )
         return code
 
     def build_pies():
         for series_key, series in data["data"].items():
-            for y2 in y:
+            for y2 in final_cols:
                 negative_values = []
                 for x_val, y_val in zip(series["x"], series[y2]):
                     if y_val < 0:
                         negative_values.append("{} ({})".format(x_val, y_val))
 
-                layout = build_layout(
-                    build_title(x, y2, group=series_key, agg=inputs.get("agg"))
-                )
+                layout = build_layout(build_title(x, y2, group=series_key))
                 layout = build_pie_layout(layout, series)
                 chart = wrapper(
                     graph_wrapper(
@@ -1664,7 +1696,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                         dict(y=y2),
                         {}
                         if series_key == "all"
-                        else dict(group=series.pop("_filter_")),
+                        else dict(group=series.get("_filter_")),
                     ),
                 )
                 if len(negative_values):
@@ -1694,6 +1726,8 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                         )
                 else:
                     yield chart
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
 
     if export:
         return next(build_pies())
@@ -1740,8 +1774,8 @@ def heatmap_builder(data_id, export=False, **inputs):
 
         data, chart_code = retrieve_chart_data(raw_data, animate_by, x, y, z)
         code += chart_code
-        x_title = update_label_for_freq(x)
-        y_title = update_label_for_freq(y)
+        x_title = update_label_for_freq_and_agg(x)
+        y_title = update_label_for_freq_and_agg(y)
         z_title = z
         sort_cols = [x, y]
         if animate_by:
@@ -1792,9 +1826,10 @@ def heatmap_builder(data_id, export=False, **inputs):
                     ),
                 )
             else:
-                data, agg_code = build_agg_data(
+                data, agg_code, final_cols = build_agg_data(
                     data, x, y, inputs, agg, z=z, animate_by=animate_by
                 )
+                z = final_cols[0]
                 code += agg_code
         if not len(data):
             raise Exception("No data returned for this computation!")
@@ -1890,12 +1925,12 @@ def heatmap_builder(data_id, export=False, **inputs):
         )
 
         hm_kwargs = dict_merge(hm_kwargs, {"z": heat_data})
-        layout_cfg = build_layout(
-            dict_merge(
-                dict(xaxis_zeroline=False, yaxis_zeroline=False),
-                build_title(x, y, z=z, agg=agg),
-            )
+        layout_cfg = dict_merge(
+            dict(xaxis_zeroline=False, yaxis_zeroline=False),
+            build_title(x, y, z=z),
         )
+        layout_cfg["title"]["text"] += " (Correlation)" if "corr" == agg else ""
+        layout_cfg = build_layout(layout_cfg)
 
         heatmap_func = go.Heatmapgl
         heatmap_func_str = "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
@@ -2006,7 +2041,7 @@ def candlestick_builder(data_id, export=False, **inputs):
         check_all_nan(data)
         dupe_cols = [x] + make_list(group)
         if agg is not None:
-            data, agg_code = build_agg_data(
+            data, agg_code, final_cols = build_agg_data(
                 data,
                 x,
                 [cs_open, cs_close, high, low],
@@ -2014,6 +2049,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 agg,
                 group_col=group,
             )
+            [cs_open, cs_close, high, low] = final_cols
             code += agg_code
         if not len(data):
             raise Exception("No data returned for this computation!")
@@ -2116,6 +2152,7 @@ def treemap_builder(data_id, export=False, **inputs):
         data, code = build_figure_data(data_id, **inputs)
         if data is None:
             return None, None
+        [treemap_value] = build_final_cols([treemap_value], None, inputs.get("agg"), [])
         chart_builder = chart_wrapper(data_id, data, inputs)
 
         code.append("\nimport plotly.graph_objs as go")
@@ -2334,7 +2371,7 @@ def build_scattergeo(inputs, raw_data, layout):
         group_val=props.group_val,
     )
     if props.agg is not None:
-        data, agg_code = build_agg_data(
+        data, agg_code, _ = build_agg_data(
             raw_data,
             props.lat,
             props.lon,
@@ -2446,7 +2483,7 @@ def build_mapbox(inputs, raw_data, layout):
         group_val=None if props.map_group is None else props.group_val,
     )
     if props.agg is not None:
-        data, agg_code = build_agg_data(
+        data, agg_code, _ = build_agg_data(
             raw_data,
             props.lat,
             props.lon,
@@ -2552,7 +2589,7 @@ def build_choropleth(inputs, raw_data, layout):
     )
     choropleth_kwargs = {}
     if props.agg is not None:
-        data, agg_code = build_agg_data(
+        data, agg_code, _ = build_agg_data(
             data, props.loc, props.map_val, {}, props.agg, animate_by=props.animate_by
         )
         code += agg_code
@@ -2679,6 +2716,7 @@ def build_figure_data(
     rolling_comp=None,
     animate_by=None,
     data=None,
+    extended_aggregation=[],
     **kwargs
 ):
     """
@@ -2718,6 +2756,7 @@ def build_figure_data(
                 z=z,
                 chart_type=chart_type,
                 agg=agg,
+                extended_aggregation=extended_aggregation,
                 window=window,
                 rolling_comp=rolling_comp,
             ),
@@ -2748,6 +2787,7 @@ def build_figure_data(
         bins_val=bins_val,
         bin_type=bin_type,
         agg=agg,
+        extended_aggregation=extended_aggregation,
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,
         rolling_comp=rolling_comp,
@@ -2774,6 +2814,7 @@ def build_raw_figure_data(
     agg=None,
     window=None,
     rolling_comp=None,
+    extended_aggregation=[],
     **kwargs
 ):
     """
@@ -2814,6 +2855,7 @@ def build_raw_figure_data(
             agg=agg,
             window=window,
             rolling_comp=rolling_comp,
+            extended_aggregation=extended_aggregation,
         ),
         kwargs,
     )
@@ -2830,12 +2872,12 @@ def build_raw_figure_data(
             loc, map_val = (kwargs.get(p) for p in ["loc", "map_val"])
             data, _ = retrieve_chart_data(data, loc, map_val)
             if agg is not None:
-                data, _ = build_agg_data(data, loc, map_val, {}, agg)
+                data, _, _ = build_agg_data(data, loc, map_val, {}, agg)
             return data
         lat, lon, map_val = (kwargs.get(p) for p in ["lat", "lon", "map_val"])
         data, _ = retrieve_chart_data(data, lat, lon, map_val)
         if agg is not None:
-            data, _ = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+            data, _, _ = build_agg_data(data, lat, lon, {}, agg, z=map_val)
         return data
 
     chart_kwargs = dict(
@@ -2844,6 +2886,7 @@ def build_raw_figure_data(
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,
         rolling_comp=rolling_comp,
+        extended_aggregation=extended_aggregation,
     )
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs["z"] = z
@@ -2908,9 +2951,19 @@ def build_chart(data_id=None, data=None, **inputs):
         range_data = dict(min=data["min"], max=data["max"])
         axis_inputs = inputs.get("yaxis") or {}
         chart_builder = chart_wrapper(data_id, data, inputs)
-        x, y, z, agg, group, animate_by, trendline, scale = (
+        x, y, z, agg, group, animate_by, trendline, scale, extended_aggregation = (
             inputs.get(p)
-            for p in ["x", "y", "z", "agg", "group", "animate_by", "trendline", "scale"]
+            for p in [
+                "x",
+                "y",
+                "z",
+                "agg",
+                "group",
+                "animate_by",
+                "trendline",
+                "scale",
+                "extended_aggregation",
+            ]
         )
         x = str("x") if x is None else x
         z = z if chart_type in ZAXIS_CHARTS else None
@@ -2921,10 +2974,13 @@ def build_chart(data_id=None, data=None, **inputs):
         }
 
         if chart_type == "wordcloud":
+            final_cols = (
+                build_final_cols(y, None, agg, extended_aggregation) if y else ["count"]
+            )
             return (
                 chart_builder(
                     dash_components.Wordcloud(
-                        id="wc", data=data, y=y or ["count"], group=group
+                        id="wc", data=data, y=final_cols, group=group
                     )
                 ),
                 range_data,
@@ -2939,11 +2995,9 @@ def build_chart(data_id=None, data=None, **inputs):
                 code + pie_code,
             )
 
-        axes_builder = build_axes(
-            data_id, x, axis_inputs, data["min"], data["max"], z=z, agg=agg, scale=scale
-        )
+        axes_builder = build_axes(data, x, axis_inputs, z=z, scale=scale)
         if chart_type in ["scatter", "3d_scatter"]:
-            kwargs = dict(agg=agg)
+            kwargs = dict(agg=agg, extended_aggregation=extended_aggregation)
             if chart_type == "scatter":
                 kwargs["trendline"] = trendline
                 kwargs["data_id"] = data_id
@@ -3099,9 +3153,7 @@ def build_raw_chart(data_id=None, **inputs):
         if chart_type == "pie":
             return pie_builder(data, x, y, chart_builder, **chart_inputs)
 
-        axes_builder = build_axes(
-            data_id, x, axis_inputs, data["min"], data["max"], z=z, agg=agg
-        )
+        axes_builder = build_axes(data, x, axis_inputs, z=z)
         if chart_type == "scatter":
             return scatter_builder(
                 data,

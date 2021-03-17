@@ -2,34 +2,12 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 
+from dtale.translations import text
 from dtale.utils import dict_merge, classify_type, flatten_lists, make_list
 
 
-AGGS = dict(
-    raw="No Aggregation",
-    count="Count",
-    nunique="Unique Count",
-    sum="Sum",
-    mean="Mean",
-    rolling="Rolling",
-    corr="Correlation",
-    first="Keep First",
-    last="Keep Last",
-    drop_duplicates="Remove Duplicates",
-    median="Median",
-    min="Minimum",
-    max="Maximum",
-    std="Standard Deviation",
-    var="Variance",
-    mad="Mean Absolute Deviation",
-    prod="Product of All Items",
-    pctct="Percentage Count",
-    pctsum="Percentage Sum",
-)
-
-
-def show_style(show):
-    return {"display": "block" if show else "none"}
+def show_style(show, display_style="block"):
+    return {"display": display_style if show else "none"}
 
 
 def build_input(
@@ -151,7 +129,7 @@ def build_drilldown_modal(idx):
                 html.Div(
                     [
                         html.Div(
-                            "Chart Drilldown",
+                            text("Chart Drilldown"),
                             className="col mt-auto mb-auto",
                             id="drilldown-modal-header-{}".format(idx),
                         ),
@@ -204,7 +182,7 @@ def build_drilldown_modal(idx):
             ),
             dbc.ModalFooter(
                 dbc.Button(
-                    "Close",
+                    text("Close"),
                     id="close-drilldown-modal-{}".format(idx),
                     className="ml-auto",
                 )
@@ -247,7 +225,13 @@ def graph_wrapper(modal=False, export=False, **kwargs):
     return [graph, click_data_store, build_drilldown_modal(CHART_IDX)]
 
 
-def build_hoverable(content, hoverable_content, hover_class="map-types", top="50%"):
+def build_hoverable(
+    content,
+    hoverable_content,
+    hover_class="map-types",
+    top="50%",
+    additional_classes="",
+):
     return html.Div(
         [
             content,
@@ -258,5 +242,5 @@ def build_hoverable(content, hoverable_content, hover_class="map-types", top="50
             ),
         ],
         style=dict(borderBottom="none"),
-        className="hoverable",
+        className="hoverable {}".format(additional_classes),
     )
