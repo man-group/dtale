@@ -7,8 +7,8 @@ function init() {
   return dispatch => dispatch({ type: "init-params" });
 }
 
-function toggleColumnMenu(colName, toggleId) {
-  return dispatch => dispatch({ type: "toggle-column-menu", colName, toggleId });
+function toggleColumnMenu(colName) {
+  return dispatch => dispatch({ type: "toggle-column-menu", colName });
 }
 
 function hideColumnMenu(colName) {

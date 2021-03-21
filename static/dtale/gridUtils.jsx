@@ -206,12 +206,6 @@ EXPORTS.SORT_PROPS = [
   },
 ];
 
-EXPORTS.buildToggleId = colName => {
-  let colClass = _.join(_.split(colName, " "), "_");
-  colClass = _.join(_.split(colClass, "."), "\\.");
-  return `col-${colClass}-toggle`;
-};
-
 EXPORTS.buildState = props => ({
   ...EXPORTS.buildGridStyles(props.theme),
   columnFormats: _.get(props, "settings.formats", {}),

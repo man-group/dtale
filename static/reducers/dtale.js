@@ -96,17 +96,6 @@ function selectedCol(state = null, action = {}) {
   }
 }
 
-function selectedToggle(state = null, action = {}) {
-  switch (action.type) {
-    case "toggle-column-menu":
-      return action.toggleId;
-    case "hide-column-menu":
-      return null;
-    default:
-      return state;
-  }
-}
-
 function xarray(state = false, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -231,7 +220,6 @@ const dtaleStore = combineReducers({
   iframe,
   columnMenuOpen,
   selectedCol,
-  selectedToggle,
   xarray,
   xarrayDim,
   theme,

@@ -140,10 +140,9 @@ class ReactHeader extends React.Component {
     }
     const colCfg = gu.getCol(columnIndex, this.props);
     const colName = _.get(colCfg, "name");
-    const toggleId = gu.buildToggleId(colName);
     const menuHandler = menuUtils.openMenu(
       `${colName}Actions`,
-      () => toggleColumnMenu(colName, toggleId),
+      () => toggleColumnMenu(colName),
       () => hideColumnMenu(colName),
       `div[name='${colName}']`,
       ignoreMenuClicks
@@ -157,7 +156,7 @@ class ReactHeader extends React.Component {
       isInRowOrColumnRange(columnIndex, columnRange) || _.includes(ctrlCols, columnIndex) ? " in-range" : "";
     return (
       <div
-        className={`headerCell ${toggleId}${markupProps.className}${rangeClass}`}
+        className={`headerCell ${markupProps.className}${rangeClass}`}
         style={headerStyle}
         onMouseOver={this.handleMouseOver}
         name={colName}>
@@ -209,7 +208,7 @@ const TranslateReactHeader = withTranslation("main")(ReactHeader);
 const ReduxHeader = connect(
   ({ dataId }) => ({ dataId }),
   dispatch => ({
-    toggleColumnMenu: (colName, toggleId) => dispatch(actions.toggleColumnMenu(colName, toggleId)),
+    toggleColumnMenu: colName => dispatch(actions.toggleColumnMenu(colName)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
   })
 )(TranslateReactHeader);

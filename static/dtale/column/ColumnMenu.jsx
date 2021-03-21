@@ -85,7 +85,7 @@ class ReactColumnMenu extends React.Component {
 
   updatePosition() {
     if (!_.isNull(this.props.selectedCol)) {
-      positionMenu($(`div.${this.props.selectedToggle}`), $(this._div), this.props.isPreview);
+      positionMenu($(`div[name="${this.props.selectedCol}"]`), $(this._div), this.props.isPreview);
     }
   }
 
@@ -271,7 +271,6 @@ class ReactColumnMenu extends React.Component {
 ReactColumnMenu.displayName = "ReactColumnMenu";
 ReactColumnMenu.propTypes = {
   selectedCol: PropTypes.string,
-  selectedToggle: PropTypes.string,
   columns: PropTypes.array,
   columnMenuOpen: PropTypes.bool,
   sortInfo: PropTypes.array,
@@ -287,7 +286,7 @@ ReactColumnMenu.propTypes = {
 };
 const TranslatedReactColumnMenu = withTranslation(["menu", "column_menu", "builders"])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
-  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "selectedToggle", "isPreview"]),
+  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "isPreview"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),

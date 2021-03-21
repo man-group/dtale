@@ -21,7 +21,6 @@ describe("reducer tests", () => {
       iframe: false,
       columnMenuOpen: false,
       selectedCol: null,
-      selectedToggle: null,
       dataId: null,
       editedCell: null,
       xarray: false,
