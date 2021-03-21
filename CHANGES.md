@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.40.2 (2021-3-21)
+* [#454](https://github.com/man-group/dtale/issues/454): fixed issue with parenthesis & percent symbols in column names
+
 ### 1.40.1 (2021-3-16)
 * hotfix for chart code exports of category column analysis
 
