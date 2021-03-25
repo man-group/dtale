@@ -26,17 +26,31 @@
             <a href="https://github.com/man-group/dtale">Fork me on GitHub</a>
         </span>
         {% endif %}
+        <header class="app-header">
+            <span class="title-font">D-TALE</span>
+            <span style="font-size: 16px" class="pl-5 mt-4" id="code-title">Chart Code</span>
+            <nav class="app-header__nav--secondary">
+                <ul class="nav-menus">
+                    {% if grid_links|length > 0 %}
+                    <li>
+                        <div class="dropdown">
+                            <span class="dropbtn nav-link dropdown-toggle">
+                                {{back_to_data}}
+                            </span>
+                            <div class="dropdown-content">
+                                {% for id, label in grid_links %}
+                                    <a href="{{id}}" class="dropdown-item data-grid-link">
+                                        <span class="ml-3">{{label}}</span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </header>
         <div class="container-fluid code-popup">
-            <div class="row" style="margin: 0">
-                <div class="col-auto">
-                    <header>
-                        <span class="title-font">D-TALE</span>
-                        <span style="font-size: 16px" class="pl-4">-</span>
-                        <span id="code-title" style="font-size: 16px" class="pl-4"></span>
-                    </header>
-                </div>
-                <div class="col"></div>
-            </div>
             <div id="popup-content" />
         </div>
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

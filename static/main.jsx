@@ -112,8 +112,16 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById("popup-content"));
 } else if (_.startsWith(pathname, "/dtale/code-popup")) {
   require("./dtale/DataViewer.css");
-  document.getElementById("code-title").innerHTML = `${window.opener.code_popup.title} Code Export`;
-  ReactDOM.render(<CodePopup code={window.opener.code_popup.code} />, document.getElementById("popup-content"));
+  let title, body;
+  if (window.opener) {
+    title = `${window.opener.code_popup.title} Code Export`;
+    body = <CodePopup code={window.opener.code_popup.code} />;
+  } else {
+    title = "Code Missing";
+    body = <h1>No parent window containing code detected!</h1>;
+  }
+  document.getElementById("code-title").innerHTML = title;
+  ReactDOM.render(body, document.getElementById("popup-content"));
 } else {
   const store = createStore(app.store);
   store.dispatch(actions.init());

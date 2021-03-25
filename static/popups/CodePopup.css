@@ -1,3 +1,10 @@
+div.container-fluid.code-popup .code-popup-modal pre,
+div.container-fluid.code-export .code-popup-modal pre {
+  height: calc(100vh - 100px) !important;
+}
+div.container-fluid.code-popup .code-popup-modal {
+  padding-top: 45px;
+}
 .code-popup-modal pre {
   height: 350px;
 }

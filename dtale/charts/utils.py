@@ -97,9 +97,9 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         cs_props = ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low"]
         return all(inputs.get(p) is not None for p in cs_props)
 
-    if chart_type == "treemap":
-        treemap_props = ["treemap_value", "treemap_label"]
-        return all(inputs.get(p) is not None for p in treemap_props)
+    if chart_type in ["treemap", "funnel"]:
+        chart_props = ["{}_value", "{}_label"]
+        return all(inputs.get(p.format(chart_type)) is not None for p in chart_props)
 
     if not x:
         return False
@@ -266,7 +266,7 @@ def group_filter_handler(col_def, group_val, group_classifier):
         return "{col} != {col}".format(col=build_col_key(col_def)), "{}: NaN".format(
             col_def
         )
-    if group_classifier in ["I", "F"]:
+    if group_classifier in ["I", "F", "B"]:
         return (
             "{col} == {val}".format(col=build_col_key(col_def), val=group_val),
             "{}: {}".format(col_def, group_val),
