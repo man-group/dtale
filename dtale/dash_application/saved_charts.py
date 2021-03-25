@@ -88,6 +88,10 @@ def build_saved_header(config):
         group_by = config["treemap_group"]
         for prop in ["treemap_value", "treemap_label"]:
             final_data.append((prop.split("_")[-1], config.get(prop)))
+    elif chart_type == "funnel":
+        group_by = config["funnel_group"]
+        for prop in ["funnel_value", "funnel_label"]:
+            final_data.append((prop.split("_")[-1], config.get(prop)))
     else:
         group_by = config.get("group")
         final_data.append(("X-Axis", config["x"]))

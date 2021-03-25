@@ -95,6 +95,14 @@ def get_url_parser():
             return parse_qsl
 
 
+def parse_group_filter(group_filter):
+    filter_col, filter_val = group_filter.split(" == ")
+    if filter_val.startswith("'(") and filter_val.endswith("]'"):
+        start, end = filter_val.split(",")
+        return "({} <= {} <= {})".format(start[2:], filter_col, end[:-2]), True
+    return group_filter, False
+
+
 def chart_url_params(search):
     """
     Builds chart parameters by parsing the query string from main URL
@@ -117,6 +125,7 @@ def chart_url_params(search):
         "cs_group",
         "group_val",
         "treemap_group",
+        "funnel_group",
         "yaxis",
         "extended_aggregation",
     ]:
@@ -139,10 +148,8 @@ def chart_url_params(search):
             params[int_prop] = int(params[int_prop])
     if "group_filter" in params:
         group_filter = params["group_filter"]
-        filter_col, filter_val = group_filter.split(" == ")
-        if filter_val.startswith("'(") and filter_val.endswith("]'"):
-            start, end = filter_val.split(",")
-            group_filter = "({} <= {} <= {})".format(start[2:], filter_col, end[:-2])
+        group_filter, is_bin = parse_group_filter(group_filter)
+        if is_bin:
             params = {
                 k: v
                 for k, v in params.items()
@@ -152,6 +159,7 @@ def chart_url_params(search):
                     "cs_group",
                     "map_group",
                     "treemap_group",
+                    "funnel_group",
                 ]
             }
 
@@ -200,6 +208,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
         base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
     elif chart_type == "treemap":
         base_props += ["treemap_value", "treemap_label", "treemap_group"]
+    elif chart_type == "funnel":
+        base_props += ["funnel_value", "funnel_label", "funnel_group"]
     elif chart_type == "scatter":
         base_props += ["trendline"]
 
@@ -778,7 +788,8 @@ def scatter_code_builder(
     title = build_title(x, y_vals, group=None, z=z)
     code = []
     if len(data["data"]) > 1:
-        code.append(GROUP_WARNING.format(series_key=triple_quote(series_key)))
+        group_filter, _ = parse_group_filter(series.get("_filter_"))
+        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
         title = build_title(x, y_vals, series_key, z=z)
 
     if len(y_vals) > 1:
@@ -1324,7 +1335,8 @@ def bar_code_builder(
     series = data["data"][series_key]
     title = build_title(x, final_cols)
     if len(data["data"]) > 1:
-        code.append(GROUP_WARNING.format(series_key=series_key))
+        group_filter, _ = parse_group_filter(series.get("_filter_"))
+        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
         title = build_title(x, final_cols, group=series_key)
 
     barsort_col = "x" if barsort == x or barsort not in series else barsort
@@ -1587,7 +1599,8 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
     line_func = "go.Scattergl" if len(series["x"]) > 15000 else "go.Scatter"
     code = []
     if len(data["data"]) > 1:
-        code.append(GROUP_WARNING.format(series_key=series_key))
+        group_filter, _ = parse_group_filter(series.get("_filter_"))
+        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
 
     code.append("\nimport plotly.graph_objs as go\n\n" "charts = []")
     pp = pprint.PrettyPrinter(indent=4)
@@ -1643,7 +1656,8 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
         title = build_title(x, final_cols[0])
         code = []
         if len(data["data"]) > 1:
-            code.append(GROUP_WARNING.format(series_key=series_key))
+            group_filter, _ = parse_group_filter(series.get("_filter_"))
+            code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
             title = build_title(x, final_cols[0], group=series_key)
 
         if len(y) > 1:
@@ -1666,6 +1680,9 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
             ).format(y=final_cols[0], name=name, layout=pp.pformat(layout_cfg))
         )
         return code
+
+    # run this before we pop off group filters
+    pie_code = build_pie_code()
 
     def build_pies():
         for series_key, series in data["data"].items():
@@ -1732,7 +1749,7 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
     if export:
         return next(build_pies())
     pies = cpg_chunker(list(build_pies()))
-    return pies, build_pie_code()
+    return pies, pie_code
 
 
 def heatmap_builder(data_id, export=False, **inputs):
@@ -2288,6 +2305,195 @@ def treemap_builder(data_id, export=False, **inputs):
         return build_error(e, traceback.format_exc()), code
 
 
+def funnel_builder(data_id, export=False, **inputs):
+    """
+    Builder function for :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
+
+    :param data: raw data to be represented within surface chart
+    :type data: dict
+    :param x: column to use for the X-Axis
+    :type x: str
+    :param y: columns to use for the Y-Axes
+    :type y: list of str
+    :param wrapper: wrapper function returned by :meth:`dtale.charts.utils.chart_wrapper`
+    :type wrapper: func
+    :param inputs: Optional keyword arguments containing information about which aggregation (if any) has been used
+    :type inputs: dict
+    :return: pie chart
+    :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
+    """
+
+    selected_value, selected_label, group, stacked = (
+        inputs.get(p)
+        for p in ["funnel_value", "funnel_label", "funnel_group", "funnel_stacked"]
+    )
+    group = make_list(group)
+    is_stacked = stacked and len(group) > 0
+    data, code = build_figure_data(data_id, **inputs)
+    if data is None:
+        return None, None
+    final_cols = build_final_cols([selected_value], None, inputs.get("agg"), [])
+    chart_builder = chart_wrapper(data_id, data, inputs)
+    name_builder = build_series_name(final_cols, not is_stacked)
+
+    def build_funnel_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"].get(series_key)
+        title = build_title(selected_label, final_cols[0])
+        funnel_code = []
+        if len(data["data"]) > 1 and not is_stacked:
+            print(series.keys())
+            group_filter, _ = parse_group_filter(series.get("_filter_"))
+            code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+            title = build_title(selected_label, final_cols, group=series_key)
+        elif is_stacked:
+            title = build_title(selected_label, final_cols)
+            title["title"]["text"] += " stacked by {}".format(", ".join(group))
+
+        funnel_code.append(
+            "chart_data = chart_data[chart_data['{}'] > 0]  # can't represent negatives in a funnel".format(
+                final_cols[0]
+            )
+        )
+        layout_cfg = build_layout(title)
+        pp = pprint.PrettyPrinter(indent=4)
+        layout = pp.pformat(layout_cfg)
+        funnel_code.append("\nimport plotly.graph_objs as go\n")
+        if not is_stacked:
+            name = name_builder(final_cols[0], series_key)
+            name = ", name='{}'".format(name["name"]) if len(name) else ""
+            funnel_code.append(
+                (
+                    "chart = go.Funnel(x=chart_data['{value}'], y=chart_data['x']{name})\n"
+                ).format(value=final_cols[0], name=name)
+            )
+            chart_val = "[chart]"
+        else:
+            funnel_code.append(
+                (
+                    "charts = []\n"
+                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "\tcharts.append(go.Funnel(x=group['{value}'], y=group['x'], name=group_key))\n"
+                ).format(group="','".join(group), value=final_cols[0])
+            )
+            chart_val = "charts"
+        funnel_code.append(
+            "figure = go.Figure(data={}, layout=go.{})".format(chart_val, layout)
+        )
+        return funnel_code
+
+    # run this before we pop off group filters
+    code += build_funnel_code()
+
+    def build_charts():
+        stacked_data = []
+        for series_key, series in data["data"].items():
+            for y2 in final_cols:
+                negative_values = []
+                for x_val, y_val in zip(series["x"], series[y2]):
+                    if y_val < 0:
+                        negative_values.append("{} ({})".format(x_val, y_val))
+
+                series_df = pd.DataFrame({"x": series["x"], y2: series[y2]})
+                if (
+                    not is_stacked
+                    and classify_type(
+                        global_state.get_dtype_info(data_id, selected_label)["dtype"]
+                    )
+                    != "D"
+                ):
+                    series_df = series_df.sort_values(y2, ascending=False)
+                else:
+                    series_df = series_df.sort_values("x", ascending=False)
+                series_df = series_df[series_df[y2] > 0]
+                series["x"] = series_df["x"]
+                series[y2] = series_df[y2]
+
+                if is_stacked:
+                    stacked_data.append(
+                        go.Funnel(
+                            **dict_merge(
+                                dict(x=series[y2], y=series["x"]),
+                                name_builder(y2, series_key),
+                            )
+                        )
+                    )
+                    continue
+
+                layout = build_layout(build_title(selected_label, y2, group=series_key))
+                chart = chart_builder(
+                    graph_wrapper(
+                        figure={
+                            "data": [
+                                go.Funnel(
+                                    **dict_merge(
+                                        dict(x=series[y2], y=series["x"]),
+                                        name_builder(y2, series_key),
+                                    )
+                                )
+                            ],
+                            "layout": layout,
+                        },
+                        modal=inputs.get("modal", False),
+                    ),
+                    group_filter=dict_merge(
+                        dict(y=y2),
+                        {}
+                        if series_key == "all"
+                        else dict(group=series.get("_filter_")),
+                    ),
+                )
+                if len(negative_values):
+                    error_title = (
+                        "The following negative values could not be represented within the {}Funnel chart"
+                    ).format("" if series_key == "all" else "{} ".format(series_key))
+                    error_div = html.Div(
+                        [
+                            html.I(className="ico-error"),
+                            html.Span(error_title),
+                            html.Div(
+                                html.Pre(", ".join(negative_values)),
+                                className="traceback",
+                            ),
+                        ],
+                        className="dtale-alert alert alert-danger",
+                    )
+                    if export:
+                        yield chart
+                    else:
+                        yield html.Div(
+                            [
+                                html.Div(error_div, className="col-md-12"),
+                                html.Div(chart, className="col-md-12 h-100"),
+                            ],
+                            className="row",
+                        )
+                else:
+                    yield chart
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
+        if is_stacked:
+            title = build_title(selected_label, final_cols)
+            title["title"]["text"] += " stacked by {}".format(", ".join(group))
+            layout = build_layout(title)
+
+            yield chart_builder(
+                graph_wrapper(
+                    figure={
+                        "data": stacked_data,
+                        "layout": layout,
+                    },
+                    modal=inputs.get("modal", False),
+                ),
+                group_filter=dict(y=final_cols[0]),
+            )
+
+    if export:
+        return next(build_charts())
+    funnels = cpg_chunker(list(build_charts()))
+    return funnels, code
+
+
 def build_map_frames(data, animate_by, frame_builder):
     freq_handler = date_freq_handler(data)
     s, _ = freq_handler(animate_by)
@@ -2760,7 +2966,11 @@ def build_figure_data(
                 window=window,
                 rolling_comp=rolling_comp,
             ),
-            {k: kwargs.get(k) for k in ["treemap_value", "treemap_label"]},
+            {
+                k: v
+                for k, v in kwargs.items()
+                if k.startswith("treemap_") or k.startswith("funnel_")
+            },
         )
     ):
         return None, None
@@ -2774,10 +2984,13 @@ def build_figure_data(
     if data is None or not len(data):
         return None, None
 
-    if chart_type == "treemap":
-        y, x, group = (
-            kwargs.get(p) for p in ["treemap_value", "treemap_label", "treemap_group"]
-        )
+    if chart_type in ["treemap", "funnel"]:
+        props = [
+            "{}_value".format(chart_type),
+            "{}_label".format(chart_type),
+            "{}_group".format(chart_type),
+        ]
+        y, x, group = (kwargs.get(p) for p in props)
         y = [y]
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
@@ -2909,6 +3122,7 @@ def build_chart(data_id=None, data=None, **inputs):
         - maps (choropleth, scattergeo, mapbox)
         - candlestick
         - treemap
+        - funnel
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -2939,6 +3153,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "treemap":
             chart, code = treemap_builder(data_id, **inputs)
+            return chart, None, code
+
+        if chart_type == "funnel":
+            chart, code = funnel_builder(data_id, **inputs)
             return chart, None, code
 
         data, code = build_figure_data(data_id, data=data, **inputs)
@@ -3005,6 +3223,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 kwargs["z"] = z
                 kwargs["animate_by"] = animate_by
                 kwargs["colorscale"] = inputs.get("colorscale")
+            scatter_code = scatter_code_builder(data, x, y, axes_builder, **kwargs)
             if inputs["cpg"] or inputs["cpy"]:
                 y_values = [[sub_y] for sub_y in y] if inputs["cpy"] else [y]
                 scatter_charts = []
@@ -3035,7 +3254,6 @@ def build_chart(data_id=None, data=None, **inputs):
                 scatter_charts = scatter_builder(
                     data, x, y, axes_builder, chart_builder, **kwargs
                 )
-            scatter_code = scatter_code_builder(data, x, y, axes_builder, **kwargs)
             return cpg_chunker(scatter_charts), range_data, code + scatter_code
 
         if chart_type == "surface":
@@ -3152,6 +3370,9 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "pie":
             return pie_builder(data, x, y, chart_builder, **chart_inputs)
+
+        if chart_type == "funnel":
+            return funnel_builder(data, x, y, chart_builder, **chart_inputs)
 
         axes_builder = build_axes(data, x, axis_inputs, z=z)
         if chart_type == "scatter":

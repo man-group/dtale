@@ -181,6 +181,7 @@ CHARTS = [
     dict(value="maps"),
     dict(value="candlestick"),
     dict(value="treemap"),
+    dict(value="funnel"),
 ]
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -254,6 +255,16 @@ CHART_INPUT_SETTINGS = {
         map_group=dict(display=False),
         cs_group=dict(display=False),
         treemap_group=dict(display=True),
+    ),
+    "funnel": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=False),
+        treemap_group=dict(display=False),
+        funnel_group=dict(display=True),
     ),
 }
 
@@ -557,6 +568,8 @@ def get_group_types(inputs, group_cols=None):
         return _flags("cs_group")
     elif show_input_handler(chart_type)("treemap_group"):
         return _flags("treemap_group")
+    elif show_input_handler(chart_type)("funnel_group"):
+        return _flags("funnel_group")
     return False, False
 
 
@@ -741,7 +754,7 @@ def build_candlestick_options(
     return x_options, close_options, open_options, low_options, high_options
 
 
-def build_treemap_options(df, treemap_value=None, treemap_label=None):
+def build_label_value_options(df, selected_value=None, selected_label=None):
     dtypes = get_dtypes(df)
     cols = sorted(dtypes.keys())
     num_cols = []
@@ -752,12 +765,104 @@ def build_treemap_options(df, treemap_value=None, treemap_label=None):
             num_cols.append(c)
 
     value_options = [
-        build_option(c) for c in num_cols if c not in build_selections(treemap_label)
+        build_option(c) for c in num_cols if c not in build_selections(selected_label)
     ]
     label_options = [
-        build_option(c) for c in cols if c not in build_selections(treemap_value)
+        build_option(c) for c in cols if c not in build_selections(selected_value)
     ]
     return value_options, label_options
+
+
+def build_label_value_store(prop, inputs):
+    return dcc.Store(
+        id="{}-input-data".format(prop),
+        data={
+            k: v
+            for k, v in inputs.items()
+            if k
+            in [
+                "{}_value".format(prop),
+                "{}_label".format(prop),
+                "{}_group".format(prop),
+            ]
+        },
+    )
+
+
+def build_label_value_inputs(prop, inputs, df, group_options, additional_inputs=[]):
+    show_inputs = inputs.get("chart_type") == "treemap"
+    props = ["{}_value", "{}_label", "{}_group"]
+    selected_value, selected_label, selected_group = (
+        inputs.get(p.format(prop)) for p in props
+    )
+    (value_options, label_options,) = build_label_value_options(
+        df,
+        selected_value=selected_value,
+        selected_label=selected_label,
+    )
+    return html.Div(
+        [
+            build_input(
+                text("Value"),
+                dcc.Dropdown(
+                    id="{}-value-dropdown".format(prop),
+                    options=value_options,
+                    placeholder=text("Select Column"),
+                    style=dict(width="inherit"),
+                    value=selected_value,
+                ),
+            ),
+            build_input(
+                text("Labels"),
+                dcc.Dropdown(
+                    id="{}-label-dropdown".format(prop),
+                    options=label_options,
+                    placeholder=text("Select Column"),
+                    style=dict(width="inherit"),
+                    value=selected_label,
+                ),
+            ),
+        ]
+        + additional_inputs
+        + [
+            build_input(
+                text("Group"),
+                dcc.Dropdown(
+                    id="{}-group-dropdown".format(prop),
+                    options=group_options,
+                    multi=True,
+                    placeholder=text("Select Group(s)"),
+                    value=selected_group,
+                    style=dict(width="inherit"),
+                ),
+                className="col",
+                id="{}-group-input".format(prop),
+            ),
+        ],
+        id="{}-inputs".format(prop),
+        className="row charts-filters",
+        style={} if show_inputs else {"display": "none"},
+    )
+
+
+def build_funnel_inputs(inputs, df, group_options):
+    stacked_toggle = build_input(
+        "{}?".format(text("Stack")),
+        html.Div(
+            daq.BooleanSwitch(
+                id="funnel-stack-toggle",
+                on=False,
+            ),
+            className="toggle-wrapper",
+        ),
+        id="funnel-stack-input",
+        style=show_style(inputs.get("funnel_group") is not None),
+        className="col-auto",
+    )
+
+    return build_label_value_inputs(
+        "funnel", inputs, df, group_options, additional_inputs=[stacked_toggle]
+    )
 
 
 def build_mapbox_style_options():
@@ -836,7 +941,7 @@ def show_chart_per_group(**inputs):
     Boolean function to determine whether "Chart Per Group" toggle should be displayed or not
     """
     chart_type, group = (inputs.get(p) for p in ["chart_type", "group"])
-    invalid_type = chart_type in ["pie", "wordcloud", "maps"]
+    invalid_type = chart_type in ["pie", "wordcloud", "maps", "funnel"]
     return (
         show_input_handler(chart_type)("group")
         and len(group or [])
@@ -1052,14 +1157,6 @@ def charts_layout(df, settings, **inputs):
         cs_high=cs_high,
         cs_low=cs_low,
     )
-    show_treemap = chart_type == "treemap"
-    treemap_props = ["treemap_value", "treemap_label", "treemap_group"]
-    treemap_value, treemap_label, treemap_group = (inputs.get(p) for p in treemap_props)
-    (treemap_value_options, treemap_label_options,) = build_treemap_options(
-        df,
-        treemap_value=treemap_value,
-        treemap_label=treemap_label,
-    )
     cscale_style = colorscale_input_style(**inputs)
     default_cscale = DEFAULT_CSALES.get(chart_type, REDS)
 
@@ -1119,14 +1216,8 @@ def charts_layout(df, settings, **inputs):
                 if k in ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
             },
         ),
-        dcc.Store(
-            id="treemap-input-data",
-            data={
-                k: v
-                for k, v in inputs.items()
-                if k in ["treemap_value", "treemap_label", "treemap_group"]
-            },
-        ),
+        build_label_value_store("treemap", inputs),
+        build_label_value_store("funnel", inputs),
         dcc.Store(id="range-data"),
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
@@ -1324,7 +1415,7 @@ def charts_layout(df, settings, **inputs):
                             style={}
                             if not show_map
                             and not show_candlestick
-                            and not show_treemap
+                            and chart_type not in ["treemap", "funnel"]
                             else {"display": "none"},
                             className="row p-0 charts-filters",
                         ),
@@ -1565,46 +1656,8 @@ def charts_layout(df, settings, **inputs):
                             className="row charts-filters",
                             style={} if show_candlestick else {"display": "none"},
                         ),
-                        html.Div(
-                            [
-                                build_input(
-                                    text("Value"),
-                                    dcc.Dropdown(
-                                        id="treemap-value-dropdown",
-                                        options=treemap_value_options,
-                                        placeholder="Select a column",
-                                        style=dict(width="inherit"),
-                                        value=treemap_value,
-                                    ),
-                                ),
-                                build_input(
-                                    text("Labels"),
-                                    dcc.Dropdown(
-                                        id="treemap-label-dropdown",
-                                        options=treemap_label_options,
-                                        placeholder=text("Select Column"),
-                                        style=dict(width="inherit"),
-                                        value=treemap_label,
-                                    ),
-                                ),
-                                build_input(
-                                    text("Group"),
-                                    dcc.Dropdown(
-                                        id="treemap-group-dropdown",
-                                        options=group_options,
-                                        multi=True,
-                                        placeholder=text("Select Group(s)"),
-                                        value=inputs.get("treemap_group"),
-                                        style=dict(width="inherit"),
-                                    ),
-                                    className="col",
-                                    id="treemap-group-input",
-                                ),
-                            ],
-                            id="treemap-inputs",
-                            className="row charts-filters",
-                            style={} if show_treemap else {"display": "none"},
-                        ),
+                        build_label_value_inputs("treemap", inputs, df, group_options),
+                        build_funnel_inputs(inputs, df, group_options),
                         html.Div(
                             [
                                 html.Div(

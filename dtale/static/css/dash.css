@@ -426,6 +426,11 @@ div#x-multi-input > div:first-child span.input-group-addon {
   min-width: 7em;
 }
 
+div.charts-filters > div.col-auto,
+div.charts-filter > div.col {
+  padding-bottom: 0.25rem;
+}
+
 div.tab-container > div.tab:first-child {
     border-radius: 0.25rem 0 0 0.25rem;
 }
@@ -505,7 +510,8 @@ div.tab-container > div.tab:last-child {
 #map-loc-mode-input .input-group-addon,
 #custom-geojson-input .input-group-addon,
 #upload-geojson-btn .input-group-addon,
-#auto-load-input .input-group-addon {
+#auto-load-input .input-group-addon,
+#funnel-stack-input .input-group-addon {
     height: 36px;
     white-space: pre-line;
 }
@@ -526,7 +532,8 @@ div.tab-container > div.tab:last-child {
 #cpy-toggle,
 #animate-toggle,
 #drilldown-toggle,
-#auto-load-toggle {
+#auto-load-toggle,
+#funnel-stack-toggle {
   margin-top: 3px;
 }
 .toggle-wrapper {
