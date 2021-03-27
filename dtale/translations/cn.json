@@ -157,5 +157,20 @@
   "Chinese": "Chinese",
   "ext_agg_desc": "Build more complex aggregations. Multiple aggregations to each y-axis & different aggregations for each y-axis.",
   "Select": "Select",
-  "Chart Drilldown": "Chart Drilldown"
+  "Chart Drilldown": "Chart Drilldown",
+  "Cleaners": "清洁",
+  "Select Cleaner(s)": "Select Cleaner(s)",
+  "Replace Multi-Space w/ Single-Space": "Replace Multi-Space w/ Single-Space",
+  "Remove Punctuation": "Remove Punctuation",
+  "Drop Stop Words": "Drop Stop Words",
+  "Drop NLTK Stop Words": "Drop NLTK Stop Words",
+  "Remove Numbers": "Remove Numbers",
+  "Keep Only Alpha": "Keep Only Alpha",
+  "Normalize Accent Characters": "Normalize Accent Characters",
+  "Remove Spaces": "Remove Spaces",
+  "Add Space Between Word and Numbers": "Add Space Between Word and Numbers",
+  "Remove Repeated Chars": "Remove Repeated Chars",
+  "Update Space Values to Empty String": "Update Space Values to Empty String",
+  "Remove Hidden Characters": "Remove Hidden Characters",
+  "Replace Hyphens w/ Space": "Replace Hyphens w/ Space"
 }

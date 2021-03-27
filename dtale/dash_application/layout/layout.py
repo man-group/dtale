@@ -21,6 +21,7 @@ from dtale.charts.utils import (
     build_final_cols,
     find_group_vals,
 )
+from dtale.column_builders import get_cleaner_configs
 from dtale.dash_application.layout.utils import (
     build_input,
     build_option,
@@ -1068,8 +1069,8 @@ def build_slider_counts(df, data_id, query_value):
     return slider_counts
 
 
-def data_selection_text(is_open):
-    return "{} {}".format("\u25BC" if is_open else "\u25B6", text("Data Selection"))
+def collapse_btn_text(is_open, label):
+    return "{} {}".format("\u25BC" if is_open else "\u25B6", label)
 
 
 def charts_layout(df, settings, **inputs):
@@ -1227,22 +1228,38 @@ def charts_layout(df, settings, **inputs):
         html.Div(
             [
                 html.Div(
-                    dbc.Button(data_selection_text(False), id="collapse-data-btn"),
+                    dbc.Button(
+                        collapse_btn_text(False, text("Data Selection")),
+                        id="collapse-data-btn",
+                    ),
                     className="col-auto pr-0",
                 ),
                 html.Div(
                     dbc.Collapse(
                         dbc.Card(
                             dbc.CardBody(
-                                dcc.Tabs(
-                                    id="data-tabs",
-                                    value=inputs["data_id"],
-                                    children=[
-                                        build_tab(global_state.get_name(k) or k, str(k))
-                                        for k in global_state.keys()
-                                    ],
-                                    style=dict(height="36px"),
-                                ),
+                                [
+                                    dcc.Tabs(
+                                        id="data-tabs",
+                                        value=inputs["data_id"],
+                                        children=[
+                                            build_tab(
+                                                global_state.get_name(k) or k,
+                                                str(k),
+                                                id="data-tab-{}".format(k),
+                                            )
+                                            for k in global_state.keys()
+                                        ],
+                                        style=dict(height="36px"),
+                                    )
+                                ]
+                                + [
+                                    dbc.Tooltip(
+                                        global_state.get_name(k) or k,
+                                        target="data-tab-{}".format(k),
+                                    )
+                                    for k in global_state.keys()
+                                ]
                             )
                         ),
                         id="collapse-data",
@@ -1255,17 +1272,28 @@ def charts_layout(df, settings, **inputs):
         ),
         html.Div(
             html.Div(
-                dcc.Tabs(
-                    id="chart-tabs",
-                    value=chart_type or "line",
-                    children=[
-                        build_tab(
-                            text(t.get("label", t["value"].capitalize())), t["value"]
-                        )
-                        for t in CHARTS
-                    ],
-                    style=dict(height="36px"),
-                ),
+                [
+                    dcc.Tabs(
+                        id="chart-tabs",
+                        value=chart_type or "line",
+                        children=[
+                            build_tab(
+                                text(t.get("label", t["value"].capitalize())),
+                                t["value"],
+                                id="chart-type-tab-{}".format(i),
+                            )
+                            for i, t in enumerate(CHARTS)
+                        ],
+                        style=dict(height="36px"),
+                    ),
+                ]
+                + [
+                    dbc.Tooltip(
+                        text(t.get("label", t["value"].capitalize())),
+                        target="chart-type-tab-{}".format(i),
+                    )
+                    for i, t in enumerate(CHARTS)
+                ],
                 className="col-md-12",
             ),
             className="row pt-3 pb-3 charts-filters",
@@ -1326,7 +1354,49 @@ def charts_layout(df, settings, **inputs):
                 ],
                 className="col",
             ),
-            className="row pt-3 pb-3 charts-filters",
+            className="row pt-3 pb-0 charts-filters",
+        ),
+        html.Div(
+            [
+                html.Div(
+                    [
+                        dbc.Button(
+                            collapse_btn_text(False, text("Cleaners")),
+                            id="collapse-cleaners-btn",
+                        ),
+                        html.Span(
+                            "",
+                            id="selected-cleaners",
+                            className="pl-3",
+                            style=dict(fontSize="85%"),
+                        ),
+                    ],
+                    className="col-auto pr-0",
+                ),
+                html.Div(
+                    dbc.Collapse(
+                        dbc.Card(
+                            dbc.CardBody(
+                                dcc.Dropdown(
+                                    id="cleaners-dropdown",
+                                    options=[
+                                        build_option(c["value"], c["label"])
+                                        for c in get_cleaner_configs()
+                                    ],
+                                    multi=True,
+                                    placeholder=text("Select Cleaner(s)"),
+                                    value=group,
+                                    style=dict(width="inherit"),
+                                ),
+                            )
+                        ),
+                        id="collapse-cleaners",
+                    ),
+                    className="col",
+                ),
+            ],
+            className="row pb-3 charts-filters",
+            style=dict(display="block"),
         ),
         html.Div(
             [

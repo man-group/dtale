@@ -71,7 +71,7 @@ def test_display_page(unittest):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-        x_dd = component_defs[17]["props"]["children"][0]
+        x_dd = component_defs[18]["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
@@ -165,6 +165,36 @@ def test_collapse_data_input():
 
 
 @pytest.mark.unit
+def test_collapse_cleaners_input():
+    with app.test_client() as c:
+        params = {
+            "output": "..collapse-cleaners.is_open...collapse-cleaners-btn.children..",
+            "changedPropIds": ["collapse-cleaners-btn.n_clicks"],
+            "inputs": [
+                {"id": "collapse-cleaners-btn", "property": "n_clicks", "value": 1},
+            ],
+            "state": [
+                {"id": "collapse-cleaners", "property": "is_open", "value": False},
+            ],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        response = response.json["response"]
+        assert response["collapse-cleaners"]["is_open"]
+        assert response["collapse-cleaners-btn"]["children"] == "\u25BC Cleaners"
+
+        params["state"][0]["value"] = True
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        response = response.json["response"]
+        assert not response["collapse-cleaners"]["is_open"]
+        assert response["collapse-cleaners-btn"]["children"] == "\u25B6 Cleaners"
+
+        params["inputs"][0]["value"] = 0
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        response = response.json["response"]
+        assert response["collapse-cleaners"]["is_open"]
+
+
+@pytest.mark.unit
 def test_input_changes(unittest):
     import dtale.views as views
 
@@ -186,7 +216,7 @@ def test_input_changes(unittest):
                 "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
                 "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
                 "..funnel-inputs.style...colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
-                "..open-extended-agg-modal.style.."
+                "..open-extended-agg-modal.style...selected-cleaners.children.."
             ),
             "changedPropIds": ["chart-tabs.value"],
             "inputs": [
@@ -210,6 +240,7 @@ def test_input_changes(unittest):
                 {"id": "window-input", "property": "value"},
                 {"id": "rolling-comp-dropdown", "property": "value"},
                 {"id": "load-input", "property": "value"},
+                {"id": "cleaners-dropdown", "property": "value"},
             ],
             "state": [
                 pathname,
@@ -238,6 +269,7 @@ def test_input_changes(unittest):
                 "bin_type": "width",
                 "group_type": "groups",
                 "data_id": c.port,
+                "cleaners": [],
             },
         )
         unittest.assertEqual(
@@ -2084,6 +2116,7 @@ def test_chart_building_treemap(treemap_data):
         inputs = {
             "chart_type": "treemap",
             "agg": "mean",
+            "cleaners": ["drop_multispace"],
         }
         chart_inputs = {}
         treemap_inputs = {

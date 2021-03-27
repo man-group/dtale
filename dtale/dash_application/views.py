@@ -40,7 +40,7 @@ from dtale.dash_application.layout.layout import (
     build_label_value_options,
     charts_layout,
     colorscale_input_style,
-    data_selection_text,
+    collapse_btn_text,
     get_yaxis_type_tabs,
     lock_zoom_style,
     main_inputs_and_group_val_display,
@@ -209,6 +209,7 @@ def init_callbacks(dash_app):
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
             Output("open-extended-agg-modal", "style"),
+            Output("selected-cleaners", "children"),
         ],
         [
             Input("query-data", "modified_timestamp"),
@@ -227,6 +228,7 @@ def init_callbacks(dash_app):
             Input("window-input", "value"),
             Input("rolling-comp-dropdown", "value"),
             Input("load-input", "value"),
+            Input("cleaners-dropdown", "value"),
         ],
         [
             State("url", "pathname"),
@@ -252,6 +254,7 @@ def init_callbacks(dash_app):
         window,
         rolling_comp,
         load,
+        cleaners,
         pathname,
         query,
         data_id,
@@ -282,6 +285,7 @@ def init_callbacks(dash_app):
             window=window,
             rolling_comp=rolling_comp,
             load=load,
+            cleaners=make_list(cleaners),
         )
         options = build_input_options(
             global_state.get_data(data_id),
@@ -330,6 +334,9 @@ def init_callbacks(dash_app):
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
             show_style(chart_type not in NON_EXT_AGGREGATION and len(y_val)),
+            "({} Selected)".format(len(inputs["cleaners"]))
+            if len(inputs["cleaners"])
+            else "",
         )
 
     @dash_app.callback(
@@ -725,7 +732,21 @@ def init_callbacks(dash_app):
         final_is_open = is_open
         if n:
             final_is_open = not is_open
-        return final_is_open, data_selection_text(final_is_open)
+        return final_is_open, collapse_btn_text(final_is_open, text("Data Selection"))
+
+    @dash_app.callback(
+        [
+            Output("collapse-cleaners", "is_open"),
+            Output("collapse-cleaners-btn", "children"),
+        ],
+        [Input("collapse-cleaners-btn", "n_clicks")],
+        [State("collapse-cleaners", "is_open")],
+    )
+    def collapse_cleaners_input(n, is_open):
+        final_is_open = is_open
+        if n:
+            final_is_open = not is_open
+        return final_is_open, collapse_btn_text(final_is_open, text("Cleaners"))
 
     @dash_app.callback(
         [
