@@ -128,6 +128,7 @@ def chart_url_params(search):
         "funnel_group",
         "yaxis",
         "extended_aggregation",
+        "cleaners",
     ]:
         if gp in params:
             params[gp] = json.loads(params[gp])
@@ -228,6 +229,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "treemap_group",
         "group_val",
         "extended_aggregation",
+        "cleaners",
     ]
     if chart_type in ["maps", "3d_scatter", "heatmap", "surface"]:
         list_props += ["colorscale"]
@@ -2923,6 +2925,7 @@ def build_figure_data(
     animate_by=None,
     data=None,
     extended_aggregation=[],
+    cleaners=[],
     **kwargs
 ):
     """
@@ -3001,6 +3004,7 @@ def build_figure_data(
         bin_type=bin_type,
         agg=agg,
         extended_aggregation=extended_aggregation,
+        cleaners=cleaners,
         allow_duplicates=chart_type == "scatter",
         rolling_win=window,
         rolling_comp=rolling_comp,

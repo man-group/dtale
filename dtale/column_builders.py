@@ -20,6 +20,7 @@ from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
+from dtale.translations import text
 from dtale.utils import classify_type, apply
 
 
@@ -933,6 +934,34 @@ class EncoderColumnBuilder(object):
 
 
 printable = r"\w \!\"#\$%&\'\(\)\*\+,\-\./:;<»«؛،ـ\=>\?@\[\\\]\^_\`\{\|\}~"
+
+
+def get_cleaner_configs():
+    return [
+        dict(
+            value="drop_multispace", label=text("Replace Multi-Space w/ Single-Space")
+        ),
+        dict(value="drop_punctuation", label=text("Remove Punctuation")),
+        dict(value="stopwords", label=text("Drop Stop Words")),
+        dict(value="nltk_stopwords", label=text("Drop NLTK Stop Words")),
+        dict(value="drop_numbers", label=text("Remove Numbers")),
+        dict(value="keep_alpha", label=text("Keep Only Alpha")),
+        dict(value="normalize_accents", label=text("Normalize Accent Characters")),
+        dict(value="drop_all_space", label=text("Remove Spaces")),
+        dict(value="drop_repeated_words", label=text("Drop Repeated Words")),
+        dict(
+            value="add_word_number_space",
+            label=text("Add Space Between Word and Numbers"),
+        ),
+        dict(value="drop_repeated_chars", label=text("Remove Repeated Chars")),
+        dict(value="update_case", label=text("Update Word Case")),
+        dict(
+            value="space_vals_to_empty",
+            label=text("Update Space Values to Empty String"),
+        ),
+        dict(value="hidden_chars", label=text("Remove Hidden Characters")),
+        dict(value="replace_hyphen_w_space", label=text("Replace Hyphens w/ Space")),
+    ]
 
 
 def clean(s, cleaner, cfg):

@@ -439,6 +439,12 @@ div.tab-container > div.tab:last-child {
     border-radius: 0 0.25rem 0.25rem 0;
 }
 
+div.tab {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 #x-dropdown .Select-menu-outer,
 #y-single-dropdown .Select-menu-outer,
 #y-multi-dropdown .Select-menu-outer,
@@ -657,7 +663,8 @@ div#bins-val-input input {
   min-width: 6.5em;
 }
 
-#collapse-data-btn {
+#collapse-data-btn,
+#collapse-cleaners-btn {
   background: none;
   color: black;
   padding: 0;
@@ -669,7 +676,9 @@ div#bins-val-input input {
 }
 
 #collapse-data-btn:focus,
-#collapse-data-btn:enabled:active {
+#collapse-data-btn:enabled:active,
+#collapse-cleaners-btn:focus,
+#collapse-cleaners-btn:enabled:active{
   box-shadow: none;
 }
 

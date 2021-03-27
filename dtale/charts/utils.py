@@ -3,6 +3,7 @@ import copy
 import numpy as np
 import pandas as pd
 
+from dtale.column_analysis import handle_cleaners
 from dtale.query import build_col_key, run_query
 from dtale.utils import (
     ChartBuildingError,
@@ -651,6 +652,7 @@ def build_base_chart(
     return_raw=False,
     unlimited_data=False,
     animate_by=None,
+    cleaners=[],
     **kwargs
 ):
     """
@@ -685,6 +687,18 @@ def build_base_chart(
     data, code = retrieve_chart_data(
         raw_data, x, y, kwargs.get("z"), group_col, animate_by, group_val=group_val
     )
+    cleaners = cleaners or []
+    if len(cleaners):
+        for col in data.columns:
+            if classify_type(find_dtype(data[col])) == "S":
+                code.append("s = chart_data['{}']".format(col))
+                cleaned_col, cleaned_code = handle_cleaners(
+                    data[col], ",".join(cleaners)
+                )
+                data.loc[:, col] = cleaned_col
+                code += cleaned_code
+                code.append("chart_data.loc[:, '{}'] = s".format(col))
+
     x_col = str("x")
     if x is None:
         x = x_col
