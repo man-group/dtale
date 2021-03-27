@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.41.0 (2021-3-26)
+* [#390](https://github.com/man-group/dtale/issues/390): funnel charts
+* [#255](https://github.com/man-group/dtale/issues/255): extended chart aggregations
+
 ### 1.40.2 (2021-3-21)
 * [#454](https://github.com/man-group/dtale/issues/454): fixed issue with parenthesis & percent symbols in column names
 
