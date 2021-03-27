@@ -2,3 +2,4 @@ include README.md
 include CHANGES.md
 include LICENSE
 include requirements.txt
+include requirements-test.txt

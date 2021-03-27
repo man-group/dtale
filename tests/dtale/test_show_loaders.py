@@ -144,6 +144,7 @@ def test_show_json():
 
 @pytest.mark.unit
 def test_show_parquet():
+    pytest.importorskip("pyarrrow")
     import dtale
 
     parquet_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.parquet")

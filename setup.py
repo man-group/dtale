@@ -79,7 +79,7 @@ setup(
         "redis": ["redislite"],
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
-        "tests": ["ipython", "mock", "pytest", "pytest-cov", "pytest-server-fixtures"],
+        "tests": open("requirements-test.txt").read(),
     },
     classifiers=[
         "Development Status :: 4 - Beta",

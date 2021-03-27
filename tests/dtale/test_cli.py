@@ -158,6 +158,8 @@ def test_main(unittest):
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load json"
         )
 
+    pytest.importorskip("pyarrow")
+
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
         parquet_path = os.path.join(
             os.path.dirname(__file__), "..", "data/test_df.parquet"
