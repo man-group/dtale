@@ -10302,6 +10302,12 @@ select.form-control:focus,
 li.hoverable:hover {
   border-bottom: solid 1px #a7b3b7;
 }
+li.hoverable.clickable-menu-item:hover {
+  cursor: pointer;
+}
+li.hoverable.clickable-menu-item:hover button {
+  color: #52bbef !important;
+}
 .cell.hoverable:hover {
   border-bottom: solid 1px rgba(170, 170, 170, 0.25);
 }
@@ -10343,10 +10349,7 @@ li.hoverable:hover {
 .hoverable__content.edit-cell {
     top: -0.8em;
     left: 13em;
-}
-.hoverable__content.menu-description {
-    top: -0.8em;
-    left: 13.65em;
+    margin-top: 0;
 }
 .hoverable__content.map-types {
     min-width: 28em;
@@ -10910,7 +10913,7 @@ div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
 }
 
 
-.dtype-bg {
+.dtypes-bg {
   border-color: rgba(102,205,170,1.0) rgba(65,105,225,0.5) rgba(255,182,193,1.0) rgba(255,215,0,1.0);
 }
 
@@ -10922,7 +10925,7 @@ div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
   border-color: dodgerblue dodgerblue red red;
 }
 
-.dtype-bg.spin, .missing-bg.spin, .outliers-bg.spin {
+.dtypes-bg.spin, .missing-bg.spin, .outliers-bg.spin {
   animation: dtype-spin 1s infinite linear;
 }
 

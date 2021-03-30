@@ -1161,6 +1161,19 @@ def get_processes():
     return jsonify(dict(data=processes, success=True))
 
 
+@dtale.route("/process-keys")
+@exception_decorator
+def process_keys():
+    return jsonify(
+        dict(
+            data=[
+                dict(id=str(data_id), name=global_state.get_name(data_id))
+                for data_id in global_state.keys()
+            ]
+        )
+    )
+
+
 @dtale.route("/update-settings/<data_id>")
 @exception_decorator
 def update_settings(data_id):

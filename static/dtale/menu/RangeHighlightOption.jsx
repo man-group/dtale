@@ -12,18 +12,20 @@ class RangeHighlightOption extends React.Component {
   }
 
   render() {
-    const openRangeHightlight = () => this.props.openChart(_.assignIn({ type: "range", size: "sm" }, this.props));
-    const turnOffRangeHighlight = () => {
+    const openRangeHightlight = this.props.ribbonWrapper(() =>
+      this.props.openChart(_.assignIn({ type: "range", size: "sm" }, this.props))
+    );
+    const turnOffRangeHighlight = this.props.ribbonWrapper(() => {
       const rangeHighlight = { ...this.props.rangeHighlight };
       _.forEach(rangeHighlight, range => {
         range.active = false;
       });
       this.props.propagateState({ rangeHighlight, backgroundMode: null });
-    };
+    });
     return (
-      <MenuItem description={this.props.t("menu_description:highlight_range")}>
+      <MenuItem description={this.props.t("menu_description:highlight_range")} onClick={openRangeHightlight}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={openRangeHightlight}>
+          <button className="btn btn-plain">
             <div style={{ display: "inherit" }}>
               {this.props.backgroundMode === "range" && (
                 <div className="bg-range-bouncer">
@@ -50,7 +52,9 @@ RangeHighlightOption.propTypes = {
   rangeHighlight: PropTypes.object,
   propagateState: PropTypes.func,
   openChart: PropTypes.func,
+  ribbonWrapper: PropTypes.func,
   t: PropTypes.func,
 };
+RangeHighlightOption.defaultProps = { ribbonWrapper: func => func };
 
 export default withTranslation(["menu", "menu_description"])(RangeHighlightOption);

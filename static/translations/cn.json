@@ -40,7 +40,12 @@
     "Pin menu": "Pin menu",
     "Language": "Language",
     "en": "EN",
-    "cn": "CN"
+    "cn": "CN",
+    "Clear Data": "Clear Data",
+    "Settings": "Settings",
+    "Actions": "Actions",
+    "Visualize": "Visualize",
+    "Highlight": "Highlight"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -51,7 +56,7 @@
     "charts": "绘图（折线图，条形图，散点图，饼图，wordcloud等）。",
     "heatmap": "在主表中显示数值的热图。 “总体”将计算每列的最小值/最大值，而“按颜色”将根据其最小值/最大值分别计算每一列。",
     "highlight_dtypes": "高亮显示基于pandas dtypes的列。将鼠标悬停在列名称上以显示dtype的名称。",
-    "highlight_missings": "高亮显示任何包含\"nan\"值的单元格（如果是字符串，则显示空字符串或仅由空格组成的字符串）。并且， ”！”将被添加到包含缺少值的任何列标题之前。",
+    "highlight_missing": "高亮显示任何包含\"nan\"值的单元格（如果是字符串，则显示空字符串或仅由空格组成的字符串）。并且， ”！”将被添加到包含缺少值的任何列标题之前。",
     "highlight_outliers": "高亮显示数字列超出自定义离群值计算上限或下限的所有单元格。下界离群值将为红色标度，上限离群值将为蓝色标度。此外，任何包含异常值的列标题都将以“★”开头。",
     "highlight_range": "突出显示匹配任何过滤器（等于或大于或小于）的数字列的所有单元格。单击“突出显示范围”以更新过滤器。",
     "instances": "显示加载到D-Tale的现有数据集。",
@@ -75,7 +80,9 @@
     "reload_data": "Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.",
     "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for taht purpose.",
     "pin_menu": "Toggle for pinning this menu to the left side of the screen.",
-    "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english."
+    "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english.",
+    "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
+    "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data."
   },
   "column_menu": {
     "Asc": "Asc",

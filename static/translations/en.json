@@ -40,7 +40,12 @@
     "Pin menu": "Pin menu",
     "Language": "Language",
     "en": "EN",
-    "cn": "CN"
+    "cn": "CN",
+    "Clear Data": "Clear Data",
+    "Settings": "Settings",
+    "Actions": "Actions",
+    "Visualize": "Visualize",
+    "Highlight": "Highlight"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -51,7 +56,7 @@
     "charts": "Plot chart (line, bar, scatter, pie, wordcloud,...)",
     "heatmap": "Presenting heatmap for numerical values in the main table. 'Overall' will calculate over the min/max of every column whereas 'By Col' will calculate each column individually by its min/max.",
     "highlight_dtypes": "Highlight columns based on pandas dtypes. For dtype's name hover the mouse over column name.",
-    "highlight_missings": "Highlight any cells which contain \"nan\" values (or in the case of strings, empty strings or strings consisting only of spaces). Also, a \"!\" will be prepended to any column header which contains missing values.",
+    "highlight_missing": "Highlight any cells which contain \"nan\" values (or in the case of strings, empty strings or strings consisting only of spaces). Also, a \"!\" will be prepended to any column header which contains missing values.",
     "highlight_outliers": "Highlight any cells for numeric columns which surpass the upper or lower bounds of a custom outlier computation. Lower bounds outliers will be on a red scale and upper bounds outliers will be on a blue scale. Also, a \"★\" will be prepended to any column header which contains outliers.",
     "highlight_range": "Highlight any cells for numeric columns which match any of the filters for equals, greater than or less than. Click \"Highlight Range\" to update filters.",
     "instances": "Show existing datasets loaded to D-Tale.",
@@ -75,7 +80,9 @@
     "low_variance_4": "You can view variance information by clicking the \"Variance\" option in the column menu.",
     "xarray_dim_des": "View individual xarray dimensions. You are currently viewing:",
     "pin_menu": "Toggle for pinning this menu to the left side of the screen.",
-    "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english."
+    "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english.",
+    "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
+    "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data."
   },
   "column_menu": {
     "Asc": "Asc",

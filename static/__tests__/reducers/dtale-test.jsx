@@ -36,6 +36,10 @@ describe("reducer tests", () => {
       menuTooltip: {
         visible: false,
       },
+      ribbonDropdown: {
+        visible: false,
+      },
+      ribbonMenuOpen: false,
     };
     expect(state).toEqual(store.getState());
   });

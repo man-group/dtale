@@ -9,15 +9,21 @@ class ReactMenuItem extends React.Component {
   }
 
   render() {
+    const { className, description, onClick, hideTooltip, showTooltip, style } = this.props;
+    const props = { className, style };
+    if (onClick) {
+      props.onClick = () => {
+        hideTooltip();
+        onClick();
+      };
+      props.className = `${className} clickable-menu-item`;
+    }
+    if (description) {
+      props.onMouseOver = () => showTooltip(this.ref.current, description);
+      props.onMouseLeave = hideTooltip;
+    }
     return (
-      <li
-        className={this.props.className}
-        style={this.props.style}
-        ref={this.ref}
-        onMouseOver={() => {
-          this.props.showTooltip(this.ref.current, this.props.description);
-        }}
-        onMouseLeave={this.props.hideTooltip}>
+      <li ref={this.ref} {...props}>
         {this.props.children}
       </li>
     );
@@ -31,6 +37,7 @@ ReactMenuItem.propTypes = {
   style: PropTypes.object,
   showTooltip: PropTypes.func,
   hideTooltip: PropTypes.func,
+  onClick: PropTypes.func,
 };
 ReactMenuItem.defaultProps = {
   className: "hoverable",

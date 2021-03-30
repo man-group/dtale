@@ -11,9 +11,9 @@ class DuplicatesOption extends React.Component {
 
   render() {
     return (
-      <MenuItem description={this.props.t("menu_description:duplicates")}>
+      <MenuItem description={this.props.t("menu_description:duplicates")} onClick={this.props.open}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={this.props.open}>
+          <button className="btn btn-plain">
             <i className="fas fa-clone ml-2 mr-4" />
             <span className="font-weight-bold">{this.props.t("menu:Duplicates")}</span>
           </button>

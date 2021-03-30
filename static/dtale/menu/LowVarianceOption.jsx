@@ -26,9 +26,10 @@ class LowVarianceOption extends React.Component {
             </ul>
             <span>{t("menu_description:low_variance_4")}</span>
           </>
-        }>
+        }
+        onClick={toggleLowVarianceBackground}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={toggleLowVarianceBackground}>
+          <button className="btn btn-plain">
             <i className={iconClass} style={{ marginTop: "-.25em" }} />
             <span className="font-weight-bold">{t("menu:Low Variance Flag")}</span>
           </button>

@@ -8,7 +8,6 @@ import Select from "react-select";
 
 import { expect, it } from "@jest/globals";
 
-import CorrelationsTsOptions from "../../popups/correlations/CorrelationsTsOptions";
 import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import correlationsData from "../data/correlations";
@@ -22,7 +21,7 @@ const chartData = {
 };
 
 describe("Correlations tests", () => {
-  let Correlations, ChartsBody, CorrelationsGrid, CorrelationScatterStats;
+  let Correlations, ChartsBody, CorrelationsGrid, CorrelationScatterStats, CorrelationsTsOptions;
   const { opener } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -70,6 +69,7 @@ describe("Correlations tests", () => {
     ChartsBody = require("../../popups/charts/ChartsBody").default;
     CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     CorrelationScatterStats = require("../../popups/correlations/CorrelationScatterStats").default;
+    CorrelationsTsOptions = require("../../popups/correlations/CorrelationsTsOptions").default;
   });
 
   beforeEach(async () => {

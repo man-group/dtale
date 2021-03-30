@@ -15,7 +15,7 @@ class ReactThemeOption extends React.Component {
   }
 
   render() {
-    const { setTheme, theme, t } = this.props;
+    const { setTheme, theme, ribbonWrapper, t } = this.props;
     const updateTheme = newTheme => () => serverStateManagement.updateTheme(newTheme, () => setTheme(newTheme));
     return (
       <MenuItem style={{ color: "#565b68" }} description={t("menu_description:theme")}>
@@ -29,7 +29,7 @@ class ReactThemeOption extends React.Component {
               key={value}
               style={{ color: "#565b68" }}
               className={`btn btn-primary ${value === theme ? "active" : ""} font-weight-bold`}
-              onClick={value === theme ? _.noop : updateTheme(value)}>
+              onClick={value === theme ? _.noop : ribbonWrapper(updateTheme(value))}>
               {t(`menu:${_.capitalize(value)}`)}
             </button>
           ))}
@@ -42,8 +42,10 @@ ReactThemeOption.displayName = "ReactThemeOption";
 ReactThemeOption.propTypes = {
   setTheme: PropTypes.func,
   theme: PropTypes.string,
+  ribbonWrapper: PropTypes.func,
   t: PropTypes.func,
 };
+ReactThemeOption.defaultProps = { ribbonWrapper: func => func };
 
 const TranslatedReactThemeOption = withTranslation(["menu", "menu_description"])(ReactThemeOption);
 const ReduxThemeOption = connect(

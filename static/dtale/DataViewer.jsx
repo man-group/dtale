@@ -3,7 +3,6 @@ import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
-import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import InfiniteLoader from "react-virtualized/dist/commonjs/InfiniteLoader";
@@ -19,10 +18,11 @@ import { DataViewerInfo } from "./DataViewerInfo";
 import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
 import { GridEventHandler } from "./GridEventHandler";
-import { MeasureText } from "./MeasureText";
 import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
+import { RibbonDropdown } from "./ribbon/RibbonDropdown";
+import { RibbonMenu } from "./ribbon/RibbonMenu";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
@@ -227,12 +227,14 @@ class ReactDataViewer extends React.Component {
             return (
               <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
                 {({ width, height }) => {
-                  const gridHeight = height - (gu.hasNoInfo(this.state) ? 3 : 23);
+                  const gridHeight =
+                    height - (gu.hasNoInfo(this.state) ? 3 : 23) - (this.props.ribbonMenuOpen ? 25 : 0);
                   return [
-                    <DataViewerInfo key={0} width={width} {...this.state} propagateState={this.propagateState} />,
+                    <RibbonMenu key={0} />,
+                    <DataViewerInfo key={1} width={width} {...this.state} propagateState={this.propagateState} />,
                     <MultiGrid
                       {...this.state}
-                      key={1}
+                      key={2}
                       columnCount={gu.getActiveCols(this.state).length}
                       onScroll={this.props.closeColumnMenu}
                       cellRenderer={this._cellRenderer}
@@ -255,16 +257,12 @@ class ReactDataViewer extends React.Component {
           visible={this.state.formattingOpen}
           propagateState={this.propagateState}
         />
-        <MeasureText />
         <ColumnMenu
-          {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "outlierFilters", "error"])}
+          {..._.pick(this.state, ["columns", "sortInfo", "columnFilters", "outlierFilters"])}
           backgroundMode={this.state.backgroundMode}
           propagateState={this.propagateState}
-          noInfo={gu.hasNoInfo(this.state)}
         />
-        <div id="edit-tt" className="hoverable__content edit-cell" style={{ display: "none" }}>
-          {this.props.t("editing")}
-        </div>
+        <RibbonDropdown {...this.state} propagateState={this.propagateState} />
       </GridEventHandler>
     );
   }
@@ -279,21 +277,14 @@ ReactDataViewer.propTypes = {
   theme: PropTypes.string,
   updateFilteredRanges: PropTypes.func,
   menuPinned: PropTypes.bool,
-  t: PropTypes.func,
+  ribbonMenuOpen: PropTypes.bool,
 };
-const TranslateReactDataViewer = withTranslation("menu_description")(ReactDataViewer);
 const ReduxDataViewer = connect(
-  ({ dataId, iframe, theme, settings, menuPinned }) => ({
-    dataId,
-    iframe,
-    theme,
-    settings,
-    menuPinned,
-  }),
+  state => _.pick(state, ["dataId", "iframe", "theme", "settings", "menuPinned", "ribbonMenuOpen"]),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),
     updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
   })
-)(TranslateReactDataViewer);
-export { ReduxDataViewer as DataViewer, TranslateReactDataViewer as ReactDataViewer };
+)(ReactDataViewer);
+export { ReduxDataViewer as DataViewer, ReactDataViewer };

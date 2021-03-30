@@ -48,18 +48,13 @@ describe("main tests", () => {
   const testMain = (mainName, search = "", fname = "main") => {
     window.location = { pathname: `/dtale/${mainName}/1`, search };
     buildInnerHTML();
-    const mockReactDOM = { renderStatus: false };
-    mockReactDOM.render = () => {
-      mockReactDOM.renderStatus = true;
-    };
-    withGlobalJquery(() => jest.mock("react-dom", () => mockReactDOM));
+
+    const ReactDOM = require("react-dom");
+    const renderSpy = jest.spyOn(ReactDOM, "render");
+    renderSpy.mockImplementation(() => undefined);
     require(`../${fname}`);
-    expect(mockReactDOM.renderStatus).toBe(true);
+    expect(renderSpy).toHaveBeenCalledTimes(1);
   };
-
-  it("main rendering", () => testMain("main"));
-
-  it("network main rendering", () => testMain("network/1", "", "network/main"));
 
   it("base_styles.js loading", () => {
     require("../base_styles");
@@ -73,6 +68,10 @@ describe("main tests", () => {
     require("../polyfills");
   });
 
+  it("main rendering", () => testMain("main"));
+
+  it("network main rendering", () => testMain("network/1", "", "network/main"));
+
   it("correlations_popup_main rendering", () => {
     window.location = { pathname: "/dtale/popup/correlations/1" };
     testMain("popup/correlations");
@@ -80,7 +79,7 @@ describe("main tests", () => {
 
   const popupCodes = _.concat(
     ["correlations", "charts", "describe", "column-analysis", "instances", "code-export", "filter", "type-conversion"],
-    ["cleaners", "upload", "merge"]
+    ["cleaners", "upload", "merge", "pps", "variance", "build", "duplicates", "replacement", "reshape"]
   );
 
   _.forEach(popupCodes, popup => {
@@ -90,6 +89,11 @@ describe("main tests", () => {
   });
 
   it("code snippet rendering", () => {
+    testMain("code-popup");
+  });
+
+  it("code snippet without parent rendering", () => {
+    window.opener = null;
     testMain("code-popup");
   });
 });

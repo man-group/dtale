@@ -21,7 +21,6 @@ class ReactGridCellEditor extends React.Component {
   }
 
   onKeyDown(e) {
-    const hideTT = () => $("#edit-tt").hide();
     if (e.key === "Enter") {
       const { gridState, colCfg, rowIndex, propagateState, dataId, settings } = this.props;
       if (this.props.value === this.state.value) {
@@ -43,10 +42,8 @@ class ReactGridCellEditor extends React.Component {
         const updatedColumns = _.map(columns, c => _.assignIn({}, c, c.name === colCfg.name ? { width } : {}));
         propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, this.props.clearEdit);
       };
-      hideTT();
       serverState.editCell(dataId, colCfg.name, rowIndex - 1, this.state.value, callback);
     } else if (e.key === "Escape") {
-      hideTT();
       this.props.clearEdit();
     }
   }
