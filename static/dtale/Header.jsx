@@ -162,6 +162,7 @@ class ReactHeader extends React.Component {
         name={colName}>
         <div
           className={`text-nowrap w-100${colCfg.resized ? " resized" : ""}`}
+          style={{ cursor: "default" }}
           onClick={e => {
             if (this.state.drag) {
               return;

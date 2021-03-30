@@ -43,6 +43,7 @@ function buildInnerHTML(props = {}, store = null) {
   innerHTML += `<input type="hidden" id="pin_menu" value="${pinMenu ?? "False"}" />`;
   innerHTML += `<input type="hidden" id="filtered_ranges" value="${filteredRanges ?? JSON.stringify({})}" />`;
   innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
+  innerHTML += `<div id="popup-content"></div>`;
   innerHTML += `<span id="code-title" />`;
   body.innerHTML = innerHTML;
 

@@ -18,13 +18,13 @@ class ReactMenuTooltip extends React.Component {
   computeStyle() {
     if (this.props.visible) {
       const rect = this.props.element.getBoundingClientRect();
-      const top = rect.top - (this.props.menuPinned ? 0 : rect.height);
+      const top = rect.top - (this.props.menuPinned ? 0 : rect.height - 26);
       this.setState(
         {
           style: {
             display: "block",
-            top: `calc(${top}px - 0.8em)`,
-            left: `calc(${rect.left + rect.width}px - 0.5em)`,
+            top: top,
+            left: rect.left + rect.width + 8, // 8 = width of tooltip caret
           },
           lastElementRect: rect,
         },
@@ -41,13 +41,13 @@ class ReactMenuTooltip extends React.Component {
 
   checkForWindowEdge() {
     const rect = this.state.lastElementRect;
-    let top = rect.top - (this.props.menuPinned ? 0 : rect.height);
+    let top = rect.top - (this.props.menuPinned ? 0 : rect.height - 26);
     const tooltipRect = this.tooltip.current.getBoundingClientRect();
     // handle the case when you're getting close to the bottom of the screen.
     if (top + tooltipRect.height > window.innerHeight) {
       top = rect.top - tooltipRect.height - rect.height / 3;
       this.setState({
-        style: { ...this.state.style, top: `calc(${top}px - 0.8em)` },
+        style: { ...this.state.style, top: `calc(${top}px + 2em)` },
         bottom: true,
       });
     }

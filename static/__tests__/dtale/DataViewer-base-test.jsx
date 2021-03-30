@@ -74,6 +74,6 @@ describe("DataViewer tests", () => {
     );
     await tick();
     clickMainMenuButton(result, "Refresh Widths");
-    clickMainMenuButton(result, "Shutdown", "a");
+    clickMainMenuButton(result, "Shutdown");
   });
 });

@@ -17,6 +17,14 @@ import ProcessLabel from "./ProcessLabel";
 
 require("./Instances.css");
 
+export function executeCleanup(id, callback) {
+  fetchJson(`/dtale/cleanup-datasets?dataIds=${id}`, data => {
+    if (data.success) {
+      callback(data);
+    }
+  });
+}
+
 class Instances extends React.Component {
   constructor(props) {
     super(props);
@@ -38,12 +46,10 @@ class Instances extends React.Component {
   }
 
   cleanup(instance) {
-    fetchJson(`/dtale/cleanup-datasets?dataIds=${instance.data_id}`, data => {
-      if (data.success) {
-        const currProcesses = _.get(this.state, "processes.data") || [];
-        const processes = _.map(_.reject(currProcesses, { data_id: instance.data_id }), p => _.assignIn({}, p));
-        this.setState({ processes: { data: processes } });
-      }
+    executeCleanup(instance.data_id, () => {
+      const currProcesses = _.get(this.state, "processes.data") || [];
+      const processes = _.map(_.reject(currProcesses, { data_id: instance.data_id }), p => _.assignIn({}, p));
+      this.setState({ processes: { data: processes } });
     });
   }
 

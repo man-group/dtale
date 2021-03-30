@@ -27,9 +27,11 @@ class ReactXArrayOption extends React.Component {
     const openXArrayPopup = type => this.props.openChart(_.assignIn({ type }, this.props));
     if (xarray) {
       return (
-        <MenuItem description={`${t("menu_description:xarray_dim_des")} ${renderDimensionSelection(xarrayDim, t)}`}>
+        <MenuItem
+          description={`${t("menu_description:xarray_dim_des")} ${renderDimensionSelection(xarrayDim, t)}`}
+          onClick={() => openXArrayPopup("xarray-dimensions")}>
           <span className="toggler-action">
-            <button className="btn btn-plain" onClick={() => openXArrayPopup("xarray-dimensions")}>
+            <button className="btn btn-plain">
               <i className="ico-key" />
               <span className="font-weight-bold">{t("menu:XArray Dimensions")}</span>
             </button>
@@ -38,9 +40,9 @@ class ReactXArrayOption extends React.Component {
       );
     }
     return (
-      <MenuItem description={t("menu_description:xarray_conversion")}>
+      <MenuItem description={t("menu_description:xarray_conversion")} onClick={() => openXArrayPopup("xarray-indexes")}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={() => openXArrayPopup("xarray-indexes")}>
+          <button className="btn btn-plain">
             <i className="ico-tune" />
             <span className="font-weight-bold">{t("menu:Convert To XArray")}</span>
           </button>

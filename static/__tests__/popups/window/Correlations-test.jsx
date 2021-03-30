@@ -6,7 +6,6 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import CorrelationsTsOptions from "../../../popups/correlations/CorrelationsTsOptions";
 import DimensionsHelper from "../../DimensionsHelper";
 import mockPopsicle from "../../MockPopsicle";
 import correlationsData from "../../data/correlations";
@@ -22,7 +21,7 @@ const chartData = {
 };
 
 describe("Correlations tests", () => {
-  let result, Correlations, ChartsBody;
+  let result, Correlations, ChartsBody, CorrelationsTsOptions;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -59,6 +58,7 @@ describe("Correlations tests", () => {
 
     Correlations = require("../../../popups/Correlations").Correlations;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
+    CorrelationsTsOptions = require("../../../popups/correlations/CorrelationsTsOptions").default;
   });
 
   afterAll(dimensions.afterAll);

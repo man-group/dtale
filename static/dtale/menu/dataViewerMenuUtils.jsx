@@ -2,6 +2,7 @@ import _ from "lodash";
 
 import { cleanupEndpoint } from "../../actions/url-utils";
 import menuUtils from "../../menuUtils";
+import bu from "../backgroundUtils";
 
 function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
   let updatedSortInfo = _.filter(sortInfo, ([col, _dir]) => !_.includes(selectedCols, col));
@@ -56,7 +57,7 @@ function shouldOpenPopup(height, width) {
 }
 
 function buildHotkeyHandlers(props) {
-  const { propagateState, openChart, dataId } = props;
+  const { backgroundMode, propagateState, openChart, dataId } = props;
   const openMenu = () => {
     propagateState({ menuOpen: true });
     menuUtils.buildClickHandler("gridActions", () => propagateState({ menuOpen: false }));
@@ -71,6 +72,20 @@ function buildHotkeyHandlers(props) {
   const openTab = type => () => window.open(fullPath(`/dtale/popup/${type}`, dataId), "_blank");
   const openNetwork = () => window.open(fullPath(`/dtale/network`, dataId), "_blank");
   const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700);
+  const bgState = bgType => ({
+    backgroundMode: backgroundMode === bgType ? null : bgType,
+    triggerBgResize: _.includes(bu.RESIZABLE, backgroundMode) || _.includes(bu.RESIZABLE, bgType),
+  });
+  const toggleBackground = bgType => () => props.propagateState(bgState(bgType));
+  const toggleOutlierBackground = () => {
+    const updatedState = bgState("outliers");
+    if (updatedState.backgroundMode === "outliers") {
+      updatedState.columns = _.map(props.columns, bu.buildOutlierScales);
+    }
+    props.propagateState(updatedState);
+  };
+  const exportFile = tsv => () =>
+    window.open(`${fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
   return {
     openTab,
     openPopup,
@@ -82,6 +97,11 @@ function buildHotkeyHandlers(props) {
     DUPLICATES: openPopup("duplicates", 400, 770),
     CHARTS: () => window.open(fullPath("/dtale/charts", dataId), "_blank"),
     CODE: openCodeExport,
+    ABOUT: () => openChart({ type: "about", size: "sm", backdrop: true }),
+    SHUTDOWN: () => (window.location.pathname = fullPath("/shutdown")),
+    toggleBackground,
+    toggleOutlierBackground,
+    exportFile,
   };
 }
 

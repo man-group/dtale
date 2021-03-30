@@ -5,6 +5,8 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
+import { MeasureText } from "./MeasureText";
+import { MenuTooltip } from "./menu/MenuTooltip";
 
 import {
   buildCopyText,
@@ -66,6 +68,7 @@ class ReactGridEventHandler extends React.Component {
   constructor(props) {
     super(props);
     this.handleMouseOver = this.handleMouseOver.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleClicks = this.handleClicks.bind(this);
   }
 
@@ -75,6 +78,21 @@ class ReactGridEventHandler extends React.Component {
         document.onselectstart = () => !(e.key === "Shift" && e.shiftKey) && e.key !== "Meta";
       });
     });
+  }
+
+  handleMouseMove(e) {
+    if (e.clientY <= 10) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+      if (!this.props.ribbonMenuOpen) {
+        this.props.setRibbonVisibility(true);
+      }
+    } else if (!this.props.ribbonDropdownOpen && this.props.ribbonMenuOpen && e.clientY >= 35 && !this.hideTimeout) {
+      this.hideTimeout = setTimeout(() => {
+        this.props.setRibbonVisibility(false);
+        this.hideTimeout = null;
+      }, 2000);
+    }
   }
 
   handleMouseOver(e) {
@@ -104,6 +122,7 @@ class ReactGridEventHandler extends React.Component {
   }
 
   handleClicks(e) {
+    this.props.setRibbonVisibility(false);
     // check for range selected
     const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
     if (e.shiftKey) {
@@ -140,8 +159,14 @@ class ReactGridEventHandler extends React.Component {
 
   render() {
     return (
-      <div className="h-100 w-100 d-flex" onMouseOver={this.handleMouseOver} onClick={this.handleClicks}>
+      <div
+        className="h-100 w-100 d-flex"
+        onMouseOver={this.handleMouseOver}
+        onMouseMove={this.handleMouseMove}
+        onClick={this.handleClicks}>
         {this.props.children}
+        <MenuTooltip />
+        <MeasureText />
       </div>
     );
   }
@@ -162,14 +187,23 @@ ReactGridEventHandler.propTypes = {
   allowCellEdits: PropTypes.bool,
   openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   editCell: PropTypes.func,
+  setRibbonVisibility: PropTypes.func,
+  ribbonMenuOpen: PropTypes.bool,
+  ribbonDropdownOpen: PropTypes.bool,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits, dataId }) => ({ allowCellEdits, dataId }),
+  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown }) => ({
+    allowCellEdits,
+    dataId,
+    ribbonMenuOpen,
+    ribbonDropdownOpen: ribbonDropdown.visible,
+  }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),
+    setRibbonVisibility: show => dispatch({ type: `${show ? "show" : "hide"}-ribbon-menu` }),
   })
 )(TranslateReactGridEventHandler);
 

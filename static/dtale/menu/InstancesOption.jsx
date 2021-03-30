@@ -13,9 +13,9 @@ class InstancesOption extends React.Component {
   render() {
     const processCt = app.getHiddenValue("processes");
     return (
-      <MenuItem description={this.props.t("menu_description:instances")}>
+      <MenuItem description={this.props.t("menu_description:instances")} onClick={this.props.open}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={this.props.open}>
+          <button className="btn btn-plain">
             <i className="ico-apps" />
             <span className="font-weight-bold">
               {`${this.props.t("menu:Instances")} `}

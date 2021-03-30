@@ -307,6 +307,10 @@ def test_processes(test_data, unittest):
             response_data["data"],
         )
 
+        response = c.get("/dtale/process-keys")
+        response_data = response.json
+        assert response_data["data"][0]["id"] == str(c.port)
+
     global_state.clear_store()
     with app.test_client() as c:
         build_data_inst({c.port: test_data})

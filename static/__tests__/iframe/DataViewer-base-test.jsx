@@ -221,7 +221,7 @@ describe("DataViewer iframe tests", () => {
     clickMainMenuButton(result, "Refresh Widths");
     clickMainMenuButton(result, "Reload Data");
     expect(window.location.reload).toHaveBeenCalled();
-    clickMainMenuButton(result, "Shutdown", "a");
+    clickMainMenuButton(result, "Shutdown");
     clickColMenuButton(result, "Formats");
     expect(result.find(Formatting).length).toBe(1);
   });

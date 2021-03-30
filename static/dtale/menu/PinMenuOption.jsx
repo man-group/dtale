@@ -15,9 +15,9 @@ class ReactPinMenuOption extends React.Component {
     const { toggleMenuPinned, menuPinned, t } = this.props;
     const togglePinned = () => serverStateManagement.updatePinMenu(!menuPinned, toggleMenuPinned);
     return (
-      <MenuItem description={t("menu_description:pin_menu")}>
+      <MenuItem description={t("menu_description:pin_menu")} onClick={togglePinned}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={togglePinned}>
+          <button className="btn btn-plain">
             <i className="fa fa-anchor la-lg mr-3 ml-1" />
             <span className="font-weight-bold">{t(`menu:${menuPinned ? "Unpin menu" : "Pin menu"}`)}</span>
           </button>

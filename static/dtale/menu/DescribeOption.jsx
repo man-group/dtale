@@ -11,9 +11,9 @@ class DescribeOption extends React.Component {
 
   render() {
     return (
-      <MenuItem description={this.props.t("menu_description:describe")}>
+      <MenuItem description={this.props.t("menu_description:describe")} onClick={this.props.open}>
         <span className="toggler-action">
-          <button className="btn btn-plain" onClick={this.props.open}>
+          <button className="btn btn-plain">
             <i className="ico-view-column" />
             <span className="font-weight-bold">{this.props.t("menu:Describe")}</span>
           </button>

@@ -205,6 +205,30 @@ function menuTooltip(state = { visible: false }, action = {}) {
     case "show-menu-tooltip":
       return { visible: true, element: action.element, content: action.content };
     case "hide-menu-tooltip":
+    case "hide-ribbon-menu":
+    case "clear-edit":
+      return { visible: false };
+    default:
+      return state;
+  }
+}
+
+function ribbonMenuOpen(state = false, action = {}) {
+  switch (action.type) {
+    case "show-ribbon-menu":
+      return true;
+    case "hide-ribbon-menu":
+      return false;
+    default:
+      return state;
+  }
+}
+
+function ribbonDropdown(state = { visible: false }, action = {}) {
+  switch (action.type) {
+    case "open-ribbon-dropdown":
+      return { visible: true, element: action.element, name: action.name };
+    case "hide-ribbon-menu":
       return { visible: false };
     default:
       return state;
@@ -230,6 +254,8 @@ const dtaleStore = combineReducers({
   isPreview,
   menuPinned,
   menuTooltip,
+  ribbonMenuOpen,
+  ribbonDropdown,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

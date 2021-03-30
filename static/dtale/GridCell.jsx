@@ -1,7 +1,7 @@
-import $ from "jquery";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
@@ -36,6 +36,7 @@ function buildCellClassName(props) {
 class ReactGridCell extends React.Component {
   constructor(props) {
     super(props);
+    this.ref = React.createRef();
     this.renderEdited = this.renderEdited.bind(this);
   }
 
@@ -45,15 +46,11 @@ class ReactGridCell extends React.Component {
     const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
     const cellStyle = _.assignIn({}, style, { padding: 0 });
     const onMouseOver = () => {
-      const tt = $("#edit-tt");
-      const cell = $(this._ref);
-      const { top, left } = cell.position();
-      tt.css({ left: left + cell.width() + 85, top: top + 25 });
-      tt.show();
+      this.props.showTooltip(this.ref.current, this.props.t("editing"));
     };
-    const onMouseOut = () => $("#edit-tt").hide();
+    const onMouseLeave = () => this.props.hideTooltip();
     return (
-      <div ref={r => (this._ref = r)} className="cell" {...{ key, style: cellStyle, onMouseOver, onMouseOut }}>
+      <div ref={this.ref} className="cell" {...{ key, style: cellStyle, onMouseOver, onMouseLeave }}>
         <GridCellEditor {...{ value: rec.raw, gridState, colCfg, propagateState, rowIndex }} />
       </div>
     );
@@ -134,7 +131,11 @@ ReactGridCell.propTypes = {
   allowCellEdits: PropTypes.bool,
   filteredRanges: PropTypes.object,
   openChart: PropTypes.func,
+  showTooltip: PropTypes.func,
+  hideTooltip: PropTypes.func,
+  t: PropTypes.func,
 };
+const TranslateReactGridCell = withTranslation("menu_description")(ReactGridCell);
 const ReduxGridCell = connect(
   state => ({
     dataId: state.dataId,
@@ -145,7 +146,9 @@ const ReduxGridCell = connect(
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     clearEdit: () => dispatch({ type: "clear-edit" }),
+    showTooltip: (element, content) => dispatch({ type: "show-menu-tooltip", element, content }),
+    hideTooltip: () => dispatch({ type: "hide-menu-tooltip" }),
   })
-)(ReactGridCell);
+)(TranslateReactGridCell);
 
-export { ReactGridCell, ReduxGridCell as GridCell };
+export { ReduxGridCell as GridCell, TranslateReactGridCell as ReactGridCell };

@@ -4,28 +4,28 @@ import { withTranslation } from "react-i18next";
 
 import { MenuItem } from "./MenuItem";
 
-class UploadOption extends React.Component {
+class ChartsOption extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
     return (
-      <MenuItem description={this.props.t("menu_description:upload")} onClick={this.props.open}>
+      <MenuItem description={this.props.t("menu_description:charts")} onClick={this.props.open}>
         <span className="toggler-action">
           <button className="btn btn-plain">
-            <i className="ico-file-upload" />
-            <span className="font-weight-bold">{this.props.t("menu:Load Data")}</span>
+            <i className="ico-show-chart" />
+            <span className="font-weight-bold">{this.props.t("menu:Charts")}</span>
           </button>
         </span>
       </MenuItem>
     );
   }
 }
-UploadOption.displayName = "UploadOption";
-UploadOption.propTypes = {
+ChartsOption.displayName = "ChartsOption";
+ChartsOption.propTypes = {
   open: PropTypes.func,
   t: PropTypes.func,
 };
 
-export default withTranslation(["menu", "menu_description"])(UploadOption);
+export default withTranslation(["menu", "menu_description"])(ChartsOption);
