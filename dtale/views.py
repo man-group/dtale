@@ -47,6 +47,7 @@ from dtale.utils import (
     DuplicateDataError,
     apply,
     build_shutdown_url,
+    build_url,
     classify_type,
     coord_type,
     dict_merge,
@@ -218,7 +219,12 @@ class DtaleData(object):
         Helper function to pass instance's endpoint to :meth:`dtale.views.kill`
 
         """
-        kill(self._url)
+        kill_url = self._url
+        if in_ipython_frontend() and not kill_url.startswith("http"):
+            from dtale.app import ACTIVE_PORT, ACTIVE_HOST
+
+            kill_url = build_url(ACTIVE_PORT, ACTIVE_HOST)
+        kill(kill_url)
 
     def open_browser(self):
         """

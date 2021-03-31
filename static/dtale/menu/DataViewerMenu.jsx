@@ -249,7 +249,7 @@ class ReactDataViewerMenu extends React.Component {
             {hideShutdown == false && (
               <MenuItem description={t("menu_description:shutdown")}>
                 <span className="toggler-action">
-                  <a className="btn btn-plain" href="/shutdown">
+                  <a className="btn btn-plain" href={menuFuncs.fullPath("/shutdown")}>
                     <i className="fa fa-power-off ml-2 mr-4" />
                     <span className="font-weight-bold">{t("menu:Shutdown")}</span>
                   </a>

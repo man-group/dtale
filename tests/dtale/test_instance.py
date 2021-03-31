@@ -134,3 +134,20 @@ def test_ipython_notebook_funcs():
             cpy="false",
             animate="false",
         )
+
+
+@pytest.mark.unit
+def test_jupyter_server_proxy_kill():
+    from dtale.views import DtaleData
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_HOST", "foo"))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_PORT", 40000))
+        stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))
+        stack.enter_context(
+            mock.patch("dtale.views.in_ipython_frontend", return_value=True)
+        )
+        mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = DtaleData(9999, "user/root/proxy/9999")
+        instance.kill()
+        mock_requests.assert_called_once_with("http://foo:40000/shutdown")
