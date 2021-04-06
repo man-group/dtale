@@ -44,7 +44,7 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
 
     Filter = require("../../popups/Filter").ReactFilter;
-    DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
+    DataViewerInfo = require("../../dtale/info/DataViewerInfo").ReactDataViewerInfo;
   });
 
   beforeEach(async () => {
@@ -91,7 +91,7 @@ describe("DataViewer tests", () => {
     expect(result.find(DataViewerInfo).first().text()).toBe("Filter:test");
     result.find(DataViewerInfo).first().find("i.ico-cancel").last().simulate("click");
     await tickUpdate(result);
-    expect(result.find(DataViewerInfo).find("div.row").length).toBe(0);
+    expect(result.find(DataViewerInfo).find("div.data-viewer-info.is-expanded").length).toBe(0);
   });
 
   it("DataViewer: filtering with errors & documentation", async () => {

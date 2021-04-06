@@ -22,7 +22,7 @@ class ColumnMenuOption extends React.Component {
 ColumnMenuOption.displayName = "ColumnMenuOption";
 ColumnMenuOption.propTypes = {
   open: PropTypes.func,
-  label: PropTypes.string,
+  label: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   iconClass: PropTypes.string,
 };
 

@@ -1,0 +1,27 @@
+.data-viewer-info {
+  overflow: hidden;
+  margin: 0 !important;
+  width: calc(100vw);
+  height: 0;
+  transition: height .5s;
+
+  &.is-expanded {
+    height: 28px;
+    border-top: 1px solid rgb(221, 221, 221);
+    padding-bottom: 0.25rem !important;
+    padding-top: 0.25rem !important;
+  }
+}
+
+.data-viewer-error {
+  overflow: hidden;
+  margin: 0 !important;
+  width: calc(100vw);
+  max-height: 0;
+  transition: max-height .5s;
+
+  &.is-expanded {
+    max-height: 1000px;
+    border-top: 1px solid rgb(221, 221, 221);
+  }
+}

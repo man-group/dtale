@@ -40,6 +40,9 @@ describe("reducer tests", () => {
         visible: false,
       },
       ribbonMenuOpen: false,
+      sidePanel: {
+        visible: false,
+      },
     };
     expect(state).toEqual(store.getState());
   });

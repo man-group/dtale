@@ -215,16 +215,17 @@ class DtaleData(object):
         return self._main_url
 
     def kill(self):
-        """
-        Helper function to pass instance's endpoint to :meth:`dtale.views.kill`
-
-        """
+        """Helper function to pass instance's endpoint to :meth:`dtale.views.kill`"""
         kill_url = self._url
         if in_ipython_frontend() and not kill_url.startswith("http"):
             from dtale.app import ACTIVE_PORT, ACTIVE_HOST
 
             kill_url = build_url(ACTIVE_PORT, ACTIVE_HOST)
         kill(kill_url)
+
+    def cleanup(self):
+        """Helper function to clean up data associated with this instance from global state."""
+        global_state.cleanup(self._data_id)
 
     def open_browser(self):
         """

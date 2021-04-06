@@ -31,14 +31,14 @@ describe("RibbonDropdown", () => {
   afterAll(() => jest.restoreAllMocks());
 
   it("opens ribbon menu for first 10 pixels", () => {
-    wrapper.find("div").props().onMouseMove({ clientY: 5 });
+    wrapper.find("div").last().props().onMouseMove({ clientY: 5 });
     expect(clearTimeout).toHaveBeenCalledTimes(1);
     expect(props.setRibbonVisibility).toHaveBeenCalledWith(true);
   });
 
   it("hides ribbon menu outside of first 35 pixels", () => {
     wrapper.setProps({ ribbonMenuOpen: true });
-    wrapper.find("div").props().onMouseMove({ clientY: 45 });
+    wrapper.find("div").last().props().onMouseMove({ clientY: 45 });
     expect(setTimeout).toHaveBeenCalledTimes(1);
     jest.runAllTimers();
     expect(props.setRibbonVisibility).toHaveBeenCalledWith(false);
@@ -46,7 +46,7 @@ describe("RibbonDropdown", () => {
 
   it("does not hide ribbon menu when dropdown is open", () => {
     wrapper.setProps({ ribbonMenuOpen: true, ribbonDropdownOpen: true });
-    wrapper.find("div").props().onMouseMove({ clientY: 45 });
+    wrapper.find("div").last().props().onMouseMove({ clientY: 45 });
     expect(setTimeout).toHaveBeenCalledTimes(0);
   });
 });

@@ -125,7 +125,7 @@ class ReactRibbonDropdown extends React.Component {
           <ul>
             <UploadOption open={hideWrapper(openPopup("upload", 450))} />
             <CodeExportOption open={hideWrapper(buttonHandlers.CODE)} />
-            <ExportOption open={tsv => hideWrapper(exportFile(tsv))} />
+            <ExportOption open={tsv => hideWrapper(() => exportFile(tsv))()} />
             <ReloadOption />
             <InstancesOption open={hideWrapper(openPopup("instances", 450, 750))} />
             <MenuItem description={t("menu_description:clear_data")} onClick={this.cleanupThis}>
@@ -157,7 +157,7 @@ class ReactRibbonDropdown extends React.Component {
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <FilterOption open={hideWrapper(buttonHandlers.FILTER)} />
             <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />
-            <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge")), "_blank")} />
+            <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank"))} />
             <SummarizeOption open={hideWrapper(openPopup("reshape", 400, 770))} />
           </ul>
         )}

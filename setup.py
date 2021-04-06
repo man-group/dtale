@@ -62,6 +62,11 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
+def load_requirements(path):
+    with open(path) as requirements:
+        return requirements.read()
+
+
 setup(
     name="dtale",
     version="1.41.1",
@@ -72,14 +77,14 @@ setup(
     long_description="\n".join((long_description, changelog)),
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
-    install_requires=open("requirements.txt").read(),
+    install_requires=load_requirements("requirements.txt"),
     extras_require={
         "arctic": ["arctic"],
         "r": ["rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
-        "tests": open("requirements-test.txt").read(),
+        "tests": load_requirements("requirements-test.txt"),
     },
     classifiers=[
         "Development Status :: 4 - Beta",

@@ -151,3 +151,14 @@ def test_jupyter_server_proxy_kill():
         instance = DtaleData(9999, "user/root/proxy/9999")
         instance.kill()
         mock_requests.assert_called_once_with("http://foo:40000/shutdown")
+
+
+@pytest.mark.unit
+def test_cleanup():
+    from dtale.views import DtaleData
+
+    with ExitStack() as stack:
+        mock_cleanup = stack.enter_context(mock.patch("dtale.global_state.cleanup"))
+        instance = DtaleData(9999, "user/root/proxy/9999")
+        instance.cleanup()
+        mock_cleanup.assert_called_once_with(9999)

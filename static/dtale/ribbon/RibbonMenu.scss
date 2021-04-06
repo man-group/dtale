@@ -8,7 +8,6 @@
 
   &.is-expanded {
     max-height: 35px;
-    overflow: hidden;
   }
 
   &.is-expanded div.col-auto {
@@ -83,4 +82,10 @@
 .ribbon-menu-item:hover,
 .ribbon-menu-item.active {
   background-color: #ebedee;
+}
+
+body.dark-mode .ribbon-menu-item:hover,
+body.dark-mode .ribbon-menu-item.active {
+  background-color: white;
+  color: black;
 }

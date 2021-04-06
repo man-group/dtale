@@ -36,6 +36,8 @@ describe("DataViewer iframe tests", () => {
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
+    innerWidth: 500,
+    innerHeight: 500,
   });
   let result, DataViewer, ColumnMenu, Header, Formatting, DataViewerMenu, DataViewerInfo;
 
@@ -65,7 +67,7 @@ describe("DataViewer iframe tests", () => {
     Header = require("../../dtale/Header").ReactHeader;
     Formatting = require("../../popups/formats/Formatting").ReactFormatting;
     DataViewerMenu = require("../../dtale/menu/DataViewerMenu").DataViewerMenu;
-    DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
+    DataViewerInfo = require("../../dtale/info/DataViewerInfo").ReactDataViewerInfo;
   });
 
   beforeEach(async () => {
@@ -135,8 +137,7 @@ describe("DataViewer iframe tests", () => {
           "Replacements",
           "Type Conversion",
           "Duplicates",
-          "Describe",
-          "Column Analysis",
+          "Describe(Column Analysis)",
           "Formats",
         ],
         []
@@ -185,7 +186,7 @@ describe("DataViewer iframe tests", () => {
     //clear sorts
     result.find(DataViewerInfo).find("i.ico-cancel").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(DataViewerInfo).find("div.row").length).toBe(0);
+    expect(result.find(DataViewerInfo).find("div.data-viewer-info.is-expanded").length).toBe(0);
     await openColMenu(result, 0);
     await openColMenu(result, 3);
     await openColMenu(result, 2);
@@ -193,14 +194,8 @@ describe("DataViewer iframe tests", () => {
 
   it("DataViewer: validate menu functions", async () => {
     await openColMenu(result, 2);
-    clickColMenuButton(result, "Column Analysis");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-      "/dtale/popup/column-analysis/1?selectedCol=col3"
-    );
-    clickColMenuButton(result, "Describe");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-      "/dtale/popup/describe/1?selectedCol=col3"
-    );
+    clickColMenuButton(result, "Describe(Column Analysis)");
+    expect(window.open.mock.calls[0][0]).toBe("/dtale/popup/describe/1?selectedCol=col3");
     clickMainMenuButton(result, "Describe");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/dtale/popup/describe/1");
     clickMainMenuButton(result, "Correlations");

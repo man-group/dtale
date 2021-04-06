@@ -8769,7 +8769,7 @@ caption {
   min-width: 15em;
   color: #404040;
   font-weight: 400;
-  z-index: 10;
+  z-index: 15;
 }
 
 .column-toggle__dropdown.right {
