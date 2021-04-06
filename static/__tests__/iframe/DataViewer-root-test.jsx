@@ -33,6 +33,8 @@ describe("DataViewer iframe tests", () => {
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
+    innerWidth: 500,
+    innerHeight: 500,
   });
   let result, DataViewer;
 
@@ -88,14 +90,8 @@ describe("DataViewer iframe tests", () => {
   it("DataViewer: validate server calls", async () => {
     window.resourceBaseUrl = "/test-route/";
     await openColMenu(result, 2);
-    clickColMenuButton(result, "Column Analysis");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-      "/test-route/dtale/popup/column-analysis/1?selectedCol=col3"
-    );
-    clickColMenuButton(result, "Describe");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(
-      "/test-route/dtale/popup/describe/1?selectedCol=col3"
-    );
+    clickColMenuButton(result, "Describe(Column Analysis)");
+    expect(window.open.mock.calls[0][0]).toBe("/test-route/dtale/popup/describe/1?selectedCol=col3");
     clickMainMenuButton(result, "Describe");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/test-route/dtale/popup/describe/1");
     clickMainMenuButton(result, "Correlations");

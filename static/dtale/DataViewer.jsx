@@ -14,12 +14,12 @@ import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
 import { Formatting } from "../popups/formats/Formatting";
-import { DataViewerInfo } from "./DataViewerInfo";
 import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
 import { GridEventHandler } from "./GridEventHandler";
 import { ColumnMenu } from "./column/ColumnMenu";
 import { exports as gu } from "./gridUtils";
+import { DataViewerInfo } from "./info/DataViewerInfo";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
 import { RibbonDropdown } from "./ribbon/RibbonDropdown";
 import { RibbonMenu } from "./ribbon/RibbonMenu";
@@ -166,7 +166,7 @@ class ReactDataViewer extends React.Component {
             _.assignIn(
               {
                 locked: _.includes(preLocked, c.name),
-                width: gu.calcColWidth(c, newState),
+                width: gu.calcColWidth(c, { ...this.state, ...newState }),
               },
               c
             )
@@ -228,10 +228,10 @@ class ReactDataViewer extends React.Component {
               <AutoSizer className="main-grid" onResize={() => this._grid.recomputeGridSize()}>
                 {({ width, height }) => {
                   const gridHeight =
-                    height - (gu.hasNoInfo(this.state) ? 3 : 23) - (this.props.ribbonMenuOpen ? 25 : 0);
+                    height - (gu.hasNoInfo(this.state) ? 3 : 30) - (this.props.ribbonMenuOpen ? 25 : 0);
                   return [
                     <RibbonMenu key={0} />,
-                    <DataViewerInfo key={1} width={width} {...this.state} propagateState={this.propagateState} />,
+                    <DataViewerInfo key={1} {...this.state} propagateState={this.propagateState} />,
                     <MultiGrid
                       {...this.state}
                       key={2}

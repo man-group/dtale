@@ -45,7 +45,8 @@
     "Settings": "Settings",
     "Actions": "Actions",
     "Visualize": "Visualize",
-    "Highlight": "Highlight"
+    "Highlight": "Highlight",
+    "Close": "Close"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",

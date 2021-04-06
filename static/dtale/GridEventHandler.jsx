@@ -16,6 +16,8 @@ import {
   toggleSelection,
 } from "./rangeSelectUtils";
 
+import { SidePanel } from "./side/SidePanel";
+
 function handleRangeSelect(props, cellIdx) {
   const { columns, data, rangeSelect } = props.gridState;
   if (rangeSelect) {
@@ -159,14 +161,17 @@ class ReactGridEventHandler extends React.Component {
 
   render() {
     return (
-      <div
-        className="h-100 w-100 d-flex"
-        onMouseOver={this.handleMouseOver}
-        onMouseMove={this.handleMouseMove}
-        onClick={this.handleClicks}>
-        {this.props.children}
+      <div className="h-100 w-100 d-flex">
+        <div
+          className={`main-panel-content${this.props.sidePanelOpen ? " is-half" : ""} h-100`}
+          onMouseOver={this.handleMouseOver}
+          onMouseMove={this.handleMouseMove}
+          onClick={this.handleClicks}>
+          {this.props.children}
+        </div>
         <MenuTooltip />
         <MeasureText />
+        <SidePanel />
       </div>
     );
   }
@@ -190,15 +195,17 @@ ReactGridEventHandler.propTypes = {
   setRibbonVisibility: PropTypes.func,
   ribbonMenuOpen: PropTypes.bool,
   ribbonDropdownOpen: PropTypes.bool,
+  sidePanelOpen: PropTypes.bool,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown }) => ({
+  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel }) => ({
     allowCellEdits,
     dataId,
     ribbonMenuOpen,
     ribbonDropdownOpen: ribbonDropdown.visible,
+    sidePanelOpen: sidePanel.visible,
   }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),

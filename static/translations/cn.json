@@ -45,7 +45,8 @@
     "Settings": "Settings",
     "Actions": "Actions",
     "Visualize": "Visualize",
-    "Highlight": "Highlight"
+    "Highlight": "Highlight",
+    "Close": "Close"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",

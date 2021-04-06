@@ -22,7 +22,7 @@ describe("DataViewerInfo tests", () => {
   });
 
   beforeEach(() => {
-    DataViewerInfo = require("../../dtale/DataViewerInfo").ReactDataViewerInfo;
+    DataViewerInfo = require("../../dtale/info/DataViewerInfo").ReactDataViewerInfo;
     buildInnerHTML();
   });
 

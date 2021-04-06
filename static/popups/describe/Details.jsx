@@ -63,6 +63,12 @@ class Details extends React.Component {
     this.propagateState = state => this.setState(state);
   }
 
+  componentDidMount() {
+    if (this.props.selected) {
+      this.loadDetails();
+    }
+  }
+
   componentDidUpdate(prevProps) {
     if (!_.isEqual(this.props.selected, prevProps.selected)) {
       this.loadDetails();
@@ -255,6 +261,7 @@ class Details extends React.Component {
             </span>
             <span className="pl-3">({details.dtype})</span>
           </div>
+          {this.props.close}
         </div>
         <DetailsCharts
           details={details}
@@ -278,6 +285,7 @@ Details.propTypes = {
   selected: PropTypes.object,
   dataId: PropTypes.string,
   dtypes: PropTypes.array,
+  close: PropTypes.node,
   t: PropTypes.func,
 };
 const TranslateDetails = withTranslation("describe")(Details);

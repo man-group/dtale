@@ -16,8 +16,8 @@ import serverState from "../serverStateManagement";
 import ColumnMenuHeader from "./ColumnMenuHeader";
 import ColumnMenuOption from "./ColumnMenuOption";
 import HeatMapOption from "./HeatMapOption";
+import SortOptions from "./SortOptions";
 
-const { ROW_HEIGHT, SORT_PROPS } = gu;
 const MOVE_COLS = [
   ["step-backward", serverState.moveToFront, "Move Column To Front", {}],
   ["caret-left", serverState.moveLeft, "Move Column Left", { fontSize: "1.2em", padding: 0, width: "1.3em" }],
@@ -54,7 +54,7 @@ function positionMenu(selectedToggle, menuDiv, isPreview, dropRibbon) {
     css.left = currLeft;
     buildCaretClass();
   }
-  css.top = currTop + ROW_HEIGHT - 6;
+  css.top = currTop + gu.ROW_HEIGHT - 6;
   if (isPreview) {
     css.left -= 40;
   }
@@ -97,8 +97,6 @@ class ReactColumnMenu extends React.Component {
     }
     const colCfg = _.find(this.props.columns, { name: selectedCol }) || {};
     const unlocked = _.get(colCfg, "locked", false) === false;
-    let currDir = _.find(this.props.sortInfo, ([col, _dir]) => selectedCol === col);
-    currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
     const openPopup = (type, height = 450, width = 500) => () => {
       if (menuFuncs.shouldOpenPopup(height, width)) {
         menuFuncs.open(
@@ -118,13 +116,18 @@ class ReactColumnMenu extends React.Component {
         );
       }
     };
-    const openDescribe = () =>
-      window.open(
-        buildURLString(menuFuncs.fullPath("/dtale/popup/describe", dataId), {
-          selectedCol,
-        }),
-        "_blank"
-      );
+    const openDescribe = () => {
+      if (window.innerWidth < 800) {
+        window.open(
+          buildURLString(menuFuncs.fullPath("/dtale/popup/describe", dataId), {
+            selectedCol,
+          }),
+          "_blank"
+        );
+      } else {
+        this.props.showSidePanel(selectedCol, "describe");
+      }
+    };
     const openFormatting = () =>
       this.props.propagateState({
         formattingOpen: true,
@@ -168,26 +171,7 @@ class ReactColumnMenu extends React.Component {
         {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />
         <ul>
-          <li>
-            <span className="toggler-action">
-              <i className="fa fa-sort ml-4 mr-4" />
-            </span>
-            <div className="btn-group compact m-auto font-weight-bold column-sorting">
-              {_.map(SORT_PROPS, ({ dir, col }) => {
-                const active = dir === currDir;
-                return (
-                  <button
-                    key={dir}
-                    style={active ? {} : { color: "#565b68" }}
-                    className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
-                    onClick={active ? _.noop : () => menuFuncs.updateSort([selectedCol], dir, this.props)}
-                    disabled={active}>
-                    {t(`column_menu:${col.label}`)}
-                  </button>
-                );
-              })}
-            </div>
-          </li>
+          <SortOptions {...this.props} />
           <li>
             <span className="toggler-action">
               <i className="ico-swap-horiz" />
@@ -244,11 +228,15 @@ class ReactColumnMenu extends React.Component {
             label={t("menu:Duplicates")}
             iconClass="fas fa-clone ml-2 mr-4"
           />
-          <ColumnMenuOption open={openDescribe} label={t("menu:Describe")} iconClass="ico-view-column" />
           <ColumnMenuOption
-            open={openPopup("column-analysis", 425, 810)}
-            label={t("column_menu:Column Analysis")}
-            iconClass="ico-equalizer"
+            open={openDescribe}
+            label={
+              <>
+                {t("menu:Describe")}
+                <small className="pl-3">({t("menu:Column Analysis")})</small>
+              </>
+            }
+            iconClass="ico-view-column"
           />
           {_.has(colCfg, "lowVariance") && (
             <ColumnMenuOption
@@ -280,6 +268,7 @@ ReactColumnMenu.propTypes = {
   isPreview: PropTypes.bool,
   t: PropTypes.func,
   ribbonMenuOpen: PropTypes.bool,
+  showSidePanel: PropTypes.func,
 };
 const TranslatedReactColumnMenu = withTranslation(["menu", "column_menu", "builders"])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
@@ -287,7 +276,7 @@ const ReduxColumnMenu = connect(
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
+    showSidePanel: (column, view) => dispatch({ type: "show-side-panel", view, column }),
   })
 )(TranslatedReactColumnMenu);
-
 export { ReduxColumnMenu as ColumnMenu, TranslatedReactColumnMenu as ReactColumnMenu, positionMenu, ignoreMenuClicks };

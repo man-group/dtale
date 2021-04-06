@@ -5,10 +5,12 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import { RemovableError } from "../RemovableError";
-import menuUtils from "../menuUtils";
-import { exports as gu } from "./gridUtils";
-import serverState from "./serverStateManagement";
+import { RemovableError } from "../../RemovableError";
+import menuUtils from "../../menuUtils";
+import { exports as gu } from "../gridUtils";
+import serverState from "../serverStateManagement";
+
+require("./DataViewerInfo.scss");
 
 const removeBackticks = query => query.replace(/`/g, "");
 
@@ -259,27 +261,22 @@ class ReactDataViewerInfo extends React.Component {
 
   render() {
     const { error, propagateState } = this.props;
-    let errorMarkup = null;
-    if (error) {
-      errorMarkup = (
-        <div key={0} style={{ width: this.props.width || "100%" }} className="row">
+    return (
+      <>
+        <div className={`row data-viewer-error${error ? " is-expanded" : ""}`}>
           <div className="col-md-12">
-            <RemovableError {...this.props} onRemove={() => propagateState({ error: null, traceback: null })} />
+            {error && (
+              <RemovableError {...this.props} onRemove={() => propagateState({ error: null, traceback: null })} />
+            )}
           </div>
         </div>
-      );
-    }
-    if (gu.hasNoInfo(this.props)) {
-      return errorMarkup;
-    }
-    return [
-      errorMarkup,
-      <div key={1} style={{ width: this.props.width || "100%" }} className="row text-center">
-        <div className="col text-left ml-5">{this.renderSort()}</div>
-        <div className="col-auto">{this.renderFilter()}</div>
-        <div className="col text-right mr-5">{this.renderHidden()}</div>
-      </div>,
-    ];
+        <div className={`row text-center data-viewer-info${gu.hasNoInfo(this.props) ? "" : " is-expanded"}`}>
+          <div className="col text-left">{this.renderSort()}</div>
+          <div className="col-auto">{this.renderFilter()}</div>
+          <div className="col text-right">{this.renderHidden()}</div>
+        </div>
+      </>
+    );
   }
 }
 ReactDataViewerInfo.displayName = "DataViewerInfo";
@@ -288,7 +285,6 @@ ReactDataViewerInfo.propTypes = {
   query: PropTypes.string,
   propagateState: PropTypes.func,
   error: PropTypes.string,
-  width: PropTypes.number,
   columns: PropTypes.arrayOf(PropTypes.object),
   dataId: PropTypes.string,
   columnFilters: PropTypes.object,

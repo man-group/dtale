@@ -235,6 +235,17 @@ function ribbonDropdown(state = { visible: false }, action = {}) {
   }
 }
 
+function sidePanel(state = { visible: false }, action = {}) {
+  switch (action.type) {
+    case "show-side-panel":
+      return { visible: true, view: action.view, column: action.column };
+    case "hide-side-panel":
+      return { visible: false };
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -256,6 +267,7 @@ const dtaleStore = combineReducers({
   menuTooltip,
   ribbonMenuOpen,
   ribbonDropdown,
+  sidePanel,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

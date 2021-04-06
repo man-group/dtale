@@ -3,29 +3,42 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
+import ExportOption from "../../../dtale/menu/ExportOption";
 import { MenuItem } from "../../../dtale/menu/MenuItem";
+import MergeOption from "../../../dtale/menu/MergeOption";
+import menuFuncs from "../../../dtale/menu/dataViewerMenuUtils";
 import { DataMenuItem } from "../../../dtale/ribbon/DataMenuItem";
 import { ReactRibbonDropdown } from "../../../dtale/ribbon/RibbonDropdown";
 import * as fetcher from "../../../fetcher";
 import * as Instances from "../../../popups/instances/Instances";
+import DimensionsHelper from "../../DimensionsHelper";
 import { tick, tickUpdate } from "../../test-utils";
 
 describe("RibbonDropdown", () => {
   let wrapper, props, fetchJsonPromiseSpy, cleanupSpy;
   const processes = [{ id: "2", name: "foo" }, { id: "3" }];
-  const { location } = window;
+  const { location, open } = window;
+  const dimensions = new DimensionsHelper({
+    offsetWidth: 500,
+    offsetHeight: 500,
+    innerWidth: 500,
+    innerHeight: 500,
+  });
 
-  const setupElementAndDropdown = async name => {
+  const setupElementAndDropdown = async (name, dims = {}) => {
     const element = document.createElement("div");
     const rectSpy = jest.spyOn(element, "getBoundingClientRect");
-    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10 }));
+    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims }));
     wrapper.instance().ref = { current: element };
     wrapper.setProps({ visible: true, name, element });
     await tick();
   };
 
   beforeEach(async () => {
+    dimensions.beforeAll();
     delete window.location;
+    delete window.open;
+    window.open = jest.fn();
     window.location = { reload: jest.fn() };
     cleanupSpy = jest.spyOn(Instances, "executeCleanup");
     cleanupSpy.mockImplementation(() => undefined);
@@ -48,7 +61,9 @@ describe("RibbonDropdown", () => {
   afterEach(() => jest.clearAllMocks());
 
   afterAll(() => {
+    dimensions.afterAll();
     window.location = location;
+    window.open = open;
     jest.restoreAllMocks();
   });
 
@@ -75,6 +90,11 @@ describe("RibbonDropdown", () => {
     wrapper.setProps({ visible: false, name: null, element: null });
     await tick();
     expect(wrapper.find("div").props().style).toEqual({});
+  });
+
+  it("handles screen edge successfully", async () => {
+    await setupElementAndDropdown("main", { left: 450, width: 100 });
+    expect(wrapper.find("div").props().style).toEqual({ left: 380, top: 30 });
   });
 
   it("can clear current data", async () => {
@@ -110,5 +130,35 @@ describe("RibbonDropdown", () => {
   it("renders settings successfully", async () => {
     await setupElementAndDropdown("settings");
     expect(wrapper.find("ul")).toHaveLength(1);
+  });
+
+  it("hides menu on click", async () => {
+    const funcsSpy = jest.spyOn(menuFuncs, "buildHotkeyHandlers");
+    const exportFile = jest.fn();
+    funcsSpy.mockImplementation(() => ({
+      exportFile,
+      openTab: jest.fn(),
+      openPopup: jest.fn(),
+      toggleBackground: jest.fn(),
+      toggleOutlierBackground: jest.fn(),
+      CODE: jest.fn(),
+      SHUTDOWN: jest.fn(),
+      BUILD: jest.fn(),
+      FILTER: jest.fn(),
+      DESCRIBE: jest.fn(),
+      DUPLICATES: jest.fn(),
+      CHARTS: jest.fn(),
+      NETWORK: jest.fn(),
+    }));
+    wrapper = shallow(<ReactRibbonDropdown {...props} />);
+    await tickUpdate(wrapper);
+    await setupElementAndDropdown("main");
+    wrapper.find(ExportOption).props().open("tsv");
+    expect(exportFile).toHaveBeenCalledWith("tsv");
+    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
+    await setupElementAndDropdown("actions");
+    wrapper.find(MergeOption).props().open();
+    expect(window.open).toHaveBeenCalledWith("/dtale/popup/merge", "_blank");
+    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(2);
   });
 });
