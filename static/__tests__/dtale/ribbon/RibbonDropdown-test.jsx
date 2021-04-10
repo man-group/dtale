@@ -134,7 +134,7 @@ describe("RibbonDropdown", () => {
 
   it("hides menu on click", async () => {
     const funcsSpy = jest.spyOn(menuFuncs, "buildHotkeyHandlers");
-    const exportFile = jest.fn();
+    const exportFile = jest.fn(() => () => undefined);
     funcsSpy.mockImplementation(() => ({
       exportFile,
       openTab: jest.fn(),
@@ -153,7 +153,7 @@ describe("RibbonDropdown", () => {
     wrapper = shallow(<ReactRibbonDropdown {...props} />);
     await tickUpdate(wrapper);
     await setupElementAndDropdown("main");
-    wrapper.find(ExportOption).props().open("tsv");
+    wrapper.find(ExportOption).props().open("tsv")();
     expect(exportFile).toHaveBeenCalledWith("tsv");
     expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
     await setupElementAndDropdown("actions");

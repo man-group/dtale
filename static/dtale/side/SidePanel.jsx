@@ -3,6 +3,7 @@ import React from "react";
 import { connect } from "react-redux";
 
 import { DescribePanel } from "./DescribePanel";
+import { MissingNoCharts } from "./MissingNoCharts";
 
 require("./SidePanel.scss");
 
@@ -12,11 +13,11 @@ class ReactSidePanel extends React.Component {
   }
 
   render() {
-    const { visible, view, column } = this.props;
+    const { visible, view } = this.props;
     return (
-      <div className={`side-panel-content${visible ? " is-expanded" : ""} p-5`}>
+      <div className={`side-panel-content${visible ? " is-expanded" : ""} ${view} p-5`}>
         <DescribePanel />
-        {visible && view !== "describe" && <h1>{`${view} - ${column}`}</h1>}
+        {visible && view === "missingno" && <MissingNoCharts />}
       </div>
     );
   }
@@ -24,7 +25,6 @@ class ReactSidePanel extends React.Component {
 ReactSidePanel.displayName = "ReactSidePanel";
 ReactSidePanel.propTypes = {
   visible: PropTypes.bool,
-  column: PropTypes.string,
   view: PropTypes.string,
 };
 const ReduxSidePanel = connect(state => ({ ...state.sidePanel }))(ReactSidePanel);

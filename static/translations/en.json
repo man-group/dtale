@@ -46,7 +46,7 @@
     "Actions": "Actions",
     "Visualize": "Visualize",
     "Highlight": "Highlight",
-    "Close": "Close"
+    "Missing Analysis": "Missing Analysis"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -83,7 +83,8 @@
     "pin_menu": "Toggle for pinning this menu to the left side of the screen.",
     "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english.",
     "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
-    "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data."
+    "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data.",
+    "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package."
   },
   "column_menu": {
     "Asc": "Asc",
@@ -852,5 +853,44 @@
     "Missing Values": "Missing Values",
     "Outliers": "Outliers",
     "Low Variance": "Low Variance"
+  },
+  "side": {
+    "Close": "Close",
+    "Open In New Tab": "Open In New Tab"
+  },
+  "missing": {
+    "Matrix": "Matrix",
+    "Bar": "Bar",
+    "Heatmap": "Heatmap",
+    "Dendrogram": "Dendrogram",
+    "Download": "Download",
+    "Freq": "Freq",
+    "B": "business day",
+    "C": "custom, business day",
+    "D": "calendar, day",
+    "W": "weekly",
+    "M": "month, end",
+    "SM": "semi-month, end (15th and end of month)",
+    "BM": "business, month end",
+    "CBM": "custom, business month end",
+    "MS": "month, start",
+    "SMS": "semi-month, start (1st and 15th)",
+    "BMS": "business, month start",
+    "CBMS": "custom, business month start",
+    "Q": "quarter, end",
+    "BQ": "business, quarter end",
+    "QS": "quarter, start",
+    "BQS": "business, quarter start",
+    "Y": "year, end",
+    "BY": "business, year end",
+    "YS": "year, start",
+    "BYS": "business, year start",
+    "BH": "business, hour",
+    "H": "hourly",
+    "T": "minutely",
+    "S": "secondly",
+    "L": "milliseconds",
+    "U": "microseconds",
+    "N": "nanoseconds"
   }
 }

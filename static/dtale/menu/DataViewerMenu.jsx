@@ -23,6 +23,7 @@ import { LanguageOption } from "./LanguageOption";
 import LowVarianceOption from "./LowVarianceOption";
 import { MenuItem } from "./MenuItem";
 import MergeOption from "./MergeOption";
+import MissingOption from "./MissingOption";
 import NetworkOption from "./NetworkOption";
 import { PPSOption } from "./PPSOption";
 import { PinMenuOption } from "./PinMenuOption";
@@ -86,6 +87,7 @@ class ReactDataViewerMenu extends React.Component {
             <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
             <SummarizeOption open={openPopup("reshape", 400, 770)} />
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
+            <MissingOption open={() => this.props.showSidePanel("missingno")} />
             <CorrelationsOption open={openTab("correlations")} />
             <PPSOption open={openTab("pps")} />
             <ChartsOption open={buttonHandlers.CHARTS} />
@@ -138,13 +140,17 @@ ReactDataViewerMenu.propTypes = {
   rangeHighlight: PropTypes.object,
   dataId: PropTypes.string.isRequired,
   menuPinned: PropTypes.bool,
+  showSidePanel: PropTypes.func,
   t: PropTypes.func,
 };
 
 const TranslatedReactDataViewMenu = withTranslation(["menu", "menu_description", "code_export"])(ReactDataViewerMenu);
 const ReduxDataViewerMenu = connect(
   state => _.pick(state, ["dataId", "menuPinned"]),
-  dispatch => ({ openChart: chartProps => dispatch(openChart(chartProps)) })
+  dispatch => ({
+    openChart: chartProps => dispatch(openChart(chartProps)),
+    showSidePanel: view => dispatch({ type: "show-side-panel", view }),
+  })
 )(TranslatedReactDataViewMenu);
 
 export { ReduxDataViewerMenu as DataViewerMenu, TranslatedReactDataViewMenu as ReactDataViewerMenu };

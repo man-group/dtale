@@ -72,6 +72,7 @@ class ReactGridEventHandler extends React.Component {
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleClicks = this.handleClicks.bind(this);
+    this.state = { currY: null };
   }
 
   componentDidMount() {
@@ -83,18 +84,25 @@ class ReactGridEventHandler extends React.Component {
   }
 
   handleMouseMove(e) {
-    if (e.clientY <= 10) {
+    if (e.clientY <= 5) {
       clearTimeout(this.hideTimeout);
       this.hideTimeout = null;
       if (!this.props.ribbonMenuOpen) {
-        this.props.setRibbonVisibility(true);
+        this.showTimeout = setTimeout(() => {
+          if (this.state.currY <= 5) {
+            this.props.setRibbonVisibility(true);
+          }
+        }, 500);
       }
     } else if (!this.props.ribbonDropdownOpen && this.props.ribbonMenuOpen && e.clientY >= 35 && !this.hideTimeout) {
       this.hideTimeout = setTimeout(() => {
         this.props.setRibbonVisibility(false);
         this.hideTimeout = null;
       }, 2000);
+      clearTimeout(this.showTimeout);
+      this.showTimeout = null;
     }
+    this.setState({ currY: e.clientY });
   }
 
   handleMouseOver(e) {
@@ -160,10 +168,11 @@ class ReactGridEventHandler extends React.Component {
   }
 
   render() {
+    const { sidePanel, sidePanelOpen } = this.props;
     return (
       <div className="h-100 w-100 d-flex">
         <div
-          className={`main-panel-content${this.props.sidePanelOpen ? " is-half" : ""} h-100`}
+          className={`main-panel-content${sidePanelOpen ? " is-half" : ""} ${sidePanel} h-100`}
           onMouseOver={this.handleMouseOver}
           onMouseMove={this.handleMouseMove}
           onClick={this.handleClicks}>
@@ -196,6 +205,7 @@ ReactGridEventHandler.propTypes = {
   ribbonMenuOpen: PropTypes.bool,
   ribbonDropdownOpen: PropTypes.bool,
   sidePanelOpen: PropTypes.bool,
+  sidePanel: PropTypes.string,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
@@ -206,6 +216,7 @@ const ReduxGridEventHandler = connect(
     ribbonMenuOpen,
     ribbonDropdownOpen: ribbonDropdown.visible,
     sidePanelOpen: sidePanel.visible,
+    sidePanel: sidePanel.view,
   }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),

@@ -7,8 +7,17 @@ from builtins import map, range, str, zip
 from functools import wraps
 from logging import getLogger
 
-from flask import current_app, json, make_response, redirect, render_template, request
+from flask import (
+    current_app,
+    json,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    Response,
+)
 
+import missingno as msno
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -16,7 +25,8 @@ import platform
 import requests
 import scipy.stats as sts
 import xarray as xr
-from six import string_types, StringIO
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from six import BytesIO, string_types, StringIO
 
 import dtale.datasets as datasets
 import dtale.env_util as env_util
@@ -3190,3 +3200,29 @@ def build_merge():
     data = builder.build_data()
     code = builder.build_code()
     return load_new_data(data, code, name)
+
+
+@dtale.route("/missingno/<chart_type>/<data_id>")
+@exception_decorator
+def build_missingno_chart(chart_type, data_id):
+    df = global_state.get_data(data_id)
+    if chart_type == "matrix":
+        date_index = get_str_arg(request, "date_index")
+        freq = get_str_arg(request, "freq")
+        if date_index:
+            figure = msno.matrix(df.set_index(date_index), freq=freq)
+        else:
+            figure = msno.matrix(df)
+    elif chart_type == "bar":
+        figure = msno.bar(df)
+    elif chart_type == "heatmap":
+        figure = msno.heatmap(df)
+    elif chart_type == "dendrogram":
+        figure = msno.dendrogram(df)
+
+    output = BytesIO()
+    FigureCanvas(figure.get_figure()).print_png(output)
+    if get_bool_arg(request, "file"):
+        fname = "missingno_{}.png".format(chart_type)
+        return send_file(output.getvalue(), fname, "image/png")
+    return Response(output.getvalue(), mimetype="image/png")

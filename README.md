@@ -76,14 +76,14 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)
   - [Using Swifter](#using-swifter)
 - [UI](#ui)
-  - [Dimensions/Main Menu](#dimensionsmain-menu)
+  - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
   - [Header](#header)
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Column Analysis](#column-analysis)
+    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Describe (Column Analysis)](#describecolumn-analysis)
   - [Charts](#charts)
   - [Network Viewer](#network-viewer)
   - [Hotkeys](#hotkeys)
@@ -515,10 +515,18 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Browser1.png)
 
-### Dimensions/Main Menu
+### Dimensions/Ribbon Menu/Main Menu
 The information in the upper right-hand corner gives grid dimensions ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_cell.png)
 - lower-left => row count
 - upper-right => column count
+
+Ribbon Menu
+- hovering around to top of your browser will display a menu items (similar to the ones in the main menu) across the top of the screen
+- to close the menu simply click outside the menu and/or dropdowns from the menu
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Ribbon_menu.png)
+
+Main Menu
 - clicking the triangle displays the menu of standard functions (click outside menu to close it)
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Info_menu_small.png)
@@ -699,6 +707,17 @@ The folowing screen shots are for a dataframe with the following data:
 |**Remove Duplicate Column Names**|Remove any columns with the same name (name comparison is case-insensitive) and you can either keep the first, last or none of these columns that match this criteria. You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/columns_names.png)|
 |**Remove Duplicate Rows**|Remove any rows from your dataframe where the values of a subset of columns are considered duplicates. You can choose to keep the first, last or none of the rows considered duplicated.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/rows.png)|
 |**Show Duplicates**|Break any duplicate rows (based on a subset of columns) out into another dataframe viewable in your D-Tale session. You can choose to view all duplicates or select specific groups based on the duplicated value.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/show.png)|
+
+#### Missing Analysis
+Display charts analyzing the presence of missing (NaN) data in your dataset using the [missingno]() pacakage.  You can also open them in a tab by themselves or export them to a static PNG using the links in the upper right corner.
+
+
+| Chart        | Sample |
+|--------------|--------|
+| Matrix     | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/matrix.PNG)|
+| Bar        | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/bar.PNG)|
+| Heatmap    | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/heatmap.PNG)|
+| Dendrogram | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/dendrogram.png)|
 
 #### Charts
 Build custom charts based off your data(powered by [plotly/dash](https://github.com/plotly/dash)).
@@ -932,9 +951,8 @@ Here's an example of what this will look like when you apply it:
  - sorting
 
 Other code exports available are:
- - Column Analysis
+ - Describe (Column Analysis)
  - Correlations (grid, timeseries chart & scatter chart)
- - Describe
  - Charts built using the Chart Builder
 
  [![](http://img.youtube.com/vi/6CkKgpv3d6I/0.jpg)](http://www.youtube.com/watch?v=6CkKgpv3d6I "Code Export Tutorial")
@@ -1141,16 +1159,18 @@ For strings you can apply the follwoing formats:
 * **Truncation:** truncate long strings to a certain number of characters and replace with an allipses "..." and see the whole value on hover.
 * **Hyperlinks:** If your column is comprised of URL strings you can make them hyperlinks which will open a new tab
 
-#### Column Analysis
+#### Describe (Column Analysis)
 Based on the data type of a column different charts will be shown.
 
 | Chart         | Data Types     | Sample |
 |---------------|----------------|--------|
+| Box Plot      | Float, Int, Date | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/boxplot.PNG)|
 | Histogram     | Float, Int |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/histogram.PNG)|
 | Value Counts  | Int, String, Bool, Date, Category|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts.PNG)|
 | Word Value Counts | String | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/word_value_counts.png)|
 | Category      | Float   |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/category.PNG)|
-|Geolocation*   | Int, Float     |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/geolocation.PNG)|
+| Geolocation*  | Int, Float     |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/geolocation.PNG)|
+| Q-Q Plot      | Int, Float, Date |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/qq.PNG)|
 
 
 **Histogram** can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input

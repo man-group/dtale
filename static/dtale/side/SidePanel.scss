@@ -13,6 +13,10 @@
   &.is-expanded {
     width: calc(50vw);
   }
+
+  &.is-expanded.missingno {
+    width: calc(75vw);
+  }
 }
 
 .main-panel-content {
@@ -22,5 +26,9 @@
 
   &.is-half {
     width: 50%;
+  }
+
+  &.is-half.missingno {
+    width: 25%;
   }
 }

@@ -30,9 +30,10 @@ describe("RibbonDropdown", () => {
 
   afterAll(() => jest.restoreAllMocks());
 
-  it("opens ribbon menu for first 10 pixels", () => {
+  it("opens ribbon menu for first 5 pixels", () => {
     wrapper.find("div").last().props().onMouseMove({ clientY: 5 });
     expect(clearTimeout).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(1000);
     expect(props.setRibbonVisibility).toHaveBeenCalledWith(true);
   });
 

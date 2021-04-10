@@ -12,6 +12,7 @@ future>=0.14.0
 itsdangerous
 kaleido==0.1.0; python_version <= '3.6'
 kaleido; python_version > '3.6'
+missingno
 networkx==2.2; python_version < '3.0'
 networkx; python_version >= '3.0'
 pandas
@@ -20,6 +21,8 @@ ppscore; python_version >= '3.6'
 requests
 scikit-learn
 scipy
+seaborn==0.9.1; python_version < '3.6'
+seaborn; python_version >= '3.6'
 squarify
 statsmodels==0.10.2; python_version < '3.0'
 statsmodels; python_version > '3.0'
