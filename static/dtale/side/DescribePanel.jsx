@@ -76,13 +76,13 @@ class ReactDescribePanel extends React.Component {
               <div className="col-auto pr-0">
                 <button className="btn btn-plain" onClick={openTab}>
                   <i className="ico-open-in-new pointer" />
-                  <span className="align-middle">{t("menu:Open In New Tab")}</span>
+                  <span className="align-middle">{t("side:Open In New Tab")}</span>
                 </button>
               </div>
               <div className="col-auto">
                 <button className="btn btn-plain" onClick={hideSidePanel}>
                   <i className="ico-close pointer" />
-                  <span className="align-middle">{t("menu:Close")}</span>
+                  <span className="align-middle">{t("side:Close")}</span>
                 </button>
               </div>
             </>
@@ -101,7 +101,7 @@ ReactDescribePanel.propTypes = {
   hideSidePanel: PropTypes.func,
   t: PropTypes.func,
 };
-const TranslateDescribePanel = withTranslation(["menu"])(ReactDescribePanel);
+const TranslateDescribePanel = withTranslation(["side"])(ReactDescribePanel);
 const ReduxDescribePanel = connect(
   state => ({ ...state.sidePanel, dataId: state.dataId }),
   dispatch => ({ hideSidePanel: () => dispatch({ type: "hide-side-panel" }) })

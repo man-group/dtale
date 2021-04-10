@@ -1,0 +1,16 @@
+.image-frame:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.image-frame img {
+  vertical-align: middle;
+  max-width: 100%;
+  min-width: 100%;
+}
+
+.missingno-inputs .btn-group.compact {
+  padding-left: 0 !important;
+}

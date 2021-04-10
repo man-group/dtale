@@ -153,6 +153,7 @@ python: &python
            set -e
            . ci/bin/activate
            export TZ=America/New_York
+           export MPLBACKEND=Agg
            pip install -e ".[arctic]"
            pip install -e ".[redis]"
            pip install -e ".[r]"

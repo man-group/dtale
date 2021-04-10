@@ -49,7 +49,7 @@ describe("DataViewer iframe tests", () => {
     delete window.open;
     delete window.top;
     delete window.self;
-    window.location = { reload: jest.fn() };
+    window.location = { reload: jest.fn(), pathname: null };
     window.open = jest.fn();
     window.top = { location: { href: "http://test.com" } };
     window.self = { location: { href: "http://test/dtale/iframe" } };
@@ -107,10 +107,10 @@ describe("DataViewer iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Open In New Tab", "XArray Dimensions", "Describe", "Custom Filter", "Build Column", "Merge & Stack"],
-        ["Summarize Data", "Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer"],
-        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
-        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],
-        ["Reload Data", "Pin menu", "Language", "Shutdown"]
+        ["Summarize Data", "Duplicates", "Missing Analysis", "Correlations", "Predictive Power Score", "Charts"],
+        ["Network Viewer", "Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers"],
+        ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths"],
+        ["About", "Theme", "Reload Data", "Pin menu", "Language", "Shutdown"]
       )
     );
   });
@@ -217,6 +217,7 @@ describe("DataViewer iframe tests", () => {
     clickMainMenuButton(result, "Reload Data");
     expect(window.location.reload).toHaveBeenCalled();
     clickMainMenuButton(result, "Shutdown");
+    expect(window.location.pathname).not.toBeNull();
     clickColMenuButton(result, "Formats");
     expect(result.find(Formatting).length).toBe(1);
   });

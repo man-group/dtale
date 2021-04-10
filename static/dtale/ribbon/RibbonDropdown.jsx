@@ -24,6 +24,7 @@ import { LanguageOption } from "../menu/LanguageOption";
 import LowVarianceOption from "../menu/LowVarianceOption";
 import { MenuItem } from "../menu/MenuItem";
 import MergeOption from "../menu/MergeOption";
+import MissingOption from "../menu/MissingOption";
 import NetworkOption from "../menu/NetworkOption";
 import { PPSOption } from "../menu/PPSOption";
 import RangeHighlightOption from "../menu/RangeHighlightOption";
@@ -115,6 +116,10 @@ class ReactRibbonDropdown extends React.Component {
     const { processes } = this.state;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
+    const ribbonExport = ext => () => {
+      exportFile(ext)();
+      this.props.hideRibbonMenu();
+    };
     return (
       <div
         className={`ribbon-menu-dd-content${visible ? " is-expanded" : ""}`}
@@ -125,7 +130,7 @@ class ReactRibbonDropdown extends React.Component {
           <ul>
             <UploadOption open={hideWrapper(openPopup("upload", 450))} />
             <CodeExportOption open={hideWrapper(buttonHandlers.CODE)} />
-            <ExportOption open={tsv => hideWrapper(() => exportFile(tsv))()} />
+            <ExportOption open={ribbonExport} />
             <ReloadOption />
             <InstancesOption open={hideWrapper(openPopup("instances", 450, 750))} />
             <MenuItem description={t("menu_description:clear_data")} onClick={this.cleanupThis}>
@@ -165,6 +170,7 @@ class ReactRibbonDropdown extends React.Component {
           <ul>
             <DescribeOption open={hideWrapper(buttonHandlers.DESCRIBE)} />
             <DuplicatesOption open={hideWrapper(buttonHandlers.DUPLICATES)} />
+            <MissingOption open={hideWrapper(() => this.props.showSidePanel("missingno"))} />
             <CorrelationsOption open={hideWrapper(openTab("correlations"))} />
             <PPSOption open={hideWrapper(openTab("pps"))} />
             <ChartsOption open={hideWrapper(buttonHandlers.CHARTS)} />
@@ -211,6 +217,7 @@ class ReactRibbonDropdown extends React.Component {
 }
 ReactRibbonDropdown.displayName = "ReactRibbonDropdown";
 ReactRibbonDropdown.propTypes = {
+  dataId: PropTypes.string.isRequired,
   visible: PropTypes.bool,
   name: PropTypes.string,
   element: PropTypes.instanceOf(Element),
@@ -220,7 +227,7 @@ ReactRibbonDropdown.propTypes = {
   openChart: PropTypes.func,
   backgroundMode: PropTypes.string,
   rangeHighlight: PropTypes.object,
-  dataId: PropTypes.string.isRequired,
+  showSidePanel: PropTypes.func,
   t: PropTypes.func,
 };
 const TranslatedRibbonDropdown = withTranslation(["menu", "menu_description", "code_export"])(ReactRibbonDropdown);
@@ -229,6 +236,7 @@ const ReduxRibbonDropdown = connect(
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideRibbonMenu: () => dispatch({ type: "hide-ribbon-menu" }),
+    showSidePanel: view => dispatch({ type: "show-side-panel", view }),
   })
 )(TranslatedRibbonDropdown);
 export { ReduxRibbonDropdown as RibbonDropdown, TranslatedRibbonDropdown as ReactRibbonDropdown };

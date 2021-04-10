@@ -15,6 +15,7 @@ import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, wit
 const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
 
 describe("DataViewer tests", () => {
+  const { location } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -23,6 +24,9 @@ describe("DataViewer tests", () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
+
+    delete window.location;
+    window.location = { pathname: null };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -33,7 +37,10 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => {
+    dimensions.afterAll();
+    window.location = location;
+  });
 
   it("DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...", async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
@@ -66,14 +73,15 @@ describe("DataViewer tests", () => {
     ).toEqual(
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Merge & Stack", "Summarize Data"],
-        ["Duplicates", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
-        ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
-        ["Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data"],
-        ["Pin menu", "Language", "Shutdown"]
+        ["Duplicates", "Missing Analysis", "Correlations", "Predictive Power Score", "Charts", "Network Viewer"],
+        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
+        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],
+        ["Reload Data", "Pin menu", "Language", "Shutdown"]
       )
     );
     await tick();
     clickMainMenuButton(result, "Refresh Widths");
     clickMainMenuButton(result, "Shutdown");
+    expect(window.location.pathname).not.toBeNull();
   });
 });

@@ -30,7 +30,7 @@ class ButtonToggle extends React.Component {
             buttonProps.onClick = () => this.setState({ active: value }, () => update(value));
           }
           return (
-            <button key={value} {...buttonProps}>
+            <button key={value} {...buttonProps} disabled={this.props.disabled}>
               {label ?? value}
             </button>
           );
@@ -45,6 +45,7 @@ ButtonToggle.propTypes = {
   update: PropTypes.func,
   defaultValue: PropTypes.string,
   allowDeselect: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
 ButtonToggle.defaultProps = { allowDeselect: false };
 
