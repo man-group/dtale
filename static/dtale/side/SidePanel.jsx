@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 
 import { DescribePanel } from "./DescribePanel";
@@ -13,9 +14,10 @@ class ReactSidePanel extends React.Component {
   }
 
   render() {
-    const { visible, view } = this.props;
+    const { visible, view, hideSidePanel } = this.props;
     return (
       <div className={`side-panel-content${visible ? " is-expanded" : ""} ${view} p-5`}>
+        {visible && <GlobalHotKeys keyMap={{ CLOSE_PANEL: "esc" }} handlers={{ CLOSE_PANEL: hideSidePanel }} />}
         <DescribePanel />
         {visible && view === "missingno" && <MissingNoCharts />}
       </div>
@@ -26,6 +28,10 @@ ReactSidePanel.displayName = "ReactSidePanel";
 ReactSidePanel.propTypes = {
   visible: PropTypes.bool,
   view: PropTypes.string,
+  hideSidePanel: PropTypes.func,
 };
-const ReduxSidePanel = connect(state => ({ ...state.sidePanel }))(ReactSidePanel);
+const ReduxSidePanel = connect(
+  state => ({ ...state.sidePanel }),
+  dispatch => ({ hideSidePanel: () => dispatch({ type: "hide-side-panel" }) })
+)(ReactSidePanel);
 export { ReduxSidePanel as SidePanel, ReactSidePanel };

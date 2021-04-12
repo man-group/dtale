@@ -709,7 +709,7 @@ The folowing screen shots are for a dataframe with the following data:
 |**Show Duplicates**|Break any duplicate rows (based on a subset of columns) out into another dataframe viewable in your D-Tale session. You can choose to view all duplicates or select specific groups based on the duplicated value.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/show.png)|
 
 #### Missing Analysis
-Display charts analyzing the presence of missing (NaN) data in your dataset using the [missingno](https://github.com/ResidentMario/missingno) pacakage.  You can also open them in a tab by themselves or export them to a static PNG using the links in the upper right corner.
+Display charts analyzing the presence of missing (NaN) data in your dataset using the [missingno](https://github.com/ResidentMario/missingno) pacakage.  You can also open them in a tab by themselves or export them to a static PNG using the links in the upper right corner. You can also close the side panel using the ESC key.
 
 
 | Chart        | Sample |
@@ -1160,7 +1160,7 @@ For strings you can apply the follwoing formats:
 * **Hyperlinks:** If your column is comprised of URL strings you can make them hyperlinks which will open a new tab
 
 #### Describe (Column Analysis)
-Based on the data type of a column different charts will be shown.
+Based on the data type of a column different charts will be shown.  This side panel can be closed using the 'X' button in the upper right or by pressing the ESC key.
 
 | Chart         | Data Types     | Sample |
 |---------------|----------------|--------|
@@ -1202,7 +1202,7 @@ These are key combinations you can use in place of clicking actual buttons to sa
 |`shift+b`    | Opens "Build Column"*|
 |`shift+c`    | Opens "Charts" page*|
 |`shift+x`    | Opens "Code Export"*|
-|`esc`        | Closes any open modal window & exits cell editing|
+|`esc`        | Closes any open modal window or side panel & exits cell editing|
 
 `*` Does not fire if user is actively editing a cell.
 
