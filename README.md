@@ -83,7 +83,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Main Menu Functions](#main-menu-functions)
     - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
-    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Describe (Column Analysis)](#describecolumn-analysis)
+    - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Describe (Column Analysis)](#describe-column-analysis)
   - [Charts](#charts)
   - [Network Viewer](#network-viewer)
   - [Hotkeys](#hotkeys)
@@ -709,14 +709,14 @@ The folowing screen shots are for a dataframe with the following data:
 |**Show Duplicates**|Break any duplicate rows (based on a subset of columns) out into another dataframe viewable in your D-Tale session. You can choose to view all duplicates or select specific groups based on the duplicated value.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/show.png)|
 
 #### Missing Analysis
-Display charts analyzing the presence of missing (NaN) data in your dataset using the [missingno]() pacakage.  You can also open them in a tab by themselves or export them to a static PNG using the links in the upper right corner.
+Display charts analyzing the presence of missing (NaN) data in your dataset using the [missingno](https://github.com/ResidentMario/missingno) pacakage.  You can also open them in a tab by themselves or export them to a static PNG using the links in the upper right corner.
 
 
 | Chart        | Sample |
 |--------------|--------|
-| Matrix     | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/matrix.PNG)|
-| Bar        | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/bar.PNG)|
-| Heatmap    | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/heatmap.PNG)|
+| Matrix     | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/matrix.png)|
+| Bar        | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/bar.png)|
+| Heatmap    | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/heatmap.png)|
 | Dendrogram | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/missingno/dendrogram.png)|
 
 #### Charts
@@ -1164,13 +1164,13 @@ Based on the data type of a column different charts will be shown.
 
 | Chart         | Data Types     | Sample |
 |---------------|----------------|--------|
-| Box Plot      | Float, Int, Date | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/boxplot.PNG)|
+| Box Plot      | Float, Int, Date | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/boxplot.png)|
 | Histogram     | Float, Int |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/histogram.PNG)|
 | Value Counts  | Int, String, Bool, Date, Category|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/value_counts.PNG)|
 | Word Value Counts | String | ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/word_value_counts.png)|
 | Category      | Float   |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/category.PNG)|
 | Geolocation*  | Int, Float     |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/geolocation.PNG)|
-| Q-Q Plot      | Int, Float, Date |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/qq.PNG)|
+| Q-Q Plot      | Int, Float, Date |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/analysis/qq.png)|
 
 
 **Histogram** can be displayed in any number of bins (default: 20), simply type a new integer value in the bins input

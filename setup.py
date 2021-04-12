@@ -8,16 +8,25 @@ import six
 from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
+
+def read_file(path):
+    with open(path) as contents:
+        return contents.read()
+
+
 # Convert Markdown to RST for PyPI
 # http://stackoverflow.com/a/26737672
 try:
     import pypandoc
 
-    long_description = pypandoc.convert("README.md", "rst")
-    changelog = pypandoc.convert("CHANGES.md", "rst")
+    pypandoc_func = (
+        pypandoc.convert_file if hasattr(pypandoc, "convert_file") else pypandoc.convert
+    )
+    long_description = pypandoc_func("README.md", "rst")
+    changelog = pypandoc_func("CHANGES.md", "rst")
 except (IOError, ImportError, OSError):
-    long_description = open("README.md").read()
-    changelog = open("CHANGES.md").read()
+    long_description = read_file("README.md")
+    changelog = read_file("CHANGES.md")
 
 
 class PyTest(TestCommand):
@@ -62,14 +71,9 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-def load_requirements(path):
-    with open(path) as requirements:
-        return requirements.read()
-
-
 setup(
     name="dtale",
-    version="1.41.1",
+    version="1.42.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -77,14 +81,14 @@ setup(
     long_description="\n".join((long_description, changelog)),
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
-    install_requires=load_requirements("requirements.txt"),
+    install_requires=read_file("requirements.txt"),
     extras_require={
         "arctic": ["arctic"],
         "r": ["rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
-        "tests": load_requirements("requirements-test.txt"),
+        "tests": read_file("requirements-test.txt"),
     },
     classifiers=[
         "Development Status :: 4 - Beta",
