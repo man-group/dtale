@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.42.1 (2021-4-12)
+* added ESC button handler for closing the side panel
+
 ### 1.42.0 (2021-4-11)
 * Added missingno chart display
 * added new side panel for viewing describe data
