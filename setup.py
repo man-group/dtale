@@ -69,7 +69,7 @@ def load_requirements(path):
 
 setup(
     name="dtale",
-    version="1.41.1",
+    version="1.42.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",

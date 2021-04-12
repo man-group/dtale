@@ -1,6 +1,14 @@
 ## Changelog
 
-###1.41.1 (2021-3-30)
+### 1.42.0 (2021-4-11)
+* Added missingno chart display
+* added new side panel for viewing describe data
+  * updated how requirements files are loaded in setup.py
+  * added cleanup function to instance object
+  * added animation for display of hidden/filter/sort info row
+* [#306](https://github.com/man-group/dtale/issues/306): ribbon menu
+
+### 1.41.1 (2021-3-30)
 * [#458](https://github.com/man-group/dtale/issues/458): fix for killing D-Tale sessions in jupyter_server_proxy
 
 ### 1.41.0 (2021-3-26)
