@@ -71,6 +71,7 @@ describe("DescribePanel", () => {
     toggleParams[2]();
     expect(props.propagateState).toHaveBeenCalledWith({
       columns: reduxUtils.DTYPES.dtypes.map(col => (col.name === props.selectedCol ? { ...col, visible: false } : col)),
+      triggerResize: true,
     });
   });
 

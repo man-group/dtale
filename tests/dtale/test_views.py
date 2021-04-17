@@ -2996,6 +2996,7 @@ def test_load_filtered_ranges(unittest):
         ranges = response.json
         assert ranges["ranges"]["a"]["max"] == 3 and ranges["overall"]["min"] == 2
         assert ranges["query"] == settings[c.port]["filteredRanges"]["query"]
+        assert ranges["dtypes"]["a"]["max"] == 3 and ranges["dtypes"]["a"]["min"] == 2
 
         response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
         unittest.assertEqual(ranges, response.json)

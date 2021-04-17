@@ -24,12 +24,12 @@ const chartOpts = t =>
 
 const buildUrls = (dataId, { dateCol, freq, chartType }) => {
   const imageUrl = buildURLString(menuFuncs.fullPath(`/dtale/missingno/${chartType}`, dataId), {
-    date_index: _.get(dateCol, "value"),
+    date_index: _.get(dateCol, "name"),
     freq: _.get(freq, "value"),
     id: new Date().getTime(),
   });
   const fileUrl = buildURLString(menuFuncs.fullPath(`/dtale/missingno/${chartType}`, dataId), {
-    date_index: _.get(dateCol, "value"),
+    date_index: _.get(dateCol, "name"),
     freq: _.get(freq, "value"),
     file: true,
     id: new Date().getTime(),

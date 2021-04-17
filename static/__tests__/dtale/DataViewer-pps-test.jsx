@@ -1,12 +1,14 @@
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
+import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
 import PPSDetails from "../../popups/pps/PPSDetails";
 import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
+import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("DataViewer tests", () => {
@@ -43,11 +45,17 @@ describe("DataViewer tests", () => {
   });
 
   beforeEach(async () => {
-    buildInnerHTML({ settings: "" });
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "" }, store);
     const props = { dataId: "" + testIdx++, chartData: { visible: true } };
-    result = mount(<PredictivePowerScore {...props} />, {
-      attachTo: document.getElementById("content"),
-    });
+    result = mount(
+      <Provider store={store}>
+        <PredictivePowerScore {...props} />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
     await tickUpdate(result);
     const ppsGrid = result.find(PredictivePowerScore).first().find("div.ReactVirtualized__Grid__innerScrollContainer");
     ppsGrid.find("div.cell").at(1).simulate("click");
