@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import chartUtils from "../../chartUtils";
-import { createChart } from "./columnAnalysisUtils";
+import { createChart, isPlotly } from "./columnAnalysisUtils";
 
 class ColumnAnalysisChart extends React.Component {
   constructor(props) {
@@ -11,6 +11,7 @@ class ColumnAnalysisChart extends React.Component {
     this.state = { chart: null };
     this.createChart = this.createChart.bind(this);
   }
+
   componentDidMount() {
     this.createChart();
   }
@@ -30,6 +31,10 @@ class ColumnAnalysisChart extends React.Component {
         chartUtils.createGeolocation("columnAnalysisChart", fetchedChartData);
         return null;
       }
+      if (finalParams.type === "qq") {
+        chartUtils.createQQ("columnAnalysisChart", fetchedChartData);
+        return null;
+      }
       if (!_.get(fetchedChartData, "data", []).length) {
         return null;
       }
@@ -40,11 +45,11 @@ class ColumnAnalysisChart extends React.Component {
   }
 
   render() {
-    const isGeo = this.props?.finalParams?.type === "geolocation";
+    const plotly = isPlotly(this.props.finalParams?.type);
     return (
       <div style={{ height: this.props.height }}>
-        {isGeo && <div id="columnAnalysisChart" />}
-        {!isGeo && <canvas id="columnAnalysisChart" />}
+        {plotly && <div id="columnAnalysisChart" />}
+        {!plotly && <canvas id="columnAnalysisChart" />}
       </div>
     );
   }

@@ -166,7 +166,7 @@ class ReactColumnMenu extends React.Component {
         id="column-menu-div"
         className="column-toggle__dropdown"
         hidden={!columnMenuOpen}
-        style={{ minWidth: "11em" }}
+        style={{ minWidth: "14em" }}
         ref={cm => (this._div = cm)}>
         {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />

@@ -352,6 +352,33 @@ function createGeolocation(ctxId, fetchedData) {
   Plotly.newPlot(ctxId, data, layout);
 }
 
+function createQQ(ctxId, fetchedData) {
+  const layout = {
+    autosize: true,
+    legend: { orientation: "h" },
+    margin: { b: 0, l: 0, r: 0, t: 0 },
+  };
+  const data = [
+    {
+      type: "scattergl",
+      mode: "markers",
+      marker: { color: "darkblue" },
+      name: "qq",
+      x: fetchedData.x,
+      y: fetchedData.y,
+    },
+    {
+      type: "scattergl",
+      mode: "lines",
+      marker: { color: "red" },
+      name: "OLS Trendline",
+      x: fetchedData.x2,
+      y: fetchedData.y2,
+    },
+  ];
+  Plotly.newPlot(ctxId, data, layout);
+}
+
 export default {
   createChart,
   chartWrapper,
@@ -362,6 +389,7 @@ export default {
   createLineCfg,
   createBarCfg,
   createGeolocation,
+  createQQ,
   createStackedCfg,
   createScatterCfg,
   createPieCfg,

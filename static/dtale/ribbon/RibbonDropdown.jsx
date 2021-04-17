@@ -26,6 +26,7 @@ import { MenuItem } from "../menu/MenuItem";
 import MergeOption from "../menu/MergeOption";
 import MissingOption from "../menu/MissingOption";
 import NetworkOption from "../menu/NetworkOption";
+import NewTabOption from "../menu/NewTabOption";
 import { PPSOption } from "../menu/PPSOption";
 import RangeHighlightOption from "../menu/RangeHighlightOption";
 import ReloadOption from "../menu/ReloadOption";
@@ -128,6 +129,7 @@ class ReactRibbonDropdown extends React.Component {
         onClick={this.onClick}>
         {name === "main" && visible && (
           <ul>
+            <NewTabOption />
             <UploadOption open={hideWrapper(openPopup("upload", 450))} />
             <CodeExportOption open={hideWrapper(buttonHandlers.CODE)} />
             <ExportOption open={ribbonExport} />

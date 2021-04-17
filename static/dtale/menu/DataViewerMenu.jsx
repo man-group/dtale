@@ -25,6 +25,7 @@ import { MenuItem } from "./MenuItem";
 import MergeOption from "./MergeOption";
 import MissingOption from "./MissingOption";
 import NetworkOption from "./NetworkOption";
+import NewTabOption from "./NewTabOption";
 import { PPSOption } from "./PPSOption";
 import { PinMenuOption } from "./PinMenuOption";
 import RangeHighlightOption from "./RangeHighlightOption";
@@ -39,7 +40,6 @@ import menuFuncs from "./dataViewerMenuUtils";
 class ReactDataViewerMenu extends React.Component {
   render() {
     const { menuOpen, menuPinned, backgroundMode, t } = this.props;
-    const iframe = global.top !== global.self;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openTab, openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
     const refreshWidths = () =>
@@ -70,16 +70,7 @@ class ReactDataViewerMenu extends React.Component {
             overflowX: "hidden",
           }}>
           <ul>
-            {iframe && (
-              <MenuItem onClick={() => window.open(window.location.pathname, "_blank")}>
-                <span className="toggler-action">
-                  <button className="btn btn-plain">
-                    <i className="ico-open-in-new" />
-                    <span className="font-weight-bold">{t("menu:Open In New Tab")}</span>
-                  </button>
-                </span>
-              </MenuItem>
-            )}
+            <NewTabOption />
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <DescribeOption open={buttonHandlers.DESCRIBE} />
             <FilterOption open={buttonHandlers.FILTER} />

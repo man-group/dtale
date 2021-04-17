@@ -6,6 +6,7 @@ import { buildURLParams } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import { RemovableError } from "../../RemovableError";
 import ColumnAnalysisChart from "./ColumnAnalysisChart";
+import { Bouncer } from "../../Bouncer";
 import React from "react";
 import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
 
@@ -150,12 +151,18 @@ const PARAM_PROPS = _.concat(
   ["categoryAgg", "cleaners", "latCol", "lonCol"]
 );
 
+const isPlotly = type => _.includes(["geolocation", "qq"], type);
+
 function dataLoader(props, state, propagateState, chartParams) {
   const { chartData, height, dataId } = props;
   const finalParams = chartParams || state.chartParams;
   const { selectedCol } = chartData;
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
+  if (isPlotly(params.type)) {
+    state.chartRef?.current?.state?.chart?.destroy?.();
+    propagateState({ chart: <Bouncer /> });
+  }
   if (params.type === "categories" && _.isNull(finalParams.categoryCol)) {
     propagateState({ chart: emptyVal("category"), code: null });
     return;
@@ -197,6 +204,7 @@ function dataLoader(props, state, propagateState, chartParams) {
     }
     newState.chart = (
       <ColumnAnalysisChart
+        ref={state.chartRef}
         finalParams={_.assignIn(finalParams, { selectedCol, type: newState.type })}
         fetchedChartData={fetchedChartData}
         height={height}
@@ -206,4 +214,4 @@ function dataLoader(props, state, propagateState, chartParams) {
   });
 }
 
-export { createChart, dataLoader };
+export { createChart, dataLoader, isPlotly };

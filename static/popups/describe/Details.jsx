@@ -260,6 +260,9 @@ class Details extends React.Component {
               {details.name}
             </span>
             <span className="pl-3">({details.dtype})</span>
+            <small className="d-block pl-2 pb-3" style={{ marginTop: "-8px" }}>
+              ({this.props.t("navigate")})
+            </small>
           </div>
           {this.props.close}
         </div>

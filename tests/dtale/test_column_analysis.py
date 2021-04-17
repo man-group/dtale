@@ -318,4 +318,4 @@ def test_get_column_analysis_qq():
             query_string=dict(col="a", type="qq"),
         )
         response_data = json.loads(response.data)
-        assert len(response_data["data"]) == 100
+        assert all(len(response_data[prop]) == 100 for prop in ["x", "y", "x2", "y2"])

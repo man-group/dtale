@@ -8,6 +8,7 @@ import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
+import ColumnNavigation from "../../popups/describe/ColumnNavigation";
 import { Details } from "../../popups/describe/Details";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 
@@ -65,21 +66,23 @@ class ReactDescribePanel extends React.Component {
         "_blank"
       );
     };
+    const propagateState = state => this.setState(state);
     return (
       <BouncerWrapper showBouncer={this.state.loadingDtypes}>
+        <ColumnNavigation {...{ ...this.state, propagateState }} />
         <Details
           selected={this.state.selected}
           dataId={dataId}
           dtypes={this.state.dtypes}
           close={
             <>
-              <div className="col-auto pr-0">
+              <div className="col-auto pr-0 mb-auto mt-auto">
                 <button className="btn btn-plain" onClick={openTab}>
                   <i className="ico-open-in-new pointer" />
                   <span className="align-middle">{t("side:Open In New Tab")}</span>
                 </button>
               </div>
-              <div className="col-auto">
+              <div className="col-auto mb-auto mt-auto">
                 <button className="btn btn-plain" onClick={hideSidePanel}>
                   <i className="ico-close pointer" />
                   <span className="align-middle">{t("side:Close")}</span>

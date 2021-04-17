@@ -725,7 +725,8 @@
     "Max": "最大值",
     "Asc": "Asc",
     "Desc": "Desc",
-    "None": "None"
+    "None": "None",
+    "navigate": "Use ↑ ↓ buttons to switch columns"
   },
   "constants": {
     "Histogram": "直方图",
@@ -755,7 +756,8 @@
     "Mean Absolute Deviation": "平均绝对偏差",
     "Product of All Items": "所有项目的产品",
     "Percentage Sum": "Percentage Sum",
-    "Copied to clipboard": "Copied to clipboard"
+    "Copied to clipboard": "Copied to clipboard",
+    "navigate": "Use ← → buttons to switch charts"
   },
   "charts": {
     "Window": "窗口",

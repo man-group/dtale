@@ -11,6 +11,7 @@ class DetailsCharts extends React.Component {
     super(props);
     this.state = {
       chart: null,
+      chartRef: React.createRef(),
       type: "boxplot",
       error: null,
       chartParams: null,

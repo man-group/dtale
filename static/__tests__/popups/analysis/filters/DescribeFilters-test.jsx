@@ -1,6 +1,7 @@
 import { shallow } from "enzyme";
 import _ from "lodash";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 
 import { expect, it } from "@jest/globals";
 
@@ -126,6 +127,33 @@ describe("DescribeFilters tests", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(1);
       expect(result.find(CategoryInputs)).toHaveLength(0);
       expect(result.find(TextEnterFilter)).toHaveLength(1);
+    });
+  });
+
+  describe("chart navigation", () => {
+    const move = prop => result.find(GlobalHotKeys).props().handlers[prop]();
+
+    it("moves selected chart on LEFT", () => {
+      result.setState({ type: "histogram" });
+      move("LEFT");
+      expect(result.state().type).toBe("boxplot");
+    });
+
+    it("moves selected chart on RIGHT", () => {
+      move("RIGHT");
+      expect(result.state().type).toBe("histogram");
+    });
+
+    it("does nothing on RIGHT if at last chart", () => {
+      result.setState({ type: "qq" });
+      move("RIGHT");
+      expect(result.state().type).toBe("qq");
+    });
+
+    it("does nothing on LEFT if at first chart", () => {
+      result.setState({ type: "boxplot" });
+      move("LEFT");
+      expect(result.state().type).toBe("boxplot");
     });
   });
 });

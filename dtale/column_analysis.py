@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objs as go
 import pprint
 import scipy.stats as sts
@@ -541,9 +542,14 @@ class QQAnalysis(object):
         qq_x, qq_y = sts.probplot(s, dist="norm", fit=False)
         qq = pd.DataFrame(dict(x=qq_x, y=qq_y))
         f = grid_formatter(grid_columns(qq), nan_display=None)
-        return_data = dict(data=f.format_dicts(qq.itertuples()))
-        return_data["min"] = f.fmts[0][-1](qq.min()[0].min(), None)
-        return_data["max"] = f.fmts[0][-1](qq.max()[0].max(), None)
+        return_data = f.format_lists(qq)
+
+        trend_line = px.scatter(x=qq_x, y=qq_y, trendline="ols").data[1]
+        trend_line = pd.DataFrame(dict(x=trend_line["x"], y=trend_line["y"]))
+        f = grid_formatter(grid_columns(trend_line), nan_display=None)
+        trend_line = f.format_lists(trend_line)
+        return_data["x2"] = trend_line["x"]
+        return_data["y2"] = trend_line["y"]
         return return_data, self._build_code(parent)
 
     def _build_code(self, parent):
@@ -569,13 +575,9 @@ class QQAnalysis(object):
                 ).format(col=parent.selected_col)
             )
         code += [
-            "\nimport scipy.stats as sts\n",
+            "\nimport scipy.stats as sts\nimport plotly.express as px\n",
             'qq_x, qq_y = sts.probplot(s, dist="norm", fit=False)',
-            "charts = go.Scatter(",
-            "\tx=qq_x," "\ty=qq_y," "\tmode='markers',",
-            "\topacity=0.7,",
-            "\tmarker={'size': 15, 'line': {'width': 0.5, 'color': 'white'}}",
-            ")",
-            "figure = go.Figure(data=charts, layout=go.{layout})".format(layout=layout),
+            "chart = px.scatter(x=qq_x, y=qq_y, trendline='ols', trendline_color_override='red')",
+            "figure = go.Figure(data=chart, layout=go.{layout})".format(layout=layout),
         ]
         return code

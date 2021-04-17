@@ -13,6 +13,8 @@
 
 ### 1.41.1 (2021-3-30)
 * [#458](https://github.com/man-group/dtale/issues/458): fix for killing D-Tale sessions in jupyter_server_proxy
+* [#378](https://github.com/man-group/dtale/issues/378): add cleaning functions to chart inputs
+
 
 ### 1.41.0 (2021-3-26)
 * [#390](https://github.com/man-group/dtale/issues/390): funnel charts

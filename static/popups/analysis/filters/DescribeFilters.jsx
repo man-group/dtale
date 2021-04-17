@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import { GlobalHotKeys } from "react-hotkeys";
 import { withTranslation } from "react-i18next";
 
 import ButtonToggle from "../../../ButtonToggle";
@@ -60,9 +61,9 @@ class DescribeFilters extends React.Component {
   }
 
   buildChartTypeToggle() {
-    const { dtype, cols, selectedCol } = this.props;
+    const { dtype, cols, selectedCol, t } = this.props;
     const colType = gu.findColType(dtype);
-    const translatedTitles = titles(this.props.t);
+    const translatedTitles = titles(t);
     const options = [{ label: translatedTitles.boxplot, value: "boxplot" }];
     const isFid = _.includes(["float", "int", "date"], colType);
     if (isFid) {
@@ -95,7 +96,27 @@ class DescribeFilters extends React.Component {
       options.push({ label: translatedTitles.qq, value: "qq" });
     }
     const update = value => this.setState({ type: value }, this.buildChart);
-    return <ButtonToggle options={options} update={update} defaultValue={this.state.type} />;
+    const toggleLeft = () => {
+      const { type } = this.state;
+      const selectedIndex = _.findIndex(options, { value: type });
+      if (selectedIndex > 0) {
+        update(options[selectedIndex - 1].value);
+      }
+    };
+    const toggleRight = () => {
+      const { type } = this.state;
+      const selectedIndex = _.findIndex(options, { value: type });
+      if (selectedIndex < _.size(options) - 1) {
+        update(options[selectedIndex + 1].value);
+      }
+    };
+    return (
+      <>
+        <GlobalHotKeys keyMap={{ LEFT: "left", RIGHT: "right" }} handlers={{ LEFT: toggleLeft, RIGHT: toggleRight }} />
+        <ButtonToggle options={options} update={update} defaultValue={this.state.type} />
+        <small className="d-block pl-4 pt-3">({t("constants:navigate")})</small>
+      </>
+    );
   }
 
   buildFilter(prop) {

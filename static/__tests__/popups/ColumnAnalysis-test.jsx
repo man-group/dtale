@@ -112,18 +112,21 @@ describe("ColumnAnalysis tests", () => {
               });
             }
             if (params.type === "geolocation") {
-              return _.assignIn({}, ANALYSIS_DATA, {
+              return {
+                ...ANALYSIS_DATA,
                 chart_type: "geolocation",
                 lat: [1, 2, 3],
                 lon: [4, 5, 6],
-              });
+              };
             }
             if (params.type === "qq") {
               return {
+                ...ANALYSIS_DATA,
                 chart_type: "qq",
-                data: [{ x: 1, y: 1 }],
-                min: 1,
-                max: 1,
+                x: [1],
+                y: [1],
+                x2: [1],
+                y2: [1],
               };
             }
             return ANALYSIS_DATA;
@@ -215,7 +218,7 @@ describe("ColumnAnalysis tests", () => {
   it("qq plot chart functionality", async () => {
     result.find("ButtonToggle").find("button").last().simulate("click");
     await tickUpdate(result);
-    expect(chart().cfg.type).toBe("scatter");
+    expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
   });
 
   it("ColumnAnalysis rendering int data", async () => {

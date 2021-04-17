@@ -8,6 +8,7 @@ import { RemovableError } from "../../RemovableError";
 import { dtypesUrl } from "../../actions/url-utils";
 import serverState from "../../dtale/serverStateManagement";
 import { fetchJson } from "../../fetcher";
+import ColumnNavigation from "./ColumnNavigation";
 import { Details } from "./Details";
 import DtypesGrid from "./DtypesGrid";
 
@@ -66,6 +67,7 @@ class Describe extends React.Component {
     const propagateState = state => this.setState(state);
     return [
       <div key="body" className="modal-body describe-body">
+        <ColumnNavigation {...{ ...this.state, propagateState }} />
         <div className="row">
           <div className="col-md-5 describe-dtypes-grid-col">
             <BouncerWrapper showBouncer={this.state.loadingDtypes}>

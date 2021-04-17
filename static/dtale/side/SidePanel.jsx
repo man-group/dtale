@@ -16,7 +16,7 @@ class ReactSidePanel extends React.Component {
   render() {
     const { visible, view, hideSidePanel } = this.props;
     return (
-      <div className={`side-panel-content${visible ? " is-expanded" : ""} ${view} p-5`}>
+      <div className={`side-panel-content${visible ? " is-expanded" : ""} ${view} pl-5 pr-5 pt-3`}>
         {visible && <GlobalHotKeys keyMap={{ CLOSE_PANEL: "esc" }} handlers={{ CLOSE_PANEL: hideSidePanel }} />}
         <DescribePanel />
         {visible && view === "missingno" && <MissingNoCharts />}

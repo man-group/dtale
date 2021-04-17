@@ -626,7 +626,10 @@ def build_scatter_trendline(x, y, trendline, data_id, x_col, y_col):
         return s
 
     fig = px.scatter(
-        x=_format_data(x, x_col), y=_format_data(y, y_col), trendline=trendline
+        x=_format_data(x, x_col),
+        y=_format_data(y, y_col),
+        trendline=trendline,
+        trendline_color_override="red",
     )
     return fig.data[1]
 
@@ -827,9 +830,14 @@ def scatter_code_builder(
     data = "chart"
     if trendline:
         code.append(
-            "trendline = px.scatter(x=chart_data['x'], y='{y}', trendline='{trendline}').data[1]".format(
-                y=y_val, trendline=trendline
-            )
+            (
+                "trendline = px.scatter(\n"
+                "\tx=chart_data['x'],\n"
+                "\ty='{y}',\n"
+                "\ttrendline='{trendline}',\n"
+                "\ttrendline_color_override='red',\n"
+                ").data[1]"
+            ).format(y=y_val, trendline=trendline)
         )
         data = "chart, trendline"
 
