@@ -43,6 +43,7 @@ describe("reducer tests", () => {
       sidePanel: {
         visible: false,
       },
+      columnsToToggle: null,
     };
     expect(state).toEqual(store.getState());
   });

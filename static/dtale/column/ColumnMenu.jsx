@@ -95,7 +95,10 @@ class ReactColumnMenu extends React.Component {
     if (!selectedCol) {
       return null;
     }
-    const colCfg = _.find(this.props.columns, { name: selectedCol }) || {};
+    const colCfg = {
+      ...(_.find(this.props.columns, { name: selectedCol }) || {}),
+      ..._.get(this.props, ["filteredRanges", "dtypes", selectedCol], {}),
+    };
     const unlocked = _.get(colCfg, "locked", false) === false;
     const openPopup = (type, height = 450, width = 500) => () => {
       if (menuFuncs.shouldOpenPopup(height, width)) {
@@ -236,7 +239,7 @@ class ReactColumnMenu extends React.Component {
             label={
               <>
                 {t("menu:Describe")}
-                <small className="pl-3">({t("menu:Column Analysis")})</small>
+                <small className="pl-3">({t("column_menu:Column Analysis")})</small>
               </>
             }
             iconClass="ico-view-column"
@@ -272,10 +275,11 @@ ReactColumnMenu.propTypes = {
   t: PropTypes.func,
   ribbonMenuOpen: PropTypes.bool,
   showSidePanel: PropTypes.func,
+  filteredRanges: PropTypes.object,
 };
 const TranslatedReactColumnMenu = withTranslation(["menu", "column_menu", "builders"])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
-  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "isPreview", "ribbonMenuOpen"]),
+  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "isPreview", "ribbonMenuOpen", "filteredRanges"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),

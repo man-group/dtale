@@ -3,9 +3,13 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
+import CorrelationsOption from "../../../dtale/menu/CorrelationsOption";
 import ExportOption from "../../../dtale/menu/ExportOption";
 import { MenuItem } from "../../../dtale/menu/MenuItem";
 import MergeOption from "../../../dtale/menu/MergeOption";
+import MissingOption from "../../../dtale/menu/MissingOption";
+import { PPSOption } from "../../../dtale/menu/PPSOption";
+import ShowHideColumnsOption from "../../../dtale/menu/ShowHideColumnsOption";
 import menuFuncs from "../../../dtale/menu/dataViewerMenuUtils";
 import { DataMenuItem } from "../../../dtale/ribbon/DataMenuItem";
 import { ReactRibbonDropdown } from "../../../dtale/ribbon/RibbonDropdown";
@@ -52,6 +56,7 @@ describe("RibbonDropdown", () => {
       columns: [],
       propagateState: jest.fn(),
       openChart: jest.fn(),
+      showSidePanel: jest.fn(),
       dataId: "1",
     };
     wrapper = shallow(<ReactRibbonDropdown {...props} />);
@@ -115,11 +120,21 @@ describe("RibbonDropdown", () => {
   it("renders actions successfully", async () => {
     await setupElementAndDropdown("actions");
     expect(wrapper.find("ul")).toHaveLength(1);
+    wrapper.find(ShowHideColumnsOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("show_hide");
+    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
   });
 
   it("renders visualize successfully", async () => {
     await setupElementAndDropdown("visualize");
     expect(wrapper.find("ul")).toHaveLength(1);
+    wrapper.find(MissingOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("missingno");
+    wrapper.find(CorrelationsOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("correlations");
+    wrapper.find(PPSOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("pps");
+    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(3);
   });
 
   it("renders highlight successfully", async () => {

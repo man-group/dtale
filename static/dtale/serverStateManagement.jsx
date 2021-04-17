@@ -166,7 +166,11 @@ function updateLanguage(language, callback) {
 }
 
 function loadFilteredRanges(dataId, callback) {
-  fetchJson(buildURLString(`/dtale/load-filtered-ranges/${dataId}`), callback);
+  fetchJsonPromise(buildURLString(`/dtale/load-filtered-ranges/${dataId}`))
+    .then(callback)
+    .catch((e, callstack) => {
+      logException(e, callstack);
+    });
 }
 
 export default {

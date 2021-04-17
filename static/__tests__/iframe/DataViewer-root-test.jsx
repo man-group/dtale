@@ -36,7 +36,7 @@ describe("DataViewer iframe tests", () => {
     innerWidth: 500,
     innerHeight: 500,
   });
-  let result, DataViewer;
+  let result, DataViewer, store;
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -65,7 +65,7 @@ describe("DataViewer iframe tests", () => {
   });
 
   beforeEach(async () => {
-    const store = reduxUtils.createDtaleStore();
+    store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "", iframe: "True" }, store);
     result = mount(
       <Provider store={store}>
@@ -95,7 +95,10 @@ describe("DataViewer iframe tests", () => {
     clickMainMenuButton(result, "Describe");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/test-route/dtale/popup/describe/1");
     clickMainMenuButton(result, "Correlations");
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/test-route/dtale/popup/correlations/1");
+    expect(store.getState().sidePanel).toEqual({
+      visible: true,
+      view: "correlations",
+    });
     clickMainMenuButton(result, "Charts");
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe("/test-route/dtale/charts/1");
     clickMainMenuButton(result, "Instances 1");

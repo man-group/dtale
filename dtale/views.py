@@ -645,7 +645,7 @@ def calc_data_ranges(data):
         return {}
 
 
-def build_dtypes_state(data, prev_state=None):
+def build_dtypes_state(data, prev_state=None, ranges=None):
     """
     Helper function to build globally managed state pertaining to a D-Tale instances columns & data types
 
@@ -654,8 +654,9 @@ def build_dtypes_state(data, prev_state=None):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     prev_dtypes = {c["name"]: c for c in prev_state or []}
-    ranges = calc_data_ranges(data)
-    dtype_f = dtype_formatter(data, get_dtypes(data), ranges, prev_dtypes)
+    dtype_f = dtype_formatter(
+        data, get_dtypes(data), ranges or calc_data_ranges(data), prev_dtypes
+    )
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
 
@@ -2214,7 +2215,7 @@ def get_data(data_id):
     """
     data = global_state.get_data(data_id)
 
-    # this will check for when someone instantiates D-Tale programatically and directly alters the internal
+    # this will check for when someone instantiates D-Tale programmatically and directly alters the internal
     # state of the dataframe (EX: d.data['new_col'] = 'foo')
     curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
     if any(c not in curr_dtypes for c in data.columns):
@@ -2300,11 +2301,16 @@ def load_filtered_ranges(data_id):
 
     numeric_cols = [col for col in data.columns if _filter_numeric(col)]
     filtered_ranges = calc_data_ranges(data[numeric_cols])
+    updated_dtypes = build_dtypes_state(
+        data, global_state.get_dtypes(data_id) or [], filtered_ranges
+    )
+    updated_dtypes = {col["name"]: col for col in updated_dtypes}
     overall_min = min([v["min"] for v in filtered_ranges.values()])
     overall_max = max([v["max"] for v in filtered_ranges.values()])
     curr_settings["filteredRanges"] = dict(
         query=final_query,
         ranges=filtered_ranges,
+        dtypes=updated_dtypes,
         overall=dict(min=overall_min, max=overall_max),
     )
     global_state.set_settings(data_id, curr_settings)

@@ -7,6 +7,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import DimensionsHelper from "../../DimensionsHelper";
+import { MockComponent } from "../../MockComponent";
 import mockPopsicle from "../../MockPopsicle";
 import correlationsData from "../../data/correlations";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../../test-utils";
@@ -28,6 +29,10 @@ describe("Correlations tests", () => {
   });
 
   beforeAll(() => {
+    // Mock for redux purposes
+    jest.mock("../../../dtale/side/SidePanelButtons", () => ({
+      SidePanelButtons: MockComponent,
+    }));
     dimensions.beforeAll();
     mockChartJS();
     const mockBuildLibs = withGlobalJquery(() =>

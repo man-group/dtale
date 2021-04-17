@@ -5,11 +5,19 @@ import { expect, it } from "@jest/globals";
 
 import { ReactMissingNoCharts } from "../../../dtale/side/MissingNoCharts";
 import * as fetcher from "../../../fetcher";
+import FilterSelect from "../../../popups/analysis/filters/FilterSelect";
+import ColumnSelect from "../../../popups/create/ColumnSelect";
 import reduxUtils from "../../redux-test-utils";
 import { tick } from "../../test-utils";
 
 describe("MissingNoCharts", () => {
   let wrapper, props, fetchJsonSpy;
+  const { open } = window;
+
+  beforeAll(() => {
+    delete window.open;
+    window.open = jest.fn();
+  });
 
   beforeEach(async () => {
     fetchJsonSpy = jest.spyOn(fetcher, "fetchJson");
@@ -26,7 +34,10 @@ describe("MissingNoCharts", () => {
 
   afterEach(() => jest.clearAllMocks());
 
-  afterAll(() => jest.restoreAllMocks());
+  afterAll(() => {
+    jest.restoreAllMocks();
+    window.open = open;
+  });
 
   it("renders successfully", () => {
     expect(wrapper.find("img")).toHaveLength(1);
@@ -50,11 +61,19 @@ describe("MissingNoCharts", () => {
     expect(wrapper.state().fileUrl.startsWith("/dtale/missingno/heatmap/1?date_index=&freq=BQ&file=true")).toBeTruthy();
   });
 
-  it("includes date col & freq in matrix chart", () => {
-    wrapper.setState({ dateCol: wrapper.state().dateCols[0] });
-    const imageUrl = wrapper.state().imageUrl;
-    const imageUrlExpected = "/dtale/missingno/matrix/1?date_index=&freq=BQ";
-    expect(imageUrl.startsWith(imageUrlExpected)).toBeTruthy();
+  it("includes date col & freq in matrix chart", async () => {
+    const currState = wrapper.state();
+    wrapper.find(ColumnSelect).first().props().updateState({ dateCol: currState.dateCols[0] });
+    const freqSelect = wrapper.find(FilterSelect).first().props();
+    freqSelect.selectProps.onChange(freqSelect.selectProps.options[1]);
+    wrapper.update();
+    await tick();
+    wrapper.find("button").first().simulate("click");
+    let urlExpected = "/dtale/missingno/matrix/1?date_index=col4&freq=C";
+    expect(window.open.mock.calls[0][0].startsWith(urlExpected)).toBeTruthy();
+    wrapper.find("button").at(1).simulate("click");
+    urlExpected = `${urlExpected}&file=true`;
+    expect(window.open.mock.calls[1][0].startsWith(urlExpected)).toBeTruthy();
   });
 
   it("image loading updates state", () => {
@@ -64,6 +83,15 @@ describe("MissingNoCharts", () => {
 
   it("shows error when image cannot be rendered", () => {
     wrapper.find("img").props().onError();
+    expect(wrapper.state().error).toBeDefined();
+  });
+
+  it("handles dtype loading error gracefully", async () => {
+    fetchJsonSpy.mockImplementation((_url, callback) => {
+      callback({ error: "dtype error", success: false });
+    });
+    wrapper = shallow(<ReactMissingNoCharts {...props} />);
+    await tick();
     expect(wrapper.state().error).toBeDefined();
   });
 });

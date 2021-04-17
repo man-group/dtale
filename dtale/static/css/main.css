@@ -8747,6 +8747,28 @@ caption {
   text-align: center;
 }
 
+.sort-menu-toggle .column-toggle__dropdown {
+  position: fixed;
+  min-width: 11em;
+  top: 1em;
+  left: 1em;
+}
+
+.filter-menu-toggle .column-toggle__dropdown {
+  position: fixed;
+  min-width: 11em;
+  top: 1em;
+  left: 50%;
+}
+
+.hidden-menu-toggle .column-toggle__dropdown {
+  position: fixed;
+  min-width: 11em;
+  top: 1em;
+  left: unset;
+  right: 1em;
+}
+
 .pinned-data-viewer-menu {
   top: 100%;
   -webkit-box-shadow: 0 0 0 1px rgba(101, 108, 126, 0.5) inset, 0 1px 3px 1px rgba(64, 64, 64, 0.2);
