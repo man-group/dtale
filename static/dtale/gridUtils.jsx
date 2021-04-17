@@ -280,4 +280,12 @@ EXPORTS.refreshColumns = (data, columns, state) => {
   return _.assignIn({ ...state, columns: finalColumns }, EXPORTS.getTotalRange(finalColumns));
 };
 
+EXPORTS.toggleColumns = ({ columns }, { columnsToToggle }) => ({
+  columns: columns.map(col => ({
+    ...col,
+    visible: columnsToToggle[col.name] ?? col.visible,
+  })),
+  triggerResize: true,
+});
+
 export { EXPORTS as exports };

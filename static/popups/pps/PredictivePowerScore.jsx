@@ -72,6 +72,7 @@ class PredictivePowerScore extends React.Component {
               buildScatter={selectedCols => this.setState({ selectedCols })}
               selectedCols={selectedCols}
               colorScale={corrUtils.ppsScale}
+              isPPS={true}
               {...this.state}
             />
             {ppsInfo !== undefined && (

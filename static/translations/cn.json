@@ -46,7 +46,8 @@
     "Actions": "Actions",
     "Visualize": "Visualize",
     "Highlight": "Highlight",
-    "Missing Analysis": "Missing Analysis"
+    "Missing Analysis": "Missing Analysis",
+    "show_hide": "Show/Hide Columns"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -435,7 +436,7 @@
     "No columns found": "No columns found",
     "View Correlation(s) For": "View Correlation(s) For",
     "Pearson Correlation Matrix": "Pearson Correlation Matrix",
-    "(Click on any cell to view the details of that correlation)": "(Click on any cell to view the details of that correlation)",
+    "Click on any cell to view the details of that correlation": "Click on any cell to view the details of that correlation",
     "Timeseries of Pearson Correlation for": "Timeseries of Pearson Correlation for",
     "Rolling Pearson Correlation (window": "Rolling Pearson Correlation (window",
     " for ": " for ",

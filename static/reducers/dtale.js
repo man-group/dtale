@@ -246,6 +246,17 @@ function sidePanel(state = { visible: false }, action = {}) {
   }
 }
 
+function columnsToToggle(state = null, action = {}) {
+  switch (action.type) {
+    case "toggle-columns":
+      return action.columns;
+    case "clear-toggled-columns":
+      return null;
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -268,6 +279,7 @@ const dtaleStore = combineReducers({
   ribbonMenuOpen,
   ribbonDropdown,
   sidePanel,
+  columnsToToggle,
 });
 
 export default { store: dtaleStore, getHiddenValue, toJson };

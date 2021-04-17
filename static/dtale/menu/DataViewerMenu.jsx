@@ -41,7 +41,7 @@ class ReactDataViewerMenu extends React.Component {
   render() {
     const { menuOpen, menuPinned, backgroundMode, t } = this.props;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
-    const { openTab, openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
+    const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
     const refreshWidths = () =>
       this.props.propagateState({
         columns: _.map(this.props.columns, c => _.assignIn({}, c)),
@@ -79,8 +79,8 @@ class ReactDataViewerMenu extends React.Component {
             <SummarizeOption open={openPopup("reshape", 400, 770)} />
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
             <MissingOption open={() => this.props.showSidePanel("missingno")} />
-            <CorrelationsOption open={openTab("correlations")} />
-            <PPSOption open={openTab("pps")} />
+            <CorrelationsOption open={() => this.props.showSidePanel("correlations")} />
+            <PPSOption open={() => this.props.showSidePanel("pps")} />
             <ChartsOption open={buttonHandlers.CHARTS} />
             <NetworkOption open={buttonHandlers.NETWORK} />
             <HeatMapOption backgroundMode={backgroundMode} toggleBackground={toggleBackground} />

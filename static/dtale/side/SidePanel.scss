@@ -9,13 +9,21 @@
   padding: 0;
   height: calc(100vh);
   z-index: 10;
+  background: white;
 
   &.is-expanded {
     width: calc(50vw);
   }
 
-  &.is-expanded.missingno {
+  &.is-expanded.missingno,
+  &.is-expanded.correlations,
+  &.is-expanded.pps {
     width: calc(75vw);
+  }
+
+  &.is-expanded.correlations .modal-body,
+  &.is-expanded.pps .modal-body {
+    padding: 0;
   }
 }
 
@@ -29,6 +37,10 @@
   }
 
   &.is-half.missingno {
+    width: 25%;
+  }
+
+  &.is-half.correlations {
     width: 25%;
   }
 }

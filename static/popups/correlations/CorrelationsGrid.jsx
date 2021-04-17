@@ -10,6 +10,7 @@ import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { exports as gu } from "../../dtale/gridUtils";
+import { SidePanelButtons } from "../../dtale/side/SidePanelButtons";
 import { renderCodePopupAnchor } from "../CodePopup";
 import CorrelationsCell from "./CorrelationsCell";
 import corrUtils from "./correlationsUtils";
@@ -107,8 +108,17 @@ class CorrelationsGrid extends React.Component {
     const { correlations, columns, col1, col2 } = this.state;
     return (
       <BouncerWrapper showBouncer={_.isEmpty(this.props.correlations)}>
-        <b>{t("correlations:Pearson Correlation Matrix")}</b>
-        <small className="pl-3">{t("correlations:(Click on any cell to view the details of that correlation)")}</small>
+        <div className="row pb-5">
+          <div className="col-auto p-0">
+            <h2 className="m-0">
+              {!this.props.isPPS && t("correlations:Pearson Correlation Matrix")}
+              {this.props.isPPS && t("menu:Predictive Power Score")}
+            </h2>
+            <small>({t("correlations:Click on any cell to view the details of that correlation")})</small>
+          </div>
+          <div className="col" />
+          <SidePanelButtons />
+        </div>
         <AutoSizer className="correlations-grid" disableHeight>
           {({ width }) => [
             <div key={0} style={{ width }} className="row pt-3 pb-3 correlations-filters">
@@ -158,7 +168,12 @@ CorrelationsGrid.propTypes = {
   theme: PropTypes.string,
   colorScale: PropTypes.func,
   t: PropTypes.func,
+  close: PropTypes.node,
+  isPPS: PropTypes.bool,
 };
-CorrelationsGrid.defaultProps = { colorScale: corrUtils.colorScale };
+CorrelationsGrid.defaultProps = {
+  colorScale: corrUtils.colorScale,
+  isPPS: false,
+};
 
 export default withTranslation(["correlations", "menu"])(CorrelationsGrid);
