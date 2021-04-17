@@ -95,10 +95,7 @@ class ReactDataViewerInfo extends React.Component {
       label,
       <div key={1} className="pl-3 d-inline-block sort-menu-toggle" onClick={clickHandler}>
         <span className="pointer">{sortText}</span>
-        <div
-          className="column-toggle__dropdown"
-          hidden={this.state.menuOpen !== "sort"}
-          style={{ minWidth: "11em", top: "1em" }}>
+        <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== "sort"}>
           <ul>
             {_.map(sortInfo, ([col, dir]) => {
               const dropSort = () => propagateState({ sortInfo: _.reject(sortInfo, { 0: col }) });
@@ -163,10 +160,7 @@ class ReactDataViewerInfo extends React.Component {
       label,
       <div key={1} className="pl-3 d-inline-block filter-menu-toggle" onClick={clickHandler}>
         <span className="pointer">{filterText}</span>
-        <div
-          className="column-toggle__dropdown"
-          hidden={this.state.menuOpen !== "filter"}
-          style={{ minWidth: "8em", top: "1em" }}>
+        <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== "filter"}>
           <ul>
             {displayQueries(this.props, "columnFilters")}
             {displayQueries(this.props, "outlierFilters")}
@@ -231,10 +225,7 @@ class ReactDataViewerInfo extends React.Component {
       label,
       <div key={1} className="pl-3 d-inline-block hidden-menu-toggle" onClick={clickHandler}>
         <span className="pointer">{hiddenText}</span>
-        <div
-          className="column-toggle__dropdown"
-          hidden={this.state.menuOpen !== "hidden"}
-          style={{ minWidth: "11em", top: "1em", left: "unset", right: "-2em" }}>
+        <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== "hidden"}>
           <ul>
             {_.map(hidden, (col, i) => {
               const unhideCol = () => {

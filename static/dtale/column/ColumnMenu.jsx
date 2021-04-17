@@ -138,7 +138,10 @@ class ReactColumnMenu extends React.Component {
         const updatedColumns = _.map(this.props.columns, c =>
           _.assignIn({}, c, c.name === selectedCol ? { visible: !c.visible } : {})
         );
-        this.props.propagateState({ columns: updatedColumns });
+        this.props.propagateState({
+          columns: updatedColumns,
+          triggerResize: true,
+        });
       };
       serverState.toggleVisibility(dataId, selectedCol, hideCallback);
     };

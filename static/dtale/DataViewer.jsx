@@ -99,6 +99,10 @@ class ReactDataViewer extends React.Component {
         },
       });
     }
+
+    if (this.props.columnsToToggle) {
+      this.setState(gu.toggleColumns(this.state, this.props), this.props.clearToggledColumns);
+    }
   }
 
   getData(ids, refresh = false) {
@@ -278,13 +282,16 @@ ReactDataViewer.propTypes = {
   updateFilteredRanges: PropTypes.func,
   menuPinned: PropTypes.bool,
   ribbonMenuOpen: PropTypes.bool,
+  columnsToToggle: PropTypes.object,
+  clearToggledColumns: PropTypes.func,
 };
 const ReduxDataViewer = connect(
-  state => _.pick(state, ["dataId", "iframe", "theme", "settings", "menuPinned", "ribbonMenuOpen"]),
+  state => _.pick(state, ["dataId", "iframe", "theme", "settings", "menuPinned", "ribbonMenuOpen", "columnsToToggle"]),
   dispatch => ({
     closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
     openChart: chartProps => dispatch(openChart(chartProps)),
     updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
+    clearToggledColumns: () => dispatch({ type: "clear-toggled-columns" }),
   })
 )(ReactDataViewer);
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

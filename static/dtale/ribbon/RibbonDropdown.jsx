@@ -30,6 +30,7 @@ import NewTabOption from "../menu/NewTabOption";
 import { PPSOption } from "../menu/PPSOption";
 import RangeHighlightOption from "../menu/RangeHighlightOption";
 import ReloadOption from "../menu/ReloadOption";
+import ShowHideColumnsOption from "../menu/ShowHideColumnsOption";
 import { ShutdownOption } from "../menu/ShutdownOption";
 import SummarizeOption from "../menu/SummarizeOption";
 import { ThemeOption } from "../menu/ThemeOption";
@@ -116,7 +117,7 @@ class ReactRibbonDropdown extends React.Component {
     };
     const { processes } = this.state;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
-    const { openTab, openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
+    const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
     const ribbonExport = ext => () => {
       exportFile(ext)();
       this.props.hideRibbonMenu();
@@ -161,6 +162,7 @@ class ReactRibbonDropdown extends React.Component {
         )}
         {name === "actions" && visible && (
           <ul>
+            <ShowHideColumnsOption open={hideWrapper(() => this.props.showSidePanel("show_hide"))} />
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <FilterOption open={hideWrapper(buttonHandlers.FILTER)} />
             <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />
@@ -173,8 +175,8 @@ class ReactRibbonDropdown extends React.Component {
             <DescribeOption open={hideWrapper(buttonHandlers.DESCRIBE)} />
             <DuplicatesOption open={hideWrapper(buttonHandlers.DUPLICATES)} />
             <MissingOption open={hideWrapper(() => this.props.showSidePanel("missingno"))} />
-            <CorrelationsOption open={hideWrapper(openTab("correlations"))} />
-            <PPSOption open={hideWrapper(openTab("pps"))} />
+            <CorrelationsOption open={hideWrapper(() => this.props.showSidePanel("correlations"))} />
+            <PPSOption open={hideWrapper(() => this.props.showSidePanel("pps"))} />
             <ChartsOption open={hideWrapper(buttonHandlers.CHARTS)} />
             <NetworkOption open={hideWrapper(buttonHandlers.NETWORK)} />
           </ul>
