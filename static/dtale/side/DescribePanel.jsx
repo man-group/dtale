@@ -79,7 +79,12 @@ class ReactDescribePanel extends React.Component {
               selected={this.state.selected}
               dataId={dataId}
               dtypes={this.state.dtypes}
-              close={<SidePanelButtons />}
+              close={
+                <>
+                  <SidePanelButtons />
+                  <div style={{ paddingRight: "15px" }} />
+                </>
+              }
             />
           </>
         )}

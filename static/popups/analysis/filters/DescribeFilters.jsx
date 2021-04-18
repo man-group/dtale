@@ -44,6 +44,10 @@ class DescribeFilters extends React.Component {
     this.buildGeoFilter = this.buildGeoFilter.bind(this);
     this.updateOrdinal = this.updateOrdinal.bind(this);
     this.updateCategory = this.updateCategory.bind(this);
+    this.buildChartOptions = this.buildChartOptions.bind(this);
+    this.updateChartType = this.updateChartType.bind(this);
+    this.toggleLeft = this.toggleLeft.bind(this);
+    this.toggleRight = this.toggleRight.bind(this);
   }
 
   shouldComponentUpdate(newProps, newState) {
@@ -60,7 +64,7 @@ class DescribeFilters extends React.Component {
     }
   }
 
-  buildChartTypeToggle() {
+  buildChartOptions() {
     const { dtype, cols, selectedCol, t } = this.props;
     const colType = gu.findColType(dtype);
     const translatedTitles = titles(t);
@@ -95,26 +99,40 @@ class DescribeFilters extends React.Component {
     if (isFid) {
       options.push({ label: translatedTitles.qq, value: "qq" });
     }
-    const update = value => this.setState({ type: value }, this.buildChart);
-    const toggleLeft = () => {
-      const { type } = this.state;
-      const selectedIndex = _.findIndex(options, { value: type });
-      if (selectedIndex > 0) {
-        update(options[selectedIndex - 1].value);
-      }
-    };
-    const toggleRight = () => {
-      const { type } = this.state;
-      const selectedIndex = _.findIndex(options, { value: type });
-      if (selectedIndex < _.size(options) - 1) {
-        update(options[selectedIndex + 1].value);
-      }
-    };
+    return options;
+  }
+
+  updateChartType(type) {
+    this.setState({ type }, this.buildChart);
+  }
+
+  toggleLeft() {
+    const { type } = this.state;
+    const options = this.buildChartOptions();
+    const selectedIndex = _.findIndex(options, { value: type });
+    if (selectedIndex > 0) {
+      this.updateChartType(options[selectedIndex - 1].value);
+    }
+  }
+
+  toggleRight() {
+    const { type } = this.state;
+    const options = this.buildChartOptions();
+    const selectedIndex = _.findIndex(options, { value: type });
+    if (selectedIndex < _.size(options) - 1) {
+      this.updateChartType(options[selectedIndex + 1].value);
+    }
+  }
+
+  buildChartTypeToggle() {
     return (
       <>
-        <GlobalHotKeys keyMap={{ LEFT: "left", RIGHT: "right" }} handlers={{ LEFT: toggleLeft, RIGHT: toggleRight }} />
-        <ButtonToggle options={options} update={update} defaultValue={this.state.type} />
-        <small className="d-block pl-4 pt-3">({t("constants:navigate")})</small>
+        <GlobalHotKeys
+          keyMap={{ LEFT: "left", RIGHT: "right" }}
+          handlers={{ LEFT: this.toggleLeft, RIGHT: this.toggleRight }}
+        />
+        <ButtonToggle options={this.buildChartOptions()} update={this.updateChartType} defaultValue={this.state.type} />
+        <small className="d-block pl-4 pt-3">({this.props.t("constants:navigate")})</small>
       </>
     );
   }
