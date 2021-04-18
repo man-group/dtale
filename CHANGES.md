@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.43.0 (2021-4-18)
+* [#463](https://github.com/man-group/dtale/issues/463): skew & kurtosis on filtered data
+* Moved Correlations & PPS to side panel
+* Added "Show/Hide Columns" side-panel
+* [#462](https://github.com/man-group/dtale/issues/462): Graphs slow with big data
+
 ### 1.42.1 (2021-4-12)
 * added ESC button handler for closing the side panel
 
