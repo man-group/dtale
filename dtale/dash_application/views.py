@@ -228,6 +228,7 @@ def init_callbacks(dash_app):
             Input("window-input", "value"),
             Input("rolling-comp-dropdown", "value"),
             Input("load-input", "value"),
+            Input("load-type-dropdown", "value"),
             Input("cleaners-dropdown", "value"),
         ],
         [
@@ -254,6 +255,7 @@ def init_callbacks(dash_app):
         window,
         rolling_comp,
         load,
+        load_type,
         cleaners,
         pathname,
         query,
@@ -285,6 +287,7 @@ def init_callbacks(dash_app):
             window=window,
             rolling_comp=rolling_comp,
             load=load,
+            load_type=load_type,
             cleaners=make_list(cleaners),
         )
         options = build_input_options(

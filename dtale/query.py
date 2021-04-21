@@ -25,7 +25,9 @@ def inner_build_query(settings, query=None):
     return " and ".join(query_segs)
 
 
-def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
+def run_query(
+    df, query, context_vars=None, ignore_empty=False, pct=100, pct_type="random"
+):
     """
     Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
     handle when column names contain special characters.  Looks like pandas will be handling this in a future
@@ -46,7 +48,11 @@ def run_query(df, query, context_vars=None, ignore_empty=False, pct=100):
 
     def _load_pct(df):
         if pct is not None and pct < 100:
-            return df.sample(frac=pct / 100.0)
+            if pct_type == "random":
+                return df.sample(frac=pct / 100.0)
+            records = int(len(df) * (pct / 100.0))
+            return df.head(records) if pct_type == "head" else df.tail(records)
+
         return df
 
     if (query or "") == "":

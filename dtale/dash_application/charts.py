@@ -186,6 +186,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "window",
         "rolling_comp",
         "load",
+        "load_type",
         "group_type",
         "bins_val",
         "bin_type",
@@ -2043,6 +2044,7 @@ def candlestick_builder(data_id, export=False, **inputs):
             query,
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
+            pct_type=inputs.get("load_type"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2528,6 +2530,7 @@ def map_builder(data_id, export=False, **inputs):
             query,
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
+            pct_type=inputs.get("load_type"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2991,6 +2994,7 @@ def build_figure_data(
         query,
         global_state.get_context_variables(data_id),
         pct=kwargs.get("load"),
+        pct_type=kwargs.get("load_type"),
     )
     if data is None or not len(data):
         return None, None

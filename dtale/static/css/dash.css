@@ -708,10 +708,17 @@ div#bins-val-input input {
   font-size: 0.6rem;
 }
 
-#extended-aggregation-tooltip li {
+#extended-aggregation-tooltip li,
+#load-types-tooltip li {
   list-style: disc inside;
 }
 
 .ext-agg-id {
   min-width: 32px;
+}
+
+#load-type-dropdown,
+#load-type-dropdown .Select-control,
+#load-type-dropdown .Select-menu-outer {
+  width: 7.5em;
 }

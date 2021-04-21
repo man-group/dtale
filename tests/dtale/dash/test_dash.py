@@ -240,6 +240,7 @@ def test_input_changes(unittest):
                 {"id": "window-input", "property": "value"},
                 {"id": "rolling-comp-dropdown", "property": "value"},
                 {"id": "load-input", "property": "value"},
+                {"id": "load-type-dropdown", "property": "value"},
                 {"id": "cleaners-dropdown", "property": "value"},
             ],
             "state": [
@@ -265,6 +266,7 @@ def test_input_changes(unittest):
                 "rolling_comp": None,
                 "query": None,
                 "load": None,
+                "load_type": None,
                 "bins_val": None,
                 "bin_type": "width",
                 "group_type": "groups",
@@ -1084,6 +1086,15 @@ def test_chart_building_wordcloud():
             "load": 80,
         }
         chart_inputs = {"cpg": False, "cpy": False, "barmode": "group", "barsort": None}
+        params = build_chart_params(c.port, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
+            == "Wordcloud"
+        )
+
+        inputs["load_type"] = "head"
         params = build_chart_params(c.port, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]

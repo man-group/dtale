@@ -268,7 +268,7 @@ CHART_INPUT_SETTINGS = {
         funnel_group=dict(display=True),
     ),
 }
-
+LOAD_TYPES = ["random", "head", "tail"]
 MAP_TYPES = [
     dict(value="choropleth", image=True),
     dict(value="scattergeo", label="ScatterGeo", image=True),
@@ -305,11 +305,51 @@ def auto_load_msg():
     return text("auto_load_msg")
 
 
+def load_type_msg():
+    return [
+        html.Div(
+            [
+                html.H3(
+                    text("Load Types"), style=dict(display="inline"), className="pr-3"
+                ),
+            ]
+        ),
+        html.Ul(
+            [
+                html.Li(
+                    [
+                        html.B(text("Random")),
+                        html.Span(": {}".format(text("load_random"))),
+                    ],
+                    className="mb-0",
+                ),
+                html.Li(
+                    [
+                        html.B(text("Head")),
+                        html.Span(": {}".format(text("load_head"))),
+                    ],
+                    className="mb-0",
+                ),
+                html.Li(
+                    [
+                        html.B(text("Tail")),
+                        html.Span(": {}".format(text("load_tail"))),
+                    ],
+                    className="mb-0",
+                ),
+            ],
+            className="mb-0",
+        ),
+    ]
+
+
 def bin_type_msg():
     return [
         html.Div(
             [
-                html.H3("Bin Types", style=dict(display="inline"), className="pr-3"),
+                html.H3(
+                    text("Bin Types"), style=dict(display="inline"), className="pr-3"
+                ),
                 html.A(
                     "({})".format(text("Binning in Data Mining")),
                     href="https://www.geeksforgeeks.org/binning-in-data-mining/",
@@ -1085,8 +1125,9 @@ def charts_layout(df, settings, **inputs):
     :type param: dict
     :return: dash markup
     """
-    chart_type, x, y, z, group, agg, load = (
-        inputs.get(p) for p in ["chart_type", "x", "y", "z", "group", "agg", "load"]
+    chart_type, x, y, z, group, agg, load, load_type = (
+        inputs.get(p)
+        for p in ["chart_type", "x", "y", "z", "group", "agg", "load", "load_type"]
     )
     loc_modes = loc_mode_info()
     y = y or []
@@ -1327,11 +1368,18 @@ def charts_layout(df, settings, **inputs):
                         [
                             build_hoverable(
                                 html.Span(text("Load")),
-                                html.Span(
-                                    text(
-                                        "Load a random percentage of rows from your dataset."
-                                    )
-                                ),
+                                load_type_msg(),
+                                additional_classes="load-types-tooltip mb-auto mt-auto",
+                                top="100%",
+                            ),
+                            dcc.Dropdown(
+                                id="load-type-dropdown",
+                                options=[
+                                    build_option(v, v.capitalize()) for v in LOAD_TYPES
+                                ],
+                                className="pl-5",
+                                value=load_type or "random",
+                                clearable=False,
                             ),
                             dcc.Slider(
                                 id="load-input",

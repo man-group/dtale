@@ -85,6 +85,7 @@
   "Drilldowns": "Drilldowns",
   "Group Type": "Group Type",
   "Bins": "Bins",
+  "Bin Types": "Bin Types",
   "Values": "Values",
   "Group(s)": "Group(s)",
   "Select Group Value(s)": "Select Group Value(s)",
@@ -171,5 +172,12 @@
   "Remove Repeated Chars": "Remove Repeated Chars",
   "Update Space Values to Empty String": "Update Space Values to Empty String",
   "Remove Hidden Characters": "Remove Hidden Characters",
-  "Replace Hyphens w/ Space": "Replace Hyphens w/ Space"
+  "Replace Hyphens w/ Space": "Replace Hyphens w/ Space",
+  "Load Types": "Load Types",
+  "Random": "Random",
+  "Head": "Head",
+  "Tail": "Tail",
+  "load_random": "Take a random percentage of records from this dataframe.",
+  "load_head": "Take the first N (percentage of records) from this dataframe.",
+  "load_tail": "Take the last N (percentage of records) from this dataframe."
 }
