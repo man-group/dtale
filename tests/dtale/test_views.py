@@ -215,6 +215,21 @@ def test_startup(unittest):
 
 
 @pytest.mark.unit
+def test_formatting_complex_data(unittest):
+    from dtale.views import format_data
+
+    data = [[1, 2, 3], {1: "a", 2: "b", 3: "c"}, [1]]
+    df, _ = format_data(pd.DataFrame({"foo": data}))
+    unittest.assertEqual(
+        list(df["foo"].values), ["[1, 2, 3]", "{1: 'a', 2: 'b', 3: 'c'}", "[1]"]
+    )
+
+    data = [1, 2, [3]]
+    df, _ = format_data(pd.DataFrame({"foo": data}))
+    unittest.assertEqual(list(df["foo"].values), ["1", "2", "[3]"])
+
+
+@pytest.mark.unit
 def test_in_ipython_frontend(builtin_pkg):
     import dtale.views as views
 

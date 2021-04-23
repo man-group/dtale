@@ -680,6 +680,7 @@ def format_data(data, inplace=False, drop_index=False):
     :type drop_index: bool, optional
     :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
              in the index
+    :raises: Exception if the dataframe contains two columns of the same name
     """
     if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
         data = data.to_frame(index=False)
@@ -709,6 +710,25 @@ def format_data(data, inplace=False, drop_index=False):
         else:
             data = data.drop("index", axis=1, errors="ignore")
     data.columns = [str(c).strip() for c in data.columns]
+
+    if len(data.columns) > len(set(data.columns)):
+        distinct_cols = set()
+        dupes = set()
+        for c in data.columns:
+            if c in distinct_cols:
+                dupes.add(c)
+            distinct_cols.add(c)
+        raise Exception(
+            "data contains duplicated column names: {}".format(", ".join(sorted(dupes)))
+        )
+
+    for col in data.columns:
+        if find_dtype(data[col]).startswith("mixed") and not data[col].isnull().all():
+            try:
+                unique_count(data[col])
+            except TypeError:
+                # convert any columns with complex data structures (list, dict, etc...) to strings
+                data.loc[:, col] = data[col].astype("str")
     return data, index
 
 
@@ -878,18 +898,6 @@ def startup(
                 running_with_pytest(), running_with_flask_debug()
             )
         )
-        if len(data.columns) > len(set(data.columns)):
-            distinct_cols = set()
-            dupes = set()
-            for c in data.columns:
-                if c in distinct_cols:
-                    dupes.add(c)
-                distinct_cols.add(c)
-            raise Exception(
-                "data contains duplicated column names: {}".format(
-                    ", ".join(sorted(dupes))
-                )
-            )
 
         if data_id is None:
             data_id = global_state.new_data_inst()
