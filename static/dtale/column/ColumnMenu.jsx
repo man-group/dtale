@@ -86,7 +86,7 @@ class ReactColumnMenu extends React.Component {
   componentDidUpdate(prevProps) {
     if (!_.isNull(this.props.selectedCol)) {
       const dropRibbon = !this.props.ribbonMenuOpen && prevProps.ribbonMenuOpen;
-      positionMenu($(`div[name="${this.props.selectedCol}"]`), $(this._div), this.props.isPreview, dropRibbon);
+      positionMenu($(`div[name="${escape(this.props.selectedCol)}"]`), $(this._div), this.props.isPreview, dropRibbon);
     }
   }
 

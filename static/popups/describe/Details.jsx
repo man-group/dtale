@@ -76,7 +76,7 @@ class Details extends React.Component {
   }
 
   loadDetails() {
-    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${this.props.selected.name}`, detailData => {
+    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${escape(this.props.selected.name)}`, detailData => {
       const newState = {
         error: null,
         details: null,
@@ -129,7 +129,7 @@ class Details extends React.Component {
 
   loadOutliers() {
     this.setState({ loadingOutliers: true });
-    fetchJson(`/dtale/outliers/${this.props.dataId}/${this.props.selected.name}`, outlierData => {
+    fetchJson(`/dtale/outliers/${this.props.dataId}/${escape(this.props.selected.name)}`, outlierData => {
       this.setState({ outliers: outlierData, loadingOutliers: false });
     });
   }

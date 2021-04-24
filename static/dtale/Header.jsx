@@ -141,10 +141,10 @@ class ReactHeader extends React.Component {
     const colCfg = gu.getCol(columnIndex, this.props);
     const colName = _.get(colCfg, "name");
     const menuHandler = menuUtils.openMenu(
-      `${colName}Actions`,
+      `${escape(colName)}Actions`,
       () => toggleColumnMenu(colName),
       () => hideColumnMenu(colName),
-      `div[name='${colName}']`,
+      `div[name='${escape(colName)}']`,
       ignoreMenuClicks
     );
     const copyHandler = buildCopyHandler(menuHandler, this.props);
@@ -159,7 +159,7 @@ class ReactHeader extends React.Component {
         className={`headerCell ${markupProps.className}${rangeClass}`}
         style={headerStyle}
         onMouseOver={this.handleMouseOver}
-        name={colName}>
+        name={escape(colName)}>
         <div
           className={`text-nowrap w-100${colCfg.resized ? " resized" : ""}`}
           style={{ cursor: "default" }}

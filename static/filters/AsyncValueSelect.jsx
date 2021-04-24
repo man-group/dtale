@@ -21,7 +21,9 @@ class AsyncValueSelect extends React.Component {
 
   loadOptions(input) {
     return fetchJsonPromise(
-      `/dtale/async-column-filter-data/${this.props.dataId}/${this.props.selectedCol}?${qs.stringify({ input })}`
+      `/dtale/async-column-filter-data/${this.props.dataId}/${escape(this.props.selectedCol)}?${qs.stringify({
+        input,
+      })}`
     );
   }
 
