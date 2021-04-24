@@ -43,11 +43,11 @@ function dtypesUrl(dataId) {
 }
 
 function saveColFilterUrl(dataId, column) {
-  return `/dtale/save-column-filter/${dataId}/${column}`;
+  return `/dtale/save-column-filter/${dataId}/${escape(column)}`;
 }
 
 function toggleOutlierFilterUrl(dataId, column) {
-  return `/dtale/toggle-outlier-filter/${dataId}/${column}`;
+  return `/dtale/toggle-outlier-filter/${dataId}/${escape(column)}`;
 }
 
 function cleanupEndpoint(endpoint) {

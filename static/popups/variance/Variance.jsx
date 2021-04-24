@@ -21,7 +21,7 @@ class Variance extends React.Component {
 
   componentDidMount() {
     const column = _.get(this.props, "chartData.selectedCol");
-    fetchJson(`/dtale/variance/${this.props.dataId}/${column}`, varianceData => {
+    fetchJson(`/dtale/variance/${this.props.dataId}/${escape(column)}`, varianceData => {
       const newState = {
         error: null,
         loadingVariance: false,

@@ -57,10 +57,10 @@ class ColumnFilter extends React.Component {
   }
 
   fetchData(state) {
-    fetchJson(`/dtale/column-filter-data/${this.props.dataId}/${this.props.selectedCol}`, data => {
+    fetchJson(`/dtale/column-filter-data/${this.props.dataId}/${escape(this.props.selectedCol)}`, data => {
       if (data.success) {
         const missing = _.get(this.props.columnFilters, [this.props.selectedCol, "missing"], false);
-        this.setState(_.assignIn(state || {}, { loadingState: false, missing }, data));
+        this.setState({ ...state, loadingState: false, missing, ...data });
       }
     });
   }

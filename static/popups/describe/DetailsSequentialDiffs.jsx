@@ -34,7 +34,7 @@ class ReactDetailsSequentialDiffs extends React.Component {
       return;
     }
     const { dataId, column } = this.props;
-    fetchJson(`/dtale/sorted-sequential-diffs/${dataId}/${column}/${sort}`, data => {
+    fetchJson(`/dtale/sorted-sequential-diffs/${dataId}/${escape(column)}/${sort}`, data => {
       if (data.error) {
         this.setState({
           error: <RemovableError {...data} />,
