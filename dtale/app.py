@@ -22,6 +22,7 @@ import requests
 from flask_compress import Compress
 from six import PY3
 
+import dtale.auth as auth
 import dtale.global_state as global_state
 import dtale.config as dtale_config
 from dtale import dtale
@@ -402,6 +403,7 @@ def build_app(
         return "Server shutting down..."
 
     @app.before_request
+    @auth.requires_auth
     def before_request():
         """
         Logic executed before each :attr:`flask:flask.request`
@@ -454,6 +456,8 @@ def build_app(
         :return: text/html 'ok'
         """
         return "ok"
+
+    auth.setup_auth(app)
 
     with app.app_context():
 

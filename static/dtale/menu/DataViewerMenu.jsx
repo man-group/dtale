@@ -20,6 +20,7 @@ import HeatMapOption from "./HeatMapOption";
 import HighlightOption from "./HighlightOption";
 import InstancesOption from "./InstancesOption";
 import { LanguageOption } from "./LanguageOption";
+import { LogoutOption } from "./LogoutOption";
 import LowVarianceOption from "./LowVarianceOption";
 import { MenuItem } from "./MenuItem";
 import MergeOption from "./MergeOption";
@@ -114,6 +115,7 @@ class ReactDataViewerMenu extends React.Component {
             <ReloadOption />
             <PinMenuOption />
             <LanguageOption />
+            <LogoutOption open={buttonHandlers.LOGOUT} />
             <ShutdownOption open={buttonHandlers.SHUTDOWN} />
           </ul>
         </div>

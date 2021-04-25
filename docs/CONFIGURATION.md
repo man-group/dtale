@@ -17,6 +17,11 @@ hide_shutdown = False
 pin_menu = False
 language = en
 
+[auth]
+active = True
+username = johndoe
+password = 1337h4xOr
+
 [show]
 host = localhost
 port = 8080
@@ -35,7 +40,7 @@ Some notes on these properties:
 * *host/port/app_root:* have no default
 
 Here is the hierarchy of how parameters are passed to `dtale.show` (in order of most important to least):
-1) Passing parameters directly into `dtale.show` or passing a dictionary of settings to `dtale.global_state.set_app_settings`
+1) Passing parameters directly into `dtale.show` or passing a dictionary of settings to `dtale.global_state.set_app_settings` or `dtale.global_state.set_auth_settings`
 2) Calling `dtale.config.set_config(path_to_file)` which is probably only useful if you have a long-running process like a jupyter notebook
 3) Specifying an `.ini` file via `DTALE_CONFIG` environment variable
 4) Specifying an `.ini` file in `$HOME/.config/dtale.ini`

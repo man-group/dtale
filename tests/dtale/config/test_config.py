@@ -4,6 +4,7 @@ import pytest
 
 from dtale.config import (
     load_app_settings,
+    load_auth_settings,
     load_config_state,
     build_show_options,
     set_config,
@@ -63,6 +64,29 @@ def test_load_app_settings_w_missing_props():
         assert not settings["hide_shutdown"]
         assert settings["pin_menu"]
         assert settings["language"] == "cn"
+
+
+@pytest.mark.unit
+def test_load_auth_settings():
+    settings = {
+        "active": True,
+        "username": "foo",
+        "password": "foo",
+    }
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.global_state.AUTH_SETTINGS", settings))
+
+        load_auth_settings(None)
+        assert settings["active"]
+        assert settings["username"] == "foo"
+        assert settings["password"] == "foo"
+
+        load_auth_settings(
+            load_config_state(os.path.join(os.path.dirname(__file__), "dtale.ini"))
+        )
+        assert not settings["active"]
+        assert settings["username"] == "admin"
+        assert settings["password"] == "admin"
 
 
 @pytest.mark.unit

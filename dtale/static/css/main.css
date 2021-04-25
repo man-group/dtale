@@ -10077,6 +10077,10 @@ select.form-control:focus,
   content: "";
 }
 
+.login-label {
+  min-width: 6.5em;
+}
+
 .ico-notifications::before {
   content: "";
 }
@@ -10844,6 +10848,11 @@ div.container-fluid.network > #content {
   height: 100%;
   padding-top: 0.5em;
 }
+div.container-fluid.login > #content {
+  height: 100%;
+  padding-top: 3.5em;
+}
+
 div.modal-dialog div.modal-body.describe-body {
   height: 500px;
   overflow-y: auto;

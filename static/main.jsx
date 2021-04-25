@@ -26,6 +26,7 @@ import { Variance } from "./popups/variance/Variance";
 import app from "./reducers/dtale";
 import mergeApp from "./reducers/merge";
 import { createStore } from "./reducers/store";
+import { getHiddenValue, toJson } from "./reducers/utils";
 
 require("./publicPath");
 
@@ -37,8 +38,8 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   require("./dtale/DataViewer.css");
 
   let rootNode = null;
-  const settings = app.toJson(app.getHiddenValue("settings"));
-  const dataId = app.getHiddenValue("data_id");
+  const settings = toJson(getHiddenValue("settings"));
+  const dataId = getHiddenValue("data_id");
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
   const pathSegs = _.split(pathname, "/");
   const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];

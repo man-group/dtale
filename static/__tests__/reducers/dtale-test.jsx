@@ -44,6 +44,8 @@ describe("reducer tests", () => {
         visible: false,
       },
       columnsToToggle: null,
+      auth: false,
+      username: null,
     };
     expect(state).toEqual(store.getState());
   });

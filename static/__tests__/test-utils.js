@@ -25,28 +25,30 @@ const DATA_ID = 1;
 function buildInnerHTML(props = {}, store = null) {
   const actions = require("../actions/dtale").default;
   const { settings, hideShutdown, processes, iframe, dataId, xarray, xarrayDim, allowCellEdits, theme } = props;
-  const { language, pinMenu, filteredRanges } = props;
+  const { language, pinMenu, filteredRanges, auth, username } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
-  let innerHTML = `<input type="hidden" id="settings" value="${settings ?? BASE_SETTINGS}" />`;
-  innerHTML += `<input type="hidden" id="version" value="${pjson.version}" />`;
-  innerHTML += `<input type="hidden" id="python_version" value="${props.pythonVersion ?? "3.8.0"}" />`;
-  innerHTML += `<input type="hidden" id="hide_shutdown" value="${hideShutdown ?? HIDE_SHUTDOWN}" />`;
-  innerHTML += `<input type="hidden" id="processes" value=${processes ?? PROCESSES} />`;
-  innerHTML += `<input type="hidden" id="iframe" value="${iframe ?? IFRAME}" />`;
-  innerHTML += `<input type="hidden" id="data_id" value="${dataId ?? DATA_ID}" />`;
-  innerHTML += `<input type="hidden" id="xarray" value="${xarray ?? "False"}" />`;
-  innerHTML += `<input type="hidden" id="xarray_dim" value="${xarrayDim ?? "{}"}" />`;
-  innerHTML += `<input type="hidden" id="allow_cell_edits" value="${allowCellEdits ?? "True"}" />`;
-  innerHTML += `<input type="hidden" id="theme" value="${theme ?? "light"}" />`;
-  innerHTML += `<input type="hidden" id="language" value="${language ?? "en"}" />`;
-  innerHTML += `<input type="hidden" id="pin_menu" value="${pinMenu ?? "False"}" />`;
-  innerHTML += `<input type="hidden" id="filtered_ranges" value="${filteredRanges ?? JSON.stringify({})}" />`;
-  innerHTML += `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
-  innerHTML += `<div id="popup-content"></div>`;
-  innerHTML += `<span id="code-title" />`;
-  body.innerHTML = innerHTML;
-
+  body.innerHTML = [
+    `<input type="hidden" id="settings" value="${settings ?? BASE_SETTINGS}" />`,
+    `<input type="hidden" id="version" value="${pjson.version}" />`,
+    `<input type="hidden" id="python_version" value="${props.pythonVersion ?? "3.8.0"}" />`,
+    `<input type="hidden" id="hide_shutdown" value="${hideShutdown ?? HIDE_SHUTDOWN}" />`,
+    `<input type="hidden" id="processes" value=${processes ?? PROCESSES} />`,
+    `<input type="hidden" id="iframe" value="${iframe ?? IFRAME}" />`,
+    `<input type="hidden" id="data_id" value="${dataId ?? DATA_ID}" />`,
+    `<input type="hidden" id="xarray" value="${xarray ?? "False"}" />`,
+    `<input type="hidden" id="xarray_dim" value="${xarrayDim ?? "{}"}" />`,
+    `<input type="hidden" id="allow_cell_edits" value="${allowCellEdits ?? "True"}" />`,
+    `<input type="hidden" id="theme" value="${theme ?? "light"}" />`,
+    `<input type="hidden" id="language" value="${language ?? "en"}" />`,
+    `<input type="hidden" id="pin_menu" value="${pinMenu ?? "False"}" />`,
+    `<input type="hidden" id="filtered_ranges" value="${filteredRanges ?? JSON.stringify({})}" />`,
+    `<input type="hidden" id="auth" value="${auth ?? "False"}" />`,
+    `<input type="hidden" id="username" value="${username ?? ""}" />`,
+    `<div id="content" style="height: 1000px;width: 1000px;" ></div>`,
+    `<div id="popup-content"></div>`,
+    `<span id="code-title" />`,
+  ].join("");
   if (store) {
     store.dispatch(actions.init());
   }

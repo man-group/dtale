@@ -16,6 +16,13 @@ APP_SETTINGS = {
     "language": "en",
     "github_fork": False,
     "hide_shutdown": False,
+    "auth": False,
+}
+
+AUTH_SETTINGS = {
+    "active": False,
+    "username": None,
+    "password": None,
 }
 
 
@@ -308,6 +315,18 @@ def set_app_settings(settings):
 
     for prop, val in settings.items():
         APP_SETTINGS[prop] = val
+
+
+def get_auth_settings():
+    global AUTH_SETTINGS
+    return AUTH_SETTINGS
+
+
+def set_auth_settings(settings):
+    global AUTH_SETTINGS
+
+    for prop, val in settings.items():
+        AUTH_SETTINGS[prop] = val
 
 
 def cleanup(data_id=None):

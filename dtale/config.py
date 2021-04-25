@@ -65,6 +65,7 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+
     global_state.set_app_settings(
         dict(
             theme=theme,
@@ -72,6 +73,25 @@ def load_app_settings(config):
             language=language,
             github_fork=github_fork,
             hide_shutdown=hide_shutdown,
+        )
+    )
+
+
+def load_auth_settings(config):
+    if config is None:
+        return
+    curr_auth_settings = global_state.get_auth_settings()
+    active = get_config_val(
+        config, curr_auth_settings, "active", section="auth", getter="getboolean"
+    )
+    username = get_config_val(config, curr_auth_settings, "username", section="auth")
+    password = get_config_val(config, curr_auth_settings, "password", section="auth")
+
+    global_state.set_auth_settings(
+        dict(
+            active=active,
+            username=username,
+            password=password,
         )
     )
 
@@ -151,3 +171,4 @@ def build_show_options(options=None):
 
 LOADED_CONFIG = get_config()
 load_app_settings(LOADED_CONFIG)
+load_auth_settings(LOADED_CONFIG)

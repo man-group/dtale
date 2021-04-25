@@ -42,6 +42,8 @@
         <input type="hidden" id="pin_menu" value="{{pin_menu}}" />
         <input type="hidden" id="language" value="{{language}}" />
         <input type="hidden" id="python_version" value="{{python_version}}" />
+        <input type="hidden" id="auth" value="{{session.get('logged_in', False)}}" />
+        <input type="hidden" id="username" value="{{session.get('username')}}" />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

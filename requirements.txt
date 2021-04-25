@@ -5,6 +5,8 @@ dash-bootstrap-components<=0.10.5; python_version < '3.0'
 dash-bootstrap-components; python_version > '3.0'
 dash-colorscales
 dash_daq
+et_xmlfile<=1.0.1; python_version < '3.6'
+et_xmlfile; python_version >= '3.6'
 Flask>=1.0
 Flask-Compress
 flask-ngrok; python_version > '3.0'
@@ -15,6 +17,8 @@ kaleido; python_version > '3.6'
 missingno
 networkx==2.2; python_version < '3.0'
 networkx; python_version >= '3.0'
+openpyxl==2.6.4; python_version < '3.0'
+openpyxl; python_version >= '3.0'
 pandas
 plotly>=4.9.0
 ppscore; python_version >= '3.6'
@@ -31,5 +35,3 @@ six
 xarray==0.11.3; python_version < '3.0'
 xarray; python_version >= '3.0'
 xlrd
-openpyxl==2.6.4; python_version < '3.0'
-openpyxl; python_version >= '3.0'

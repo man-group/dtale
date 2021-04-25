@@ -3,22 +3,8 @@ import $ from "jquery";
 import { combineReducers } from "redux";
 
 import { chartData } from "./chart";
-
-function getHiddenValue(id) {
-  const hiddenElem = document.getElementById(id);
-  if (hiddenElem) {
-    return hiddenElem.value;
-  }
-  return null;
-}
-
-function toBool(value) {
-  return _.lowerCase(value) === "true";
-}
-
-function toJson(value) {
-  return value ? JSON.parse(value) : {};
-}
+import { auth, username } from "./auth";
+import { getHiddenValue, toBool, toJson } from "./utils";
 
 function dataId(state = null, action = {}) {
   switch (action.type) {
@@ -264,6 +250,8 @@ const dtaleStore = combineReducers({
   dataId,
   editedCell,
   iframe,
+  auth,
+  username,
   columnMenuOpen,
   selectedCol,
   xarray,
@@ -282,4 +270,4 @@ const dtaleStore = combineReducers({
   columnsToToggle,
 });
 
-export default { store: dtaleStore, getHiddenValue, toJson };
+export default { store: dtaleStore };
