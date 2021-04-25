@@ -21,6 +21,7 @@ import HeatMapOption from "../menu/HeatMapOption";
 import HighlightOption from "../menu/HighlightOption";
 import InstancesOption from "../menu/InstancesOption";
 import { LanguageOption } from "../menu/LanguageOption";
+import { LogoutOption } from "../menu/LogoutOption";
 import LowVarianceOption from "../menu/LowVarianceOption";
 import { MenuItem } from "../menu/MenuItem";
 import MergeOption from "../menu/MergeOption";
@@ -157,7 +158,8 @@ class ReactRibbonDropdown extends React.Component {
               </>
             )}
             <AboutOption open={hideWrapper(buttonHandlers.ABOUT)} />
-            <ShutdownOption open={hideWrapper(buttonHandlers.SHUTDOWN)} />
+            <LogoutOption open={buttonHandlers.LOGOUT} />
+            <ShutdownOption open={buttonHandlers.SHUTDOWN} />
           </ul>
         )}
         {name === "actions" && visible && (

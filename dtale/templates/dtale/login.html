@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+    <head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    {% if is_app_root_defined(config.APPLICATION_ROOT) %}
+        <script type="text/javascript">
+            window.resourceBaseUrl = '{{config.APPLICATION_ROOT}}';
+        </script>
+    {% endif %}
+	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <title>D-Tale Login</title>
+    {#
+        Despite the fact we reload these again later on, in order for the header to rendered correctly
+        before the rest of the page is built we need to load them here as well.
+    #}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </head>
+    <body>
+        <header class="app-header">
+            <span class="title-font">D-TALE</span>
+            <span style="font-size: 16px" class="pl-5 mt-4" id="code-title">Login</span>
+        </header>
+        <div class="container-fluid login">
+            <div id="content" class="Login">
+                <div class="row">
+                    <div class="col-md-12">
+                        {% for message in get_flashed_messages() %}
+                        <div class="flashed-message alert alert-success">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                              {{message}}
+                            <script>
+                                $(".flashed-message").alert();
+                            </script>
+                        </div>
+                        {% endfor %}
+                        {% if error %}<div class="alert alert-danger mt-5"><strong>Error:</strong> {{ error }}</div>{% endif %}
+                        <form action="{{ url_for('login') }}" method="post" accept-charset="utf-8">
+                          <table class="mt-3">
+                            <tr><td>
+                                <div class="d-flex align-items-center mb-3">
+                                <div class="input-group">
+                                  <span class="input-group-addon login-label">User</span>
+                                  <input type="text" name="username" class="user form-control">
+                                </div>
+                                </div>
+                            </td></tr>
+                            <tr><td>
+                                <div class="d-flex align-items-center mb-3">
+                                <div class="input-group">
+                                  <span class="input-group-addon login-label">Password</span>
+                                  <input type="password" name="password" class="pass form-control">
+                                </div>
+                                </div>
+                            </td></tr>
+                            <tr><td>
+                                <div class="d-flex align-items-center mb-3">
+                                    <input type="submit" value="Login" class="button btn btn-secondary"/>
+                                </div>
+                            </td></tr>
+                          </table>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>
+        {#
+          In order to get styles to load correctly, we need to reload these files.
+          In CSS, the last style declared takes precedence.
+        #}
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}" />
+    </body>
+</html>

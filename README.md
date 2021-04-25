@@ -74,6 +74,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Embedding Within Streamlit](https://github.com/man-group/dtale/blob/master/docs/EMBEDDED_DTALE_STREAMLIT.md)
   - [Running D-Tale On Gunicorn w/ Redis](https://github.com/man-group/dtale/blob/master/docs/GUNICORN_REDIS.md)
   - [Configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)
+  - [Authentication](#authentication)
   - [Using Swifter](#using-swifter)
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
@@ -476,6 +477,35 @@ Here's how you would use this loader:
 ```bash
 DTALE_CLI_LOADERS=./path_to_loaders bash -c 'dtale --testdata-rows 10 --testdata-columns 5'
 ```
+
+### Authentication
+
+You can choose to use optional authentication by adding the following to your D-Tale `.ini` file ([directions here](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)):
+
+```ini
+[auth]
+active = True
+username = johndoe
+password = 1337h4xOr
+```
+
+Or you can call the following:
+
+```python
+import dtale.global_state as global_state
+
+global_state.set_auth_settings({'active': True, 'username': 'johndoe', 'password': '1337h4x0r'})
+```
+
+If you have done this before initially starting D-Tale it will have authentication applied.  If you are adding this after starting D-Tale you will have to kill your service and start it over.
+
+When opening your D-Tale session you will be presented with a screen like this:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/login.png)
+
+From there you can enter the credentials you either set in your `.ini` file or in your call to `dtale.global_state.set_auth_settings` and you will be brought to the main grid as normal.  You will now have an additional option in your main menu to logout:
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/logout.png)
 
 ### Using Swifter
 

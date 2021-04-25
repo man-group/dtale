@@ -98,6 +98,7 @@ function buildHotkeyHandlers(props) {
     CHARTS: () => window.open(fullPath("/dtale/charts", dataId), "_blank"),
     CODE: openCodeExport,
     ABOUT: () => openChart({ type: "about", size: "sm", backdrop: true }),
+    LOGOUT: () => (window.location.pathname = fullPath("/logout")),
     SHUTDOWN: () => (window.location.pathname = fullPath("/shutdown")),
     toggleBackground,
     toggleOutlierBackground,

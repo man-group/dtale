@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
 
-import app from "../../reducers/dtale";
+import { getHiddenValue } from "../../reducers/utils";
 import { MenuItem } from "./MenuItem";
 
 class InstancesOption extends React.Component {
@@ -11,7 +11,7 @@ class InstancesOption extends React.Component {
   }
 
   render() {
-    const processCt = app.getHiddenValue("processes");
+    const processCt = getHiddenValue("processes");
     return (
       <MenuItem description={this.props.t("menu_description:instances")} onClick={this.props.open}>
         <span className="toggler-action">
