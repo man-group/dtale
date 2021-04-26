@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.44.0 (2021-4-26)
+* [#465](https://github.com/man-group/dtale/issues/465): optional authentication
+* [#467](https://github.com/man-group/dtale/issues/467): fixed column menu issues when name has special characters
+* [#466](https://github.com/man-group/dtale/issues/466): convert complex data to strings
+* added "head" & "tail" load types for chart data sampling
+
 ### 1.43.0 (2021-4-18)
 * [#463](https://github.com/man-group/dtale/issues/463): skew & kurtosis on filtered data
 * Moved Correlations & PPS to side panel
