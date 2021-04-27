@@ -4,7 +4,8 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import { components } from "react-select";
 
-import { buildURLString, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
+import { buildURLString, columnFilterDataUrl, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
+
 import { exports as gu } from "../dtale/gridUtils";
 import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
 import { fetchJson } from "../fetcher";
@@ -57,12 +58,17 @@ class ColumnFilter extends React.Component {
   }
 
   fetchData(state) {
-    fetchJson(`/dtale/column-filter-data/${this.props.dataId}/${escape(this.props.selectedCol)}`, data => {
-      if (data.success) {
-        const missing = _.get(this.props.columnFilters, [this.props.selectedCol, "missing"], false);
-        this.setState({ ...state, loadingState: false, missing, ...data });
+    fetchJson(
+      buildURLString(columnFilterDataUrl(this.props.dataId), {
+        col: this.props.selectedCol,
+      }),
+      data => {
+        if (data.success) {
+          const missing = _.get(this.props.columnFilters, [this.props.selectedCol, "missing"], false);
+          this.setState({ ...state, loadingState: false, missing, ...data });
+        }
       }
-    });
+    );
   }
 
   componentDidMount() {
@@ -76,7 +82,8 @@ class ColumnFilter extends React.Component {
   }
 
   updateState(cfg) {
-    const url = buildURLString(saveColFilterUrl(this.props.dataId, this.props.selectedCol), {
+    const url = buildURLString(saveColFilterUrl(this.props.dataId), {
+      col: this.props.selectedCol,
       cfg: JSON.stringify(cfg),
     });
     const updatedState = { cfg };
@@ -122,7 +129,9 @@ class ColumnFilter extends React.Component {
     const { hasOutliers, queryApplied } = this.state;
     if (hasOutliers) {
       const toggleFilter = () => {
-        const url = toggleOutlierFilterUrl(this.props.dataId, this.props.selectedCol);
+        const url = buildURLString(toggleOutlierFilterUrl(this.props.dataId), {
+          col: this.props.selectedCol,
+        });
         this.setState(
           { queryApplied: !queryApplied },
           fetchJson(url, data => this.props.propagateState(data))

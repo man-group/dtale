@@ -6,13 +6,11 @@ import { withTranslation } from "react-i18next";
 import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
-import { buildURLString, saveColFilterUrl } from "../../actions/url-utils";
+import { describeUrl, outliersUrl, saveColFilterUrl } from "../../actions/url-utils";
 import { exports as gu } from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
 import DetailsCharts from "./DetailsCharts";
-
-const BASE_DESCRIBE_URL = "/dtale/describe";
 
 function displayUniques(uniques, t, dtype = null, baseTitle = "Unique") {
   if (_.isEmpty(uniques.data)) {
@@ -76,7 +74,7 @@ class Details extends React.Component {
   }
 
   loadDetails() {
-    fetchJson(`${BASE_DESCRIBE_URL}/${this.props.dataId}/${escape(this.props.selected.name)}`, detailData => {
+    fetchJson(describeUrl(this.props.dataId, this.props.selected.name), detailData => {
       const newState = {
         error: null,
         details: null,
@@ -129,7 +127,7 @@ class Details extends React.Component {
 
   loadOutliers() {
     this.setState({ loadingOutliers: true });
-    fetchJson(`/dtale/outliers/${this.props.dataId}/${escape(this.props.selected.name)}`, outlierData => {
+    fetchJson(outliersUrl(this.props.dataId, this.props.selected.name), outlierData => {
       this.setState({ outliers: outlierData, loadingOutliers: false });
     });
   }
@@ -198,16 +196,15 @@ class Details extends React.Component {
       if (!outliers.queryApplied) {
         cfg.query = outliers.query;
       }
-      const url = buildURLString(saveColFilterUrl(this.props.dataId, this.props.selected.name), {
-        cfg: JSON.stringify(cfg),
-      });
       this.setState(
         {
           outliers: _.assignIn({}, outliers, {
             queryApplied: !outliers.queryApplied,
           }),
         },
-        fetchJson(url, () => window.opener.location.reload())
+        fetchJson(saveColFilterUrl(this.props.dataId, this.props.selected.name, cfg), () =>
+          window.opener.location.reload()
+        )
       );
     };
     return [

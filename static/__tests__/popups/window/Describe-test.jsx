@@ -30,7 +30,7 @@ describe("Describe tests", () => {
         if (url === "/dtale/dtypes/1") {
           return { error: "dtypes error" };
         }
-        if (url === "/dtale/describe/2/col1") {
+        if (url === "/dtale/describe/2?col=col1") {
           return { error: "describe error" };
         }
         const { urlFetcher } = require("../../redux-test-utils").default;

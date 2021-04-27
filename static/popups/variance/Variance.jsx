@@ -5,6 +5,7 @@ import { withTranslation } from "react-i18next";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
+import { buildURLString, varianceUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import { renderCodePopupAnchor } from "../CodePopup";
 import VarianceChart from "./VarianceChart";
@@ -21,7 +22,7 @@ class Variance extends React.Component {
 
   componentDidMount() {
     const column = _.get(this.props, "chartData.selectedCol");
-    fetchJson(`/dtale/variance/${this.props.dataId}/${escape(column)}`, varianceData => {
+    fetchJson(buildURLString(varianceUrl(this.props.dataId), { col: column }), varianceData => {
       const newState = {
         error: null,
         loadingVariance: false,

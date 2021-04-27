@@ -1774,9 +1774,9 @@ def build_string_metrics(s, col):
     return string_metrics, code
 
 
-@dtale.route("/describe/<data_id>/<column>")
+@dtale.route("/describe/<data_id>")
 @exception_decorator
-def describe(data_id, column):
+def describe(data_id):
     """
     :class:`flask:flask.Flask` route which returns standard details about column data using
     :meth:`pandas:pandas.DataFrame.describe` to the front-end as JSON
@@ -1792,6 +1792,7 @@ def describe(data_id, column):
     }
 
     """
+    column = get_str_arg(request, "col")
     data = global_state.get_data(data_id)[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
@@ -1882,9 +1883,9 @@ def describe(data_id, column):
     return jsonify(return_data)
 
 
-@dtale.route("/variance/<data_id>/<column>")
+@dtale.route("/variance/<data_id>")
 @exception_decorator
-def variance(data_id, column):
+def variance(data_id):
     """
     :class:`flask:flask.Flask` route which returns standard details about column data using
     :meth:`pandas:pandas.DataFrame.describe` to the front-end as JSON
@@ -1900,6 +1901,7 @@ def variance(data_id, column):
     }
 
     """
+    column = get_str_arg(request, "col")
     s = global_state.get_data(data_id)[column]
     code = ["s = df['{}']".format(column)]
     unique_ct = unique_count(s)
@@ -1970,9 +1972,10 @@ def build_outlier_query(iqr_lower, iqr_upper, min_val, max_val, column):
     return "(({}))".format(") or (".join(queries)) if len(queries) > 1 else queries[0]
 
 
-@dtale.route("/outliers/<data_id>/<column>")
+@dtale.route("/outliers/<data_id>")
 @exception_decorator
-def outliers(data_id, column):
+def outliers(data_id):
+    column = get_str_arg(request, "col")
     df = global_state.get_data(data_id)
     s = df[column]
     iqr_lower, iqr_upper = calc_outlier_range(s)
@@ -2000,9 +2003,10 @@ def outliers(data_id, column):
     )
 
 
-@dtale.route("/toggle-outlier-filter/<data_id>/<column>")
+@dtale.route("/toggle-outlier-filter/<data_id>")
 @exception_decorator
-def toggle_outlier_filter(data_id, column):
+def toggle_outlier_filter(data_id):
+    column = get_str_arg(request, "col")
     settings = global_state.get_settings(data_id) or {}
     outlierFilters = settings.get("outlierFilters") or {}
     if column in outlierFilters:
@@ -2023,9 +2027,10 @@ def toggle_outlier_filter(data_id, column):
     return jsonify(dict(success=True, outlierFilters=settings["outlierFilters"]))
 
 
-@dtale.route("/delete-col/<data_id>/<column>")
+@dtale.route("/delete-col/<data_id>")
 @exception_decorator
-def delete_col(data_id, column):
+def delete_col(data_id):
+    column = get_str_arg(request, "col")
     data = global_state.get_data(data_id)
     data = data[[c for c in data.columns if c != column]]
     curr_history = global_state.get_history(data_id) or []
@@ -2043,9 +2048,10 @@ def delete_col(data_id, column):
     return jsonify(success=True)
 
 
-@dtale.route("/rename-col/<data_id>/<column>")
+@dtale.route("/rename-col/<data_id>")
 @exception_decorator
-def rename_col(data_id, column):
+def rename_col(data_id):
+    column = get_str_arg(request, "col")
     rename = get_str_arg(request, "rename")
     data = global_state.get_data(data_id)
     if column != rename and rename in data.columns:
@@ -2070,9 +2076,10 @@ def rename_col(data_id, column):
     return jsonify(success=True)
 
 
-@dtale.route("/edit-cell/<data_id>/<column>")
+@dtale.route("/edit-cell/<data_id>")
 @exception_decorator
-def edit_cell(data_id, column):
+def edit_cell(data_id):
+    column = get_str_arg(request, "col")
     row_index = get_int_arg(request, "rowIndex")
     updated = get_str_arg(request, "updated")
     updated_str = updated
@@ -2159,9 +2166,10 @@ def build_filter_vals(series, data_id, column, fmt):
     return vals
 
 
-@dtale.route("/column-filter-data/<data_id>/<column>")
+@dtale.route("/column-filter-data/<data_id>")
 @exception_decorator
-def get_column_filter_data(data_id, column):
+def get_column_filter_data(data_id):
+    column = get_str_arg(request, "col")
     s = global_state.get_data(data_id)[column]
     dtype = find_dtype(s)
     fmt = find_dtype_formatter(dtype)
@@ -2176,9 +2184,10 @@ def get_column_filter_data(data_id, column):
     return jsonify(ret)
 
 
-@dtale.route("/async-column-filter-data/<data_id>/<column>")
+@dtale.route("/async-column-filter-data/<data_id>")
 @exception_decorator
-def get_async_column_filter_data(data_id, column):
+def get_async_column_filter_data(data_id):
+    column = get_str_arg(request, "col")
     input = get_str_arg(request, "input")
     s = global_state.get_data(data_id)[column]
     dtype = find_dtype(s)
@@ -2188,9 +2197,10 @@ def get_async_column_filter_data(data_id, column):
     return jsonify(vals)
 
 
-@dtale.route("/save-column-filter/<data_id>/<column>")
+@dtale.route("/save-column-filter/<data_id>")
 @exception_decorator
-def save_column_filter(data_id, column):
+def save_column_filter(data_id):
+    column = get_str_arg(request, "col")
     curr_filters = ColumnFilter(
         data_id, column, get_str_arg(request, "cfg")
     ).save_filter()
@@ -3197,9 +3207,11 @@ def shortest_path(data_id):
     return jsonify(dict(data=shortest_path, success=True))
 
 
-@dtale.route("/sorted-sequential-diffs/<data_id>/<column>/<sort>")
+@dtale.route("/sorted-sequential-diffs/<data_id>")
 @exception_decorator
-def get_sorted_sequential_diffs(data_id, column, sort):
+def get_sorted_sequential_diffs(data_id):
+    column = get_str_arg(request, "col")
+    sort = get_str_arg(request, "sort")
     df = global_state.get_data(data_id)
     metrics, _ = build_sequential_diffs(df[column], column, sort=sort)
     return jsonify(metrics)

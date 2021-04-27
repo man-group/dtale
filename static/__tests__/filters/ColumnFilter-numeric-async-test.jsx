@@ -16,7 +16,7 @@ describe("ColumnFilter numeric tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher, DATA, DTYPES } = require("../redux-test-utils").default;
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col1")) {
+        if (_.startsWith(url, "/dtale/column-filter-data/1?col=col1")) {
           return {
             success: true,
             hasMissing: true,
@@ -33,7 +33,7 @@ describe("ColumnFilter numeric tests", () => {
             columns: _.map(DATA.columns, c => (c.name === "col1" ? col1Dtype : c)),
           };
         }
-        if (_.startsWith(url, "/dtale/async-column-filter-data/1/col1")) {
+        if (_.startsWith(url, "/dtale/async-column-filter-data/1?col=col1")) {
           return ASYNC_OPTIONS;
         }
         return urlFetcher(url);

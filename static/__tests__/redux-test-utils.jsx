@@ -238,9 +238,8 @@ function urlFetcher(url) {
     }
     return { success: true };
   } else if (_.startsWith(url, "/dtale/describe")) {
-    const column = _.last(url.split("/"));
-    if (_.has(DESCRIBE, column)) {
-      return _.assignIn({ success: true, code: "describe code test" }, DESCRIBE[column]);
+    if (_.has(DESCRIBE, urlParams.col)) {
+      return _.assignIn({ success: true, code: "describe code test" }, DESCRIBE[urlParams.col]);
     }
     return { error: "Column not found!" };
   } else if (_.includes(url, "pypi.org")) {

@@ -1,10 +1,9 @@
-import qs from "querystring";
-
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import AsyncSelect from "react-select/async";
 
+import { buildURLString, columnFilterDataUrl } from "../actions/url-utils";
 import { fetchJsonPromise } from "../fetcher";
 
 class AsyncValueSelect extends React.Component {
@@ -21,9 +20,10 @@ class AsyncValueSelect extends React.Component {
 
   loadOptions(input) {
     return fetchJsonPromise(
-      `/dtale/async-column-filter-data/${this.props.dataId}/${escape(this.props.selectedCol)}?${qs.stringify({
+      buildURLString(columnFilterDataUrl(this.props.dataId, true), {
+        col: this.props.selectedCol,
         input,
-      })}`
+      })
     );
   }
 

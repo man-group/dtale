@@ -14,10 +14,10 @@ describe("ColumnFilter string tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col3")) {
+        if (_.startsWith(url, "/dtale/column-filter-data/1?col=col3")) {
           return { success: true, hasMissing: true, uniques: ["a", "b", "c"] };
         }
-        if (_.startsWith(url, "/dtale/toggle-outlier-filter/1/col3")) {
+        if (_.startsWith(url, "/dtale/toggle-outlier-filter/1?col=col3")) {
           return { success: true, outlierFilters: {} };
         }
         const { urlFetcher } = require("../redux-test-utils").default;

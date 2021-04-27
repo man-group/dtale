@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 
 import ButtonToggle from "../../ButtonToggle";
 import { RemovableError } from "../../RemovableError";
+import { buildURLString, sequentialDiffsUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import { buildStat } from "./detailUtils";
 
@@ -34,7 +35,7 @@ class ReactDetailsSequentialDiffs extends React.Component {
       return;
     }
     const { dataId, column } = this.props;
-    fetchJson(`/dtale/sorted-sequential-diffs/${dataId}/${escape(column)}/${sort}`, data => {
+    fetchJson(buildURLString(sequentialDiffsUrl(dataId), { col: column, sort }), data => {
       if (data.error) {
         this.setState({
           error: <RemovableError {...data} />,

@@ -13,7 +13,7 @@ describe("ColumnFilter numeric tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col1")) {
+        if (_.startsWith(url, "/dtale/column-filter-data/1?col=col1")) {
           return {
             success: true,
             hasMissing: true,
@@ -22,7 +22,7 @@ describe("ColumnFilter numeric tests", () => {
             max: 3,
           };
         }
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col2")) {
+        if (_.startsWith(url, "/dtale/column-filter-data/1?col=col2")) {
           return { success: true, hasMissing: true, min: 1.0, max: 3.0 };
         }
         const { urlFetcher } = require("../redux-test-utils").default;

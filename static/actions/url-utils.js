@@ -42,12 +42,32 @@ function dtypesUrl(dataId) {
   return `/dtale/dtypes/${dataId}`;
 }
 
-function saveColFilterUrl(dataId, column) {
-  return `/dtale/save-column-filter/${dataId}/${escape(column)}`;
+function saveColFilterUrl(dataId, col, cfg) {
+  return buildURLString(`/dtale/save-column-filter/${dataId}`, { col, cfg: JSON.stringify(cfg) });
 }
 
-function toggleOutlierFilterUrl(dataId, column) {
-  return `/dtale/toggle-outlier-filter/${dataId}/${escape(column)}`;
+function toggleOutlierFilterUrl(dataId) {
+  return `/dtale/toggle-outlier-filter/${dataId}`;
+}
+
+function describeUrl(dataId, col) {
+  return buildURLString(`/dtale/describe/${dataId}`, { col });
+}
+
+function outliersUrl(dataId, col) {
+  return buildURLString(`/dtale/outliers/${dataId}`, { col });
+}
+
+function columnFilterDataUrl(dataId, async = false) {
+  return `/dtale/${async ? "async-" : ""}column-filter-data/${dataId}`;
+}
+
+function varianceUrl(dataId) {
+  return `/dtale/variance/${dataId}`;
+}
+
+function sequentialDiffsUrl(dataId) {
+  return `/dtale/sorted-sequential-diffs/${dataId}`;
 }
 
 function cleanupEndpoint(endpoint) {
@@ -64,5 +84,10 @@ export {
   dtypesUrl,
   saveColFilterUrl,
   toggleOutlierFilterUrl,
+  describeUrl,
+  outliersUrl,
+  columnFilterDataUrl,
+  varianceUrl,
+  sequentialDiffsUrl,
   cleanupEndpoint,
 };

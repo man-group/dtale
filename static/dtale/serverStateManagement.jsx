@@ -128,7 +128,7 @@ function updateSettings(settings, dataId, callback = _.noop) {
 }
 
 function renameColumn(dataId, col, rename, callback) {
-  fetchJson(buildURLString(`/dtale/rename-col/${dataId}/${escape(col)}`, { rename }), callback);
+  fetchJson(buildURLString(`/dtale/rename-col/${dataId}`, { col, rename }), callback);
 }
 
 function updateFormats(dataId, col, format, all, nanDisplay, callback = _.noop) {
@@ -145,7 +145,8 @@ function updateFormats(dataId, col, format, all, nanDisplay, callback = _.noop) 
 
 function editCell(dataId, col, rowIndex, updated, callback) {
   fetchJson(
-    buildURLString(`/dtale/edit-cell/${dataId}/${escape(col)}`, {
+    buildURLString(`/dtale/edit-cell/${dataId}`, {
+      col,
       rowIndex,
       updated,
     }),
@@ -184,7 +185,7 @@ export default {
     persistVisibility(dataId, { visibility: JSON.stringify(visibility) }, callback),
   toggleVisibility: (dataId, toggle, callback) => persistVisibility(dataId, { toggle }, callback),
   updateSettings,
-  deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}/${escape(col)}`), _.noop),
+  deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}`, { col }), _.noop),
   renameColumn,
   updateFormats,
   editCell,

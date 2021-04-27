@@ -15,7 +15,7 @@ describe("ColumnFilter date tests", () => {
   beforeAll(() => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        if (_.startsWith(url, "/dtale/column-filter-data/1/col4")) {
+        if (_.startsWith(url, "/dtale/column-filter-data/1?col=col4")) {
           return {
             success: true,
             hasMissing: true,

@@ -40,8 +40,8 @@ def test_edit_int():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/a".format(c.port),
-            query_string=dict(rowIndex=0, updated=2),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="a", rowIndex=0, updated=2),
         )
         assert "error" not in resp.json
         assert data[c.port]["a"].values[0] == 2
@@ -61,8 +61,8 @@ def test_edit_float():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/b".format(c.port),
-            query_string=dict(rowIndex=0, updated=2.5),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="b", rowIndex=0, updated=2.5),
         )
         assert "error" not in resp.json
         assert data[c.port]["b"].values[0] == 2.5
@@ -82,8 +82,8 @@ def test_edit_date():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/d".format(c.port),
-            query_string=dict(rowIndex=0, updated="20000102"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="d", rowIndex=0, updated="20000102"),
         )
         assert "error" not in resp.json
         assert pd.Timestamp(data[c.port]["d"].values[0]) == pd.Timestamp(
@@ -105,8 +105,10 @@ def test_edit_timestamp():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/e".format(c.port),
-            query_string=dict(rowIndex=0, updated="20000101 11:58:59.999999999"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(
+                col="e", rowIndex=0, updated="20000101 11:58:59.999999999"
+            ),
         )
         assert "error" not in resp.json
         assert pd.Timestamp(data[c.port]["e"].values[0]) == pd.Timestamp(
@@ -128,8 +130,8 @@ def test_edit_bool():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/f".format(c.port),
-            query_string=dict(rowIndex=0, updated="False"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="f", rowIndex=0, updated="False"),
         )
         assert "error" not in resp.json
         assert not data[c.port]["f"].values[0]
@@ -149,8 +151,8 @@ def test_edit_timedelta():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/g".format(c.port),
-            query_string=dict(rowIndex=0, updated="0 days 00:09:20"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="g", rowIndex=0, updated="0 days 00:09:20"),
         )
         assert "error" not in resp.json
         assert pd.Timedelta(data[c.port]["g"].values[0]) == pd.Timedelta(
@@ -172,8 +174,8 @@ def test_edit_string():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         resp = c.get(
-            "/dtale/edit-cell/{}/h".format(c.port),
-            query_string=dict(rowIndex=0, updated="cbd"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="h", rowIndex=0, updated="cbd"),
         )
         assert "error" not in resp.json
         assert data[c.port]["h"].values[0] == "cbd"
@@ -193,12 +195,12 @@ def test_edit_to_nan():
         dtypes = {c.port: build_dtypes_state(df)}
         build_dtypes(dtypes)
         c.get(
-            "/dtale/edit-cell/{}/a".format(c.port),
-            query_string=dict(rowIndex=0, updated="nan"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="a", rowIndex=0, updated="nan"),
         )
         assert pd.isnull(data[c.port].a.values[0])
         c.get(
-            "/dtale/edit-cell/{}/b".format(c.port),
-            query_string=dict(rowIndex=0, updated="inf"),
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="b", rowIndex=0, updated="inf"),
         )
         assert np.isinf(data[c.port].b.values[0])
