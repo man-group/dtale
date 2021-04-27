@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.44.1 (2021-4-27)
+* [#470(https://github.com/man-group/dtale/issues/470): editing cells for column names with special characters
+
 ### 1.44.0 (2021-4-26)
 * [#465](https://github.com/man-group/dtale/issues/465): optional authentication
 * [#467](https://github.com/man-group/dtale/issues/467): fixed column menu issues when name has special characters

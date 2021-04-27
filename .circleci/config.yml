@@ -64,7 +64,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 1.44.0
+  VERSION: 1.44.1
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
   RUN_BLACK: true
 python: &python
@@ -181,6 +181,7 @@ python: &python
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               set -e
               . ci/bin/activate
+              pip install streamlit
               python setup.py build_sphinx
               cp -r ./build /tmp/circleci-artifacts
             fi
