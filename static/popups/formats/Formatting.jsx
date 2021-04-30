@@ -77,9 +77,14 @@ class ReactFormatting extends React.Component {
     });
     const updatedCols = _.map(columns, c => {
       if (_.includes(selectedCols, c.name)) {
-        return _.assignIn({}, c, {
-          width: gu.calcColWidth(c, _.assignIn({}, this.state, { data: updatedData })),
-        });
+        return {
+          ...c,
+          width: gu.calcColWidth(c, {
+            ...this.state,
+            data: updatedData,
+            ...settings,
+          }),
+        };
       }
       return c;
     });

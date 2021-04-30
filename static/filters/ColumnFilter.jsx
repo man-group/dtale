@@ -82,17 +82,14 @@ class ColumnFilter extends React.Component {
   }
 
   updateState(cfg) {
-    const url = buildURLString(saveColFilterUrl(this.props.dataId), {
-      col: this.props.selectedCol,
-      cfg: JSON.stringify(cfg),
-    });
+    const url = saveColFilterUrl(this.props.dataId, this.props.selectedCol, cfg);
     const updatedState = { cfg };
     if (_.has(cfg, "missing")) {
       updatedState.missing = cfg.missing;
     }
     this.setState(
       updatedState,
-      fetchJson(url, data => this.props.propagateState({ columnFilters: data.currFilters || {} }))
+      fetchJson(url, data => this.props.updateSettings({ columnFilters: data.currFilters || {} }))
     );
   }
 
@@ -134,7 +131,7 @@ class ColumnFilter extends React.Component {
         });
         this.setState(
           { queryApplied: !queryApplied },
-          fetchJson(url, data => this.props.propagateState(data))
+          fetchJson(url, ({ outlierFilters }) => this.props.updateSettings({ outlierFilters }))
         );
       };
       return (
@@ -216,7 +213,7 @@ ColumnFilter.propTypes = {
   columns: PropTypes.array,
   columnFilters: PropTypes.object,
   selectedCol: PropTypes.string,
-  propagateState: PropTypes.func,
+  updateSettings: PropTypes.func,
   dataId: PropTypes.string.isRequired,
   outlierFilters: PropTypes.object,
   t: PropTypes.func,

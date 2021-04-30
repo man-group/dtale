@@ -393,7 +393,7 @@ def test_update_formats():
             ),
         )
         assert response.status_code == 200, "should return 200 response"
-        assert "a" in global_state.get_settings(c.port)["formats"]
+        assert "a" in global_state.get_settings(c.port)["columnFormats"]
 
         c.get(
             "/dtale/update-formats/{}".format(c.port),
@@ -404,7 +404,7 @@ def test_update_formats():
                 nanDisplay=None,
             ),
         )
-        assert "b" in global_state.get_settings(c.port)["formats"]
+        assert "b" in global_state.get_settings(c.port)["columnFormats"]
         assert "nan" in global_state.get_settings(c.port)["nanDisplay"]
 
     with app.test_client() as c:
@@ -1440,7 +1440,7 @@ def test_get_data(unittest, test_data):
         )
         unittest.assertEqual(
             global_state.get_settings(c.port),
-            {"sort": [["security_id", "DESC"]]},
+            {"sortInfo": [["security_id", "DESC"]]},
             "should update settings",
         )
 
@@ -1464,7 +1464,7 @@ def test_get_data(unittest, test_data):
         )
         unittest.assertEqual(
             global_state.get_settings(c.port),
-            {"sort": [["security_id", "ASC"]]},
+            {"sortInfo": [["security_id", "ASC"]]},
             "should update settings",
         )
 

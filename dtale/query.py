@@ -67,3 +67,22 @@ def run_query(
         raise Exception('query "{}" found no data, please alter'.format(query))
 
     return _load_pct(df)
+
+
+def handle_predefined(data_id, df=None):
+    import dtale.predefined_filters as predefined_filters
+
+    df = global_state.get_data(data_id) if df is None else df
+    filters = predefined_filters.get_filters()
+    if not filters:
+        return df
+
+    curr_settings = global_state.get_settings(data_id) or {}
+    filter_values = curr_settings.get("predefinedFilters")
+    if not filter_values:
+        return df
+
+    for f in filters:
+        if f.name in filter_values:
+            df = f.handler(df, filter_values[f.name])
+    return df

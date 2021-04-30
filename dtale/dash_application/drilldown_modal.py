@@ -27,7 +27,7 @@ from dtale.utils import (
     make_list,
     get_dtypes,
 )
-from dtale.query import build_query, run_query
+from dtale.query import build_query, handle_predefined, run_query
 from dtale.charts.utils import (
     MAX_GROUPS,
     ZAXIS_CHARTS,
@@ -51,7 +51,7 @@ def combine_inputs(dash_app, inputs, chart_inputs={}, yaxis_data={}, map_data={}
 
 def build_histogram(data_id, col, query, point_filter):
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         query,
         global_state.get_context_variables(data_id),
     )

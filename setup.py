@@ -4,7 +4,6 @@ from __future__ import print_function
 import logging
 import sys
 
-import six
 from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
@@ -48,6 +47,7 @@ class PyTest(TestCommand):
 
         # import here, cause outside the eggs aren't loaded
         import pytest
+        import six
 
         args = (
             [self.pytest_args]

@@ -34,7 +34,7 @@ from dtale.dash_application.layout.utils import (
     FREQ_LABELS,
 )
 from dtale.translations import text
-from dtale.query import build_query, inner_build_query, run_query
+from dtale.query import build_query, handle_predefined, inner_build_query, run_query
 from dtale.utils import (
     ChartBuildingError,
     classify_type,
@@ -1096,7 +1096,7 @@ def main_inputs_and_group_val_display(inputs):
 def build_slider_counts(df, data_id, query_value):
     record_ct = len(
         run_query(
-            df,
+            handle_predefined(data_id, df=df),
             build_query(data_id, query_value),
             global_state.get_context_variables(data_id),
         )

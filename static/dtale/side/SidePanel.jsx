@@ -1,12 +1,15 @@
+import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 
 import { Correlations } from "../../popups/Correlations";
+import { FilterPanel } from "../../popups/filter/FilterPanel";
 import PredictivePowerScore from "../../popups/pps/PredictivePowerScore";
 import { DescribePanel } from "./DescribePanel";
 import { MissingNoCharts } from "./MissingNoCharts";
+import { Panel as PredefinedFilters } from "./predefined_filters/Panel";
 
 require("./SidePanel.scss");
 
@@ -26,6 +29,10 @@ class ReactSidePanel extends React.Component {
           <Correlations dataId={dataId} chartData={{ visible: true, query: "" }} />
         )}
         {visible && view === "pps" && <PredictivePowerScore dataId={dataId} chartData={{ visible: true, query: "" }} />}
+        {visible && view === "filter" && (
+          <FilterPanel dataId={dataId} chartData={{ visible: true, propagateState: _.noop }} onClose={hideSidePanel} />
+        )}
+        {visible && view == "predefined_filters" && <PredefinedFilters />}
       </div>
     );
   }

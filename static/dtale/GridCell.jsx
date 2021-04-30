@@ -114,7 +114,6 @@ ReactGridCell.propTypes = {
   gridState: PropTypes.shape({
     columns: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
     columnFormats: PropTypes.object,
-    sortInfo: PropTypes.arrayOf(PropTypes.array),
     menuOpen: PropTypes.bool,
     rowCount: PropTypes.number,
     toggleColumnMenu: PropTypes.func,

@@ -50,7 +50,7 @@ from dtale.dash_application.layout.layout import (
 )
 from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
 from dtale.dash_application.topojson_injections import INJECTIONS
-from dtale.query import run_query
+from dtale.query import handle_predefined, run_query
 from dtale.code_export import build_code_export
 from dtale.utils import (
     classify_type,
@@ -1784,7 +1784,7 @@ def heatmap_builder(data_id, export=False, **inputs):
             return None, None
         query = inputs.get("query")
         raw_data = run_query(
-            global_state.get_data(data_id),
+            handle_predefined(data_id),
             query,
             global_state.get_context_variables(data_id),
         )
@@ -2040,7 +2040,7 @@ def candlestick_builder(data_id, export=False, **inputs):
             return None, None
         query = inputs.get("query")
         raw_data = run_query(
-            global_state.get_data(data_id),
+            handle_predefined(data_id),
             query,
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
@@ -2526,7 +2526,7 @@ def map_builder(data_id, export=False, **inputs):
         props = get_map_props(inputs)
         query = inputs.get("query")
         raw_data = run_query(
-            global_state.get_data(data_id),
+            handle_predefined(data_id),
             query,
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
@@ -2990,7 +2990,7 @@ def build_figure_data(
         return None, None
 
     data = run_query(
-        data if data is not None else global_state.get_data(data_id),
+        data if data is not None else handle_predefined(data_id),
         query,
         global_state.get_context_variables(data_id),
         pct=kwargs.get("load"),
@@ -3092,7 +3092,7 @@ def build_raw_figure_data(
         raise ValueError("invalid chart configuration: {}".format(chart_params))
 
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         query,
         global_state.get_context_variables(data_id),
     )

@@ -25,6 +25,10 @@
   &.is-expanded.pps .modal-body {
     padding: 0;
   }
+  &.is-expanded.filter div.container {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 .main-panel-content {

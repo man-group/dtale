@@ -1,0 +1,17 @@
+.predefined-filter-input {
+  border: solid 1px lightgray;
+  border-radius: 0.5em;
+}
+
+.predefined-filter-input ul {
+  padding-left: 1em;
+}
+
+.predefined-filter-input input {
+  width: 100%;
+}
+
+.predefined-filter-errors {
+  font-color: red;
+  list-style: disc;
+}

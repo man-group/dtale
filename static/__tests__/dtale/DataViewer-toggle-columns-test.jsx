@@ -57,7 +57,10 @@ describe("DataViewer tests", () => {
   const dataViewer = () => result.find(ReactDataViewer).instance();
 
   it("DataViewer: handles an update to columnsToToggle", async () => {
-    store.dispatch({ type: "toggle-columns", columns: { col1: false } });
+    store.dispatch({
+      type: "data-viewer-update",
+      update: { type: "toggle-columns", columns: { col1: false } },
+    });
     result.update();
     expect(_.find(dataViewer().state.columns, { name: "col1" }).visible).toBe(false);
   });

@@ -38,7 +38,7 @@ class ReactGridCellEditor extends React.Component {
           columnFormats,
           settings,
         });
-        const width = gu.calcColWidth(colCfg, gridState);
+        const width = gu.calcColWidth(colCfg, { ...gridState, ...settings });
         const updatedColumns = _.map(columns, c => _.assignIn({}, c, c.name === colCfg.name ? { width } : {}));
         propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, this.props.clearEdit);
       };

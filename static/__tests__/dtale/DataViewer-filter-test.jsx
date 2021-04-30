@@ -1,11 +1,11 @@
 import { mount } from "enzyme";
 import React from "react";
-import Modal from "react-bootstrap/Modal";
 import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
+import StructuredFilters from "../../popups/filter/StructuredFilters";
 import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
@@ -18,7 +18,7 @@ const toggleFilterMenu = async result => {
 };
 
 describe("DataViewer tests", () => {
-  let result, Filter, DataViewerInfo;
+  let result, FilterPanel, DataViewerInfo;
   let dataId = 0;
   const { open } = window;
   const dimensions = new DimensionsHelper({
@@ -27,6 +27,15 @@ describe("DataViewer tests", () => {
     innerWidth: 1205,
     innerHeight: 775,
   });
+
+  const clickFilterBtn = text =>
+    result
+      .find(FilterPanel)
+      .first()
+      .find("button")
+      .findWhere(btn => btn.text() === text)
+      .first()
+      .simulate("click");
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -43,7 +52,7 @@ describe("DataViewer tests", () => {
     mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
 
-    Filter = require("../../popups/Filter").ReactFilter;
+    FilterPanel = require("../../popups/filter/FilterPanel").ReactFilterPanel;
     DataViewerInfo = require("../../dtale/info/DataViewerInfo").ReactDataViewerInfo;
   });
 
@@ -71,22 +80,22 @@ describe("DataViewer tests", () => {
   });
 
   it("DataViewer: filtering", async () => {
-    expect(result.find(Filter).length).toBe(1);
-    result.find(Modal.Header).first().find("button").simulate("click");
+    expect(result.find(FilterPanel).length).toBe(1);
+    clickFilterBtn("Close");
     result.update();
-    expect(result.find(Filter).length).toBe(0);
+    expect(result.find(FilterPanel).length).toBe(0);
     await toggleFilterMenu(result);
-    result.find(Filter).first().find("div.modal-footer").first().find("button").at(1).simulate("click");
+    clickFilterBtn("Clear");
     await tickUpdate(result);
-    expect(result.find(Filter).length).toBe(0);
+    expect(result.find(FilterPanel).length).toBe(0);
     await toggleFilterMenu(result);
     result
-      .find(Filter)
+      .find(FilterPanel)
       .first()
       .find("textarea")
       .simulate("change", { target: { value: "test" } });
     result.update();
-    result.find(Filter).first().find("button").last().simulate("click");
+    clickFilterBtn("Apply");
     await tickUpdate(result);
     expect(result.find(DataViewerInfo).first().text()).toBe("Filter:test");
     result.find(DataViewerInfo).first().find("i.ico-cancel").last().simulate("click");
@@ -96,33 +105,33 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: filtering with errors & documentation", async () => {
     result
-      .find(Filter)
+      .find(FilterPanel)
       .first()
       .find("textarea")
       .simulate("change", { target: { value: "error" } });
     result.update();
-    result.find(Filter).first().find("button").last().simulate("click");
+    clickFilterBtn("Apply");
     await tickUpdate(result);
     expect(result.find(RemovableError).find("div.dtale-alert").text()).toBe("No data found");
-    result.find(Filter).find(RemovableError).first().instance().props.onRemove();
+    result.find(FilterPanel).find(RemovableError).first().instance().props.onRemove();
     result.update();
-    expect(result.find(Filter).find("div.dtale-alert").length).toBe(0);
-    result.find(Filter).find("div.modal-footer").find("button").first().simulate("click");
+    expect(result.find(FilterPanel).find("div.dtale-alert").length).toBe(0);
+    clickFilterBtn("Help");
     const pandasURL = "https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query";
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(pandasURL);
   });
 
-  test("DataViewer: filtering, context variables error", () => {
-    expect(result.find(Filter).find(RemovableError).find("div.dtale-alert").text()).toBe(
+  it("DataViewer: filtering, context variables error", () => {
+    expect(result.find(FilterPanel).find(RemovableError).find("div.dtale-alert").text()).toBe(
       "Error loading context variables"
     );
   });
 
   it("DataViewer: column filters", async () => {
-    const mainCol = result.find(Filter).find("div.col-md-12.h-100");
-    expect(mainCol.text()).toBe("Active Column Filters:foo == 1 andCustom Filter:foo == 1");
-    mainCol.find("i.ico-cancel").first().simulate("click");
-    await tick();
-    expect(result.find(Filter).find("div.col-md-12.h-100").text()).toBe("Custom Filter:foo == 1");
+    const columnFilters = result.find(FilterPanel).find(StructuredFilters).first();
+    expect(columnFilters.text()).toBe("Active Column Filters:foo == 1 and");
+    columnFilters.find("i.ico-cancel").first().simulate("click");
+    await tickUpdate(result);
+    expect(result.find(FilterPanel).find(StructuredFilters).first().text()).toBe("");
   });
 });

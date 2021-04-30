@@ -10,7 +10,15 @@ import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  mockChartJS,
+  PREDEFINED_FILTERS,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../test-utils";
 
 const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
 
@@ -46,7 +54,7 @@ describe("DataViewer tests", () => {
     const { DataViewer } = require("../../dtale/DataViewer");
     const { DataViewerMenu } = require("../../dtale/menu/DataViewerMenu");
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: "" }, store);
+    buildInnerHTML({ settings: "", predefinedFilters: PREDEFINED_FILTERS }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
@@ -72,11 +80,11 @@ describe("DataViewer tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Convert To XArray", "Describe", "Custom Filter", "Build Column", "Merge & Stack", "Summarize Data"],
-        ["Duplicates", "Missing Analysis", "Correlations", "Predictive Power Score", "Charts", "Network Viewer"],
-        ["Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range"],
-        ["Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],
-        ["Reload Data", "Pin menu", "Language", "Shutdown"]
+        ["Convert To XArray", "Describe", "Custom Filter", "Predefined Filters", "show_hide", "Build Column"],
+        ["Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis", "Correlations"],
+        ["Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes", "Highlight Missing"],
+        ["Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export"],
+        ["Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Pin menu", "Language", "Shutdown"]
       )
     );
     await tick();

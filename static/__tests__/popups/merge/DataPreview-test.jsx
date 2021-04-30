@@ -34,6 +34,6 @@ describe("DataPreview", () => {
     await tickUpdate(result);
     await openColMenu(result, 3);
     clickColMenuSubButton(result, "Asc");
-    expect(result.find("ReactDataViewer").instance().state.sortInfo).toEqual([["col4", "ASC"]]);
+    expect(result.find("ReactDataViewer").instance().props.settings.sortInfo).toEqual([["col4", "ASC"]]);
   });
 });

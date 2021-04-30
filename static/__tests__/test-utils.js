@@ -16,16 +16,27 @@ function logException(e) {
   console.error(e.stack);
 }
 
-const BASE_SETTINGS = "{&quot;sort&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]],&quot;precision&quot;:2}";
+const BASE_SETTINGS = "{&quot;sortInfo&quot;:[[&quot;col1&quot;,&quot;ASC&quot;]],&quot;precision&quot;:2}";
 const HIDE_SHUTDOWN = "False";
 const PROCESSES = 1;
 const IFRAME = "False";
 const DATA_ID = 1;
+export const PREDEFINED_FILTERS = _.join(
+  [
+    "[{",
+    "&quot;name&quot;:&quot;custom_foo&quot;,",
+    "&quot;column&quot;:&quot;foo&quot;,",
+    "&quot;description&quot;:&quot;foo&quot;,",
+    "&quot;inputType&quot;: &quot;input&quot;",
+    "}]",
+  ],
+  ""
+);
 
 function buildInnerHTML(props = {}, store = null) {
   const actions = require("../actions/dtale").default;
   const { settings, hideShutdown, processes, iframe, dataId, xarray, xarrayDim, allowCellEdits, theme } = props;
-  const { language, pinMenu, filteredRanges, auth, username } = props;
+  const { language, pinMenu, filteredRanges, auth, username, predefinedFilters } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   body.innerHTML = [
@@ -45,6 +56,7 @@ function buildInnerHTML(props = {}, store = null) {
     `<input type="hidden" id="filtered_ranges" value="${filteredRanges ?? JSON.stringify({})}" />`,
     `<input type="hidden" id="auth" value="${auth ?? "False"}" />`,
     `<input type="hidden" id="username" value="${username ?? ""}" />`,
+    `<input type="hidden" id="predefined_filters" value="${predefinedFilters ?? "[]"}" />`,
     `<div id="content" style="height: 1000px;width: 1000px;" ></div>`,
     `<div id="popup-content"></div>`,
     `<span id="code-title" />`,

@@ -4,7 +4,7 @@
   transition: max-height .5s;
   margin: 0;
   padding: 0;
-  width: calc(100vw);
+  width: fit-content;
 
   &.is-expanded {
     max-height: 35px;

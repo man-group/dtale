@@ -11,11 +11,11 @@ import "./i18n";
 import { CodeExport } from "./popups/CodeExport";
 import { CodePopup } from "./popups/CodePopup";
 import { Correlations } from "./popups/Correlations";
-import { ReactFilter as Filter } from "./popups/Filter";
 import { ReactColumnAnalysis as ColumnAnalysis } from "./popups/analysis/ColumnAnalysis";
 import { ReactCreateColumn as CreateColumn } from "./popups/create/CreateColumn";
 import { Describe } from "./popups/describe/Describe";
 import { ReactDuplicates as Duplicates } from "./popups/duplicates/Duplicates";
+import { ReactFilterPopup as FilterPopup } from "./popups/filter/FilterPopup";
 import Instances from "./popups/instances/Instances";
 import MergeDatasets from "./popups/merge/MergeDatasets";
 import PredictivePowerScore from "./popups/pps/PredictivePowerScore";
@@ -47,7 +47,7 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   let appActions = actions;
   switch (popupType) {
     case "filter":
-      rootNode = <Filter {...{ dataId, chartData }} />;
+      rootNode = <FilterPopup {...{ dataId, chartData }} />;
       break;
     case "correlations":
       rootNode = <Correlations {...{ dataId, chartData }} />;
