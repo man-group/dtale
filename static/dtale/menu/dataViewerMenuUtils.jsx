@@ -4,7 +4,7 @@ import { cleanupEndpoint } from "../../actions/url-utils";
 import menuUtils from "../../menuUtils";
 import bu from "../backgroundUtils";
 
-function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
+function updateSort(selectedCols, dir, { sortInfo, updateSettings }) {
   let updatedSortInfo = _.filter(sortInfo, ([col, _dir]) => !_.includes(selectedCols, col));
   switch (dir) {
     case "ASC":
@@ -18,7 +18,7 @@ function updateSort(selectedCols, dir, { sortInfo, propagateState }) {
     default:
       break;
   }
-  propagateState({ sortInfo: updatedSortInfo, triggerResize: true });
+  updateSettings({ sortInfo: updatedSortInfo });
 }
 
 function buildStyling(val, colType, styleProps) {

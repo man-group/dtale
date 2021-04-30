@@ -121,7 +121,11 @@ const ReduxDescribePanel = connect(
   state => ({ ...state.sidePanel, dataId: state.dataId }),
   dispatch => ({
     hideSidePanel: () => dispatch({ type: "hide-side-panel" }),
-    toggleVisible: columns => dispatch({ type: "toggle-columns", columns }),
+    toggleVisible: columns =>
+      dispatch({
+        type: "data-viewer-update",
+        update: { type: "toggle-columns", columns },
+      }),
   })
 )(TranslateDescribePanel);
 export { ReduxDescribePanel as DescribePanel, TranslateDescribePanel as ReactDescribePanel };

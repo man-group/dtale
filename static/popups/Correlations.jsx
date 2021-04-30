@@ -9,7 +9,7 @@ import { RemovableError } from "../RemovableError";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
-import { saveFilter } from "../popups/Filter";
+import { saveFilter } from "../popups/filter/filterUtils";
 import { toggleBouncer } from "../toggleUtils";
 import ChartsBody from "./charts/ChartsBody";
 import CorrelationScatterStats from "./correlations/CorrelationScatterStats";

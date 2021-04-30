@@ -208,7 +208,7 @@ EXPORTS.SORT_PROPS = [
 
 EXPORTS.buildState = props => ({
   ...EXPORTS.buildGridStyles(props.theme),
-  columnFormats: _.get(props, "settings.formats", {}),
+  columnFormats: _.get(props, "settings.columnFormats", {}),
   nanDisplay: _.get(props, "settings.nanDisplay"),
   overscanColumnCount: 0,
   overscanRowCount: 5,
@@ -221,10 +221,6 @@ EXPORTS.buildState = props => ({
   ids: [0, 55],
   loadQueue: [],
   columns: [],
-  query: _.get(props, "settings.query", ""),
-  columnFilters: _.get(props, "settings.columnFilters", {}),
-  outlierFilters: _.get(props, "settings.outlierFilters", {}),
-  sortInfo: _.get(props, "settings.sort", []),
   selectedCols: [],
   menuOpen: false,
   formattingOpen: false,
@@ -236,24 +232,25 @@ EXPORTS.buildState = props => ({
 
 EXPORTS.noHidden = columns => !_.some(columns, { visible: false });
 
-EXPORTS.noFilters = ({ query, columnFilters, outlierFilters }) =>
-  _.isEmpty(query) && _.isEmpty(columnFilters) && _.isEmpty(outlierFilters);
+EXPORTS.noFilters = ({ query, columnFilters, outlierFilters, predefinedFilters }) =>
+  _.isEmpty(query) && _.isEmpty(columnFilters) && _.isEmpty(outlierFilters) && _.isEmpty(predefinedFilters);
 
-EXPORTS.hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters }) => {
+EXPORTS.hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters, predefinedFilters }) => {
   const hideSort = _.isEmpty(sortInfo);
   const hideFilter = EXPORTS.noFilters({
     query,
     columnFilters,
     outlierFilters,
+    predefinedFilters,
   });
   const hideHidden = EXPORTS.noHidden(columns);
   return hideSort && hideFilter && hideHidden;
 };
 
-EXPORTS.updateColWidths = (currState, newState) =>
+EXPORTS.updateColWidths = (currState, newState, settings) =>
   _.map(_.get(newState, "columns", currState.columns), c =>
     _.assignIn(c, {
-      width: EXPORTS.calcColWidth(c, _.assignIn(currState, newState)),
+      width: EXPORTS.calcColWidth(c, { ...currState, ...newState, ...settings }),
     })
   );
 
@@ -261,11 +258,18 @@ function buildColMap(columns) {
   return _.reduce(columns, (res, c) => _.assign(res, { [c.name]: c }), {});
 }
 
-EXPORTS.refreshColumns = (data, columns, state) => {
+EXPORTS.refreshColumns = (data, columns, state, settings) => {
   const currColumns = buildColMap(columns);
   const newCols = _.map(
     _.filter(data.columns, ({ name }) => !_.has(currColumns, name)),
-    c => _.assignIn({ locked: false, width: EXPORTS.calcColWidth(c, state) }, c)
+    c =>
+      _.assignIn(
+        {
+          locked: false,
+          width: EXPORTS.calcColWidth(c, { ...state, ...settings }),
+        },
+        c
+      )
   );
   const updatedColumns = buildColMap(data.columns);
   const finalColumns = _.concat(

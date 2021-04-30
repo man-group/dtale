@@ -207,7 +207,7 @@ ReactHeader.propTypes = {
 };
 const TranslateReactHeader = withTranslation("main")(ReactHeader);
 const ReduxHeader = connect(
-  ({ dataId }) => ({ dataId }),
+  ({ dataId, settings }) => ({ dataId, ...settings }),
   dispatch => ({
     toggleColumnMenu: colName => dispatch(actions.toggleColumnMenu(colName)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),

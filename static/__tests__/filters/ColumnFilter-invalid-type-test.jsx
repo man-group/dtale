@@ -39,8 +39,8 @@ describe("ColumnFilter string tests", () => {
       columnFilters: { col3: { value: ["b"] } },
       outlierFilters: { col3: { query: "blah" } },
     };
-    const propagateState = state => (props = _.assignIn(props, state));
-    const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {
+    const updateSettings = state => (props = _.assignIn(props, state));
+    const result = mount(<ColumnFilter {...props} updateSettings={updateSettings} />, {
       attachTo: document.getElementById("content"),
     });
     await tickUpdate(result);

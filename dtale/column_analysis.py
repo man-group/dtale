@@ -10,7 +10,7 @@ import dtale.global_state as global_state
 from dtale.code_export import build_code_export, CHART_EXPORT_CODE
 from dtale.column_builders import clean, clean_code
 from dtale.describe import load_describe
-from dtale.query import build_query, run_query
+from dtale.query import build_query, handle_predefined, run_query
 from dtale.utils import (
     apply,
     classify_type,
@@ -82,7 +82,7 @@ class ColumnAnalysis(object):
         self.query = build_query(data_id, curr_settings.get("query"))
 
         data = run_query(
-            global_state.get_data(self.data_id),
+            handle_predefined(data_id),
             self.query,
             global_state.get_context_variables(self.data_id),
         )

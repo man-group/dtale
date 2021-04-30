@@ -168,11 +168,11 @@ class ReactGridEventHandler extends React.Component {
   }
 
   render() {
-    const { sidePanel, sidePanelOpen } = this.props;
+    const { sidePanel, sidePanelOpen, menuPinned } = this.props;
     return (
-      <div className="h-100 w-100 d-flex">
+      <div className={`h-100 w-100 d-flex ${menuPinned ? "is-pinned" : ""}`}>
         <div
-          className={`main-panel-content${sidePanelOpen ? " is-half" : ""} ${sidePanel} h-100`}
+          className={`main-panel-content${sidePanelOpen ? " is-half" : ""} ${sidePanel ?? ""} h-100 d-flex`}
           onMouseOver={this.handleMouseOver}
           onMouseMove={this.handleMouseMove}
           onClick={this.handleClicks}>
@@ -206,14 +206,16 @@ ReactGridEventHandler.propTypes = {
   ribbonDropdownOpen: PropTypes.bool,
   sidePanelOpen: PropTypes.bool,
   sidePanel: PropTypes.string,
+  menuPinned: PropTypes.bool,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel }) => ({
+  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel, menuPinned }) => ({
     allowCellEdits,
     dataId,
     ribbonMenuOpen,
+    menuPinned,
     ribbonDropdownOpen: ribbonDropdown.visible,
     sidePanelOpen: sidePanel.visible,
     sidePanel: sidePanel.view,

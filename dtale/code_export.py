@@ -88,9 +88,9 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
         final_history.append(
             "df = df.query({})\n".format(triple_quote(settings["query"]))
         )
-    if "sort" in settings:
+    if "sortInfo" in settings:
         cols, dirs = [], []
-        for col, dir in settings["sort"]:
+        for col, dir in settings["sortInfo"]:
             cols.append(col)
             dirs.append("True" if dir == "ASC" else "False")
         final_history.append(

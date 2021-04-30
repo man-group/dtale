@@ -1,7 +1,6 @@
 .data-viewer-info {
   overflow: hidden;
   margin: 0 !important;
-  width: calc(100vw);
   height: 0;
   transition: height .5s;
 
@@ -16,7 +15,6 @@
 .data-viewer-error {
   overflow: hidden;
   margin: 0 !important;
-  width: calc(100vw);
   max-height: 0;
   transition: max-height .5s;
 

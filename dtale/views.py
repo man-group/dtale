@@ -31,6 +31,7 @@ from six import BytesIO, string_types, StringIO
 import dtale.datasets as datasets
 import dtale.env_util as env_util
 import dtale.global_state as global_state
+import dtale.predefined_filters as predefined_filters
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, build_formatters
 from dtale.cli.clickutils import retrieve_meta_info_and_version
@@ -52,7 +53,7 @@ from dtale.dash_application.charts import (
 )
 from dtale.data_reshapers import DataReshaper
 from dtale.code_export import build_code_export
-from dtale.query import build_col_key, build_query, run_query
+from dtale.query import build_col_key, build_query, handle_predefined, run_query
 from dtale.utils import (
     DuplicateDataError,
     apply,
@@ -965,6 +966,9 @@ def base_render_template(template, data_id, **kwargs):
         processes=global_state.size(),
         allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
         python_version=platform.python_version(),
+        predefined_filters=json.dumps(
+            [f.asdict() for f in predefined_filters.get_filters()]
+        ),
         **dict_merge(kwargs, curr_app_settings)
     )
 
@@ -1246,7 +1250,7 @@ def update_language():
 @exception_decorator
 def update_formats(data_id):
     """
-    :class:`flask:flask.Flask` route which updates the "formats" property for global SETTINGS associated w/ the
+    :class:`flask:flask.Flask` route which updates the "columnFormats" property for global SETTINGS associated w/ the
     current port
 
     :param data_id: integer string identifier for a D-Tale process's data
@@ -1273,9 +1277,11 @@ def update_formats(data_id):
             for c in global_state.get_dtypes(data_id)
             if c["dtype"] == col_dtype
         }
-    updated_formats = dict_merge(curr_settings.get("formats") or {}, updated_formats)
+    updated_formats = dict_merge(
+        curr_settings.get("columnFormats") or {}, updated_formats
+    )
     updated_settings = dict_merge(
-        curr_settings, dict(formats=updated_formats, nanDisplay=nan_display)
+        curr_settings, dict(columnFormats=updated_formats, nanDisplay=nan_display)
     )
     global_state.set_settings(data_id, updated_settings)
     return jsonify(dict(success=True))
@@ -1619,7 +1625,7 @@ def test_filter(data_id):
     """
     query = get_str_arg(request, "query")
     run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, query),
         global_state.get_context_variables(data_id),
     )
@@ -2085,7 +2091,7 @@ def edit_cell(data_id):
     updated_str = updated
     curr_settings = global_state.get_settings(data_id)
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
@@ -2251,16 +2257,16 @@ def get_data(data_id):
     col_types = global_state.get_dtypes(data_id)
     curr_settings = global_state.get_settings(data_id) or {}
     f = grid_formatter(col_types, nan_display=curr_settings.get("nanDisplay", "nan"))
-    if curr_settings.get("sort") != params.get("sort"):
+    if curr_settings.get("sortInfo") != params.get("sort"):
         data = sort_df_for_grid(data, params)
         global_state.set_data(data_id, data)
     if params.get("sort") is not None:
-        curr_settings = dict_merge(curr_settings, dict(sort=params["sort"]))
+        curr_settings = dict_merge(curr_settings, dict(sortInfo=params["sort"]))
     else:
-        curr_settings = {k: v for k, v in curr_settings.items() if k != "sort"}
+        curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
     final_query = build_query(data_id, curr_settings.get("query"))
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         final_query,
         global_state.get_context_variables(data_id),
         ignore_empty=True,
@@ -2306,7 +2312,7 @@ def load_filtered_ranges(data_id):
     if final_query == curr_filtered_ranges.get("query"):
         return jsonify(curr_filtered_ranges)
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         final_query,
         global_state.get_context_variables(data_id),
         ignore_empty=True,
@@ -2341,7 +2347,7 @@ def data_export(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     curr_dtypes = global_state.get_dtypes(data_id) or []
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
@@ -2399,7 +2405,7 @@ def get_correlations(data_id):
     """
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
@@ -2499,7 +2505,7 @@ def get_chart_data(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, get_str_arg(request, "query")),
         global_state.get_context_variables(data_id),
     )
@@ -2573,7 +2579,7 @@ def get_correlations_ts(data_id):
     """
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
@@ -2685,7 +2691,7 @@ def get_scatter(data_id):
 
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
@@ -2839,7 +2845,7 @@ def get_filter_info(data_id):
     curr_settings = {
         k: v
         for k, v in curr_settings.items()
-        if k in ["query", "columnFilters", "outlierFilters"]
+        if k in ["query", "columnFilters", "outlierFilters", "predefinedFilters"]
     }
     return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)
 
@@ -3072,7 +3078,7 @@ def build_column_text(data_id):
 
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
@@ -3089,7 +3095,7 @@ def build_row_text(data_id):
     columns = json.loads(columns)
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
-        global_state.get_data(data_id),
+        handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,

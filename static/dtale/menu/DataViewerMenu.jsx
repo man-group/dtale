@@ -7,6 +7,7 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../../actions/charts";
+import { exports as gu } from "../gridUtils";
 import AboutOption from "./AboutOption";
 import BuildColumnOption from "./BuildColumnOption";
 import ChartsOption from "./ChartsOption";
@@ -29,8 +30,10 @@ import NetworkOption from "./NetworkOption";
 import NewTabOption from "./NewTabOption";
 import { PPSOption } from "./PPSOption";
 import { PinMenuOption } from "./PinMenuOption";
+import { PredefinedFiltersOption } from "./PredefinedFiltersOption";
 import RangeHighlightOption from "./RangeHighlightOption";
 import ReloadOption from "./ReloadOption";
+import ShowHideColumnsOption from "./ShowHideColumnsOption";
 import { ShutdownOption } from "./ShutdownOption";
 import SummarizeOption from "./SummarizeOption";
 import { ThemeOption } from "./ThemeOption";
@@ -51,13 +54,19 @@ class ReactDataViewerMenu extends React.Component {
       $(document).unbind("click.gridActions");
       this.props.propagateState({ menuOpen: false });
     };
+    const hasNoInfo = gu.hasNoInfo(this.props);
     const containerProps = menuPinned
       ? { className: "pinned-data-viewer-menu" }
       : {
           className: "column-toggle__dropdown",
           hidden: !menuOpen,
-          style: { minWidth: "15em", top: "1em", left: "0.5em" },
+          style: {
+            minWidth: "15em",
+            top: hasNoInfo ? "1em" : "2em",
+            left: "0.5em",
+          },
         };
+    const height = `calc(100vh - ${menuPinned ? 35 : hasNoInfo ? 68 : 98}px)`;
     return (
       <div {...containerProps}>
         {!menuPinned && menuOpen && (
@@ -66,7 +75,7 @@ class ReactDataViewerMenu extends React.Component {
         <header className="title-font pb-1">D-TALE</header>
         <div
           style={{
-            [menuPinned ? "height" : "maxHeight"]: `calc(100vh - ${menuPinned ? 35 : 68}px)`,
+            [menuPinned ? "height" : "maxHeight"]: height,
             overflowY: "scroll",
             overflowX: "hidden",
           }}>
@@ -74,7 +83,9 @@ class ReactDataViewerMenu extends React.Component {
             <NewTabOption />
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
             <DescribeOption open={buttonHandlers.DESCRIBE} />
-            <FilterOption open={buttonHandlers.FILTER} />
+            <FilterOption open={() => this.props.showSidePanel("filter")} />
+            <PredefinedFiltersOption open={() => this.props.showSidePanel("predefined_filters")} />
+            <ShowHideColumnsOption open={() => this.props.showSidePanel("show_hide")} />
             <BuildColumnOption open={buttonHandlers.BUILD} />
             <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
             <SummarizeOption open={openPopup("reshape", 400, 770)} />

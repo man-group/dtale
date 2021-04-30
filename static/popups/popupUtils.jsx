@@ -8,7 +8,6 @@ import { Confirmation } from "./Confirmation";
 import { CopyRangeToClipboard } from "./CopyRangeToClipboard";
 import { Correlations } from "./Correlations";
 import { Error } from "./ErrorPopup";
-import { Filter } from "./Filter";
 import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
 import { XArrayDimensions } from "./XArrayDimensions";
@@ -16,6 +15,7 @@ import { XArrayIndexes } from "./XArrayIndexes";
 import { ColumnAnalysis } from "./analysis/ColumnAnalysis";
 import { CreateColumn } from "./create/CreateColumn";
 import { Duplicates } from "./duplicates/Duplicates";
+import { FilterPopup } from "./filter/FilterPopup";
 import Instances from "./instances/Instances";
 import PredictivePowerScore from "./pps/PredictivePowerScore";
 import { CreateReplacement } from "./replacement/CreateReplacement";
@@ -30,7 +30,7 @@ function buildFilter(props) {
       <strong>{props.t("filter:Custom Filter")}</strong>
     </React.Fragment>
   );
-  const body = <Filter />;
+  const body = <FilterPopup />;
   return { title, body };
 }
 

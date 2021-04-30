@@ -8,6 +8,7 @@ import { connect } from "react-redux";
 
 import { openChart } from "../../actions/charts";
 import actions from "../../actions/dtale";
+import { updateSettings } from "../../actions/settings";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
 import { exports as gu } from "../gridUtils";
@@ -279,11 +280,15 @@ ReactColumnMenu.propTypes = {
 };
 const TranslatedReactColumnMenu = withTranslation(["menu", "column_menu", "builders"])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
-  state => _.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "isPreview", "ribbonMenuOpen", "filteredRanges"]),
+  state => ({
+    ..._.pick(state, ["dataId", "columnMenuOpen", "selectedCol", "isPreview", "ribbonMenuOpen", "filteredRanges"]),
+    ...state.settings,
+  }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
     showSidePanel: (column, view) => dispatch({ type: "show-side-panel", view, column }),
+    updateSettings: settings => dispatch(updateSettings(settings)),
   })
 )(TranslatedReactColumnMenu);
 export { ReduxColumnMenu as ColumnMenu, TranslatedReactColumnMenu as ReactColumnMenu, positionMenu, ignoreMenuClicks };

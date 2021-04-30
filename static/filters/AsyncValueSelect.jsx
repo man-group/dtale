@@ -14,6 +14,16 @@ class AsyncValueSelect extends React.Component {
     this.loadOptions = this.loadOptions.bind(this);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (!_.isEqual(this.state, prevState)) {
+      return;
+    }
+
+    if (this.props.selected !== prevProps.selected) {
+      this.setState({ selected: _.get(this.props, "selected", null) });
+    }
+  }
+
   updateState(state) {
     this.setState(state, () => this.props.updateState(state));
   }
@@ -30,7 +40,7 @@ class AsyncValueSelect extends React.Component {
   render() {
     return (
       <AsyncSelect
-        isMulti
+        isMulti={this.props.isMulti}
         isDisabled={this.props.missing}
         className="Select is-clearable is-searchable Select--single"
         classNamePrefix="Select"
@@ -53,6 +63,9 @@ AsyncValueSelect.propTypes = {
   updateState: PropTypes.func,
   dataId: PropTypes.string,
   selectedCol: PropTypes.string,
+  selected: PropTypes.any,
+  isMulti: PropTypes.bool,
 };
+AsyncValueSelect.defaultProps = { isMulti: true, missing: false };
 
 export default AsyncValueSelect;

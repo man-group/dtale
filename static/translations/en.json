@@ -48,7 +48,8 @@
     "Visualize": "Visualize",
     "Highlight": "Highlight",
     "Missing Analysis": "Missing Analysis",
-    "show_hide": "Show/Hide Columns"
+    "show_hide": "Show/Hide Columns",
+    "Predefined Filters": "Predefined Filters"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -87,7 +88,8 @@
     "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english.",
     "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
     "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data.",
-    "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package."
+    "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package.",
+    "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions."
   },
   "column_menu": {
     "Asc": "Asc",
@@ -388,6 +390,7 @@
   },
   "filter": {
     "Active": "Active",
+    "Filters": "Filters",
     "Custom Filters": "Custom Filters",
     "Column Filters": "Column Filters",
     "Outlier Filters": "Outlier Filters",
@@ -857,7 +860,8 @@
     "Copy Columns to Clipboard?": "Copy Columns to Clipboard?",
     "Missing Values": "Missing Values",
     "Outliers": "Outliers",
-    "Low Variance": "Low Variance"
+    "Low Variance": "Low Variance",
+    "Filter": "Filter"
   },
   "side": {
     "Close": "Close",
@@ -897,5 +901,13 @@
     "L": "milliseconds",
     "U": "microseconds",
     "N": "nanoseconds"
+  },
+  "predefined": {
+    "Clear All": "Clear All",
+    "Column": "Column",
+    "Description": "Description",
+    "Current Value": "Current Value",
+    "Edit": "Edit",
+    "Save": "Save"
   }
 }

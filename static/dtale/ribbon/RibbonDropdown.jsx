@@ -29,6 +29,7 @@ import MissingOption from "../menu/MissingOption";
 import NetworkOption from "../menu/NetworkOption";
 import NewTabOption from "../menu/NewTabOption";
 import { PPSOption } from "../menu/PPSOption";
+import { PredefinedFiltersOption } from "../menu/PredefinedFiltersOption";
 import RangeHighlightOption from "../menu/RangeHighlightOption";
 import ReloadOption from "../menu/ReloadOption";
 import ShowHideColumnsOption from "../menu/ShowHideColumnsOption";
@@ -166,7 +167,8 @@ class ReactRibbonDropdown extends React.Component {
           <ul>
             <ShowHideColumnsOption open={hideWrapper(() => this.props.showSidePanel("show_hide"))} />
             <XArrayOption columns={_.reject(this.props.columns, { name: "dtale_index" })} />
-            <FilterOption open={hideWrapper(buttonHandlers.FILTER)} />
+            <FilterOption open={hideWrapper(() => this.props.showSidePanel("filter"))} />
+            <PredefinedFiltersOption open={() => this.props.showSidePanel("predefined_filters")} />
             <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />
             <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank"))} />
             <SummarizeOption open={hideWrapper(openPopup("reshape", 400, 770))} />

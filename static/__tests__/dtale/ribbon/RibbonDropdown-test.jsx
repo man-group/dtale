@@ -5,10 +5,12 @@ import { expect, it } from "@jest/globals";
 
 import CorrelationsOption from "../../../dtale/menu/CorrelationsOption";
 import ExportOption from "../../../dtale/menu/ExportOption";
+import FilterOption from "../../../dtale/menu/FilterOption";
 import { MenuItem } from "../../../dtale/menu/MenuItem";
 import MergeOption from "../../../dtale/menu/MergeOption";
 import MissingOption from "../../../dtale/menu/MissingOption";
 import { PPSOption } from "../../../dtale/menu/PPSOption";
+import { PredefinedFiltersOption } from "../../../dtale/menu/PredefinedFiltersOption";
 import ShowHideColumnsOption from "../../../dtale/menu/ShowHideColumnsOption";
 import menuFuncs from "../../../dtale/menu/dataViewerMenuUtils";
 import { DataMenuItem } from "../../../dtale/ribbon/DataMenuItem";
@@ -123,6 +125,10 @@ describe("RibbonDropdown", () => {
     wrapper.find(ShowHideColumnsOption).props().open();
     expect(props.showSidePanel).toHaveBeenLastCalledWith("show_hide");
     expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
+    wrapper.find(FilterOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("filter");
+    wrapper.find(PredefinedFiltersOption).props().open();
+    expect(props.showSidePanel).toHaveBeenLastCalledWith("predefined_filters");
   });
 
   it("renders visualize successfully", async () => {

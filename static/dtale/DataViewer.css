@@ -134,3 +134,7 @@ body,
   justify-content: center;
   align-items: center;
 }
+
+.is-pinned .main-grid {
+  width: calc(100vw - 15.2em) !important;
+}

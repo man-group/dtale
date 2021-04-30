@@ -71,11 +71,11 @@ describe("DataViewer within iframe tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Open In New Tab", "Convert To XArray", "Describe", "Custom Filter", "Build Column", "Merge & Stack"],
-        ["Summarize Data", "Duplicates", "Missing Analysis", "Correlations", "Predictive Power Score", "Charts"],
-        ["Network Viewer", "Heat Map", "Highlight Dtypes", "Highlight Missing", "Highlight Outliers"],
-        ["Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths"],
-        ["About", "Theme", "Reload Data", "Pin menu", "Language", "Shutdown"]
+        ["Open In New Tab", "Convert To XArray", "Describe", "Custom Filter", "show_hide", "Build Column"],
+        ["Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis", "Correlations"],
+        ["Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes", "Highlight Missing"],
+        ["Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export"],
+        ["Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Pin menu", "Language", "Shutdown"]
       )
     );
     clickMainMenuButton(result, "Open In New Tab");

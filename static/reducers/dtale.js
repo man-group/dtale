@@ -145,6 +145,8 @@ function settings(state = {}, action = {}) {
   switch (action.type) {
     case "init-params":
       return toJson(getHiddenValue("settings"));
+    case "update-settings":
+      return { ...state, ...action.settings };
     default:
       return state;
   }
@@ -232,12 +234,21 @@ function sidePanel(state = { visible: false }, action = {}) {
   }
 }
 
-function columnsToToggle(state = null, action = {}) {
+function dataViewerUpdate(state = null, action = {}) {
   switch (action.type) {
-    case "toggle-columns":
-      return action.columns;
-    case "clear-toggled-columns":
+    case "data-viewer-update":
+      return action.update;
+    case "clear-data-viewer-update":
       return null;
+    default:
+      return state;
+  }
+}
+
+export function predefinedFilters(state = [], action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toJson(getHiddenValue("predefined_filters"));
     default:
       return state;
   }
@@ -267,7 +278,8 @@ const dtaleStore = combineReducers({
   ribbonMenuOpen,
   ribbonDropdown,
   sidePanel,
-  columnsToToggle,
+  dataViewerUpdate,
+  predefinedFilters,
 });
 
 export default { store: dtaleStore };

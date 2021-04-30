@@ -43,9 +43,10 @@ describe("reducer tests", () => {
       sidePanel: {
         visible: false,
       },
-      columnsToToggle: null,
+      dataViewerUpdate: null,
       auth: false,
       username: null,
+      predefinedFilters: [],
     };
     expect(state).toEqual(store.getState());
   });

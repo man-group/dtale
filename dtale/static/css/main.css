@@ -8776,6 +8776,7 @@ caption {
   background: #ebedee;
   height: fit-content;
   min-width: 15em;
+  width: 15em;
   color: #404040;
   font-weight: 400;
 }

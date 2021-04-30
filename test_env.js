@@ -33,6 +33,7 @@ jest.mock("react-i18next", () => ({
       i18n: {
         language: "en",
         options: { resources: { en: {}, cn: {} } },
+        changeLanguage: () => undefined,
       },
     };
     return Component;
