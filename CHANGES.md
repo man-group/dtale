@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.45.0 (2021-5-5)
+* [#472](https://github.com/man-group/dtale/issues/472): maximum column width
+* [#471](https://github.com/man-group/dtale/issues/471): predefined filters
+    * [#473](https://github.com/man-group/dtale/issues/473): fixed column filters
+    * refactored settings (sortInfo, columnFilters, outlierFilters, predefinedFilters) to be stored in redux
+    * fixed issues with pinned main menu
+
 ### 1.44.1 (2021-4-27)
 * [#470](https://github.com/man-group/dtale/issues/470): editing cells for column names with special characters
 

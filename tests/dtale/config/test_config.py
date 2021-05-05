@@ -20,7 +20,7 @@ def test_load_app_settings():
         "hide_shutdown": True,
         "pin_menu": True,
         "language": "cn",
-        "max_xolumn_width": 50,
+        "max_column_width": 50,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
