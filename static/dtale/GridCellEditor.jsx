@@ -5,7 +5,7 @@ import React from "react";
 import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 import serverState from "./serverStateManagement";
 
 class ReactGridCellEditor extends React.Component {
@@ -22,7 +22,7 @@ class ReactGridCellEditor extends React.Component {
 
   onKeyDown(e) {
     if (e.key === "Enter") {
-      const { gridState, colCfg, rowIndex, propagateState, dataId, settings } = this.props;
+      const { gridState, colCfg, rowIndex, propagateState, dataId, settings, maxColumnWidth } = this.props;
       if (this.props.value === this.state.value) {
         this.props.clearEdit();
         return;
@@ -38,8 +38,15 @@ class ReactGridCellEditor extends React.Component {
           columnFormats,
           settings,
         });
-        const width = gu.calcColWidth(colCfg, { ...gridState, ...settings });
-        const updatedColumns = _.map(columns, c => _.assignIn({}, c, c.name === colCfg.name ? { width } : {}));
+        const width = gu.calcColWidth(colCfg, {
+          ...gridState,
+          ...settings,
+          maxColumnWidth,
+        });
+        const updatedColumns = _.map(columns, c => ({
+          ...c,
+          ...(c.name === colCfg.name ? width : {}),
+        }));
         propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, this.props.clearEdit);
       };
       serverState.editCell(dataId, colCfg.name, rowIndex - 1, this.state.value, callback);
@@ -75,9 +82,15 @@ ReactGridCellEditor.propTypes = {
     columnFormats: PropTypes.object,
   }),
   settings: PropTypes.object,
+  maxColumnWidth: PropTypes.number,
 };
 const ReduxGridCellEditor = connect(
-  ({ dataId, editedCell, settings }) => ({ dataId, editedCell, settings }),
+  ({ dataId, editedCell, settings, maxColumnWidth }) => ({
+    dataId,
+    editedCell,
+    settings,
+    maxColumnWidth,
+  }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     clearEdit: () => dispatch({ type: "clear-edit" }),

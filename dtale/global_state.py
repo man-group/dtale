@@ -16,7 +16,7 @@ APP_SETTINGS = {
     "language": "en",
     "github_fork": False,
     "hide_shutdown": False,
-    "auth": False,
+    "max_column_width": None,
 }
 
 AUTH_SETTINGS = {

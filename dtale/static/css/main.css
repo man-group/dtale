@@ -1,3 +1,41 @@
+@font-face {
+  font-family: "istok";
+  font-weight: 400;
+  font-style: normal;
+  src: url("../fonts/istok.woff") format("woff"), url("../fonts/istok.ttf") format("truetype"), url("../fonts/istok.svg?v1#istok") format("svg");
+}
+
+@font-face {
+  font-family: "istok";
+  font-weight: 700;
+  font-style: normal;
+  src: url("../fonts/istok-bold.woff") format("woff"), url("../fonts/istok-bold.ttf") format("truetype"), url("../fonts/istok-bold.svg?v1#istok") format("svg");
+}
+
+@font-face {
+  font-family: "road_rage";
+  font-weight: 400;
+  font-style: normal;
+  src: url("../fonts/Road_Rage.woff") format("woff"), url("../fonts/Road_Rage.ttf") format("truetype"), url("../fonts/Road_Rage.svg?v1#road_rage") format("svg");
+}
+
+@font-face {
+  font-family: "icon";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/icograil.woff?v1") format("woff"), url("../fonts/icograil.ttf?v1") format("truetype"), url("../fonts/icograil.svg?v1#icon") format("svg");
+}
+
+#text-measure {
+  font-family: "Istok", "Helvetica", Arial, sans-serif;
+  font-weight: bold;
+  font-size: 0.8125rem;
+  position: absolute;
+  float: left;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
 body.dark-mode,
 div.preview.dark-mode {
   background-color: black !important;
@@ -120,27 +158,6 @@ body.dark-mode div.container-fluid.correlations dt {
   list-style: none;
 }
 
-@font-face {
-  font-family: "istok";
-  font-weight: 400;
-  font-style: normal;
-  src: url("../fonts/istok.woff?v1") format("woff"), url("../fonts/istok.ttf?v1") format("truetype"), url("../fonts/istok.svg?v1#istok") format("svg");
-}
-
-@font-face {
-  font-family: "istok";
-  font-weight: 700;
-  font-style: normal;
-  src: url("../fonts/istok-bold.woff?v1") format("woff"), url("../fonts/istok-bold.ttf?v1") format("truetype"), url("../fonts/istok-bold.svg?v1#istok") format("svg");
-}
-
-@font-face {
-  font-family: "road_rage";
-  font-weight: 400;
-  font-style: normal;
-  src: url("../fonts/Road_Rage.woff?v1") format("woff"), url("../fonts/Road_Rage.ttf?v1") format("truetype"), url("../fonts/Road_Rage.svg?v1#road_rage") format("svg");
-}
-
 .title-font {
   font-family: "road_rage", Fallback, sans-serif;
   font-size: 20px;
@@ -172,13 +189,6 @@ body.dark-mode div.container-fluid.correlations dt {
 .rejected .badge, .review .badge, .unapproved .badge, .cleared .badge, .approved .badge {
   font-size: .7rem;
   font-weight: 400;
-}
-
-@font-face {
-  font-family: "icon";
-  font-weight: normal;
-  font-style: normal;
-  src: url("../fonts/icograil.woff?v1") format("woff"), url("../fonts/icograil.ttf?v1") format("truetype"), url("../fonts/icograil.svg?v1#icon") format("svg");
 }
 
 *,

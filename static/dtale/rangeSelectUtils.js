@@ -2,7 +2,7 @@ import _ from "lodash";
 import $ from "jquery";
 
 import { logException } from "../fetcher";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 import menuFuncs from "./menu/dataViewerMenuUtils";
 
 export function convertCellIdxToCoords(cellIdx) {

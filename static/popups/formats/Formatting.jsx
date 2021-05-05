@@ -8,7 +8,7 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 import Select, { createFilter } from "react-select";
 
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import serverState from "../../dtale/serverStateManagement";
 import DraggableModalDialog from "../DraggableModalDialog";
 import DateFormatting from "./DateFormatting";
@@ -51,7 +51,7 @@ class ReactFormatting extends React.Component {
 
   save() {
     const { fmt, style, applyToAll, nanDisplay } = this.state;
-    const { dataId, data, columns, columnFormats, selectedCol, propagateState, settings } = this.props;
+    const { dataId, data, columns, columnFormats, selectedCol, propagateState, settings, maxColumnWidth } = this.props;
     let selectedCols = [selectedCol];
     if (applyToAll) {
       const dtype = gu.getDtype(selectedCol, columns);
@@ -79,10 +79,11 @@ class ReactFormatting extends React.Component {
       if (_.includes(selectedCols, c.name)) {
         return {
           ...c,
-          width: gu.calcColWidth(c, {
+          ...gu.calcColWidth(c, {
             ...this.state,
             data: updatedData,
             ...settings,
+            maxColumnWidth,
           }),
         };
       }
@@ -221,12 +222,14 @@ ReactFormatting.propTypes = {
   visible: PropTypes.bool,
   propagateState: PropTypes.func,
   settings: PropTypes.object,
+  maxColumnWidth: PropTypes.number,
   t: PropTypes.func,
 };
 const TranslateReactFormatting = withTranslation(["formatting", "builders"])(ReactFormatting);
-const ReduxFormatting = connect(({ dataId, settings }) => ({
+const ReduxFormatting = connect(({ dataId, settings, maxColumnWidth }) => ({
   dataId,
   settings,
+  maxColumnWidth,
 }))(TranslateReactFormatting);
 
 export { ReduxFormatting as Formatting, TranslateReactFormatting as ReactFormatting };

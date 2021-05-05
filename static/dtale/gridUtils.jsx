@@ -5,32 +5,29 @@ import numeral from "numeral";
 import { measureText } from "./MeasureText";
 import menuFuncs from "./menu/dataViewerMenuUtils";
 import { buildRangeState } from "./rangeSelectUtils";
+import actions from "../actions/dtale";
+import { openChart } from "../actions/charts";
 
-const EXPORTS = {};
-
-EXPORTS.IDX = "dtale_index";
+export const IDX = "dtale_index";
 const DEFAULT_COL_WIDTH = 70;
 
 numeral.nullFormat("");
 
-EXPORTS.isStringCol = dtype => _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
-EXPORTS.isIntCol = dtype => _.startsWith(dtype, "int");
-EXPORTS.isFloatCol = dtype => _.startsWith(dtype, "float");
-EXPORTS.isDateCol = dtype => _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
+export const isStringCol = dtype => _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
+export const isIntCol = dtype => _.startsWith(dtype, "int");
+export const isFloatCol = dtype => _.startsWith(dtype, "float");
+export const isDateCol = dtype => _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
 
-EXPORTS.getDtype = (col, columns) => _.get(_.find(columns, { name: col }, {}), "dtype");
+export const getDtype = (col, columns) => _.get(_.find(columns, { name: col }, {}), "dtype");
 
-EXPORTS.findColType = dtype => {
-  if (EXPORTS.isStringCol(dtype)) {
+export const findColType = dtype => {
+  if (isStringCol(dtype)) {
     return "string";
-  }
-  if (EXPORTS.isIntCol(dtype)) {
+  } else if (isIntCol(dtype)) {
     return "int";
-  }
-  if (EXPORTS.isFloatCol(dtype)) {
+  } else if (isFloatCol(dtype)) {
     return "float";
-  }
-  if (EXPORTS.isDateCol(dtype)) {
+  } else if (isDateCol(dtype)) {
     return "date";
   }
   return "unknown";
@@ -47,7 +44,7 @@ function buildString(val, { truncate }) {
 function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
   if (!_.isUndefined(rawValue)) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
-    switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
+    switch (findColType((dtype || "").toLowerCase())) {
       case "float":
         return buildNumeral(rawValue, fmt || `0.${_.repeat("0", settings.precision ?? 2)}`);
       case "int":
@@ -62,32 +59,32 @@ function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
   return "";
 }
 
-EXPORTS.buildDataProps = ({ name, dtype }, rawValue, { columnFormats, settings }) => ({
+export const buildDataProps = ({ name, dtype }, rawValue, { columnFormats, settings }) => ({
   raw: rawValue,
   view: buildValue({ name, dtype }, rawValue, { columnFormats, settings }),
   style: menuFuncs.buildStyling(
     rawValue,
-    EXPORTS.findColType((dtype || "").toLowerCase()),
+    findColType((dtype || "").toLowerCase()),
     _.get(columnFormats, [name, "style"], {})
   ),
 });
 
 function getHeatActive(column) {
-  return (_.has(column, "min") || column.name === EXPORTS.IDX) && column.visible;
+  return (_.has(column, "min") || column.name === IDX) && column.visible;
 }
 
-EXPORTS.heatmapActive = backgroundMode => _.includes(["heatmap-col", "heatmap-all"], backgroundMode);
+export const heatmapActive = backgroundMode => _.includes(["heatmap-col", "heatmap-all"], backgroundMode);
 
-EXPORTS.getActiveCols = ({ columns, backgroundMode }) =>
-  _.filter(columns || [], c => (EXPORTS.heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible));
+export const getActiveCols = ({ columns, backgroundMode }) =>
+  _.filter(columns || [], c => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible));
 
-EXPORTS.getCol = (index, { columns, backgroundMode }) =>
-  _.get(EXPORTS.getActiveCols({ columns, backgroundMode }), index, {});
+export const getCol = (index, { columns, backgroundMode }) =>
+  _.get(getActiveCols({ columns, backgroundMode }), index, {});
 
-EXPORTS.getColWidth = (index, { columns, backgroundMode }) =>
-  _.get(EXPORTS.getCol(index, { columns, backgroundMode }), "width", DEFAULT_COL_WIDTH);
+export const getColWidth = (index, { columns, backgroundMode }) =>
+  _.get(getCol(index, { columns, backgroundMode }), "width", DEFAULT_COL_WIDTH);
 
-EXPORTS.getRanges = array => {
+export const getRanges = array => {
   const ranges = [];
   let rstart, rend;
   for (let i = 0; i < array.length; i++) {
@@ -102,17 +99,37 @@ EXPORTS.getRanges = array => {
   return ranges;
 };
 
-EXPORTS.calcColWidth = (
+const calcDataWidth = (name, dtype, data) => {
+  switch (findColType((dtype || "").toLowerCase())) {
+    case "date": {
+      let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
+      maxText = _.get(maxText, [name, "view"], "").replace(new RegExp("[0-9]", "g"), "0"); // zero is widest number
+      return measureText(maxText);
+    }
+    case "int":
+    case "float": {
+      const maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
+      return measureText(_.get(maxText, [name, "view"]));
+    }
+    case "string":
+    default: {
+      const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
+      return _.max(_.map(upperWords, measureText));
+    }
+  }
+};
+
+export const calcColWidth = (
   { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width },
-  { data, rowCount, sortInfo, backgroundMode }
+  { data, rowCount, sortInfo, backgroundMode, maxColumnWidth }
 ) => {
   if (resized === true) {
-    return width;
+    return { width };
   }
   let w;
-  if (name === EXPORTS.IDX) {
+  if (name === IDX) {
     w = measureText(rowCount - 1 + "");
-    w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
+    w = { width: w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w };
   } else {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
     let headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
@@ -123,43 +140,25 @@ EXPORTS.calcColWidth = (
     } else if (backgroundMode === "lowVariance" && lowVariance) {
       headerWidth += 15; // star emoji
     }
-    switch (EXPORTS.findColType((dtype || "").toLowerCase())) {
-      case "date": {
-        let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
-        maxText = _.get(maxText, [name, "view"], "").replace(new RegExp("[0-9]", "g"), "0"); // zero is widest number
-        w = measureText(maxText);
-        break;
-      }
-      case "int":
-      case "float": {
-        const maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
-        w = measureText(_.get(maxText, [name, "view"]));
-        break;
-      }
-      case "string":
-      default: {
-        const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
-        w = _.max(_.map(upperWords, measureText));
-        break;
-      }
-    }
+    w = calcDataWidth(name, dtype, data) ?? headerWidth;
     w = headerWidth > w ? headerWidth : w;
+    w = maxColumnWidth && w >= maxColumnWidth ? { width: maxColumnWidth, resized: true } : { width: w };
   }
   return w;
 };
 
-EXPORTS.ROW_HEIGHT = 25;
-EXPORTS.HEADER_HEIGHT = 35;
+export const ROW_HEIGHT = 25;
+export const HEADER_HEIGHT = 35;
 
-EXPORTS.THEMES = ["light", "dark"];
+export const THEMES = ["light", "dark"];
 
-EXPORTS.isLight = theme => "light" === theme || !_.includes(EXPORTS.THEMES, theme);
+export const isLight = theme => "light" === theme || !_.includes(THEMES, theme);
 
-EXPORTS.buildGridStyles = (theme = "light", headerHeight = EXPORTS.HEADER_HEIGHT) => ({
+export const buildGridStyles = (theme = "light", headerHeight = HEADER_HEIGHT) => ({
   style: { border: "1px solid #ddd" },
   styleBottomLeftGrid: {
     borderRight: "2px solid #aaa",
-    backgroundColor: EXPORTS.isLight(theme) ? "#f7f7f7" : "inherit",
+    backgroundColor: isLight(theme) ? "#f7f7f7" : "inherit",
   },
   styleTopLeftGrid: _.assignIn(
     { height: headerHeight },
@@ -180,41 +179,23 @@ EXPORTS.buildGridStyles = (theme = "light", headerHeight = EXPORTS.HEADER_HEIGHT
   hideBottomLeftGridScrollbar: true,
 });
 
-EXPORTS.getTotalRange = columns => {
-  const activeCols = EXPORTS.getActiveCols({ columns });
+export const getTotalRange = columns => {
+  const activeCols = getActiveCols({ columns });
   return {
     min: _.min(_.map(activeCols, "min")),
     max: _.max(_.map(activeCols, "max")),
   };
 };
 
-EXPORTS.SORT_PROPS = [
-  {
-    dir: "ASC",
-    full: { label: "Sort Ascending", icon: "fa fa-sort-down ml-4 mr-4" },
-    col: { label: "Asc", icon: "fa fa-sort-down" },
-  },
-  {
-    dir: "DESC",
-    full: { label: "Sort Descending", icon: "fa fa-sort-up ml-4 mr-4" },
-    col: { label: "Desc", icon: "fa fa-sort-up" },
-  },
-  {
-    dir: "NONE",
-    full: { label: "Clear Sort", icon: "fa fa-sort ml-4 mr-4" },
-    col: { label: "None", icon: "fa fa-sort" },
-  },
-];
-
-EXPORTS.buildState = props => ({
-  ...EXPORTS.buildGridStyles(props.theme),
+export const buildState = props => ({
+  ...buildGridStyles(props.theme),
   columnFormats: _.get(props, "settings.columnFormats", {}),
   nanDisplay: _.get(props, "settings.nanDisplay"),
   overscanColumnCount: 0,
   overscanRowCount: 5,
-  rowHeight: ({ index }) => (index == 0 ? EXPORTS.HEADER_HEIGHT : EXPORTS.ROW_HEIGHT),
+  rowHeight: ({ index }) => (index == 0 ? HEADER_HEIGHT : ROW_HEIGHT),
   rowCount: 0,
-  fixedColumnCount: _.size(_.concat(_.get(props, "settings.locked", []), [EXPORTS.IDX])),
+  fixedColumnCount: _.size(props.settings?.locked ?? []) + 1, // add 1 for IDX column
   fixedRowCount: 1,
   data: {},
   loading: false,
@@ -230,46 +211,37 @@ EXPORTS.buildState = props => ({
   ...buildRangeState(),
 });
 
-EXPORTS.noHidden = columns => !_.some(columns, { visible: false });
+export const noHidden = columns => !_.some(columns, { visible: false });
 
-EXPORTS.noFilters = ({ query, columnFilters, outlierFilters, predefinedFilters }) =>
+export const noFilters = ({ query, columnFilters, outlierFilters, predefinedFilters }) =>
   _.isEmpty(query) && _.isEmpty(columnFilters) && _.isEmpty(outlierFilters) && _.isEmpty(predefinedFilters);
 
-EXPORTS.hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters, predefinedFilters }) => {
+export const hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilters, predefinedFilters }) => {
   const hideSort = _.isEmpty(sortInfo);
-  const hideFilter = EXPORTS.noFilters({
-    query,
-    columnFilters,
-    outlierFilters,
-    predefinedFilters,
-  });
-  const hideHidden = EXPORTS.noHidden(columns);
+  const hideFilter = noFilters({ query, columnFilters, outlierFilters, predefinedFilters });
+  const hideHidden = noHidden(columns);
   return hideSort && hideFilter && hideHidden;
 };
 
-EXPORTS.updateColWidths = (currState, newState, settings) =>
-  _.map(_.get(newState, "columns", currState.columns), c =>
-    _.assignIn(c, {
-      width: EXPORTS.calcColWidth(c, { ...currState, ...newState, ...settings }),
-    })
-  );
+export const updateColWidths = (currState, newState, settings, maxColumnWidth) =>
+  _.map(_.get(newState, "columns", currState.columns), c => ({
+    ...c,
+    ...calcColWidth(c, { ...currState, ...newState, ...settings, maxColumnWidth }),
+  }));
 
 function buildColMap(columns) {
   return _.reduce(columns, (res, c) => _.assign(res, { [c.name]: c }), {});
 }
 
-EXPORTS.refreshColumns = (data, columns, state, settings) => {
+export const refreshColumns = (data, columns, state, settings, maxColumnWidth) => {
   const currColumns = buildColMap(columns);
   const newCols = _.map(
     _.filter(data.columns, ({ name }) => !_.has(currColumns, name)),
-    c =>
-      _.assignIn(
-        {
-          locked: false,
-          width: EXPORTS.calcColWidth(c, { ...state, ...settings }),
-        },
-        c
-      )
+    c => ({
+      ...c,
+      locked: false,
+      ...calcColWidth(c, { ...state, ...settings, maxColumnWidth }),
+    })
   );
   const updatedColumns = buildColMap(data.columns);
   const finalColumns = _.concat(
@@ -281,10 +253,10 @@ EXPORTS.refreshColumns = (data, columns, state, settings) => {
     }),
     newCols
   );
-  return _.assignIn({ ...state, columns: finalColumns }, EXPORTS.getTotalRange(finalColumns));
+  return _.assignIn({ ...state, columns: finalColumns }, getTotalRange(finalColumns));
 };
 
-EXPORTS.toggleColumns = ({ columns }, { columnsToToggle }) => ({
+export const toggleColumns = ({ columns }, { columnsToToggle }) => ({
   columns: columns.map(col => ({
     ...col,
     visible: columnsToToggle[col.name] ?? col.visible,
@@ -292,4 +264,21 @@ EXPORTS.toggleColumns = ({ columns }, { columnsToToggle }) => ({
   triggerResize: true,
 });
 
-export { EXPORTS as exports };
+export const reduxState = state =>
+  _.pick(state, [
+    "dataId",
+    "iframe",
+    "theme",
+    "settings",
+    "menuPinned",
+    "ribbonMenuOpen",
+    "dataViewerUpdate",
+    "maxColumnWidth",
+  ]);
+
+export const reduxDispatch = dispatch => ({
+  closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
+  openChart: chartProps => dispatch(openChart(chartProps)),
+  updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
+  clearDataViewerUpdate: () => dispatch({ type: "clear-data-viewer-update" }),
+});

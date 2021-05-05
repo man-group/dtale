@@ -2,7 +2,7 @@ import chroma from "chroma-js";
 import _ from "lodash";
 
 import { MODES } from "../popups/RangeHighlight";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 
 const RESIZABLE = ["outliers", "missing"];
 

@@ -5,7 +5,7 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { updateSettings } from "../../actions/settings";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import serverState from "../serverStateManagement";
 import { buildMenuHandler, predefinedFilterStr } from "./infoUtils";
 

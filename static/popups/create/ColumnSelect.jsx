@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 
 class ColumnSelect extends React.Component {
   constructor(props) {

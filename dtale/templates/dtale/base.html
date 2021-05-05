@@ -11,6 +11,9 @@
         </script>
     {% endif %}
 	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/istok.woff') }}" as="font" type="font/woff" crossorigin>
+    <link rel="preload" href="{{ url_for('static', filename='fonts/istok-bold.woff') }}" as="font" type="font/woff" crossorigin>
+    <link rel="preload" href="{{ url_for('static', filename='fonts/Road_Rage.woff') }}" as="font" type="font/woff" crossorigin>
     <title>{{ title }}</title>
     {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
@@ -45,6 +48,7 @@
         <input type="hidden" id="auth" value="{{session.get('logged_in', False)}}" />
         <input type="hidden" id="username" value="{{session.get('username')}}" />
         <input type="hidden" id="predefined_filters" value="{{predefined_filters}}" />
+        <input type="hidden" id="max_column_width" value={{max_column_width}} />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

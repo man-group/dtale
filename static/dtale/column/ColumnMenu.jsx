@@ -11,7 +11,7 @@ import actions from "../../actions/dtale";
 import { updateSettings } from "../../actions/settings";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 import serverState from "../serverStateManagement";
 import ColumnMenuHeader from "./ColumnMenuHeader";

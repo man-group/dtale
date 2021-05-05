@@ -65,6 +65,9 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    max_column_width = get_config_val(
+        config, curr_app_settings, "max_column_width", section="app", getter="getint"
+    )
 
     global_state.set_app_settings(
         dict(
@@ -73,6 +76,7 @@ def load_app_settings(config):
             language=language,
             github_fork=github_fork,
             hide_shutdown=hide_shutdown,
+            max_column_width=max_column_width,
         )
     )
 

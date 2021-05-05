@@ -8,7 +8,7 @@ import { openChart } from "../actions/charts";
 import { GridCellEditor } from "./GridCellEditor";
 import { Header } from "./Header";
 import bu from "./backgroundUtils";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 import { isInRange } from "./rangeSelectUtils";
 
 function buildStyle(rec, valueStyle, gridState, colCfg) {

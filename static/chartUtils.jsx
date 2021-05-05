@@ -9,7 +9,7 @@ import moment from "moment";
 import Plotly from "plotly.js-dist";
 
 import { buildRGBA } from "./colors";
-import { exports as gu } from "./dtale/gridUtils";
+import * as gu from "./dtale/gridUtils";
 import { formatScatterPoints, getScatterMax, getScatterMin } from "./scatterChartUtils";
 
 chartPlugins.register(chartTrendline);

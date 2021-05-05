@@ -20,6 +20,7 @@ def test_load_app_settings():
         "hide_shutdown": True,
         "pin_menu": True,
         "language": "cn",
+        "max_xolumn_width": 50,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -29,6 +30,7 @@ def test_load_app_settings():
         assert settings["pin_menu"]
         assert settings["language"] == "cn"
         assert settings["theme"] == "dark"
+        assert settings["max_column_width"] == 50
 
         load_app_settings(
             load_config_state(os.path.join(os.path.dirname(__file__), "dtale.ini"))
@@ -37,6 +39,7 @@ def test_load_app_settings():
         assert not settings["pin_menu"]
         assert settings["language"] == "en"
         assert settings["theme"] == "light"
+        assert settings["max_column_width"] == 100
 
 
 @pytest.mark.unit
@@ -47,6 +50,7 @@ def test_load_app_settings_w_missing_props():
         "hide_shutdown": True,
         "pin_menu": True,
         "language": "cn",
+        "max_column_width": None,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -55,6 +59,7 @@ def test_load_app_settings_w_missing_props():
         assert settings["hide_shutdown"]
         assert settings["pin_menu"]
         assert settings["language"] == "cn"
+        assert settings["max_column_width"] is None
 
         load_app_settings(
             load_config_state(
@@ -64,6 +69,7 @@ def test_load_app_settings_w_missing_props():
         assert not settings["hide_shutdown"]
         assert settings["pin_menu"]
         assert settings["language"] == "cn"
+        assert settings["max_column_width"] is None
 
 
 @pytest.mark.unit

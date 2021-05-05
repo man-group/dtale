@@ -7,7 +7,7 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../../actions/charts";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import AboutOption from "./AboutOption";
 import BuildColumnOption from "./BuildColumnOption";
 import ChartsOption from "./ChartsOption";

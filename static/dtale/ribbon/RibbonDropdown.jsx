@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import { openChart } from "../../actions/charts";
 import { fetchJsonPromise, logException } from "../../fetcher";
 import { executeCleanup } from "../../popups/instances/Instances";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import AboutOption from "../menu/AboutOption";
 import BuildColumnOption from "../menu/BuildColumnOption";
 import ChartsOption from "../menu/ChartsOption";

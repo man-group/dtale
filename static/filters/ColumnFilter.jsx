@@ -6,7 +6,7 @@ import { components } from "react-select";
 
 import { buildURLString, columnFilterDataUrl, saveColFilterUrl, toggleOutlierFilterUrl } from "../actions/url-utils";
 
-import { exports as gu } from "../dtale/gridUtils";
+import * as gu from "../dtale/gridUtils";
 import menuFuncs from "../dtale/menu/dataViewerMenuUtils";
 import { fetchJson } from "../fetcher";
 import DateFilter from "./DateFilter";

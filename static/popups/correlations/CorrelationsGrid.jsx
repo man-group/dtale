@@ -9,7 +9,7 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { SidePanelButtons } from "../../dtale/side/SidePanelButtons";
 import { renderCodePopupAnchor } from "../CodePopup";
 import CorrelationsCell from "./CorrelationsCell";

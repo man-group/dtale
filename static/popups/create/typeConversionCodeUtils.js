@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 
 const s = col => `df['${col}']`;
 const standardConv = (col, to) => `${s(col)}.astype('${to}')`;

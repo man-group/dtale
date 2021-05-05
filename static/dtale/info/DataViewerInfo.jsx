@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 
 import { RemovableError } from "../../RemovableError";
 import { updateSettings } from "../../actions/settings";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import serverState from "../serverStateManagement";
 import { FilterDisplay } from "./FilterDisplay";
 import { buildMenuHandler } from "./infoUtils";

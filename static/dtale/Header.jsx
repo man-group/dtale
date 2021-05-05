@@ -9,7 +9,7 @@ import actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
 import bu from "./backgroundUtils";
 import { ignoreMenuClicks } from "./column/ColumnMenu";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 import { DataViewerMenuHolder } from "./menu/DataViewerMenuHolder";
 
 import { buildColumnCopyText, buildRangeState, isInRowOrColumnRange, toggleSelection } from "./rangeSelectUtils";

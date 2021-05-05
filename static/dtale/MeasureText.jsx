@@ -2,7 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 
-function measureText(str) {
+export function measureText(str) {
   const o = $("#text-measure").text(str).css({
     "font-family": `"Istok", "Helvetica", Arial, sans-serif`,
     "font-weight": "bold",
@@ -15,9 +15,7 @@ function measureText(str) {
   return _.round(o.width()) + 20; // 5px padding on each side
 }
 
-require("./MeasureText.css");
-
-class MeasureText extends React.Component {
+export class MeasureText extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -27,5 +25,3 @@ class MeasureText extends React.Component {
   }
 }
 MeasureText.displayName = "MeasureText";
-
-export { MeasureText, measureText };

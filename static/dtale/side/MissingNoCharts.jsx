@@ -11,7 +11,7 @@ import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import FilterSelect from "../../popups/analysis/filters/FilterSelect";
 import ColumnSelect from "../../popups/create/ColumnSelect";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 
 require("./MissingNoCharts.css");

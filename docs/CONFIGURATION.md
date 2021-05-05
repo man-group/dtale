@@ -16,6 +16,7 @@ github_fork = False
 hide_shutdown = False
 pin_menu = False
 language = en
+max_column_width = 100 # the default value is None
 
 [auth]
 active = True

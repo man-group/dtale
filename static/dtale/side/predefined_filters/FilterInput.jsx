@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 
 import { buildURLString, columnFilterDataUrl } from "../../../actions/url-utils";
-import { exports as gu } from "../../../dtale/gridUtils";
+import * as gu from "../../../dtale/gridUtils";
 import { fetchJson } from "../../../fetcher";
 import AsyncValueSelect from "../../../filters/AsyncValueSelect";
 import ValueSelect from "../../../filters/ValueSelect";

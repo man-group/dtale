@@ -8,8 +8,6 @@ import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
 import InfiniteLoader from "react-virtualized/dist/commonjs/InfiniteLoader";
 import MultiGrid from "react-virtualized/dist/commonjs/MultiGrid";
 
-import { openChart } from "../actions/charts";
-import actions from "../actions/dtale";
 import { buildURLParams, buildURLString } from "../actions/url-utils";
 import { fetchJsonPromise, logException } from "../fetcher";
 import { Popup } from "../popups/Popup";
@@ -18,7 +16,7 @@ import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
 import { GridEventHandler } from "./GridEventHandler";
 import { ColumnMenu } from "./column/ColumnMenu";
-import { exports as gu } from "./gridUtils";
+import * as gu from "./gridUtils";
 import { DataViewerInfo } from "./info/DataViewerInfo";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
 import * as reduxUtils from "./reduxGridUtils";
@@ -42,15 +40,16 @@ class ReactDataViewer extends React.Component {
   }
 
   propagateState(state, callback = _.noop) {
+    const { settings, maxColumnWidth } = this.props;
     if (_.has(state, "columns") && !_.get(state, "formattingUpdate", false)) {
-      state.columns = gu.updateColWidths(this.state, state, this.props.settings);
+      state.columns = gu.updateColWidths(this.state, state, settings, maxColumnWidth);
       state = _.assignIn(state, gu.getTotalRange(state.columns));
     }
     if (_.has(state, "renameUpdate")) {
       state.data = state.renameUpdate(this.state.data);
     }
     if (_.has(state, "triggerBgResize")) {
-      state.columns = gu.updateColWidths(this.state, state, this.props.settings);
+      state.columns = gu.updateColWidths(this.state, state, settings, maxColumnWidth);
       state.triggerResize = true;
     }
     if (_.get(state, "refresh", false)) {
@@ -69,9 +68,6 @@ class ReactDataViewer extends React.Component {
         this.setState({ loadQueue: [] });
         if (!_.isEqual(ids, this.state.ids)) {
           this.getData(ids, refresh);
-          if (this.props.settings.sortInfo !== prevProps.settings.sortInfo) {
-            this.setState({ triggerResize: true });
-          }
           return;
         }
       }
@@ -138,7 +134,7 @@ class ReactDataViewer extends React.Component {
     fetchJsonPromise(url)
       .then(data => {
         const { columns, columnFormats } = this.state;
-        const { settings } = this.props;
+        const { settings, maxColumnWidth } = this.props;
         const formattedData = _.mapValues(data.results, d =>
           _.mapValues(d, (val, col) =>
             gu.buildDataProps(_.find(data.columns, { name: col }), val, {
@@ -161,19 +157,19 @@ class ReactDataViewer extends React.Component {
           backgroundMode,
         };
         if (_.isEmpty(columns)) {
-          const preLocked = _.concat(_.get(this.props, "settings.locked", []), [gu.IDX]);
           newState.columns = _.map(data.columns, c => ({
-            locked: _.includes(preLocked, c.name),
-            width: gu.calcColWidth(c, {
+            locked: c.name === gu.IDX || _.includes(settings?.locked ?? [], c.name),
+            ...gu.calcColWidth(c, {
               ...this.state,
               ...newState,
               ...settings,
+              maxColumnWidth,
             }),
             ...c,
           }));
           newState = { ...newState, ...gu.getTotalRange(newState.columns) };
         } else {
-          newState = gu.refreshColumns(data, columns, newState, settings);
+          newState = gu.refreshColumns(data, columns, newState, settings, maxColumnWidth);
         }
         let callback = _.noop;
         if (refresh) {
@@ -181,7 +177,7 @@ class ReactDataViewer extends React.Component {
             this.setState({
               columns: _.map(this.state.columns, c => ({
                 ...c,
-                width: gu.calcColWidth(c, { ...this.state, ...settings }),
+                ...gu.calcColWidth(c, { ...this.state, ...settings, maxColumnWidth }),
               })),
               triggerResize: true,
             });
@@ -193,12 +189,10 @@ class ReactDataViewer extends React.Component {
       });
   }
 
-  _cellRenderer({ columnIndex, _isScrolling, key, rowIndex, style }) {
+  _cellRenderer({ columnIndex, key, rowIndex, style }) {
     return (
       <GridCell
-        {...{ columnIndex, key, rowIndex, style }}
-        gridState={this.state}
-        propagateState={this.propagateState}
+        {...{ columnIndex, key, rowIndex, style, gridState: this.state, propagateState: this.propagateState }}
       />
     );
   }
@@ -227,10 +221,7 @@ class ReactDataViewer extends React.Component {
           rowCount={this.state.rowCount}>
           {({ onRowsRendered }) => {
             this._onRowsRendered = onRowsRendered;
-            const noInfo = gu.hasNoInfo({
-              ...this.state,
-              ...this.props.settings,
-            });
+            const noInfo = gu.hasNoInfo({ ...this.props.settings, columns: this.state.columns });
             return (
               <AutoSizer className="main-grid col p-0" onResize={() => this._grid.recomputeGridSize()}>
                 {({ width, height }) => {
@@ -287,14 +278,7 @@ ReactDataViewer.propTypes = {
   ribbonMenuOpen: PropTypes.bool,
   dataViewerUpdate: PropTypes.object,
   clearDataViewerUpdate: PropTypes.func,
+  maxColumnWidth: PropTypes.number,
 };
-const ReduxDataViewer = connect(
-  state => _.pick(state, ["dataId", "iframe", "theme", "settings", "menuPinned", "ribbonMenuOpen", "dataViewerUpdate"]),
-  dispatch => ({
-    closeColumnMenu: () => dispatch(actions.closeColumnMenu()),
-    openChart: chartProps => dispatch(openChart(chartProps)),
-    updateFilteredRanges: query => dispatch(actions.updateFilteredRanges(query)),
-    clearDataViewerUpdate: () => dispatch({ type: "clear-data-viewer-update" }),
-  })
-)(ReactDataViewer);
+const ReduxDataViewer = connect(gu.reduxState, gu.reduxDispatch)(ReactDataViewer);
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

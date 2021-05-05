@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 
 import ButtonToggle from "../../../ButtonToggle";
-import { exports as gu } from "../../../dtale/gridUtils";
+import * as gu from "../../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../../CodePopup";
 import CategoryInputs from "./CategoryInputs";
 import { analysisAggs, titles } from "./Constants";

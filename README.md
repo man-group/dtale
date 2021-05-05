@@ -75,6 +75,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Running D-Tale On Gunicorn w/ Redis](https://github.com/man-group/dtale/blob/master/docs/GUNICORN_REDIS.md)
   - [Configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md)
   - [Authentication](#authentication)
+  - [Predefined Filters](#predefined-filters)
   - [Using Swifter](#using-swifter)
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
@@ -506,6 +507,55 @@ When opening your D-Tale session you will be presented with a screen like this:
 From there you can enter the credentials you either set in your `.ini` file or in your call to `dtale.global_state.set_auth_settings` and you will be brought to the main grid as normal.  You will now have an additional option in your main menu to logout:
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/logout.png)
+
+### Predefined Filters
+
+Users can build their own custom filters which can be used from the front-end using the following code snippet:
+```python
+import pandas as pd
+import dtale
+import dtale.predefined_filters as predefined_filters
+
+predefined_filters.set_filters([
+    {
+        "name": "A and B > 2",
+        "column": "A",
+        "description": "Filter A with B greater than 2",
+        "handler": lambda df, val: df[(df["A"] == val) & (df["B"] > 2)],
+        "input_type": "input",
+    },
+    {
+        "name": "A and (B % 2) == 0",
+        "column": "A",
+        "description": "Filter A with B mod 2 equals zero (is even)",
+        "handler": lambda df, val: df[(df["A"] == val) & (df["B"] % 2 == 0)],
+        "input_type": "select",
+    },
+    {
+        "name": "A in values and (B % 2) == 0",
+        "column": "A",
+        "description": "A is within a group of values and B mod 2 equals zero (is even)",
+        "handler": lambda df, val: df[df["A"].isin(val) & (df["B"] % 2 == 0)],
+        "input_type": "multiselect",
+    }
+])
+
+df = pd.DataFrame(
+    ([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12], [13, 14, 15, 16, 17, 18]]),
+    columns=['A', 'B', 'C', 'D', 'E', 'F']
+)
+dtale.show(df)
+```
+
+This code illustrates the types of inputs you can have on the front end:
+* __input__: just a simple text input box which users can enter any value they want (if the value specified for `"column"` is an int or float it will try to convert the string to that data type) and it will be passed to the handler
+* __select__: this creates a dropdown populated with the unique values of `"column"` (an asynchronous dropdown if the column has a large amount of unique values)
+* __multiselect__: same as "select" but it will allow you to choose multiple values (handy if you want to perform an `isin` operation in your filter)
+
+Here is a demo of the functionality:
+[![](http://img.youtube.com/vi/5E_dkVJizcY/0.jpg)](http://www.youtube.com/watch?v=5E_dkVJizcY "Predefined Filters")
+
+If there are any new types of inputs you would like available please don't hesitate to submit a request on the "Issues" page of the repo.
 
 ### Using Swifter
 

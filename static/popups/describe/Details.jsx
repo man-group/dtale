@@ -7,7 +7,7 @@ import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
 import { describeUrl, outliersUrl, saveColFilterUrl } from "../../actions/url-utils";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
 import DetailsCharts from "./DetailsCharts";

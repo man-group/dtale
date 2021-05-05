@@ -3,21 +3,38 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
 
-import { exports as gu } from "../gridUtils";
 import menuFuncs from "../menu/dataViewerMenuUtils";
+
+export const SORT_PROPS = [
+  {
+    dir: "ASC",
+    full: { label: "Sort Ascending", icon: "fa fa-sort-down ml-4 mr-4" },
+    col: { label: "Asc", icon: "fa fa-sort-down" },
+  },
+  {
+    dir: "DESC",
+    full: { label: "Sort Descending", icon: "fa fa-sort-up ml-4 mr-4" },
+    col: { label: "Desc", icon: "fa fa-sort-up" },
+  },
+  {
+    dir: "NONE",
+    full: { label: "Clear Sort", icon: "fa fa-sort ml-4 mr-4" },
+    col: { label: "None", icon: "fa fa-sort" },
+  },
+];
 
 class SortOptions extends React.Component {
   render() {
     const { sortInfo, selectedCol, t } = this.props;
     let currDir = _.find(sortInfo, ([col, _dir]) => selectedCol === col);
-    currDir = _.isUndefined(currDir) ? gu.SORT_PROPS[2].dir : currDir[1];
+    currDir = _.isUndefined(currDir) ? SORT_PROPS[2].dir : currDir[1];
     return (
       <li>
         <span className="toggler-action">
           <i className="fa fa-sort ml-4 mr-4" />
         </span>
         <div className="btn-group compact m-auto font-weight-bold column-sorting">
-          {_.map(gu.SORT_PROPS, ({ dir, col }) => {
+          {_.map(SORT_PROPS, ({ dir, col }) => {
             const active = dir === currDir;
             return (
               <button

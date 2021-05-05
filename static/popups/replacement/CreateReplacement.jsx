@@ -8,7 +8,7 @@ import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
 import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import ColumnSaveType from "./ColumnSaveType";
 import { Imputer, validateImputerCfg } from "./Imputer";

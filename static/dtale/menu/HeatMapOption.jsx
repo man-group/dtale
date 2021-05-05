@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
 
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 import { MenuItem } from "./MenuItem";
 
 class HeatMapOption extends React.Component {

@@ -10,7 +10,7 @@ import Table from "react-virtualized/dist/commonjs/Table/Table";
 
 import { Bouncer } from "../../Bouncer";
 import { RemovableError } from "../../RemovableError";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import DataPreview from "../merge/DataPreview";
 import ProcessLabel from "./ProcessLabel";

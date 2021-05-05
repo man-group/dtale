@@ -3,7 +3,7 @@ import React from "react";
 import { connect } from "react-redux";
 
 import menuUtils from "../../menuUtils";
-import { exports as gu } from "../gridUtils";
+import * as gu from "../gridUtils";
 
 class ReactDataViewerMenuHolder extends React.Component {
   constructor(props) {

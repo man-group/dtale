@@ -11,7 +11,7 @@ import ConditionalRender from "../../ConditionalRender";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
 import chartUtils from "../../chartUtils";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { toggleBouncer } from "../../toggleUtils";
 import AxisEditor from "./AxisEditor";

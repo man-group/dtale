@@ -4,7 +4,7 @@ import { combineReducers } from "redux";
 
 import { chartData } from "./chart";
 import { auth, username } from "./auth";
-import { getHiddenValue, toBool, toJson } from "./utils";
+import { getHiddenValue, toBool, toFloat, toJson } from "./utils";
 
 function dataId(state = null, action = {}) {
   switch (action.type) {
@@ -254,6 +254,15 @@ export function predefinedFilters(state = [], action = {}) {
   }
 }
 
+function maxColumnWidth(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toFloat(getHiddenValue("max_column_width"));
+    default:
+      return state;
+  }
+}
+
 const dtaleStore = combineReducers({
   chartData,
   hideShutdown,
@@ -280,6 +289,7 @@ const dtaleStore = combineReducers({
   sidePanel,
   dataViewerUpdate,
   predefinedFilters,
+  maxColumnWidth,
 });
 
 export default { store: dtaleStore };

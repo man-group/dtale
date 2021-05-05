@@ -36,7 +36,7 @@ export const PREDEFINED_FILTERS = _.join(
 function buildInnerHTML(props = {}, store = null) {
   const actions = require("../actions/dtale").default;
   const { settings, hideShutdown, processes, iframe, dataId, xarray, xarrayDim, allowCellEdits, theme } = props;
-  const { language, pinMenu, filteredRanges, auth, username, predefinedFilters } = props;
+  const { language, pinMenu, filteredRanges, auth, username, predefinedFilters, maxColumnWidth } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   body.innerHTML = [
@@ -57,6 +57,7 @@ function buildInnerHTML(props = {}, store = null) {
     `<input type="hidden" id="auth" value="${auth ?? "False"}" />`,
     `<input type="hidden" id="username" value="${username ?? ""}" />`,
     `<input type="hidden" id="predefined_filters" value="${predefinedFilters ?? "[]"}" />`,
+    `<input type="hidden" id="max_column_width" value=${maxColumnWidth ?? "null"} />`,
     `<div id="content" style="height: 1000px;width: 1000px;" ></div>`,
     `<div id="popup-content"></div>`,
     `<span id="code-title" />`,

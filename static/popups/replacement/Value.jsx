@@ -5,7 +5,7 @@ import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
 import { RemovableError } from "../../RemovableError";
-import { exports as gu } from "../../dtale/gridUtils";
+import * as gu from "../../dtale/gridUtils";
 import { aggregationOpts } from "../analysis/filters/Constants";
 
 function validateValueCfg(cfgs) {
