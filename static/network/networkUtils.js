@@ -1,16 +1,15 @@
 import _ from "lodash";
 
-export const BASE_LAYOUT = { randomSeed: 2 };
+export const BASE_LAYOUT = { randomSeed: "0.685932285174649:1620487071113" };
 export const OPTIONS = {
   nodes: {
     shape: "dot",
+    size: 10,
     scaling: {
-      min: 10,
-      max: 30,
       label: {
         min: 8,
         max: 30,
-        drawThreshold: 12,
+        drawThreshold: 8,
         maxVisible: 20,
       },
     },
@@ -21,10 +20,8 @@ export const OPTIONS = {
   },
   edges: {
     smooth: {
-      type: "continuous",
-    },
-    arrows: {
-      to: { enabled: true },
+      type: "dynamic",
+      roundness: 0,
     },
   },
   physics: false,
@@ -86,3 +83,30 @@ export const neighborhoodHighlight = ({ allNodes, highlightActive }, network, { 
   nodesDataset.update(_.values(allNodes));
   return highlightActive;
 };
+
+export function buildParams({ to, from, weight, group, color }) {
+  return {
+    to: to?.value,
+    from: from?.value,
+    group: group?.value,
+    weight: weight?.value,
+    color: color?.value,
+  };
+}
+
+export function buildState(props = {}) {
+  return {
+    error: null,
+    loadingData: false,
+    dtypes: null,
+    to: props.to ? { value: props.to } : null,
+    from: props.from ? { value: props.from } : null,
+    group: props.group ? { value: props.group } : null,
+    weight: props.weight ? { value: props.weight } : null,
+    color: props.color ? { value: props.color } : null,
+    hierarchy: null,
+    groups: null,
+    shortestPath: [],
+    arrows: { to: true, from: false },
+  };
+}

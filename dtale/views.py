@@ -3117,6 +3117,7 @@ def network_data(data_id):
     to_col = get_str_arg(request, "to")
     from_col = get_str_arg(request, "from")
     group = get_str_arg(request, "group", "")
+    color = get_str_arg(request, "color", "")
     weight = get_str_arg(request, "weight")
 
     nodes = list(df[to_col].unique())
@@ -3134,11 +3135,13 @@ def network_data(data_id):
         edges.loc[:, "value"] = df[weight]
     edges = edges.to_dict(orient="records")
 
-    if group:
-        group = df[[from_col, group]].set_index(from_col)[group].astype("str").to_dict()
-    else:
-        group = {}
+    def build_mapping(col):
+        if col:
+            return df[[from_col, col]].set_index(from_col)[col].astype("str").to_dict()
+        return {}
 
+    group = build_mapping(group)
+    color = build_mapping(color)
     groups = {}
 
     def build_group(node, node_id):
@@ -3147,7 +3150,12 @@ def network_data(data_id):
         return group_val
 
     nodes = [
-        dict(id=node_id, label=node, group=build_group(node, node_id))
+        dict(
+            id=node_id,
+            label=node,
+            group=build_group(node, node_id),
+            color=color.get(node),
+        )
         for node, node_id in nodes.items()
     ]
     return jsonify(dict(nodes=nodes, edges=edges, groups=groups, success=True))

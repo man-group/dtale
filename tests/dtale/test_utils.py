@@ -71,7 +71,7 @@ def test_formatters(unittest):
     formatters.add_date(6, name="ts_date")
 
     date = pd.Timestamp("20180430").tz_localize("US/Eastern")
-    timestamp = pd.Timestamp("20180430 12:36:44").tz_localize("US/Eastern")
+    timestamp = pd.Timestamp("20180430 12:36:44.000001").tz_localize("US/Eastern")
     data = [["hello", 1, 1.6666666, date, date, {"a": 1}, timestamp]]
     unittest.assertEqual(
         formatters.format_dicts(data),
@@ -83,7 +83,7 @@ def test_formatters(unittest):
                 "str": "hello",
                 "timestamp": 1525060800000,
                 "json": {"a": 1},
-                "ts_date": "2018-04-30 12:36:44",
+                "ts_date": "2018-04-30 12:36:44.000001",
             }
         ],
     )
@@ -129,7 +129,7 @@ def test_formatters(unittest):
             "int": [1],
             "timestamp": [1525075200000],
             "float": [1.666667],
-            "ts_date": ["2018-04-30 16:36:44"],
+            "ts_date": ["2018-04-30 16:36:44.000001"],
             "json": [{"a": 1}],
             "str": ["hello"],
             "date": ["2018-04-30 04:00:00"],
