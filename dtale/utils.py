@@ -258,7 +258,7 @@ def json_float(x, precision=2, nan_display="nan", inf_display="inf", as_string=F
         return nan_display
 
 
-def json_date(x, fmt="%Y-%m-%d %H:%M:%S", nan_display="", **kwargs):
+def json_date(x, fmt="%Y-%m-%d %H:%M:%S.%f", nan_display="", **kwargs):
     """
     Convert value to date string to be used within JSON output
 
@@ -271,6 +271,9 @@ def json_date(x, fmt="%Y-%m-%d %H:%M:%S", nan_display="", **kwargs):
     try:
         # calling unique on a pandas datetime column returns numpy datetime64
         output = (pd.Timestamp(x) if isinstance(x, np.datetime64) else x).strftime(fmt)
+        empty_microseconds = ".000000"
+        if output.endswith(empty_microseconds):
+            output = output[: -1 * len(empty_microseconds)]
         empty_time = " 00:00:00"
         if output.endswith(empty_time):
             return output[: -1 * len(empty_time)]
@@ -350,7 +353,7 @@ class JSONFormatter(object):
 
         self.fmts.append([idx, name, f])
 
-    def add_date(self, idx, name=None, fmt="%Y-%m-%d %H:%M:%S"):
+    def add_date(self, idx, name=None, fmt="%Y-%m-%d %H:%M:%S.%f"):
         def f(x, nan_display):
             return json_date(x, fmt=fmt, nan_display=nan_display)
 

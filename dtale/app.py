@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import getpass
 import jinja2
+import logging
 import os
 import pandas as pd
 import random
@@ -12,7 +13,6 @@ import traceback
 from builtins import map, str
 from contextlib import closing
 from logging import ERROR as LOG_ERROR
-from logging import getLogger
 from threading import Timer
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -45,7 +45,7 @@ if PY3:
 else:
     import thread as _thread
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 USE_NGROK = False
 USE_COLAB = False
@@ -706,7 +706,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                     app.jinja_env.auto_reload = True
                     app.config["TEMPLATES_AUTO_RELOAD"] = True
                 else:
-                    getLogger("werkzeug").setLevel(LOG_ERROR)
+                    logging.getLogger("werkzeug").setLevel(LOG_ERROR)
 
                 if final_options["open_browser"]:
                     instance.open_browser()
@@ -735,7 +735,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             if final_options["notebook"]:
                 instance.notebook()
         else:
-            logger.info("D-Tale started at: {}".format(app_url))
+            # Need to use logging.info() because for some reason other libraries like arctic seem to break logging
+            logging.info("D-Tale started at: {}".format(app_url))
             _start()
 
         return instance
