@@ -20,11 +20,9 @@ class HierarchyToggle extends React.Component {
     ];
     const update = value => this.setState({ hierarchy: value }, () => updateHierarchy(value));
     return (
-      <div className="row pt-3">
-        <div className="col">
-          <b>{t("Hierarchical Layout")}</b>
-          <ButtonToggle options={options} update={update} defaultValue={this.state.hierarchy} allowDeselect />
-        </div>
+      <div className="col-auto">
+        <b>{t("Hierarchical Layout")}</b>
+        <ButtonToggle options={options} update={update} defaultValue={this.state.hierarchy} allowDeselect />
       </div>
     );
   }

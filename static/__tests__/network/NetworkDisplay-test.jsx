@@ -102,6 +102,16 @@ describe("NetworkDisplay test", () => {
     expect(comp.instance().network.options.layout.hierarchical).toBeUndefined();
   });
 
+  it("handles arrow toggling", async () => {
+    await buildDisplay();
+    await buildNetwork();
+    const comp = result.find("ReactNetworkDisplay");
+    result.find("ArrowToggle").find("button").first().simulate("click");
+    expect(comp.instance().network.options.edges.arrows.to.enabled).toBe(false);
+    result.find("ArrowToggle").find("button").last().simulate("click");
+    expect(comp.instance().network.options.edges.arrows.from.enabled).toBe(true);
+  });
+
   it("correctly displays collapsible instructions", async () => {
     await buildDisplay();
     expect(result.find("NetworkDescription").length).toBe(1);
