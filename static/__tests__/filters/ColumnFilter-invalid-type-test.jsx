@@ -38,6 +38,7 @@ describe("ColumnFilter string tests", () => {
       columns: [{ name: "col3", dtype: "error", visible: true, hasOutliers: true }],
       columnFilters: { col3: { value: ["b"] } },
       outlierFilters: { col3: { query: "blah" } },
+      updateSettings: jest.fn(),
     };
     const updateSettings = state => (props = _.assignIn(props, state));
     const result = mount(<ColumnFilter {...props} updateSettings={updateSettings} />, {
@@ -56,21 +57,25 @@ describe("ColumnFilter string tests", () => {
     expect(result.find(".Select__control--is-disabled").length).toBe(0);
     const uniqueSelect = result.find(Select);
     uniqueSelect
-      .first()
+      .last()
       .instance()
       .onChange([{ value: "a" }]);
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "=",
-      value: ["a"],
-    });
-    result.find("button").last().simulate("click");
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "=",
+        value: ["a"],
+      })
+    );
+    result.find("StringFilter").find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "ne",
-      value: ["a"],
-    });
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "ne",
+        value: ["a"],
+      })
+    );
   });
 });

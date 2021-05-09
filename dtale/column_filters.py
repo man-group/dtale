@@ -67,33 +67,87 @@ class MissingFilter(object):
         }
 
 
+def handle_ne(query, operand):
+    if operand != "=":
+        return "~({})".format(query)
+    return query
+
+
 class StringFilter(MissingFilter):
     def __init__(self, column, classification, cfg):
         super(StringFilter, self).__init__(column, classification, cfg)
 
     def build_filter(self):
-        if self.cfg is None or not len(self.cfg.get("value", [])):
+        if self.cfg is None:
+            return super(StringFilter, self).handle_missing(None)
+
+        action = self.cfg.get("action", "equals")
+        if action == "equals" and not len(self.cfg.get("value", [])):
+            return super(StringFilter, self).handle_missing(None)
+        elif action != "equals" and not self.cfg.get("raw"):
             return super(StringFilter, self).handle_missing(None)
 
         state = self.cfg.get("value", [])
+        case_sensitive = self.cfg.get("caseSensitive", False)
         operand = self.cfg.get("operand", "=")
-        fltr = dict(value=state)
-        if len(state) == 1:
-            val_str = ("'{}'" if self.classification == "S" else "{}").format(state[0])
-            fltr["query"] = "{} {} {}".format(
-                build_col_key(self.column), "==" if operand == "=" else "!=", val_str
-            )
-        else:
-            val_str = (
-                "'{}'".format("', '".join(state))
-                if self.classification == "S"
-                else ",".join(state)
-            )
-            fltr["query"] = "{} {} ({})".format(
+        raw = self.cfg.get("raw")
+        fltr = dict(
+            value=state,
+            operand=operand,
+            caseSensitive=case_sensitive,
+            action=action,
+            raw=raw,
+        )
+        if action == "equals":
+            if len(state) == 1:
+                val_str = ("'{}'" if self.classification == "S" else "{}").format(
+                    state[0]
+                )
+                fltr["query"] = "{} {} {}".format(
+                    build_col_key(self.column),
+                    "==" if operand == "=" else "!=",
+                    val_str,
+                )
+            else:
+                val_str = (
+                    "'{}'".format("', '".join(state))
+                    if self.classification == "S"
+                    else ",".join(state)
+                )
+                fltr["query"] = "{} {} ({})".format(
+                    build_col_key(self.column),
+                    "in" if operand == "=" else "not in",
+                    val_str,
+                )
+        elif action in ["startswith", "endswith"]:
+            case_insensitive_conversion = "" if case_sensitive else ".str.lower()"
+            fltr["query"] = "{}{}.str.{}('{}', na=False)".format(
                 build_col_key(self.column),
-                "in" if operand == "=" else "not in",
-                val_str,
+                case_insensitive_conversion,
+                action,
+                raw if case_sensitive else raw.lower(),
             )
+            fltr["query"] = handle_ne(fltr["query"], operand)
+        elif action == "contains":
+            fltr["query"] = "{}.str.contains('{}', na=False, case={})".format(
+                build_col_key(self.column),
+                raw,
+                "True" if case_sensitive else "False",
+            )
+            fltr["query"] = handle_ne(fltr["query"], operand)
+        elif action == "length":
+            if "," in raw:
+                start, end = raw.split(",")
+                fltr["query"] = "{start} <= {col}.str.len() <= {end}".format(
+                    col=build_col_key(self.column),
+                    start=start,
+                    end=end,
+                )
+            else:
+                fltr["query"] = "{}.str.len() == {}".format(
+                    build_col_key(self.column), raw
+                )
+            fltr["query"] = handle_ne(fltr["query"], operand)
         return super(StringFilter, self).handle_missing(fltr)
 
 

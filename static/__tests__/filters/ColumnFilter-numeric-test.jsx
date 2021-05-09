@@ -50,6 +50,7 @@ describe("ColumnFilter numeric tests", () => {
       dataId: "1",
       selectedCol: "col1",
       columns: [{ name: "col1", dtype: "int64", visible: true }],
+      updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
     result.find("i.ico-check-box-outline-blank").simulate("click");
@@ -98,6 +99,7 @@ describe("ColumnFilter numeric tests", () => {
       dataId: "1",
       selectedCol: "col2",
       columns: [{ name: "col2", dtype: "float64", min: 2.5, max: 5.5, visible: true }],
+      updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
     result.find("i.ico-check-box-outline-blank").simulate("click");

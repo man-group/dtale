@@ -89,13 +89,11 @@ function cancelEvents(e, func) {
 class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { drag: false };
+    this.state = { drag: false, currWidth: null };
     this.handleMouseOver = this.handleMouseOver.bind(this);
+    this.resizeStart = this.resizeStart.bind(this);
     this.resizeCol = this.resizeCol.bind(this);
-  }
-
-  shouldComponentUpdate(newProps) {
-    return !_.isEqual(this.props, newProps);
+    this.resizeStop = this.resizeStop.bind(this);
   }
 
   handleMouseOver(e) {
@@ -113,14 +111,36 @@ class ReactHeader extends React.Component {
     }
   }
 
-  resizeCol(deltaX) {
+  resizeStart(e) {
+    const { columnIndex } = this.props;
+    const colCfg = gu.getCol(columnIndex, this.props);
+    this.setState({ drag: true, colWidth: colCfg.width });
+    this.props.updateDragResize(e.clientX);
+  }
+
+  resizeCol(e, deltaX) {
+    const { colWidth } = this.state;
+    const { columnIndex } = this.props;
+    const colCfg = gu.getCol(columnIndex, this.props);
+    const width = _.max([(colWidth || colCfg.width) + deltaX, 10]);
+    this.setState({ colWidth: width });
+    this.props.updateDragResize(e.clientX);
+  }
+
+  resizeStop() {
+    const { colWidth } = this.state;
     const { columns, columnIndex } = this.props;
     const colCfg = gu.getCol(columnIndex, this.props);
-    const width = _.max([colCfg.width + deltaX, 10]);
     const updatedColumns = _.map(columns, col =>
-      col.name === colCfg.name ? { ...col, width, resized: true } : { ...col }
+      col.name === colCfg.name ? { ...col, width: colWidth, resized: true } : { ...col }
     );
-    this.props.propagateState({ columns: updatedColumns, triggerResize: true });
+    this.setState({ drag: false, colWidth: null }, () =>
+      this.props.propagateState({
+        columns: updatedColumns,
+        triggerResize: true,
+      })
+    );
+    this.props.stopDragResize();
   }
 
   render() {
@@ -154,10 +174,11 @@ class ReactHeader extends React.Component {
     headerStyle = { ...headerStyle, ...markupProps.headerStyle };
     const rangeClass =
       isInRowOrColumnRange(columnIndex, columnRange) || _.includes(ctrlCols, columnIndex) ? " in-range" : "";
+    const { colWidth, drag } = this.state;
     return (
       <div
-        className={`headerCell ${markupProps.className}${rangeClass}`}
-        style={headerStyle}
+        className={`headerCell ${markupProps.className}${rangeClass}${drag ? " active-resize" : ""}`}
+        style={{ ...headerStyle, ...(drag ? { width: colWidth } : {}) }}
         onMouseOver={this.handleMouseOver}
         name={escape(colName)}>
         <div
@@ -176,9 +197,9 @@ class ReactHeader extends React.Component {
           axis="x"
           defaultClassName="DragHandle"
           defaultClassNameDragging="DragHandleActive"
-          onStart={e => cancelEvents(e, () => this.setState({ drag: true }))}
-          onDrag={(e, { deltaX }) => cancelEvents(e, () => this.resizeCol(deltaX))}
-          onStop={e => cancelEvents(e, () => this.setState({ drag: false }))}
+          onStart={e => cancelEvents(e, () => this.resizeStart(e))}
+          onDrag={(e, { deltaX }) => cancelEvents(e, () => this.resizeCol(e, deltaX))}
+          onStop={e => cancelEvents(e, this.resizeStop)}
           position={{ x: 0 }}
           zIndex={999}>
           <div className="DragHandleIcon">⋮</div>
@@ -203,6 +224,8 @@ ReactHeader.propTypes = {
   openChart: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   toggleColumnMenu: PropTypes.func,
   hideColumnMenu: PropTypes.func,
+  updateDragResize: PropTypes.func,
+  stopDragResize: PropTypes.func,
   t: PropTypes.func,
 };
 const TranslateReactHeader = withTranslation("main")(ReactHeader);
@@ -211,6 +234,8 @@ const ReduxHeader = connect(
   dispatch => ({
     toggleColumnMenu: colName => dispatch(actions.toggleColumnMenu(colName)),
     hideColumnMenu: colName => dispatch(actions.hideColumnMenu(colName)),
+    updateDragResize: x => dispatch({ type: "drag-resize", x }),
+    stopDragResize: () => dispatch({ type: "stop-resize" }),
   })
 )(TranslateReactHeader);
 

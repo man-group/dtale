@@ -168,7 +168,7 @@ class ReactGridEventHandler extends React.Component {
   }
 
   render() {
-    const { sidePanel, sidePanelOpen, menuPinned } = this.props;
+    const { sidePanel, sidePanelOpen, menuPinned, dragResize } = this.props;
     return (
       <div className={`h-100 w-100 d-flex ${menuPinned ? "is-pinned" : ""}`}>
         <div
@@ -181,6 +181,7 @@ class ReactGridEventHandler extends React.Component {
         <MenuTooltip />
         <MeasureText />
         <SidePanel />
+        {dragResize && <div className="blue-line" style={{ left: dragResize + 3 }} />}
       </div>
     );
   }
@@ -207,11 +208,12 @@ ReactGridEventHandler.propTypes = {
   sidePanelOpen: PropTypes.bool,
   sidePanel: PropTypes.string,
   menuPinned: PropTypes.bool,
+  dragResize: PropTypes.number,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel, menuPinned }) => ({
+  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel, menuPinned, dragResize }) => ({
     allowCellEdits,
     dataId,
     ribbonMenuOpen,
@@ -219,6 +221,7 @@ const ReduxGridEventHandler = connect(
     ribbonDropdownOpen: ribbonDropdown.visible,
     sidePanelOpen: sidePanel.visible,
     sidePanel: sidePanel.view,
+    dragResize,
   }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),

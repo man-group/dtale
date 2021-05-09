@@ -38,6 +38,7 @@ describe("ColumnFilter date tests", () => {
       dataId: "1",
       selectedCol: "col4",
       columns: [{ name: "col4", dtype: "datetime64[ns]", visible: true }],
+      updateSettings: jest.fn(),
     };
     const propagateState = state => (props = _.assignIn(props, state));
     const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {

@@ -50,4 +50,9 @@ describe("RibbonDropdown", () => {
     wrapper.find("div").last().props().onMouseMove({ clientY: 45 });
     expect(setTimeout).toHaveBeenCalledTimes(0);
   });
+
+  it("displays blue-line correctly", () => {
+    wrapper.setProps({ dragResize: 5 });
+    expect(wrapper.find("div.blue-line")).toHaveLength(1);
+  });
 });

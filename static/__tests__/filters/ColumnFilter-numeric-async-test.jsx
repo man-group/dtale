@@ -61,6 +61,7 @@ describe("ColumnFilter numeric tests", () => {
       dataId: "1",
       selectedCol: "col1",
       columns: [{ name: "col1", dtype: "int64", visible: true, unique_ct: 1000 }],
+      updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
     result.find("i.ico-check-box-outline-blank").simulate("click");

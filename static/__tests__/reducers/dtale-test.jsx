@@ -48,6 +48,7 @@ describe("reducer tests", () => {
       username: null,
       predefinedFilters: [],
       maxColumnWidth: null,
+      dragResize: null,
     };
     expect(state).toEqual(store.getState());
   });
