@@ -10476,7 +10476,8 @@ div.hoverable.label > div.hoverable__content {
     right: unset;
     left: 2em;
 }
-.hoverable__content.build-code-window::before {
+.hoverable__content.build-code-window::before,
+.hoverable__content.col-menu-desc::before{
     right: unset;
     left: 2em;
     bottom: unset;
@@ -10487,8 +10488,7 @@ div.hoverable.label > div.hoverable__content {
     -o-transform: rotate(180deg);
     transform: rotate(180deg);
 }
-.hoverable__content.copy-tt-top::before,
-.hoverable__content.col-menu-desc::before {
+.hoverable__content.copy-tt-top::before {
     bottom: unset;
     border-bottom: none;
     top: 95%;
@@ -10548,9 +10548,18 @@ div.hoverable.label > div.hoverable__content {
     -o-transform: rotate(180deg);
     transform: rotate(180deg);
 }
-.hoverable__content.copy-tt-top::after,
-.hoverable__content.col-menu-desc::after
-.hoverable__content.build-code-window::after {
+.hoverable__content.col-menu-desc::after{
+    right: unset;
+    left: 2em;
+    bottom: unset;
+    top: 98%;
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+.hoverable__content.copy-tt-top::after {
     bottom: unset;
     top: calc(92% + .1em);
     -moz-transform: rotate(180deg);
@@ -10812,6 +10821,9 @@ table tbody tr.highlight-row {
 	white-space:nowrap;
 	word-wrap:normal;
 }
+div.string-filter-inputs [data-tip]:after {
+  white-space:pre-wrap;
+}
 [data-tip]:hover:before,
 [data-tip]:hover:after {
 	display:block;
@@ -11043,4 +11055,14 @@ div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
   background-origin: content-box;
   box-sizing: border-box;
   z-index: 20;
+}
+
+.blue-line {
+  border-left: 3px solid blue;
+  height: calc(100vh);
+  background-color: transparent;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
 }

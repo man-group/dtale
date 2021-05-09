@@ -49,6 +49,7 @@ describe("ColumnFilter string tests", () => {
       selectedCol: "col3",
       columns: [{ name: "col3", dtype: "object", visible: true, unique_ct: 1000 }],
       columnFilters: { col3: { value: ["b"] } },
+      updateSettings: jest.fn(),
     };
     const propagateState = state => (props = _.assignIn(props, state));
     const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {
@@ -67,17 +68,21 @@ describe("ColumnFilter string tests", () => {
     expect(findAsync(result).prop("defaultOptions")).toEqual(_.map(INITIAL_UNIQUES, iu => ({ value: iu })));
     findAsync(result).prop("onChange")([{ value: "a" }]);
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "=",
-      value: ["a"],
-    });
-    result.find("button").last().simulate("click");
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "=",
+        value: ["a"],
+      })
+    );
+    result.find("StringFilter").find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "ne",
-      value: ["a"],
-    });
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "ne",
+        value: ["a"],
+      })
+    );
   });
 });

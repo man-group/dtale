@@ -2817,7 +2817,14 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["bool_val"],
-            {u"query": u"`bool_val` == False", u"value": [u"False"]},
+            {
+                "query": "`bool_val` == False",
+                "value": ["False"],
+                "action": "equals",
+                "caseSensitive": False,
+                "operand": "=",
+                "raw": None,
+            },
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2827,7 +2834,14 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["str_val"],
-            {u"query": "`str_val` in ('a', 'b')", u"value": ["a", "b"]},
+            {
+                "query": "`str_val` in ('a', 'b')",
+                "value": ["a", "b"],
+                "action": "equals",
+                "caseSensitive": False,
+                "operand": "=",
+                "raw": None,
+            },
         )
         for col, f_type in [
             ("bool_val", "string"),
@@ -2840,10 +2854,10 @@ def test_save_column_filter(unittest, custom_data):
                     col=col, cfg=json.dumps({"type": f_type, "missing": True})
                 ),
             )
-            unittest.assertEqual(
-                json.loads(response.data)["currFilters"][col],
-                {u"query": u"`{col}` != `{col}`".format(col=col), u"missing": True},
-            )
+            col_cfg = json.loads(response.data)["currFilters"][col]
+            assert col_cfg["query"] == u"`{col}` != `{col}`".format(col=col)
+            assert col_cfg["missing"]
+
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
             query_string=dict(col="bool_val", cfg=None),

@@ -34,6 +34,7 @@ describe("ColumnFilter string tests", () => {
       selectedCol: "col3",
       columns: [{ name: "col3", dtype: "object", visible: true }],
       columnFilters: { col3: { value: ["b"] } },
+      updateSettings: jest.fn(),
     };
     const propagateState = state => (props = _.assignIn(props, state));
     const result = mount(<ColumnFilter {...props} propagateState={propagateState} />, {
@@ -47,23 +48,27 @@ describe("ColumnFilter string tests", () => {
     result.find("i.ico-check-box").simulate("click");
     await tickUpdate(result);
     expect(result.find(".Select__control--is-disabled").length).toBe(0);
-    const uniqueSelect = result.find(Select);
+    const uniqueSelect = result.find(Select).last();
     uniqueSelect
       .first()
       .instance()
       .onChange([{ value: "a" }]);
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "=",
-      value: ["a"],
-    });
-    result.find("button").last().simulate("click");
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "=",
+        value: ["a"],
+      })
+    );
+    result.find("StringFilter").find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.state().cfg).toEqual({
-      type: "string",
-      operand: "ne",
-      value: ["a"],
-    });
+    expect(result.state().cfg).toEqual(
+      expect.objectContaining({
+        type: "string",
+        operand: "ne",
+        value: ["a"],
+      })
+    );
   });
 });

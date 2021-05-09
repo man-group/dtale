@@ -19,11 +19,17 @@
   background: lightblue;
 }
 
-.resized {
+.resized,
+.active-resize div {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
+}
+
+.active-resize {
+  background-color: white;
+  z-index: 20;
 }
 
 .cell.in-range,

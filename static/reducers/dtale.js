@@ -1,10 +1,9 @@
-import _ from "lodash";
-import $ from "jquery";
 import { combineReducers } from "redux";
 
 import { chartData } from "./chart";
 import { auth, username } from "./auth";
-import { getHiddenValue, toBool, toFloat, toJson } from "./utils";
+import * as settingsReducers from "./settings";
+import { getHiddenValue, toBool, toJson } from "./utils";
 
 function dataId(state = null, action = {}) {
   switch (action.type) {
@@ -33,28 +32,6 @@ function editedCell(state = null, action = {}) {
     case "toggle-column-menu":
     case "clear-edit":
       return null;
-    default:
-      return state;
-  }
-}
-
-function hideShutdown(state = false, action = {}) {
-  switch (action.type) {
-    case "init-params":
-      return toBool(getHiddenValue("hide_shutdown"));
-    case "load-preview":
-      return true;
-    default:
-      return state;
-  }
-}
-
-function allowCellEdits(state = true, action = {}) {
-  switch (action.type) {
-    case "init-params":
-      return toBool(getHiddenValue("allow_cell_edits"));
-    case "load-preview":
-      return false;
     default:
       return state;
   }
@@ -106,30 +83,6 @@ function xarrayDim(state = {}, action = {}) {
   }
 }
 
-function theme(state = "light", action = {}) {
-  switch (action.type) {
-    case "init-params":
-      return getHiddenValue("theme");
-    case "set-theme":
-      $("body").removeClass(`${state}-mode`);
-      $("body").addClass(`${action.theme}-mode`);
-      return action.theme;
-    default:
-      return state;
-  }
-}
-
-function language(state = "en", action = {}) {
-  switch (action.type) {
-    case "init-params":
-      return getHiddenValue("language");
-    case "set-language":
-      return action.language;
-    default:
-      return state;
-  }
-}
-
 function filteredRanges(state = {}, action = {}) {
   switch (action.type) {
     case "init-params":
@@ -147,22 +100,6 @@ function settings(state = {}, action = {}) {
       return toJson(getHiddenValue("settings"));
     case "update-settings":
       return { ...state, ...action.settings };
-    default:
-      return state;
-  }
-}
-
-function pythonVersion(state = null, action = {}) {
-  switch (action.type) {
-    case "init-params":
-    case "load-preview": {
-      const version = getHiddenValue("python_version");
-      if (version) {
-        const versionNumbers = _.map(_.split(version, "."), _.parseInt);
-        return versionNumbers;
-      }
-      return state;
-    }
     default:
       return state;
   }
@@ -254,10 +191,12 @@ export function predefinedFilters(state = [], action = {}) {
   }
 }
 
-function maxColumnWidth(state = null, action = {}) {
+function dragResize(state = null, action = {}) {
   switch (action.type) {
-    case "init-params":
-      return toFloat(getHiddenValue("max_column_width"));
+    case "drag-resize":
+      return action.x;
+    case "stop-resize":
+      return null;
     default:
       return state;
   }
@@ -265,8 +204,6 @@ function maxColumnWidth(state = null, action = {}) {
 
 const dtaleStore = combineReducers({
   chartData,
-  hideShutdown,
-  allowCellEdits,
   dataId,
   editedCell,
   iframe,
@@ -276,11 +213,8 @@ const dtaleStore = combineReducers({
   selectedCol,
   xarray,
   xarrayDim,
-  theme,
-  language,
   filteredRanges,
   settings,
-  pythonVersion,
   isPreview,
   menuPinned,
   menuTooltip,
@@ -289,7 +223,8 @@ const dtaleStore = combineReducers({
   sidePanel,
   dataViewerUpdate,
   predefinedFilters,
-  maxColumnWidth,
+  dragResize,
+  ...settingsReducers,
 });
 
 export default { store: dtaleStore };
