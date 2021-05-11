@@ -53,7 +53,15 @@ JUPYTER_SERVER_PROXY = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
 
-SHORT_LIFE_PATHS = ["dist", "dash"]
+_basepath = os.path.dirname(__file__)
+_filepath = os.path.abspath(os.path.join(_basepath, "static"))
+
+SHORT_LIFE_PATHS = [
+    "dist",
+    os.path.join(_filepath, "dist"),
+    "dash",
+    os.path.join(_filepath, "dash"),
+]
 SHORT_LIFE_TIMEOUT = 60
 
 REAPER_TIMEOUT = 60.0 * 60.0  # one-hour
@@ -248,7 +256,7 @@ class DtaleFlask(Flask):
                  otherwise SHORT_LIFE_TIMEOUT
 
         """
-        if name and any([name.startswith(path) for path in SHORT_LIFE_PATHS]):
+        if name and any([str(name).startswith(path) for path in SHORT_LIFE_PATHS]):
             return SHORT_LIFE_TIMEOUT
         return super(DtaleFlask, self).get_send_file_max_age(name)
 

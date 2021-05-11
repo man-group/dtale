@@ -15,6 +15,7 @@ itsdangerous
 kaleido==0.1.0; python_version <= '3.6'
 kaleido; python_version > '3.6'
 missingno
+nbformat
 networkx==2.2; python_version < '3.0'
 networkx; python_version >= '3.0'
 openpyxl==2.6.4; python_version < '3.0'
