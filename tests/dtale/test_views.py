@@ -287,7 +287,7 @@ def test_shutdown(unittest):
 @pytest.mark.unit
 def test_get_send_file_max_age():
     with app.app_context():
-        assert 43200 == app.get_send_file_max_age("test")
+        assert app.get_send_file_max_age("test") in [43200, None]
         assert 60 == app.get_send_file_max_age("dist/test.js")
 
 

@@ -206,22 +206,30 @@ class DefaultStore(object):
     def set_data(self, data_id=None, val=None):
         if data_id is None:
             data_id = self.new_data_inst()
-        if int(data_id) not in self._data_store.keys():
+        data_id = int(data_id)
+        if data_id not in self._data_store.keys():
             data_id = self.new_data_inst(int(data_id))
         data_inst = self.get_data_inst(data_id)
         data_inst.data = val
+        self._data_store[data_id] = data_inst
 
     def set_dataset(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dataset = val
+        self._data_store[data_id] = data_inst
 
     def set_dataset_dim(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dataset_dim = val
+        self._data_store[data_id] = data_inst
 
     def set_dtypes(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dtypes = val
+        self._data_store[data_id] = data_inst
 
     def set_name(self, data_id, val):
         if val in [None, ""]:
@@ -229,24 +237,34 @@ class DefaultStore(object):
         if val in self._data_names:
             raise Exception("Name {} already exists!".format(val))
         data_inst = self.get_data_inst(data_id)
-        self._data_names[val] = int(data_id)
+        data_id = int(data_id)
+        self._data_names[val] = data_id
         data_inst.name = val
+        self._data_store[data_id] = data_inst
 
     def set_context_variables(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.context_variables = val
+        self._data_store[data_id] = data_inst
 
     def set_settings(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.settings = val
+        self._data_store[data_id] = data_inst
 
     def set_metadata(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.metadata = val
+        self._data_store[data_id] = data_inst
 
     def set_history(self, data_id, val):
+        data_id = int(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.history = val
+        self._data_store[data_id] = data_inst
 
     def delete_instance(self, data_id):
         data_id = int(data_id)
@@ -512,6 +530,9 @@ def use_redis_store(directory, *args, **kwargs):
             if value is not None:
                 return pickle.loads(value)
 
+        def keys(self):
+            return [int(k) for k in super(DtaleRedis, self).keys()]
+
         def set(self, name, value, *args, **kwargs):
             value = pickle.dumps(value)
             return super(DtaleRedis, self).set(name, value, *args, **kwargs)
@@ -520,7 +541,9 @@ def use_redis_store(directory, *args, **kwargs):
             self.flushdb()
 
         def to_dict(self):
-            return {k.decode("utf-8"): self.get(k) for k in self.keys()}
+            return {
+                k.decode("utf-8"): self.get(k) for k in super(DtaleRedis, self).keys()
+            }
 
         def items(self):
             return self.to_dict().items()
