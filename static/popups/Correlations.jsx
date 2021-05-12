@@ -6,6 +6,7 @@ import { Bouncer } from "../Bouncer";
 import { BouncerWrapper } from "../BouncerWrapper";
 import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
+import actions from "../actions/dtale";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";
@@ -127,18 +128,24 @@ class Correlations extends React.Component {
   }
 
   viewScatterRow(evt) {
-    const point = this.state.chart.getElementAtEvent(evt);
-    if (point && point[0]._datasetIndex !== undefined) {
-      const data = _.get(point, ["0", "_chart", "config", "data", "datasets", point[0]._datasetIndex, "data"]);
+    const point = this.state.chart.getElementsAtEventForMode(evt, "nearest", { intersect: true }, false);
+    if (point && point[0].datasetIndex !== undefined) {
+      const data = _.get(this.state, ["chart", "config", "_config", "data", "datasets", point[0].datasetIndex, "data"]);
       if (data) {
-        const index = data[point[0]._index].index;
+        const index = data[point[0].index].index;
         let updatedQuery = this.props.chartData.query;
         if (updatedQuery) {
           updatedQuery = [updatedQuery, `index == ${index}`];
         } else {
           updatedQuery = [`index == ${index}`];
         }
-        saveFilter(this.props.dataId, _.join(updatedQuery, " and "), window.opener.location.reload);
+        saveFilter(this.props.dataId, _.join(updatedQuery, " and "), () => {
+          if (actions.isPopup()) {
+            window.opener.location.reload();
+            return;
+          }
+          window.location.reload();
+        });
       }
     }
   }
@@ -182,11 +189,12 @@ class Correlations extends React.Component {
   viewScatter(evt) {
     const chart = _.get(this, "_ts_chart.current.state.charts.0");
     if (chart) {
-      const selectedPoint = _.head(chart.getElementsAtXAxis(evt));
+      const selectedPoints = chart.getElementsAtEventForMode(evt, "index", { intersect: false }, false);
+      const selectedPoint = _.head(selectedPoints);
       if (selectedPoint) {
-        chart.getDatasetMeta(0).controller._config.selectedPoint = selectedPoint._index;
+        chart.config._config.data.datasets[selectedPoint.datasetIndex].selectedPoint = selectedPoint.index;
         const { selectedCols } = this.state;
-        this.buildScatter(selectedCols, selectedPoint._index);
+        this.buildScatter(selectedCols, selectedPoint.index);
       }
     }
   }
@@ -218,17 +226,14 @@ class Correlations extends React.Component {
                 x={{ value: "x" }}
                 y={[{ value: "corr" }]}
                 configHandler={config => {
-                  config.options.scales.yAxes = [
-                    {
-                      ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
-                      afterTickToLabelConversion: data => {
-                        data.ticks[0] = null;
-                        data.ticks[data.ticks.length - 1] = null;
-                      },
-                      id: "y-corr",
+                  config.options.scales["y-corr"] = {
+                    ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
+                    afterTickToLabelConversion: data => {
+                      data.ticks[0] = { label: null };
+                      data.ticks[data.ticks.length - 1] = { label: null };
                     },
-                  ];
-                  config.options.scales.xAxes[0].scaleLabel.display = false;
+                  };
+                  config.options.scales.x.scaleLabel.display = false;
                   config.options.onClick = this.viewScatter;
                   config.options.legend = { display: false };
                   config.plugins = [

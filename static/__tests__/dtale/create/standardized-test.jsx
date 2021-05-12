@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Standardize");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build standardized column", async () => {

@@ -145,17 +145,19 @@ class DtypesGrid extends React.Component {
     }
     const { t } = this.props;
     const { sortBy, sortDirection } = this.state;
-    const toggleVisibility = ({ name, visible }) => e => {
-      this.setState({
-        dtypes: _.map(this.state.dtypes, d => {
-          if (d.name === name) {
-            return _.assign({}, d, { visible: !visible });
-          }
-          return d;
-        }),
-      });
-      e.stopPropagation();
-    };
+    const toggleVisibility =
+      ({ name, visible }) =>
+      e => {
+        this.setState({
+          dtypes: _.map(this.state.dtypes, d => {
+            if (d.name === name) {
+              return _.assign({}, d, { visible: !visible });
+            }
+            return d;
+          }),
+        });
+        e.stopPropagation();
+      };
     const currDtypes = filterDtypes(this.state);
     const rowClick = ({ rowData }) =>
       this.setState(

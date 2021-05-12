@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Rolling");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build rolling column", async () => {

@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Exponential Smoothing");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build exponential smoothing column", async () => {

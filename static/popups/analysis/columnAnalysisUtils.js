@@ -13,18 +13,19 @@ import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
 const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max", "skew", "kurt"];
 
 function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
-  const xAxes = [{ scaleLabel: { display: true, labelString: "Value" } }];
+  const xAxes = { scaleLabel: { display: true, labelString: "Value" } };
   const { data, ordinal } = fetchedData;
-  let datasets = [{ label: "Frequency", type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y-1" }];
-  const yAxes = [{ scaleLabel: { display: true, labelString: "Frequency" }, position: "left", id: "y-1" }];
+  let datasets = [{ label: "Frequency", type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" }];
+  const yAxes = {
+    y: { scaleLabel: { display: true, labelString: "Frequency" }, position: "left" },
+  };
   if (_.has(fetchedData, "ordinal")) {
     const ordinalCol = _.get(chartOpts, "ordinalCol.value");
     const ordinalAgg = _.get(chartOpts, "ordinalAgg.value");
-    yAxes.push({
+    yAxes["y-2"] = {
       scaleLabel: { display: true, labelString: `${ordinalCol} (${ordinalAgg})` },
-      id: "y-2",
       position: "right",
-    });
+    };
     datasets = _.concat(
       _.assignIn(
         { label: `${ordinalCol} (${ordinalAgg})`, type: "line", fill: false, borderColor: "rgb(255, 99, 132)" },
@@ -32,48 +33,47 @@ function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
       ),
       datasets
     );
-    baseCfg.options.tooltips = { mode: "index", intersect: true };
+    baseCfg.options.tooltip = { mode: "index", intersect: true };
   }
   baseCfg.data.datasets = datasets;
-  baseCfg.options.scales = { xAxes, yAxes };
-  baseCfg.options.scales.yAxes[0].ticks = { min: 0 };
+  baseCfg.options.scales = { x: xAxes, ...yAxes };
+  baseCfg.options.scales.y.ticks = { min: 0 };
 }
 
 function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
   const { data, count } = fetchedData;
-  const xAxes = [{ scaleLabel: { display: true, labelString: _.get(chartOpts, "categoryCol.value") } }];
+  const xAxes = { scaleLabel: { display: true, labelString: _.get(chartOpts, "categoryCol.value") } };
   const yLabel = `${chartOpts.selectedCol} (${_.get(chartOpts, "categoryAgg.label")})`;
-  const yAxes = [
-    { scaleLabel: { display: true, labelString: yLabel }, id: "y-1", position: "left" },
-    { scaleLabel: { display: true, labelString: "Frequency" }, id: "y-2", position: "right" },
-  ];
+  const yAxes = {
+    y: { scaleLabel: { display: true, labelString: yLabel }, position: "left" },
+    "y-2": { scaleLabel: { display: true, labelString: "Frequency" }, position: "right" },
+  };
   const datasets = [
     _.assignIn(
       { label: "Frequency", type: "line", fill: false, borderColor: "rgb(255, 99, 132)", borderWidth: 2 },
       { data: count, backgroundColor: "rgb(255, 99, 132)", yAxisID: "y-2" }
     ),
-    { type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y-1", label: yLabel },
+    { type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y", label: yLabel },
   ];
   baseCfg.data.datasets = datasets;
-  baseCfg.options.scales = { xAxes, yAxes };
-  baseCfg.options.scales.yAxes[1].ticks = { min: 0 };
-  baseCfg.options.tooltips = { mode: "index", intersect: true };
+  baseCfg.options.scales = { x: xAxes, ...yAxes };
+  baseCfg.options.scales["y-2"].ticks = { min: 0 };
+  baseCfg.options.tooltip = { mode: "index", intersect: true };
 }
 
 function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
   const { data, kde } = fetchedData;
-  const xAxes = [{ scaleLabel: { display: true, labelString: "Bin" } }];
-  const yAxes = [{ scaleLabel: { display: true, labelString: "Frequency" }, position: "left", id: "y-1" }];
-  let datasets = [
-    { label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y-1" },
-  ];
+  const xAxes = { scaleLabel: { display: true, labelString: "Bin" } };
+  const yAxes = {
+    y: { scaleLabel: { display: true, labelString: "Frequency" }, position: "left" },
+  };
+  let datasets = [{ label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" }];
   if (kde) {
-    yAxes.push({
+    yAxes["y-2"] = {
       scaleLabel: { display: true, labelString: "KDE" },
-      id: "y-2",
       position: "right",
       ticks: { min: 0, max: _.max(kde) },
-    });
+    };
     datasets = _.concat(
       _.assignIn(
         { label: "KDE", type: "line", fill: false, borderColor: "rgb(255, 99, 132)" },
@@ -81,12 +81,12 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
       ),
       datasets
     );
-    baseCfg.options.tooltips = { mode: "index", intersect: true };
+    baseCfg.options.tooltip = { mode: "index", intersect: true };
   }
   baseCfg.data.datasets = datasets;
-  baseCfg.options.scales = { xAxes, yAxes };
-  baseCfg.options.scales.yAxes[0].ticks = { min: 0 };
-  baseCfg.options.tooltips = { mode: "index", intersect: false };
+  baseCfg.options.scales = { x: xAxes, ...yAxes };
+  baseCfg.options.scales.y.ticks = { min: 0 };
+  baseCfg.options.tooltip = { mode: "index", intersect: false };
   baseCfg.options.legend.display = true;
 }
 
@@ -107,7 +107,7 @@ function createChart(ctx, fetchedData, chartOpts) {
   } else {
     $("#describe").empty();
   }
-  let chartCfg = {
+  const chartCfg = {
     type: "bar",
     data: { labels },
     options: {
@@ -125,14 +125,6 @@ function createChart(ctx, fetchedData, chartOpts) {
       break;
     case "categories":
       infoBuilder = buildCategoryAxes;
-      break;
-    case "qq":
-      infoBuilder = (_chartCfg, data, _chartOpts) => {
-        chartCfg = chartUtils.createScatterCfg(data, { x: "x", y: ["y"] }, data => data);
-        chartCfg.options.scales.xAxes[0].scaleLabel.display = false;
-        chartCfg.options.scales.yAxes[0].scaleLabel.display = false;
-        chartCfg.data.datasets[0].trendlineLinear = { style: "#ff6384", lineStyle: "line", width: 1 };
-      };
       break;
   }
   infoBuilder(chartCfg, fetchedData, chartOpts);

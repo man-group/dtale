@@ -1,8 +1,19 @@
 /* eslint max-lines: "off" */
-import Chart, { plugins as chartPlugins } from "chart.js";
-import "chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js";
-import chartTrendline from "chartjs-plugin-trendline";
-import "chartjs-plugin-zoom";
+import {
+  BarController,
+  BarElement,
+  Chart,
+  CategoryScale,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  ScatterController,
+  Title,
+  Tooltip,
+} from "chart.js";
+import { BoxPlotController } from "@sgratzl/chartjs-chart-boxplot";
+import zoomPlugin from "chartjs-plugin-zoom";
 import chroma from "chroma-js";
 import _ from "lodash";
 import moment from "moment";
@@ -12,14 +23,24 @@ import { buildRGBA } from "./colors";
 import * as gu from "./dtale/gridUtils";
 import { formatScatterPoints, getScatterMax, getScatterMin } from "./scatterChartUtils";
 
-chartPlugins.register(chartTrendline);
-
-// needed to add these parameters because Chart.Zoom.js causes Chart.js to look for them
-const DEFAULT_OPTIONS = { pan: { enabled: false }, zoom: { enabled: false } };
+Chart.register(
+  BarController,
+  BarElement,
+  BoxPlotController,
+  CategoryScale,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  ScatterController,
+  Title,
+  Tooltip,
+  zoomPlugin
+);
 
 function createChart(ctx, cfg) {
-  const options = _.assign({}, DEFAULT_OPTIONS, cfg.options || {});
-  const finalCfg = _.assign({}, cfg, { options });
+  const options = cfg.options || {};
+  const finalCfg = { ...cfg, options };
   return new Chart(ctx, finalCfg);
 }
 
@@ -65,12 +86,12 @@ const COLOR_PROPS = [
 ];
 
 const gradientLinePlugin = (colorScale, yAxisID, minY = null, maxY = null) => ({
-  afterLayout: chartInstance => {
+  afterLayout: (chartInstance, _args, _options) => {
     const rgbaBuilder = buildRGBA(colorScale);
     // The context, needed for the creation of the linear gradient.
-    const ctx = chartInstance.chart.ctx;
+    const ctx = chartInstance.ctx;
     // The first (and, assuming, only) dataset.
-    const dataset = chartInstance.data.datasets[0];
+    const dataset = chartInstance.config._config.data.datasets[0];
     // Calculate sort data for easy min/max access.
     let finalMinY = minY;
     let finalMaxY = maxY;
@@ -103,10 +124,12 @@ const gradientLinePlugin = (colorScale, yAxisID, minY = null, maxY = null) => ({
 
 function drawLine(chart, point, colorBuilder) {
   const ctx = chart.ctx,
-    x = point._model.x,
-    topY = point._yScale.top,
-    bottomY = point._yScale.bottom,
-    value = chart.data.datasets[point._datasetIndex].data[point._index];
+    x = point.element.x,
+    dataset = chart.config._config.data.datasets[point.datasetIndex],
+    yAxisID = dataset.yAxisID,
+    topY = chart.scales[yAxisID].top,
+    bottomY = chart.scales[yAxisID].bottom,
+    value = dataset.data[point.dataIndex];
 
   // draw line
   ctx.save();
@@ -120,14 +143,19 @@ function drawLine(chart, point, colorBuilder) {
 }
 
 const lineHoverPlugin = colorScale => ({
-  afterDraw: chartInstance => {
-    if (chartInstance.tooltip._active && chartInstance.tooltip._active.length) {
-      drawLine(chartInstance, chartInstance.tooltip._active[0], buildRGBA(colorScale));
+  afterDraw: (chartInstance, _args, _options) => {
+    if (chartInstance.tooltip.dataPoints?.length) {
+      drawLine(chartInstance, chartInstance.tooltip.dataPoints[0], buildRGBA(colorScale));
+      return;
     }
-    const dataset = chartInstance.getDatasetMeta(0),
-      selectedPoint = dataset.controller._config.selectedPoint;
-    if (!_.isNull(selectedPoint)) {
-      drawLine(chartInstance, dataset.data[selectedPoint], () => "rgb(42, 145, 209)");
+    const selectedPoint = chartInstance.config._config.data.datasets[0].selectedPoint;
+    if (!_.isUndefined(selectedPoint)) {
+      const point = {
+        element: chartInstance.getDatasetMeta(0).data[selectedPoint],
+        dataIndex: selectedPoint,
+        datasetIndex: 0,
+      };
+      drawLine(chartInstance, point, () => "rgb(42, 145, 209)");
     }
   },
 });
@@ -184,46 +212,54 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
       {
         responsive: true,
         maintainAspectRatio: false,
-        pan: { enabled: true, mode: "x" },
-        zoom: { enabled: true, mode: "x", speed: 0.5 },
-        tooltips: {
-          mode: "index",
-          intersect: false,
-          callbacks: {
-            label: (tooltipItem, chartData) => {
-              const value = _.round(tooltipItem.yLabel, 4);
-              if (_.size(data) * _.size(y) > 1) {
-                const label = chartData.datasets[tooltipItem.datasetIndex].label || "";
-                if (label) {
-                  return `${label}: ${value}`;
+        plugins: {
+          zoom: {
+            pan: { enabled: true, mode: "x" },
+            zoom: { enabled: true, mode: "x", speed: 0.5 },
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            callbacks: {
+              label: (tooltipItem, chartData) => {
+                const value = _.round(tooltipItem.parsed.y, 4);
+                if (_.size(data) * _.size(y) > 1) {
+                  const label = chartData.datasets[tooltipItem.datasetIndex].label || "";
+                  if (label) {
+                    return `${label}: ${value}`;
+                  }
                 }
-              }
-              return value + "";
+                return value + "";
+              },
             },
           },
         },
-        hover: {
-          mode: "nearest",
-          intersect: true,
+        interaction: {
+          intersect: false,
+          mode: "index",
         },
         scales: {
-          xAxes: [
-            {
-              scaleLabel: {
-                display: true,
-                labelString: x,
-              },
-            },
-          ],
-          yAxes: _.map(y, (yProp, idx) => ({
+          x: {
             scaleLabel: {
               display: true,
-              labelString: yProp,
+              labelString: x,
             },
-            ticks: buildTicks(yProp, { min, max }),
-            id: `y-${yProp}`,
-            position: idx % 2 == 0 ? "left" : "right",
-          })),
+          },
+          ..._.reduce(
+            y,
+            (res, yProp, idx) => ({
+              ...res,
+              [`y-${yProp}`]: {
+                scaleLabel: {
+                  display: true,
+                  labelString: yProp,
+                },
+                ticks: buildTicks(yProp, { min, max }),
+                position: idx % 2 == 0 ? "left" : "right",
+              },
+            }),
+            {}
+          ),
         },
       },
       additionalOptions
@@ -255,8 +291,12 @@ function createBarCfg({ data, min, max }, { columns, x, y, additionalOptions, co
 function createStackedCfg({ data, min, max }, { columns, x, y, additionalOptions, configHandler }) {
   const cfg = createLineCfg({ data, min, max }, { columns, x, y, additionalOptions, configHandler });
   cfg.type = "bar";
-  cfg.options.scales.xAxes[0].stacked = true;
-  _.forEach(cfg.options.scales.yAxes, axisCfg => (axisCfg.stacked = true));
+  cfg.options.scales.x.stacked = true;
+  _.forEach(cfg.options.scales, (axisCfg, axisId) => {
+    if (_.startsWith(axisId, "y")) {
+      axisCfg.stacked = true;
+    }
+  });
   return cfg;
 }
 
@@ -271,7 +311,7 @@ function createPieCfg({ data, min, max }, { columns, x, y, additionalOptions, co
   const cfg = createBaseCfg({ data, min, max }, { columns, x, y, additionalOptions, configHandler }, seriesFormatter);
   cfg.type = "pie";
   delete cfg.options.scales;
-  delete cfg.options.tooltips;
+  delete cfg.options.tooltip;
   if (gu.isDateCol(_.find(columns, { name: x }).dtype)) {
     cfg.data.labels = _.map(cfg.data.labels, l => moment(new Date(l)).format("YYYY-MM-DD"));
   }
@@ -293,42 +333,39 @@ function createScatterCfg({ data, min, max }, { x, y, additionalOptions, configH
     data: {
       datasets: [_.assign({ xLabels: [x], yLabels: [yProp] }, scatterData)],
     },
-    options: _.assignIn(
-      {
-        tooltips: {
+    options: {
+      scales: {
+        x: {
+          scaleLabel: { display: true, labelString: x },
+        },
+        y: {
+          ticks: buildTicks(yProp, { min, max }),
+          scaleLabel: { display: true, labelString: yProp },
+        },
+      },
+      legend: { display: false },
+      plugins: {
+        zoom: {
+          pan: { enabled: true, mode: "x" },
+          zoom: { enabled: true, mode: "x" },
+        },
+        tooltip: {
           callbacks: {
-            label: (tooltipItem, chartData) => {
-              const dataset = chartData.datasets[tooltipItem.datasetIndex];
-              const pointData = dataset.data[tooltipItem.index];
+            label: tooltipItem => {
+              const pointData = tooltipItem.raw;
               return [
-                `${dataset.xLabels[0]}: ${_.round(pointData.x, 4)}`,
-                `${dataset.yLabels[0]}: ${_.round(pointData.y, 4)}`,
+                `${tooltipItem.dataset.xLabels[0]}: ${_.round(pointData.x, 4)}`,
+                `${tooltipItem.dataset.yLabels[0]}: ${_.round(pointData.y, 4)}`,
               ];
             },
           },
         },
-        scales: {
-          xAxes: [
-            {
-              scaleLabel: { display: true, labelString: x },
-            },
-          ],
-          yAxes: [
-            {
-              ticks: buildTicks(yProp, { min, max }),
-              scaleLabel: { display: true, labelString: yProp },
-            },
-          ],
-        },
-        legend: { display: false },
-        pan: { enabled: true, mode: "x" },
-        zoom: { enabled: true, mode: "x" },
-        maintainAspectRatio: true,
-        responsive: true,
-        showLines: false,
       },
-      additionalOptions
-    ),
+      maintainAspectRatio: true,
+      responsive: true,
+      showLines: false,
+      ...additionalOptions,
+    },
   };
   return _.isUndefined(configHandler) ? cfg : configHandler(cfg);
 }

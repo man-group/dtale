@@ -67,6 +67,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Encoder");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build encoder column", async () => {

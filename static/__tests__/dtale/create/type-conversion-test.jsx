@@ -88,6 +88,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Type Conversion");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build int conversion column", async () => {

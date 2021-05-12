@@ -86,16 +86,16 @@ describe("Charts tests", () => {
     );
     result.find(ChartsBody).instance().state.charts[0].cfg.options.onClick();
     result.update();
-    const { ticks } = result.find(ChartsBody).instance().state.charts[0].options.scales.xAxes[0];
+    const { ticks } = result.find(ChartsBody).instance().state.charts[0].options.scales.x;
     expect(ticks).toEqual({ max: "2018-12-26", min: "2018-12-18" });
     result.find(ChartsBody).instance().resetZoom();
     result.update();
-    expect(result.find(ChartsBody).instance().state.charts[0].options.scales.xAxes[0].length).toBeUndefined();
+    expect(result.find(ChartsBody).instance().state.charts[0].options.scales.x).toEqual({});
     updateChartType(result, ChartsBody, "bar");
     expect(result.find(ChartsBody).instance().state.charts[0].cfg.type).toBe("bar");
     updateChartType(result, ChartsBody, "wordcloud");
     updateChartType(result, ChartsBody, "stacked");
-    expect(result.find(ChartsBody).instance().state.charts[0].cfg.options.scales.xAxes[0].stacked).toBe(true);
+    expect(result.find(ChartsBody).instance().state.charts[0].cfg.options.scales.x.stacked).toBe(true);
     updateChartType(result, ChartsBody, "scatter");
     expect(result.find(ChartsBody).instance().state.charts[0].cfg.type).toBe("scatter");
     updateChartType(result, ChartsBody, "pie");
@@ -111,8 +111,8 @@ describe("Charts tests", () => {
     updateChartType(result, ChartsBody, "line");
     let chartObj = result.find(ChartsBody).instance().state.charts[0];
     expect(
-      chartObj.cfg.options.tooltips.callbacks.label(
-        { xLabel: 1545973200000, yLabel: 1.123456, datasetIndex: 0 },
+      chartObj.cfg.options.plugins.tooltip.callbacks.label(
+        { parsed: { x: 1545973200000, y: 1.123456 }, datasetIndex: 0 },
         chartObj.data
       )
     ).toBe("val1 - col1: 1.1235");
@@ -123,8 +123,8 @@ describe("Charts tests", () => {
     expect(result.find(ChartsBody).instance().state.charts.length).toBe(2);
     chartObj = result.find(ChartsBody).instance().state.charts[0];
     expect(
-      chartObj.cfg.options.tooltips.callbacks.label(
-        { xLabel: 1545973200000, yLabel: 1.123456, datasetIndex: 0 },
+      chartObj.cfg.options.plugins.tooltip.callbacks.label(
+        { parsed: { x: 1545973200000, y: 1.123456 }, datasetIndex: 0 },
         chartObj.data
       )
     ).toBe("col1: 1.1235");

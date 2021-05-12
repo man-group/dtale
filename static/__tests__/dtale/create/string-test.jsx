@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "String");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build transform column", async () => {

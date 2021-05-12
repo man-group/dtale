@@ -53,6 +53,10 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: spaces replacement w/ new col", async () => {

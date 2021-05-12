@@ -23,7 +23,7 @@ const chartData = {
 
 describe("Correlations tests", () => {
   let Correlations, ChartsBody, CorrelationsGrid, CorrelationScatterStats, CorrelationsTsOptions;
-  const { opener } = window;
+  const { location, opener } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -37,6 +37,8 @@ describe("Correlations tests", () => {
 
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
+    delete window.location;
+    window.location = { pathname: "/dtale/popup" };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -83,6 +85,7 @@ describe("Correlations tests", () => {
   afterAll(() => {
     dimensions.afterAll();
     window.opener = opener;
+    window.location = location;
   });
 
   const buildResult = async (props = { chartData }) => {
@@ -151,9 +154,15 @@ describe("Correlations tests", () => {
     await tickUpdate(result);
     expect(result.find("#rawScatterChart").length).toBe(1);
     const scatterChart = result.find(Correlations).instance().state.chart;
-    const title = scatterChart.cfg.options.tooltips.callbacks.title([{ datasetIndex: 0, index: 0 }], scatterChart.data);
+    const title = scatterChart.cfg.options.plugins.tooltip.callbacks.title([{ raw: { index: 0 } }], scatterChart.data);
     expect(title).toEqual(["index: 0"]);
-    const label = scatterChart.cfg.options.tooltips.callbacks.label({ datasetIndex: 0, index: 0 }, scatterChart.data);
+    const label = scatterChart.cfg.options.plugins.tooltip.callbacks.label(
+      {
+        raw: { x: 1.4, y: 1.5 },
+        dataset: { xLabels: ["col1"], yLabels: ["col2"] },
+      },
+      scatterChart.data
+    );
     expect(label).toEqual(["col1: 1.4", "col2: 1.5"]);
     scatterChart.cfg.options.onClick({});
     const corr = result.instance();
@@ -179,8 +188,8 @@ describe("Correlations tests", () => {
       result
         .find(Correlations)
         .instance()
-        .state.chart.cfg.options.tooltips.callbacks.title(
-          [{ datasetIndex: 0, index: 0 }],
+        .state.chart.cfg.options.plugins.tooltip.callbacks.title(
+          [{ raw: { index: 0, date: "2018-04-30" }, datasetIndex: 0, index: 0 }],
           result.find(Correlations).instance().state.chart.data
         )
     ).toEqual(["index: 0", "date: 2018-04-30"]);

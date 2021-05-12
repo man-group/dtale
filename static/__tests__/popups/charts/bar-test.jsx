@@ -80,7 +80,7 @@ describe("Charts bar tests", () => {
       .simulate("change", { target: { value: "42" } });
     axisEditor().instance().closeMenu();
     const chartObj = result.find(ChartsBody).instance().state.charts[0];
-    expect(chartObj.cfg.options.scales.yAxes[0].ticks).toEqual({
+    expect(chartObj.cfg.options.scales["y-col1"].ticks).toEqual({
       min: 40,
       max: 42,
     });

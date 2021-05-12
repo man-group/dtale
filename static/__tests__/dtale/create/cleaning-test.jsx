@@ -87,6 +87,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Cleaning");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build config", async () => {
