@@ -27,18 +27,20 @@ describe("chartUtils tests", () => {
     const plugin = chartUtils.gradientLinePlugin(colorScale, "y-corr", 1, -1);
     const dataset = { data: [{ x: 0, y: 0 }] };
     const chartInstance = {
-      data: { datasets: [dataset] },
+      config: {
+        _config: {
+          data: { datasets: [dataset] },
+        },
+      },
       scales: {
         "y-corr": {
           getPixelForValue: px => px,
         },
       },
-      chart: {
-        ctx: {
-          createLinearGradient: (_px1, _px2, _px3, _px4) => ({
-            addColorStop: (_px5, _px6) => null,
-          }),
-        },
+      ctx: {
+        createLinearGradient: (_px1, _px2, _px3, _px4) => ({
+          addColorStop: (_px5, _px6) => null,
+        }),
       },
     };
     plugin.afterLayout(chartInstance);
@@ -55,18 +57,20 @@ describe("chartUtils tests", () => {
       ],
     };
     const chartInstance = {
-      data: { datasets: [dataset] },
+      config: {
+        _config: {
+          data: { datasets: [dataset] },
+        },
+      },
       scales: {
         "y-axis-0": {
           getPixelForValue: px => px,
         },
       },
-      chart: {
-        ctx: {
-          createLinearGradient: (_px1, _px2, _px3, _px4) => ({
-            addColorStop: (_px5, _px6) => null,
-          }),
-        },
+      ctx: {
+        createLinearGradient: (_px1, _px2, _px3, _px4) => ({
+          addColorStop: (_px5, _px6) => null,
+        }),
       },
     };
     plugin.afterLayout(chartInstance);
@@ -75,21 +79,72 @@ describe("chartUtils tests", () => {
 
   it("chartUtils: testing lineHoverPlugin", () => {
     const plugin = chartUtils.lineHoverPlugin(colorScale);
-    const dataset = { data: [{ x: 0, y: 0 }] };
+    const dataset = { data: [{ x: 0, y: 0 }], yAxisID: "y-corr" };
     const point = {
-      _model: { x: 0 },
-      _yScale: { top: 0, bottom: 10 },
-      _datasetIndex: 0,
-      _index: 0,
+      element: { x: 0 },
+      datasetIndex: 0,
+      dataIndex: 0,
     };
     const chartInstance = {
-      data: { datasets: [dataset] },
+      config: {
+        _config: {
+          data: { datasets: [dataset] },
+        },
+      },
       scales: {
         "y-corr": {
           getPixelForValue: px => px,
+          top: 0,
+          bottom: 10,
         },
       },
-      tooltip: { _active: [point] },
+      tooltip: { dataPoints: [point] },
+      getDatasetMeta: _idx => ({
+        controller: { _config: { selectedPoint: 0 } },
+        data: [point],
+      }),
+      ctx: {
+        save: _.noop,
+        beginPath: _.noop,
+        moveTo: _.noop,
+        lineTo: _.noop,
+        lineWidth: 0,
+        strokeStyle: null,
+        stroke: _.noop,
+        restore: _.noop,
+      },
+    };
+    plugin.afterDraw(chartInstance);
+    expect(chartInstance.ctx.lineWidth).toBe(2);
+    expect(chartInstance.ctx.strokeStyle).toBe("rgba(204,204,204,1)");
+  });
+
+  it("chartUtils: testing lineHoverPlugin for default", () => {
+    const plugin = chartUtils.lineHoverPlugin(colorScale);
+    const dataset = {
+      data: [{ x: 0, y: 0 }],
+      yAxisID: "y-corr",
+      selectedPoint: 0,
+    };
+    const point = {
+      element: { x: 0 },
+      datasetIndex: 0,
+      dataIndex: 0,
+    };
+    const chartInstance = {
+      config: {
+        _config: {
+          data: { datasets: [dataset] },
+        },
+      },
+      scales: {
+        "y-corr": {
+          getPixelForValue: px => px,
+          top: 0,
+          bottom: 10,
+        },
+      },
+      tooltip: { dataPoints: [] },
       getDatasetMeta: _idx => ({
         controller: { _config: { selectedPoint: 0 } },
         data: [point],
@@ -141,6 +196,8 @@ describe("chartUtils tests", () => {
       configHandler: cfg => cfg,
     });
     expect(cfg.data.datasets[0].label).toBe("series1");
-    expect(cfg.options.tooltips.callbacks.label({ yLabel: 0.1, datasetIndex: 0 }, cfg.data)).toBe("series1: 0.1");
+    expect(cfg.options.plugins.tooltip.callbacks.label({ parsed: { y: 0.1 }, datasetIndex: 0 }, cfg.data)).toBe(
+      "series1: 0.1"
+    );
   });
 });

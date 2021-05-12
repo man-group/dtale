@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Random");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build random float column", async () => {

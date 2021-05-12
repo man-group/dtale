@@ -92,22 +92,32 @@ async function tickUpdate(result, timeout = 0) {
 }
 
 function mockChartJS() {
-  const mockChartUtils = withGlobalJquery(() => (ctx, cfg) => {
-    const chartCfg = { ctx, cfg, data: cfg.data, destroyed: false };
-    chartCfg.destroy = () => (chartCfg.destroyed = true);
-    chartCfg.getElementsAtXAxis = _evt => [{ _index: 0 }];
-    chartCfg.getElementAtEvent = _evt => [{ _datasetIndex: 0, _index: 0, _chart: { config: cfg, data: cfg.data } }];
-    chartCfg.getDatasetMeta = _idx => ({ controller: { _config: { selectedPoint: 0 } } });
-    chartCfg.update = _.noop;
-    chartCfg.options = { scales: { xAxes: [{}] } };
-    return chartCfg;
+  jest.mock("chart.js", () => {
+    class MockChart {
+      constructor(ctx, cfg) {
+        this.ctx = ctx;
+        this.cfg = cfg;
+        this.config = { _config: cfg };
+        this.data = cfg.data;
+        this.destroyed = false;
+        this.options = { scales: { x: {}, y: {} } };
+      }
+      destroy() {
+        this.destroyed = true;
+      }
+      getElementsAtEventForMode(_evt) {
+        return [{ datasetIndex: 0, index: 0, _chart: { config: { _config: this.cfg }, data: this.cfg.data } }];
+      }
+      getDatasetMeta(_idx) {
+        return { controller: { _config: { selectedPoint: 0 } } };
+      }
+      update() {}
+    }
+    MockChart.register = () => undefined;
+    return {
+      Chart: MockChart,
+    };
   });
-
-  jest.mock("chart.js", () => ({
-    __esModule: true,
-    default: mockChartUtils,
-    plugins: { register: () => undefined },
-  }));
 }
 
 function mockD3Cloud() {

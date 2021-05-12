@@ -40,7 +40,7 @@ class DetailsBoxplot extends React.Component {
       }
       _.forEach(["min", "max"], p => {
         if (!_.isUndefined(chartData[p])) {
-          chartData[`whisker${p}`] = chartData[p];
+          chartData[`whisker${_.capitalize(p)}`] = chartData[p];
         }
       });
       if (!_.isUndefined(describe.mean) && !_.includes(["nan", "inf"], describe.mean)) {
@@ -65,9 +65,22 @@ class DetailsBoxplot extends React.Component {
           maintainAspectRatio: false,
           legend: { display: false },
           title: { display: false },
-          tooltips: { enabled: false },
+          plugins: {
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: context => [
+                  `Min: ${context.raw.min}`,
+                  `Q1: ${context.raw.q1}`,
+                  `Median: ${context.raw.median}`,
+                  `Q3: ${context.raw.q3}`,
+                  `Max: ${context.raw.max}`,
+                ],
+              },
+            },
+          },
           scales: {
-            yAxes: [{ ticks: { min: chartData.min - 1, max: chartData.max + 1 } }],
+            y: { ticks: { min: chartData.min - 1, max: chartData.max + 1 } },
           },
         },
       });

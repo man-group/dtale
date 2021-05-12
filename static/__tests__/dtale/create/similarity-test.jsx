@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Similarity");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build similarity column", async () => {

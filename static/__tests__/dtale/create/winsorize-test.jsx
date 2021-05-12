@@ -69,6 +69,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Winsorize");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   const findWinsorize = () => result.find(CreateWinsorize);

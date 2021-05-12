@@ -53,9 +53,9 @@ describe("ColumnFilter date tests", () => {
     await tickUpdate(result);
     expect(result.find(DateInput).first().instance().props.disabled).toBe(false);
     const dateStart = result.find(DateInput).first().instance();
-    dateStart.inputEl.value = "200";
+    dateStart.inputElement.value = "200";
     dateStart.props.onChange("200");
-    dateStart.inputEl.value = "20000102";
+    dateStart.inputElement.value = "20000102";
     dateStart.props.onChange(new Date(moment("20000102")));
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({
@@ -64,7 +64,7 @@ describe("ColumnFilter date tests", () => {
       end: "20000131",
     });
     const dateEnd = result.find(DateInput).last().instance();
-    dateEnd.inputEl.value = "20000103";
+    dateEnd.inputElement.value = "20000103";
     dateEnd.props.onChange(new Date(moment("20000103")));
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({

@@ -111,7 +111,7 @@ describe("Variance tests", () => {
   it("Variance rendering histogram", async () => {
     expect(input().prop("value")).toBe("20");
     expect(chart().cfg.type).toBe("bar");
-    const xlabel = _.get(chart(), "cfg.options.scales.xAxes[0].scaleLabel.labelString");
+    const xlabel = _.get(chart(), "cfg.options.scales.x.scaleLabel.labelString");
     expect(xlabel).toBe("Bin");
     const currChart = chart();
     input().simulate("change", { target: { value: "" } });

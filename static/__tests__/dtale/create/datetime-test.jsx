@@ -22,7 +22,7 @@ import {
 import { clickBuilder } from "./create-test-utils";
 
 describe("DataViewer tests", () => {
-  let result, CreateColumn, CreateDatetime;
+  let result, store, CreateColumn, CreateDatetime;
 
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -51,7 +51,7 @@ describe("DataViewer tests", () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
     CreateDatetime = require("../../../popups/create/CreateDatetime").default;
 
-    const store = reduxUtils.createDtaleStore();
+    store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
       <Provider store={store}>
@@ -63,6 +63,10 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Build Column");
     await tickUpdate(result);
+  });
+
+  afterEach(() => {
+    result.unmount();
   });
 
   afterAll(dimensions.afterAll);

@@ -226,7 +226,7 @@ class ChartsBody extends React.Component {
     const { charts } = this.state;
     if (charts) {
       _.forEach(charts, c => {
-        delete c.options.scales.xAxes[0].ticks;
+        delete c.options.scales.x.ticks;
         c.update();
       });
       this.setState({ zoomed: null });
@@ -236,16 +236,21 @@ class ChartsBody extends React.Component {
   viewTimeDetails(evt) {
     const { charts } = this.state;
     if (charts) {
-      const selectedChart = _.find(charts, c => !_.isEmpty(c.getElementAtEvent(evt)));
+      const selectedChart = _.find(
+        charts,
+        c => !_.isEmpty(c.getElementsAtEventForMode(evt, "nearest", { intersect: true }, false))
+      );
       if (selectedChart) {
-        const selectedPoint = _.head(selectedChart.getElementAtEvent(evt));
+        const selectedPoint = _.head(
+          selectedChart.getElementsAtEventForMode(evt, "nearest", { intersect: true }, false)
+        );
         if (selectedPoint) {
           const ticks = {
-            min: selectedChart.data.labels[_.max([0, selectedPoint._index - 10])],
-            max: selectedChart.data.labels[_.min([selectedChart.data.labels.length - 1, selectedPoint._index + 10])],
+            min: selectedChart.data.labels[_.max([0, selectedPoint.index - 10])],
+            max: selectedChart.data.labels[_.min([selectedChart.data.labels.length - 1, selectedPoint.index + 10])],
           };
           _.forEach(charts, c => {
-            c.options.scales.xAxes[0].ticks = ticks;
+            c.options.scales.x.ticks = ticks;
             c.update();
           });
           let zoomed = `${ticks.min} - ${ticks.max}`;

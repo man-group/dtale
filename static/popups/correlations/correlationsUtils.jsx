@@ -44,13 +44,10 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
       )
     );
   const scatterCfg = chartUtils.createScatterCfg(data, { x: xProp, y: [yProp] }, builder);
-  scatterCfg.options.tooltips.callbacks.title = (tooltipItems, data) =>
-    _.map(additionalProps, p => {
-      const val = data.datasets[tooltipItems[0].datasetIndex].data[tooltipItems[0].index][p];
-      return `${p}: ${val}`;
-    });
-  delete scatterCfg.options.scales.xAxes[0].ticks;
-  delete scatterCfg.options.scales.yAxes[0].ticks;
+  scatterCfg.options.plugins.tooltip.callbacks.title = tooltipItems =>
+    _.map(additionalProps, p => `${p}: ${tooltipItems[0].raw[p]}`);
+  delete scatterCfg.options.scales.x.ticks;
+  delete scatterCfg.options.scales.y?.ticks;
   scatterCfg.options.onClick = onClick;
   scatterCfg.options.maintainAspectRatio = false;
   // eslint-disable-next-line new-cap

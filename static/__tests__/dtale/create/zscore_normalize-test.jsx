@@ -66,6 +66,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Z-Score Normalize");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build z-score normalize column", async () => {

@@ -14,7 +14,7 @@ import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../te
 describe("DataViewer tests", () => {
   let result, Correlations, ChartsBody;
   let testIdx = 0;
-  const { opener } = window;
+  const { location } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -24,8 +24,8 @@ describe("DataViewer tests", () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    delete window.opener;
-    window.opener = { location: { reload: jest.fn() } };
+    delete window.location;
+    window.location = { reload: jest.fn() };
 
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
@@ -66,7 +66,7 @@ describe("DataViewer tests", () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.opener = opener;
+    window.location = location;
   });
 
   it("DataViewer: correlations scatter error", async () => {
@@ -91,20 +91,22 @@ describe("DataViewer tests", () => {
           getPixelForValue: px => px,
         },
       },
-      data: tsChart.data,
+      config: { _config: { data: tsChart.data } },
+      ctx: {
+        createLinearGradient: (_px1, _px2, _px3, _px4) => ({
+          addColorStop: (_px5, _px6) => null,
+        }),
+      },
     };
-    layoutObj.chart.ctx.createLinearGradient = (_px1, _px2, _px3, _px4) => ({
-      addColorStop: (_px5, _px6) => null,
-    });
     tsChart.cfg.plugins[0].afterLayout(layoutObj);
     tsChart.cfg.options.onClick({});
     const ticks = { ticks: [0, 0] };
-    tsChart.cfg.options.scales.yAxes[0].afterTickToLabelConversion(ticks);
-    expect(ticks.ticks).toEqual([null, null]);
+    tsChart.cfg.options.scales["y-corr"].afterTickToLabelConversion(ticks);
+    expect(ticks.ticks).toEqual([{ label: null }, { label: null }]);
     await tickUpdate(result);
     expect(result.find(Correlations).instance().state.chart !== null).toBe(true);
     result.find(Correlations).instance().state.chart.cfg.options.onClick({});
     await tickUpdate(result);
-    expect(window.opener.location.reload).toHaveBeenCalled();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 });

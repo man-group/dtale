@@ -68,6 +68,10 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Data Slope");
   });
 
+  afterEach(() => {
+    result.unmount();
+  });
+
   afterAll(dimensions.afterAll);
 
   it("DataViewer: build data slope column", async () => {

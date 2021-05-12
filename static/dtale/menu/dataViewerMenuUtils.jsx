@@ -62,13 +62,15 @@ function buildHotkeyHandlers(props) {
     propagateState({ menuOpen: true });
     menuUtils.buildClickHandler("gridActions", () => propagateState({ menuOpen: false }));
   };
-  const openPopup = (type, height = 450, width = 500) => () => {
-    if (shouldOpenPopup(height, width)) {
-      open(`/dtale/popup/${type}`, dataId, height, width);
-    } else {
-      openChart(_.assignIn({ type, title: _.capitalize(type) }, props));
-    }
-  };
+  const openPopup =
+    (type, height = 450, width = 500) =>
+    () => {
+      if (shouldOpenPopup(height, width)) {
+        open(`/dtale/popup/${type}`, dataId, height, width);
+      } else {
+        openChart(_.assignIn({ type, title: _.capitalize(type) }, props));
+      }
+    };
   const openTab = type => () => window.open(fullPath(`/dtale/popup/${type}`, dataId), "_blank");
   const openNetwork = () => window.open(fullPath(`/dtale/network`, dataId), "_blank");
   const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700);

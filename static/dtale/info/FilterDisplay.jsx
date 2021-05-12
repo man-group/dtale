@@ -63,16 +63,8 @@ class ReactFilterDisplay extends React.Component {
   }
 
   render() {
-    const {
-      query,
-      columnFilters,
-      menuOpen,
-      outlierFilters,
-      predefinedFilterConfigs,
-      dataId,
-      updateSettings,
-      t,
-    } = this.props;
+    const { query, columnFilters, menuOpen, outlierFilters, predefinedFilterConfigs, dataId, updateSettings, t } =
+      this.props;
     if (gu.noFilters(this.props)) {
       return null;
     }

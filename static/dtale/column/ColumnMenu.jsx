@@ -101,25 +101,27 @@ class ReactColumnMenu extends React.Component {
       ..._.get(this.props, ["filteredRanges", "dtypes", selectedCol], {}),
     };
     const unlocked = _.get(colCfg, "locked", false) === false;
-    const openPopup = (type, height = 450, width = 500) => () => {
-      if (menuFuncs.shouldOpenPopup(height, width)) {
-        menuFuncs.open(
-          buildURLString(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), {
-            selectedCol,
-          }),
-          null,
-          height,
-          width
-        );
-      } else {
-        openChart(
-          _.assignIn(
-            { type, title: _.capitalize(type) },
-            _.pick(this.props, ["selectedCol", "propagateState", "columns"])
-          )
-        );
-      }
-    };
+    const openPopup =
+      (type, height = 450, width = 500) =>
+      () => {
+        if (menuFuncs.shouldOpenPopup(height, width)) {
+          menuFuncs.open(
+            buildURLString(menuFuncs.fullPath(`/dtale/popup/${type}`, dataId), {
+              selectedCol,
+            }),
+            null,
+            height,
+            width
+          );
+        } else {
+          openChart(
+            _.assignIn(
+              { type, title: _.capitalize(type) },
+              _.pick(this.props, ["selectedCol", "propagateState", "columns"])
+            )
+          );
+        }
+      };
     const openDescribe = () => {
       if (window.innerWidth < 800) {
         window.open(

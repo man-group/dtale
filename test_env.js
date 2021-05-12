@@ -41,8 +41,17 @@ jest.mock("react-i18next", () => ({
 }));
 
 jest.mock("chartjs-plugin-zoom", () => ({}));
-jest.mock("chartjs-chart-box-and-violin-plot/build/Chart.BoxPlot.js", () => ({}));
-jest.mock("chartjs-plugin-trendline", () => ({}));
+jest.mock("@sgratzl/chartjs-chart-boxplot", () => ({ BoxController: {} }));
+jest.mock("chart.js", () => {
+  class MockChart {
+    constructor() {}
+    destroy() {}
+  }
+  MockChart.register = () => undefined;
+  return {
+    Chart: MockChart,
+  };
+});
 
 // this is required for webpack dynamic public path setup
 global.__webpack_public_path__ = "";
