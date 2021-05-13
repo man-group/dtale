@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.46.0 (2021-5-11)
+* [#475](https://github.com/man-group/dtale/issues/475): fixes for DtaleRedis issues
+* [#140](https://github.com/man-group/dtale/issues/140): additional string column filters
+* refactored draggable column resizing to be more performant
+* added dependency on nbformat
+* updated Sphinx documentation building to only run on master builds of python3.9
+  * Also pinned jinja2 to 2.11.3 when building
+
 ### 1.45.0 (2021-5-5)
 * [#472](https://github.com/man-group/dtale/issues/472): maximum column width
 * [#471](https://github.com/man-group/dtale/issues/471): predefined filters
