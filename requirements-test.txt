@@ -2,6 +2,7 @@ importlib-metadata<=3.7.3; python_version <= '3.6'
 importlib-metadata; python_version != '3.6'
 ipython
 mock
+nbconvert
 pytest
 pytest-cov
 pytest-server-fixtures

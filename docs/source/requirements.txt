@@ -1,20 +1,22 @@
-sphinx==1.6.7
+# built using python 3.7
+bs4
+Flask==1.1.4
+future
+ipython[notebook]
+jinja2==2.11.3
+markdown
+matplotlib
+missingno
 nbsphinx==0.4.3
 nbconvert<=6.0.2
-matplotlib
-prompt-toolkit<2.0.0,>=1.0.4,!=1.0.17; python_version < '3.0'
-prompt-toolkit<2.1.0,>=2.0.0; python_version > '3.0'
-ipython[notebook]
-pyyaml
-bs4
-markdown
 pandas
-future
-Flask
+prompt-toolkit<2.1.0,>=2.0.0
+pyarrow
+pyyaml
 scipy
 scikit-learn
-statsmodels==0.10.2; python_version < '3.0'
-statsmodels; python_version > '3.0'
+sphinx==1.6.7
+statsmodels
+streamlit
 xarray
-pyarrow
 xlrd

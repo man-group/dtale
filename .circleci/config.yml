@@ -67,7 +67,6 @@ python_variables: &python_variables
   VERSION: 1.46.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
   RUN_BLACK: true
-  BUILD_SPHINX: false
 python: &python
     parallelism: 1
     shell: /bin/bash --login
@@ -117,9 +116,10 @@ python: &python
           command: |
             virtualenv ci
             . ci/bin/activate
-            pip install six
-            pip install lxml
-            pip install -r docs/source/requirements.txt
+            # xlrd & xarray do not load correctly from "python setup.py develop"
+            # possibly switch this script to use "pip install -r requirements.txt"
+            pip install xlrd
+            pip install xarray
             python setup.py develop
       # Save dependency cache
       - save_cache:
@@ -175,18 +175,6 @@ python: &python
               wget $PANDOC_RELEASES_URL/download/$PANDOC_VERSION/$PANDOC_FILE
               sudo dpkg -i $PANDOC_FILE
               rm $PANDOC_FILE
-            fi
-      - run:
-          name: Build Sphinx Documentation
-          command: |
-            if [[ "${CIRCLE_BRANCH}" == "master" && "$BUILD_SPHINX" = "true" ]] ; then
-              set -e
-              . ci/bin/activate
-              pip install streamlit
-              pip install jinja2==2.11.3
-              python setup.py build_sphinx
-              cp -r ./build /tmp/circleci-artifacts
-              pip install jinja2==3.0.0
             fi
       # Build egg
       - run:
@@ -266,7 +254,6 @@ jobs:
       - image: circleci/python:3.9-buster
     environment:
       <<: *python_variables
-      BUILD_SPHINX: true
     <<: *python
 workflows:
   version: 2
