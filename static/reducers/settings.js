@@ -67,7 +67,11 @@ export function pythonVersion(state = null, action = {}) {
 export function maxColumnWidth(state = null, action = {}) {
   switch (action.type) {
     case "init-params":
-      return toFloat(getHiddenValue("max_column_width"));
+      return toFloat(getHiddenValue("max_column_width"), true);
+    case "update-max-width":
+      return action.width;
+    case "clear-max-width":
+      return null;
     default:
       return state;
   }

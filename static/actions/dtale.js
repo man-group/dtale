@@ -85,6 +85,20 @@ function updateFilteredRanges(query) {
   };
 }
 
+function updateMaxWidth(width) {
+  return dispatch => {
+    dispatch({ type: "update-max-width", width });
+    dispatch({ type: "data-viewer-update", update: { type: "update-max-width", width } });
+  };
+}
+
+function clearMaxWidth() {
+  return dispatch => {
+    dispatch({ type: "clear-max-width" });
+    dispatch({ type: "data-viewer-update", update: { type: "update-max-width", width: null } });
+  };
+}
+
 export default {
   init,
   toggleColumnMenu,
@@ -97,4 +111,6 @@ export default {
   setTheme,
   setLanguage,
   updateFilteredRanges,
+  updateMaxWidth,
+  clearMaxWidth,
 };

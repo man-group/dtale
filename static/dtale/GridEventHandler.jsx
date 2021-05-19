@@ -6,16 +6,9 @@ import { connect } from "react-redux";
 
 import { openChart } from "../actions/charts";
 import { MeasureText } from "./MeasureText";
+import { convertCellIdxToCoords, getCell } from "./gridUtils";
 import { MenuTooltip } from "./menu/MenuTooltip";
-
-import {
-  buildCopyText,
-  buildRangeState,
-  buildRowCopyText,
-  convertCellIdxToCoords,
-  toggleSelection,
-} from "./rangeSelectUtils";
-
+import { buildCopyText, buildRangeState, buildRowCopyText, toggleSelection } from "./rangeSelectUtils";
 import { SidePanel } from "./side/SidePanel";
 
 function handleRangeSelect(props, cellIdx) {
@@ -106,7 +99,8 @@ class ReactGridEventHandler extends React.Component {
   }
 
   handleMouseOver(e) {
-    const { rangeSelect, rowRange } = this.props.gridState;
+    const { gridState } = this.props;
+    const { rangeSelect, rowRange } = gridState ?? {};
     const rangeExists = rangeSelect && rangeSelect.start;
     const rowRangeExists = rowRange && rowRange.start;
     const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
@@ -128,6 +122,13 @@ class ReactGridEventHandler extends React.Component {
       }
     } else if (rangeExists || rowRangeExists) {
       this.props.propagateState(buildRangeState());
+    } else if (cellIdx && gridState && !_.startsWith(cellIdx, "0|") && !_.endsWith(cellIdx, "|0")) {
+      const { rec } = getCell(cellIdx, gridState);
+      if (e.target.clientWidth < e.target.scrollWidth) {
+        this.props.showTooltip(e.target, rec.raw);
+      }
+    } else {
+      this.props.hideTooltip();
     }
   }
 
@@ -209,24 +210,29 @@ ReactGridEventHandler.propTypes = {
   sidePanel: PropTypes.string,
   menuPinned: PropTypes.bool,
   dragResize: PropTypes.number,
+  showTooltip: PropTypes.func,
+  hideTooltip: PropTypes.func,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
 const TranslateReactGridEventHandler = withTranslation("main")(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
-  ({ allowCellEdits, dataId, ribbonMenuOpen, ribbonDropdown, sidePanel, menuPinned, dragResize }) => ({
-    allowCellEdits,
-    dataId,
-    ribbonMenuOpen,
-    menuPinned,
-    ribbonDropdownOpen: ribbonDropdown.visible,
-    sidePanelOpen: sidePanel.visible,
-    sidePanel: sidePanel.view,
-    dragResize,
+  state => ({
+    allowCellEdits: state.allowCellEdits,
+    dataId: state.dataId,
+    ribbonMenuOpen: state.ribbonMenuOpen,
+    menuPinned: state.menuPinned,
+    ribbonDropdownOpen: state.ribbonDropdown.visible,
+    sidePanelOpen: state.sidePanel.visible,
+    sidePanel: state.sidePanel.view,
+    dragResize: state.dragResize,
+    hoveredValue: state.hoveredValue,
   }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     editCell: editedCell => dispatch({ type: "edit-cell", editedCell }),
     setRibbonVisibility: show => dispatch({ type: `${show ? "show" : "hide"}-ribbon-menu` }),
+    showTooltip: (element, content) => dispatch({ type: "show-menu-tooltip", element, content }),
+    hideTooltip: () => dispatch({ type: "hide-menu-tooltip" }),
   })
 )(TranslateReactGridEventHandler);
 

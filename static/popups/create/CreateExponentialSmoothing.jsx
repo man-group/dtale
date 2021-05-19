@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
 
+import { StyledSlider, Thumb, Track } from "../../sliderUtils";
 import ColumnSelect from "./ColumnSelect";
-import { StyledSlider, Thumb, Track } from "./CreateWinsorize";
 
 export function validateExponentialSmoothingCfg(t, { col, alpha }) {
   if (!col) {

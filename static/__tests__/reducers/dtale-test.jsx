@@ -49,6 +49,7 @@ describe("reducer tests", () => {
       predefinedFilters: [],
       maxColumnWidth: null,
       dragResize: null,
+      editedTextAreaHeight: 0,
     };
     expect(state).toEqual(store.getState());
   });

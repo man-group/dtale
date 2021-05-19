@@ -1246,6 +1246,18 @@ def update_language():
     return jsonify(dict(success=True))
 
 
+@dtale.route("/update-maximum-column-width")
+@exception_decorator
+def update_maximum_column_width():
+    width = get_str_arg(request, "width")
+    if width:
+        width = int(width)
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["max_column_width"] = width
+    global_state.set_app_settings(curr_app_settings)
+    return jsonify(dict(success=True))
+
+
 @dtale.route("/update-formats/<data_id>")
 @exception_decorator
 def update_formats(data_id):

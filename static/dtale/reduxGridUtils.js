@@ -1,3 +1,6 @@
+import _ from "lodash";
+import * as gu from "./gridUtils";
+
 const toggleColumns = ({ columns }, columnsToToggle) => ({
   columns: columns.map(col => ({
     ...col,
@@ -20,6 +23,22 @@ export function handleReduxState(state, props, propagateState) {
           }
           clearDataViewerUpdate();
         });
+        break;
+      case "update-max-width":
+        propagateState(
+          {
+            columns: _.map(state.columns, c => ({
+              ...c,
+              ...gu.calcColWidth(
+                { ...c, resized: false },
+                { ...state, ...props.settings, maxColumnWidth: dataViewerUpdate.width }
+              ),
+            })),
+            triggerResize: true,
+          },
+          clearDataViewerUpdate
+        );
+        break;
     }
   }
 }

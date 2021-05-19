@@ -19,22 +19,18 @@ class ReactMenuTooltip extends React.Component {
     if (this.props.visible) {
       const rect = this.props.element.getBoundingClientRect();
       const top = rect.top - (this.props.menuPinned ? 0 : rect.height - 26);
-      this.setState(
-        {
-          style: {
-            display: "block",
-            top: top,
-            left: rect.left + rect.width + 8, // 8 = width of tooltip caret
-          },
-          lastElementRect: rect,
-        },
-        this.checkForWindowEdge
-      );
+      const style = {
+        display: "block",
+        top: top,
+        left: rect.left + rect.width + 8, // 8 = width of tooltip caret
+      };
+      this.setState({ style: style, lastElementRect: rect, bottom: false, right: false }, this.checkForWindowEdge);
     } else {
       this.setState({
         style: { display: "none" },
         lastElementTop: null,
         bottom: false,
+        right: false,
       });
     }
   }
@@ -43,28 +39,37 @@ class ReactMenuTooltip extends React.Component {
     const rect = this.state.lastElementRect;
     let top = rect.top - (this.props.menuPinned ? 0 : rect.height - 26);
     const tooltipRect = this.tooltip.current.getBoundingClientRect();
+    const style = { ...this.state.style };
+    const updates = { bottom: false, right: false };
     // handle the case when you're getting close to the bottom of the screen.
     if (top + tooltipRect.height > window.innerHeight) {
       top = rect.top - tooltipRect.height - rect.height / 3;
-      this.setState({
-        style: { ...this.state.style, top: `calc(${top}px + 2em)` },
-        bottom: true,
-      });
+      style.top = `calc(${top}px + 2em)`;
+      updates.bottom = true;
     }
+    // 320 => 20em (tooltip width)
+    if (style.left + 260 > window.innerWidth) {
+      style.left = rect.left - 260 - 8;
+      updates.right = true;
+    }
+    this.setState({ style, ...updates });
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.visible !== prevProps.visible) {
+    const currTop = this.props.element?.getBoundingClientRect()?.top;
+    const prevTop = prevProps.element?.getBoundingClientRect()?.top;
+    const currLeft = this.props.element?.getBoundingClientRect()?.left;
+    const prevLeft = prevProps.element?.getBoundingClientRect()?.left;
+    if (this.props.visible !== prevProps.visible || currTop !== prevTop || currLeft !== prevLeft) {
       this.computeStyle();
     }
   }
 
   render() {
+    const { bottom, right } = this.state;
+    const extraClasses = `${bottom ? " bottom" : ""}${right ? " right" : ""}`;
     return (
-      <div
-        className={`hoverable__content menu-description${this.state.bottom ? " bottom" : ""}`}
-        style={this.state.style}
-        ref={this.tooltip}>
+      <div className={`hoverable__content menu-description${extraClasses}`} style={this.state.style} ref={this.tooltip}>
         {this.props.content}
       </div>
     );

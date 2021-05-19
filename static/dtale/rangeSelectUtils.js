@@ -5,13 +5,9 @@ import { logException } from "../fetcher";
 import * as gu from "./gridUtils";
 import menuFuncs from "./menu/dataViewerMenuUtils";
 
-export function convertCellIdxToCoords(cellIdx) {
-  return _.map(_.split(cellIdx, "|"), v => parseInt(v));
-}
-
 export function buildRanges(cell1, cell2) {
-  const [col1, row1] = convertCellIdxToCoords(cell1);
-  const [col2, row2] = convertCellIdxToCoords(cell2);
+  const [col1, row1] = gu.convertCellIdxToCoords(cell1);
+  const [col2, row2] = gu.convertCellIdxToCoords(cell2);
   const colRange = [col1, col2];
   colRange.sort();
   const rowRange = [row1, row2];

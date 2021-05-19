@@ -49,7 +49,8 @@
     "Highlight": "Highlight",
     "Missing Analysis": "Missing Analysis",
     "show_hide": "Show/Hide Columns",
-    "Predefined Filters": "Predefined Filters"
+    "Predefined Filters": "Predefined Filters",
+    "Max Width": "Max Width"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -78,7 +79,7 @@
     "pps": "PPS is an asymmetric, data-type-agnostic score that can detect linear or non-linear relationships between two columns. The score ranges from 0 (no predictive power) to 1 (perfect predictive power). It can be used as an alternative to the correlation (matrix). WARNING: This could take a while to load.",
     "network": "If you're currently viewing data containing information for a directed graph then try feeding it into our \"Network Viewer\"",
     "reload_data": "Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.",
-    "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for taht purpose.",
+    "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for that purpose.",
     "low_variance_1": "Show flags on column headers where both these conditions are true:",
     "low_variance_2": "Count of unique values / column size < 10%",
     "low_variance_3": "Count of most common value / Count of second most common value > 20",
@@ -89,7 +90,8 @@
     "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
     "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data.",
     "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package.",
-    "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions."
+    "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions.",
+    "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value."
   },
   "column_menu": {
     "Asc": "Asc",

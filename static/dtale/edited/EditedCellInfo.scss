@@ -1,0 +1,16 @@
+.edited-cell-info {
+  overflow: hidden;
+  margin: 0 !important;
+  height: 0;
+  transition: height .5s;
+
+  &.is-expanded {
+    height: fit-content;
+    border-top: 1px solid rgb(221, 221, 221);
+  }
+}
+
+.edited-cell-info textarea {
+  border-color: rgb(221, 221, 221);
+  border-radius: .2rem;
+}

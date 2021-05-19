@@ -22,6 +22,7 @@ import { DataViewerMenu } from "./menu/DataViewerMenu";
 import * as reduxUtils from "./reduxGridUtils";
 import { RibbonDropdown } from "./ribbon/RibbonDropdown";
 import { RibbonMenu } from "./ribbon/RibbonMenu";
+import { EditedCellInfo } from "./edited/EditedCellInfo";
 
 require("./DataViewer.css");
 const URL_PROPS = ["ids", "sortInfo"];
@@ -221,29 +222,26 @@ class ReactDataViewer extends React.Component {
           rowCount={this.state.rowCount}>
           {({ onRowsRendered }) => {
             this._onRowsRendered = onRowsRendered;
-            const noInfo = gu.hasNoInfo({ ...this.props.settings, columns: this.state.columns });
             return (
               <AutoSizer className="main-grid col p-0" onResize={() => this._grid.recomputeGridSize()}>
-                {({ width, height }) => {
-                  const gridHeight = height - (noInfo ? 3 : 30) - (this.props.ribbonMenuOpen ? 25 : 0);
-                  return (
-                    <>
-                      <RibbonMenu />
-                      <DataViewerInfo {...this.state} propagateState={this.propagateState} />
-                      <MultiGrid
-                        {...this.state}
-                        columnCount={gu.getActiveCols(this.state).length}
-                        onScroll={this.props.closeColumnMenu}
-                        cellRenderer={this._cellRenderer}
-                        height={gridHeight}
-                        width={width - (this.props.menuPinned ? 198 : 3)}
-                        columnWidth={({ index }) => gu.getColWidth(index, this.state)}
-                        onSectionRendered={this._onSectionRendered}
-                        ref={mg => (this._grid = mg)}
-                      />
-                    </>
-                  );
-                }}
+                {({ width, height }) => (
+                  <>
+                    <RibbonMenu />
+                    <DataViewerInfo {...this.state} propagateState={this.propagateState} />
+                    <EditedCellInfo gridState={this.state} propagateState={this.propagateState} />
+                    <MultiGrid
+                      {...this.state}
+                      columnCount={gu.getActiveCols(this.state).length}
+                      onScroll={this.props.closeColumnMenu}
+                      cellRenderer={this._cellRenderer}
+                      height={gu.gridHeight(height, this.state.columns, this.props)}
+                      width={width - (this.props.menuPinned ? 198 : 3)}
+                      columnWidth={({ index }) => gu.getColWidth(index, this.state)}
+                      onSectionRendered={this._onSectionRendered}
+                      ref={mg => (this._grid = mg)}
+                    />
+                  </>
+                )}
               </AutoSizer>
             );
           }}
@@ -279,6 +277,7 @@ ReactDataViewer.propTypes = {
   dataViewerUpdate: PropTypes.object,
   clearDataViewerUpdate: PropTypes.func,
   maxColumnWidth: PropTypes.number,
+  editedTextAreaHeight: PropTypes.number,
 };
 const ReduxDataViewer = connect(gu.reduxState, gu.reduxDispatch)(ReactDataViewer);
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

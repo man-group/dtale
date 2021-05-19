@@ -29,7 +29,8 @@ function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
     datasets = _.concat(
       _.assignIn(
         { label: `${ordinalCol} (${ordinalAgg})`, type: "line", fill: false, borderColor: "rgb(255, 99, 132)" },
-        { borderWidth: 2, data: ordinal, backgroundColor: "rgb(255, 99, 132)", yAxisID: "y-2" }
+        { borderWidth: 2, data: ordinal, backgroundColor: "rgb(255, 99, 132)", yAxisID: "y-2" },
+        { tension: 0.4, pointRadius: 0 }
       ),
       datasets
     );

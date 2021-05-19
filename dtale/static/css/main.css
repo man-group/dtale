@@ -36,6 +36,12 @@
   visibility: hidden;
 }
 
+#textarea-measure {
+  position: absolute;
+  float: left;
+  visibility: hidden;
+}
+
 body.dark-mode,
 div.preview.dark-mode {
   background-color: black !important;
@@ -10459,10 +10465,12 @@ div.hoverable.label > div.hoverable__content {
     transform: rotate(270deg);
 }
 .hoverable__content.menu-description.bottom::before {
-    left: -0.7em;
     top: calc(100% - 0.8em);
-    right: inherit;
-    transform: rotate(270deg);
+}
+.hoverable__content.menu-description.right::before {
+    left: unset;
+    right: -0.3em;
+    transform: rotate(90deg);
 }
 .hoverable__content.edit-cell::before {
     left: -0.7em;
@@ -10520,10 +10528,12 @@ div.hoverable.label > div.hoverable__content {
     transform: rotate(270deg);
 }
 .hoverable__content.menu-description.bottom::after {
-    left: -0.6em;
     top: calc(100% - 0.8em);
-    right: inherit;
-    transform: rotate(270deg);
+}
+.hoverable__content.menu-description.right::after {
+    left: unset;
+    right: -0.2em;
+    transform: rotate(90deg);
 }
 .hoverable__content.edit-cell::after {
     left: -0.6em;

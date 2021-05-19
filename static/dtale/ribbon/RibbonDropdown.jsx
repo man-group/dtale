@@ -23,6 +23,7 @@ import InstancesOption from "../menu/InstancesOption";
 import { LanguageOption } from "../menu/LanguageOption";
 import { LogoutOption } from "../menu/LogoutOption";
 import LowVarianceOption from "../menu/LowVarianceOption";
+import { MaxWidthOption } from "../menu/MaxWidthOption";
 import { MenuItem } from "../menu/MenuItem";
 import MergeOption from "../menu/MergeOption";
 import MissingOption from "../menu/MissingOption";
@@ -217,6 +218,7 @@ class ReactRibbonDropdown extends React.Component {
           <ul>
             <ThemeOption ribbonWrapper={hideWrapper} />
             <LanguageOption ribbonWrapper={hideWrapper} />
+            <MaxWidthOption ribbonWrapper={hideWrapper} />
           </ul>
         )}
       </div>
