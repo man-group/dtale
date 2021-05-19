@@ -3075,6 +3075,25 @@ def test_update_language():
 
 
 @pytest.mark.unit
+def test_update_max_column_width():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3, 4, 5]))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            app_settings = {}
+            stack.enter_context(
+                mock.patch("dtale.global_state.APP_SETTINGS", app_settings)
+            )
+
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+
+            c.get("/dtale/update-maximum-column-width", query_string={"width": 100})
+            assert app_settings["max_column_width"] == 100
+
+
+@pytest.mark.unit
 def test_load_filtered_ranges(unittest):
     import dtale.views as views
 

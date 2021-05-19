@@ -12,7 +12,10 @@ export function toBool(value) {
   return _.lowerCase(value) === "true";
 }
 
-export function toFloat(value) {
+export function toFloat(value, returnNull = false) {
+  if (value === "None" && returnNull) {
+    return null;
+  }
   const parsedVal = parseFloat(value);
   if (parsedVal) {
     return parsedVal;

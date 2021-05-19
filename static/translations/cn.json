@@ -49,7 +49,8 @@
     "Highlight": "Highlight",
     "Missing Analysis": "Missing Analysis",
     "show_hide": "Show/Hide Columns",
-    "Predefined Filters": "Predefined Filters"
+    "Predefined Filters": "Predefined Filters",
+    "Max Width": "Max Width"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -83,13 +84,14 @@
     "xarray_dim_des": "查看各个xarray尺寸。您当前正在查看：",
     "network": "If you're currently viewing data containing information for a directed graph then try feeding it into our \"Network Viewer\"",
     "reload_data": "Force a reload of the data from the server for the current rows being viewing in the grid by clicking this button. This can be helpful when viewing the grid from within another application like jupyter or nested within another website.",
-    "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for taht purpose.",
+    "merge": "Merge & Stack (concatenate vertically) dataframes currently loaded into D-Tale or upload additional ones for that purpose.",
     "pin_menu": "Toggle for pinning this menu to the left side of the screen.",
     "language": "Choose which language to use when displaying the majority of text in D-Tale. Choose between english (EN) or chinese (CN). The default is english.",
     "clear_data": "Remove this data from memory. If this is the only data loaded into memory then you will be redirected to the \"Load Data\" screen.",
     "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data.",
     "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package.",
-    "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions."
+    "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions.",
+    "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value."
   },
   "column_menu": {
     "Asc": "Asc",

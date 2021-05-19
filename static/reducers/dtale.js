@@ -37,6 +37,18 @@ function editedCell(state = null, action = {}) {
   }
 }
 
+function editedTextAreaHeight(state = 0, action = {}) {
+  switch (action.type) {
+    case "edited-cell-textarea-height":
+      return action.height;
+    case "toggle-column-menu":
+    case "clear-edit":
+      return 0;
+    default:
+      return state;
+  }
+}
+
 function columnMenuOpen(state = false, action = {}) {
   switch (action.type) {
     case "toggle-column-menu":
@@ -206,6 +218,7 @@ const dtaleStore = combineReducers({
   chartData,
   dataId,
   editedCell,
+  editedTextAreaHeight,
   iframe,
   auth,
   username,

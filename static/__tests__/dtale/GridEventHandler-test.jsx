@@ -22,6 +22,8 @@ describe("RibbonDropdown", () => {
       setRibbonVisibility: jest.fn(),
       ribbonMenuOpen: false,
       ribbonDropdownOpen: false,
+      showTooltip: jest.fn(),
+      hideTooltip: jest.fn(),
     };
     wrapper = shallow(<ReactGridEventHandler {...props} />);
   });
@@ -54,5 +56,30 @@ describe("RibbonDropdown", () => {
   it("displays blue-line correctly", () => {
     wrapper.setProps({ dragResize: 5 });
     expect(wrapper.find("div.blue-line")).toHaveLength(1);
+  });
+
+  it("hides tooltip when cellIdx is empty", () => {
+    wrapper.find("div").last().props().onMouseOver({ clientY: 100 });
+    expect(props.hideTooltip).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows tooltip when cellIdx is populated", () => {
+    const columns = [
+      { name: "index", visible: true },
+      { name: "a", dtype: "string", index: 1, visible: true },
+    ];
+    const data = { 0: { a: { raw: "Hello World" } } };
+    props.gridState = { data, columns };
+    wrapper = shallow(<ReactGridEventHandler {...props} />);
+    const target = { attributes: { cell_idx: { nodeValue: "0|1" } } };
+    wrapper.find("div").last().props().onMouseOver({ target });
+    expect(props.showTooltip).not.toHaveBeenCalled();
+    target.attributes.cell_idx.nodeValue = "1|1";
+    wrapper.find("div").last().props().onMouseOver({ target });
+    expect(props.showTooltip).not.toHaveBeenCalled();
+    target.clientWidth = 100;
+    target.scrollWidth = 150;
+    wrapper.find("div").last().props().onMouseOver({ target });
+    expect(props.showTooltip).toHaveBeenLastCalledWith(target, "Hello World");
   });
 });

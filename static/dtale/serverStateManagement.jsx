@@ -166,6 +166,10 @@ function updateLanguage(language, callback) {
   fetchJson(buildURLString("/dtale/update-language", { language }), callback);
 }
 
+function updateMaxColumnWidth(width, callback) {
+  fetchJson(buildURLString("/dtale/update-maximum-column-width", { width }), callback);
+}
+
 function loadFilteredRanges(dataId, callback) {
   fetchJsonPromise(buildURLString(`/dtale/load-filtered-ranges/${dataId}`))
     .then(callback)
@@ -192,5 +196,6 @@ export default {
   updateTheme,
   updatePinMenu,
   updateLanguage,
+  updateMaxColumnWidth,
   loadFilteredRanges,
 };

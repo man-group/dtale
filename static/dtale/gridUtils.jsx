@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import _ from "lodash";
 import moment from "moment";
 import numeral from "numeral";
@@ -223,6 +224,26 @@ export const hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilt
   return hideSort && hideFilter && hideHidden;
 };
 
+export function convertCellIdxToCoords(cellIdx) {
+  return _.map(_.split(cellIdx, "|"), v => parseInt(v));
+}
+
+export function getCell(cellIdx, gridState) {
+  const [colIndex, rowIndex] = convertCellIdxToCoords(cellIdx);
+  const colCfg = getCol(colIndex, gridState);
+  const rec = _.get(gridState, ["data", rowIndex - 1, colCfg.name], {});
+  return { colCfg, rec, colIndex, rowIndex };
+}
+
+export function gridHeight(height, columns, props) {
+  const noInfo = hasNoInfo({ ...props.settings, columns });
+  let gridHeight = height;
+  gridHeight -= noInfo ? 3 : 30;
+  gridHeight -= props.ribbonMenuOpen ? 25 : 0;
+  gridHeight -= props.editedTextAreaHeight;
+  return gridHeight;
+}
+
 export const updateColWidths = (currState, newState, settings, maxColumnWidth) =>
   _.map(_.get(newState, "columns", currState.columns), c => ({
     ...c,
@@ -274,6 +295,7 @@ export const reduxState = state =>
     "ribbonMenuOpen",
     "dataViewerUpdate",
     "maxColumnWidth",
+    "editedTextAreaHeight",
   ]);
 
 export const reduxDispatch = dispatch => ({

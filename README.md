@@ -80,6 +80,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
   - [Header](#header)
+  - Resize Columns (#resize-columns)
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
@@ -623,11 +624,30 @@ When performing multiple of the same operation the description will become too l
 |-----|-------|--------------|
 |![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/sorts.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/filters.PNG)|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/header/hidden.PNG)|
 
+### Resize Columns
+
+Currently there are two ways which you can resize columns.
+* Dragging the right border of the column's header cell.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/resize_columns_w_drag.gif)
+
+* Altering the "Maximum Column Width" property from the ribbon menu.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/gifs/resize_columns_max_width.gif)
+
+* __Side Note:__ You can also set the `max_column_width` property ahead of time in your [global configuration](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md) or programmatically using:
+
+```python
+import dtale.global_state as global_state
+
+global_state.set_app_settings(dict(max_column_width=100))
+```
+
 ### Editing Cells
 
 You may edit any cells in your grid (with the exception of the row indexes or headers, the ladder can be edited using the [Rename](#rename) column menu function).
 
-In order to eddit a cell simply double-click on it.  This will convert it into a text-input field and you should see a blinking cursor.  It is assumed that the value you type in will match the data type of the column you editing.  For example:
+In order to edit a cell simply double-click on it.  This will convert it into a text-input field and you should see a blinking cursor.  In addition to turning that cell into an input it will also display an input at the top of the screen for better viewing of long strings. It is assumed that the value you type in will match the data type of the column you editing.  For example:
 
 * integers -> should be a valid positive or negative integer
 * float -> should be a valid positive or negative float
@@ -647,7 +667,12 @@ If there is a conversion issue with the value you have entered it will display a
 
 Here's a quick demo:
 
-[![](http://img.youtube.com/vi/MY5w0m_4IAc/0.jpg)](http://www.youtube.com/watch?v=MY5w0m_4IAc "Editing Cells")
+[![](http://img.youtube.com/vi/MY5w0m_4IAc/0.jpg)](http://www.youtube.com/watch?v=MY5w0m_4IAc "Editing Long String Cells")
+
+Here's a demo of editing cells with long strings:
+
+[![](http://img.youtube.com/vi/3p9ltzdBaDQ/0.jpg)](http://www.youtube.com/watch?v=3p9ltzdBaDQ "Editing Cells")
+
 
 ### Copy Cells Into Clipboard
 
