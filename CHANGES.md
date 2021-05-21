@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.47.0 (2021-5-21)
+* [#477](https://github.com/man-group/dtale/issues/477): Excel-style cell editing at top of screen
+  * UI input for "Maximum Column Width"
+* JS package upgrades
+* refactored how sphinx documentation is built
+
 ### 1.46.0 (2021-5-11)
 * [#475](https://github.com/man-group/dtale/issues/475): fixes for DtaleRedis issues
 * [#140](https://github.com/man-group/dtale/issues/140): additional string column filters
