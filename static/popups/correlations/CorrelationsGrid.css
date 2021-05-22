@@ -4,3 +4,27 @@
 .correlations-filters .Select__placeholder {
   height: calc(1.91562rem);
 }
+
+.CorrDragHandle {
+  z-index: 2;
+  cursor: row-resize;
+  color: #0085ff;
+  right: 0;
+  position: absolute;
+}
+.CorrDragHandle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.CorrDragHandleActive,
+.CorrDragHandleActive:hover {
+  color: #0b6fcc;
+  z-index: 3;
+}
+
+.CorrDragHandleIcon {
+  justify-content: center;
+  align-items: center;
+  line-height: 0.5;
+  width: 100%;
+}

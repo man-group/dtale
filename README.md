@@ -80,7 +80,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
   - [Header](#header)
-  - Resize Columns (#resize-columns)
+  - [Resize Columns](#resize-columns)
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
