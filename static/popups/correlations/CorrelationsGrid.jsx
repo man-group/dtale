@@ -3,6 +3,7 @@ import scrollbarSize from "dom-helpers/scrollbarSize";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
+import Draggable from "react-draggable";
 import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 import AutoSizer from "react-virtualized/dist/commonjs/AutoSizer";
@@ -34,6 +35,7 @@ function buildState({ correlations, columns, col1, col2 }, filter = true) {
     columns: _.map(columns, column => ({ value: column })),
     col1: col1 ? { value: col1 } : null,
     col2: col2 ? { value: col2 } : null,
+    height: 300,
   };
   if (filter) {
     state.correlations = filterData(state, correlations);
@@ -120,32 +122,46 @@ class CorrelationsGrid extends React.Component {
           <SidePanelButtons />
         </div>
         <AutoSizer className="correlations-grid" disableHeight>
-          {({ width }) => [
-            <div key={0} style={{ width }} className="row pt-3 pb-3 correlations-filters">
-              <span className="mb-auto mt-auto">{t("correlations:View Correlation(s) For")}</span>
-              <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
-              <span className="mb-auto mt-auto">{t("correlations:vs.")}</span>
-              <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
-              <div className="col pr-0 text-right">
-                {renderCodePopupAnchor(this.props.gridCode, t("menu:Correlations"))}
+          {({ width }) => (
+            <>
+              <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
+                <span className="mb-auto mt-auto">{t("correlations:View Correlation(s) For")}</span>
+                <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
+                <span className="mb-auto mt-auto">{t("correlations:vs.")}</span>
+                <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
+                <div className="col pr-0 text-right">
+                  {renderCodePopupAnchor(this.props.gridCode, t("menu:Correlations"))}
+                </div>
               </div>
-            </div>,
-            <MultiGrid
-              key={1}
-              {...gu.buildGridStyles(this.props.theme)}
-              scrollToColumn={0}
-              scrollToRow={0}
-              cellRenderer={this._cellRenderer}
-              fixedColumnCount={1}
-              fixedRowCount={1}
-              rowCount={(_.isNull(col1) ? _.size(correlations) : 1) + 1}
-              columnCount={(_.isNull(col2) ? _.size(columns) : 1) + 1}
-              height={300}
-              columnWidth={100}
-              rowHeight={gu.ROW_HEIGHT}
-              width={width}
-            />,
-          ]}
+              <MultiGrid
+                {...gu.buildGridStyles(this.props.theme)}
+                scrollToColumn={0}
+                scrollToRow={0}
+                cellRenderer={this._cellRenderer}
+                fixedColumnCount={1}
+                fixedRowCount={1}
+                rowCount={(_.isNull(col1) ? _.size(correlations) : 1) + 1}
+                columnCount={(_.isNull(col2) ? _.size(columns) : 1) + 1}
+                height={this.state.height}
+                columnWidth={100}
+                rowHeight={gu.ROW_HEIGHT}
+                width={width}
+              />
+              <Draggable
+                axis="y"
+                defaultClassName="CorrDragHandle"
+                defaultClassNameDragging="CorrDragHandleActive"
+                onDrag={(_e, { deltaY }) =>
+                  this.setState({
+                    height: _.max([this.state.height + deltaY, 300]),
+                  })
+                }
+                position={{ y: 0 }}
+                zIndex={999}>
+                <div className="CorrDragHandleIcon">...</div>
+              </Draggable>
+            </>
+          )}
         </AutoSizer>
       </BouncerWrapper>
     );

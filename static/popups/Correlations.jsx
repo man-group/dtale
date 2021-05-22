@@ -4,7 +4,6 @@ import React from "react";
 
 import { Bouncer } from "../Bouncer";
 import { BouncerWrapper } from "../BouncerWrapper";
-import ConditionalRender from "../ConditionalRender";
 import { RemovableError } from "../RemovableError";
 import actions from "../actions/dtale";
 import { buildURL } from "../actions/url-utils";
@@ -212,65 +211,67 @@ class Correlations extends React.Component {
               selectedCols={selectedCols}
               {...this.state}
             />
-            <ConditionalRender display={!_.isEmpty(selectedCols) && hasDate}>
-              <PPSCollapsible ppsInfo={this.state.tsPps} />
-              <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
-              <ChartsBody
-                ref={this._ts_chart}
-                visible={true}
-                url={tsUrl}
-                columns={[
-                  { name: "x", dtype: "datetime[ns]" },
-                  { name: "corr", dtype: "float64" },
-                ]}
-                x={{ value: "x" }}
-                y={[{ value: "corr" }]}
-                configHandler={config => {
-                  config.options.scales["y-corr"] = {
-                    ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
-                    afterTickToLabelConversion: data => {
-                      data.ticks[0] = { label: null };
-                      data.ticks[data.ticks.length - 1] = { label: null };
-                    },
-                  };
-                  config.options.scales.x.scaleLabel.display = false;
-                  config.options.onClick = this.viewScatter;
-                  config.options.legend = { display: false };
-                  config.plugins = [
-                    chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
-                    chartUtils.lineHoverPlugin(corrUtils.colorScale),
-                  ];
-                  config.data.datasets[0].selectedPoint = 0;
-                  return config;
-                }}
-                height={300}
-                showControls={false}
-                dataLoadCallback={data => {
-                  const selectedDate = _.get(data || {}, "data.all.x.0");
-                  const tsCode = _.get(data, "code", "");
-                  if (selectedDate) {
-                    this.setState({ tsPps: _.get(data, "pps") });
-                    this.buildScatter(this.state.selectedCols, 0, tsCode);
-                  } else {
-                    this.setState({
-                      tsCode: _.get(data, "code", ""),
-                      tsPps: _.get(data, "pps"),
-                    });
-                  }
-                }}
-              />
-            </ConditionalRender>
+            {!_.isEmpty(selectedCols) && hasDate && (
+              <>
+                <PPSCollapsible ppsInfo={this.state.tsPps} />
+                <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
+                <ChartsBody
+                  ref={this._ts_chart}
+                  visible={true}
+                  url={tsUrl}
+                  columns={[
+                    { name: "x", dtype: "datetime[ns]" },
+                    { name: "corr", dtype: "float64" },
+                  ]}
+                  x={{ value: "x" }}
+                  y={[{ value: "corr" }]}
+                  configHandler={config => {
+                    config.options.scales["y-corr"] = {
+                      ticks: { min: -1.1, max: 1.1, stepSize: 0.2 },
+                      afterTickToLabelConversion: data => {
+                        data.ticks[0] = { label: null };
+                        data.ticks[data.ticks.length - 1] = { label: null };
+                      },
+                    };
+                    config.options.scales.x.scaleLabel.display = false;
+                    config.options.onClick = this.viewScatter;
+                    config.options.legend = { display: false };
+                    config.plugins = [
+                      chartUtils.gradientLinePlugin(corrUtils.colorScale, "y-corr", -1, 1),
+                      chartUtils.lineHoverPlugin(corrUtils.colorScale),
+                    ];
+                    config.data.datasets[0].selectedPoint = 0;
+                    return config;
+                  }}
+                  height={300}
+                  showControls={false}
+                  dataLoadCallback={data => {
+                    const selectedDate = _.get(data || {}, "data.all.x.0");
+                    const tsCode = _.get(data, "code", "");
+                    if (selectedDate) {
+                      this.setState({ tsPps: _.get(data, "pps") });
+                      this.buildScatter(this.state.selectedCols, 0, tsCode);
+                    } else {
+                      this.setState({
+                        tsCode: _.get(data, "code", ""),
+                        tsPps: _.get(data, "pps"),
+                      });
+                    }
+                  }}
+                />
+              </>
+            )}
             <CorrelationScatterStats {...this.state} />
             <figure>
               {this.state.scatterError}
-              <ConditionalRender display={_.isEmpty(this.state.scatterError)}>
+              {_.isEmpty(this.state.scatterError) && (
                 <div className="chart-wrapper" style={{ height: 400 }}>
                   <div id="scatter-bouncer" style={{ display: "none" }}>
                     <Bouncer />
                   </div>
                   <canvas id="rawScatterChart" />
                 </div>
-              </ConditionalRender>
+              )}
             </figure>
           </BouncerWrapper>
         )}
