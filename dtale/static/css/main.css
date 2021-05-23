@@ -166,6 +166,9 @@ body.dark-mode div.container-fluid.correlations dt {
 
 .title-font {
   font-family: "road_rage", Fallback, sans-serif;
+}
+
+.title-font-base {
   font-size: 20px;
   text-align: center;
   padding-top: .2rem !important;
@@ -8333,7 +8336,7 @@ a.Select__multi-value__label, a.Select-multi-value-label{
   float: left;
 }
 
-.app-header > .title-font {
+.app-header > .title-font-base {
   margin-left: 1em;
   margin-top: -0.1em;
 }

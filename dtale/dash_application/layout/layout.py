@@ -101,19 +101,31 @@ def base_layout(app_root, **kwargs):
                 )
             )
 
+    main_title = global_state.get_app_settings().get("main_title") or "D-TALE"
+    main_title_font = global_state.get_app_settings().get("main_title_font")
+    main_title_class = "title-font-base"
+    main_title_style = ""
+    if main_title_font:
+        main_title_style = "font-family: {main_title_font}".format(
+            main_title_font=main_title_font
+        )
+    else:
+        main_title_class = "title-font title-font-base"
+    page_title = main_title or "D-Tale"
+
     return """
         <!DOCTYPE html>
         <html>
             <head>
                 {webroot_html}
                 {metas}
-                <title>D-Tale Charts</title>
+                <title>{page_title} Charts</title>
                 <link rel="shortcut icon" href="{favicon_path}">
                 {css}
             </head>
             <body>
                 <header class="app-header">
-                    <span class="title-font">D-TALE</span>
+                    <span class="{main_title_class}" style="{main_title_style}">{main_title}</span>
                     <span style="font-size: 16px" class="pl-5 mt-4">{title}</span>
                     <nav class="app-header__nav--secondary">
                         <ul class="nav-menus">
@@ -167,6 +179,10 @@ def base_layout(app_root, **kwargs):
         grid_links="".join(grid_links),
         languages=text("Languages"),
         language_links="".join(language_links),
+        main_title=main_title,
+        main_title_class=main_title_class,
+        main_title_style=main_title_style,
+        page_title=page_title,
     )
 
 

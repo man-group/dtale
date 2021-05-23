@@ -4,7 +4,11 @@
 
 {% block full_content %}
 <header class="app-header">
-    <span class="title-font">D-TALE</span>
+    <span
+        class="{{ '' if main_title_font else 'title-font '}}title-font-base"
+        style="{{'font-family: ' + main_title_font if main_title_font else ''}}">
+        {{ main_title if main_title else "D-TALE" }}
+    </span>
     <span style="font-size: 16px" class="pl-5 mt-4">{{popup_title}}</span>
     <nav class="app-header__nav--secondary">
         <ul class="nav-menus">

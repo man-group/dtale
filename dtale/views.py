@@ -1066,7 +1066,8 @@ def view_popup(popup_type, data_id=None):
     """
     if data_id is None and popup_type not in ["upload", "merge"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
-    title = "D-Tale"
+    main_title = global_state.get_app_settings().get("main_title")
+    title = main_title or "D-Tale"
     name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
@@ -1131,7 +1132,7 @@ def view_code_popup():
 
     :return: HTML
     """
-    return render_template("dtale/code_popup.html")
+    return render_template("dtale/code_popup.html", **global_state.get_app_settings())
 
 
 @dtale.route("/processes")

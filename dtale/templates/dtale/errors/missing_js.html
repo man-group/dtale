@@ -8,7 +8,11 @@
     <div class="row" style="margin: 0">
         <div class="col-auto" style="padding-left: 0;">
             <header>
-                <span class="title-font">D-TALE</span>
+                <span
+                    class="{{ '' if main_title_font else 'title-font '}}title-font-base"
+                    style="{{'font-family: ' + main_title_font if main_title_font else ''}}">
+                    {{ main_title if main_title else "D-TALE" }}
+                </span>
                 <span style="font-size: 24px;" class="pl-4">JS Files Missing</span>
             </header>
         </div>

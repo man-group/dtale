@@ -76,3 +76,21 @@ export function maxColumnWidth(state = null, action = {}) {
       return state;
   }
 }
+
+export function mainTitle(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return getHiddenValue("main_title");
+    default:
+      return state;
+  }
+}
+
+export function mainTitleFont(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return getHiddenValue("main_title_font");
+    default:
+      return state;
+  }
+}
