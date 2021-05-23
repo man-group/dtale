@@ -11,7 +11,7 @@
         </script>
     {% endif %}
 	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <title>D-Tale Login</title>
+    <title>{{ main_title if main_title else "D-Tale" }} Login</title>
     {#
         Despite the fact we reload these again later on, in order for the header to rendered correctly
         before the rest of the page is built we need to load them here as well.
@@ -20,7 +20,11 @@
     </head>
     <body>
         <header class="app-header">
-            <span class="title-font">D-TALE</span>
+            <span
+                class="{{ '' if main_title_font else 'title-font '}}title-font-base"
+                style="{{'font-family: ' + main_title_font if main_title_font else ''}}">
+                {{ main_title if main_title else "D-TALE" }}
+            </span>
             <span style="font-size: 16px" class="pl-5 mt-4" id="code-title">Login</span>
         </header>
         <div class="container-fluid login">

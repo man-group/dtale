@@ -49,6 +49,8 @@
         <input type="hidden" id="username" value="{{session.get('username')}}" />
         <input type="hidden" id="predefined_filters" value="{{predefined_filters}}" />
         <input type="hidden" id="max_column_width" value={{max_column_width}} />
+        <input type="hidden" id="main_title" value="{{main_title}}" />
+        <input type="hidden" id="main_title_font" value="{{main_title_font}}" />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

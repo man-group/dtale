@@ -33,35 +33,44 @@ export const PREDEFINED_FILTERS = _.join(
   ""
 );
 
+function buildHidden(id, value) {
+  return `<input type="hidden" id="${id}" value="${value}" />`;
+}
+
+const BASE_HTML = `
+<div id="content" style="height: 1000px;width: 1000px;" />
+<div id="popup-content" />
+<span id="code-title" />
+`;
+
+// eslint-disable-next-line complexity
 function buildInnerHTML(props = {}, store = null) {
   const actions = require("../actions/dtale").default;
-  const { settings, hideShutdown, processes, iframe, dataId, xarray, xarrayDim, allowCellEdits, theme } = props;
-  const { language, pinMenu, filteredRanges, auth, username, predefinedFilters, maxColumnWidth } = props;
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   body.innerHTML = [
-    `<input type="hidden" id="settings" value="${settings ?? BASE_SETTINGS}" />`,
-    `<input type="hidden" id="version" value="${pjson.version}" />`,
-    `<input type="hidden" id="python_version" value="${props.pythonVersion ?? "3.8.0"}" />`,
-    `<input type="hidden" id="hide_shutdown" value="${hideShutdown ?? HIDE_SHUTDOWN}" />`,
-    `<input type="hidden" id="processes" value=${processes ?? PROCESSES} />`,
-    `<input type="hidden" id="iframe" value="${iframe ?? IFRAME}" />`,
-    `<input type="hidden" id="data_id" value="${dataId ?? DATA_ID}" />`,
-    `<input type="hidden" id="xarray" value="${xarray ?? "False"}" />`,
-    `<input type="hidden" id="xarray_dim" value="${xarrayDim ?? "{}"}" />`,
-    `<input type="hidden" id="allow_cell_edits" value="${allowCellEdits ?? "True"}" />`,
-    `<input type="hidden" id="theme" value="${theme ?? "light"}" />`,
-    `<input type="hidden" id="language" value="${language ?? "en"}" />`,
-    `<input type="hidden" id="pin_menu" value="${pinMenu ?? "False"}" />`,
-    `<input type="hidden" id="filtered_ranges" value="${filteredRanges ?? JSON.stringify({})}" />`,
-    `<input type="hidden" id="auth" value="${auth ?? "False"}" />`,
-    `<input type="hidden" id="username" value="${username ?? ""}" />`,
-    `<input type="hidden" id="predefined_filters" value="${predefinedFilters ?? "[]"}" />`,
-    `<input type="hidden" id="max_column_width" value=${maxColumnWidth ?? "None"} />`,
-    `<div id="content" style="height: 1000px;width: 1000px;" ></div>`,
-    `<div id="popup-content"></div>`,
-    `<span id="code-title" />`,
-  ].join("");
+    buildHidden("settings", props.settings ?? BASE_SETTINGS),
+    buildHidden("version", pjson.version),
+    buildHidden("python_version", props.pythonVersion ?? "3.8.0"),
+    buildHidden("hide_shutdown", props.hideShutdown ?? HIDE_SHUTDOWN),
+    buildHidden("processes", props.processes ?? PROCESSES),
+    buildHidden("iframe", props.iframe ?? IFRAME),
+    buildHidden("data_id", props.dataId ?? DATA_ID),
+    buildHidden("xarray", props.xarray ?? "False"),
+    buildHidden("xarray_dim", props.xarrayDim ?? "{}"),
+    buildHidden("allow_cell_edits", props.allowCellEdits ?? "True"),
+    buildHidden("theme", props.theme ?? "light"),
+    buildHidden("language", props.language ?? "en"),
+    buildHidden("pin_menu", props.pinMenu ?? "False"),
+    buildHidden("filtered_ranges", props.filteredRanges ?? JSON.stringify({})),
+    buildHidden("auth", props.auth ?? "False"),
+    buildHidden("username", props.username ?? ""),
+    buildHidden("predefined_filters", props.predefinedFilters ?? "[]"),
+    buildHidden("max_column_width", props.maxColumnWidth ?? "None"),
+    buildHidden("main_title", props.mainTitle ?? ""),
+    buildHidden("main_title_font", props.mainTitleFont ?? ""),
+    BASE_HTML,
+  ];
   if (store) {
     store.dispatch(actions.init());
   }

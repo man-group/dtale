@@ -60,7 +60,7 @@ class ReactRibbonMenu extends React.Component {
   }
 
   render() {
-    const { visible, openRibbonDropdown, ribbonDropdown, t } = this.props;
+    const { visible, mainTitle, mainTitleFont, openRibbonDropdown, ribbonDropdown, t } = this.props;
     const menuClick = (name, element) => {
       openRibbonDropdown(name, element);
       this.setState({ hoverActive: true });
@@ -70,11 +70,15 @@ class ReactRibbonMenu extends React.Component {
       onClick: menuClick,
       selected: ribbonDropdown,
     };
+    const titleStyle = { fontSize: "16px", cursor: "default" };
+    if (mainTitleFont) {
+      titleStyle.fontFamily = mainTitleFont;
+    }
     return (
       <div className={`ribbon-menu-content${visible ? " is-expanded" : ""} row ml-0`} onClick={this.onClick}>
         <RibbonMenuItem name="main" {...itemProps}>
-          <span className="title-font" style={{ fontSize: "16px", cursor: "default" }}>
-            D-TALE
+          <span className={`${mainTitleFont ? "" : "title-font "}title-font-base`} style={titleStyle}>
+            {mainTitle ?? "D-TALE"}
           </span>
         </RibbonMenuItem>
         <RibbonMenuItem name="actions" {...itemProps}>
@@ -98,13 +102,17 @@ ReactRibbonMenu.propTypes = {
   visible: PropTypes.bool,
   openRibbonDropdown: PropTypes.func,
   ribbonDropdown: PropTypes.string,
+  mainTitle: PropTypes.string,
+  mainTitleFont: PropTypes.string,
   t: PropTypes.func,
 };
 const TranslatedRibbonMenu = withTranslation("menu")(ReactRibbonMenu);
 const ReduxRibbonMenu = connect(
-  ({ ribbonMenuOpen, ribbonDropdown }) => ({
+  ({ ribbonMenuOpen, ribbonDropdown, mainTitle, mainTitleFont }) => ({
     visible: ribbonMenuOpen,
     ribbonDropdown: ribbonDropdown.name,
+    mainTitle,
+    mainTitleFont,
   }),
   dispatch => ({
     openRibbonDropdown: (name, element) => dispatch({ type: "open-ribbon-dropdown", name, element }),

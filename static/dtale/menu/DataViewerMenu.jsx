@@ -43,7 +43,7 @@ import menuFuncs from "./dataViewerMenuUtils";
 
 class ReactDataViewerMenu extends React.Component {
   render() {
-    const { menuOpen, menuPinned, backgroundMode, t } = this.props;
+    const { menuOpen, menuPinned, backgroundMode, mainTitle, mainTitleFont, t } = this.props;
     const buttonHandlers = menuFuncs.buildHotkeyHandlers(this.props);
     const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
     const refreshWidths = () =>
@@ -72,7 +72,11 @@ class ReactDataViewerMenu extends React.Component {
         {!menuPinned && menuOpen && (
           <GlobalHotKeys keyMap={{ CLOSE_MENU: "esc" }} handlers={{ CLOSE_MENU: closeMenu }} />
         )}
-        <header className="title-font pb-1">D-TALE</header>
+        <header
+          className={`${mainTitleFont ? "" : "title-font "}title-font-base pb-1`}
+          style={mainTitleFont ? { fontFamily: mainTitleFont } : {}}>
+          {mainTitle ?? "D-TALE"}
+        </header>
         <div
           style={{
             [menuPinned ? "height" : "maxHeight"]: height,
@@ -145,12 +149,14 @@ ReactDataViewerMenu.propTypes = {
   dataId: PropTypes.string.isRequired,
   menuPinned: PropTypes.bool,
   showSidePanel: PropTypes.func,
+  mainTitle: PropTypes.string,
+  mainTitleFont: PropTypes.string,
   t: PropTypes.func,
 };
 
 const TranslatedReactDataViewMenu = withTranslation(["menu", "menu_description", "code_export"])(ReactDataViewerMenu);
 const ReduxDataViewerMenu = connect(
-  state => _.pick(state, ["dataId", "menuPinned"]),
+  state => _.pick(state, ["dataId", "menuPinned", "mainTitle", "mainTitleFont"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     showSidePanel: view => dispatch({ type: "show-side-panel", view }),

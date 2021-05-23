@@ -11,7 +11,7 @@
         </script>
     {% endif %}
 	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <title>D-Tale Code Snippet</title>
+    <title>{{ main_title if main_title else "D-Tale" }} Code Snippet</title>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/base_styles_bundle.js') }}"></script>
     {#
         Despite the fact we reload these again later on, in order for the header to rendered correctly
@@ -27,7 +27,11 @@
         </span>
         {% endif %}
         <header class="app-header">
-            <span class="title-font">D-TALE</span>
+            <span
+                class="{{ '' if main_title_font else 'title-font '}}title-font-base"
+                style="{{'font-family: ' + main_title_font if main_title_font else ''}}">
+                {{ main_title if main_title else "D-TALE" }}
+            </span>
             <span style="font-size: 16px" class="pl-5 mt-4" id="code-title">Code Snippet</span>
             <nav class="app-header__nav--secondary">
                 <ul class="nav-menus">

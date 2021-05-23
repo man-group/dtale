@@ -3,6 +3,9 @@ import _ from "lodash";
 export function getHiddenValue(id) {
   const hiddenElem = document.getElementById(id);
   if (hiddenElem) {
+    if (hiddenElem.value === "None") {
+      return null;
+    }
     return hiddenElem.value;
   }
   return null;
@@ -13,7 +16,7 @@ export function toBool(value) {
 }
 
 export function toFloat(value, returnNull = false) {
-  if (value === "None" && returnNull) {
+  if (value === null && returnNull) {
     return null;
   }
   const parsedVal = parseFloat(value);

@@ -40,6 +40,8 @@ def test_load_app_settings():
         assert settings["language"] == "en"
         assert settings["theme"] == "light"
         assert settings["max_column_width"] == 100
+        assert settings["main_title"] == "My App"
+        assert settings["main_title_font"] == "Arial"
 
 
 @pytest.mark.unit

@@ -50,6 +50,8 @@ describe("reducer tests", () => {
       maxColumnWidth: null,
       dragResize: null,
       editedTextAreaHeight: 0,
+      mainTitle: null,
+      mainTitleFont: null,
     };
     expect(state).toEqual(store.getState());
   });

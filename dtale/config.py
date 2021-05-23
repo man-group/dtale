@@ -39,7 +39,7 @@ def set_config(path):
 def get_config_val(config, defaults, prop, getter="get", section="show"):
     if config.has_option(section, prop):
         return getattr(config, getter)(section, prop)
-    return defaults[prop]
+    return defaults.get(prop)
 
 
 def load_app_settings(config):
@@ -68,6 +68,10 @@ def load_app_settings(config):
     max_column_width = get_config_val(
         config, curr_app_settings, "max_column_width", section="app", getter="getint"
     )
+    main_title = get_config_val(config, curr_app_settings, "main_title", section="app")
+    main_title_font = get_config_val(
+        config, curr_app_settings, "main_title_font", section="app"
+    )
 
     global_state.set_app_settings(
         dict(
@@ -77,6 +81,8 @@ def load_app_settings(config):
             github_fork=github_fork,
             hide_shutdown=hide_shutdown,
             max_column_width=max_column_width,
+            main_title=main_title,
+            main_title_font=main_title_font,
         )
     )
 
