@@ -3,6 +3,7 @@ import copy
 import numpy as np
 import pandas as pd
 
+import dtale.global_state as global_state
 from dtale.column_analysis import handle_cleaners
 from dtale.query import build_col_key, run_query
 from dtale.utils import (
@@ -46,6 +47,18 @@ AGGS = dict(
     prod="Product of All Items",
     pctct="Percentage Count",
     pctsum="Percentage Sum",
+)
+
+CHART_POINTS_LIMIT = (
+    "In order to adjust the limitation on the amount of points in charts please update your startup code that "
+    "loads the dataframe to D-Tale and add these lines of code before calling 'dtale.show':\n\n"
+    "import dtale.global_state as global_state\n\n"
+    "global_state.set_chart_settings({'scatter_points': 15000, '3d_points': 40000})\n\n"
+    "You could also add the following properties to your global configuration file:\n\n"
+    "[charts]\n"
+    "scatter_points = 20000\n\n"
+    "Documentation on global configurations can be found here:\n"
+    "https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md"
 )
 
 
@@ -898,11 +911,14 @@ def build_base_chart(
     code.append("chart_data = chart_data.dropna()")
 
     dupe_cols = main_group + y_group_cols
+    data_limit = global_state.get_chart_settings()[
+        "3d_points" if is_z or animate_by is not None else "scatter_points"
+    ]
     check_exceptions(
         data[dupe_cols].rename(columns={x_col: x}),
         allow_duplicates or agg in ["raw", "drop_duplicates"],
         unlimited_data=unlimited_data,
-        data_limit=40000 if is_z or animate_by is not None else 15000,
+        data_limit=data_limit,
     )
     data_f, range_f = build_formatters(data)
 

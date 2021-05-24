@@ -10700,6 +10700,11 @@ table tbody tr.highlight-row {
   padding-top: 5px;
 }
 
+div.traceback pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .dtale-alert.alert .ico-cancel {
   cursor: pointer;
 }

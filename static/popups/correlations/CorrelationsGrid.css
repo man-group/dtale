@@ -25,6 +25,7 @@
 .CorrDragHandleIcon {
   justify-content: center;
   align-items: center;
-  line-height: 0.5;
+  line-height: 0.25;
   width: 100%;
+  text-align: center;
 }

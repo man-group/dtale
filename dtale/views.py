@@ -33,7 +33,7 @@ import dtale.env_util as env_util
 import dtale.global_state as global_state
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
-from dtale.charts.utils import build_base_chart, build_formatters
+from dtale.charts.utils import build_base_chart, build_formatters, CHART_POINTS_LIMIT
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_analysis import ColumnAnalysis
 from dtale.column_builders import ColumnBuilder, printable
@@ -2708,7 +2708,7 @@ def get_scatter(data_id):
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
-    idx_col = str("index")
+    idx_col = str("_corr_index")
     y_cols = [cols[1], idx_col]
     code = build_code_export(data_id)
     selected_date = None
@@ -2786,11 +2786,15 @@ def get_scatter(data_id):
         ).format(col1=col1, col2=col2, idx_col=idx_col)
     )
 
-    if len(data) > 15000:
+    max_points = global_state.get_chart_settings()["scatter_points"]
+    if len(data) > max_points:
         return jsonify(
             stats=stats,
             code="\n".join(code),
-            error="Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...",
+            error="Dataset exceeds {:,} records, cannot render scatter. Please apply filter...".format(
+                max_points
+            ),
+            traceback=CHART_POINTS_LIMIT,
         )
     data, _code = build_base_chart(data, cols[0], y_cols, allow_duplicates=True)
     data["x"] = cols[0]
