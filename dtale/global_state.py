@@ -17,12 +17,19 @@ APP_SETTINGS = {
     "github_fork": False,
     "hide_shutdown": False,
     "max_column_width": None,
+    "main_title": None,
+    "main_title_font": None,
 }
 
 AUTH_SETTINGS = {
     "active": False,
     "username": None,
     "password": None,
+}
+
+CHART_SETTINGS = {
+    "scatter_points": 15000,
+    "3d_points": 40000,
 }
 
 
@@ -345,6 +352,18 @@ def set_auth_settings(settings):
 
     for prop, val in settings.items():
         AUTH_SETTINGS[prop] = val
+
+
+def get_chart_settings():
+    global CHART_SETTINGS
+    return CHART_SETTINGS
+
+
+def set_chart_settings(settings):
+    global CHART_SETTINGS
+
+    for prop, val in settings.items():
+        CHART_SETTINGS[prop] = val
 
 
 def cleanup(data_id=None):

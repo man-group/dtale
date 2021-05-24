@@ -14,6 +14,7 @@ from pkg_resources import parse_version
 from six import PY3
 
 from dtale.app import build_app
+from dtale.charts.utils import CHART_POINTS_LIMIT
 from dtale.utils import DuplicateDataError
 from tests import ExitStack
 from tests.dtale import build_data_inst, build_settings, build_dtypes
@@ -1994,6 +1995,7 @@ def test_get_scatter(unittest, rolling_data):
                 "spearman": 1.0,
             },
             error="Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...",
+            traceback=CHART_POINTS_LIMIT,
         )
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},

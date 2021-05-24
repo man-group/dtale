@@ -87,6 +87,22 @@ def load_app_settings(config):
     )
 
 
+def load_chart_settings(config):
+    if config is None:
+        return
+    curr_chart_settings = global_state.get_chart_settings()
+
+    scatter_points = get_config_val(
+        config, curr_chart_settings, "scatter_points", section="charts", getter="getint"
+    )
+    three_dimensional_points = get_config_val(
+        config, curr_chart_settings, "3d_points", section="charts", getter="getint"
+    )
+    global_state.set_chart_settings(
+        {"scatter_points": scatter_points, "3d_points": three_dimensional_points}
+    )
+
+
 def load_auth_settings(config):
     if config is None:
         return
@@ -182,3 +198,4 @@ def build_show_options(options=None):
 LOADED_CONFIG = get_config()
 load_app_settings(LOADED_CONFIG)
 load_auth_settings(LOADED_CONFIG)
+load_chart_settings(LOADED_CONFIG)
