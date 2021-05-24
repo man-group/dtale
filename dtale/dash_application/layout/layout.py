@@ -111,7 +111,7 @@ def base_layout(app_root, **kwargs):
         )
     else:
         main_title_class = "title-font title-font-base"
-    page_title = main_title or "D-Tale"
+    page_title = global_state.get_app_settings().get("main_title") or "D-Tale"
 
     return """
         <!DOCTYPE html>

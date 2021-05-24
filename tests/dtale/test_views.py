@@ -1873,7 +1873,7 @@ df.columns = [str(c) for c in df.columns]  # update columns to strings in case t
 
 scatter_data = df[df['date'] == '2000-01-01']
 scatter_data = scatter_data['foo', 'bar'].dropna(how='any')
-scatter_data['index'] = scatter_data.index
+scatter_data['_corr_index'] = scatter_data.index
 s0 = scatter_data['foo']
 s1 = scatter_data['bar']
 pearson = s0.corr(s1, method='pearson')
@@ -1926,12 +1926,12 @@ def test_get_scatter(unittest, rolling_data):
             data={
                 "all": {
                     "bar": [0, 1, 2, 3, 4],
-                    "index": [0, 1, 2, 3, 4],
+                    "_corr_index": [0, 1, 2, 3, 4],
                     "x": [0, 1, 2, 3, 4],
                 }
             },
-            max={"bar": 4, "index": 4, "x": 4},
-            min={"bar": 0, "index": 0, "x": 0},
+            max={"bar": 4, "_corr_index": 4, "x": 4},
+            min={"bar": 0, "_corr_index": 0, "x": 0},
             x="foo",
             date=" for 2000-01-01",
         )
@@ -1956,7 +1956,7 @@ def test_get_scatter(unittest, rolling_data):
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         assert len(response_data["data"]["all"]["1"]) == 4
-        assert sorted(response_data["data"]["all"]) == ["1", "date", "index", "x"]
+        assert sorted(response_data["data"]["all"]) == ["1", "_corr_index", "date", "x"]
         unittest.assertEqual(
             sorted(response_data["data"]["all"]["date"]),
             ["2019-11-28", "2019-11-29", "2019-11-30", "2019-12-01"],

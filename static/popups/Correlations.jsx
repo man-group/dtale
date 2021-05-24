@@ -131,7 +131,7 @@ class Correlations extends React.Component {
     if (point && point[0].datasetIndex !== undefined) {
       const data = _.get(this.state, ["chart", "config", "_config", "data", "datasets", point[0].datasetIndex, "data"]);
       if (data) {
-        const index = data[point[0].index].index;
+        const index = data[point[0].index]._corr_index;
         let updatedQuery = this.props.chartData.query;
         if (updatedQuery) {
           updatedQuery = [updatedQuery, `index == ${index}`];
