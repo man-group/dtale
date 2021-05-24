@@ -573,6 +573,10 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col):
                 / getattr(df.groupby(subidx_cols)[curr_agg_cols], func)()
                 * 100
             )
+            if isinstance(calc_group, pd.Series):
+                calc_group.name = curr_agg_cols[0]
+                calc_group = calc_group.to_frame()
+
             if len(curr_agg_cols) > 1:
                 groups.columns = curr_agg_cols
             elif len(curr_agg_cols) == 1:
