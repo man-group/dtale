@@ -136,11 +136,14 @@ class CorrelationsGrid extends React.Component {
               {this.props.strings.length && (
                 <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
                   <span className="mb-auto mt-auto">{t("correlations:Encode Strings")}?</span>
-                  <div className="col-auto mt-auto mb-auto">
+                  <div className="col-auto mt-auto mb-auto pl-5 hoverable" style={{ borderBottom: "none" }}>
                     <i
                       className={`ico-check-box${this.props.encodeStrings ? "" : "-outline-blank"} pointer`}
                       onClick={this.props.toggleStrings}
                     />
+                    <div className="hoverable__content encode-strings">
+                      {`${t("correlations:encode_strings_tt")} ${this.props.strings.join(", ")}`}
+                    </div>
                   </div>
                 </div>
               )}

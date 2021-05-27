@@ -83,7 +83,7 @@ export function buildCleaningCode(cfg) {
         "s = s.apply(clean_nltk_stopwords)",
       ]);
     } else if (cleaner === "drop_numbers") {
-      code.push(`s = s.str.replace(r'[/d]+', '')`);
+      code.push(`s = s.str.replace(r'[\\d]+', '')`);
     } else if (cleaner === "keep_alpha") {
       code.push(`s = s.apply(lambda x: ''.join(c for c in x if c.isalpha()))`);
     } else if (cleaner === "normalize_accents") {
@@ -94,7 +94,7 @@ export function buildCleaningCode(cfg) {
         ")",
       ]);
     } else if (cleaner === "drop_all_space") {
-      code.push(`s.str.replace(r'[ ]+', '')`);
+      code.push(`s = s.str.replace(r'[ ]+', '')`);
     } else if (cleaner === "drop_repeated_words") {
       code = _.concat(code, [
         "def drop_repeated_words(val):",
@@ -129,6 +129,8 @@ export function buildCleaningCode(cfg) {
     } else if (cleaner === "hidden_chars") {
       code.push("printable = r'\\w \\!\\\"#\\$%&\\'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'");
       code.push("s = s.str.replacer(r'[^{}]+'.format(printable), '')");
+    } else if (cleaner === "replace_hyphen_w_space") {
+      code.push("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−-]+', ' ')");
     }
   });
   return code;
