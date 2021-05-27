@@ -4,7 +4,7 @@ import React from "react";
 import { GlobalHotKeys } from "react-hotkeys";
 import { connect } from "react-redux";
 
-import { Correlations } from "../../popups/Correlations";
+import Correlations from "../../popups/Correlations";
 import { FilterPanel } from "../../popups/filter/FilterPanel";
 import PredictivePowerScore from "../../popups/pps/PredictivePowerScore";
 import { DescribePanel } from "./DescribePanel";

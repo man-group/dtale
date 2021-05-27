@@ -2423,12 +2423,16 @@ def get_correlations(data_id):
         global_state.get_context_variables(data_id),
     )
     valid_corr_cols = []
+    valid_str_corr_cols = []
+    encode_strings = get_bool_arg(request, "encodeStrings")
     valid_date_cols = []
     for col_info in global_state.get_dtypes(data_id):
         name, dtype = map(col_info.get, ["name", "dtype"])
         dtype = classify_type(dtype)
         if dtype in ["I", "F"]:
             valid_corr_cols.append(name)
+        elif dtype == "S" and col_info.get("unique_ct", 0) <= 50:
+            valid_str_corr_cols.append(name)
         elif dtype == "D":
             # even if a datetime column exists, we need to make sure that there is enough data for a date
             # to warrant a correlation, https://github.com/man-group/dtale/issues/43
@@ -2437,6 +2441,25 @@ def get_correlations(data_id):
                 valid_date_cols.append(dict(name=name, rolling=False))
             elif date_counts.eq(1).all():
                 valid_date_cols.append(dict(name=name, rolling=True))
+
+    str_encodings_code = ""
+    dummy_col_mappings = {}
+    if encode_strings and valid_str_corr_cols:
+        data = data[valid_corr_cols + valid_str_corr_cols]
+        for str_col in valid_str_corr_cols:
+            dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
+            dummy_cols = list(dummies.columns)
+            dummy_col_mappings[str_col] = dummy_cols
+            data.loc[:, dummy_cols] = dummies
+            valid_corr_cols += dummy_cols
+        str_encodings_code = (
+            "str_corr_cols = [\n\t'{valid_str_corr_cols}'\n]\n"
+            "dummies = pd.get_dummies(corr_data, str_corr_cols)\n"
+            "corr_data.loc[:, dummies.columns] = dummies\n"
+        ).format(valid_str_corr_cols="', '".join(valid_str_corr_cols))
+    else:
+        data = data[valid_corr_cols]
+
     corr_cols_str = "'\n\t'".join(
         ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
     )
@@ -2448,15 +2471,26 @@ def get_correlations(data_id):
                 "corr_cols = [\n"
                 "\t'{corr_cols}'\n"
                 "]\n"
-                "corr_data = ppscore.matrix(df[corr_cols])\n"
-            ).format(corr_cols=corr_cols_str)
+                "corr_data = df[corr_cols]\n"
+                "{str_encodings}"
+                "corr_data = ppscore.matrix(corr_data)\n"
+            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
         )
 
         data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
     elif data[valid_corr_cols].isnull().values.any():
         data = data.corr(method="pearson")
         code = build_code_export(data_id)
-        code.append("corr_data = df.corr(method='pearson')")
+        code.append(
+            (
+                "corr_cols = [\n"
+                "\t'{corr_cols}'\n"
+                "]\n"
+                "corr_data = df[corr_cols]\n"
+                "{str_encodings}"
+                "corr_data = corr_data.corr(method='pearson')"
+            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
+        )
     else:
         # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
         # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
@@ -2470,9 +2504,11 @@ def get_correlations(data_id):
                 "corr_cols = [\n"
                 "\t'{corr_cols}'\n"
                 "]\n"
-                "corr_data = np.corrcoef(df[corr_cols].values, rowvar=False)\n"
+                "corr_data = df[corr_cols]\n"
+                "{str_encodings}"
+                "corr_data = np.corrcoef(corr_data.values, rowvar=False)\n"
                 "corr_data = pd.DataFrame(corr_data, columns=[corr_cols], index=[corr_cols])"
-            ).format(corr_cols=corr_cols_str)
+            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
         )
 
     code.append(
@@ -2486,6 +2522,8 @@ def get_correlations(data_id):
     return jsonify(
         data=f.format_dicts(data.itertuples()),
         dates=valid_date_cols,
+        strings=valid_str_corr_cols,
+        dummyColMappings=dummy_col_mappings,
         code=code,
         pps=pps_data,
     )
@@ -2575,6 +2613,25 @@ def get_ppscore_matrix(df):
         return [], None
 
 
+def update_df_for_encoded_strings(df, dummy_cols, cols, code):
+    if not dummy_cols:
+        return df
+    dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols)
+    dummies = dummies[[c for c in dummies.columns if c in cols]]
+    df.loc[:, dummies.columns] = dummies
+
+    code.append(
+        (
+            "dummy_cols = ['{}']\n"
+            "dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols)\n"
+            "final_cols = ['{}']\n"
+            "dummies = dummies[[c for c in dummies.columns if c in final_cols]]\n"
+            "df.loc[:, dummies.columns] = dummies"
+        ).format("', '".join(dummy_cols), "', '".join(cols))
+    )
+    return df
+
+
 @dtale.route("/correlations-ts/<data_id>")
 @exception_decorator
 def get_correlations_ts(data_id):
@@ -2596,18 +2653,23 @@ def get_correlations_ts(data_id):
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
-    cols = get_str_arg(request, "cols")
-    cols = json.loads(cols)
+    cols = get_json_arg(request, "cols")
     [col1, col2] = cols
     date_col = get_str_arg(request, "dateCol")
     rolling = get_bool_arg(request, "rolling")
     rolling_window = get_int_arg(request, "rollingWindow")
     min_periods = get_int_arg(request, "minPeriods")
+    dummy_cols = get_json_arg(request, "dummyCols", [])
+
     code = build_code_export(data_id)
     pps = get_ppscore(data, col1, col2)
 
     if rolling:
-        data = data[[date_col, col1, col2]].set_index(date_col)
+        data = data[
+            [c for c in data.columns if c in [date_col, col1, col2] + dummy_cols]
+        ]
+        data = update_df_for_encoded_strings(data, dummy_cols, cols, code)
+        data = data.set_index(date_col)
         rolling_kwargs = {}
         if min_periods is not None:
             rolling_kwargs["min_periods"] = min_periods
@@ -2630,6 +2692,8 @@ def get_correlations_ts(data_id):
             )
         )
     else:
+        data = data[[c for c in data.columns if c in [date_col] + cols + dummy_cols]]
+        data = update_df_for_encoded_strings(data, dummy_cols, cols, code)
         data = data.groupby(date_col)[cols].corr(method="pearson")
         data.index.names = ["date", "column"]
         data = data.reset_index()
@@ -2698,6 +2762,7 @@ def get_scatter(data_id):
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
     cols = get_json_arg(request, "cols")
+    dummy_cols = get_json_arg(request, "dummyCols", [])
     date_index = get_int_arg(request, "index")
     date_col = get_str_arg(request, "dateCol")
     rolling = get_bool_arg(request, "rolling")
@@ -2713,6 +2778,8 @@ def get_scatter(data_id):
     code = build_code_export(data_id)
     selected_date = None
     if rolling:
+        data = data[[c for c in data.columns if c in [date_col] + cols + dummy_cols]]
+        data = update_df_for_encoded_strings(data, dummy_cols, cols, code)
         window = get_int_arg(request, "window")
         min_periods = get_int_arg(request, "minPeriods", default=0)
         dates = data[date_col].sort_values().unique()
@@ -2739,6 +2806,11 @@ def get_scatter(data_id):
             )
         )
     else:
+        selected_cols = (
+            ([date_col] if date_index is not None else []) + cols + dummy_cols
+        )
+        data = data[[c for c in data.columns if c in selected_cols]]
+        data = update_df_for_encoded_strings(data, dummy_cols, cols, code)
         if date_index is not None:
             selected_date = data[date_col].sort_values().unique()[date_index]
             data = data[data[date_col] == selected_date]

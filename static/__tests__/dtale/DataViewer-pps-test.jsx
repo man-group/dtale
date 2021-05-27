@@ -12,7 +12,7 @@ import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("DataViewer tests", () => {
-  let result, PredictivePowerScore;
+  let result, PredictivePowerScore, CorrelationsGrid;
   let testIdx = 0;
   const { opener } = window;
   const dimensions = new DimensionsHelper({
@@ -42,6 +42,7 @@ describe("DataViewer tests", () => {
 
     jest.mock("popsicle", () => mockBuildLibs);
     PredictivePowerScore = require("../../popups/pps/PredictivePowerScore").default;
+    CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
   });
 
   beforeEach(async () => {
@@ -70,5 +71,12 @@ describe("DataViewer tests", () => {
   it("DataViewer: predictive power score", async () => {
     const details = result.find(PPSDetails);
     expect(details.prop("ppsInfo")).toEqual(expect.objectContaining({ x: "col1", y: "col2" }));
+  });
+
+  it("handles encode strings", async () => {
+    result.find(PredictivePowerScore).setState({ strings: ["foo"] });
+    result.find(CorrelationsGrid).props().toggleStrings();
+    await tickUpdate(result);
+    expect(result.find(PredictivePowerScore).state().encodeStrings).toBe(true);
   });
 });

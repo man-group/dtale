@@ -459,7 +459,8 @@
     "Min Periods": "Min Periods",
     "Date Column": "Date Column",
     "Correlations Timeseries": "Correlations Timeseries",
-    "Predictive Power Score for ": "Predictive Power Score for "
+    "Predictive Power Score for ": "Predictive Power Score for ",
+    "Encode Strings": "Encode Strings"
   },
   "xarray": {
     "count": "count",

@@ -38,4 +38,12 @@ describe("RibbonMenu", () => {
     wrapper.setProps({ visible: false });
     expect(wrapper.state().hoverActive).toBe(false);
   });
+
+  it("sets main title font", () => {
+    props.mainTitleFont = "Arial";
+    wrapper = mount(<ReactRibbonMenu {...props} />);
+    const title = wrapper.find("span.title-font-base").props();
+    expect(title.className).toBe("title-font-base");
+    expect(title.style.fontFamily).toBe("Arial");
+  });
 });

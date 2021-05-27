@@ -71,7 +71,7 @@ describe("Correlations tests", () => {
     mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
 
-    Correlations = require("../../popups/Correlations").Correlations;
+    Correlations = require("../../popups/Correlations").default;
     ChartsBody = require("../../popups/charts/ChartsBody").default;
     CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     CorrelationScatterStats = require("../../popups/correlations/CorrelationScatterStats").default;

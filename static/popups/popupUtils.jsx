@@ -6,7 +6,7 @@ import About from "./About";
 import { CodeExport } from "./CodeExport";
 import { Confirmation } from "./Confirmation";
 import { CopyRangeToClipboard } from "./CopyRangeToClipboard";
-import { Correlations } from "./Correlations";
+import Correlations from "./Correlations";
 import { Error } from "./ErrorPopup";
 import { RangeHighlight } from "./RangeHighlight";
 import { Rename } from "./Rename";
