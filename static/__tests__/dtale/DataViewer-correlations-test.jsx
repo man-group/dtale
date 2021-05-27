@@ -42,7 +42,7 @@ describe("DataViewer tests", () => {
     mockChartJS();
     jest.mock("popsicle", () => mockBuildLibs);
 
-    Correlations = require("../../popups/Correlations").Correlations;
+    Correlations = require("../../popups/Correlations").default;
     ChartsBody = require("../../popups/charts/ChartsBody").default;
   });
 

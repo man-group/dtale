@@ -18,11 +18,14 @@ import CorrelationsTsOptions from "./correlations/CorrelationsTsOptions";
 import PPSCollapsible from "./correlations/PPSCollapsible";
 import corrUtils from "./correlations/correlationsUtils";
 
-class Correlations extends React.Component {
+export default class Correlations extends React.Component {
   constructor(props) {
     super(props);
     this.state = corrUtils.buildState();
-    _.forEach(["buildTs", "buildScatter", "viewScatter", "viewScatterRow"], f => (this[f] = this[f].bind(this)));
+    _.forEach(
+      ["buildTs", "buildScatter", "viewScatter", "viewScatterRow", "loadGrid"],
+      f => (this[f] = this[f].bind(this))
+    );
     this._ts_chart = React.createRef();
   }
 
@@ -32,7 +35,7 @@ class Correlations extends React.Component {
     }
     const stateProps = _.concat(
       ["error", "scatterError", "stats", "correlations", "selectedCols", "selectedDate", "window", "minPeriods"],
-      ["useRolling"]
+      ["useRolling", "encodeStrings", "loadingCorrelations"]
     );
     if (!_.isEqual(_.pick(this.state, stateProps), _.pick(newState, stateProps))) {
       return true;
@@ -44,46 +47,47 @@ class Correlations extends React.Component {
     return false; // Otherwise, use the default react behaviour.
   }
 
-  componentDidMount() {
-    fetchJson(
-      buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, this.props.chartData, ["query"]),
-      gridData => {
-        if (gridData.error) {
-          this.setState({
-            error: <RemovableError {...gridData} />,
-            loadingCorrelations: false,
-          });
-          return;
-        }
-        const { data, dates, code } = gridData;
-        const columns = _.map(data, "column");
-        const rolling = _.get(dates, "0.rolling", false);
-        const state = {
-          correlations: data,
-          columns,
-          dates,
-          hasDate: _.size(dates) > 0,
-          selectedDate: _.get(dates, "0.name", null),
-          rolling,
-          gridCode: code,
-          loadingCorrelations: false,
-        };
-        this.setState(state, () => {
-          const { col1, col2 } = corrUtils.findCols(this.props.chartData, columns);
-          if (col1 && col2) {
-            if (state.hasDate) {
-              if (rolling) {
-                this.buildTs([col1, col2], state.selectedDate, true, true);
-              } else {
-                this.buildTs([col1, col2], state.selectedDate, false, this.state.useRolling);
-              }
-            } else {
-              this.buildScatter([col1, col2]);
-            }
-          }
-        });
-      }
+  loadGrid() {
+    this.setState({ loadingCorrelations: true });
+    const url = buildURL(
+      `${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`,
+      { ...this.props.chartData, encodeStrings: this.state.encodeStrings },
+      ["query", "encodeStrings"]
     );
+    fetchJson(url, gridData => {
+      if (gridData.error) {
+        this.setState({
+          error: <RemovableError {...gridData} />,
+          loadingCorrelations: false,
+        });
+        return;
+      }
+      const state = corrUtils.buildGridLoadState(gridData);
+      this.setState(state, () => {
+        const { col1, col2 } = corrUtils.findCols(this.props.chartData, state.columns);
+        if (col1 && col2) {
+          if (state.hasDate) {
+            if (state.rolling) {
+              this.buildTs([col1, col2], state.selectedDate, true, true);
+            } else {
+              this.buildTs([col1, col2], state.selectedDate, false, this.state.useRolling);
+            }
+          } else {
+            this.buildScatter([col1, col2]);
+          }
+        }
+      });
+    });
+  }
+
+  componentDidMount() {
+    this.loadGrid();
+  }
+
+  componentDidUpdate(_prevProps, prevState) {
+    if (this.state.encodeStrings !== prevState.encodeStrings) {
+      this.loadGrid();
+    }
   }
 
   buildTs(selectedCols, selectedDate, rolling, useRolling, window = null, minPeriods = null) {
@@ -92,6 +96,7 @@ class Correlations extends React.Component {
     let urlParams = {
       query,
       selectedCols,
+      dummyCols: corrUtils.findDummyCols(selectedCols, this.state.dummyColMappings),
       dateCol: selectedDate,
       rolling,
     };
@@ -210,6 +215,7 @@ class Correlations extends React.Component {
               buildScatter={this.buildScatter}
               selectedCols={selectedCols}
               {...this.state}
+              toggleStrings={() => this.setState({ encodeStrings: !this.state.encodeStrings })}
             />
             {!_.isEmpty(selectedCols) && hasDate && (
               <>
@@ -291,5 +297,3 @@ Correlations.propTypes = {
   }),
   propagateState: PropTypes.func,
 };
-
-export { Correlations };

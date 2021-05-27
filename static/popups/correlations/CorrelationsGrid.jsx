@@ -133,6 +133,17 @@ class CorrelationsGrid extends React.Component {
                   {renderCodePopupAnchor(this.props.gridCode, t("menu:Correlations"))}
                 </div>
               </div>
+              {this.props.strings.length && (
+                <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
+                  <span className="mb-auto mt-auto">{t("correlations:Encode Strings")}?</span>
+                  <div className="col-auto mt-auto mb-auto">
+                    <i
+                      className={`ico-check-box${this.props.encodeStrings ? "" : "-outline-blank"} pointer`}
+                      onClick={this.props.toggleStrings}
+                    />
+                  </div>
+                </div>
+              )}
               <MultiGrid
                 {...gu.buildGridStyles(this.props.theme)}
                 scrollToColumn={0}
@@ -186,6 +197,9 @@ CorrelationsGrid.propTypes = {
   t: PropTypes.func,
   close: PropTypes.node,
   isPPS: PropTypes.bool,
+  strings: PropTypes.array,
+  encodeStrings: PropTypes.bool,
+  toggleStrings: PropTypes.func,
 };
 CorrelationsGrid.defaultProps = {
   colorScale: corrUtils.colorScale,

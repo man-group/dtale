@@ -22,7 +22,7 @@ const chartData = {
 };
 
 describe("Correlations tests", () => {
-  let result, Correlations, ChartsBody, CorrelationsTsOptions;
+  let result, Correlations, ChartsBody, CorrelationsTsOptions, CorrelationsGrid;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -61,7 +61,8 @@ describe("Correlations tests", () => {
     );
     jest.mock("popsicle", () => mockBuildLibs);
 
-    Correlations = require("../../../popups/Correlations").Correlations;
+    Correlations = require("../../../popups/Correlations").default;
+    CorrelationsGrid = require("../../../popups/correlations/CorrelationsGrid").default;
     ChartsBody = require("../../../popups/charts/ChartsBody").default;
     CorrelationsTsOptions = require("../../../popups/correlations/CorrelationsTsOptions").default;
   });
@@ -157,5 +158,17 @@ describe("Correlations tests", () => {
   it("Correlations w/ col2 pre-selected", async () => {
     result = await buildResult(_.omit(chartData, "col1"));
     expect(result.find(Correlations).instance().state.selectedCols).toEqual(["col1", "col3"]);
+  });
+
+  it("Correlations w/ encoded strings", async () => {
+    result.setState({ strings: ["col5"] });
+    result.find(CorrelationsGrid).props().toggleStrings();
+    expect(result.state().encodeStrings).toBe(true);
+    await tickUpdate(result);
+  });
+
+  it("Handles grid height drag", () => {
+    result.find(CorrelationsGrid).find("Draggable").props().onDrag(null, { deltaY: 100 });
+    expect(result.find(CorrelationsGrid).state().height).toBe(400);
   });
 });

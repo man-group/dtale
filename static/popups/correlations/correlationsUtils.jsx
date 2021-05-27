@@ -20,7 +20,41 @@ function buildState() {
     window: 4,
     minPeriods: 1,
     loadingCorrelations: true,
+    encodeStrings: false,
+    strings: [],
+    dummyColMappings: {},
   };
+}
+
+function buildGridLoadState({ data, dates, strings, code, dummyColMappings }) {
+  const columns = _.map(data, "column");
+  const rolling = _.get(dates, "0.rolling", false);
+  return {
+    correlations: data,
+    columns,
+    dates,
+    strings: strings ?? [],
+    dummyColMappings: dummyColMappings ?? {},
+    hasDate: _.size(dates) > 0,
+    selectedDate: _.get(dates, "0.name", null),
+    rolling,
+    gridCode: code,
+    loadingCorrelations: false,
+  };
+}
+
+function findDummyCols(cols, dummyColMappings) {
+  const dummyCols = [];
+  _.forEach(cols, col => {
+    const possibleKeys = _.filter(_.keys(dummyColMappings), dummyCol => _.startsWith(col, dummyCol));
+    _.forEach(possibleKeys, key => {
+      if (_.includes(dummyColMappings[key], col) && !_.includes(dummyCols, key)) {
+        dummyCols.push(key);
+        return;
+      }
+    });
+  });
+  return dummyCols;
 }
 
 const colorScale = chroma.scale(["red", "yellow", "green"]).domain([-1, 0, 1]);
@@ -68,8 +102,10 @@ function buildScatterParams(selectedCols, index, props, state) {
     params.window = state.window;
     params.minPeriods = state.minPeriods;
   }
+  params.dummyCols = findDummyCols(selectedCols, state.dummyCols);
   const path = `${BASE_SCATTER_URL}/${props.dataId}`;
-  return buildURL(path, params, ["selectedCols", "query", "index", "dateCol", "rolling", "window", "minPeriods"]);
+  const urlProps = ["selectedCols", "query", "index", "dateCol", "rolling", "window", "minPeriods", "dummyCols"];
+  return buildURL(path, params, urlProps);
 }
 
 function findCols(chartData, columns) {
@@ -97,4 +133,6 @@ export default {
   percent,
   buildScatterParams,
   findCols,
+  findDummyCols,
+  buildGridLoadState,
 };

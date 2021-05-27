@@ -1610,7 +1610,8 @@ df.columns = [str(c) for c in df.columns]  # update columns to strings in case t
 corr_cols = [
 \t'security_id', 'foo', 'bar'
 ]
-corr_data = np.corrcoef(df[corr_cols].values, rowvar=False)
+corr_data = df[corr_cols]
+corr_data = np.corrcoef(corr_data.values, rowvar=False)
 corr_data = pd.DataFrame(corr_data, columns=[corr_cols], index=[corr_cols])
 corr_data.index.name = str('column')
 corr_data = corr_data.reset_index()"""
@@ -1634,6 +1635,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
             ],
             dates=[],
             pps=None,
+            dummyColMappings={},
+            strings=["baz"],
         )
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},
@@ -1641,6 +1644,13 @@ def test_get_correlations(unittest, test_data, rolling_data):
             "should return correlations",
         )
         unittest.assertEqual(response_data["code"], CORRELATIONS_CODE)
+
+        response = c.get(
+            "/dtale/correlations/{}".format(c.port),
+            query_string={"encodeStrings": True},
+        )
+        response_data = json.loads(response.data)
+        unittest.assertEqual(response_data["dummyColMappings"], {"baz": ["baz_baz"]})
 
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
@@ -1672,6 +1682,8 @@ def test_get_correlations(unittest, test_data, rolling_data):
             ],
             dates=[dict(name="date", rolling=False)],
             pps=None,
+            dummyColMappings={},
+            strings=["baz"],
         )
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},
@@ -1736,7 +1748,7 @@ def test_get_pps_matrix(unittest, test_data):
         }
         unittest.assertEqual(pps_val, expected, "should return PPS information")
         assert "import ppscore" in response_data["code"]
-        assert "corr_data = ppscore.matrix(df[corr_cols])" in response_data["code"]
+        assert "corr_data = ppscore.matrix(corr_data)" in response_data["code"]
 
 
 def build_ts_data(size=5, days=5):
@@ -1771,6 +1783,7 @@ def test_get_correlations_ts(unittest, rolling_data):
     test_data = pd.DataFrame(
         build_ts_data(size=50), columns=["date", "security_id", "foo", "bar"]
     )
+    test_data.loc[:, "baz"] = "baz"
 
     no_pps = parse_version(platform.python_version()) < parse_version("3.6.0")
 
@@ -1818,6 +1831,16 @@ def test_get_correlations_ts(unittest, rolling_data):
         )
         unittest.assertEqual(response_data["code"], CORRELATIONS_TS_CODE)
 
+        params["cols"] = json.dumps(["foo", "baz_baz"])
+        params["dummyCols"] = json.dumps(["baz"])
+        response = c.get(
+            "/dtale/correlations-ts/{}".format(c.port), query_string=params
+        )
+        response_data = json.loads(response.data)
+        assert response_data["success"]
+
+        params["cols"] = json.dumps(["foo", "bar"])
+        del params["dummyCols"]
         params["rolling"] = False
         params["rollingWindow"] = 4
         params["minPeriods"] = 4
@@ -1894,6 +1917,7 @@ def test_get_scatter(unittest, rolling_data):
     test_data = pd.DataFrame(
         build_ts_data(), columns=["date", "security_id", "foo", "bar"]
     )
+    test_data.loc[:, "baz"] = "baz"
     test_data, _ = views.format_data(test_data)
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
@@ -1941,6 +1965,14 @@ def test_get_scatter(unittest, rolling_data):
             "should return scatter",
         )
         unittest.assertEqual(response_data["code"], SCATTER_CODE)
+
+        params["cols"] = json.dumps(["foo", "baz_baz"])
+        params["dummyCols"] = json.dumps(["baz"])
+        response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
+        response_data = json.loads(response.data)
+        unittest.assertEqual(
+            response_data["data"]["all"]["baz_baz"], ["1", "1", "1", "1", "1"]
+        )
 
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:

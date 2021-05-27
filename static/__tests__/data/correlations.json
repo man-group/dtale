@@ -34,6 +34,7 @@
   }, {
     "name": "col5", "rolling": true
   }],
+  "strings": [],
   "pps": [{
     "baseline_score": 24889245973.8262,
     "case": "regression",

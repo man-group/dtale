@@ -21,42 +21,57 @@ class PredictivePowerScore extends React.Component {
       hasDate: false,
       loadingPps: true,
     };
+    this.loadGrid = this.loadGrid.bind(this);
   }
 
   shouldComponentUpdate(newProps, newState) {
     if (!_.isEqual(this.props, newProps)) {
       return true;
     }
-    const stateProps = ["error", "correlations", "selectedCols"];
+    const stateProps = ["error", "correlations", "selectedCols", "encodeStrings", "loadingPps"];
     if (!_.isEqual(_.pick(this.state, stateProps), _.pick(newState, stateProps))) {
       return true;
     }
     return false;
   }
 
-  componentDidMount() {
-    const params = { ...this.props.chartData, pps: true };
-    fetchJson(
-      buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, params, ["query", "pps"]),
-      gridData => {
-        if (gridData.error) {
-          this.setState({ loadingPps: false, error: <RemovableError {...gridData} /> });
-          return;
-        }
-        const { data, pps } = gridData;
-        const columns = _.map(data, "column");
-        const state = {
-          correlations: data,
-          pps,
-          columns,
-          loadingPps: false,
-        };
-        this.setState(state, () => {
-          const { col1, col2 } = corrUtils.findCols(this.props.chartData, columns);
-          this.setState({ selectedCols: [col1, col2] });
-        });
+  loadGrid() {
+    this.setState({ loadingPps: true });
+    const params = { ...this.props.chartData, pps: true, encodeStrings: this.state.encodeStrings };
+    const url = buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, params, [
+      "query",
+      "pps",
+      "encodeStrings",
+    ]);
+    fetchJson(url, gridData => {
+      if (gridData.error) {
+        this.setState({ loadingPps: false, error: <RemovableError {...gridData} /> });
+        return;
       }
-    );
+      const { data, pps, strings } = gridData;
+      const columns = _.map(data, "column");
+      const state = {
+        correlations: data,
+        pps,
+        columns,
+        strings,
+        loadingPps: false,
+      };
+      this.setState(state, () => {
+        const { col1, col2 } = corrUtils.findCols(this.props.chartData, columns);
+        this.setState({ selectedCols: [col1, col2] });
+      });
+    });
+  }
+
+  componentDidMount() {
+    this.loadGrid();
+  }
+
+  componentDidUpdate(_prevProps, prevState) {
+    if (this.state.encodeStrings !== prevState.encodeStrings) {
+      this.loadGrid();
+    }
   }
 
   render() {
@@ -74,6 +89,7 @@ class PredictivePowerScore extends React.Component {
               colorScale={corrUtils.ppsScale}
               isPPS={true}
               {...this.state}
+              toggleStrings={() => this.setState({ encodeStrings: !this.state.encodeStrings })}
             />
             {ppsInfo !== undefined && (
               <React.Fragment>
