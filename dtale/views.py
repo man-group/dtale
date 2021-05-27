@@ -2450,7 +2450,7 @@ def get_correlations(data_id):
             dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
             dummy_cols = list(dummies.columns)
             dummy_col_mappings[str_col] = dummy_cols
-            data.loc[:, dummy_cols] = dummies
+            data[dummy_cols] = dummies
             valid_corr_cols += dummy_cols
         str_encodings_code = (
             "str_corr_cols = [\n\t'{valid_str_corr_cols}'\n]\n"
@@ -2618,7 +2618,7 @@ def update_df_for_encoded_strings(df, dummy_cols, cols, code):
         return df
     dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols)
     dummies = dummies[[c for c in dummies.columns if c in cols]]
-    df.loc[:, dummies.columns] = dummies
+    df[dummies.columns] = dummies
 
     code.append(
         (

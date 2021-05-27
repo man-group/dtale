@@ -460,7 +460,8 @@
     "Date Column": "Date Column",
     "Correlations Timeseries": "Correlations Timeseries",
     "Predictive Power Score for ": "Predictive Power Score for ",
-    "Encode Strings": "Encode Strings"
+    "Encode Strings": "Encode Strings",
+    "encode_strings_tt": "Checking this box will OneHotEncode (pd.get_dummies) any string column with no more then 50 unique values and include them in the correlation matrix. Those columns are:"
   },
   "xarray": {
     "count": "count",
