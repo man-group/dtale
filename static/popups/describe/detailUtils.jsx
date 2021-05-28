@@ -13,6 +13,8 @@ export const LABELS = {
   freq: "Frequency",
   kurt: "Kurtosis",
   skew: "Skew",
+  top: "Most Frequent",
+  unique: "Unique",
 };
 
 export function buildStat(t, key, value) {
