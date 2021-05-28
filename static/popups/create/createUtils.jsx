@@ -128,7 +128,7 @@ export function getBody(state, props, updateState) {
 }
 
 export function renderNameInput({ type, cfg }) {
-  if (type === "type_conversion") {
+  if (_.includes(["type_conversion", "cleaning"], type)) {
     return "name_inplace";
   } else if (type === "encoder") {
     const algo = _.get(cfg, "algo");
