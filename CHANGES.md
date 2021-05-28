@@ -1,5 +1,18 @@
 ## Changelog
 
+### 1.48.0 (2021-5-28)
+* [#504](https://github.com/man-group/dtale/issues/504): fix for toggling between unique row & word values
+* [#502](https://github.com/man-group/dtale/issues/502): updated "cleaning" column builder to allow for inplace updates
+* [#501](https://github.com/man-group/dtale/issues/501): updates to describe window labels
+* [#500](https://github.com/man-group/dtale/issues/500): cleaning "Remove Numbers" code snippet fix
+* [#488](https://github.com/man-group/dtale/issues/488): string encoding for correlations
+* [#484](https://github.com/man-group/dtale/issues/484): fixed for percentage count chart aggregation
+* Correlation Scatter Updates:
+  * [#486](https://github.com/man-group/dtale/issues/486): make 15K point limitation correlations scatter an editable setting
+  * [#487](https://github.com/man-group/dtale/issues/487): fix for non-unique column exception in correlation scatter
+* [#480](https://github.com/man-group/dtale/issues/480): flexible branding
+* [#485](https://github.com/man-group/dtale/issues/485): Adjustable height on Correlation grid
+
 ### 1.47.0 (2021-5-21)
 * [#477](https://github.com/man-group/dtale/issues/477): Excel-style cell editing at top of screen
   * UI input for "Maximum Column Width"
