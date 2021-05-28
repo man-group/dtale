@@ -45,12 +45,15 @@ class DetailsCharts extends React.Component {
     const finalParams = chartParams || this.state.chartParams;
     if (finalParams.type === "boxplot") {
       const { details, detailCode } = this.props;
-      this.setState({
-        chart: <DetailsBoxplot details={details} column={this.props.col} />,
-        code: detailCode,
-        query: null,
-        error: null,
-      });
+      this.setState(
+        {
+          chart: <DetailsBoxplot details={details} column={this.props.col} />,
+          code: detailCode,
+          query: null,
+          error: null,
+        },
+        () => this.props.propagateState({ viewWordValues: false })
+      );
     } else {
       const propagateState = state =>
         this.setState(state, () => {
