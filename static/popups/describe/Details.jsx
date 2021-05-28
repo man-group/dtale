@@ -12,7 +12,7 @@ import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
 import DetailsCharts from "./DetailsCharts";
 
-function displayUniques(uniques, t, dtype = null, baseTitle = "Unique") {
+function displayUniques(uniques, t, dtype = null, baseTitle = "Unique Row") {
   if (_.isEmpty(uniques.data)) {
     return null;
   }
