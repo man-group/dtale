@@ -737,7 +737,8 @@
     "Asc": "Asc",
     "Desc": "Desc",
     "None": "None",
-    "navigate": "Use ↑ ↓ buttons to switch columns"
+    "navigate": "Use ↑ ↓ buttons to switch columns",
+    "Most Frequent": "Most Frequent"
   },
   "constants": {
     "Histogram": "直方图",
