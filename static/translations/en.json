@@ -365,7 +365,10 @@
     "time_dataframe": "Output from running pandas.util.testing.makeTimeDataFrame()",
     "Load Sheets": "Load Sheets",
     "Clear Sheets": "Clear Sheets",
-    "Sheet Selection": "Sheet Selection"
+    "Sheet Selection": "Sheet Selection",
+    "CSV Options": "CSV Options",
+    "Header": "Header",
+    "Separator": "Separator"
   },
   "code_export": {
     "Code Export": "Code Export",

@@ -48,3 +48,30 @@
     width: 25%;
   }
 }
+
+.PanelDragHandle {
+  flex: 0 0 16px;
+  z-index: 2;
+  cursor: col-resize;
+  color: #0085ff;
+  left: 0;
+  top: 50%;
+  position: absolute;
+}
+.PanelDragHandle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.PanelDragHandleActive,
+.PanelDragHandleActive:hover {
+  color: #0b6fcc;
+  z-index: 3;
+}
+
+.PanelDragHandleIcon {
+  flex: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

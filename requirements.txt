@@ -36,7 +36,8 @@ numpy; python_version >= '3.0'
 openpyxl==2.6.4; python_version < '3.0'
 openpyxl; python_version >= '3.0'
 pandas
-plotly>=4.9.0
+plotly==4.14.3; python_version < '3.6'
+plotly>=4.9.0; python_version >= '3.6'
 ppscore; python_version >= '3.6'
 pyparsing==2.4.7; python_version == '2.7'
 requests

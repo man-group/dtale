@@ -122,7 +122,7 @@ export function buildCleaningCode(cfg) {
         "\treturn ''.join(list(_load()))",
         "s = s.apply(drop_repeated_chars)",
       ]);
-    } else if (cleaner === "update_case") {
+    } else if (cleaner === "update_case" && cfg.caseType) {
       code.push(`s = s.str.${cfg.caseType}()`);
     } else if (cleaner === "space_vals_to_empty") {
       code.push(`s = s.str.replace(r'[ ]+', '')`);
@@ -130,7 +130,7 @@ export function buildCleaningCode(cfg) {
       code.push("printable = r'\\w \\!\\\"#\\$%&\\'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'");
       code.push("s = s.str.replacer(r'[^{}]+'.format(printable), '')");
     } else if (cleaner === "replace_hyphen_w_space") {
-      code.push("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−-]+', ' ')");
+      code.push("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−\\-]+', ' ')");
     }
   });
   return code;

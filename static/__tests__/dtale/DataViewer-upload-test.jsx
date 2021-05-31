@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
+import CSVOptions from "../../popups/upload/CSVOptions";
 import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
@@ -100,6 +101,10 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     await tickUpdate(result);
 
+    expect(result.find(CSVOptions).props().show).toBe(true);
+    result.find(CSVOptions).find("button").last().simulate("click");
+    await tickUpdate(result);
+
     expect(ajaxSpy).toHaveBeenCalledTimes(1);
     const ajaxCalls = ajaxSpy.mock.calls;
     const firstPostCall = ajaxCalls[0][0];
@@ -115,6 +120,7 @@ describe("DataViewer tests", () => {
     firstPostCall.success({ error: "error test" });
     result.update();
     expect(result.find(RemovableError)).toHaveLength(1);
+    await tick();
   });
 
   it("DataViewer: upload window", async () => {
@@ -125,9 +131,39 @@ describe("DataViewer tests", () => {
     dd.props().onDrop([mFile]);
     await tickUpdate(result);
     await tickUpdate(result);
+    result.find(CSVOptions).find("i.ico-check-box").simulate("click");
+    result.find(CSVOptions).find("button").at(4).simulate("click");
+    result
+      .find(CSVOptions)
+      .find("input")
+      .simulate("change", { target: { value: "=" } });
+    result.find(CSVOptions).find("button").last().simulate("click");
+    await tickUpdate(result);
 
     expect(ajaxSpy).toHaveBeenCalledTimes(1);
+    const ajaxCalls = ajaxSpy.mock.calls;
+    const firstPostCall = ajaxCalls[0][0];
+    expect(firstPostCall.data.get("header")).toBe("false");
+    expect(firstPostCall.data.get("separatorType")).toBe("custom");
+    expect(firstPostCall.data.get("separator")).toBe("=");
     expect(window.close).toBeCalledTimes(1);
     expect(window.opener.location.assign).toBeCalledWith("/2");
+    await tick();
+  });
+
+  it("DataViewer: cancel CSV upload", async () => {
+    window.location.pathname = "/dtale/popup/upload";
+    const mFile = new File(["test"], "test.csv");
+    const uploadModal = upload();
+    const dd = uploadModal.find(Dropzone);
+    dd.props().onDrop([mFile]);
+    await tickUpdate(result);
+    await tickUpdate(result);
+    result.find(CSVOptions).find("button").at(5).simulate("click");
+    await tickUpdate(result);
+
+    expect(ajaxSpy).not.toHaveBeenCalled();
+    expect(result.find(CSVOptions).props().show).toBe(false);
+    await tick();
   });
 });

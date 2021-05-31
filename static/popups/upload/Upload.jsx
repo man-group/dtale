@@ -12,6 +12,7 @@ import { RemovableError } from "../../RemovableError";
 import { buildURLString } from "../../actions/url-utils";
 import menuFuncs from "../../dtale/menu/dataViewerMenuUtils";
 import { fetchJson } from "../../fetcher";
+import CSVOptions from "./CSVOptions";
 import SheetSelector from "./SheetSelector";
 import { jumpToDataset } from "./uploadUtils";
 
@@ -38,6 +39,7 @@ class ReactUpload extends React.Component {
       loadingURL: false,
       sheets: null,
       webSheets: null,
+      csv: { show: false },
     };
     this.onDrop = this.onDrop.bind(this);
     this.loadFromWeb = this.loadFromWeb.bind(this);
@@ -52,6 +54,7 @@ class ReactUpload extends React.Component {
         loading: false,
         loadingURL: false,
         loadingDataset: null,
+        csv: { show: false },
       });
       return;
     }
@@ -59,6 +62,7 @@ class ReactUpload extends React.Component {
       this.setState({
         sheets: _.map(data.sheets, sheet => ({ ...sheet, selected: true })),
         loading: false,
+        csv: { show: false },
       });
       return;
     }
@@ -67,19 +71,35 @@ class ReactUpload extends React.Component {
 
   onDrop(files) {
     const fd = new FormData();
+    let hasCSV = false;
     files.forEach(file => {
       fd.append(file.name, file);
+      if (_.endsWith(file.name, "csv")) {
+        hasCSV = true;
+      }
     });
     this.setState({ loading: true });
-    $.ajax({
-      type: "POST",
-      url: menuFuncs.fullPath("/dtale/upload"),
-      data: fd,
-      contentType: false,
-      processData: false,
-      success: this.handleResponse,
-      error: this.handleResponse,
-    });
+    const postUpload = (additionalParameters = {}) => {
+      _.forEach(additionalParameters, (value, key) => {
+        fd.append(key, value);
+      });
+      $.ajax({
+        type: "POST",
+        url: menuFuncs.fullPath("/dtale/upload"),
+        data: fd,
+        contentType: false,
+        processData: false,
+        success: this.handleResponse,
+        error: this.handleResponse,
+      });
+    };
+    if (hasCSV) {
+      this.setState({
+        csv: { show: true, loader: postUpload },
+      });
+    } else {
+      postUpload();
+    }
   }
 
   loadFromWeb() {
@@ -249,6 +269,7 @@ class ReactUpload extends React.Component {
           </div>
         </div>
         <SheetSelector sheets={sheets} propagateState={propagateState} mergeRefresher={mergeRefresher} />
+        <CSVOptions {...this.state.csv} propagateState={propagateState} />
       </div>
     );
   }

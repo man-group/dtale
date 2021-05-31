@@ -10,6 +10,7 @@ import { convertCellIdxToCoords, getCell } from "./gridUtils";
 import { MenuTooltip } from "./menu/MenuTooltip";
 import { buildCopyText, buildRangeState, buildRowCopyText, toggleSelection } from "./rangeSelectUtils";
 import { SidePanel } from "./side/SidePanel";
+import * as panelUtils from "./side/sidePanelUtils";
 
 function handleRangeSelect(props, cellIdx) {
   const { columns, data, rangeSelect } = props.gridState;
@@ -59,6 +60,16 @@ function handleCtrlRowSelect(props, cellIdx) {
   }
 }
 
+function handleLongStringDisplay(e, cellIdx, props) {
+  const { gridState, hideTooltip, showTooltip } = props;
+  if (e.target.clientWidth < e.target.scrollWidth) {
+    const { rec } = getCell(cellIdx, gridState);
+    showTooltip(e.target, rec.raw);
+  } else {
+    hideTooltip();
+  }
+}
+
 class ReactGridEventHandler extends React.Component {
   constructor(props) {
     super(props);
@@ -66,6 +77,7 @@ class ReactGridEventHandler extends React.Component {
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleClicks = this.handleClicks.bind(this);
     this.state = { currY: null };
+    this.gridPanel = React.createRef();
   }
 
   componentDidMount() {
@@ -123,11 +135,8 @@ class ReactGridEventHandler extends React.Component {
     } else if (rangeExists || rowRangeExists) {
       this.props.propagateState(buildRangeState());
     } else if (cellIdx && gridState && !_.startsWith(cellIdx, "0|") && !_.endsWith(cellIdx, "|0")) {
-      const { rec } = getCell(cellIdx, gridState);
-      if (e.target.clientWidth < e.target.scrollWidth) {
-        this.props.showTooltip(e.target, rec.raw);
-      }
-    } else {
+      handleLongStringDisplay(e, cellIdx, this.props);
+    } else if (cellIdx) {
       this.props.hideTooltip();
     }
   }
@@ -169,19 +178,21 @@ class ReactGridEventHandler extends React.Component {
   }
 
   render() {
-    const { sidePanel, sidePanelOpen, menuPinned, dragResize } = this.props;
+    const { sidePanel, sidePanelOpen, sidePanelOffset, menuPinned, dragResize } = this.props;
     return (
       <div className={`h-100 w-100 d-flex ${menuPinned ? "is-pinned" : ""}`}>
         <div
           className={`main-panel-content${sidePanelOpen ? " is-half" : ""} ${sidePanel ?? ""} h-100 d-flex`}
+          style={sidePanelOpen ? panelUtils.calcWidth(sidePanel, sidePanelOffset) : {}}
           onMouseOver={this.handleMouseOver}
           onMouseMove={this.handleMouseMove}
-          onClick={this.handleClicks}>
+          onClick={this.handleClicks}
+          ref={this.gridPanel}>
           {this.props.children}
         </div>
         <MenuTooltip />
         <MeasureText />
-        <SidePanel />
+        <SidePanel gridPanel={this.gridPanel.current} />
         {dragResize && <div className="blue-line" style={{ left: dragResize + 3 }} />}
       </div>
     );
@@ -208,9 +219,10 @@ ReactGridEventHandler.propTypes = {
   ribbonDropdownOpen: PropTypes.bool,
   sidePanelOpen: PropTypes.bool,
   sidePanel: PropTypes.string,
+  sidePanelOffset: PropTypes.number,
   menuPinned: PropTypes.bool,
   dragResize: PropTypes.number,
-  showTooltip: PropTypes.func,
+  showTooltip: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
   hideTooltip: PropTypes.func,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
@@ -224,6 +236,7 @@ const ReduxGridEventHandler = connect(
     ribbonDropdownOpen: state.ribbonDropdown.visible,
     sidePanelOpen: state.sidePanel.visible,
     sidePanel: state.sidePanel.view,
+    sidePanelOffset: state.sidePanel.offset,
     dragResize: state.dragResize,
     hoveredValue: state.hoveredValue,
   }),

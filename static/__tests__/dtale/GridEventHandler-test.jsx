@@ -59,7 +59,20 @@ describe("RibbonDropdown", () => {
   });
 
   it("hides tooltip when cellIdx is empty", () => {
-    wrapper.find("div").last().props().onMouseOver({ clientY: 100 });
+    wrapper
+      .find("div")
+      .last()
+      .props()
+      .onMouseOver({
+        clientY: 100,
+        target: {
+          attributes: {
+            cell_idx: {
+              nodeValue: "1|2",
+            },
+          },
+        },
+      });
     expect(props.hideTooltip).toHaveBeenCalledTimes(1);
   });
 

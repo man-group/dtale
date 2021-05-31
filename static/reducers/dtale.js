@@ -178,6 +178,8 @@ function sidePanel(state = { visible: false }, action = {}) {
       return { visible: true, view: action.view, column: action.column };
     case "hide-side-panel":
       return { visible: false };
+    case "update-side-panel-width":
+      return { ...state, offset: action.offset };
     default:
       return state;
   }

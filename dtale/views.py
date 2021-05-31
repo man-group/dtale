@@ -3078,8 +3078,23 @@ def upload():
         _, ext = os.path.splitext(filename)
         if ext in [".csv", ".tsv"]:
             # Set engine to python to auto detect delimiter...
+            kwargs = {"sep": None}
+            sep_type = request.form.get("separatorType")
+            if sep_type:
+                if sep_type == "comma":
+                    kwargs["sep"] = ","
+                elif sep_type == "tab":
+                    kwargs["sep"] = "\t"
+                elif sep_type == "colon":
+                    kwargs["sep"] = ":"
+                elif sep_type == "pipe":
+                    kwargs["sep"] = "|"
+                elif sep_type == "custom" and request.form.get("separator"):
+                    kwargs["sep"] = request.form["separator"]
+            if "header" in request.form:
+                kwargs["header"] = 0 if request.form["header"] == "true" else None
             df = pd.read_csv(
-                StringIO(contents.read().decode()), engine="python", sep=None
+                StringIO(contents.read().decode()), engine="python", **kwargs
             )
             return load_new_data(
                 df, "df = pd.read_csv('{}', engine='python', sep=None)".format(filename)

@@ -1056,7 +1056,7 @@ def clean(s, cleaner, cfg):
     elif cleaner == "hidden_chars":
         return s.str.replace(r"[^{}]+".format(printable), "")
     elif cleaner == "replace_hyphen_w_space":
-        return s.str.replace(r"[‐᠆﹣－⁃−-]+", " ")
+        return s.str.replace(r"[‐᠆﹣－⁃−\-]+", " ")
     return s
 
 

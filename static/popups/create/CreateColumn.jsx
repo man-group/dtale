@@ -127,7 +127,11 @@ class ReactCreateColumn extends React.Component {
                   const buttonProps = {
                     className: "btn w-100",
                     style: isExponentialSmoothing
-                      ? { padding: 0, whiteSpace: "break-spaces" }
+                      ? {
+                          padding: 0,
+                          whiteSpace: "break-spaces",
+                          minHeight: "33px",
+                        }
                       : { padding: "0.45rem 0.3rem" },
                   };
                   if (type === this.state.type) {
