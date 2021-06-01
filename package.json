@@ -167,6 +167,7 @@
   },
   "resolutions": {
     "node-notifier": "9.0.1",
-    "postcss": "8.2.15"
+    "postcss": "8.2.15",
+    "ws": "7.4.6"
   }
 }
