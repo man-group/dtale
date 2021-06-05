@@ -35,7 +35,7 @@ class ColumnAnalysisChart extends React.Component {
         chartUtils.createQQ("columnAnalysisChart", fetchedChartData);
         return null;
       }
-      if (!_.get(fetchedChartData, "data", []).length) {
+      if (!_.get(fetchedChartData, "data", []).length && !_.get(fetchedChartData, "targets", []).length) {
         return null;
       }
       return createChart(ctx, fetchedChartData, finalParams);

@@ -1,16 +1,22 @@
 import _ from "lodash";
 import $ from "jquery";
-import chartUtils from "../../chartUtils";
 import qs from "querystring";
+import React from "react";
+
+import chartUtils from "../../chartUtils";
 import { buildURLParams } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import { RemovableError } from "../../RemovableError";
 import ColumnAnalysisChart from "./ColumnAnalysisChart";
 import { Bouncer } from "../../Bouncer";
-import React from "react";
 import { kurtMsg, skewMsg } from "../../dtale/column/ColumnMenuHeader";
 
 const DESC_PROPS = ["count", "mean", "std", "min", "25%", "50%", "75%", "max", "skew", "kurt"];
+const Tableau20 = _.concat(
+  ["#4E79A7", "#A0CBE8", "#F28E2B", "#FFBE7D", "#59A14F", "#8CD17D", "#B6992D"],
+  ["#F1CE63", "#499894", "#86BCB6", "#E15759", "#FF9D9A", "#79706E", "#BAB0AC"],
+  ["#D37295", "#FABFD2", "#B07AA1", "#D4A6C8", "#9D7660", "#D7B5A6"]
+);
 
 function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
   const xAxes = { scaleLabel: { display: true, labelString: "Value" } };
@@ -52,7 +58,7 @@ function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
   const datasets = [
     _.assignIn(
       { label: "Frequency", type: "line", fill: false, borderColor: "rgb(255, 99, 132)", borderWidth: 2 },
-      { data: count, backgroundColor: "rgb(255, 99, 132)", yAxisID: "y-2" }
+      { data: count, backgroundColor: "rgb(255, 99, 132)", yAxisID: "y-2", tension: 0.4 }
     ),
     { type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y", label: yLabel },
   ];
@@ -62,33 +68,61 @@ function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
   baseCfg.options.tooltip = { mode: "index", intersect: true };
 }
 
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (result) {
+    return { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) };
+  }
+  return null;
+}
+
+function targetColor(idx) {
+  const color = hexToRgb(Tableau20[idx % 20]);
+  return `rgba(${color.r}, ${color.g}, ${color.b}, 0.5)`;
+}
+
 function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
-  const { data, kde } = fetchedData;
-  const xAxes = { scaleLabel: { display: true, labelString: "Bin" } };
+  const { data, targets, kde } = fetchedData;
+  const xAxes = { x: { scaleLabel: { display: true, labelString: "Bin" } } };
   const yAxes = {
-    y: { scaleLabel: { display: true, labelString: "Frequency" }, position: "left" },
+    y: { scaleLabel: { display: true, labelString: "Frequency" } },
   };
-  let datasets = [{ label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" }];
-  if (kde) {
-    yAxes["y-2"] = {
-      scaleLabel: { display: true, labelString: "KDE" },
-      position: "right",
-      ticks: { min: 0, max: _.max(kde) },
-    };
-    datasets = _.concat(
-      _.assignIn(
-        { label: "KDE", type: "line", fill: false, borderColor: "rgb(255, 99, 132)" },
-        { borderWidth: 2, data: kde, backgroundColor: "rgb(255, 99, 132)", pointRadius: 0, yAxisID: "y-2" }
-      ),
-      datasets
-    );
-    baseCfg.options.tooltip = { mode: "index", intersect: true };
+  let datasets = [];
+  if (targets) {
+    xAxes.x = { ...xAxes.x, stacked: true };
+    yAxes.y.stacked = false;
+    yAxes.y.ticks = { beginAtZero: true };
+    datasets = _.map(targets, (targetData, idx) => ({
+      label: targetData.target,
+      data: targetData.data,
+      stacked: true,
+      categoryPercentage: 1.0,
+      barPercentage: 1.0,
+      backgroundColor: targetColor(idx),
+    }));
+  } else {
+    datasets.push({ label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" });
+    if (kde) {
+      yAxes.y.position = "left";
+      yAxes["y-2"] = {
+        scaleLabel: { display: true, labelString: "KDE" },
+        position: "right",
+        ticks: { min: 0, max: _.max(kde) },
+      };
+      datasets = _.concat(
+        _.assignIn(
+          { label: "KDE", type: "line", fill: false, borderColor: "rgb(255, 99, 132)", tension: 0.4 },
+          { borderWidth: 2, data: kde, backgroundColor: "rgb(255, 99, 132)", pointRadius: 0, yAxisID: "y-2" }
+        ),
+        datasets
+      );
+    }
   }
   baseCfg.data.datasets = datasets;
-  baseCfg.options.scales = { x: xAxes, ...yAxes };
+  baseCfg.options.scales = { ...xAxes, ...yAxes };
   baseCfg.options.scales.y.ticks = { min: 0 };
   baseCfg.options.tooltip = { mode: "index", intersect: false };
-  baseCfg.options.legend.display = true;
+  baseCfg.options.plugins = { ...baseCfg.options.plugins, legend: { display: true } };
 }
 
 function createChart(ctx, fetchedData, chartOpts) {
@@ -141,7 +175,7 @@ const emptyVal = val => (
 
 const PARAM_PROPS = _.concat(
   ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
-  ["categoryAgg", "cleaners", "latCol", "lonCol"]
+  ["categoryAgg", "cleaners", "latCol", "lonCol", "target"]
 );
 
 const isPlotly = type => _.includes(["geolocation", "qq"], type);
@@ -152,7 +186,7 @@ function dataLoader(props, state, propagateState, chartParams) {
   const { selectedCol } = chartData;
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
-  if (isPlotly(params.type)) {
+  if (isPlotly(params.type) || finalParams?.target) {
     state.chartRef?.current?.state?.chart?.destroy?.();
     propagateState({ chart: <Bouncer /> });
   }
@@ -170,7 +204,9 @@ function dataLoader(props, state, propagateState, chartParams) {
     }
   } else if (_.includes(["value_counts", "word_value_counts"], params.type)) {
     subProps = ["ordinalCol", "ordinalAgg"];
-  } else if (params.type === "histogram" || params.type === "qq") {
+  } else if (params.type === "histogram") {
+    subProps = ["target"];
+  } else if (params.type === "qq") {
     subProps = [];
   }
   if (finalParams?.cleaners && finalParams?.cleaners?.length) {

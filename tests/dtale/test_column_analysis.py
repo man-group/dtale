@@ -111,6 +111,14 @@ def test_get_column_analysis(unittest, test_data):
                 expected,
                 "should return 5-bin histogram for foo",
             )
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="foo", bins=5, target="baz"),
+            )
+            response_data = json.loads(response.data)
+            assert len(response_data["targets"])
+            assert response_data["targets"][0]["target"] == "baz"
+
             global_state.set_settings(c.port, dict(query="security_id > 10"))
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
