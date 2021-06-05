@@ -150,27 +150,47 @@ class ColumnAnalysis(object):
 class HistogramAnalysis(object):
     def __init__(self, req):
         self.bins = get_int_arg(req, "bins", 20)
+        self.target = get_str_arg(req, "target")
+
+    def build_histogram_data(self, series):
+        hist_data, hist_labels = np.histogram(series, bins=self.bins)
+        hist_data = [json_float(h) for h in hist_data]
+        return (
+            dict(
+                labels=[
+                    "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
+                ],  # drop the first bin because of just a minimum
+                data=hist_data,
+            ),
+            hist_labels,
+        )
 
     def build(self, parent):
         if parent.classifier == "D":
             parent.data.loc[:, parent.selected_col] = apply(
                 parent.data[parent.selected_col], json_timestamp
             )
-        hist_data, hist_labels = np.histogram(
-            parent.data[parent.selected_col], bins=self.bins
-        )
-        hist_data = [json_float(h) for h in hist_data]
-        return_data = dict(
-            labels=[
-                "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
-            ],  # drop the first bin because of just a minimum
-            data=hist_data,
-        )
-        kde, kde_code = build_kde(
-            parent.data[parent.selected_col], hist_labels, parent.selected_col
-        )
-        if kde is not None:
-            return_data["kde"] = kde
+        kde_code = []
+        if self.target is None:
+            return_data, hist_labels = self.build_histogram_data(
+                parent.data[parent.selected_col]
+            )
+            kde, kde_code = build_kde(
+                parent.data[parent.selected_col], hist_labels, parent.selected_col
+            )
+            if kde is not None:
+                return_data["kde"] = kde
+        else:
+            return_data = {"targets": [], "labels": list(range(self.bins))}
+            for target, target_data in parent.data[
+                [self.target, parent.selected_col]
+            ].groupby(self.target):
+                target_data, _ = self.build_histogram_data(
+                    target_data[parent.selected_col]
+                )
+                target_data["target"] = target
+                return_data["targets"].append(target_data)
+
         desc, desc_code = load_describe(parent.data[parent.selected_col])
         dtype_info = global_state.get_dtype_info(parent.data_id, parent.selected_col)
         for p in ["skew", "kurt"]:
@@ -182,29 +202,12 @@ class HistogramAnalysis(object):
 
     def _build_code(self, parent, kde_code, desc_code):
         pp = pprint.PrettyPrinter(indent=4)
-        layout = pp.pformat(
-            go.Layout(
-                **{
-                    "barmode": "group",
-                    "legend": {"orientation": "h"},
-                    "title": {
-                        "text": "{} Histogram (bins: {}) w/ KDE".format(
-                            parent.selected_col, self.bins
-                        )
-                    },
-                    "xaxis2": {"anchor": "y", "overlaying": "x", "side": "top"},
-                    "yaxis": {"title": {"text": "Frequency"}, "side": "left"},
-                    "yaxis2": {
-                        "title": {"text": "KDE"},
-                        "side": "right",
-                        "overlaying": "y",
-                    },
-                }
-            )
-        )
 
         code = [
-            "s = df[~pd.isnull(df['{col}'])][['{col}']]".format(col=parent.selected_col)
+            "s = df[~pd.isnull(df['{col}'])][['{col}'{target}]]".format(
+                col=parent.selected_col,
+                target=",'{}'".format(self.target) if self.target else "",
+            )
         ]
         if parent.classifier == "D":
             code.append(
@@ -215,21 +218,69 @@ class HistogramAnalysis(object):
                     ")"
                 ).format(col=parent.selected_col)
             )
+        if self.target is None:
+            code.append(
+                "chart, labels = np.histogram(s['{col}'], bins={bins})".format(
+                    col=parent.selected_col, bins=self.bins
+                )
+            )
+            code += kde_code + desc_code
+            layout = pp.pformat(
+                go.Layout(
+                    **{
+                        "barmode": "group",
+                        "legend": {"orientation": "h"},
+                        "title": {
+                            "text": "{} Histogram (bins: {}) w/ KDE".format(
+                                parent.selected_col, self.bins
+                            )
+                        },
+                        "xaxis2": {"anchor": "y", "overlaying": "x", "side": "top"},
+                        "yaxis": {"title": {"text": "Frequency"}, "side": "left"},
+                        "yaxis2": {
+                            "title": {"text": "KDE"},
+                            "side": "right",
+                            "overlaying": "y",
+                        },
+                    }
+                )
+            )
+            code += [
+                "charts = [",
+                "\tgo.Bar(x=labels[1:], y=chart, name='Histogram'),",
+                "\tgo.Scatter(",
+                "\t\tx=list(range(len(kde_data))), y=kde_data, name='KDE',"
+                "\t\tyaxis='y2', xaxis='x2',"
+                "\t\t{}".format(LINE_CFG),
+                "\t)",
+                "]",
+            ]
+        else:
+            layout = pp.pformat(
+                go.Layout(
+                    **{
+                        "barmode": "stack",
+                        "legend": {"orientation": "h"},
+                        "title": {
+                            "text": "{} Histogram (bins: {}) w/ target ({})".format(
+                                parent.selected_col, self.bins, self.target
+                            )
+                        },
+                        "yaxis": {"title": {"text": "Frequency"}, "side": "left"},
+                    }
+                )
+            )
+            code.append(
+                (
+                    "charts = []\n"
+                    "for target, target_data in s.groupby('{target}'):\n"
+                    "\tchart, labels = np.histogram(s['{col}'], bins={bins})\n"
+                    "\tcharts.append(go.Bar(x=labels[1:], y=chart, name=target))"
+                ).format(col=parent.selected_col, bins=self.bins, target=self.target)
+            )
         code.append(
-            "chart, labels = np.histogram(s, bins={bins})".format(bins=self.bins)
+            "figure = go.Figure(data=charts, layout=go.{layout})".format(layout=layout)
         )
-        code += kde_code + desc_code
-        code += [
-            "charts = [",
-            "\tgo.Bar(x=labels[1:], y=chart, name='Histogram'),",
-            "\tgo.Scatter(",
-            "\t\tx=list(range(len(kde_data))), y=kde_data, name='KDE',"
-            "\t\tyaxis='y2', xaxis='x2',"
-            "\t\t{}".format(LINE_CFG),
-            "\t)",
-            "]",
-            "figure = go.Figure(data=charts, layout=go.{layout})".format(layout=layout),
-        ]
         return code
 
 

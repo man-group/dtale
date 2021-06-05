@@ -12,7 +12,7 @@ df = df.reset_index().drop('index', axis=1, errors='ignore')
 df.columns = [str(c) for c in df.columns]  # update columns to strings in case they are numbers
 
 s = df[~pd.isnull(df['foo'])][['foo']]
-chart, labels = np.histogram(s, bins=20)
+chart, labels = np.histogram(s['foo'], bins=20)
 # main statistics
 stats = df['foo'].describe().to_frame().T
 charts = [

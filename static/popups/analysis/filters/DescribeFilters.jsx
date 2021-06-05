@@ -9,6 +9,7 @@ import * as gu from "../../../dtale/gridUtils";
 import { renderCodePopupAnchor } from "../../CodePopup";
 import CategoryInputs from "./CategoryInputs";
 import { analysisAggs, titles } from "./Constants";
+import FilterSelect from "./FilterSelect";
 import { default as GeoFilters, hasCoords, loadCoordVals } from "./GeoFilters";
 import OrdinalInputs from "./OrdinalInputs";
 import TextEnterFilter from "./TextEnterFilter";
@@ -16,7 +17,7 @@ import TextEnterFilter from "./TextEnterFilter";
 function wrapFilterMarkup(filterMarkup) {
   return (
     <div className="form-group row small-gutters mb-3 mt-3">
-      <div className="row">{filterMarkup}</div>
+      <div className="row m-0">{filterMarkup}</div>
     </div>
   );
 }
@@ -31,6 +32,7 @@ function buildState(props) {
     categoryCol: null,
     categoryAgg: _.find(analysisAggs(props.t), { value: "mean" }),
     ...loadCoordVals(props.selectedCol, props.cols),
+    target: null,
   };
 }
 
@@ -48,6 +50,7 @@ class DescribeFilters extends React.Component {
     this.updateChartType = this.updateChartType.bind(this);
     this.toggleLeft = this.toggleLeft.bind(this);
     this.toggleRight = this.toggleRight.bind(this);
+    this.targetSelect = this.targetSelect.bind(this);
   }
 
   shouldComponentUpdate(newProps, newState) {
@@ -188,6 +191,38 @@ class DescribeFilters extends React.Component {
     });
   }
 
+  targetSelect() {
+    const { cols, selectedCol, t } = this.props;
+    let colOpts = _.reject(cols, { name: selectedCol });
+    colOpts = _.sortBy(
+      _.map(colOpts, c => ({ value: c.name })),
+      c => _.toLower(c.value)
+    );
+    return (
+      <React.Fragment key="target">
+        <div className="col-auto text-center pr-4">
+          <div>
+            <b>{t("analysis:Target")}</b>
+          </div>
+          <div style={{ marginTop: "-.5em" }}>
+            <small>{`(${t("analysis:Choose Col")})`}</small>
+          </div>
+        </div>
+        <div className="col-auto pl-0 mr-3 ordinal-dd">
+          <FilterSelect
+            selectProps={{
+              value: this.state.target,
+              options: colOpts,
+              onChange: target => this.setState({ target }, this.buildChart),
+              noOptionsText: () => this.props.t("No columns found"),
+              isClearable: true,
+            }}
+          />
+        </div>
+      </React.Fragment>
+    );
+  }
+
   render() {
     if (_.isNull(this.props.type)) {
       return null;
@@ -202,7 +237,7 @@ class DescribeFilters extends React.Component {
     } else if ("int" === colType) {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
-        filterMarkup = wrapFilterMarkup(this.buildFilter("bins"));
+        filterMarkup = wrapFilterMarkup([this.buildFilter("bins"), this.targetSelect()]);
       } else {
         filterMarkup = wrapFilterMarkup([
           this.buildFilter("top"),
@@ -212,7 +247,7 @@ class DescribeFilters extends React.Component {
     } else if ("float" === colType) {
       // floats -> Histogram or Categories
       if (this.state.type === "histogram") {
-        filterMarkup = wrapFilterMarkup(this.buildFilter("bins"));
+        filterMarkup = wrapFilterMarkup([this.buildFilter("bins"), this.targetSelect()]);
       } else {
         filterMarkup = wrapFilterMarkup([
           this.buildFilter("top"),
