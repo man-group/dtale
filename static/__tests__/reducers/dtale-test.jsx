@@ -52,6 +52,7 @@ describe("reducer tests", () => {
       editedTextAreaHeight: 0,
       mainTitle: null,
       mainTitleFont: null,
+      showAllHeatmapColumns: false,
     };
     expect(state).toEqual(store.getState());
   });

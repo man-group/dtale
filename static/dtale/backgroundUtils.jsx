@@ -135,11 +135,13 @@ const updateBackgroundStyles = (state, colCfg, rec) => {
         ..._.get(state, ["filteredRanges", "ranges", colCfg.name]),
       });
     case "heatmap-col":
+    case "heatmap-col-all":
       return heatMapBackground(rec, {
         ...colCfg,
         ..._.get(state, ["filteredRanges", "ranges", colCfg.name]),
       });
-    case "heatmap-all": {
+    case "heatmap-all":
+    case "heatmap-all-all": {
       const overall = { ...state, ..._.get(state, "filteredRanges.overall") };
       return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, overall);
     }

@@ -17,7 +17,7 @@ import DescribeOption from "../menu/DescribeOption";
 import DuplicatesOption from "../menu/DuplicatesOption";
 import ExportOption from "../menu/ExportOption";
 import FilterOption from "../menu/FilterOption";
-import HeatMapOption from "../menu/HeatMapOption";
+import { HeatMapOption } from "../menu/HeatMapOption";
 import HighlightOption from "../menu/HighlightOption";
 import InstancesOption from "../menu/InstancesOption";
 import { LanguageOption } from "../menu/LanguageOption";
@@ -34,6 +34,7 @@ import { PredefinedFiltersOption } from "../menu/PredefinedFiltersOption";
 import RangeHighlightOption from "../menu/RangeHighlightOption";
 import ReloadOption from "../menu/ReloadOption";
 import ShowHideColumnsOption from "../menu/ShowHideColumnsOption";
+import { ShowNonNumericHeatmapColumns } from "../menu/ShowNonNumericHeatmapColumns";
 import { ShutdownOption } from "../menu/ShutdownOption";
 import SummarizeOption from "../menu/SummarizeOption";
 import { ThemeOption } from "../menu/ThemeOption";
@@ -219,6 +220,7 @@ class ReactRibbonDropdown extends React.Component {
             <ThemeOption ribbonWrapper={hideWrapper} />
             <LanguageOption ribbonWrapper={hideWrapper} />
             <MaxWidthOption ribbonWrapper={hideWrapper} />
+            <ShowNonNumericHeatmapColumns backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
           </ul>
         )}
       </div>
