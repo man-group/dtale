@@ -99,6 +99,10 @@ function clearMaxWidth() {
   };
 }
 
+function updateShowAllHeatmapColumns(showAllHeatmapColumns) {
+  return dispatch => dispatch({ type: "update-show-all-heatmap-columns", showAllHeatmapColumns });
+}
+
 export default {
   init,
   toggleColumnMenu,
@@ -113,4 +117,5 @@ export default {
   updateFilteredRanges,
   updateMaxWidth,
   clearMaxWidth,
+  updateShowAllHeatmapColumns,
 };

@@ -94,3 +94,12 @@ export function mainTitleFont(state = null, action = {}) {
       return state;
   }
 }
+
+export function showAllHeatmapColumns(state = false, action = {}) {
+  switch (action.type) {
+    case "update-show-all-heatmap-columns":
+      return action.showAllHeatmapColumns;
+    default:
+      return state;
+  }
+}

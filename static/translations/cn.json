@@ -50,7 +50,8 @@
     "Missing Analysis": "Missing Analysis",
     "show_hide": "Show/Hide Columns",
     "Predefined Filters": "Predefined Filters",
-    "Max Width": "Max Width"
+    "Max Width": "Max Width",
+    "Show All Heatmap Columns": "Show All Heatmap Columns"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -91,7 +92,8 @@
     "open_process": "There are multiple pieces of data loaded into memory, switch the UI to this data.",
     "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package.",
     "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions.",
-    "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value."
+    "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value.",
+    "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting."
   },
   "column_menu": {
     "Asc": "Asc",

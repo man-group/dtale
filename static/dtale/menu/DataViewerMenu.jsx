@@ -17,7 +17,7 @@ import DescribeOption from "./DescribeOption";
 import DuplicatesOption from "./DuplicatesOption";
 import ExportOption from "./ExportOption";
 import FilterOption from "./FilterOption";
-import HeatMapOption from "./HeatMapOption";
+import { HeatMapOption } from "./HeatMapOption";
 import HighlightOption from "./HighlightOption";
 import InstancesOption from "./InstancesOption";
 import { LanguageOption } from "./LanguageOption";
