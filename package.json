@@ -166,6 +166,7 @@
     "vis-network": "9.0.4"
   },
   "resolutions": {
+    "css-what": "5.0.1",
     "node-notifier": "9.0.1",
     "postcss": "8.2.15",
     "ws": "7.4.6"
