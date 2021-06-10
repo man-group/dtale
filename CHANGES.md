@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.49.0 (2021-6-9)
+* bump css-what from 5.0.0 to 5.0.1
+* added the ability to toggle the display of all columns when heatmap is turned on
+* [#491](https://github.com/man-group/dtale/issues/491): overlapping histogram chart
+* bump ws from 7.4.5 to 7.4.6
+* Updates
+  * [#509](https://github.com/man-group/dtale/issues/509): resizable side panel width
+  * [#495](https://github.com/man-group/dtale/issues/495): CSV loading dialog
+  * height of "Exponential Smoothing" in column builders
+  * code snippet fixes
+  * cleaner updates
+
 ### 1.48.0 (2021-5-28)
 * [#504](https://github.com/man-group/dtale/issues/504): fix for toggling between unique row & word values
 * [#502](https://github.com/man-group/dtale/issues/502): updated "cleaning" column builder to allow for inplace updates
