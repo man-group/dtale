@@ -115,6 +115,7 @@ body.dark-mode > div.container-fluid.variance a,
 body.dark-mode > div.container-fluid.build a,
 body.dark-mode > div.container-fluid.duplicates a,
 body.dark-mode > div.container-fluid.type-conversion a,
+body.dark-mode > div.container-fluid.cleaners a,
 body.dark-mode > div.container-fluid.replacement a,
 body.dark-mode > div.container-fluid.reshape a,
 body.dark-mode > div.container-fluid.column-analysis a,
@@ -10922,7 +10923,8 @@ div.container-fluid.filter > div#popup-content > div.modal-body {
 
 div.container-fluid.code-popup > div#popup-content > div.modal-footer,
 div.container-fluid.code-export > div#popup-content > div.modal-footer,
-div.container-fluid.type-conversion > div#popup-content > div.modal-footer{
+div.container-fluid.type-conversion > div#popup-content > div.modal-footer,
+div.container-fluid.cleaners > div#popup-content > div.modal-footer {
   position: absolute;
   bottom: 0;
   width: 100%;

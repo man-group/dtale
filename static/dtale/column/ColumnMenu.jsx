@@ -228,7 +228,7 @@ class ReactColumnMenu extends React.Component {
           {gu.findColType(colCfg.dtype) === "string" && (
             <ColumnMenuOption
               open={openAction("cleaners")}
-              label={t("column_menu:Clean Column")}
+              label={t("menu:Clean Column")}
               iconClass="fas fa-pump-soap ml-3 mr-4"
             />
           )}

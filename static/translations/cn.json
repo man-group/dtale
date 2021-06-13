@@ -5,6 +5,7 @@
     "Describe": "描述",
     "Custom Filter": "自定义过滤",
     "Build Column": "新建列",
+    "Clean Column": "Clean Column",
     "Summarize Data": "汇总数据",
     "Correlations": "相关性",
     "Predictive Power Score": "预测能力得分",
@@ -109,7 +110,6 @@
     "Delete": "Delete",
     "Rename": "Rename",
     "Replacements": "Replacements",
-    "Clean Column": "Clean Column",
     "Column Analysis": "Column Analysis",
     "Variance Report": "Variance Report",
     "Formats": "Formats"

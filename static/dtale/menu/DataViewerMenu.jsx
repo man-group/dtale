@@ -11,6 +11,7 @@ import * as gu from "../gridUtils";
 import AboutOption from "./AboutOption";
 import BuildColumnOption from "./BuildColumnOption";
 import ChartsOption from "./ChartsOption";
+import CleanColumn from "./CleanOption";
 import CodeExportOption from "./CodeExportOption";
 import CorrelationsOption from "./CorrelationsOption";
 import DescribeOption from "./DescribeOption";
@@ -91,6 +92,7 @@ class ReactDataViewerMenu extends React.Component {
             <PredefinedFiltersOption open={() => this.props.showSidePanel("predefined_filters")} />
             <ShowHideColumnsOption open={() => this.props.showSidePanel("show_hide")} />
             <BuildColumnOption open={buttonHandlers.BUILD} />
+            <CleanColumn open={buttonHandlers.CLEAN} />
             <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
             <SummarizeOption open={openPopup("reshape", 400, 770)} />
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
