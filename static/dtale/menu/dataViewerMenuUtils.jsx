@@ -96,6 +96,7 @@ function buildHotkeyHandlers(props) {
     NETWORK: openNetwork,
     FILTER: openPopup("filter", 530, 1100),
     BUILD: openPopup("build", 515, 800),
+    CLEAN: openPopup("cleaners", 515, 800),
     DUPLICATES: openPopup("duplicates", 400, 770),
     CHARTS: () => window.open(fullPath("/dtale/charts", dataId), "_blank"),
     CODE: openCodeExport,

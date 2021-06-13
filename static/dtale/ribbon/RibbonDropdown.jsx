@@ -11,6 +11,7 @@ import * as gu from "../gridUtils";
 import AboutOption from "../menu/AboutOption";
 import BuildColumnOption from "../menu/BuildColumnOption";
 import ChartsOption from "../menu/ChartsOption";
+import CleanColumn from "../menu/CleanOption";
 import CodeExportOption from "../menu/CodeExportOption";
 import CorrelationsOption from "../menu/CorrelationsOption";
 import DescribeOption from "../menu/DescribeOption";
@@ -172,6 +173,7 @@ class ReactRibbonDropdown extends React.Component {
             <FilterOption open={hideWrapper(() => this.props.showSidePanel("filter"))} />
             <PredefinedFiltersOption open={() => this.props.showSidePanel("predefined_filters")} />
             <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />
+            <CleanColumn open={hideWrapper(buttonHandlers.CLEAN)} />
             <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank"))} />
             <SummarizeOption open={hideWrapper(openPopup("reshape", 400, 770))} />
           </ul>

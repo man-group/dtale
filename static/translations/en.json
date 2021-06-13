@@ -5,6 +5,7 @@
     "Describe": "Describe",
     "Custom Filter": "Custom Filter",
     "Build Column": "Build Column",
+    "Clean Column": "Clean Column",
     "Summarize Data": "Summarize Data",
     "Correlations": "Correlations",
     "Predictive Power Score": "Predictive Power Score",
@@ -109,7 +110,6 @@
     "Delete": "Delete",
     "Rename": "Rename",
     "Replacements": "Replacements",
-    "Clean Column": "Clean Column",
     "Column Analysis": "Column Analysis",
     "Variance Report": "Variance Report",
     "Formats": "Formats"
