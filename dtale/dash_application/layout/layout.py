@@ -1804,6 +1804,7 @@ def charts_layout(df, settings, **inputs):
                                                     build_option(v, text(AGGS[v]))
                                                     for v in [
                                                         "count",
+                                                        "pctct",
                                                         "nunique",
                                                         "sum",
                                                         "mean",
@@ -1820,7 +1821,6 @@ def charts_layout(df, settings, **inputs):
                                                         "mad",
                                                         "prod",
                                                         "pctsum",
-                                                        "pctct",
                                                     ]
                                                 ],
                                                 placeholder=text("No Aggregation"),

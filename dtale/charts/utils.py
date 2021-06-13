@@ -45,7 +45,7 @@ AGGS = dict(
     var="Variance",
     mad="Mean Absolute Deviation",
     prod="Product of All Items",
-    pctct="Percentage Count",
+    pctct="Count (Percentage)",
     pctsum="Percentage Sum",
 )
 
