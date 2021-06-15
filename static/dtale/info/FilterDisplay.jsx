@@ -80,22 +80,59 @@ class ReactFilterDisplay extends React.Component {
     if (query) {
       filterSegs.push(query);
     }
-    const clearFilter = () => {
-      const settingsUpdates = {
-        query: "",
-        columnFilters: {},
-        outlierFilters: {},
-        predefinedFilters: {},
+    const clearFilter =
+      (drop = false) =>
+      () => {
+        const settingsUpdates = {
+          query: "",
+          columnFilters: {},
+          outlierFilters: {},
+          predefinedFilters: {},
+          invertFilter: false,
+        };
+        const callback = () => updateSettings(settingsUpdates);
+        if (drop) {
+          serverState.dropFilteredRows(dataId, callback);
+        } else {
+          serverState.updateSettings(settingsUpdates, dataId, callback);
+        }
       };
+    const toggleInvert = () => {
+      const settingsUpdates = { invertFilter: !this.props.invertFilter };
       serverState.updateSettings(settingsUpdates, dataId, () => updateSettings(settingsUpdates));
     };
-    const clearAll = <i className="ico-cancel pl-3 pointer" style={{ marginTop: "-0.1em" }} onClick={clearFilter} />;
+    const allButtons = (
+      <>
+        <i
+          className="ico-cancel pl-3 pointer"
+          style={{ marginTop: "-0.1em" }}
+          onClick={clearFilter()}
+          title={t("Clear Filters")}
+        />
+        <i
+          className="fas fa-eraser pl-3 pointer"
+          style={{ marginTop: "-0.1em" }}
+          onClick={clearFilter(true)}
+          title={t("Drop Filtered Rows")}
+        />
+        <i
+          className="fas fa-retweet pl-3 pointer"
+          style={{
+            marginTop: "-0.1em",
+            opacity: this.props.invertFilter ? 1 : 0.5,
+          }}
+          onClick={toggleInvert}
+          title={t("Invert Filter")}
+        />
+      </>
+    );
+
     if (_.size(filterSegs) == 1) {
       return (
         <>
           {label}
           <div className="pl-3 d-inline-block filter-menu-toggle">{removeBackticks(filterSegs[0])}</div>
-          {clearAll}
+          {allButtons}
         </>
       );
     }
@@ -131,12 +168,13 @@ class ReactFilterDisplay extends React.Component {
             </ul>
           </div>
         </div>
-        {clearAll}
+        {allButtons}
       </>
     );
   }
 }
 ReactFilterDisplay.displayName = "ReactFilterDisplay";
+ReactFilterDisplay.defaultProps = { invertFilter: false };
 ReactFilterDisplay.propTypes = {
   updateSettings: PropTypes.func,
   dataId: PropTypes.string,
@@ -145,6 +183,7 @@ ReactFilterDisplay.propTypes = {
   outlierFilters: PropTypes.object,
   predefinedFilters: PropTypes.object,
   predefinedFilterConfigs: PropTypes.array,
+  invertFilter: PropTypes.bool,
   menuOpen: PropTypes.string,
   propagateState: PropTypes.func,
   t: PropTypes.func,

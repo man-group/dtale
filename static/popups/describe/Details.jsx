@@ -6,40 +6,13 @@ import { withTranslation } from "react-i18next";
 import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
-import { describeUrl, outliersUrl, saveColFilterUrl } from "../../actions/url-utils";
+import actions from "../../actions/dtale";
+import { buildURLString, describeUrl, outliersUrl, toggleOutlierFilterUrl } from "../../actions/url-utils";
 import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
 import DetailsCharts from "./DetailsCharts";
-
-function displayUniques(uniques, t, dtype = null, baseTitle = "Unique Row") {
-  if (_.isEmpty(uniques.data)) {
-    return null;
-  }
-  let title = `${t(baseTitle)} ${t("Values")}`;
-  if (dtype) {
-    title = `${title} ${t("of type")} '${dtype}'`;
-  }
-  if (uniques.top) {
-    title = `${title} (${t("top 100 most common")})`;
-  }
-  return (
-    <div key={dtype} className="row">
-      <div className="col-sm-12">
-        <span className="font-weight-bold" style={{ fontSize: "120%" }}>
-          {`${title}:`}
-        </span>
-        <br />
-        <span>
-          {_.join(
-            _.map(uniques.data, u => `${u.value} (${u.count})`),
-            ", "
-          )}
-        </span>
-      </div>
-    </div>
-  );
-}
+import Uniques from "./Uniques";
 
 class Details extends React.Component {
   constructor(props) {
@@ -103,17 +76,18 @@ class Details extends React.Component {
   }
 
   renderUniques() {
-    const { t } = this.props;
     if (this.state.deepData !== "uniques") {
       return null;
     }
     if (this.state.viewWordValues) {
       const { wordValues } = this.state;
-      return displayUniques({ data: wordValues }, t, null, "Word");
+      return <Uniques uniques={{ data: wordValues }} baseTitle="Word" />;
     }
     const uniques = _.get(this.state, "details.uniques") || {};
     const dtypeCt = _.size(uniques);
-    return _.map(uniques, (dtypeUniques, dtype) => displayUniques(dtypeUniques, t, dtypeCt > 1 ? dtype : null));
+    return _.map(uniques, (dtypeUniques, dtype) => (
+      <Uniques key={dtype} uniques={dtypeUniques} dtype={dtypeCt > 1 ? dtype : null} />
+    ));
   }
 
   renderDiffs() {
@@ -122,7 +96,7 @@ class Details extends React.Component {
     }
 
     const diffs = _.get(this.state, "details.sequential_diffs.diffs") || {};
-    return displayUniques(diffs, this.props.t, null, "Sequential Difference");
+    return <Uniques uniques={diffs} baseTitle="Sequential Difference" />;
   }
 
   loadOutliers() {
@@ -196,15 +170,21 @@ class Details extends React.Component {
       if (!outliers.queryApplied) {
         cfg.query = outliers.query;
       }
+      const url = buildURLString(toggleOutlierFilterUrl(this.props.dataId), {
+        col: this.props.selected.name,
+      });
       this.setState(
         {
           outliers: _.assignIn({}, outliers, {
             queryApplied: !outliers.queryApplied,
           }),
         },
-        fetchJson(saveColFilterUrl(this.props.dataId, this.props.selected.name, cfg), () =>
-          window.opener.location.reload()
-        )
+        fetchJson(url, ({ outlierFilters }) => {
+          this.props.updateSettings({ outlierFilters });
+          if (actions.isPopup()) {
+            window.opener.location.reload();
+          }
+        })
       );
     };
     return [
@@ -286,6 +266,7 @@ Details.propTypes = {
   dataId: PropTypes.string,
   dtypes: PropTypes.array,
   close: PropTypes.node,
+  updateSettings: PropTypes.func,
   t: PropTypes.func,
 };
 const TranslateDetails = withTranslation("describe")(Details);

@@ -90,7 +90,7 @@ describe("DataViewerInfo tests", () => {
 
     result.find("textarea").simulate("change", { target: { value: "Hello World2" } });
     expect(result.find(ReactEditedCellInfo).state().value).toBe("Hello World2");
-    result.find("textarea").simulate("keyPress", { key: "Enter" });
+    result.find("textarea").simulate("keyDown", { key: "Enter" });
     editCellSpy.mock.calls[0][4]({ error: "bad value" });
     expect(store.getState().chartData).toEqual({
       visible: true,

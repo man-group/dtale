@@ -876,7 +876,10 @@
     "Missing Values": "Missing Values",
     "Outliers": "Outliers",
     "Low Variance": "Low Variance",
-    "Filter": "Filter"
+    "Filter": "Filter",
+    "Clear Filters": "Clear Filters",
+    "Drop Filtered Rows": "Drop Filtered Rows",
+    "Invert Filter": "Invert Filter"
   },
   "side": {
     "Close": "Close",

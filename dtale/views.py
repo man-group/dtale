@@ -1199,6 +1199,12 @@ def process_keys():
     )
 
 
+def _update_settings(data_id, settings):
+    curr_settings = global_state.get_settings(data_id) or {}
+    updated_settings = dict_merge(curr_settings, settings)
+    global_state.set_settings(data_id, updated_settings)
+
+
 @dtale.route("/update-settings/<data_id>")
 @exception_decorator
 def update_settings(data_id):
@@ -1211,9 +1217,7 @@ def update_settings(data_id):
     :return: JSON
     """
 
-    curr_settings = global_state.get_settings(data_id) or {}
-    updated_settings = dict_merge(curr_settings, get_json_arg(request, "settings", {}))
-    global_state.set_settings(data_id, updated_settings)
+    _update_settings(data_id, get_json_arg(request, "settings", {}))
     return jsonify(dict(success=True))
 
 
@@ -2873,7 +2877,7 @@ def get_scatter(data_id):
     data["y"] = cols[1]
     data["stats"] = stats
     data["code"] = "\n".join(code)
-    data["date"] = " for {}".format(selected_date)
+    data["date"] = " for {}".format(selected_date) if selected_date else ""
     return jsonify(data)
 
 
@@ -2934,7 +2938,14 @@ def get_filter_info(data_id):
     curr_settings = {
         k: v
         for k, v in curr_settings.items()
-        if k in ["query", "columnFilters", "outlierFilters", "predefinedFilters"]
+        if k
+        in [
+            "query",
+            "columnFilters",
+            "outlierFilters",
+            "predefinedFilters",
+            "invertFilter",
+        ]
     }
     return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)
 
@@ -3370,3 +3381,29 @@ def build_missingno_chart(chart_type, data_id):
         fname = "missingno_{}.png".format(chart_type)
         return send_file(output.getvalue(), fname, "image/png")
     return Response(output.getvalue(), mimetype="image/png")
+
+
+@dtale.route("/drop-filtered-rows/<data_id>")
+@exception_decorator
+def drop_filtered_rows(data_id):
+    curr_settings = global_state.get_settings(data_id) or {}
+    final_query = build_query(data_id, curr_settings.get("query"))
+    data = run_query(
+        handle_predefined(data_id),
+        final_query,
+        global_state.get_context_variables(data_id),
+        ignore_empty=True,
+    )
+    global_state.set_data(data_id, data)
+    global_state.set_dtypes(data_id, build_dtypes_state(data, []))
+    _update_settings(
+        data_id,
+        dict(
+            query="",
+            columnFilters={},
+            outlierFilters={},
+            predefinedFilters={},
+            invertFilter=False,
+        ),
+    )
+    return jsonify(dict(success=True))

@@ -1514,6 +1514,14 @@ def test_get_data(unittest, test_data):
         response_data = json.loads(response.data)
         assert len(response_data["results"]) == 0
 
+        global_state.get_settings(c.port)["invertFilter"] = True
+        params = dict(ids=json.dumps(["0"]))
+        response = c.get("/dtale/data/{}".format(c.port), query_string=params)
+        response_data = json.loads(response.data)
+        assert len(response_data["results"]) == 1
+
+        global_state.get_settings(c.port)["invertFilter"] = False
+
         response = c.get("/dtale/data-export/{}".format(c.port))
         assert response.content_type == "text/csv"
 
@@ -3209,3 +3217,17 @@ def test_sorted_sequential_diffs():
         data = resp.json
         assert data["min"] == "-1"
         assert data["max"] == "-1"
+
+
+@pytest.mark.unit
+def test_drop_filtered_rows():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3, 4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+        settings = {c.port: {"query": "a == 1"}}
+        build_settings(settings)
+        c.get("/dtale/drop-filtered-rows/{}".format(c.port))
+        assert len(global_state.get_data(c.port)) == 1
+        assert global_state.get_settings(c.port)["query"] == ""

@@ -62,7 +62,7 @@ class ReactEditedCellInfo extends React.Component {
             style={{ width: "inherit" }}
             value={this.state.value ?? ""}
             onChange={e => this.setState({ value: e.target.value })}
-            onKeyPress={this.onKeyDown}
+            onKeyDown={this.onKeyDown}
           />
         </div>
       </div>

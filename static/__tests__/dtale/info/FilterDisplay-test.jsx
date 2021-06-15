@@ -8,11 +8,15 @@ import serverState from "../../../dtale/serverStateManagement";
 import menuUtils from "../../../menuUtils";
 
 describe("FilterDisplay", () => {
-  let wrapper, props, updateSettingsSpy, openMenuSpy;
+  let wrapper, props, updateSettingsSpy, openMenuSpy, dropFilteredRowsSpy;
 
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, "updateSettings");
     updateSettingsSpy.mockImplementation((_settings, _dataId, callback) => {
+      callback();
+    });
+    dropFilteredRowsSpy = jest.spyOn(serverState, "dropFilteredRows");
+    dropFilteredRowsSpy.mockImplementation((_dataId, callback) => {
       callback();
     });
     openMenuSpy = jest.spyOn(menuUtils, "openMenu");
@@ -55,6 +59,7 @@ describe("FilterDisplay", () => {
       columnFilters: {},
       outlierFilters: {},
       predefinedFilters: {},
+      invertFilter: false,
     });
   });
 
@@ -82,5 +87,23 @@ describe("FilterDisplay", () => {
     });
     openMenuSpy.mock.calls[0][2]();
     expect(props.propagateState).toHaveBeenLastCalledWith({ menuOpen: null });
+  });
+
+  it("correctly calls drop-filtered-rows", () => {
+    wrapper.find("i.fas.fa-eraser").simulate("click");
+    expect(dropFilteredRowsSpy).toHaveBeenCalledTimes(1);
+    expect(props.updateSettings).toHaveBeenCalledWith({
+      query: "",
+      columnFilters: {},
+      outlierFilters: {},
+      predefinedFilters: {},
+      invertFilter: false,
+    });
+  });
+
+  it("inverts filter", () => {
+    wrapper.find("i.fas.fa-retweet").simulate("click");
+    expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(props.updateSettings).toHaveBeenCalledWith({ invertFilter: true });
   });
 });

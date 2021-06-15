@@ -115,12 +115,12 @@ describe("Variance tests", () => {
     expect(xlabel).toBe("Bin");
     const currChart = chart();
     input().simulate("change", { target: { value: "" } });
-    input().simulate("keyPress", { key: "Shift" });
-    input().simulate("keyPress", { key: "Enter" });
+    input().simulate("keyDown", { key: "Shift" });
+    input().simulate("keyDown", { key: "Enter" });
     input().simulate("change", { target: { value: "a" } });
-    input().simulate("keyPress", { key: "Enter" });
+    input().simulate("keyDown", { key: "Enter" });
     input().simulate("change", { target: { value: "50" } });
-    input().simulate("keyPress", { key: "Enter" });
+    input().simulate("keyDown", { key: "Enter" });
     await tickUpdate(result);
     expect(currChart.destroyed).toBe(true);
     expect(result.find(TextEnterFilter).instance().state.bins).toBe("50");

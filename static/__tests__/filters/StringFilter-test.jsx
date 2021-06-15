@@ -40,7 +40,7 @@ describe("StringFilter", () => {
     wrapper.find(Select).first().props().onChange({ value: "startswith" });
     expect(wrapper.find("input")).toHaveLength(1);
     wrapper.find("input").simulate("change", { target: { value: "b" } });
-    wrapper.find("input").simulate("keyPress", { key: "Enter" });
+    wrapper.find("input").simulate("keyDown", { key: "Enter" });
     expect(props.updateState).toHaveBeenLastCalledWith(expect.objectContaining({ raw: "b" }));
   });
 
@@ -49,10 +49,10 @@ describe("StringFilter", () => {
     expect(wrapper.find("input")).toHaveLength(1);
     props.updateState.mockReset();
     wrapper.find("input").simulate("change", { target: { value: "b" } });
-    wrapper.find("input").simulate("keyPress", { key: "Enter" });
+    wrapper.find("input").simulate("keyDown", { key: "Enter" });
     expect(props.updateState).not.toHaveBeenCalled();
     wrapper.find("input").simulate("change", { target: { value: "1,3" } });
-    wrapper.find("input").simulate("keyPress", { key: "Enter" });
+    wrapper.find("input").simulate("keyDown", { key: "Enter" });
     expect(props.updateState).toHaveBeenLastCalledWith(expect.objectContaining({ raw: "1,3" }));
   });
 });
