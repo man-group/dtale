@@ -62,7 +62,7 @@ class ReactMaxWidthOption extends React.Component {
                   this.setState({ currMaxWidth: parsedInt });
                 }
               }}
-              onKeyPress={e => {
+              onKeyDown={e => {
                 if (e.key === "Enter" && this.state.currMaxWidth) {
                   this.updateMax(this.state.currMaxWidth);
                 }

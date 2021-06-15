@@ -124,7 +124,7 @@ class StringFilter extends React.Component {
                   className="form-control"
                   value={raw ?? ""}
                   onChange={e => this.setState({ raw: e.target.value })}
-                  onKeyPress={e => (e.key === "Enter" ? this.updateState({}) : _.noop)}
+                  onKeyDown={e => (e.key === "Enter" ? this.updateState({}) : _.noop)}
                 />
               </div>
             )}

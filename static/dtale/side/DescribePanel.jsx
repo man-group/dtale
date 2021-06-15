@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
+import { updateSettings } from "../../actions/settings";
 import { dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import ColumnNavigation from "../../popups/describe/ColumnNavigation";
@@ -79,6 +80,7 @@ class ReactDescribePanel extends React.Component {
               selected={this.state.selected}
               dataId={dataId}
               dtypes={this.state.dtypes}
+              updateSettings={this.props.updateSettings}
               close={
                 <>
                   <SidePanelButtons />
@@ -114,6 +116,7 @@ ReactDescribePanel.propTypes = {
   view: PropTypes.string,
   hideSidePanel: PropTypes.func,
   toggleVisible: PropTypes.func,
+  updateSettings: PropTypes.func,
   t: PropTypes.func,
 };
 const TranslateDescribePanel = withTranslation(["side"])(ReactDescribePanel);
@@ -126,6 +129,7 @@ const ReduxDescribePanel = connect(
         type: "data-viewer-update",
         update: { type: "toggle-columns", columns },
       }),
+    updateSettings: settings => dispatch(updateSettings(settings)),
   })
 )(TranslateDescribePanel);
 export { ReduxDescribePanel as DescribePanel, TranslateDescribePanel as ReactDescribePanel };

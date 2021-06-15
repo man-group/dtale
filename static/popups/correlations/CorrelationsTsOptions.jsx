@@ -109,7 +109,7 @@ class CorrelationsTsOptions extends React.Component {
             className="form-control text-center"
             value={this.state.window}
             onChange={e => this.setState({ window: e.target.value })}
-            onKeyPress={updateWindowAndMinPeriods}
+            onKeyDown={updateWindowAndMinPeriods}
             disabled={!rolling && !useRolling}
           />
         </div>
@@ -127,7 +127,7 @@ class CorrelationsTsOptions extends React.Component {
             className="form-control text-center"
             value={this.state.minPeriods}
             onChange={e => this.setState({ minPeriods: e.target.value })}
-            onKeyPress={updateWindowAndMinPeriods}
+            onKeyDown={updateWindowAndMinPeriods}
             disabled={!rolling && !useRolling}
           />
         </div>

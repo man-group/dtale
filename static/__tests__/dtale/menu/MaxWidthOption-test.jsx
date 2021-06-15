@@ -51,7 +51,7 @@ describe("MaxWidthOption tests", () => {
     expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(100);
     result.find("input").simulate("change", { target: { value: "150" } });
     expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(150);
-    result.find("input").simulate("keyPress", { key: "Enter" });
+    result.find("input").simulate("keyDown", { key: "Enter" });
     expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
     udpateMaxColumnWidthSpy.mock.calls[0][1]();
     expect(store.getState().maxColumnWidth).toBe(150);

@@ -22,7 +22,10 @@ def inner_build_query(settings, query=None):
             query_segs.append(filter_cfg["query"])
     if query not in [None, ""]:
         query_segs.append(query)
-    return " and ".join(query_segs)
+    joined_query_segs = " and ".join(query_segs)
+    if joined_query_segs and settings.get("invertFilter", False):
+        joined_query_segs = "~({})".format(joined_query_segs)
+    return joined_query_segs
 
 
 def run_query(

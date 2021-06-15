@@ -30,7 +30,7 @@ class ReactGridCellEditor extends React.Component {
         type="text"
         value={this.state.value}
         onChange={e => this.setState({ value: e.target.value })}
-        onKeyPress={this.onKeyDown}
+        onKeyDown={this.onKeyDown}
       />
     );
   }

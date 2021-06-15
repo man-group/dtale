@@ -127,6 +127,14 @@ function updateSettings(settings, dataId, callback = _.noop) {
     });
 }
 
+function dropFilteredRows(dataId, callback = _.noop) {
+  fetchJsonPromise(buildURLString(`/dtale/drop-filtered-rows/${dataId}`))
+    .then(callback)
+    .catch((e, callstack) => {
+      logException(e, callstack);
+    });
+}
+
 function renameColumn(dataId, col, rename, callback) {
   fetchJson(buildURLString(`/dtale/rename-col/${dataId}`, { col, rename }), callback);
 }
@@ -198,4 +206,5 @@ export default {
   updateLanguage,
   updateMaxColumnWidth,
   loadFilteredRanges,
+  dropFilteredRows,
 };

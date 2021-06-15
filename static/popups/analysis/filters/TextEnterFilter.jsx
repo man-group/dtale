@@ -51,7 +51,7 @@ class TextEnterFilter extends React.Component {
             className="form-control text-center column-analysis-filter"
             value={this.state[prop] ?? ""}
             onChange={this.updateValue}
-            onKeyPress={updateFilter}
+            onKeyDown={updateFilter}
           />
         </div>
       </React.Fragment>
