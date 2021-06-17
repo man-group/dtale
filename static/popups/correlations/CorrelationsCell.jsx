@@ -3,6 +3,8 @@ import numeral from "numeral";
 import PropTypes from "prop-types";
 import React from "react";
 
+import { SORT_CHARS } from "../../dtale/Header";
+
 const MAX_LABEL_LEN = 18;
 
 class CorrelationsCell extends React.Component {
@@ -11,12 +13,20 @@ class CorrelationsCell extends React.Component {
     this.renderHeader = this.renderHeader.bind(this);
   }
 
-  renderHeader(title) {
-    const { style } = this.props;
+  renderHeader(title, sortable = false) {
+    const { style, currSort, updateSort } = this.props;
     const props = _.size(title) >= MAX_LABEL_LEN ? { title } : {};
+    const className = `headerCell${sortable ? " pointer" : ""}`;
     return (
-      <div className="headerCell" style={_.assignIn(style, { fontSize: "10px" })} {...props}>
-        <div>{_.truncate(title, { length: MAX_LABEL_LEN })}</div>
+      <div
+        className={className}
+        style={_.assignIn(style, { fontSize: "10px" })}
+        {...props}
+        onClick={sortable ? () => updateSort(title) : _.noop}>
+        <div>
+          {sortable && currSort && currSort[0] == title && _.get(SORT_CHARS, currSort[1])}
+          {_.truncate(title, { length: MAX_LABEL_LEN })}
+        </div>
       </div>
     );
   }
@@ -27,7 +37,7 @@ class CorrelationsCell extends React.Component {
       if (columnIndex == 0) {
         return null;
       }
-      return this.renderHeader(_.isNull(col2) ? columns[columnIndex - 1].value : col2.value);
+      return this.renderHeader(_.isNull(col2) ? columns[columnIndex - 1].value : col2.value, true);
     }
     const row = correlations[rowIndex - 1];
     if (columnIndex == 0) {
@@ -90,6 +100,8 @@ CorrelationsCell.propTypes = {
   minPeriods: PropTypes.number,
   selectedCols: PropTypes.arrayOf(PropTypes.string),
   colorScale: PropTypes.func,
+  currSort: PropTypes.array,
+  updateSort: PropTypes.func,
 };
 
 export default CorrelationsCell;

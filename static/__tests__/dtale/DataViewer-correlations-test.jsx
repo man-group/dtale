@@ -12,7 +12,7 @@ import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 describe("DataViewer tests", () => {
-  let result, Correlations, ChartsBody;
+  let result, Correlations, CorrelationsGrid, ChartsBody;
   let testIdx = 0;
   const { location } = window;
   const dimensions = new DimensionsHelper({
@@ -43,6 +43,7 @@ describe("DataViewer tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
 
     Correlations = require("../../popups/Correlations").default;
+    CorrelationsGrid = require("../../popups/correlations/CorrelationsGrid").default;
     ChartsBody = require("../../popups/charts/ChartsBody").default;
   });
 
@@ -108,5 +109,18 @@ describe("DataViewer tests", () => {
     result.find(Correlations).instance().state.chart.cfg.options.onClick({});
     await tickUpdate(result);
     expect(window.location.reload).toHaveBeenCalled();
+  });
+
+  it("sorts correlations correctly", () => {
+    const grid = result.find(CorrelationsGrid);
+    grid.find("div.headerCell.pointer").first().simulate("click");
+    expect(grid.state().currSort).toEqual(["col1", "ASC"]);
+    grid.find("div.headerCell.pointer").first().simulate("click");
+    expect(grid.state().currSort).toEqual(["col1", "DESC"]);
+    grid.find("div.headerCell.pointer").first().simulate("click");
+    expect(grid.state().currSort).toBeNull();
+    grid.find("div.headerCell.pointer").first().simulate("click");
+    grid.find("div.headerCell.pointer").last().simulate("click");
+    expect(grid.state().currSort).toEqual(["col4", "ASC"]);
   });
 });

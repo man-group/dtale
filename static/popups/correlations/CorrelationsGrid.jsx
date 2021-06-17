@@ -18,8 +18,23 @@ import corrUtils from "./correlationsUtils";
 
 require("./CorrelationsGrid.css");
 
-function filterData({ col1, col2 }, data) {
-  let updatedData = data;
+function updateSort(currSort, col) {
+  if (currSort && currSort[0] === col) {
+    return currSort[1] === "DESC" ? null : [col, "DESC"];
+  }
+  return [col, "ASC"];
+}
+
+function sortData(data, sort) {
+  let sortedData = _.clone(data);
+  if (sort) {
+    sortedData = _.orderBy(sortedData, [sort[0]], [sort[1].toLowerCase()]);
+  }
+  return sortedData;
+}
+
+function filterData({ col1, col2 }, data, currSort) {
+  let updatedData = sortData(data, currSort);
   if (!_.isNull(col1)) {
     updatedData = _.filter(data, { column: col1.value });
   }
@@ -31,15 +46,13 @@ function filterData({ col1, col2 }, data) {
 
 function buildState({ correlations, columns, col1, col2 }, filter = true) {
   const state = {
-    correlations: _.clone(correlations),
     columns: _.map(columns, column => ({ value: column })),
     col1: col1 ? { value: col1 } : null,
     col2: col2 ? { value: col2 } : null,
     height: 300,
+    currSort: null,
   };
-  if (filter) {
-    state.correlations = filterData(state, correlations);
-  }
+  state.correlations = filter ? filterData(state, correlations) : _.clone(correlations);
   return state;
 }
 
@@ -48,12 +61,19 @@ class CorrelationsGrid extends React.Component {
     super(props);
     this.state = buildState(props, false);
     this._cellRenderer = this._cellRenderer.bind(this);
+    this.updateSort = this.updateSort.bind(this);
   }
 
   componentDidUpdate(prevProps) {
     if (!_.isEqual(this.props.correlations, prevProps.correlations)) {
       this.setState(buildState(this.props));
     }
+  }
+
+  updateSort(col) {
+    const updatedSort = updateSort(this.state.currSort, col);
+    const sortedData = sortData(this.props.correlations, updatedSort);
+    this.setState({ currSort: updatedSort, correlations: sortedData });
   }
 
   _cellRenderer(cellProps) {
@@ -70,12 +90,12 @@ class CorrelationsGrid extends React.Component {
       "colorScale",
     ]);
     const props = _.assignIn(mainProps, this.state, cellProps);
-    return <CorrelationsCell {...props} />;
+    return <CorrelationsCell {...props} updateSort={this.updateSort} />;
   }
 
   renderSelect(prop, otherProp) {
     const { correlations, t } = this.props;
-    const { columns } = this.state;
+    const { columns, currSort } = this.state;
     const finalOptions = _.isNull(this.state[otherProp]) ? columns : _.reject(columns, this.state[otherProp]);
     const onChange = selected => {
       const filterState = {
@@ -84,7 +104,7 @@ class CorrelationsGrid extends React.Component {
       };
       this.setState({
         [prop]: selected,
-        correlations: filterData(filterState, correlations),
+        correlations: filterData(filterState, correlations, currSort),
       });
     };
     return (
