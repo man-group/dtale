@@ -239,4 +239,4 @@ const ReduxHeader = connect(
   })
 )(TranslateReactHeader);
 
-export { ReduxHeader as Header, TranslateReactHeader as ReactHeader };
+export { ReduxHeader as Header, TranslateReactHeader as ReactHeader, SORT_CHARS };
