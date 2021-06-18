@@ -15,6 +15,7 @@ from dtale.utils import (
     apply,
     classify_type,
     find_dtype,
+    find_dtype_formatter,
     find_selected_column,
     get_int_arg,
     get_str_arg,
@@ -182,13 +183,15 @@ class HistogramAnalysis(object):
                 return_data["kde"] = kde
         else:
             return_data = {"targets": [], "labels": list(range(self.bins))}
+            target_dtype = find_dtype(parent.data[self.target])
+            target_formatter = find_dtype_formatter(target_dtype)
             for target, target_data in parent.data[
                 [self.target, parent.selected_col]
             ].groupby(self.target):
                 target_data, _ = self.build_histogram_data(
                     target_data[parent.selected_col]
                 )
-                target_data["target"] = target
+                target_data["target"] = target_formatter(target, as_string=True)
                 return_data["targets"].append(target_data)
 
         desc, desc_code = load_describe(parent.data[parent.selected_col])

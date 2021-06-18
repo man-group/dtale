@@ -311,7 +311,7 @@ function createPieCfg({ data, min, max }, { columns, x, y, additionalOptions, co
   const cfg = createBaseCfg({ data, min, max }, { columns, x, y, additionalOptions, configHandler }, seriesFormatter);
   cfg.type = "pie";
   delete cfg.options.scales;
-  delete cfg.options.tooltip;
+  delete cfg.options?.plugins?.tooltip;
   if (gu.isDateCol(_.find(columns, { name: x }).dtype)) {
     cfg.data.labels = _.map(cfg.data.labels, l => moment(new Date(l)).format("YYYY-MM-DD"));
   }
