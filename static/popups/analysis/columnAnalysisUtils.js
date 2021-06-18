@@ -40,7 +40,7 @@ function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
       ),
       datasets
     );
-    baseCfg.options.tooltip = { mode: "index", intersect: true };
+    baseCfg.options.plugins = { ...baseCfg.options.plugins, tooltip: { mode: "index", intersect: true } };
   }
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { x: xAxes, ...yAxes };
@@ -65,7 +65,7 @@ function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { x: xAxes, ...yAxes };
   baseCfg.options.scales["y-2"].ticks = { min: 0 };
-  baseCfg.options.tooltip = { mode: "index", intersect: true };
+  baseCfg.options.plugins = { ...baseCfg.options.plugins, tooltip: { mode: "index", intersect: true } };
 }
 
 function hexToRgb(hex) {
@@ -121,8 +121,11 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { ...xAxes, ...yAxes };
   baseCfg.options.scales.y.ticks = { min: 0 };
-  baseCfg.options.tooltip = { mode: "index", intersect: false };
-  baseCfg.options.plugins = { ...baseCfg.options.plugins, legend: { display: true } };
+  baseCfg.options.plugins = {
+    ...baseCfg.options.plugins,
+    legend: { display: true },
+    tooltip: { mode: "index", intersect: false, callbacks: { title: tooltipItems => `Bin ${tooltipItems[0].label}` } },
+  };
 }
 
 function createChart(ctx, fetchedData, chartOpts) {
