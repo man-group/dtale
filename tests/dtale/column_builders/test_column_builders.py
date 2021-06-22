@@ -122,6 +122,22 @@ def test_zscore_normalize():
 
 
 @pytest.mark.unit
+def test_cumsum():
+    def _data():
+        for i in range(100):
+            yield dict(a=1, i=i)
+
+    df = pd.DataFrame(list(_data()))
+
+    data_id, column_type = "1", "cumsum"
+    i = 0
+    build_data_inst({data_id: df})
+
+    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
+    verify_builder(builder, lambda col: col.max() == 4950)
+
+
+@pytest.mark.unit
 def test_string():
     df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
     data_id, column_type = "1", "string"

@@ -150,6 +150,7 @@
     "transform": "通过对另一列进行分组并应用聚合（求和，平均值，计数...）来转换一列的数值数据。",
     "winsorize": "通过用该组中的最大值替换等于或低于最低百分比的值，并用该组中的最小值替换等于或高于最高百分比的值，来删除列中的异常值。",
     "zscore_normalize": "通过将数字列转换为z分数来对其进行规范化。只需减去它的平均值，再除以它的标准差即可。",
+    "cumsum": "Calculate the cumulative sum of a column.",
     "cleaning": "使用不同的功能清除标点符号，数字和其他错误数据的字符串数据。",
     "diff": "使用Pandas的diff()函数计算行之间的差异。",
     "data_slope": "Calculate the slope (sequential increases/decreases) of a column based on the current order.",
