@@ -9,12 +9,20 @@ const toggleColumns = ({ columns }, columnsToToggle) => ({
   triggerResize: true,
 });
 
+const dropColumns = ({ columns }, columnsToDrop) => ({
+  columns: columns.filter(col => !_.includes(columnsToDrop, col.name)),
+  triggerResize: true,
+});
+
 export function handleReduxState(state, props, propagateState) {
   const { dataViewerUpdate, clearDataViewerUpdate } = props;
   if (dataViewerUpdate) {
     switch (dataViewerUpdate.type) {
       case "toggle-columns":
         propagateState(toggleColumns(state, dataViewerUpdate.columns), clearDataViewerUpdate);
+        break;
+      case "drop-columns":
+        propagateState(dropColumns(state, dataViewerUpdate.columns), clearDataViewerUpdate);
         break;
       case "update-state":
         propagateState(dataViewerUpdate.state, () => {

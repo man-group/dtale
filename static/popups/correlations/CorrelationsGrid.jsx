@@ -18,14 +18,14 @@ import corrUtils from "./correlationsUtils";
 
 require("./CorrelationsGrid.css");
 
-function updateSort(currSort, col) {
+export function updateSort(currSort, col) {
   if (currSort && currSort[0] === col) {
     return currSort[1] === "DESC" ? null : [col, "DESC"];
   }
   return [col, "ASC"];
 }
 
-function sortData(data, sort) {
+export function sortData(data, sort) {
   let sortedData = _.clone(data);
   if (sort) {
     sortedData = _.orderBy(sortedData, [sort[0]], [sort[1].toLowerCase()]);

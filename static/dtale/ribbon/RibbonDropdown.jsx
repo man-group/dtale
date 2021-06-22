@@ -13,6 +13,7 @@ import BuildColumnOption from "../menu/BuildColumnOption";
 import ChartsOption from "../menu/ChartsOption";
 import CleanColumn from "../menu/CleanOption";
 import CodeExportOption from "../menu/CodeExportOption";
+import CorrelationAnalysisOption from "../menu/CorrelationAnalysisOption";
 import CorrelationsOption from "../menu/CorrelationsOption";
 import DescribeOption from "../menu/DescribeOption";
 import DuplicatesOption from "../menu/DuplicatesOption";
@@ -176,6 +177,7 @@ class ReactRibbonDropdown extends React.Component {
             <CleanColumn open={hideWrapper(buttonHandlers.CLEAN)} />
             <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank"))} />
             <SummarizeOption open={hideWrapper(openPopup("reshape", 400, 770))} />
+            <CorrelationAnalysisOption open={hideWrapper(() => this.props.showSidePanel("corr_analysis"))} />
           </ul>
         )}
         {name === "visualize" && visible && (

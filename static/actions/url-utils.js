@@ -77,6 +77,10 @@ function cleanupEndpoint(endpoint) {
   return endpoint;
 }
 
+function corrAnalysisUrl(dataId) {
+  return `/dtale/corr-analysis/${dataId}`;
+}
+
 export {
   buildURLParams,
   buildURLString,
@@ -90,4 +94,5 @@ export {
   varianceUrl,
   sequentialDiffsUrl,
   cleanupEndpoint,
+  corrAnalysisUrl,
 };

@@ -186,6 +186,15 @@ function loadFilteredRanges(dataId, callback) {
     });
 }
 
+function deleteCols(dataId, cols) {
+  fetchJson(
+    buildURLString(`/dtale/delete-col/${dataId}`, {
+      cols: JSON.stringify(cols),
+    }),
+    _.noop
+  );
+}
+
 export default {
   moveToFront: (selectedCol, props) => moveTo(selectedCol, props, "front"),
   moveToBack: (selectedCol, props) => moveTo(selectedCol, props, "back"),
@@ -197,7 +206,8 @@ export default {
     persistVisibility(dataId, { visibility: JSON.stringify(visibility) }, callback),
   toggleVisibility: (dataId, toggle, callback) => persistVisibility(dataId, { toggle }, callback),
   updateSettings,
-  deleteColumn: (dataId, col) => () => fetchJson(buildURLString(`/dtale/delete-col/${dataId}`, { col }), _.noop),
+  deleteColumn: (dataId, col) => () => deleteCols(dataId, [col]),
+  deleteColumns: (dataId, cols) => () => deleteCols(dataId, cols),
   renameColumn,
   updateFormats,
   editCell,

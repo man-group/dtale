@@ -107,10 +107,11 @@ describe("DataViewer iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Open In New Tab", "XArray Dimensions", "Describe", "Custom Filter", "show_hide", "Build Column"],
-        ["Clean Column", "Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis", "Correlations"],
-        ["Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes", "Highlight Missing"],
-        ["Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1", "Code Export", "Export"],
-        ["Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Pin menu", "Language", "Shutdown"]
+        ["Clean Column", "Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis", "Correlation Analysis"],
+        ["Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes"],
+        ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
+        ["Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme", "Reload Data", "Pin menu"],
+        ["Language", "Shutdown"]
       )
     );
   });

@@ -10,7 +10,7 @@ import * as gu from "../../dtale/gridUtils";
 
 require("./DtypesGrid.css");
 
-class SortIndicator extends React.Component {
+export class SortIndicator extends React.Component {
   render() {
     const { sortDirection, sortBy, dataKey } = this.props;
     if (sortBy !== dataKey || _.isNull(sortDirection)) {
@@ -36,24 +36,24 @@ SortIndicator.propTypes = {
   dataKey: PropTypes.string,
 };
 
-function sortDtypes(dtypes, sortBy, sortDirection) {
-  return _.orderBy(dtypes, [sortBy], [sortDirection.toLowerCase()]);
+function sortData(data, sortBy, sortDirection) {
+  return _.orderBy(data, [sortBy], [sortDirection.toLowerCase()]);
 }
 
-function buildSortDtypesState(state, { sortDirection, sortBy }) {
+export function buildSortedState(state, { sortDirection, sortBy }, dataProp = "dtypes") {
   let finalSort = sortDirection;
   if (sortBy == state.sortBy && state.sortDirection === "DESC") {
     finalSort = "NONE";
   }
   if (finalSort === "NONE") {
     return {
-      dtypes: sortDtypes(state.dtypes, "index", "ASC"),
+      [dataProp]: sortData(state[dataProp], "index", "ASC"),
       sortDirection: finalSort,
       sortBy,
     };
   }
   return {
-    dtypes: sortDtypes(state.dtypes, sortBy, sortDirection),
+    [dataProp]: sortData(state[dataProp], sortBy, sortDirection),
     sortDirection: finalSort,
     sortBy,
   };
@@ -65,7 +65,7 @@ function filterDtypes({ dtypes, dtypesFilter, sortDirection, sortBy }) {
     const substrLower = dtypesFilter.toLowerCase();
     filteredDtypes = _.filter(dtypes, ({ name }) => _.includes(name.toLowerCase(), substrLower));
   }
-  return sortDtypes(filteredDtypes, sortBy, sortDirection);
+  return sortData(filteredDtypes, sortBy, sortDirection);
 }
 
 class DtypesGrid extends React.Component {
@@ -178,7 +178,7 @@ class DtypesGrid extends React.Component {
             rowGetter={({ index }) => currDtypes[index]}
             rowCount={_.size(currDtypes)}
             rowClassName={this._rowClass}
-            sort={state => this.setState(buildSortDtypesState(this.state, state))}
+            sort={state => this.setState(buildSortedState(this.state, state))}
             sortBy={sortBy}
             sortDirection={sortDirection === "NONE" ? null : sortDirection}
             width={width}
