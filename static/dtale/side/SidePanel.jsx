@@ -12,6 +12,7 @@ import { DescribePanel } from "./DescribePanel";
 import { MissingNoCharts } from "./MissingNoCharts";
 import { Panel as PredefinedFilters } from "./predefined_filters/Panel";
 import * as panelUtils from "./sidePanelUtils";
+import { CorrelationAnalysis } from "./CorrelationAnalysis";
 
 require("./SidePanel.scss");
 
@@ -32,6 +33,9 @@ class ReactSidePanel extends React.Component {
   componentDidUpdate(prevProps) {
     if (this.props.view !== prevProps.view) {
       this.setState({ offset: undefined });
+    }
+    if (!this.props.visible) {
+      this.panel.current?.style.removeProperty("width");
     }
   }
 
@@ -73,6 +77,7 @@ class ReactSidePanel extends React.Component {
         {visible && <GlobalHotKeys keyMap={{ CLOSE_PANEL: "esc" }} handlers={{ CLOSE_PANEL: hideSidePanel }} />}
         <DescribePanel />
         {visible && view === "missingno" && <MissingNoCharts />}
+        {visible && view === "corr_analysis" && <CorrelationAnalysis />}
         {visible && view === "correlations" && (
           <Correlations dataId={dataId} chartData={{ visible: true, query: "" }} />
         )}

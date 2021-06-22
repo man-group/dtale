@@ -52,7 +52,8 @@
     "show_hide": "Show/Hide Columns",
     "Predefined Filters": "Predefined Filters",
     "Max Width": "Max Width",
-    "Show All Heatmap Columns": "Show All Heatmap Columns"
+    "Show All Heatmap Columns": "Show All Heatmap Columns",
+    "Correlation Analysis": "Correlation Analysis"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -94,7 +95,8 @@
     "missingno": "Analyze the presence of missing data (NaN) using the \"missingno\" package.",
     "predefined_filters": "Apply any \"Predefined Filters\" to your data. You would have loaded these using the \"dtale.predefined_filters.set_filters\" or \"dtale.predefined_filters.add_filters\" functions.",
     "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value.",
-    "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting."
+    "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting.",
+    "corr_analysis": "Remove columns based on their correlations with other columns in your dataset. If there is a strong correlation amongst some columns then maybe they aren't relevant to keep around?"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -924,5 +926,16 @@
     "Current Value": "Current Value",
     "Edit": "Edit",
     "Save": "Save"
+  },
+  "corr_analysis": {
+    "Keep": "Keep",
+    "Column": "Column",
+    "Max Correlation": "Max Correlation",
+    "Correlations": "Correlations",
+    "Above Threshold": "Above Threshold",
+    "Missing Rows": "Missing Rows",
+    "Threshold": "Threshold",
+    "Drop Columns": "Drop Columns",
+    "Drop Unselected Columns": "Drop Unselected Columns"
   }
 }

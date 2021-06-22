@@ -13,6 +13,7 @@ import BuildColumnOption from "./BuildColumnOption";
 import ChartsOption from "./ChartsOption";
 import CleanColumn from "./CleanOption";
 import CodeExportOption from "./CodeExportOption";
+import CorrelationAnalysisOption from "./CorrelationAnalysisOption";
 import CorrelationsOption from "./CorrelationsOption";
 import DescribeOption from "./DescribeOption";
 import DuplicatesOption from "./DuplicatesOption";
@@ -97,6 +98,7 @@ class ReactDataViewerMenu extends React.Component {
             <SummarizeOption open={openPopup("reshape", 400, 770)} />
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
             <MissingOption open={() => this.props.showSidePanel("missingno")} />
+            <CorrelationAnalysisOption open={() => this.props.showSidePanel("corr_analysis")} />
             <CorrelationsOption open={() => this.props.showSidePanel("correlations")} />
             <PPSOption open={() => this.props.showSidePanel("pps")} />
             <ChartsOption open={buttonHandlers.CHARTS} />

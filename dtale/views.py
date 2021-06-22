@@ -28,6 +28,7 @@ import xarray as xr
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from six import BytesIO, string_types, StringIO
 
+import dtale.correlations as correlations
 import dtale.datasets as datasets
 import dtale.env_util as env_util
 import dtale.global_state as global_state
@@ -2053,17 +2054,21 @@ def toggle_outlier_filter(data_id):
 @dtale.route("/delete-col/<data_id>")
 @exception_decorator
 def delete_col(data_id):
-    column = get_str_arg(request, "col")
+    columns = get_json_arg(request, "cols")
     data = global_state.get_data(data_id)
-    data = data[[c for c in data.columns if c != column]]
+    data = data[[c for c in data.columns if c not in columns]]
     curr_history = global_state.get_history(data_id) or []
-    curr_history += ["df = df[[c for c in df.columns if c != '{}']]".format(column)]
+    curr_history += [
+        "df = df[[c for c in df.columns if c not in ['{}']]]".format(
+            "','".join(columns)
+        )
+    ]
     global_state.set_history(data_id, curr_history)
     dtypes = global_state.get_dtypes(data_id)
-    dtypes = [dt for dt in dtypes if dt["name"] != column]
+    dtypes = [dt for dt in dtypes if dt["name"] not in columns]
     curr_settings = global_state.get_settings(data_id)
     curr_settings["locked"] = [
-        c for c in curr_settings.get("locked", []) if c != column
+        c for c in curr_settings.get("locked", []) if c not in columns
     ]
     global_state.set_data(data_id, data)
     global_state.set_dtypes(data_id, dtypes)
@@ -2426,29 +2431,13 @@ def get_correlations(data_id):
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
     )
-    valid_corr_cols = []
-    valid_str_corr_cols = []
-    encode_strings = get_bool_arg(request, "encodeStrings")
-    valid_date_cols = []
-    for col_info in global_state.get_dtypes(data_id):
-        name, dtype = map(col_info.get, ["name", "dtype"])
-        dtype = classify_type(dtype)
-        if dtype in ["I", "F"]:
-            valid_corr_cols.append(name)
-        elif dtype == "S" and col_info.get("unique_ct", 0) <= 50:
-            valid_str_corr_cols.append(name)
-        elif dtype == "D":
-            # even if a datetime column exists, we need to make sure that there is enough data for a date
-            # to warrant a correlation, https://github.com/man-group/dtale/issues/43
-            date_counts = data[name].dropna().value_counts()
-            if len(date_counts[date_counts > 1]) > 1:
-                valid_date_cols.append(dict(name=name, rolling=False))
-            elif date_counts.eq(1).all():
-                valid_date_cols.append(dict(name=name, rolling=True))
+    valid_corr_cols, valid_str_corr_cols, valid_date_cols = correlations.get_col_groups(
+        data_id, data
+    )
 
     str_encodings_code = ""
     dummy_col_mappings = {}
-    if encode_strings and valid_str_corr_cols:
+    if get_bool_arg(request, "encodeStrings") and valid_str_corr_cols:
         data = data[valid_corr_cols + valid_str_corr_cols]
         for str_col in valid_str_corr_cols:
             dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
@@ -2482,38 +2471,13 @@ def get_correlations(data_id):
         )
 
         data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
-    elif data[valid_corr_cols].isnull().values.any():
-        data = data.corr(method="pearson")
-        code = build_code_export(data_id)
-        code.append(
-            (
-                "corr_cols = [\n"
-                "\t'{corr_cols}'\n"
-                "]\n"
-                "corr_data = df[corr_cols]\n"
-                "{str_encodings}"
-                "corr_data = corr_data.corr(method='pearson')"
-            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
-        )
     else:
-        # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
-        # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
-        data = np.corrcoef(data[valid_corr_cols].values, rowvar=False)
-        data = pd.DataFrame(data, columns=valid_corr_cols, index=valid_corr_cols)
-        code = build_code_export(
-            data_id, imports="import numpy as np\nimport pandas as pd\n\n"
-        )
-        code.append(
-            (
-                "corr_cols = [\n"
-                "\t'{corr_cols}'\n"
-                "]\n"
-                "corr_data = df[corr_cols]\n"
-                "{str_encodings}"
-                "corr_data = np.corrcoef(corr_data.values, rowvar=False)\n"
-                "corr_data = pd.DataFrame(corr_data, columns=[corr_cols], index=[corr_cols])"
-            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
-        )
+        data, matrix_code = correlations.build_matrix(data_id, data, valid_corr_cols)
+        code = [
+            matrix_code.format(
+                corr_cols=corr_cols_str, str_encodings=str_encodings_code
+            )
+        ]
 
     code.append(
         "corr_data.index.name = str('column')\ncorr_data = corr_data.reset_index()"
@@ -2530,6 +2494,15 @@ def get_correlations(data_id):
         dummyColMappings=dummy_col_mappings,
         code=code,
         pps=pps_data,
+    )
+
+
+@dtale.route("/corr-analysis/<data_id>")
+@exception_decorator
+def get_corr_analysis(data_id):
+    column_name, max_score, corrs, ranks = correlations.get_analysis(data_id)
+    return jsonify(
+        column_name=column_name, max_score=max_score, corrs=corrs, ranks=ranks
     )
 
 
