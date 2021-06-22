@@ -3,6 +3,7 @@ import React from "react";
 
 import { default as CreateBins, validateBinsCfg } from "./CreateBins";
 import { default as CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
+import { default as CreateCumsum, validateCumsumCfg } from "./CreateCumsum";
 import { default as CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
 import { default as CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { default as CreateDiff, validateDiffCfg } from "./CreateDiff";
@@ -20,12 +21,14 @@ import { default as CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsor
 import { default as CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
 
 export const TYPES = _.concat(
-  ["numeric", "string", "bins", "datetime", "random", "type_conversion", "transform", "winsorize", "zscore_normalize"],
-  ["similarity", "standardize", "encoder", "cleaning", "diff", "data_slope", "rolling", "exponential_smoothing"]
+  ["numeric", "string", "bins", "datetime", "random", "type_conversion", "cumsum", "transform", "winsorize"],
+  ["zscore_normalize", "similarity", "standardize", "encoder", "cleaning", "diff", "data_slope", "rolling"],
+  ["exponential_smoothing"]
 );
 export const LABELS = {
   zscore_normalize: "Z-Score Normalize",
   diff: "Row Difference",
+  cumsum: "Cumulative Sum",
 };
 
 export function buildLabel(v) {
@@ -59,6 +62,8 @@ export function validateCfg(t, type, cfg) {
       return validateWinsorizeCfg(t, cfg);
     case "zscore_normalize":
       return validateZScoreNormalizeCfg(t, cfg);
+    case "cumsum":
+      return validateCumsumCfg(t, cfg);
     case "numeric":
       return validateNumericCfg(t, cfg);
     case "cleaning":
@@ -75,6 +80,7 @@ export function validateCfg(t, type, cfg) {
   return null;
 }
 
+// eslint-disable-next-line complexity
 export function getBody(state, props, updateState) {
   switch (state.type) {
     case "numeric":
@@ -107,6 +113,8 @@ export function getBody(state, props, updateState) {
       return <CreateWinsorize {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "zscore_normalize":
       return <CreateZScoreNormalize {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "cumsum":
+      return <CreateCumsum {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "cleaning":
       return (
         <CreateCleaning

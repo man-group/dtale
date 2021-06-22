@@ -508,7 +508,13 @@ def test_delete_cols():
             query_string=dict(cols=json.dumps(delete_cols)),
         )
         assert (
-            len([c for c in global_state.get_data(c.port).columns if c in delete_cols])
+            len(
+                [
+                    col
+                    for col in global_state.get_data(c.port).columns
+                    if col in delete_cols
+                ]
+            )
             == 0
         )
         assert (

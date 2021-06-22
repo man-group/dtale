@@ -61,6 +61,8 @@ class ColumnBuilder(object):
             self.builder = RollingBuilder(name, cfg)
         elif column_type == "exponential_smoothing":
             self.builder = ExponentialSmoothingBuilder(name, cfg)
+        elif column_type == "cumsum":
+            self.builder = CumsumColumnBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -1312,3 +1314,25 @@ class ExponentialSmoothingBuilder(object):
                 name=self.name
             ),
         ]
+
+
+class CumsumColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col = self.cfg.get("col")
+        return pd.Series(
+            data[col].cumsum(axis=0),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        col = self.cfg.get("col")
+        return (
+            "df.loc[:, '{name}'] = pd.Series(\n"
+            "\t(data['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
+            ")"
+        ).format(name=self.name, col=col)
