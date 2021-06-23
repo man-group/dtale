@@ -48,6 +48,7 @@ AGGS = dict(
     pctct="Count (Percentage)",
     pctsum="Percentage Sum",
 )
+INDEX_COL = "__index__"
 
 CHART_POINTS_LIMIT = (
     "In order to adjust the limitation on the amount of points in charts please update your startup code that "
@@ -332,6 +333,14 @@ def retrieve_chart_data(df, *args, **kwargs):
     cols = flatten_lists([make_list(a) for a in args])
     all_code = []
     all_data = []
+
+    if INDEX_COL in cols:
+        cols = [col for col in cols if col != INDEX_COL]
+        all_data.append(pd.Series(df.index, index=df.index, name="__index__"))
+        all_code.append(
+            "\tpd.Series(df.index, index=df.index, name='{}'),".format(INDEX_COL)
+        )
+
     for col in cols:
         if col is not None:
             s, code = freq_handler(col)
