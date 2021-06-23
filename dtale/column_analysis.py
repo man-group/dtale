@@ -7,7 +7,7 @@ import scipy.stats as sts
 
 import dtale.global_state as global_state
 
-from dtale.code_export import build_code_export, CHART_EXPORT_CODE
+from dtale.code_export import build_code_export, build_final_chart_code
 from dtale.column_builders import clean, clean_code
 from dtale.describe import load_describe
 from dtale.query import build_query, handle_predefined, run_query
@@ -139,7 +139,7 @@ class ColumnAnalysis(object):
         )
         return_data, code = self.analysis.build(self)
         return dict(
-            code="\n".join(base_code + code + [CHART_EXPORT_CODE]),
+            code=build_final_chart_code(base_code + code),
             query=self.query,
             cols=global_state.get_dtypes(self.data_id),
             dtype=self.dtype,

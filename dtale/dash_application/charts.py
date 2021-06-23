@@ -1391,7 +1391,9 @@ def bar_code_builder(
         else:
             chart_cfg += base_chart_cfg
         chart_cfg = ",\n".join(map(lambda cc: "\t{}".format(cc), chart_cfg))
-        code.append("charts.append(go.Bar(\n{chart_cfg}\n)".format(chart_cfg=chart_cfg))
+        code.append(
+            "charts.append(go.Bar(\n{chart_cfg}\n))".format(chart_cfg=chart_cfg)
+        )
 
     layout_cfg = build_layout(dict_merge(title, axes, dict(barmode=barmode or "group")))
     code.append(
