@@ -122,8 +122,8 @@ def test_build_x_dropdown():
         params["inputs"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.get_json()["response"]["drilldown-x-dropdown-1"]
-        assert len(response["options"]) == 11
-        assert response["options"][0] == {"label": "a", "value": "a"}
+        assert len(response["options"]) == 12
+        assert response["options"][0] == {"label": "__index__", "value": "__index__"}
         assert response["options"][-1] == {"label": "e", "value": "e"}
         assert response["value"] == "a"
 

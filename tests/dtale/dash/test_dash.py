@@ -77,7 +77,7 @@ def test_display_page(unittest):
         x_dd = x_dd["props"]["children"][0]
         x_dd_options = x_dd["props"]["children"][1]["props"]["options"]
         unittest.assertEqual(
-            [dict(label=v, value=v) for v in ["a", "b", "c"]], x_dd_options
+            [dict(label=v, value=v) for v in ["__index__", "a", "b", "c"]], x_dd_options
         )
 
 
@@ -277,6 +277,7 @@ def test_input_changes(unittest):
         unittest.assertEqual(
             resp_data["response"]["x-dropdown"]["options"],
             [
+                {"label": "__index__", "value": "__index__"},
                 {"label": "a", "value": "a"},
                 {"label": "b", "value": "b"},
                 {"label": "c", "value": "c"},
@@ -1362,9 +1363,19 @@ def test_chart_building_bar_and_popup(unittest):
             },
         )
 
+        inputs["agg"] = None
+        inputs["y"] = "__index__"
+        params = build_chart_params(c.port, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            "pd.Series(df.index, index=df.index, name='__index__')"
+            in resp_data["chart-code"]["value"]
+        )
+
+        inputs["y"] = ["b", "c"]
         chart_inputs["barmode"] = "group"
         chart_inputs["barsort"] = "b"
-        inputs["agg"] = None
         params = build_chart_params(c.port, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]

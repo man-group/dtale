@@ -4,6 +4,7 @@ import dash_core_components as dcc
 
 from dtale.translations import text
 from dtale.utils import dict_merge, classify_type, flatten_lists, make_list
+from dtale.charts.utils import INDEX_COL
 
 
 def show_style(show, display_style="block"):
@@ -69,6 +70,7 @@ def build_cols(cols, dtypes):
     :type dtypes: dict
     :return: generator or columns + any additional (datetime column + frequency) options
     """
+    yield INDEX_COL, INDEX_COL
     for c in cols:
         if classify_type(dtypes[c]) == "D":
             for freq in FREQS:
