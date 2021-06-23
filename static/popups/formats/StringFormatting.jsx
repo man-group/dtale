@@ -4,7 +4,7 @@ import React from "react";
 import Modal from "react-bootstrap/Modal";
 import { withTranslation } from "react-i18next";
 
-const BASE_FMT = { truncate: null, link: false };
+const BASE_FMT = { truncate: null, link: false, html: false };
 
 class StringFormatting extends React.Component {
   constructor(props) {
@@ -15,6 +15,12 @@ class StringFormatting extends React.Component {
   }
 
   updateState(fmt) {
+    if (fmt.html) {
+      fmt.link = false;
+    }
+    if (fmt.link) {
+      fmt.html = false;
+    }
     const localFmt = { ...this.state.fmt, ...fmt };
     const parentFmt = { ...localFmt };
     if (parentFmt.truncate && !parseInt(parentFmt.truncate)) {
@@ -31,11 +37,20 @@ class StringFormatting extends React.Component {
     return (
       <Modal.Body>
         <div className="form-group row mb-2">
-          <label className="col-md-4 col-form-label text-right">{t("Render as Hyperlink?")}</label>
+          <label className="col-md-4 col-form-label text-right">{t("Render as Hyperlink")}?</label>
           <div className="col-md-8 mt-auto mb-auto">
             <i
               className={`ico-check-box${fmt.link ? "" : "-outline-blank"} pointer`}
               onClick={() => this.updateState({ link: !fmt.link })}
+            />
+          </div>
+        </div>
+        <div className="form-group row mb-2">
+          <label className="col-md-4 col-form-label text-right">{t("Render as HTML")}?</label>
+          <div className="col-md-8 mt-auto mb-auto">
+            <i
+              className={`ico-check-box${fmt.html ? "" : "-outline-blank"} pointer`}
+              onClick={() => this.updateState({ html: !fmt.html })}
             />
           </div>
         </div>

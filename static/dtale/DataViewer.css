@@ -144,3 +144,17 @@ body,
 .is-pinned .main-grid {
   width: calc(100vw - 15.2em) !important;
 }
+
+.cell img {
+  height: 25px;
+}
+
+.cell img:hover {
+  position: fixed;
+  width: 500px;
+  height: auto;
+  display: block;
+  z-index: 999;
+  border-radius: 0.25rem;
+  border: 1px solid #a7b3b7;
+}

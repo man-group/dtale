@@ -62,7 +62,15 @@ describe("DataViewer tests", () => {
     expect(result.find(StringFormatting).length).toBe(1);
     const linkToggle = result.find(StringFormatting).find("div.form-group").at(0).find("i");
     linkToggle.simulate("click");
-    const input = result.find(StringFormatting).find("div.form-group").at(1).find("input");
+    expect(result.find(StringFormatting).state().fmt).toMatchObject(
+      expect.objectContaining({ link: true, html: false })
+    );
+    const htmlToggle = result.find(StringFormatting).find("div.form-group").at(1).find("i");
+    htmlToggle.simulate("click");
+    expect(result.find(StringFormatting).state().fmt).toMatchObject(
+      expect.objectContaining({ link: false, html: true })
+    );
+    const input = result.find(StringFormatting).find("div.form-group").at(2).find("input");
     input.simulate("change", { target: { value: "2" } });
     expect(result.find(StringFormatting).find("div.row").last().text()).toBe(
       "Raw:I am a long piece of text, please truncate me.Truncated:..."
