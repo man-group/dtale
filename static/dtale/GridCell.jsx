@@ -96,6 +96,8 @@ class ReactGridCell extends React.Component {
             {value}
           </a>
         );
+      } else if (_.get(gridState, ["columnFormats", colCfg.name, "fmt", "html"]) === true) {
+        value = <div dangerouslySetInnerHTML={{ __html: value }} />;
       }
     }
     return (

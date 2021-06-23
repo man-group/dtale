@@ -642,7 +642,8 @@
     "Numeral.js Format": "Numeral.js Format",
     "EX": "EX",
     "I am a long piece of text, please truncate me.": "I am a long piece of text, please truncate me.",
-    "Render as Hyperlink?": "Render as Hyperlink?",
+    "Render as Hyperlink": "Render as Hyperlink",
+    "Render as HTML": "Render as HTML",
     "Truncation": "Truncation",
     "Truncated": "Truncated"
   },
