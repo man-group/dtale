@@ -19,7 +19,7 @@ from dtale.charts.utils import (
     NON_EXT_AGGREGATION,
     build_final_cols,
 )
-from dtale.code_export import CHART_EXPORT_CODE
+from dtale.code_export import build_final_chart_code
 from dtale.dash_application.charts import (
     build_chart,
     chart_url_params,
@@ -868,7 +868,7 @@ def init_callbacks(dash_app):
             charts,
             all_inputs,
             range_data,
-            "\n".join(make_list(code) + [CHART_EXPORT_CODE]),
+            build_final_chart_code(code),
             get_yaxis_type_tabs(final_cols),
             load_clicks,
             dict(display="block" if valid_chart(**all_inputs) else "none"),

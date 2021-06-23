@@ -1,6 +1,6 @@
 import dtale.global_state as global_state
 
-from dtale.utils import triple_quote
+from dtale.utils import make_list, triple_quote
 
 CHART_EXPORT_CODE = (
     "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n"
@@ -11,6 +11,26 @@ CHART_EXPORT_CODE = (
     "# chart.pop('id', None) # for some reason iplot does not like 'id'\n"
     "# iplot(chart)"
 )
+
+CHARTS_EXPORT_CODE = (
+    "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n"
+    "#\n"
+    "# from plotly.offline import iplot, init_notebook_mode\n"
+    "#\n"
+    "# init_notebook_mode(connected=True)\n"
+    "# for chart in charts:\n"
+    "#     chart.pop('id', None) # for some reason iplot does not like 'id'\n"
+    "# iplot(figure)"
+)
+
+
+def build_final_chart_code(code):
+    is_charts = (
+        next((c for c in make_list(code) if c == "charts = []"), None) is not None
+    )
+    return "\n".join(
+        make_list(code) + [CHARTS_EXPORT_CODE if is_charts else CHART_EXPORT_CODE]
+    )
 
 
 def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
