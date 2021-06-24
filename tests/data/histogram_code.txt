@@ -35,5 +35,6 @@ figure = go.Figure(data=charts, layout=go.Layout({
 # from plotly.offline import iplot, init_notebook_mode
 #
 # init_notebook_mode(connected=True)
-# chart.pop('id', None) # for some reason iplot does not like 'id'
-# iplot(chart)
+# for chart in charts:
+#     chart.pop('id', None) # for some reason iplot does not like 'id'
+# iplot(figure)

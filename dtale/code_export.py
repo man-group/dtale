@@ -26,7 +26,15 @@ CHARTS_EXPORT_CODE = (
 
 def build_final_chart_code(code):
     is_charts = (
-        next((c for c in make_list(code) if c == "charts = []"), None) is not None
+        next(
+            (
+                c
+                for c in make_list(code)
+                if c.startswith("figure = go.Figure(data=charts,")
+            ),
+            None,
+        )
+        is not None
     )
     return "\n".join(
         make_list(code) + [CHARTS_EXPORT_CODE if is_charts else CHART_EXPORT_CODE]
