@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.50.1 (2021-6-24)
+* [#520](https://github.com/man-group/dtale/issues/520): additional code export update
+
 ### 1.50.0 (2021-6-23)
 * [#515](https://github.com/man-group/dtale/issues/515): adding dataframe.index() to chart axis
 * [#520](https://github.com/man-group/dtale/issues/520): wrong indent in chart code export
