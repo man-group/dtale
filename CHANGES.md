@@ -1,5 +1,17 @@
 ## Changelog
 
+### 1.50.0 (2021-6-23)
+* [#515](https://github.com/man-group/dtale/issues/515): adding dataframe.index() to chart axis
+* [#520](https://github.com/man-group/dtale/issues/520): wrong indent in chart code export
+* [#519](https://github.com/man-group/dtale/issues/519): display raw HTML
+* [#518](https://github.com/man-group/dtale/issues/518): cumulative sum builder
+* [#517](https://github.com/man-group/dtale/issues/517): keep less correlated columns
+* [#514](https://github.com/man-group/dtale/issues/514): targeted histogram fixes
+* [#493](https://github.com/man-group/dtale/issues/493): Correlations grid sorting
+* [#505](https://github.com/man-group/dtale/issues/505): Filtering enhancements
+* [#484](https://github.com/man-group/dtale/issues/484): renamed "Percentage Count" to "Count (Percentage)"
+* [#503](https://github.com/man-group/dtale/issues/503): add separate option for "Clean Column" to main menu
+
 ### 1.49.0 (2021-6-9)
 * bump css-what from 5.0.0 to 5.0.1
 * added the ability to toggle the display of all columns when heatmap is turned on
