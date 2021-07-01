@@ -1,3 +1,4 @@
+import json
 import os
 
 from six.moves.configparser import ConfigParser
@@ -68,6 +69,9 @@ def load_app_settings(config):
     max_column_width = get_config_val(
         config, curr_app_settings, "max_column_width", section="app", getter="getint"
     )
+    max_row_height = get_config_val(
+        config, curr_app_settings, "max_row_height", section="app", getter="getint"
+    )
     main_title = get_config_val(config, curr_app_settings, "main_title", section="app")
     main_title_font = get_config_val(
         config, curr_app_settings, "main_title_font", section="app"
@@ -81,6 +85,7 @@ def load_app_settings(config):
             github_fork=github_fork,
             hide_shutdown=hide_shutdown,
             max_column_width=max_column_width,
+            max_row_height=max_row_height,
             main_title=main_title,
             main_title_font=main_title_font,
         )
@@ -141,6 +146,7 @@ def build_show_options(options=None):
         precision=2,
         show_columns=None,
         hide_columns=None,
+        column_formats=None,
     )
     config_options = {}
     config = get_config()
@@ -191,6 +197,13 @@ def build_show_options(options=None):
         )
         if config_options["hide_columns"]:
             config_options["hide_columns"] = config_options["hide_columns"].split(",")
+        config_options["column_formats"] = get_config_val(
+            config, defaults, "column_formats"
+        )
+        if config_options["column_formats"]:
+            config_options["column_formats"] = json.loads(
+                config_options["column_formats"]
+            )
 
     return dict_merge(defaults, config_options, options)
 

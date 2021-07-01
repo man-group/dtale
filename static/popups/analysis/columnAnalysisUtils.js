@@ -121,11 +121,13 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
   baseCfg.data.datasets = datasets;
   baseCfg.options.scales = { ...xAxes, ...yAxes };
   baseCfg.options.scales.y.ticks = { min: 0 };
-  baseCfg.options.plugins = {
-    ...baseCfg.options.plugins,
-    legend: { display: true },
-    tooltip: { mode: "index", intersect: false, callbacks: { title: tooltipItems => `Bin ${tooltipItems[0].label}` } },
+  const tooltip = {
+    mode: "index",
+    intersect: false,
+    callbacks: { title: tooltipItems => `Bin ${tooltipItems[0].label}` },
+    itemSort: (a, b) => b.raw - a.raw,
   };
+  baseCfg.options.plugins = { ...baseCfg.options.plugins, legend: { display: true }, tooltip };
 }
 
 function createChart(ctx, fetchedData, chartOpts) {
