@@ -66,6 +66,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=True,
+            columnFormats=None,
             locked=["date", "security_id"],
             precision=2,
         ),
@@ -88,6 +89,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=False,
+            columnFormats=None,
             locked=[],
             precision=6,
         ),
@@ -102,6 +104,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=True,
+            columnFormats=None,
             locked=["security_id"],
             precision=2,
         ),
@@ -113,7 +116,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.get_settings(instance._data_id),
-        dict(allow_cell_edits=True, locked=[], precision=2),
+        dict(allow_cell_edits=True, locked=[], precision=2, columnFormats=None),
         "should lock index columns",
     )
 
@@ -122,7 +125,7 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.get_settings(instance._data_id),
-        dict(allow_cell_edits=True, locked=[], precision=2),
+        dict(allow_cell_edits=True, locked=[], precision=2, columnFormats=None),
         "should lock index columns",
     )
 
@@ -2700,6 +2703,25 @@ def test_update_max_column_width():
 
             c.get("/dtale/update-maximum-column-width", query_string={"width": 100})
             assert app_settings["max_column_width"] == 100
+
+
+@pytest.mark.unit
+def test_update_max_row_height():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3, 4, 5]))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            app_settings = {}
+            stack.enter_context(
+                mock.patch("dtale.global_state.APP_SETTINGS", app_settings)
+            )
+
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+
+            c.get("/dtale/update-maximum-row-height", query_string={"height": 100})
+            assert app_settings["max_row_height"] == 100
 
 
 @pytest.mark.unit

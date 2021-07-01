@@ -5,7 +5,7 @@ import React from "react";
 import { Bouncer } from "../Bouncer";
 import { BouncerWrapper } from "../BouncerWrapper";
 import { RemovableError } from "../RemovableError";
-import actions from "../actions/dtale";
+import * as actions from "../actions/dtale";
 import { buildURL } from "../actions/url-utils";
 import chartUtils from "../chartUtils";
 import { fetchJson } from "../fetcher";

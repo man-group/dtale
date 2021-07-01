@@ -6,7 +6,7 @@ import { withTranslation } from "react-i18next";
 import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
 import { RemovableError } from "../../RemovableError";
-import actions from "../../actions/dtale";
+import * as actions from "../../actions/dtale";
 import { buildURLString, describeUrl, outliersUrl, toggleOutlierFilterUrl } from "../../actions/url-utils";
 import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";

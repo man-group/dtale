@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import actions from "../../actions/dtale";
+import * as actions from "../../actions/dtale";
 import { MenuItem } from "./MenuItem";
 
 class ReactShowNonNumericHeatmapColumns extends React.Component {

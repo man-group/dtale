@@ -3,7 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
 
-import actions from "./actions/dtale";
+import * as actions from "./actions/dtale";
 import mergeActions from "./actions/merge";
 import "./adapter-for-react-16";
 import { DataViewer } from "./dtale/DataViewer";

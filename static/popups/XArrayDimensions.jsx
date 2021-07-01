@@ -7,7 +7,7 @@ import Select, { createFilter } from "react-select";
 
 import { BouncerWrapper } from "../BouncerWrapper";
 import { RemovableError } from "../RemovableError";
-import actions from "../actions/dtale";
+import * as actions from "../actions/dtale";
 import { fetchJson } from "../fetcher";
 
 class ReactXArrayDimensions extends React.Component {

@@ -48,6 +48,7 @@ describe("reducer tests", () => {
       username: null,
       predefinedFilters: [],
       maxColumnWidth: null,
+      maxRowHeight: null,
       dragResize: null,
       editedTextAreaHeight: 0,
       mainTitle: null,

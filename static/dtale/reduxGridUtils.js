@@ -47,6 +47,9 @@ export function handleReduxState(state, props, propagateState) {
           clearDataViewerUpdate
         );
         break;
+      case "update-max-height":
+        propagateState({ triggerResize: true }, clearDataViewerUpdate);
+        break;
     }
   }
 }

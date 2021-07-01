@@ -25,7 +25,7 @@ import InstancesOption from "../menu/InstancesOption";
 import { LanguageOption } from "../menu/LanguageOption";
 import { LogoutOption } from "../menu/LogoutOption";
 import LowVarianceOption from "../menu/LowVarianceOption";
-import { MaxWidthOption } from "../menu/MaxWidthOption";
+import { MaxHeightOption, MaxWidthOption } from "../menu/MaxDimensionOption";
 import { MenuItem } from "../menu/MenuItem";
 import MergeOption from "../menu/MergeOption";
 import MissingOption from "../menu/MissingOption";
@@ -224,6 +224,7 @@ class ReactRibbonDropdown extends React.Component {
             <ThemeOption ribbonWrapper={hideWrapper} />
             <LanguageOption ribbonWrapper={hideWrapper} />
             <MaxWidthOption ribbonWrapper={hideWrapper} />
+            <MaxHeightOption ribbonWrapper={hideWrapper} />
             <ShowNonNumericHeatmapColumns backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
           </ul>
         )}
