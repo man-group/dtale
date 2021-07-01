@@ -809,6 +809,7 @@ def startup(
     show_columns=None,
     hide_columns=None,
     optimize_dataframe=False,
+    column_formats=None,
 ):
     """
     Loads and stores data globally
@@ -840,6 +841,11 @@ def startup(
     :type show_columns: list, optional
     :param hide_columns: Columns to hide on load
     :type hide_columns: list, optional
+    :param optimize_dataframe: this will convert string columns with less certain then a certain number of distinct
+                              values into categories
+    :type optimize_dataframe: boolean
+    :param column_formats: The formatting to apply to certain columns on the front-end
+    :type column_formats: dict, optional
 
     """
 
@@ -884,6 +890,7 @@ def startup(
                 precision=precision,
                 show_columns=show_columns,
                 hide_columns=hide_columns,
+                column_formats=column_formats,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -924,6 +931,7 @@ def startup(
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
+            columnFormats=column_formats,
         )
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
@@ -1260,6 +1268,18 @@ def update_maximum_column_width():
         width = int(width)
     curr_app_settings = global_state.get_app_settings()
     curr_app_settings["max_column_width"] = width
+    global_state.set_app_settings(curr_app_settings)
+    return jsonify(dict(success=True))
+
+
+@dtale.route("/update-maximum-row-height")
+@exception_decorator
+def update_maximum_row_height():
+    height = get_str_arg(request, "height")
+    if height:
+        height = int(height)
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["max_row_height"] = height
     global_state.set_app_settings(curr_app_settings)
     return jsonify(dict(success=True))
 

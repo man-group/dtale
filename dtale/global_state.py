@@ -17,6 +17,7 @@ APP_SETTINGS = {
     "github_fork": False,
     "hide_shutdown": False,
     "max_column_width": None,
+    "max_row_height": None,
     "main_title": None,
     "main_title_font": None,
 }
