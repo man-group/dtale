@@ -6,7 +6,7 @@ import numeral from "numeral";
 import { measureText } from "./MeasureText";
 import menuFuncs from "./menu/dataViewerMenuUtils";
 import { buildRangeState } from "./rangeSelectUtils";
-import actions from "../actions/dtale";
+import * as actions from "../actions/dtale";
 import { openChart } from "../actions/charts";
 
 export const IDX = "dtale_index";
@@ -86,6 +86,16 @@ export const getCol = (index, { columns, backgroundMode }) =>
 export const getColWidth = (index, { columns, backgroundMode }) =>
   _.get(getCol(index, { columns, backgroundMode }), "width", DEFAULT_COL_WIDTH);
 
+export const ROW_HEIGHT = 25;
+export const HEADER_HEIGHT = 35;
+
+export const getRowHeight = (index, props) => {
+  if (index === 0) {
+    return HEADER_HEIGHT;
+  }
+  return props.maxRowHeight ?? ROW_HEIGHT;
+};
+
 export const getRanges = array => {
   const ranges = [];
   let rstart, rend;
@@ -149,9 +159,6 @@ export const calcColWidth = (
   return w;
 };
 
-export const ROW_HEIGHT = 25;
-export const HEADER_HEIGHT = 35;
-
 export const THEMES = ["light", "dark"];
 
 export const isLight = theme => "light" === theme || !_.includes(THEMES, theme);
@@ -195,7 +202,6 @@ export const buildState = props => ({
   nanDisplay: _.get(props, "settings.nanDisplay"),
   overscanColumnCount: 0,
   overscanRowCount: 5,
-  rowHeight: ({ index }) => (index == 0 ? HEADER_HEIGHT : ROW_HEIGHT),
   rowCount: 0,
   fixedColumnCount: _.size(props.settings?.locked ?? []) + 1, // add 1 for IDX column
   fixedRowCount: 1,
@@ -296,6 +302,7 @@ export const reduxState = state =>
     "ribbonMenuOpen",
     "dataViewerUpdate",
     "maxColumnWidth",
+    "maxRowHeight",
     "editedTextAreaHeight",
   ]);
 

@@ -45,7 +45,7 @@ const BASE_HTML = `
 
 // eslint-disable-next-line complexity
 function buildInnerHTML(props = {}, store = null) {
-  const actions = require("../actions/dtale").default;
+  const actions = require("../actions/dtale");
   const pjson = require("../../package.json");
   const body = document.getElementsByTagName("body")[0];
   body.innerHTML = [

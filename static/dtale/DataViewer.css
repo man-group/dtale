@@ -30,6 +30,7 @@
 .active-resize {
   background-color: white;
   z-index: 20;
+  position: fixed !important;
 }
 
 .cell.in-range,
@@ -145,8 +146,14 @@ body,
   width: calc(100vw - 15.2em) !important;
 }
 
-.cell img {
-  height: 25px;
+.cell > html-cell {
+  height: inherit;
+  width: 100%;
+}
+
+.cell > html-cell img {
+  height: inherit;
+  width: inherit;
 }
 
 .cell img:hover {

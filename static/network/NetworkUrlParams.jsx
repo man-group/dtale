@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 
-import actions from "../actions/dtale";
+import * as actions from "../actions/dtale";
 import _ from "lodash";
 import querystring from "querystring";
 

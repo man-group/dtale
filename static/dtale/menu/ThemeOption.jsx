@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import actions from "../../actions/dtale";
+import * as actions from "../../actions/dtale";
 import * as gu from "../gridUtils";
 import serverStateManagement from "../serverStateManagement";
 import { MenuItem } from "./MenuItem";

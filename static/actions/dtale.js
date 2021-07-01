@@ -3,15 +3,15 @@ import querystring from "querystring";
 
 import serverStateManagement from "../dtale/serverStateManagement";
 
-function init() {
+export function init() {
   return dispatch => dispatch({ type: "init-params" });
 }
 
-function toggleColumnMenu(colName) {
+export function toggleColumnMenu(colName) {
   return dispatch => dispatch({ type: "toggle-column-menu", colName });
 }
 
-function hideColumnMenu(colName) {
+export function hideColumnMenu(colName) {
   return (dispatch, getState) => {
     const { selectedCol } = getState();
     // when clicking another header cell it calls this after the fact and thus causes the user to click again to show it
@@ -21,37 +21,37 @@ function hideColumnMenu(colName) {
   };
 }
 
-function closeColumnMenu() {
+export function closeColumnMenu() {
   return (dispatch, getState) => dispatch({ type: "hide-column-menu", colName: getState().selectedCol });
 }
 
-function updateXArrayDim(xarrayDim, callback) {
+export function updateXArrayDim(xarrayDim, callback) {
   return dispatch => {
     dispatch({ type: "update-xarray-dim", xarrayDim });
     callback();
   };
 }
 
-function convertToXArray(callback) {
+export function convertToXArray(callback) {
   return dispatch => {
     dispatch({ type: "convert-to-xarray" });
     callback();
   };
 }
 
-function setTheme(theme) {
+export function setTheme(theme) {
   return dispatch => dispatch({ type: "set-theme", theme });
 }
 
-function setLanguage(language) {
+export function setLanguage(language) {
   return dispatch => dispatch({ type: "set-language", language });
 }
 
-function isPopup() {
+export function isPopup() {
   return _.startsWith(window.location.pathname, "/dtale/popup");
 }
 
-function isJSON(str) {
+export function isJSON(str) {
   try {
     JSON.parse(str);
   } catch (e) {
@@ -60,7 +60,7 @@ function isJSON(str) {
   return true;
 }
 
-function getParams() {
+export function getParams() {
   const params = {};
   const queryParams = querystring.parse(window.location.search.replace(/^.*\?/, ""));
   _.forEach(queryParams, (value, key) => {
@@ -74,7 +74,7 @@ function getParams() {
   return params;
 }
 
-function updateFilteredRanges(query) {
+export function updateFilteredRanges(query) {
   return (dispatch, getState) => {
     const state = getState();
     const currQuery = _.get(state, "filteredRanges.query", "");
@@ -85,37 +85,34 @@ function updateFilteredRanges(query) {
   };
 }
 
-function updateMaxWidth(width) {
+export function updateMaxWidth(width) {
   return dispatch => {
     dispatch({ type: "update-max-width", width });
     dispatch({ type: "data-viewer-update", update: { type: "update-max-width", width } });
   };
 }
 
-function clearMaxWidth() {
+export function clearMaxWidth() {
   return dispatch => {
     dispatch({ type: "clear-max-width" });
     dispatch({ type: "data-viewer-update", update: { type: "update-max-width", width: null } });
   };
 }
 
-function updateShowAllHeatmapColumns(showAllHeatmapColumns) {
-  return dispatch => dispatch({ type: "update-show-all-heatmap-columns", showAllHeatmapColumns });
+export function updateMaxHeight(height) {
+  return dispatch => {
+    dispatch({ type: "update-max-height", height });
+    dispatch({ type: "data-viewer-update", update: { type: "update-max-height", height } });
+  };
 }
 
-export default {
-  init,
-  toggleColumnMenu,
-  hideColumnMenu,
-  closeColumnMenu,
-  updateXArrayDim,
-  convertToXArray,
-  isPopup,
-  getParams,
-  setTheme,
-  setLanguage,
-  updateFilteredRanges,
-  updateMaxWidth,
-  clearMaxWidth,
-  updateShowAllHeatmapColumns,
-};
+export function clearMaxHeight() {
+  return dispatch => {
+    dispatch({ type: "clear-max-height" });
+    dispatch({ type: "data-viewer-update", update: { type: "update-max-height", height: null } });
+  };
+}
+
+export function updateShowAllHeatmapColumns(showAllHeatmapColumns) {
+  return dispatch => dispatch({ type: "update-show-all-heatmap-columns", showAllHeatmapColumns });
+}

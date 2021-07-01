@@ -113,6 +113,9 @@ def test_build_show_options(unittest):
     assert final_options["precision"] == 6
     unittest.assertEqual(final_options["show_columns"], ["a", "b"])
     unittest.assertEqual(final_options["hide_columns"], ["c"])
+    unittest.assertEqual(
+        final_options["column_formats"], {"a": {"fmt": {"html": True}}}
+    )
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

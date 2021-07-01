@@ -3,7 +3,7 @@ import React from "react";
 
 import { expect, it } from "@jest/globals";
 
-import actions from "../../actions/dtale";
+import * as actions from "../../actions/dtale";
 import NetworkUrlParams from "../../network/NetworkUrlParams";
 
 describe("NetworkUrlParams", () => {

@@ -5,7 +5,7 @@ import Draggable from "react-draggable";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
-import actions from "../actions/dtale";
+import * as actions from "../actions/dtale";
 import menuUtils from "../menuUtils";
 import bu from "./backgroundUtils";
 import { ignoreMenuClicks } from "./column/ColumnMenu";
@@ -182,7 +182,7 @@ class ReactHeader extends React.Component {
         onMouseOver={this.handleMouseOver}
         name={escape(colName)}>
         <div
-          className={`text-nowrap w-100${colCfg.resized ? " resized" : ""}`}
+          className={`text-nowrap w-100${!drag && colCfg.resized ? " resized" : ""}`}
           style={{ cursor: "default" }}
           onClick={e => {
             if (this.state.drag) {

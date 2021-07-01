@@ -77,6 +77,19 @@ export function maxColumnWidth(state = null, action = {}) {
   }
 }
 
+export function maxRowHeight(state = null, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toFloat(getHiddenValue("max_row_height"), true);
+    case "update-max-height":
+      return action.height;
+    case "clear-max-height":
+      return null;
+    default:
+      return state;
+  }
+}
+
 export function mainTitle(state = null, action = {}) {
   switch (action.type) {
     case "init-params":

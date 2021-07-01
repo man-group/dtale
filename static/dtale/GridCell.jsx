@@ -27,9 +27,6 @@ function buildCellClassName(props) {
   if (isInRange(columnIndex, rowIndex, gridState)) {
     classes.push("in-range");
   }
-  if (gu.getCol(columnIndex, gridState).resized) {
-    classes.push("resized");
-  }
   return _.join(classes, " ");
 }
 
@@ -97,12 +94,12 @@ class ReactGridCell extends React.Component {
           </a>
         );
       } else if (_.get(gridState, ["columnFormats", colCfg.name, "fmt", "html"]) === true) {
-        value = <div dangerouslySetInnerHTML={{ __html: value }} />;
+        value = <div className="html-cell" dangerouslySetInnerHTML={{ __html: value }} />;
       }
     }
     return (
       <div key={key} className={className} style={{ ...style, ...valueStyle }} {...divProps}>
-        {value}
+        {gu.getCol(columnIndex, gridState).resized ? <div className="resized">{value}</div> : value}
       </div>
     );
   }

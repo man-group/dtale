@@ -7,7 +7,7 @@ import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
 
 import { openChart } from "../../actions/charts";
-import actions from "../../actions/dtale";
+import * as actions from "../../actions/dtale";
 import { updateSettings } from "../../actions/settings";
 import { buildURLString } from "../../actions/url-utils";
 import ColumnFilter from "../../filters/ColumnFilter";

@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 
 import { describe, expect, it } from "@jest/globals";
 
-import { MaxWidthOption, ReactMaxWidthOption } from "../../../dtale/menu/MaxWidthOption";
+import { MaxWidthOption, ReactMaxDimensionOption } from "../../../dtale/menu/MaxDimensionOption";
 import serverState from "../../../dtale/serverStateManagement";
 import { StyledSlider } from "../../../sliderUtils";
 import reduxUtils from "../../redux-test-utils";
@@ -48,9 +48,9 @@ describe("MaxWidthOption tests", () => {
 
   it("handles changes to text input", () => {
     result.find("input").simulate("change", { target: { value: "f150" } });
-    expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(100);
+    expect(result.find(ReactMaxDimensionOption).state().currMaxDimension).toBe(100);
     result.find("input").simulate("change", { target: { value: "150" } });
-    expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(150);
+    expect(result.find(ReactMaxDimensionOption).state().currMaxDimension).toBe(150);
     result.find("input").simulate("keyDown", { key: "Enter" });
     expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
     udpateMaxColumnWidthSpy.mock.calls[0][1]();
@@ -59,7 +59,7 @@ describe("MaxWidthOption tests", () => {
 
   it("handles changes to slider", () => {
     result.find(StyledSlider).props().onAfterChange(150);
-    expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(150);
+    expect(result.find(ReactMaxDimensionOption).state().currMaxDimension).toBe(150);
     expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
     udpateMaxColumnWidthSpy.mock.calls[0][1]();
     expect(store.getState().maxColumnWidth).toBe(150);
@@ -67,7 +67,7 @@ describe("MaxWidthOption tests", () => {
 
   it("handles changes to checkbox", () => {
     result.find("i.ico-check-box-outline-blank").simulate("click");
-    expect(result.find(ReactMaxWidthOption).state().currMaxWidth).toBe(100);
+    expect(result.find(ReactMaxDimensionOption).state().currMaxDimension).toBe(100);
     expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
     udpateMaxColumnWidthSpy.mock.calls[0][1]();
     expect(store.getState().maxColumnWidth).toBe(100);

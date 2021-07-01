@@ -15,7 +15,7 @@ describe("dtale tests", () => {
   });
 
   it("dtale: testing getParams", () => {
-    const actions = require("../../actions/dtale").default;
+    const actions = require("../../actions/dtale");
     const urlParams = actions.getParams();
     expect({
       col: "foo",
