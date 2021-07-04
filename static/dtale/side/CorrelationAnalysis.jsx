@@ -203,7 +203,7 @@ class ReactCorrelationAnalysis extends React.Component {
         {this.state.error}
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-0">
-            <h2>{t("menu:Correlation Analysis")}</h2>
+            <h2>{t("side:Feature Analysis by Correlation")}</h2>
           </div>
           <div className="col" />
           <div className="col-auto">

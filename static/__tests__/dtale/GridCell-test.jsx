@@ -58,6 +58,6 @@ describe("GridCell", () => {
 
   it("adds resized class to cell", () => {
     wrapper.setProps({ editedCell: null });
-    expect(wrapper.props().className).toBe("cell editable resized");
+    expect(wrapper.find("div").last().props().className).toBe("resized");
   });
 });
