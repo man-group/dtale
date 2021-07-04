@@ -1,9 +1,10 @@
 export function clickBuilder(result, name) {
   const CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-  result
+  const buttonRow = result
     .find(CreateColumn)
     .find("div.form-group")
-    .at(1)
+    .findWhere(row => row.find("button").findWhere(b => b.text() === name));
+  buttonRow
     .find("button")
     .findWhere(b => b.text() === name)
     .first()

@@ -1,4 +1,5 @@
 import pandas as pd
+import platform
 import pytest
 
 import dtale.global_state as global_state
@@ -106,24 +107,28 @@ def test_bar_and_popup(unittest):
                 "extended_aggregation": '[{"agg": "sum", "col": "b"}, {"agg": "mean", "col": "c"}]',
             },
         )
+        expected = {
+            "barmode": "group",
+            "legend": {"orientation": "h"},
+            "title": {"text": "Sum of b, Mean of c by a"},
+            "xaxis": {"tickformat": ".0f", "title": {"text": "a"}},
+            "yaxis": {"tickformat": ".0f", "title": {"text": "Sum of b"}},
+            "yaxis2": {
+                "anchor": "x",
+                "overlaying": "y",
+                "side": "right",
+                "tickformat": ".0f",
+                "title": {"text": "Mean of c"},
+            },
+        }
+        major, minor, revision = [int(i) for i in platform.python_version_tuple()]
+        if major == 3 and minor > 6:
+            del expected["yaxis2"]["tickformat"]
         unittest.assertEqual(
             resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
                 "figure"
             ]["layout"],
-            {
-                "barmode": "group",
-                "legend": {"orientation": "h"},
-                "title": {"text": "Sum of b, Mean of c by a"},
-                "xaxis": {"tickformat": ".0f", "title": {"text": "a"}},
-                "yaxis": {"tickformat": ".0f", "title": {"text": "Sum of b"}},
-                "yaxis2": {
-                    "anchor": "x",
-                    "overlaying": "y",
-                    "side": "right",
-                    "tickformat": ".0f",
-                    "title": {"text": "Mean of c"},
-                },
-            },
+            expected,
         )
 
         response = c.get(url)

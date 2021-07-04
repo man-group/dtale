@@ -29,3 +29,26 @@ div.builders > .btn-group.row:last-of-type > .btn:first-of-type {
 div.builders > .btn-group.row:last-of-type > .btn:last-of-type {
   border-radius: 0 0 0.25rem 0;
 }
+
+.first-type-group {
+  padding-top: 0.25rem !important;
+  border-top: 1px solid rgb(167, 179, 183);
+}
+
+.last-type-group {
+  padding-bottom: 0.25rem !important;
+  border-bottom: 1px solid rgb(167, 179, 183);
+}
+
+.exponential-smoothing {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  font-size: 95% !important;
+  white-space: break-spaces !important;
+  min-height: 33px;
+  max-height: 33px;
+}
+
+.col-type {
+  padding: 0.45rem 0.3rem;
+}

@@ -117,50 +117,47 @@ class ReactCreateColumn extends React.Component {
         {createUtils.renderNameInput(this.state) === "name_inplace" && (
           <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         )}
-        {!_.has(this.props, "prePopulated.type") && (
-          <div className="form-group row">
-            <label className="col-md-3 col-form-label text-right">{t("Column Type")}</label>
-            <div className="col-md-8 builders">
-              <div className="row">
-                {_.map(createUtils.TYPES, (type, i) => {
-                  const isExponentialSmoothing = type === "exponential_smoothing";
-                  const buttonProps = {
-                    className: "btn w-100",
-                    style: isExponentialSmoothing
-                      ? {
-                          padding: 0,
-                          whiteSpace: "break-spaces",
-                          minHeight: "33px",
-                        }
-                      : { padding: "0.45rem 0.3rem" },
-                  };
-                  if (type === this.state.type) {
-                    buttonProps.className += " btn-primary active";
-                  } else {
-                    buttonProps.className += " btn-light inactive pointer";
-                    buttonProps.style.border = "solid 1px #a7b3b7";
-                    const updatedState = { type };
-                    if (type === "random") {
-                      updatedState.cfg = { type: "float" };
+        {!_.has(this.props, "prePopulated.type") &&
+          _.map(createUtils.TYPE_GROUPS, ({ buttons, label, className }, i) => (
+            <div className={`form-group row mb-4 ${className ?? ""}`} key={i}>
+              <label className="col-md-3 col-form-label text-right font-weight-bold">{t(label)}</label>
+              <div className="col-md-8 builders">
+                <div className="row">
+                  {_.map(buttons, (type, j) => {
+                    const isExponentialSmoothing = type === "exponential_smoothing";
+                    const buttonProps = {
+                      className: `btn w-100 ${isExponentialSmoothing ? "exponential-smoothing" : "col-type"}`,
+                      style: {},
+                    };
+                    if (type === this.state.type) {
+                      buttonProps.className += " btn-primary active";
+                    } else {
+                      buttonProps.className += " btn-light inactive pointer";
+                      buttonProps.style.border = "solid 1px #a7b3b7";
+                      const updatedState = { type, typeGroup: label };
+                      if (type === "random") {
+                        updatedState.cfg = { type: "float" };
+                      }
+                      if (type !== "type_conversion") {
+                        updatedState.saveAs = "new";
+                      }
+                      buttonProps.onClick = () => this.setState(updatedState);
                     }
-                    if (type !== "type_conversion") {
-                      updatedState.saveAs = "new";
-                    }
-                    buttonProps.onClick = () => this.setState(updatedState);
-                  }
-                  return (
-                    <div key={i} className="col-md-3 p-1">
-                      <button {...buttonProps}>{t(createUtils.buildLabel(type))}</button>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={`${i}-${j}`} className="col-md-3 p-1">
+                        <button {...buttonProps}>{t(createUtils.buildLabel(type))}</button>
+                      </div>
+                    );
+                  })}
+                </div>
+                {this.state.typeGroup == label && (
+                  <label className="col-auto col-form-label pl-3 pr-3 pb-0 row" style={{ fontSize: "85%" }}>
+                    {t(this.state.type)}
+                  </label>
+                )}
               </div>
-              <label className="col-auto col-form-label pl-3 pr-3 row" style={{ fontSize: "85%" }}>
-                {t(this.state.type)}
-              </label>
             </div>
-          </div>
-        )}
+          ))}
         {body}
       </div>
     );
