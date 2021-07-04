@@ -35,7 +35,7 @@ export function buildCode(cfg) {
   }
   _.forEach(["win_type", "on", "closed"], p => {
     if (cfg[p]) {
-      rollingKwargs.push(`${p}='${cfg[p]}`);
+      rollingKwargs.push(`${p}='${cfg[p]}'`);
     }
   });
   rollingKwargs = _.join(rollingKwargs, ", ");
