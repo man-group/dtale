@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.51.0 (2021-7-5)
+* [#531](https://github.com/man-group/dtale/issues/531): re-organizing column builder buttons
+* [#530](https://github.com/man-group/dtale/issues/530): typo in rolling code snippet
+* [#528](https://github.com/man-group/dtale/issues/528): feature analysis
+* [#534](https://github.com/man-group/dtale/issues/534): pinned missingno less than or equal to 0.4.2
+* [#523](https://github.com/man-group/dtale/issues/523): upgraded to plotly 5
+* Row height resize functionality
+* [#522](https://github.com/man-group/dtale/issues/522): sorting target values in histogram tooltip
+
 ### 1.50.1 (2021-6-24)
 * [#520](https://github.com/man-group/dtale/issues/520): additional code export update
 
