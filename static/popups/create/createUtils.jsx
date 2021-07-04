@@ -20,11 +20,28 @@ import { default as CreateTypeConversion, validateTypeConversionCfg } from "./Cr
 import { default as CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
 import { default as CreateZScoreNormalize, validateZScoreNormalizeCfg } from "./CreateZScoreNormalize";
 
-export const TYPES = _.concat(
-  ["numeric", "string", "bins", "datetime", "random", "type_conversion", "cumsum", "transform", "winsorize"],
-  ["zscore_normalize", "similarity", "standardize", "encoder", "cleaning", "diff", "data_slope", "rolling"],
-  ["exponential_smoothing"]
-);
+export const TYPE_GROUPS = [
+  { buttons: ["random"], label: "General Data", className: "first-type-group" },
+  {
+    buttons: ["numeric", "string", "bins", "datetime"],
+    label: "Aggregating Columns",
+  },
+  { buttons: ["diff", "cumsum"], label: "Row Analysis" },
+  {
+    buttons: ["type_conversion", "transform", "winsorize", "encoder", "zscore_normalize", "standardize"],
+    label: "Transform Existing Data",
+  },
+  {
+    buttons: ["rolling", "exponential_smoothing", "data_slope"],
+    label: "Timeseries",
+  },
+  {
+    buttons: ["similarity", "cleaning"],
+    label: "Text",
+    className: "last-type-group",
+  },
+];
+
 export const LABELS = {
   zscore_normalize: "Z-Score Normalize",
   diff: "Row Difference",
@@ -152,6 +169,7 @@ export function renderNameInput({ type, cfg }) {
 
 export const BASE_STATE = {
   type: "numeric",
+  typeGroup: "Aggregating Columns",
   saveAs: "new",
   name: null,
   cfg: null,
