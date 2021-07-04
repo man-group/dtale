@@ -28,7 +28,7 @@ matplotlib==3.3.4; python_version == '3.4'
 matplotlib==3.3.4; python_version == '3.5'
 matplotlib==3.3.4; python_version == '3.6'
 matplotlib; python_version > '3.6'
-missingno
+missingno<=0.4.2
 networkx==2.2; python_version < '3.0'
 networkx; python_version >= '3.0'
 numpy==1.16.6; python_version < '3.0'
