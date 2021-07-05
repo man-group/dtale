@@ -73,7 +73,7 @@ function buildCreateColumn(props) {
   const title = (
     <React.Fragment>
       <i className="ico-build" />
-      <strong>{props.t("menu:Build Column")}</strong>
+      <strong>{props.t("menu:Dataframe Functions")}</strong>
     </React.Fragment>
   );
   const body = <CreateColumn />;

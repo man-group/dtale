@@ -106,7 +106,7 @@ describe("DataViewer iframe tests", () => {
         .map(s => s.text())
     ).toEqual(
       _.concat(
-        ["Open In New Tab", "XArray Dimensions", "Describe", "Custom Filter", "show_hide", "Build Column"],
+        ["Open In New Tab", "XArray Dimensions", "Describe", "Custom Filter", "show_hide", "Dataframe Functions"],
         ["Clean Column", "Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis", "Feature Analysis"],
         ["Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map", "Highlight Dtypes"],
         ["Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag", "Instances 1"],
