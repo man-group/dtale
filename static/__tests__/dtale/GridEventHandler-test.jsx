@@ -71,6 +71,7 @@ describe("RibbonDropdown", () => {
               nodeValue: "1|2",
             },
           },
+          querySelector: () => ({ clientWidth: 100, scrollWidth: 100 }),
         },
       });
     expect(props.hideTooltip).toHaveBeenCalledTimes(1);
@@ -88,11 +89,12 @@ describe("RibbonDropdown", () => {
     wrapper.find("div").last().props().onMouseOver({ target });
     expect(props.showTooltip).not.toHaveBeenCalled();
     target.attributes.cell_idx.nodeValue = "1|1";
+    target.querySelector = () => undefined;
     wrapper.find("div").last().props().onMouseOver({ target });
     expect(props.showTooltip).not.toHaveBeenCalled();
-    target.clientWidth = 100;
-    target.scrollWidth = 150;
+    const childDiv = { clientWidth: 100, scrollWidth: 150 };
+    target.querySelector = () => childDiv;
     wrapper.find("div").last().props().onMouseOver({ target });
-    expect(props.showTooltip).toHaveBeenLastCalledWith(target, "Hello World");
+    expect(props.showTooltip).toHaveBeenLastCalledWith(childDiv, "Hello World");
   });
 });
