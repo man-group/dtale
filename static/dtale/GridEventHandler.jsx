@@ -62,9 +62,10 @@ function handleCtrlRowSelect(props, cellIdx) {
 
 function handleLongStringDisplay(e, cellIdx, props) {
   const { gridState, hideTooltip, showTooltip } = props;
-  if (e.target.clientWidth < e.target.scrollWidth) {
+  const resized = e.target.querySelector("div.resized");
+  if (resized && resized.clientWidth < resized.scrollWidth) {
     const { rec } = getCell(cellIdx, gridState);
-    showTooltip(e.target, rec.raw);
+    showTooltip(resized, rec.raw);
   } else {
     hideTooltip();
   }
