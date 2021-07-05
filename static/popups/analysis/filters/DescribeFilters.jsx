@@ -202,10 +202,10 @@ class DescribeFilters extends React.Component {
       <React.Fragment key="target">
         <div className="col-auto text-center pr-4">
           <div>
-            <b>{t("analysis:Target")}</b>
+            <b>{t("Target")}</b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>{`(${t("analysis:Choose Col")})`}</small>
+            <small>{`(${t("Choose Col")})`}</small>
           </div>
         </div>
         <div className="col-auto pl-0 mr-3 ordinal-dd">

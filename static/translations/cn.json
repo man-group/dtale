@@ -781,7 +781,9 @@
     "Product of All Items": "所有项目的产品",
     "Percentage Sum": "Percentage Sum",
     "Copied to clipboard": "Copied to clipboard",
-    "navigate": "Use ← → buttons to switch charts"
+    "navigate": "Use ← → buttons to switch charts",
+    "Target": "Target",
+    "Choose Col": "Choose Col"
   },
   "charts": {
     "Window": "窗口",

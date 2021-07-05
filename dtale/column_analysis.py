@@ -182,17 +182,25 @@ class HistogramAnalysis(object):
             if kde is not None:
                 return_data["kde"] = kde
         else:
-            return_data = {"targets": [], "labels": list(range(self.bins))}
+            bin_vals = pd.cut(parent.data[parent.selected_col], bins=self.bins)
+            labels = ["{}".format(c) for c in bin_vals.dtype.categories]
+            parent.data.loc[:, "bin"] = bin_vals.astype("str")
+            return_data = {"targets": [], "labels": labels}
             target_dtype = find_dtype(parent.data[self.target])
             target_formatter = find_dtype_formatter(target_dtype)
-            for target, target_data in parent.data[
-                [self.target, parent.selected_col]
-            ].groupby(self.target):
-                target_data, _ = self.build_histogram_data(
-                    target_data[parent.selected_col]
+            for target, target_data in parent.data[[self.target, "bin"]].groupby(
+                self.target
+            ):
+                target_counts = target_data["bin"].value_counts()
+                target_counts = [
+                    int(tc) for tc in target_counts.reindex(labels, fill_value=0).values
+                ]
+                return_data["targets"].append(
+                    dict(
+                        target=target_formatter(target, as_string=True),
+                        data=target_counts,
+                    )
                 )
-                target_data["target"] = target_formatter(target, as_string=True)
-                return_data["targets"].append(target_data)
 
         desc, desc_code = load_describe(parent.data[parent.selected_col])
         dtype_info = global_state.get_dtype_info(parent.data_id, parent.selected_col)
@@ -275,10 +283,13 @@ class HistogramAnalysis(object):
             )
             code.append(
                 (
-                    "charts = []\n"
-                    "for target, target_data in s.groupby('{target}'):\n"
-                    "\tchart, labels = np.histogram(s['{col}'], bins={bins})\n"
-                    "\tcharts.append(go.Bar(x=labels[1:], y=chart, name=target))"
+                    "bin_vals = pd.cut(s['{col}'], bins={bins})\n"
+                    "labels = [str(c) for c in bin_vals.dtype.categories]\n"
+                    "s.loc[:, 'bin'] = bin_vals.astype('str')\n"
+                    "for target, target_data in s[['{target}', 'bin']].groupby('{target}'):\n"
+                    "\ttarget_counts = target_data['bin'].value_counts()\n"
+                    "\ttarget_counts = [int(tc) for tc in target_counts.reindex(labels, fill_value=0).values]\n"
+                    "\tcharts.append(go.Bar(x=labels, y=target_counts, name=target))"
                 ).format(col=parent.selected_col, bins=self.bins, target=self.target)
             )
         code.append(

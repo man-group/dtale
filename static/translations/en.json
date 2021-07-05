@@ -778,7 +778,9 @@
     "Product of All Items": "Product of All Items",
     "Percentage Sum": "Percentage Sum",
     "Copied to clipboard": "Copied to clipboard",
-    "navigate": "Use ← → buttons to switch charts"
+    "navigate": "Use ← → buttons to switch charts",
+    "Target": "Target",
+    "Choose Col": "Choose Col"
   },
   "charts": {
     "Window": "Window",
