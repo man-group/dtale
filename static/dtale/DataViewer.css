@@ -158,8 +158,8 @@ body,
 
 .cell img:hover {
   position: fixed;
-  width: 500px;
-  height: auto;
+  width: 500px !important;
+  height: auto !important;
   display: block;
   z-index: 999;
   border-radius: 0.25rem;

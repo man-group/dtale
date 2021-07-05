@@ -3048,12 +3048,12 @@ def cleanup_datasets():
     return jsonify(success=True)
 
 
-def load_new_data(df, startup_code, name=None, return_id=False):
+def load_new_data(df, startup_code, name=None, return_id=False, settings=None):
     instance = startup(data=df, name=name, ignore_duplicate=True)
     curr_settings = global_state.get_settings(instance._data_id)
     global_state.set_settings(
         instance._data_id,
-        dict_merge(curr_settings, dict(startup_code=startup_code)),
+        dict_merge(curr_settings, dict(startup_code=startup_code, **(settings or {}))),
     )
     if return_id:
         return instance._data_id
@@ -3175,7 +3175,8 @@ def web_upload():
 def dataset_upload():
     dataset = get_str_arg(request, "dataset")
     startup_code = "from dtale.datasets import {dataset}\n\n" "df = {dataset}()"
-    return load_new_data(getattr(datasets, dataset)(), startup_code)
+    df, settings = getattr(datasets, dataset)()
+    return load_new_data(df, startup_code, settings=settings)
 
 
 @dtale.route("/build-column-copy/<data_id>", methods=["POST"])
