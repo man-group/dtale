@@ -81,7 +81,7 @@ function targetColor(idx) {
   return `rgba(${color.r}, ${color.g}, ${color.b}, 0.5)`;
 }
 
-function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
+function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
   const { data, targets, kde } = fetchedData;
   const xAxes = { x: { scaleLabel: { display: true, labelString: "Bin" } } };
   const yAxes = {
@@ -124,7 +124,10 @@ function buildHistogramAxes(baseCfg, fetchedData, _chartOpts) {
   const tooltip = {
     mode: "index",
     intersect: false,
-    callbacks: { title: tooltipItems => `Bin ${tooltipItems[0].label}` },
+    callbacks: {
+      title: tooltipItems => `${chartOpts.selectedCol} ${tooltipItems[0].label}`,
+      beforeBody: () => chartOpts.target.value,
+    },
     itemSort: (a, b) => b.raw - a.raw,
   };
   baseCfg.options.plugins = { ...baseCfg.options.plugins, legend: { display: true }, tooltip };
