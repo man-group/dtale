@@ -72,7 +72,7 @@ describe("DataViewer tests", () => {
     );
 
     await tick();
-    clickMainMenuButton(result, "Build Column");
+    clickMainMenuButton(result, "Dataframe Functions");
     await tick();
   });
 
@@ -99,7 +99,7 @@ describe("DataViewer tests", () => {
     expect(result.find(CreateColumn).length).toBe(1);
     result.find(Modal.Header).first().find("button").simulate("click");
     expect(result.find(CreateColumn).length).toBe(0);
-    clickMainMenuButton(result, "Build Column");
+    clickMainMenuButton(result, "Dataframe Functions");
     await tickUpdate(result);
     expect(result.find(CreateNumeric).length).toBe(1);
     result

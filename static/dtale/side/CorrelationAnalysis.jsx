@@ -143,7 +143,7 @@ class ReactCorrelationAnalysis extends React.Component {
             />
             <Column
               dataKey="score"
-              label={t("corr_analysis:Max Correlation")}
+              label={t("corr_analysis:Max Correlation w/ Other Columns")}
               headerRenderer={this.headerRenderer}
               width={100}
               flexGrow={1}

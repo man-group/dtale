@@ -4,7 +4,7 @@
     "XArray Dimensions": "XArray维度",
     "Describe": "描述",
     "Custom Filter": "自定义过滤",
-    "Build Column": "新建列",
+    "Dataframe Functions": "Dataframe Functions",
     "Clean Column": "Clean Column",
     "Summarize Data": "汇总数据",
     "Correlations": "相关性",
@@ -59,7 +59,7 @@
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
     "filter": "为主要电子表格，图表，等...定义自定义筛选。",
-    "build": "根据现有列或随机值创建一个/多个新列。",
+    "build": "Creating new column(s) or alter current columns using dataframe functions",
     "reshape": "使用PIVOT表，或具有按组的聚合，或转置来创建新网格。",
     "corr": "呈现相关矩阵和图表。",
     "charts": "绘图（折线图，条形图，散点图，饼图，wordcloud等）。",
@@ -140,6 +140,7 @@
     "Data Slope": "Data Slope",
     "Rolling": "Rolling",
     "Exponential Smoothing": "Exponential Smoothing",
+    "Cumulative Sum": "Cumulative Sum",
     "numeric": "加，减，乘或除两列数值数据或静态数值。",
     "string": "将列连接在一起以形成字符串。",
     "bins": "使用pandas cut或qcut函数将数字数据转换为bin。",
@@ -320,7 +321,13 @@
     "Required": "Required",
     "PowerTransformer": "PowerTransformer",
     "QuantileTransformer": "QuantileTransformer",
-    "RobustScalar": "RobustScalar"
+    "RobustScalar": "RobustScalar",
+    "General Data": "General Data",
+    "Aggregating Columns": "Aggregating Columns",
+    "Row Analysis": "Row Analysis",
+    "Transform Existing Data": "Transform Existing Data",
+    "Timeseries": "Timeseries",
+    "Text": "Text"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -940,7 +947,7 @@
   "corr_analysis": {
     "Keep": "Keep",
     "Column": "Column",
-    "Max Correlation": "Max Correlation",
+    "Max Correlation w/ Other Columns": "Max Correlation w/ Other Columns",
     "Correlations": "Correlations",
     "Above Threshold": "Above Threshold",
     "Missing Rows": "Missing Rows",

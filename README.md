@@ -84,7 +84,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Building Columns](#building-columns), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Dataframe Functions](#dataframe-functions), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Describe (Column Analysis)](#describe-column-analysis)
   - [Charts](#charts)
@@ -760,9 +760,9 @@ And here is how you would pass that context variable to D-Tale: `dtale.show(df, 
 
 Here's some nice documentation on the performance of [pandas queries](https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#pandas-eval-performance)
 
-#### Building Columns
+#### Dataframe Functions
 
-[![](http://img.youtube.com/vi/G6wNS9-lG04/0.jpg)](http://www.youtube.com/watch?v=G6wNS9-lG04 "Build Columns in D-Tale")
+[![](http://img.youtube.com/vi/G6wNS9-lG04/0.jpg)](http://www.youtube.com/watch?v=G6wNS9-lG04 "Dataframe Functions in D-Tale")
 
 This video shows you how to build the following:
  - Numeric: adding/subtracting two columns or columns with static values

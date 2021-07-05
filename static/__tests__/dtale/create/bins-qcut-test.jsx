@@ -49,7 +49,7 @@ describe("DataViewer tests", () => {
     );
 
     await tick();
-    clickMainMenuButton(result, "Build Column");
+    clickMainMenuButton(result, "Dataframe Functions");
     await tickUpdate(result);
   });
 

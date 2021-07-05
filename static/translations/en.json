@@ -4,7 +4,7 @@
     "XArray Dimensions": "XArray Dimensions",
     "Describe": "Describe",
     "Custom Filter": "Custom Filter",
-    "Build Column": "Build Column",
+    "Dataframe Functions": "Dataframe Functions",
     "Clean Column": "Clean Column",
     "Summarize Data": "Summarize Data",
     "Correlations": "Correlations",
@@ -59,7 +59,7 @@
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
     "filter": "Defining custom Filtering for the main spreadsheet, Charts, ...",
-    "build": "Creating a/multi new column based on the existing columns or random values",
+    "build": "Creating new column(s) or alter current columns using dataframe functions",
     "reshape": "Create a new grid using either PIVOT table, Aggregations w/ GroupBy or Transpose.",
     "corr": "Presenting correlations matrix and chart",
     "charts": "Plot chart (line, bar, scatter, pie, wordcloud,...)",
@@ -140,6 +140,7 @@
     "Data Slope": "Data Slope",
     "Rolling": "Rolling",
     "Exponential Smoothing": "Exponential Smoothing",
+    "Cumulative Sum": "Cumulative Sum",
     "numeric": "Add, subtract, multiply or divide two columns of numeric data or static numeric values.",
     "string": "Concatenate columns together to form a string.",
     "bins": "Convert numeric data into bins using pandas cut or qcut functions.",
@@ -320,7 +321,13 @@
     "Required": "Required",
     "PowerTransformer": "PowerTransformer",
     "QuantileTransformer": "QuantileTransformer",
-    "RobustScalar": "RobustScalar"
+    "RobustScalar": "RobustScalar",
+    "General Data": "General Data",
+    "Aggregating Columns": "Aggregating Columns",
+    "Row Analysis": "Row Analysis",
+    "Transform Existing Data": "Transform Existing Data",
+    "Timeseries": "Timeseries",
+    "Text": "Text"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -937,7 +944,7 @@
   "corr_analysis": {
     "Keep": "Keep",
     "Column": "Column",
-    "Max Correlation": "Max Correlation",
+    "Max Correlation w/ Other Columns": "Max Correlation w/ Other Columns",
     "Correlations": "Correlations",
     "Above Threshold": "Above Threshold",
     "Missing Rows": "Missing Rows",
