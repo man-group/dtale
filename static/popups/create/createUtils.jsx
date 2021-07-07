@@ -8,10 +8,12 @@ import { default as CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSl
 import { default as CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
 import { default as CreateDiff, validateDiffCfg } from "./CreateDiff";
 import { default as CreateEncoder, validateEncoderCfg } from "./CreateEncoder";
+import { default as CreateExpanding, validateExpandingCfg } from "./CreateExpanding";
 import { default as CreateExponentialSmoothing, validateExponentialSmoothingCfg } from "./CreateExponentialSmoothing";
 import { default as CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { default as CreateRandom, validateRandomCfg } from "./CreateRandom";
 import { default as CreateRolling, validateRollingCfg } from "./CreateRolling";
+import { default as CreateShift, validateShiftCfg } from "./CreateShift";
 import { default as CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
 import { default as CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
 import { default as CreateString, validateStringCfg } from "./CreateString";
@@ -32,7 +34,7 @@ export const TYPE_GROUPS = [
     label: "Transform Existing Data",
   },
   {
-    buttons: ["rolling", "exponential_smoothing", "data_slope"],
+    buttons: ["rolling", "exponential_smoothing", "data_slope", "shift", "expanding"],
     label: "Timeseries",
   },
   {
@@ -46,6 +48,7 @@ export const LABELS = {
   zscore_normalize: "Z-Score Normalize",
   diff: "Row Difference",
   cumsum: "Cumulative Sum",
+  shift: "Shifting",
 };
 
 export function buildLabel(v) {
@@ -55,6 +58,7 @@ export function buildLabel(v) {
   return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
 }
 
+// eslint-disable-next-line complexity
 export function validateCfg(t, type, cfg) {
   switch (type) {
     case "datetime":
@@ -93,6 +97,10 @@ export function validateCfg(t, type, cfg) {
       return validateRollingCfg(t, cfg);
     case "exponential_smoothing":
       return validateExponentialSmoothingCfg(t, cfg);
+    case "shift":
+      return validateShiftCfg(t, cfg);
+    case "expanding":
+      return validateExpandingCfg(t, cfg);
   }
   return null;
 }
@@ -148,6 +156,10 @@ export function getBody(state, props, updateState) {
       return <CreateRolling {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "exponential_smoothing":
       return <CreateExponentialSmoothing {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "shift":
+      return <CreateShift {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "expanding":
+      return <CreateExpanding {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
   }
   return null;
 }

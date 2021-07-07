@@ -159,6 +159,8 @@
     "data_slope": "Calculate the slope (sequential increases/decreases) of a column based on the current order.",
     "rolling": "Run a smoother computation (mean, max, min) on numeric data by using pandas' rolling (moving) function.",
     "exponential_smoothing": "Create a column using exponential smmoothing which assigns exponentially decreasing weights as the observation get older",
+    "shift": "Shift index by desired number of periods",
+    "expanding": "Provide expanding transformations for a column",
     "Sum": "Sum",
     "Difference": "Difference",
     "Multiply": "Multiply",
@@ -327,7 +329,8 @@
     "Row Analysis": "Row Analysis",
     "Transform Existing Data": "Transform Existing Data",
     "Timeseries": "Timeseries",
-    "Text": "Text"
+    "Text": "Text",
+    "Fill Value": "Fill Value"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",

@@ -329,3 +329,39 @@ def test_exponential_smoothing(rolling_data):
         builder,
         lambda col: col.isnull().sum() == 0,
     )
+
+
+@pytest.mark.unit
+def test_shift(rolling_data):
+    import dtale.views as views
+
+    df, _ = views.format_data(rolling_data)
+    data_id, column_type = "1", "shift"
+    build_data_inst({data_id: df})
+
+    cfg = {"col": "0", "periods": 3, "fillValue": -1, "dtype": "int64"}
+    builder = ColumnBuilder(data_id, column_type, "0_shift", cfg)
+
+    def verify(col):
+        assert col.isnull().sum() == 0
+        return col.values[2] == -1
+
+    verify_builder(builder, verify)
+
+
+@pytest.mark.unit
+def test_expanding():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame({"B": [0, 1, 2, np.nan, 4]}))
+    data_id, column_type = "1", "expanding"
+    build_data_inst({data_id: df})
+
+    cfg = {"col": "B", "periods": 2, "agg": "sum"}
+    builder = ColumnBuilder(data_id, column_type, "B_expanding", cfg)
+
+    def verify(col):
+        assert col.isnull().sum() == 1
+        return list(col.dropna().values) == [1.0, 3.0, 3.0, 7.0]
+
+    verify_builder(builder, verify)

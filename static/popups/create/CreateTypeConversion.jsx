@@ -16,7 +16,7 @@ const TYPE_MAP = {
   category: ["int", "bool", "str"],
 };
 
-function getDtype(col, columns) {
+export function getDtype(col, columns) {
   return gu.getDtype(_.get(col, "value"), columns);
 }
 

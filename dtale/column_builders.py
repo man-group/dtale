@@ -21,7 +21,7 @@ from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
 from dtale.translations import text
-from dtale.utils import classify_type, apply
+from dtale.utils import classify_type, apply, find_dtype_formatter
 
 
 class ColumnBuilder(object):
@@ -63,6 +63,10 @@ class ColumnBuilder(object):
             self.builder = ExponentialSmoothingBuilder(name, cfg)
         elif column_type == "cumsum":
             self.builder = CumsumColumnBuilder(name, cfg)
+        elif column_type == "shift":
+            self.builder = ShiftBuilder(name, cfg)
+        elif column_type == "expanding":
+            self.builder = ExpandingBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -1336,3 +1340,61 @@ class CumsumColumnBuilder(object):
             "\t(data['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
             ")"
         ).format(name=self.name, col=col)
+
+
+class ShiftBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, periods, fill_value, dtype = (
+            self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
+        )
+        kwargs = {}
+        if fill_value is not None:
+            fill_formatter = find_dtype_formatter(dtype)
+            kwargs["fill_value"] = fill_formatter(fill_value)
+        return pd.Series(
+            data[col].shift(periods or 1, **kwargs),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        col, periods, fill_value, dtype = (
+            self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
+        )
+        kwargs = ""
+        if fill_value is not None:
+            if classify_type(dtype) == "S":
+                kwargs = ", fill_value='{}'".format(fill_value)
+            else:
+                kwargs = ", fill_value={}".format(fill_value)
+        return (
+            "df.loc[:, '{name}'] = pd.Series(\n"
+            "\t(data['{col}'].shift({periods}{kwargs}), index=data.index, name='{name}'\n"
+            ")"
+        ).format(name=self.name, col=col, periods=periods, kwargs=kwargs)
+
+
+class ExpandingBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, periods, agg = (self.cfg.get(p) for p in ["col", "periods", "agg"])
+        return pd.Series(
+            getattr(data[col].expanding(periods or 1), agg)(),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        col, periods, agg = (self.cfg.get(p) for p in ["col", "periods", "agg"])
+        return (
+            "df.loc[:, '{name}'] = pd.Series(\n"
+            "\t(data['{col}'].expanding({periods}).{agg}(), index=data.index, name='{name}'\n"
+            ")"
+        ).format(name=self.name, col=col, periods=periods or 1, agg=agg)
