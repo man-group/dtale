@@ -327,7 +327,8 @@
     "Row Analysis": "Row Analysis",
     "Transform Existing Data": "Transform Existing Data",
     "Timeseries": "Timeseries",
-    "Text": "Text"
+    "Text": "Text",
+    "Fill Value": "Fill Value"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
