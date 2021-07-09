@@ -54,7 +54,8 @@
     "Max Width": "Max Width",
     "Max Height": "Max Height",
     "Show All Heatmap Columns": "Show All Heatmap Columns",
-    "Feature Analysis": "Feature Analysis"
+    "Feature Analysis": "Feature Analysis",
+    "Timeseries": "Timeseries"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -98,7 +99,8 @@
     "max_width": "Rebuild the widths of the cells in the grid and set a maximum width in pixels. Any column that exceeds this width will be truncated to this size (you can still drag the column to be wider) anything else remains unchanged. Any cell that exceeds this maximum will have a tooltip available on hover to view the full value.",
     "max_height": "Rebuild the heights of the cells in the grid and set a maximum height in pixels.",
     "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting.",
-    "corr_analysis": "Remove columns (features) based on their correlations with other columns in your dataset. If there is a strong correlation amongst some columns (features) then maybe they aren't relevant to keep around?"
+    "corr_analysis": "Remove columns (features) based on their correlations with other columns in your dataset. If there is a strong correlation amongst some columns (features) then maybe they aren't relevant to keep around?",
+    "timeseries": "Reshape timeseries data using operations like \"Resample\""
   },
   "column_menu": {
     "Asc": "Asc",
@@ -520,6 +522,7 @@
     "GroupBy": "GroupBy",
     "Pivot": "Pivot",
     "Transpose": "Transpose",
+    "Resample": "Resample",
     "Operation": "Operation",
     "Include Column Names in Headers?": "Include Column Names in Headers?",
     "Columns": "Columns",
@@ -540,7 +543,8 @@
     "Missing an aggregation selection!": "Missing an aggregation selection!",
     "Missing a columns selection!": "Missing a columns selection!",
     "Missing a value(s) selection!": "Missing a value(s) selection!",
-    "Col": "Col"
+    "Col": "Col",
+    "Offset": "Offset"
   },
   "replacement": {
     "Inplace": "Inplace",

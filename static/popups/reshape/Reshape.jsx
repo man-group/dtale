@@ -11,6 +11,7 @@ import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import { Aggregate, validateAggregateCfg } from "./Aggregate";
 import { Pivot, validatePivotCfg } from "./Pivot";
+import { Resample, validateResampleCfg } from "./Resample";
 import { Transpose, validateTransposeCfg } from "./Transpose";
 
 require("./Reshape.css");
@@ -19,19 +20,28 @@ function buildForwardURL(href, dataId) {
   return `${_.join(_.initial(_.split(href, "/")), "/")}/${dataId}`;
 }
 
-const BASE_STATE = {
-  type: "pivot",
+const OPERATIONS = {
+  reshape: [
+    ["aggregate", "GroupBy"],
+    ["pivot", "Pivot"],
+    ["transpose", "Transpose"],
+  ],
+  timeseries: [["resample", "Resample"]],
+};
+
+const baseState = operation => ({
+  type: operation === "timeseries" ? "resample" : "pivot",
   output: "new",
   cfg: {},
   code: {},
   loadingColumns: true,
   loadingReshape: false,
-};
+});
 
 class ReactReshape extends React.Component {
   constructor(props) {
     super(props);
-    this.state = _.assign({}, BASE_STATE);
+    this.state = baseState(props.operation);
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
   }
@@ -57,6 +67,9 @@ class ReactReshape extends React.Component {
         break;
       case "aggregate":
         error = validateAggregateCfg(cfg);
+        break;
+      case "resample":
+        error = validateResampleCfg(cfg);
         break;
       case "pivot":
       default:
@@ -112,6 +125,9 @@ class ReactReshape extends React.Component {
       case "aggregate":
         body = <Aggregate columns={this.state.columns} updateState={updateState} />;
         break;
+      case "resample":
+        body = <Resample columns={this.state.columns} updateState={updateState} />;
+        break;
       case "pivot":
       default:
         body = <Pivot columns={this.state.columns} updateState={updateState} />;
@@ -123,30 +139,23 @@ class ReactReshape extends React.Component {
           <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(
-                [
-                  ["aggregate", "GroupBy"],
-                  ["pivot", "Pivot"],
-                  ["transpose", "Transpose"],
-                ],
-                ([type, label], i) => {
-                  const buttonProps = { className: "btn" };
-                  if (type === this.state.type) {
-                    buttonProps.className += " btn-primary active";
-                  } else {
-                    buttonProps.className += " btn-primary inactive";
-                    buttonProps.onClick = () => this.setState({ type });
-                  }
-                  if (type === "pivot") {
-                    buttonProps.className += " p-3";
-                  }
-                  return (
-                    <button key={i} {...buttonProps}>
-                      <span className="d-block">{t(label)}</span>
-                    </button>
-                  );
+              {_.map(OPERATIONS[this.props.operation], ([type, label], i) => {
+                const buttonProps = { className: "btn" };
+                if (type === this.state.type) {
+                  buttonProps.className += " btn-primary active";
+                } else {
+                  buttonProps.className += " btn-primary inactive";
+                  buttonProps.onClick = () => this.setState({ type });
                 }
-              )}
+                if (type === "pivot") {
+                  buttonProps.className += " p-3";
+                }
+                return (
+                  <button key={i} {...buttonProps}>
+                    <span className="d-block">{t(label)}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -225,7 +234,9 @@ ReactReshape.propTypes = {
   }),
   onClose: PropTypes.func,
   t: PropTypes.func,
+  operation: PropTypes.string,
 };
+ReactReshape.defaultProps = { operation: "reshape" };
 const TranslateReactReshape = withTranslation("reshape")(ReactReshape);
 const ReduxReshape = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),

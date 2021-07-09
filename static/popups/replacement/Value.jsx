@@ -6,7 +6,7 @@ import Select, { createFilter } from "react-select";
 
 import { RemovableError } from "../../RemovableError";
 import * as gu from "../../dtale/gridUtils";
-import { aggregationOpts } from "../analysis/filters/Constants";
+import { pivotAggs } from "../analysis/filters/Constants";
 
 function validateValueCfg(cfgs) {
   if (!_.size(cfgs)) {
@@ -209,9 +209,7 @@ class Value extends React.Component {
           <Select
             className="Select is-clearable is-searchable Select--single"
             classNamePrefix="Select"
-            options={_.reject(aggregationOpts(this.props.t), {
-              value: "rolling",
-            })}
+            options={pivotAggs(this.props.t)}
             getOptionLabel={_.property("value")}
             getOptionValue={_.property("value")}
             value={this.state.agg}
