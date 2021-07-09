@@ -30,6 +30,8 @@ class DataReshaper(object):
             self.builder = AggregateBuilder(cfg)
         elif shape_type == "transpose":
             self.builder = TransposeBuilder(cfg)
+        elif shape_type == "resample":
+            self.builder = ResampleBuilder(cfg)
         else:
             raise NotImplementedError(
                 "{} data re-shaper not implemented yet!".format(shape_type)
@@ -170,4 +172,44 @@ class TransposeBuilder(object):
                 "df.columns = [' '.join([str(c) for c in col]).strip() for col in df.columns.values]"
             )
         code.append("df = df.rename_axis(None, axis=1)")
+        return "\n".join(code)
+
+
+class ResampleBuilder(object):
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def reshape(self, data):
+        index, columns, freq, agg = (
+            self.cfg.get(p) for p in ["index", "columns", "freq", "agg"]
+        )
+        t_data = data.set_index(index)
+        if columns is not None:
+            t_data = t_data[columns]
+        t_data = getattr(t_data.resample(freq), agg)()
+        if not columns or len(columns) > 1:
+            t_data.columns = flatten_columns(t_data)
+        t_data.index.name = "{}_{}".format(index, freq)
+        t_data = t_data.reset_index()
+        return t_data
+
+    def build_code(self):
+        index, columns, freq, agg = (
+            self.cfg.get(p) for p in ["index", "columns", "freq", "agg"]
+        )
+        code = []
+        if columns is not None:
+            code.append(
+                "df = df.set_index('{}')['{}'].resample('{}').{}()".format(
+                    index, "', '".join(columns), freq, agg
+                )
+            )
+        else:
+            code.append(
+                "df = df.set_index('{}').resample('{}').{}()".format(index, freq, agg)
+            )
+        if not columns or len(columns) > 1:
+            code.append(
+                "df.columns = [' '.join([str(c) for c in col]).strip() for col in df.columns.values]"
+            )
         return "\n".join(code)

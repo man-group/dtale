@@ -4,7 +4,7 @@ import React from "react";
 import { withTranslation } from "react-i18next";
 import Select, { createFilter } from "react-select";
 
-import { aggregationOpts } from "../analysis/filters/Constants";
+import { pivotAggs } from "../analysis/filters/Constants";
 import ColumnSelect from "./ColumnSelect";
 
 export function validateExpandingCfg(t, { col, agg }) {
@@ -77,7 +77,7 @@ class CreateExpanding extends React.Component {
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={_.reject(aggregationOpts(t), { value: "rolling" })}
+                options={pivotAggs(t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={this.state.agg}

@@ -34,11 +34,9 @@ export const rollingComps = t => [
   { value: "var", label: t("constants:Variance") },
 ];
 
-export const analysisAggs = t =>
-  _.concat(
-    _.reject(aggregationOpts(t), ({ value }) => value === "rolling"),
-    [{ value: "pctsum", label: t("constants:Percentage Sum") }]
-  );
+export const analysisAggs = t => _.concat(pivotAggs(t), [{ value: "pctsum", label: t("constants:Percentage Sum") }]);
+
+export const resampleAggs = t => _.concat(pivotAggs(t), [{ value: "ohlc", label: t("constants:OHLC") }]);
 
 export const titles = t => ({
   histogram: t("constants:Histogram"),

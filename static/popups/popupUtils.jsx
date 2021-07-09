@@ -130,6 +130,17 @@ function buildReshape(props) {
   return { title, body };
 }
 
+function buildTimeseries(props) {
+  const title = (
+    <React.Fragment>
+      <i className="ico-schedule" />
+      <strong>{props.t("menu:Timeseries")}</strong>
+    </React.Fragment>
+  );
+  const body = <Reshape operation="timeseries" />;
+  return { title, body };
+}
+
 function buildAbout(props) {
   const title = (
     <React.Fragment>
@@ -298,6 +309,7 @@ const POPUP_MAP = {
   "type-conversion": buildTypeConversion,
   cleaners: buildCleaners,
   reshape: buildReshape,
+  timeseries: buildTimeseries,
   about: buildAbout,
   confirm: buildConfirm,
   "copy-range": buildCopyRange,
