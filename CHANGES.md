@@ -1,5 +1,12 @@
 ## Changelog
 
+### 1.52.0 (2021-7-10)
+* [#529](https://github.com/man-group/dtale/issues/529): resample timeseries
+* [#532](https://github.com/man-group/dtale/issues/532): shift and expanding builders
+* [#525](https://github.com/man-group/dtale/issues/525): bin range on x-axis
+* [#526](https://github.com/man-group/dtale/issues/526): targeted histogram tooltip
+* updated simpsons dataset to make use of image display
+
 ### 1.51.0 (2021-7-5)
 * [#531](https://github.com/man-group/dtale/issues/531): re-organizing column builder buttons
 * [#530](https://github.com/man-group/dtale/issues/530): typo in rolling code snippet
