@@ -15,6 +15,7 @@
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
+[![Open in VS Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/man-group/dtale)
 
 ## What is it?
 
