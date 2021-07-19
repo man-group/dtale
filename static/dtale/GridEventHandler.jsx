@@ -64,11 +64,15 @@ function handleLongStringDisplay(e, cellIdx, props) {
   const { gridState, hideTooltip, showTooltip } = props;
   const resized = e.target.querySelector("div.resized");
   if (resized && resized.clientWidth < resized.scrollWidth) {
-    const { rec } = getCell(cellIdx, gridState);
-    showTooltip(resized, rec.raw);
-  } else {
-    hideTooltip();
+    const { colCfg, rec } = getCell(cellIdx, gridState);
+    const isLink = _.get(gridState, ["columnFormats", colCfg.name, "fmt", "link"]) === true;
+    const isHtml = _.get(gridState, ["columnFormats", colCfg.name, "fmt", "html"]) === true;
+    if (!isLink && !isHtml) {
+      showTooltip(resized, rec.raw);
+      return;
+    }
   }
+  hideTooltip();
 }
 
 class ReactGridEventHandler extends React.Component {
