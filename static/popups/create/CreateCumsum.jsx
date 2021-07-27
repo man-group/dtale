@@ -12,9 +12,13 @@ export function validateCumsumCfg(t, { col }) {
   return null;
 }
 
-export function buildCode({ col }) {
+export function buildCode({ col, group }) {
   if (!col) {
     return null;
+  }
+
+  if (group && group.length) {
+    return `df.groupby(['${_.join(group, "', '")}'])['${col}'].cumsum(axis=0)`;
   }
 
   return `df['${col}'].cumsum(axis=0)`;
@@ -31,6 +35,7 @@ class CreateCumsum extends React.Component {
     const currState = _.assignIn(this.state, state);
     const updatedState = {
       cfg: {
+        group: _.map(currState.group, "value") || null,
         col: _.get(currState, "col.value") || null,
       },
     };
@@ -43,14 +48,26 @@ class CreateCumsum extends React.Component {
 
   render() {
     return (
-      <ColumnSelect
-        label={this.props.t("Col")}
-        prop="col"
-        parent={this.state}
-        updateState={this.updateState}
-        columns={this.props.columns}
-        dtypes={["int", "float"]}
-      />
+      <React.Fragment>
+        <ColumnSelect
+          label={this.props.t("Group By")}
+          prop="group"
+          otherProps={["col"]}
+          parent={this.state}
+          updateState={this.updateState}
+          columns={this.props.columns}
+          isMulti
+        />
+        <ColumnSelect
+          label={this.props.t("Col")}
+          prop="col"
+          otherProps={["group"]}
+          parent={this.state}
+          updateState={this.updateState}
+          columns={this.props.columns}
+          dtypes={["int", "float"]}
+        />
+      </React.Fragment>
     );
   }
 }

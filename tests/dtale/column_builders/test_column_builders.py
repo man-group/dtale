@@ -138,6 +138,19 @@ def test_cumsum():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
+def test_cumsum_groupby(custom_data):
+
+    data_id, column_type = "1", "cumsum"
+    build_data_inst({data_id: custom_data})
+
+    builder = ColumnBuilder(
+        data_id, column_type, "Col0", {"col": "int_val", "group": ["security_id"]}
+    )
+    verify_builder(builder, lambda col: col.max() > 0)
+
+
+@pytest.mark.unit
 def test_string():
     df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
     data_id, column_type = "1", "string"

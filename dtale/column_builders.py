@@ -1327,19 +1327,24 @@ class CumsumColumnBuilder(object):
 
     def build_column(self, data):
         col = self.cfg.get("col")
-        return pd.Series(
-            data[col].cumsum(axis=0),
-            index=data.index,
-            name=self.name,
-        )
+        group = self.cfg.get("group")
+        if group:
+            s = data.groupby(group)[col]
+        else:
+            s = data[col]
+        return pd.Series(s.cumsum(axis=0), index=data.index, name=self.name)
 
     def build_code(self):
         col = self.cfg.get("col")
+        group = self.cfg.get("group")
+        group_code = ""
+        if group:
+            group_code = ".groupby(['{}'])".format("','".join(group))
         return (
             "df.loc[:, '{name}'] = pd.Series(\n"
-            "\t(data['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
+            "\t(data{group}['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
             ")"
-        ).format(name=self.name, col=col)
+        ).format(name=self.name, col=col, group=group_code)
 
 
 class ShiftBuilder(object):
