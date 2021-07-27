@@ -87,7 +87,7 @@ def base_layout(app_root, **kwargs):
         )
     language = global_state.get_app_settings()["language"]
     language_links = []
-    for value, label in [("en", "English"), ("cn", "Chinese")]:
+    for value, label in [("en", "English"), ("cn", "Chinese"), ("pt", "Portuguese")]:
         if value == language:
             language_links.append(
                 """<span class="dropdown-item active">{}</span>""".format(

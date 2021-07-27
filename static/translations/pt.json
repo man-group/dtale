@@ -147,7 +147,6 @@
     "numeric": "Adicionar, subtrair, multiplicar ou dividir duas colunas de dados numéricos ou valores numéricos estáticos",
     "string": "Concatenar colunas juntas para formar uma string",
     "bins": "Converta dados numéricos em raios usando as funções de cut ou qcut do pandas.",
-
     "datetime": "Pegue as propriedades (minuto, hora,...) ou converta para representação de data (ult-mes, pri-mes, ult-ano...) usando colunas datatime.",
     "encoder": "Encode dados categóricos como indicadores usando OneHotEncoder, OrdinalEncoder, LabelEncoder ou FeatureHasher.",
     "random": "Crie uma coluna de dados aleatórios para diferentes tipos de dados usando regras de faixa",
