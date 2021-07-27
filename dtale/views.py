@@ -624,9 +624,12 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype_data["kurt"] = json_float(timestamps.kurt())
 
         if classification == "S" and not dtype_data["hasMissing"]:
-            if dtype.startswith("category"):
+            if (
+                dtype.startswith("category")
+                and classify_type(s.dtype.categories.dtype.name) == "S"
+            ):
                 dtype_data["hasMissing"] += int(
-                    (apply(s, lambda x: x.strip()) == "").sum()
+                    (apply(s, lambda x: str(x).strip()) == "").sum()
                 )
             else:
                 dtype_data["hasMissing"] += int(
