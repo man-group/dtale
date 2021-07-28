@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.53.0 (2021-7-28)
+* updated "Charts" page to handle dark-mode
+* [#539](https://github.com/man-group/dtale/issues/539): "Substring" & "Split By Character" column builders
+* [#542](https://github.com/man-group/dtale/issues/542): fixed bug with finding missings in categorical data
+* [#543](https://github.com/man-group/dtale/issues/543): added "group by" to cumulative sum builder
+* Portuguese translation
+* Fixes for long string tooltips
+
 ### 1.52.0 (2021-7-10)
 * [#529](https://github.com/man-group/dtale/issues/529): resample timeseries
 * [#532](https://github.com/man-group/dtale/issues/532): shift and expanding builders
