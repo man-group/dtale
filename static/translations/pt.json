@@ -164,6 +164,8 @@
     "exponential_smoothing": "Cria uma coluna usando ponderação exponencial que atribui pesos decrescentes exponencialmente à medida que a observação envelhece",
     "shift": "Índice de mudança pelo número desejado de períodos",
     "expanding": "Fornece transformações expansivas para uma coluna",
+    "substring": "Extract substring from string column by specifying start and end indices.",
+    "split": "Split a string column by a sequence of characters into additional columns.",
     "Sum": "Soma",
     "Difference": "Subtração",
     "Multiply": "Multiplicação",
@@ -333,7 +335,14 @@
     "Transform Existing Data": "Transforme Dados Existentes",
     "Timeseries": "Séries Temporais",
     "Text": "Texto",
-    "Fill Value": "Preencher Valor"
+    "Fill Value": "Preencher Valor",
+    "Start": "Inicio",
+    "End": "Fim",
+    "Substring": "Substring",
+    "Shifting": "Shifting",
+    "Expanding": "Expanding",
+    "Split By Character(s)": "Split By Character(s)",
+    "Delimiter": "Delimiter"
   },
   "column_filter": {
     "filter": "Para filtros mais complexos use a janela \"Filtro Customizado\" no menu principal.",

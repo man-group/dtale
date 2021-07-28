@@ -164,6 +164,8 @@
     "exponential_smoothing": "Create a column using exponential smmoothing which assigns exponentially decreasing weights as the observation get older",
     "shift": "Shift index by desired number of periods",
     "expanding": "Provide expanding transformations for a column",
+    "substring": "Extract substring from string column by specifying start and end indices.",
+    "split": "Split a string column by a sequence of characters into additional columns.",
     "Sum": "Sum",
     "Difference": "Difference",
     "Multiply": "Multiply",
@@ -333,7 +335,14 @@
     "Transform Existing Data": "Transform Existing Data",
     "Timeseries": "Timeseries",
     "Text": "Text",
-    "Fill Value": "Fill Value"
+    "Fill Value": "Fill Value",
+    "Start": "Start",
+    "End": "End",
+    "Substring": "Substring",
+    "Shifting": "Shifting",
+    "Expanding": "Expanding",
+    "Split By Character(s)": "Split By Character(s)",
+    "Delimiter": "Delimiter"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",

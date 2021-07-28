@@ -26,7 +26,7 @@ function submit(res) {
 }
 
 describe("DataViewer tests", () => {
-  let result, CreateColumn, CreateCumsum;
+  let result, CreateColumn, CreateSubstring;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -49,7 +49,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     CreateColumn = require("../../../popups/create/CreateColumn").ReactCreateColumn;
-    CreateCumsum = require("../../../popups/create/CreateCumsum").default;
+    CreateSubstring = require("../../../popups/create/CreateSubstring").default;
     const { DataViewer } = require("../../../dtale/DataViewer");
 
     const store = reduxUtils.createDtaleStore();
@@ -63,7 +63,7 @@ describe("DataViewer tests", () => {
     await tick();
     clickMainMenuButton(result, "Dataframe Functions");
     await tickUpdate(result);
-    clickBuilder(result, "Cumulative Sum");
+    clickBuilder(result, "Substring");
   });
 
   afterEach(() => {
@@ -72,31 +72,54 @@ describe("DataViewer tests", () => {
 
   afterAll(dimensions.afterAll);
 
-  it("DataViewer: build cumulative sum column", async () => {
-    expect(result.find(CreateCumsum).length).toBe(1);
-    result.find(CreateCumsum).find(Select).first().instance().onChange({ value: "col1" });
+  it("DataViewer: build substring column", async () => {
+    expect(result.find(CreateSubstring).length).toBe(1);
+    result.find(CreateSubstring).find(Select).first().instance().onChange({ value: "col1" });
     result
-      .find(CreateCumsum)
-      .find(Select)
+      .find(CreateSubstring)
+      .find("div.form-group")
+      .at(1)
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "2" } });
+    result
+      .find(CreateSubstring)
+      .find("div.form-group")
       .last()
-      .instance()
-      .onChange([{ value: "col2" }]);
+      .find("input")
+      .first()
+      .simulate("change", { target: { value: "4" } });
     result.update();
     submit(result);
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col1",
-      group: ["col2"],
+      start: 2,
+      end: 4,
     });
-    expect(result.find(CreateColumn).instance().state.name).toBe("col1_cumsum");
+    expect(result.find(CreateColumn).instance().state.name).toBe("col1_substring");
   });
 
-  it("DataViewer: build cumulative sum cfg validation", () => {
-    const { validateCumsumCfg } = require("../../../popups/create/CreateCumsum");
-    expect(validateCumsumCfg(t, {})).toBe("Please select a column!");
+  it("DataViewer: build substring cfg validation", () => {
+    const { validateSubstringCfg } = require("../../../popups/create/CreateSubstring");
+    expect(validateSubstringCfg(t, {})).toBe("Missing a column selection!");
     expect(
-      validateCumsumCfg(t, {
+      validateSubstringCfg(t, {
         col: "col1",
+      })
+    ).toBe("Invalid range specification, start must be less than end!");
+    expect(
+      validateSubstringCfg(t, {
+        col: "col1",
+        start: "4",
+        end: "2",
+      })
+    ).toBe("Invalid range specification, start must be less than end!");
+    expect(
+      validateSubstringCfg(t, {
+        col: "col1",
+        start: "2",
+        end: "4",
       })
     ).toBeNull();
   });

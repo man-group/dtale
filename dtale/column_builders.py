@@ -67,6 +67,10 @@ class ColumnBuilder(object):
             self.builder = ShiftBuilder(name, cfg)
         elif column_type == "expanding":
             self.builder = ExpandingBuilder(name, cfg)
+        elif column_type == "substring":
+            self.builder = SubstringBuilder(name, cfg)
+        elif column_type == "split":
+            self.builder = SplitBuilder(name, cfg)
         else:
             raise NotImplementedError(
                 "'{}' column builder not implemented yet!".format(column_type)
@@ -1403,3 +1407,50 @@ class ExpandingBuilder(object):
             "\t(data['{col}'].expanding({periods}).{agg}(), index=data.index, name='{name}'\n"
             ")"
         ).format(name=self.name, col=col, periods=periods or 1, agg=agg)
+
+
+class SubstringBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, start, end = (self.cfg.get(p) for p in ["col", "start", "end"])
+        start = int(start)
+        end = int(end)
+        s = data[col].str[:end] if start == 0 else data[col].str.slice(start, end)
+        return pd.Series(s, index=data.index, name=self.name)
+
+    def build_code(self):
+        col, start, end = (self.cfg.get(p) for p in ["col", "start", "end"])
+        if start == 0:
+            return (
+                "df.loc[:, '{name}'] = pd.Series(data['{col}'].str[:{end}], index=data.index, name='{name}')"
+            ).format(name=self.name, col=col, end=end)
+        return (
+            "df.loc[:, '{name}'] = pd.Series(\n"
+            "\t(data['{col}'].str.slice({start}, {end}), index=data.index, name='{name}'\n"
+            ")"
+        ).format(name=self.name, col=col, start=start, end=end)
+
+
+class SplitBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, delimiter = (self.cfg.get(p) for p in ["col", "delimiter"])
+        splits = data[col].str.split(delimiter, expand=True)
+        splits.columns = ["{}_{}".format(self.name, col2) for col2 in splits.columns]
+        return splits
+
+    def build_code(self):
+        col, delimiter = (self.cfg.get(p) for p in ["col", "delimiter"])
+        return (
+            "splits = data['{col}'].str.split('{delimiter}'), expand=True)\n"
+            "splits.columns = ['{name}_' + col2 for col2 in splits.columns]\n"
+            "for i in range(len(splits.columns)):\n"
+            "\tnew_col = splits.iloc[:, i]\n"
+            "\tdf.loc[:, str(new_col.name)] = new_col"
+        ).format(col=col, delimiter=delimiter, name=self.name)

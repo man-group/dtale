@@ -50,15 +50,6 @@ class CreateCumsum extends React.Component {
     return (
       <React.Fragment>
         <ColumnSelect
-          label={this.props.t("Group By")}
-          prop="group"
-          otherProps={["col"]}
-          parent={this.state}
-          updateState={this.updateState}
-          columns={this.props.columns}
-          isMulti
-        />
-        <ColumnSelect
           label={this.props.t("Col")}
           prop="col"
           otherProps={["group"]}
@@ -66,6 +57,15 @@ class CreateCumsum extends React.Component {
           updateState={this.updateState}
           columns={this.props.columns}
           dtypes={["int", "float"]}
+        />
+        <ColumnSelect
+          label={this.props.t("Group By")}
+          prop="group"
+          otherProps={["col"]}
+          parent={this.state}
+          updateState={this.updateState}
+          columns={this.props.columns}
+          isMulti
         />
       </React.Fragment>
     );

@@ -151,6 +151,42 @@ def test_cumsum_groupby(custom_data):
 
 
 @pytest.mark.unit
+def test_substring():
+    df = pd.DataFrame(dict(a=["aaaaa", "bbbbbbb", "ccccccccc"]))
+
+    data_id, column_type = "1", "substring"
+    build_data_inst({data_id: df})
+
+    builder = ColumnBuilder(
+        data_id, column_type, "Col1", {"col": "a", "start": 0, "end": 3}
+    )
+    verify_builder(builder, lambda col: list(col.values) == ["aaa", "bbb", "ccc"])
+
+    builder = ColumnBuilder(
+        data_id, column_type, "Col1", {"col": "a", "start": 5, "end": 6}
+    )
+    verify_builder(builder, lambda col: list(col.values) == ["", "b", "c"])
+
+
+@pytest.mark.unit
+def test_splitting():
+    df = pd.DataFrame(dict(a=["a,a,a"]))
+
+    data_id, column_type = "1", "split"
+    build_data_inst({data_id: df})
+
+    builder = ColumnBuilder(
+        data_id, column_type, "a_split", {"col": "a", "delimiter": ","}
+    )
+
+    def _test(col):
+        assert list(col.columns) == ["a_split_0", "a_split_1", "a_split_2"]
+        return list(col.loc[0, :].values) == ["a", "a", "a"]
+
+    verify_builder(builder, _test)
+
+
+@pytest.mark.unit
 def test_string():
     df = pd.DataFrame(dict(a=[1], b=[2], c=["a"], d=[True]))
     data_id, column_type = "1", "string"

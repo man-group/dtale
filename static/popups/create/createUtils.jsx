@@ -17,6 +17,8 @@ import { default as CreateShift, validateShiftCfg } from "./CreateShift";
 import { default as CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
 import { default as CreateStandardized, validateStandardizedCfg } from "./CreateStandardized";
 import { default as CreateString, validateStringCfg } from "./CreateString";
+import { default as CreateStringSplitting, validateStringSplittingCfg } from "./CreateStringSplitting";
+import { default as CreateSubstring, validateSubstringCfg } from "./CreateSubstring";
 import { default as CreateTransform, validateTransformCfg } from "./CreateTransform";
 import { default as CreateTypeConversion, validateTypeConversionCfg } from "./CreateTypeConversion";
 import { default as CreateWinsorize, validateWinsorizeCfg } from "./CreateWinsorize";
@@ -38,7 +40,7 @@ export const TYPE_GROUPS = [
     label: "Timeseries",
   },
   {
-    buttons: ["similarity", "cleaning"],
+    buttons: ["similarity", "cleaning", "substring", "split"],
     label: "Text",
     className: "last-type-group",
   },
@@ -49,6 +51,7 @@ export const LABELS = {
   diff: "Row Difference",
   cumsum: "Cumulative Sum",
   shift: "Shifting",
+  split: "Split By Character",
 };
 
 export function buildLabel(v) {
@@ -101,6 +104,10 @@ export function validateCfg(t, type, cfg) {
       return validateShiftCfg(t, cfg);
     case "expanding":
       return validateExpandingCfg(t, cfg);
+    case "substring":
+      return validateSubstringCfg(t, cfg);
+    case "split":
+      return validateStringSplittingCfg(t, cfg);
   }
   return null;
 }
@@ -124,6 +131,10 @@ export function getBody(state, props, updateState) {
       return <CreateSimilarity {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "standardize":
       return <CreateStandardized {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "substring":
+      return <CreateSubstring {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "split":
+      return <CreateStringSplitting {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "type_conversion":
       return (
         <CreateTypeConversion
