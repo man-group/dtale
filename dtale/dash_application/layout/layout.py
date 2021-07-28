@@ -123,7 +123,7 @@ def base_layout(app_root, **kwargs):
                 <link rel="shortcut icon" href="{favicon_path}">
                 {css}
             </head>
-            <body>
+            <body class="{theme}-mode">
                 <header class="app-header">
                     <span class="{main_title_class}" style="{main_title_style}">{main_title}</span>
                     <span style="font-size: 16px" class="pl-5 mt-4">{title}</span>
@@ -183,6 +183,7 @@ def base_layout(app_root, **kwargs):
         main_title_class=main_title_class,
         main_title_style=main_title_style,
         page_title=page_title,
+        theme=global_state.get_app_settings()["theme"],
     )
 
 

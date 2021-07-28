@@ -722,3 +722,16 @@ div#bins-val-input input {
 #load-type-dropdown .Select-menu-outer {
   width: 7.5em;
 }
+
+body.dark-mode .tab-container .tab {
+  background-color: black;
+}
+
+body.dark-mode .Select-menu {
+  color: black !important;
+}
+
+body.dark-mode .rc-slider-mark-text,
+body.dark-mode .hoverable {
+  color: white !important;
+}
