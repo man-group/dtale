@@ -12,7 +12,7 @@ require("./static/adapter-for-react-16");
 jest.mock("react-syntax-highlighter/dist/esm/styles/hljs", () => ({ docco: {} }));
 
 // globally mock this until we actually start to test it
-jest.mock("plotly.js-dist", () => ({ newPlot: () => undefined }));
+jest.mock("plotly.js-geo-dist-min", () => ({ newPlot: () => undefined }));
 
 jest.mock("react-i18next", () => ({
   // this mock makes sure any components using the translate HoC receive the t function as a prop

@@ -17,7 +17,7 @@ import zoomPlugin from "chartjs-plugin-zoom";
 import chroma from "chroma-js";
 import _ from "lodash";
 import moment from "moment";
-import Plotly from "plotly.js-dist";
+import Plotly from "plotly.js-geo-dist-min";
 
 import { buildRGBA } from "./colors";
 import * as gu from "./dtale/gridUtils";

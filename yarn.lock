@@ -6718,10 +6718,10 @@ pkg-up@^1.0.0:
   dependencies:
     find-up "^1.0.0"
 
-plotly.js-dist@1.58.4:
+plotly.js-geo-dist-min@1.58.4:
   version "1.58.4"
-  resolved "https://registry.yarnpkg.com/plotly.js-dist/-/plotly.js-dist-1.58.4.tgz#d57b73d27af57a0d6cd2cf9428a001962889cf5b"
-  integrity sha512-oXCTRJFN8FBsHZSQPYoM3LuJQchPUrf6sOXFC0EFdvcr5lmJmLcAsW74jDy9PkRpm3PB+A+2oY1hsUMmk2eZbw==
+  resolved "https://registry.yarnpkg.com/plotly.js-geo-dist-min/-/plotly.js-geo-dist-min-1.58.4.tgz#ea05badaa56251baa701db1df97bc7be540a38f6"
+  integrity sha512-IkScX+NlljCHOZJ1r06GqH+sQmnSEIX7oGPHgSdku5DfOuzrdC3pK5XMSxI0+GwGQJHDpVSMHkHnG893Y5eE4A==
 
 pluralize@^1.2.1:
   version "1.2.1"
