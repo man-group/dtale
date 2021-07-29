@@ -16,6 +16,10 @@ from flask import (
     request,
     Response,
 )
+import matplotlib
+
+# flake8: NOQA
+matplotlib.use("agg")
 
 import missingno as msno
 import networkx as nx
