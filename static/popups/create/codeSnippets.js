@@ -10,7 +10,7 @@ export function buildRandomCode(cfg) {
     ];
   } else if (cfg.type === "choice") {
     let choices = cfg.choices || "a,b,c,d,e,f";
-    choices = _.join(_.split(choices, ","), "','");
+    choices = _.join(choices.split(","), "','");
     return `pd.Series(np.random.choice(['${choices}'], len(df)), index=df.index)`;
   } else if (cfg.type === "bool") {
     return "pd.Series(np.random.choice([True, False], len(data)), index=df.index)";

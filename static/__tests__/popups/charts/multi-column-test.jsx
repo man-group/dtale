@@ -75,7 +75,7 @@ describe("Charts tests", () => {
     result.find(Charts).find("button").first().simulate("click");
     await tickUpdate(result);
     expect(result.find(ChartsBody).instance().state.charts.length).toBe(1);
-    expect(_.last(_.split(result.find(Charts).instance().state.url, "?"))).toBe(
+    expect(_.last(result.find(Charts).instance().state.url.split("?"))).toBe(
       _.join(
         [
           "x=col4&y=%5B%22col1%22%2C%22col2%22%5D&query=col4%20%3D%3D%20'20181201'",

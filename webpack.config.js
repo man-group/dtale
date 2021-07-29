@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-globals */
 const webpack = require("webpack");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const LodashModuleReplacementPlugin = require("lodash-webpack-plugin");
 const autoprefixer = require("autoprefixer");
 const postcssNested = require("postcss-nested");
 const _ = require("lodash");
@@ -54,7 +55,7 @@ function createConfig(entry) {
           options: {
             cacheDirectory: true,
             presets: ["@babel/env", "@babel/react", "@babel/flow"],
-            plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-classes"],
+            plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-classes", "lodash"],
           },
         },
         {
@@ -122,6 +123,14 @@ function createConfig(entry) {
         exclude: [".git_keep"],
       }),
       new webpack.HotModuleReplacementPlugin(),
+      new LodashModuleReplacementPlugin({
+        collections: true,
+        coercions: true,
+        exotics: true,
+        flattening: true,
+        paths: true,
+        shorthands: true,
+      }),
     ],
     externals: {
       window: "window",

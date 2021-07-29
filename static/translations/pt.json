@@ -341,7 +341,7 @@
     "Substring": "Substring",
     "Shifting": "Shifting",
     "Expanding": "Expanding",
-    "Split By Character(s)": "Split By Character(s)",
+    "Split By Character": "Split By Character",
     "Delimiter": "Delimiter"
   },
   "column_filter": {

@@ -30,11 +30,12 @@ class DetailsBoxplot extends React.Component {
     const builder = ctx => {
       const { details } = this.props;
       const { describe, name } = details || {};
-      const chartData = _(describe || {})
-        .pickBy((v, k) => _.includes(["25%", "50%", "75%", "min", "max"], k) && !_.includes(["nan", "inf"], v))
-        .mapKeys((_v, k) => _.get({ "25%": "q1", "50%": "median", "75%": "q3" }, k, k))
-        .mapValues(v => parseFloat(_.replace(v, /,/g, "")))
-        .value();
+      let chartData = _.pickBy(
+        describe || {},
+        (v, k) => _.includes(["25%", "50%", "75%", "min", "max"], k) && !_.includes(["nan", "inf"], v)
+      );
+      chartData = _.mapKeys(chartData, (_v, k) => _.get({ "25%": "q1", "50%": "median", "75%": "q3" }, k, k));
+      chartData = _.mapValues(chartData, v => parseFloat(_.replace(v, /,/g, "")));
       if (_.size(chartData) == 0) {
         return null;
       }

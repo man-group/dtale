@@ -25,7 +25,9 @@ class ColumnSelect extends React.Component {
       dtypesStr = ` ${t("for the following dtypes")}: ${_.join(dtypes, ", ")}`;
     }
     let finalOptions = _.map(columns, "name");
-    const otherValues = _(parent).pick(otherProps).values().flatten().map("value").compact().value();
+    let otherValues = _.pick(parent, otherProps);
+    otherValues = _.map(_.flatten(_.values(otherValues)), "value");
+    otherValues = _.compact(otherValues);
     finalOptions = _.difference(finalOptions, otherValues);
     return (
       <div key={prop} className="form-group row">

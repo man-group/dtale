@@ -162,7 +162,7 @@ function mockWordcloud() {
 }
 
 const mockT = key => {
-  const keySegs = _.split(key, ":");
+  const keySegs = key.split(":");
   if (keySegs.length > 2) {
     return _.join(_.tail(keySegs), ":");
   } else if (keySegs.length == 2) {

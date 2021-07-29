@@ -17,7 +17,7 @@ import { Transpose, validateTransposeCfg } from "./Transpose";
 require("./Reshape.css");
 
 function buildForwardURL(href, dataId) {
-  return `${_.join(_.initial(_.split(href, "/")), "/")}/${dataId}`;
+  return `${_.join(_.initial((href || "").split("/")), "/")}/${dataId}`;
 }
 
 const OPERATIONS = {

@@ -45,7 +45,7 @@ class StringFilter extends React.Component {
       raw: updatedState.raw,
       caseSensitive: updatedState.caseSensitive,
     };
-    if (cfg.action === "length" && _.find(_.split(cfg.raw, ","), v => _.isNaN(parseInt(v)))) {
+    if (cfg.action === "length" && _.find((cfg.raw || "").split(","), v => _.isNaN(parseInt(v)))) {
       // simply update immediate state if there is an invalid integer string specified
       this.setState(updatedState);
       return;

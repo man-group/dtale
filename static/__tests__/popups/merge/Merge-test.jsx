@@ -27,7 +27,7 @@ describe("DataViewer tests", () => {
       if (_.startsWith(url, "/dtale/processes")) {
         const data = _.map(PROCESSES, p => ({
           ...p,
-          names: _.map(_.split(p.names, ","), c => ({
+          names: _.map(p.names.split(","), c => ({
             name: c,
             dtype: "int",
           })),

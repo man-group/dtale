@@ -14,8 +14,8 @@ export function validateBinsCfg(t, cfg) {
   if (bins === "") {
     return t("Missing a bins selection!");
   }
-  if (!_.isNull(labels) && _.size(_.split(labels, ",")) != parseInt(bins)) {
-    const labelCt = _.size(_.split(labels, ","));
+  if (!_.isNull(labels) && _.size(labels.split(",")) != parseInt(bins)) {
+    const labelCt = _.size(labels.split(","));
     return `${t("There are")} ${bins} ${t("bins, but you have only specified")} ${labelCt} labels!`;
   }
   return null;
@@ -31,10 +31,10 @@ export function buildCode({ col, operation, bins, labels }) {
   }
   code += `${operation === "cut" ? "bins" : "q"}=${bins}`;
   if (!_.isNull(labels)) {
-    if (_.size(_.split(labels, ",")) != parseInt(bins)) {
+    if (_.size(labels.split(",")) != parseInt(bins)) {
       return null;
     }
-    code += `, labels=['${_.join(_.split(labels, ","), "', '")}']`;
+    code += `, labels=['${_.join(labels.split(","), "', '")}']`;
   }
   code += ")";
   return code;
