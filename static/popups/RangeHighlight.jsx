@@ -27,7 +27,7 @@ const MODES = [
 ];
 
 function retrieveRange(col, ranges) {
-  const range = _.get(ranges, col.value);
+  const range = _.get(ranges, col?.value);
   if (range) {
     _.forEach(MODES, ([_label, _flag, value, _filter]) => {
       if (!_.isNil(range[value])) {

@@ -54,7 +54,7 @@ export function pythonVersion(state = null, action = {}) {
     case "load-preview": {
       const version = getHiddenValue("python_version");
       if (version) {
-        const versionNumbers = _.map(_.split(version, "."), _.parseInt);
+        const versionNumbers = _.map(version.split("."), _.parseInt);
         return versionNumbers;
       }
       return state;

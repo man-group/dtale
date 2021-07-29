@@ -58,7 +58,7 @@ export function buildLabel(v) {
   if (_.has(LABELS, v)) {
     return LABELS[v];
   }
-  return _.join(_.map(_.split(v, "_"), _.capitalize), " ");
+  return _.join(_.map(v.split("_"), _.capitalize), " ");
 }
 
 // eslint-disable-next-line complexity

@@ -58,7 +58,7 @@ function parseState({ fmt, style }) {
   };
   if (_.includes(fmt, ".")) {
     let precision = 0;
-    const precisionStr = _.last(_.split(fmt, "."));
+    const precisionStr = _.last(fmt.split("."));
     while (_.get(precisionStr, precision) === "0") {
       precision++;
     }

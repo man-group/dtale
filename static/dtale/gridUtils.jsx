@@ -232,7 +232,7 @@ export const hasNoInfo = ({ sortInfo, query, columns, columnFilters, outlierFilt
 };
 
 export function convertCellIdxToCoords(cellIdx) {
-  return _.map(_.split(cellIdx, "|"), v => parseInt(v));
+  return _.map((cellIdx || "").split("|"), v => parseInt(v));
 }
 
 export function getCell(cellIdx, gridState) {

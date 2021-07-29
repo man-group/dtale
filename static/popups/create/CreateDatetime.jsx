@@ -30,7 +30,7 @@ export function buildCode({ col, operation, property, conversion }) {
     if (_.isNull(conversion)) {
       return null;
     }
-    const [freq, how] = _.split(conversion, "_");
+    const [freq, how] = conversion.split("_");
     code = `df['${col.value}'].dt.to_period(${FREQ_MAPPING[freq]}).dt.to_timestamp(how='${how}')`;
   }
   return code;
@@ -86,7 +86,7 @@ class CreateDatetime extends React.Component {
               }
               return (
                 <button key={option} {...buttonProps}>
-                  {t(_.join(_.map(_.split(option, "_"), _.capitalize), " "))}
+                  {t(_.join(_.map(option.split("_"), _.capitalize), " "))}
                 </button>
               );
             })}

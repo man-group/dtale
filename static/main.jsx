@@ -41,7 +41,7 @@ if (_.startsWith(pathname, "/dtale/popup")) {
   const settings = toJson(getHiddenValue("settings"));
   const dataId = getHiddenValue("data_id");
   const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
-  const pathSegs = _.split(pathname, "/");
+  const pathSegs = pathname.split("/");
   const popupType = pathSegs[pathSegs.length - 1] === "code-popup" ? "code-popup" : pathSegs[3];
   let store = createStore(app.store);
   let appActions = actions;

@@ -79,7 +79,9 @@ class ReactCharts extends React.Component {
   renderSelect(label, prop, otherProps, isMulti = false) {
     const { columns } = this.state;
     let finalOptions = _.map(columns, "name");
-    const otherValues = _(this.state).pick(otherProps).values().flatten().map("value").compact().value();
+    let otherValues = _.pick(this.state, otherProps);
+    otherValues = _.map(_.flatten(_.values(otherValues)), "value");
+    otherValues = _.compact(otherValues);
     finalOptions = _.difference(finalOptions, otherValues);
     return (
       <div className="input-group mr-3">

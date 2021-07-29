@@ -121,7 +121,7 @@ class CreateCleaning extends React.Component {
       updatedState.cfg.caseType = currState.caseType;
     }
     if (_.includes(currState.cleaners, "stopwords")) {
-      updatedState.cfg.stopwords = _.split(currState.stopwords, ",");
+      updatedState.cfg.stopwords = (currState.stopwords ?? "").split(",");
     }
     if (_.includes(currState.cleaners, "nltk_stopwords")) {
       updatedState.cfg.language = _.get(currState, "language.value");

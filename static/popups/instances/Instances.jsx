@@ -191,7 +191,7 @@ class Instances extends React.Component {
                       fontSize: "80%",
                     }}
                     cellRenderer={({ rowData }) => (
-                      <span title={rowData.names.length > 30 ? _.join(_.split(rowData.names, ","), "\n") : null}>
+                      <span title={rowData.names.length > 30 ? _.join(rowData.names.split(","), "\n") : null}>
                         {_.truncate(rowData.names)}
                       </span>
                     )}

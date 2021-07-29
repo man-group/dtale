@@ -126,7 +126,7 @@ function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
     intersect: false,
     callbacks: {
       title: tooltipItems => `${chartOpts.selectedCol} ${tooltipItems[0].label}`,
-      beforeBody: () => chartOpts.target.value,
+      beforeBody: () => _.get(chartOpts.target, "value"),
     },
     itemSort: (a, b) => b.raw - a.raw,
   };
