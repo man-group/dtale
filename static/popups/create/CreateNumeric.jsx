@@ -2,9 +2,8 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
-import Select, { createFilter } from "react-select";
 
-import * as gu from "../../dtale/gridUtils";
+import Operand from "./Operand";
 
 export function validateNumericCfg(t, cfg) {
   const left = _.get(cfg, "left", {});
@@ -75,7 +74,6 @@ class CreateNumeric extends React.Component {
       right: { type: "col", col: null, val: null },
     };
     this.updateState = this.updateState.bind(this);
-    this.renderOperand = this.renderOperand.bind(this);
   }
 
   updateState(state) {
@@ -97,103 +95,52 @@ class CreateNumeric extends React.Component {
     this.setState(currState, () => this.props.updateState({ cfg: { left, operation, right }, code }));
   }
 
-  renderOperand(prop, otherProp) {
-    const { col, type, val } = this.state[prop];
-    let input = null;
-    if (type === "col") {
-      const columns = _.map(
-        _.filter(this.props.columns || [], c => _.includes(["int", "float"], gu.findColType(c.dtype))),
-        ({ name }) => ({ value: name })
-      );
-      const otherOperand = this.state[otherProp];
-      const otherCol = otherOperand.type === "col" ? otherOperand.col : null;
-      const finalOptions = _.isNull(otherCol) ? columns : _.reject(columns, otherCol);
-      input = (
-        <div className="input-group">
-          <Select
-            className="Select is-clearable is-searchable Select--single"
-            classNamePrefix="Select"
-            options={_.sortBy(finalOptions, o => _.toLower(o.value))}
-            getOptionLabel={_.property("value")}
-            getOptionValue={_.property("value")}
-            value={col}
-            onChange={selected =>
-              this.updateState({
-                [prop]: _.assign({}, this.state[prop], { col: selected }),
-              })
-            }
-            noOptionsText={() => this.props.t("No columns found")}
-            isClearable
-            filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-          />
-        </div>
-      );
-    } else {
-      const onChange = e =>
-        this.updateState({
-          [prop]: _.assign({}, this.state[prop], { val: e.target.value }),
-        });
-      input = (
-        <div className="input-group">
-          <input type="number" className="form-control numeric-input" value={val || ""} onChange={onChange} />
-        </div>
-      );
-    }
-    return (
-      <div key={prop} className="form-group row">
-        <div className="col-md-3 text-right">
-          <div className="btn-group">
-            {_.map(["col", "val"], t => {
-              const buttonProps = { className: "btn" };
-              if (t === type) {
-                buttonProps.className += " btn-primary active";
-              } else {
-                buttonProps.className += " btn-primary inactive";
-                buttonProps.onClick = () =>
-                  this.updateState({
-                    [prop]: _.assign({}, this.state[prop], { type: t }),
-                  });
-              }
-              return (
-                <button key={`${prop}-${t}`} {...buttonProps}>
-                  {this.props.t(_.capitalize(t))}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="col-md-8">{input}</div>
-      </div>
-    );
-  }
-
   render() {
-    const { t } = this.props;
-    return [
-      <div key={0} className="form-group row">
-        <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
-        <div className="col-md-8">
-          <div className="btn-group">
-            {_.map(["sum", "difference", "multiply", "divide"], operation => {
-              const buttonProps = { className: "btn" };
-              if (operation === this.state.operation) {
-                buttonProps.className += " btn-primary active";
-              } else {
-                buttonProps.className += " btn-primary inactive";
-                buttonProps.onClick = () => this.updateState({ operation });
-              }
-              return (
-                <button key={operation} {...buttonProps}>
-                  {t(_.capitalize(operation))}
-                </button>
-              );
-            })}
+    const { columns, t } = this.props;
+    const { left, right } = this.state;
+    return (
+      <React.Fragment>
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
+          <div className="col-md-8">
+            <div className="btn-group">
+              {_.map(["sum", "difference", "multiply", "divide"], operation => {
+                const buttonProps = { className: "btn" };
+                if (operation === this.state.operation) {
+                  buttonProps.className += " btn-primary active";
+                } else {
+                  buttonProps.className += " btn-primary inactive";
+                  buttonProps.onClick = () => this.updateState({ operation });
+                }
+                return (
+                  <button key={operation} {...buttonProps}>
+                    {t(_.capitalize(operation))}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>,
-      this.renderOperand("left", "right"),
-      this.renderOperand("right", "left"),
-    ];
+        <Operand
+          name="left"
+          cfg={left}
+          otherOperand={right}
+          dataType="number"
+          colTypes={["int", "float"]}
+          updateState={this.updateState}
+          columns={columns}
+        />
+        <Operand
+          name="right"
+          cfg={right}
+          otherOperand={left}
+          dataType="number"
+          colTypes={["int", "float"]}
+          updateState={this.updateState}
+          columns={columns}
+        />
+      </React.Fragment>
+    );
   }
 }
 CreateNumeric.displayName = "CreateNumeric";

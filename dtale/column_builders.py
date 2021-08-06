@@ -31,6 +31,10 @@ class ColumnBuilder(object):
             self.builder = NumericColumnBuilder(name, cfg)
         elif column_type == "string":
             self.builder = StringColumnBuilder(name, cfg)
+        elif column_type == "concatenate":
+            self.builder = ConcatenateColumnBuilder(name, cfg)
+        elif column_type == "replace":
+            self.builder = ReplaceColumnBuilder(name, cfg)
         elif column_type == "datetime":
             self.builder = DatetimeColumnBuilder(name, cfg)
         elif column_type == "bins":
@@ -141,6 +145,60 @@ class StringColumnBuilder(object):
         return (
             "df.loc[:, '{name}'] = pd.Series({data_str}, index=df.index, name='{name}')"
         ).format(name=self.name, data_str=data_str)
+
+
+class ConcatenateColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        left, right = (self.cfg.get(p) for p in ["left", "right"])
+        left = data[left["col"]].astype("str") if "col" in left else left["val"]
+        right = data[right["col"]].astype("str") if "col" in right else right["val"]
+        return left + right
+
+    def build_code(self):
+        left, right = (self.cfg.get(p) for p in ["left", "right"])
+        return "df.loc[:, '{name}'] = {left} + {right}".format(
+            name=self.name,
+            left="df['{}'].astype('str')".format(left["col"])
+            if "col" in left
+            else left["val"],
+            right="df['{}'].astype('str')".format(right["col"])
+            if "col" in right
+            else right["val"],
+        )
+
+
+class ReplaceColumnBuilder(object):
+    def __init__(self, name, cfg):
+        self.name = name
+        self.cfg = cfg
+
+    def build_column(self, data):
+        col, search, replacement, case, regex = (
+            self.cfg.get(p)
+            for p in ["col", "search", "replacement", "caseSensitive", "regex"]
+        )
+        return pd.Series(
+            data[col].str.replace(search, replacement, case=case, regex=regex),
+            index=data.index,
+            name=self.name,
+        )
+
+    def build_code(self):
+        col, search, replacement, case, regex = (
+            self.cfg.get(p)
+            for p in ["col", "search", "replacement", "caseSensitive", "regex"]
+        )
+        return "data['{col}'].str.replace('{search}', '{replacement}', case={case}, regex={regex})".format(
+            col=col,
+            search=search,
+            replacement=replacement,
+            case="True" if case else "False",
+            regex="True" if regex else "False",
+        )
 
 
 FREQ_MAPPING = dict(month="M", quarter="Q", year="Y")

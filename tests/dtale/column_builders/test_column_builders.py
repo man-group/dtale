@@ -414,3 +414,32 @@ def test_expanding():
         return list(col.dropna().values) == [1.0, 3.0, 3.0, 7.0]
 
     verify_builder(builder, verify)
+
+
+@pytest.mark.unit
+def test_concatenate():
+    df = pd.DataFrame(dict(a=["a"], b=["b"]))
+
+    data_id, column_type = "1", "concatenate"
+    build_data_inst({data_id: df})
+
+    cfg = dict(left=dict(col="a"), right=dict(col="b"))
+    builder = ColumnBuilder(data_id, column_type, "a_b", cfg)
+    verify_builder(builder, lambda col: col.values[0] == "ab")
+
+    cfg = dict(left=dict(col="a"), right=dict(val="b"))
+    builder = ColumnBuilder(data_id, column_type, "a_b2", cfg)
+    verify_builder(builder, lambda col: col.values[0] == "ab")
+
+
+@pytest.mark.unit
+def test_replace():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame({"A": ["foo_bar"]}))
+    data_id, column_type = "1", "replace"
+    build_data_inst({data_id: df})
+
+    cfg = {"col": "A", "search": "_bar", "replacement": "_baz"}
+    builder = ColumnBuilder(data_id, column_type, "A_replace", cfg)
+    verify_builder(builder, lambda col: col.values[0] == "foo_baz")

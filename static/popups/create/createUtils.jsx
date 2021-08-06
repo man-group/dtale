@@ -3,6 +3,7 @@ import React from "react";
 
 import { default as CreateBins, validateBinsCfg } from "./CreateBins";
 import { default as CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
+import { default as CreateConcatenate, validateConcatenateCfg } from "./CreateConcatenate";
 import { default as CreateCumsum, validateCumsumCfg } from "./CreateCumsum";
 import { default as CreateDataSlope, validateDataSlopeCfg } from "./CreateDataSlope";
 import { default as CreateDatetime, validateDatetimeCfg } from "./CreateDatetime";
@@ -12,6 +13,7 @@ import { default as CreateExpanding, validateExpandingCfg } from "./CreateExpand
 import { default as CreateExponentialSmoothing, validateExponentialSmoothingCfg } from "./CreateExponentialSmoothing";
 import { default as CreateNumeric, validateNumericCfg } from "./CreateNumeric";
 import { default as CreateRandom, validateRandomCfg } from "./CreateRandom";
+import { default as CreateReplace, validateReplaceCfg } from "./CreateReplace";
 import { default as CreateRolling, validateRollingCfg } from "./CreateRolling";
 import { default as CreateShift, validateShiftCfg } from "./CreateShift";
 import { default as CreateSimilarity, validateSimilarityCfg } from "./CreateSimilarity";
@@ -40,7 +42,7 @@ export const TYPE_GROUPS = [
     label: "Timeseries",
   },
   {
-    buttons: ["similarity", "cleaning", "substring", "split"],
+    buttons: ["similarity", "cleaning", "substring", "split", "concatenate", "replace"],
     label: "Text",
     className: "last-type-group",
   },
@@ -70,6 +72,10 @@ export function validateCfg(t, type, cfg) {
       return validateEncoderCfg(t, cfg);
     case "string":
       return validateStringCfg(t, cfg);
+    case "concatenate":
+      return validateConcatenateCfg(t, cfg);
+    case "replace":
+      return validateReplaceCfg(t, cfg);
     case "bins":
       return validateBinsCfg(t, cfg);
     case "random":
@@ -119,6 +125,10 @@ export function getBody(state, props, updateState) {
       return <CreateNumeric {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "string":
       return <CreateString {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "concatenate":
+      return <CreateConcatenate {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "replace":
+      return <CreateReplace {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "datetime":
       return <CreateDatetime {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "encoder":
@@ -176,7 +186,7 @@ export function getBody(state, props, updateState) {
 }
 
 export function renderNameInput({ type, cfg }) {
-  if (_.includes(["type_conversion", "cleaning"], type)) {
+  if (_.includes(["type_conversion", "cleaning", "replace"], type)) {
     return "name_inplace";
   } else if (type === "encoder") {
     const algo = _.get(cfg, "algo");

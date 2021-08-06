@@ -166,6 +166,7 @@
     "expanding": "Fornece transformações expansivas para uma coluna",
     "substring": "Extract substring from string column by specifying start and end indices.",
     "split": "Split a string column by a sequence of characters into additional columns.",
+    "concatenate": "Concatenate columns with raw strings or other columns to create a new string column.",
     "Sum": "Soma",
     "Difference": "Subtração",
     "Multiply": "Multiplicação",
@@ -342,7 +343,8 @@
     "Shifting": "Shifting",
     "Expanding": "Expanding",
     "Split By Character": "Split By Character",
-    "Delimiter": "Delimiter"
+    "Delimiter": "Delimiter",
+    "Concatenate": "Concatenate"
   },
   "column_filter": {
     "filter": "Para filtros mais complexos use a janela \"Filtro Customizado\" no menu principal.",

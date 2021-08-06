@@ -165,6 +165,7 @@
     "expanding": "Provide expanding transformations for a column",
     "substring": "Extract substring from string column by specifying start and end indices.",
     "split": "Split a string column by a sequence of characters into additional columns.",
+    "concatenate": "Concatenate columns with raw strings or other columns to create a new string column.",
     "Operation": "操作",
     "Sum": "总和",
     "Difference": "差异",
@@ -341,7 +342,8 @@
     "Shifting": "Shifting",
     "Expanding": "Expanding",
     "Split By Character": "Split By Character",
-    "Delimiter": "Delimiter"
+    "Delimiter": "Delimiter",
+    "Concatenate": "Concatenate"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
