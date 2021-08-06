@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.54.0 (2021-8-6)
+* [#545](https://github.com/man-group/dtale/issues/545): added "concatenate" & "replace" string column builders
+* updated lodash loading to use tree-shaking
+* [#544](https://github.com/man-group/dtale/issues/544): fixed issue with loading missingno plots
+* used plotly.js partial distribution to lower egg size
+
 ### 1.53.0 (2021-7-28)
 * updated "Charts" page to handle dark-mode
 * [#539](https://github.com/man-group/dtale/issues/539): "Substring" & "Split By Character" column builders
