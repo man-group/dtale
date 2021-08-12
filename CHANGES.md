@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.54.1 (2021-8-11)
+* [#549](https://github.com/man-group/dtale/issues/549): fix for grouping charts by multiple columns
+
 ### 1.54.0 (2021-8-6)
 * [#545](https://github.com/man-group/dtale/issues/545): added "concatenate" & "replace" string column builders
 * updated lodash loading to use tree-shaking
