@@ -794,8 +794,9 @@ def scatter_code_builder(
     title = build_title(x, y_vals, group=None, z=z)
     code = []
     if len(data["data"]) > 1:
-        group_filter, _ = parse_group_filter(series.get("_filter_"))
-        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+        code.append(
+            GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+        )
         title = build_title(x, y_vals, series_key, z=z)
 
     if len(y_vals) > 1:
@@ -1346,8 +1347,9 @@ def bar_code_builder(
     series = data["data"][series_key]
     title = build_title(x, final_cols)
     if len(data["data"]) > 1:
-        group_filter, _ = parse_group_filter(series.get("_filter_"))
-        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+        code.append(
+            GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+        )
         title = build_title(x, final_cols, group=series_key)
 
     barsort_col = "x" if barsort == x or barsort not in series else barsort
@@ -1612,8 +1614,9 @@ def line_code_builder(data, x, y, axes_builder, **inputs):
     line_func = "go.Scattergl" if len(series["x"]) > 15000 else "go.Scatter"
     code = []
     if len(data["data"]) > 1:
-        group_filter, _ = parse_group_filter(series.get("_filter_"))
-        code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+        code.append(
+            GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+        )
 
     code.append("\nimport plotly.graph_objs as go\n\n" "charts = []")
     pp = pprint.PrettyPrinter(indent=4)
@@ -1669,8 +1672,9 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
         title = build_title(x, final_cols[0])
         code = []
         if len(data["data"]) > 1:
-            group_filter, _ = parse_group_filter(series.get("_filter_"))
-            code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
             title = build_title(x, final_cols[0], group=series_key)
 
         if len(y) > 1:
@@ -2356,9 +2360,9 @@ def funnel_builder(data_id, export=False, **inputs):
         title = build_title(selected_label, final_cols[0])
         funnel_code = []
         if len(data["data"]) > 1 and not is_stacked:
-            print(series.keys())
-            group_filter, _ = parse_group_filter(series.get("_filter_"))
-            code.append(GROUP_WARNING.format(series_key=triple_quote(group_filter)))
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
             title = build_title(selected_label, final_cols, group=series_key)
         elif is_stacked:
             title = build_title(selected_label, final_cols)
