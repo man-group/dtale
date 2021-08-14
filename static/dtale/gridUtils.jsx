@@ -125,7 +125,7 @@ const calcDataWidth = (name, dtype, data) => {
     }
     case "string":
     default: {
-      const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"]).toUpperCase()));
+      const upperWords = _.uniq(_.map(data, d => _.get(d, [name, "view"], "").toUpperCase()));
       return _.max(_.map(upperWords, measureText));
     }
   }
