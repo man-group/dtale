@@ -69,9 +69,10 @@ ReactDtaleHotkeys.propTypes = {
   columns: PropTypes.arrayOf(PropTypes.object), // eslint-disable-line react/no-unused-prop-types
   ctrlRows: PropTypes.arrayOf(PropTypes.number), // eslint-disable-line react/no-unused-prop-types
   ctrlCols: PropTypes.arrayOf(PropTypes.number), // eslint-disable-line react/no-unused-prop-types
+  isVSCode: PropTypes.bool, // eslint-disable-line react/no-unused-prop-types
 };
 const ReduxDtaleHotkeys = connect(
-  state => _.pick(state, ["dataId", "editedCell"]),
+  state => _.pick(state, ["dataId", "editedCell", "isVSCode"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
   })

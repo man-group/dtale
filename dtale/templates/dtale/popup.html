@@ -20,7 +20,7 @@
                     </span>
                     <div class="dropdown-content">
                         {% for id, label in grid_links %}
-                            <a href="{{id}}" class="dropdown-item data-grid-link">
+                            <a href="../../main/{{id}}" class="dropdown-item data-grid-link" target="{{'_self' if is_vscode else '_blank'}}">
                                 <span class="ml-3">{{label}}</span>
                             </a>
                         {% endfor %}
@@ -37,25 +37,5 @@
 {% endblock %}
 
 {% block js %}
-<script type="text/javascript">
-    function backToData(e, id) {
-      e.preventDefault();
-      let path = `dtale/main/${id}`;
-      if (window.resourceBaseUrl) {
-        path = `${window.resourceBaseUrl}/${path}`;
-      }
-      window.open(`${window.location.origin}/${path}`);
-      return false;
-    }
-
-    window.onload = function () {
-      $("body").click(function (e) {
-        const target = $(e.target);
-        if (target.is("a.data-grid-link")) {
-          backToData(e, target.attr("href"));
-        }
-      });
-    };
-</script>
 <script type="text/javascript" src="{{ url_for('static', filename='dist/dtale_bundle.js') }}"></script>
 {% endblock %}

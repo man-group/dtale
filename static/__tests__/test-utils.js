@@ -59,6 +59,7 @@ function buildInnerHTML(props = {}, store = null) {
     buildHidden("xarray", props.xarray ?? "False"),
     buildHidden("xarray_dim", props.xarrayDim ?? "{}"),
     buildHidden("allow_cell_edits", props.allowCellEdits ?? "True"),
+    buildHidden("is_vscode", props.isVSCode ?? "False"),
     buildHidden("theme", props.theme ?? "light"),
     buildHidden("language", props.language ?? "en"),
     buildHidden("pin_menu", props.pinMenu ?? "False"),

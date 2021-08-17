@@ -10,7 +10,7 @@ describe("reducer tests", () => {
   it("dtale: missing hidden input", () => {
     const store = reduxUtils.createDtaleStore();
     const body = document.getElementsByTagName("body")[0];
-    body.innerHTML = `<div id="content" style="height: 1000px;width: 1000px;" ></div>`;
+    body.innerHTML = `<div id="content" style="height: 1000px;width: 1000px;"></div>`;
 
     mount(<Provider store={store} />, {
       attachTo: document.getElementById("content"),
@@ -54,6 +54,7 @@ describe("reducer tests", () => {
       mainTitle: null,
       mainTitleFont: null,
       showAllHeatmapColumns: false,
+      isVSCode: false,
     };
     expect(state).toEqual(store.getState());
   });

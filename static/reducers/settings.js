@@ -64,6 +64,17 @@ export function pythonVersion(state = null, action = {}) {
   }
 }
 
+export function isVSCode(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("is_vscode")) && global.top !== global.self;
+    case "load-preview":
+      return false;
+    default:
+      return state;
+  }
+}
+
 export function maxColumnWidth(state = null, action = {}) {
   switch (action.type) {
     case "init-params":

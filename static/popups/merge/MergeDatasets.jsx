@@ -241,18 +241,21 @@ ReactMergeDatasets.propTypes = {
   loadDatasets: PropTypes.func,
   clearErrors: PropTypes.func,
   t: PropTypes.func,
+  isVSCode: PropTypes.bool,
 };
 const TranslateReactMergeDatasets = withTranslation("merge")(ReactMergeDatasets);
 const ReduxMergeDatasets = connect(
-  ({ instances, loading, loadingDatasets, action, datasets, loadingError, mergeError }) => ({
-    instances,
-    loading,
-    loadingDatasets,
-    action,
-    datasets,
-    loadingError,
-    mergeError,
-  }),
+  state =>
+    _.pick(state, [
+      "instances",
+      "loading",
+      "loadingDatasets",
+      "action",
+      "datasets",
+      "loadingError",
+      "mergeError",
+      "isVSCode",
+    ]),
   dispatch => ({
     addDataset: dataId => dispatch({ type: "add-dataset", dataId }),
     removeDataset: index => dispatch({ type: "remove-dataset", index }),

@@ -44,8 +44,13 @@ function fullPath(path, dataId = null) {
   return finalPath;
 }
 
-function open(path, dataId, height = 450, width = 500) {
-  window.open(fullPath(path, dataId), "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+function open(path, dataId, height = 450, width = 500, isVSCode = false) {
+  const url = fullPath(path, dataId);
+  if (isVSCode) {
+    window.location.assign(url);
+  } else {
+    window.open(url, "_blank", `titlebar=1,location=1,status=1,width=${width},height=${height}`);
+  }
 }
 
 function shouldOpenPopup(height, width) {
@@ -57,7 +62,7 @@ function shouldOpenPopup(height, width) {
 }
 
 function buildHotkeyHandlers(props) {
-  const { backgroundMode, propagateState, openChart, dataId } = props;
+  const { backgroundMode, propagateState, openChart, dataId, isVSCode } = props;
   const openMenu = () => {
     propagateState({ menuOpen: true });
     menuUtils.buildClickHandler("gridActions", () => propagateState({ menuOpen: false }));
@@ -66,14 +71,23 @@ function buildHotkeyHandlers(props) {
     (type, height = 450, width = 500) =>
     () => {
       if (shouldOpenPopup(height, width)) {
-        open(`/dtale/popup/${type}`, dataId, height, width);
+        open(`/dtale/popup/${type}`, dataId, height, width, isVSCode);
       } else {
         openChart(_.assignIn({ type, title: _.capitalize(type) }, props));
       }
     };
-  const openTab = type => () => window.open(fullPath(`/dtale/popup/${type}`, dataId), "_blank");
-  const openNetwork = () => window.open(fullPath(`/dtale/network`, dataId), "_blank");
-  const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700);
+  const openTab = path => {
+    const url = fullPath(path, dataId);
+    if (isVSCode) {
+      window.location.assign(url);
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+  const openPopupTab = type => () => openTab(`/dtale/popup/${type}`);
+  const openNetwork = () => openTab("/dtale/network");
+  const openCharts = () => openTab("/dtale/charts");
+  const openCodeExport = () => open("/dtale/popup/code-export", dataId, 450, 700, isVSCode);
   const bgState = bgType => ({
     backgroundMode: backgroundMode === bgType ? null : bgType,
     triggerBgResize: _.includes(bu.RESIZABLE, backgroundMode) || _.includes(bu.RESIZABLE, bgType),
@@ -89,16 +103,16 @@ function buildHotkeyHandlers(props) {
   const exportFile = tsv => () =>
     window.open(`${fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
   return {
-    openTab,
+    openTab: openPopupTab,
     openPopup,
     MENU: openMenu,
-    DESCRIBE: openTab("describe"),
+    DESCRIBE: openPopupTab("describe"),
     NETWORK: openNetwork,
     FILTER: openPopup("filter", 530, 1100),
     BUILD: openPopup("build", 515, 800),
     CLEAN: openPopup("cleaners", 515, 800),
     DUPLICATES: openPopup("duplicates", 400, 770),
-    CHARTS: () => window.open(fullPath("/dtale/charts", dataId), "_blank"),
+    CHARTS: openCharts,
     CODE: openCodeExport,
     ABOUT: () => openChart({ type: "about", size: "sm", backdrop: true }),
     LOGOUT: () => (window.location.pathname = fullPath("/logout")),

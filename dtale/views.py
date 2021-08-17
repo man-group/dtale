@@ -985,6 +985,7 @@ def base_render_template(template, data_id, **kwargs):
         predefined_filters=json.dumps(
             [f.asdict() for f in predefined_filters.get_filters()]
         ),
+        is_vscode=os.environ.get("VSCODE_PID") is not None,
         **dict_merge(kwargs, curr_app_settings)
     )
 
@@ -2378,8 +2379,10 @@ def load_filtered_ranges(data_id):
         data, global_state.get_dtypes(data_id) or [], filtered_ranges
     )
     updated_dtypes = {col["name"]: col for col in updated_dtypes}
-    overall_min = min([v["min"] for v in filtered_ranges.values()])
-    overall_max = max([v["max"] for v in filtered_ranges.values()])
+    overall_min, overall_max = None, None
+    if len(filtered_ranges):
+        overall_min = min([v["min"] for v in filtered_ranges.values()])
+        overall_max = max([v["max"] for v in filtered_ranges.values()])
     curr_settings["filteredRanges"] = dict(
         query=final_query,
         ranges=filtered_ranges,

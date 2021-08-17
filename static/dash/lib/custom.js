@@ -2,16 +2,6 @@ require("./publicDashPath");
 
 import $ from "jquery";
 
-function backToData(e, id) {
-  e.preventDefault();
-  let path = `dtale/main/${id}`;
-  if (window.resourceBaseUrl) {
-    path = `${window.resourceBaseUrl}/${path}`;
-  }
-  window.open(`${window.location.origin}/${path}`);
-  return false;
-}
-
 function updateLanguage(e, language) {
   e.preventDefault();
   let path = `/dtale/update-language?language=${language}`;
@@ -70,8 +60,6 @@ window.onload = function () {
       exportChart(e, target.attr("href") + "&export_type=png");
     } else if (target.parent().is("a.export-png-btn")) {
       exportChart(e, target.parent().attr("href") + "&export_type=png");
-    } else if (target.is("a.data-grid-link")) {
-      backToData(e, target.attr("href"));
     } else if (target.is("a.lang-link")) {
       updateLanguage(e, target.attr("href"));
     }

@@ -158,11 +158,12 @@ ReactDataViewerMenu.propTypes = {
   mainTitle: PropTypes.string,
   mainTitleFont: PropTypes.string,
   t: PropTypes.func,
+  isVSCode: PropTypes.bool,
 };
 
 const TranslatedReactDataViewMenu = withTranslation(["menu", "menu_description", "code_export"])(ReactDataViewerMenu);
 const ReduxDataViewerMenu = connect(
-  state => _.pick(state, ["dataId", "menuPinned", "mainTitle", "mainTitleFont"]),
+  state => _.pick(state, ["dataId", "menuPinned", "mainTitle", "mainTitleFont", "isVSCode"]),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     showSidePanel: view => dispatch({ type: "show-side-panel", view }),

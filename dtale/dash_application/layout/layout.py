@@ -5,6 +5,7 @@ import dash_colorscales as dcs
 import dash_core_components as dcc
 import dash_daq as daq
 import dash_html_components as html
+import os
 import plotly
 from pkg_resources import parse_version
 
@@ -80,10 +81,16 @@ def base_layout(app_root, **kwargs):
             label = ""
         grid_links.append(
             (
-                """<a href="{id}" class="dropdown-item data-grid-link">"""
+                """<a href="../main/{id}" class="dropdown-item data-grid-link" target="{target}">"""
                 """<span class="ml-3">{id}{label}</span>"""
                 """</a>"""
-            ).format(id=id, label=label)
+            ).format(
+                id=id,
+                label=label,
+                target="_self"
+                if os.environ.get("VSCODE_PID") is not None
+                else "_blank",
+            )
         )
     language = global_state.get_app_settings()["language"]
     language_links = []

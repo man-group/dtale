@@ -248,10 +248,15 @@ ReactRibbonDropdown.propTypes = {
   rangeHighlight: PropTypes.object,
   showSidePanel: PropTypes.func,
   t: PropTypes.func,
+  isVSCode: PropTypes.bool,
 };
 const TranslatedRibbonDropdown = withTranslation(["menu", "menu_description", "code_export"])(ReactRibbonDropdown);
 const ReduxRibbonDropdown = connect(
-  ({ ribbonDropdown, dataId }) => ({ ...ribbonDropdown, dataId }),
+  ({ ribbonDropdown, dataId, isVSCode }) => ({
+    ...ribbonDropdown,
+    dataId,
+    isVSCode,
+  }),
   dispatch => ({
     openChart: chartProps => dispatch(openChart(chartProps)),
     hideRibbonMenu: () => dispatch({ type: "hide-ribbon-menu" }),
