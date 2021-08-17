@@ -63,7 +63,7 @@ class MissingFilter(object):
             return fltr
         return {
             "missing": True,
-            "query": "{col} != {col}".format(col=build_col_key(self.column)),
+            "query": "{col}.isnull()".format(col=build_col_key(self.column)),
         }
 
 

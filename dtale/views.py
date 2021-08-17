@@ -1999,8 +1999,11 @@ def variance(data_id):
 
 
 def calc_outlier_range(s):
-    q1 = s.quantile(0.25)
-    q3 = s.quantile(0.75)
+    try:
+        q1 = s.quantile(0.25)
+        q3 = s.quantile(0.75)
+    except BaseException:  # this covers the case when a series contains pd.NA
+        return np.nan, np.nan
     iqr = q3 - q1
     iqr_lower = q1 - 1.5 * iqr
     iqr_upper = q3 + 1.5 * iqr

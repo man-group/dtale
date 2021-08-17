@@ -215,6 +215,51 @@ def test_startup(unittest):
         ["object", "category"],
     )
 
+    s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
+    s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
+    ints = pd.Series([1, 2, 3, 4, 5], index=list("abcfu"))
+    test_data = pd.DataFrame(dict(na=s2_int, int=ints))
+    test_data.loc[:, "unsigned_int"] = pd.to_numeric(
+        test_data["int"], downcast="unsigned"
+    )
+    instance = views.startup(
+        URL,
+        data_loader=lambda: test_data,
+        ignore_duplicate=True,
+    )
+
+    unittest.assertEqual(
+        {
+            "coord": None,
+            "dtype": "Int64",
+            "hasMissing": 2,
+            "hasOutliers": 0,
+            "index": 1,
+            "kurt": "nan",
+            "lowVariance": False,
+            "max": 3,
+            "min": 1,
+            "name": "na",
+            "skew": 0.0,
+            "unique_ct": 3,
+            "visible": True,
+        },
+        global_state.get_dtypes(instance._data_id)[1],
+    )
+
+    unittest.assertEqual(
+        {
+            "dtype": "uint8",
+            "hasMissing": 0,
+            "hasOutliers": 0,
+            "index": 3,
+            "name": "unsigned_int",
+            "unique_ct": 5,
+            "visible": True,
+        },
+        global_state.get_dtypes(instance._data_id)[-1],
+    )
+
 
 @pytest.mark.unit
 def test_formatting_complex_data(unittest):
@@ -615,7 +660,7 @@ def test_outliers(unittest):
         unittest.assertEqual(resp["outliers"], [])
         resp = c.get("/dtale/outliers/{}".format(c.port), query_string=dict(col="c"))
         resp = json.loads(resp.data)
-        assert "error" in resp
+        assert resp["outliers"] == []
 
 
 @pytest.mark.unit
@@ -2293,7 +2338,7 @@ def test_save_column_filter(unittest, custom_data):
                 ),
             )
             col_cfg = json.loads(response.data)["currFilters"][col]
-            assert col_cfg["query"] == u"`{col}` != `{col}`".format(col=col)
+            assert col_cfg["query"] == u"`{col}`.isnull()".format(col=col)
             assert col_cfg["missing"]
 
         response = c.get(

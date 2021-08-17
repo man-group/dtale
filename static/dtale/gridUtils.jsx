@@ -15,20 +15,21 @@ const DEFAULT_COL_WIDTH = 70;
 numeral.nullFormat("");
 
 export const isStringCol = dtype => _.some(["string", "object", "unicode"], s => _.startsWith(dtype, s));
-export const isIntCol = dtype => _.startsWith(dtype, "int");
+export const isIntCol = dtype => _.some(["int", "uint"], s => _.startsWith(dtype, s));
 export const isFloatCol = dtype => _.startsWith(dtype, "float");
 export const isDateCol = dtype => _.some(["timestamp", "datetime"], s => _.startsWith(dtype, s));
 
 export const getDtype = (col, columns) => _.get(_.find(columns, { name: col }, {}), "dtype");
 
 export const findColType = dtype => {
-  if (isStringCol(dtype)) {
+  const lowerDtype = (dtype || "").toLowerCase();
+  if (isStringCol(lowerDtype)) {
     return "string";
-  } else if (isIntCol(dtype)) {
+  } else if (isIntCol(lowerDtype)) {
     return "int";
-  } else if (isFloatCol(dtype)) {
+  } else if (isFloatCol(lowerDtype)) {
     return "float";
-  } else if (isDateCol(dtype)) {
+  } else if (isDateCol(lowerDtype)) {
     return "date";
   }
   return "unknown";
@@ -45,7 +46,7 @@ function buildString(val, { truncate }) {
 function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
   if (!_.isUndefined(rawValue)) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
-    switch (findColType((dtype || "").toLowerCase())) {
+    switch (findColType(dtype)) {
       case "float":
         return buildNumeral(rawValue, fmt || `0.${_.repeat("0", settings.precision ?? 2)}`);
       case "int":
@@ -63,11 +64,7 @@ function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
 export const buildDataProps = ({ name, dtype }, rawValue, { columnFormats, settings }) => ({
   raw: rawValue,
   view: buildValue({ name, dtype }, rawValue, { columnFormats, settings }),
-  style: menuFuncs.buildStyling(
-    rawValue,
-    findColType((dtype || "").toLowerCase()),
-    _.get(columnFormats, [name, "style"], {})
-  ),
+  style: menuFuncs.buildStyling(rawValue, findColType(dtype), _.get(columnFormats, [name, "style"], {})),
 });
 
 function getHeatActive(column) {
@@ -112,7 +109,7 @@ export const getRanges = array => {
 };
 
 const calcDataWidth = (name, dtype, data) => {
-  switch (findColType((dtype || "").toLowerCase())) {
+  switch (findColType(dtype)) {
     case "date": {
       let maxText = _.last(_.sortBy(data, d => _.get(d, [name, "view", "length"], 0)));
       maxText = _.get(maxText, [name, "view"], "").replace(new RegExp("[0-9]", "g"), "0"); // zero is widest number
