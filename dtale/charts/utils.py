@@ -906,6 +906,12 @@ def build_base_chart(
         "chart_data = chart_data.rename(columns={'" + x + "': '" + x_col + "'})"
     )
 
+    # convert booleans into integers for aggregation
+    for col in z_cols or y_cols:
+        classifier = classify_type(find_dtype(data[col]))
+        if classifier == "B":
+            data.loc[:, col] = data[col].astype("int")
+
     if agg is not None or len(extended_aggregation):
         data, agg_code, final_cols = build_agg_data(
             data,
@@ -919,6 +925,7 @@ def build_base_chart(
         )
         code += agg_code
     data = data.dropna()
+
     if return_raw:
         return data.rename(columns={x_col: x})
     code.append("chart_data = chart_data.dropna()")
