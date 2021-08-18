@@ -215,50 +215,52 @@ def test_startup(unittest):
         ["object", "category"],
     )
 
-    s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
-    s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
-    ints = pd.Series([1, 2, 3, 4, 5], index=list("abcfu"))
-    test_data = pd.DataFrame(dict(na=s2_int, int=ints))
-    test_data.loc[:, "unsigned_int"] = pd.to_numeric(
-        test_data["int"], downcast="unsigned"
-    )
-    instance = views.startup(
-        URL,
-        data_loader=lambda: test_data,
-        ignore_duplicate=True,
-    )
+    if PY3:
+        s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
+        s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
+        ints = pd.Series([1, 2, 3, 4, 5], index=list("abcfu"))
+        test_data = pd.DataFrame(dict(na=s2_int, int=ints))
+        test_data.loc[:, "unsigned_int"] = pd.to_numeric(
+            test_data["int"], downcast="unsigned"
+        )
+        instance = views.startup(
+            URL,
+            data_loader=lambda: test_data,
+            ignore_duplicate=True,
+        )
 
-    unittest.assertEqual(
-        {
-            "coord": None,
-            "dtype": "Int64",
-            "hasMissing": 2,
-            "hasOutliers": 0,
-            "index": 1,
-            "kurt": "nan",
-            "lowVariance": False,
-            "max": 3,
-            "min": 1,
-            "name": "na",
-            "skew": 0.0,
-            "unique_ct": 3,
-            "visible": True,
-        },
-        global_state.get_dtypes(instance._data_id)[1],
-    )
+        unittest.assertEqual(
+            {
+                "coord": None,
+                "dtype": "Int64",
+                "hasMissing": 2,
+                "hasOutliers": 0,
+                "index": 1,
+                "kurt": "nan",
+                "lowVariance": False,
+                "max": 3,
+                "min": 1,
+                "name": "na",
+                "skew": 0.0,
+                "unique_ct": 3,
+                "visible": True,
+                "outlierRange": {"lower": 0.0, "upper": 4.0},
+            },
+            global_state.get_dtypes(instance._data_id)[1],
+        )
 
-    unittest.assertEqual(
-        {
-            "dtype": "uint8",
-            "hasMissing": 0,
-            "hasOutliers": 0,
-            "index": 3,
-            "name": "unsigned_int",
-            "unique_ct": 5,
-            "visible": True,
-        },
-        global_state.get_dtypes(instance._data_id)[-1],
-    )
+        unittest.assertEqual(
+            {
+                "dtype": "uint8",
+                "hasMissing": 0,
+                "hasOutliers": 0,
+                "index": 3,
+                "name": "unsigned_int",
+                "unique_ct": 5,
+                "visible": True,
+            },
+            global_state.get_dtypes(instance._data_id)[-1],
+        )
 
 
 @pytest.mark.unit

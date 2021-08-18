@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.55.0 (2021-8-17)
+* [#553](https://github.com/man-group/dtale/issues/553): charts with boolean values as y or z axes
+* [#552](https://github.com/man-group/dtale/issues/552): exceptions with unsigned integers and NA values
+* [#548](https://github.com/man-group/dtale/issues/548): updated popups to redirects when in vscode
+* fixed client-side bug with "rename" function
+
 ### 1.54.1 (2021-8-11)
 * [#549](https://github.com/man-group/dtale/issues/549): fix for grouping charts by multiple columns
 
