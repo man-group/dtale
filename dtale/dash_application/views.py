@@ -351,7 +351,7 @@ def init_callbacks(dash_app):
             Output("group-dropdown", "value"),
             Output("query-input", "value"),
         ],
-        Input("data-tabs", "value"),
+        [Input("data-tabs", "value")],
         State("input-data", "data"),
     )
     def update_data_selection(data_id, input_data):

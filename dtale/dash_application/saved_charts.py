@@ -228,7 +228,7 @@ def init_callbacks(dash_app):
                 Output("prev-saved-chart-config-{}".format(i), "data"),
                 Output("saved-chart-header-{}".format(i), "children"),
             ],
-            Input("saved-chart-config-{}".format(i), "modified_timestamp"),
+            [Input("saved-chart-config-{}".format(i), "modified_timestamp")],
             [
                 State("saved-chart-config-{}".format(i), "data"),
                 State("prev-saved-chart-config-{}".format(i), "data"),

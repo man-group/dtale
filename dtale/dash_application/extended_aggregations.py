@@ -351,7 +351,7 @@ def init_callbacks(dash_app):
 
     @dash_app.callback(
         [Output("col-dropdown-{}".format(i), "options") for i in INPUT_IDS],
-        Input("extended-agg-modal", "is_open"),
+        [Input("extended-agg-modal", "is_open")],
         [State("input-data", "data")],
     )
     def populate_col_dropdowns(is_open, input_data):
@@ -368,5 +368,5 @@ def init_callbacks(dash_app):
     for i in INPUT_IDS:
         dash_app.callback(
             Output("rolling-inputs-{}".format(i), "style"),
-            Input("agg-dropdown-{}".format(i), "value"),
+            [Input("agg-dropdown-{}".format(i), "value")],
         )(toggle_rolling_style)
