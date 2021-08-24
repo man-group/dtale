@@ -111,13 +111,13 @@ def test_bar_and_popup(unittest):
             "barmode": "group",
             "legend": {"orientation": "h"},
             "title": {"text": "Sum of b, Mean of c by a"},
-            "xaxis": {"tickformat": ".0f", "title": {"text": "a"}},
-            "yaxis": {"tickformat": ".0f", "title": {"text": "Sum of b"}},
+            "xaxis": {"tickformat": "0:g", "title": {"text": "a"}},
+            "yaxis": {"tickformat": "0:g", "title": {"text": "Sum of b"}},
             "yaxis2": {
                 "anchor": "x",
                 "overlaying": "y",
                 "side": "right",
-                "tickformat": ".0f",
+                "tickformat": "0:g",
                 "title": {"text": "Mean of c"},
             },
         }
@@ -205,11 +205,11 @@ def test_bar_and_popup(unittest):
                     "tickmode": "array",
                     "ticktext": [1, 2, 3],
                     "tickvals": [0, 1, 2],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "a"},
                 },
                 "yaxis": {
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "Sum of b, Mean of c"},
                 },
             },
@@ -277,9 +277,9 @@ def test_line(unittest):
             {
                 "legend": {"orientation": "h"},
                 "title": {"text": "(c: 7) - Sum of b, Mean of c by a"},
-                "xaxis": {"tickformat": ".0f", "title": {"text": "a"}},
+                "xaxis": {"tickformat": "0:g", "title": {"text": "a"}},
                 "yaxis": {
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "Sum of b, Mean of c"},
                 },
             },

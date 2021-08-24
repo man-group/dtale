@@ -1276,13 +1276,13 @@ def test_chart_building_bar_and_popup(unittest):
                 "barmode": "group",
                 "legend": {"orientation": "h"},
                 "title": {"text": "b, c by a"},
-                "xaxis": {"tickformat": ".0f", "title": {"text": "a"}},
-                "yaxis": {"tickformat": ".0f", "title": {"text": "b"}},
+                "xaxis": {"tickformat": "0:g", "title": {"text": "a"}},
+                "yaxis": {"tickformat": "0:g", "title": {"text": "b"}},
                 "yaxis2": {
                     "anchor": "x",
                     "overlaying": "y",
                     "side": "right",
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "c"},
                 },
             },
@@ -1353,11 +1353,11 @@ def test_chart_building_bar_and_popup(unittest):
                 "legend": {"orientation": "h"},
                 "title": {"text": "b, c by a"},
                 "xaxis": {
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "a"},
                 },
                 "yaxis": {
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "b"},
                 },
             },
@@ -1391,10 +1391,10 @@ def test_chart_building_bar_and_popup(unittest):
                     "tickmode": "array",
                     "ticktext": [1, 2, 3],
                     "tickvals": [0, 1, 2],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": {"text": "a"},
                 },
-                "yaxis": {"tickformat": ".0f", "title": {"text": "b, c"}},
+                "yaxis": {"tickformat": "0:g", "title": {"text": "b, c"}},
             },
         )
 
@@ -2474,7 +2474,7 @@ def test_build_axes(unittest):
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis2": {
@@ -2483,7 +2483,7 @@ def test_build_axes(unittest):
                     "side": "right",
                     "anchor": "x",
                     "range": [5, 7],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis3": {
@@ -2492,10 +2492,10 @@ def test_build_axes(unittest):
                     "side": "left",
                     "anchor": "free",
                     "position": 0.05,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
-                "xaxis": {"domain": [0.1, 1], "tickformat": ".0f", "title": "a"},
+                "xaxis": {"domain": [0.1, 1], "tickformat": "0:g", "title": "a"},
             },
             True,
         ),
@@ -2514,7 +2514,7 @@ def test_build_axes(unittest):
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis2": {
@@ -2523,7 +2523,7 @@ def test_build_axes(unittest):
                     "side": "right",
                     "anchor": "x",
                     "range": [5, 7],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis3": {
@@ -2532,7 +2532,7 @@ def test_build_axes(unittest):
                     "side": "left",
                     "anchor": "free",
                     "position": 0.05,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis4": {
@@ -2541,12 +2541,12 @@ def test_build_axes(unittest):
                     "side": "right",
                     "anchor": "free",
                     "position": 0.95,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "xaxis": {
                     "domain": [0.1, 0.8999999999999999],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": "a",
                 },
             },
@@ -2567,7 +2567,7 @@ def test_build_axes(unittest):
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis2": {
@@ -2576,7 +2576,7 @@ def test_build_axes(unittest):
                     "side": "right",
                     "anchor": "x",
                     "range": [5, 7],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis3": {
@@ -2585,7 +2585,7 @@ def test_build_axes(unittest):
                     "side": "left",
                     "anchor": "free",
                     "position": 0.05,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis4": {
@@ -2594,7 +2594,7 @@ def test_build_axes(unittest):
                     "side": "right",
                     "anchor": "free",
                     "position": 0.95,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "yaxis5": {
@@ -2603,12 +2603,12 @@ def test_build_axes(unittest):
                     "side": "left",
                     "anchor": "free",
                     "position": 0.1,
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
                 "xaxis": {
                     "domain": [0.15000000000000002, 0.8999999999999999],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": "a",
                 },
             },
@@ -2638,14 +2638,14 @@ def test_build_axes(unittest):
         axes,
         (
             {
-                "xaxis": {"title": "a", "tickformat": ".0f"},
+                "xaxis": {"title": "a", "tickformat": "0:g"},
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
-                "zaxis": {"title": "Correlation of c", "tickformat": ".0f"},
+                "zaxis": {"title": "Correlation of c", "tickformat": "0:g"},
             },
             False,
         ),
@@ -2655,14 +2655,14 @@ def test_build_axes(unittest):
         axes,
         (
             {
-                "xaxis": {"title": "a", "tickformat": ".0f"},
+                "xaxis": {"title": "a", "tickformat": "0:g"},
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
-                "zaxis": {"title": "Correlation of c", "tickformat": ".0f"},
+                "zaxis": {"title": "Correlation of c", "tickformat": "0:g"},
             },
             False,
         ),
@@ -2672,11 +2672,11 @@ def test_build_axes(unittest):
         axes,
         (
             {
-                "xaxis": {"title": "a", "tickformat": ".0f"},
+                "xaxis": {"title": "a", "tickformat": "0:g"},
                 "yaxis": {
                     "title": "b",
                     "range": [1, 4],
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "type": "linear",
                 },
             },
@@ -2689,9 +2689,9 @@ def test_build_axes(unittest):
         axes,
         (
             {
-                "xaxis": {"title": "a", "tickformat": ".0f"},
+                "xaxis": {"title": "a", "tickformat": "0:g"},
                 "yaxis": {
-                    "tickformat": ".0f",
+                    "tickformat": "0:g",
                     "title": "b",
                     "type": "linear",
                 },

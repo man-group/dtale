@@ -68,6 +68,7 @@ def build_histogram(data_id, col, query, point_filter):
         ),
         "Bins",
         dict(type="single", data={}),
+        data_id=data_id,
     )
     hist_data = dict(data={"all": dict(x=hist_labels, Frequency=hist_data)})
     bars = bar_builder(

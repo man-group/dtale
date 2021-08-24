@@ -265,12 +265,23 @@ def build_colorscale(colorscale):
     return [[i / (len(colorscale) - 1), rgb] for i, rgb in enumerate(colorscale)]
 
 
+def is_bool_axis(data_id, col):
+    col_no_agg = col
+    for agg in AGGS:
+        if col.endswith("|{}".format(agg)):
+            return False
+
+    orig_dtype = (global_state.get_dtype_info(data_id, col_no_agg) or {}).get("dtype")
+    return classify_type(orig_dtype) == "B"
+
+
 def build_axes(
     chart_data,
     x,
     axis_inputs,
     z=None,
     scale="linear",
+    data_id=None,
 ):
     """
     Returns helper function for building axis configurations against a specific y-axis.
@@ -306,6 +317,7 @@ def build_axes(
                 right = i % 2 == 1
                 axis_ct = int(i / 2)
                 value = dict(title=update_label_for_freq_and_agg(y2), type=scale)
+
                 if i == 0:
                     key = "yaxis"
                 else:
@@ -329,7 +341,11 @@ def build_axes(
                 ):
                     value["range"] = [axis_data[y2]["min"], axis_data[y2]["max"]]
                 if classify_type(dtypes.get(y2)) == "I":
-                    value["tickformat"] = ".0f"
+                    value["tickformat"] = "0:g"
+                if is_bool_axis(data_id, y2):
+                    value = dict(
+                        tickmode="array", tickvals=[1, 0], ticktext=["True", "False"]
+                    )
                 axes[key] = value
         elif axis_type == "single":
             yaxis_cfg = dict(title=update_label_for_freq_and_agg(y), type=scale)
@@ -342,12 +358,20 @@ def build_axes(
             if len(all_range) and all_range != (min(all_mins), max(all_maxs)):
                 yaxis_cfg["range"] = [all_range[0], all_range[1]]
             if classify_type(dtypes.get(y[0])) == "I":
-                yaxis_cfg["tickformat"] = ".0f"
+                yaxis_cfg["tickformat"] = "0:g"
+            if is_bool_axis(data_id, y[0]):
+                yaxis_cfg = dict(
+                    tickmode="array", tickvals=[1, 0], ticktext=["True", "False"]
+                )
             axes["yaxis"] = yaxis_cfg
         else:
             yaxis_cfg = dict(title=update_label_for_freq_and_agg(y), type=scale)
             if classify_type(dtypes.get(y[0])) == "I":
-                yaxis_cfg["tickformat"] = ".0f"
+                yaxis_cfg["tickformat"] = "0:g"
+            if is_bool_axis(data_id, y[0]):
+                yaxis_cfg = dict(
+                    tickmode="array", tickvals=[1, 0], ticktext=["True", "False"]
+                )
             axes["yaxis"] = yaxis_cfg
 
         if len(positions):
@@ -361,11 +385,16 @@ def build_axes(
                 domain = [lower[-1] + 0.05, upper[0] - 0.05]
             axes["xaxis"]["domain"] = domain
         if classify_type(dtypes.get("x")) == "I":
-            axes["xaxis"]["tickformat"] = ".0f"
+            axes["xaxis"]["tickformat"] = "0:g"
         if z is not None:
             axes["zaxis"] = dict(title=update_label_for_freq_and_agg(z))
             if classify_type(dtypes.get(z)) == "I":
-                axes["zaxis"]["tickformat"] = ".0f"
+                axes["zaxis"]["tickformat"] = "0:g"
+            if is_bool_axis(data_id, z):
+                axes["zaxis"] = dict(
+                    tickmode="array", tickvals=[1, 0], ticktext=["True", "False"]
+                )
+
         return axes, has_multiaxis
 
     return _build_axes
@@ -1946,7 +1975,7 @@ def heatmap_builder(data_id, export=False, **inputs):
                     },
                 )
                 if dtypes.get(col) == "I":
-                    axis_cfg["tickformat"] = ".0f" if dtypes.get(col) == "I" else ".3f"
+                    axis_cfg["tickformat"] = "0:g" if dtypes.get(col) == "I" else ".3f"
                 return axis_cfg
             return dict_merge(axis_cfg, {"type": "category", "tickmode": "auto"})
 
@@ -3235,7 +3264,9 @@ def build_chart(data_id=None, data=None, **inputs):
                 code + pie_code,
             )
 
-        axes_builder = build_axes(data, x, axis_inputs, z=z, scale=scale)
+        axes_builder = build_axes(
+            data, x, axis_inputs, z=z, scale=scale, data_id=data_id
+        )
         if chart_type in ["scatter", "3d_scatter"]:
             kwargs = dict(agg=agg, extended_aggregation=extended_aggregation)
             if chart_type == "scatter":
@@ -3396,7 +3427,7 @@ def build_raw_chart(data_id=None, **inputs):
         if chart_type == "funnel":
             return funnel_builder(data, x, y, chart_builder, **chart_inputs)
 
-        axes_builder = build_axes(data, x, axis_inputs, z=z)
+        axes_builder = build_axes(data, x, axis_inputs, z=z, data_id=data_id)
         if chart_type == "scatter":
             return scatter_builder(
                 data,
