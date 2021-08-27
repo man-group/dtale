@@ -47,6 +47,10 @@ export function setLanguage(language) {
   return dispatch => dispatch({ type: "set-language", language });
 }
 
+export function setQueryEngine(engine) {
+  return dispatch => dispatch({ type: "set-query-engine", engine });
+}
+
 export function isPopup() {
   return _.startsWith(window.location.pathname, "/dtale/popup");
 }

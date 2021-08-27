@@ -2522,6 +2522,25 @@ def test_update_theme():
 
 
 @pytest.mark.unit
+def test_update_query_engine():
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3, 4, 5]))
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            app_settings = {"query_engine": "python"}
+            stack.enter_context(
+                mock.patch("dtale.global_state.APP_SETTINGS", app_settings)
+            )
+
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+
+            c.get("/dtale/update-query-engine", query_string={"engine": "numexpr"})
+            assert app_settings["query_engine"] == "numexpr"
+
+
+@pytest.mark.unit
 def test_update_pin_menu():
     import dtale.views as views
 

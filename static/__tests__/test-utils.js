@@ -70,6 +70,7 @@ function buildInnerHTML(props = {}, store = null) {
     buildHidden("max_column_width", props.maxColumnWidth ?? "None"),
     buildHidden("main_title", props.mainTitle ?? ""),
     buildHidden("main_title_font", props.mainTitleFont ?? ""),
+    buildHidden("query_engine", props.queryEngine ?? "python"),
     BASE_HTML,
   ];
   if (store) {

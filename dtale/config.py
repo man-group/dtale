@@ -76,6 +76,9 @@ def load_app_settings(config):
     main_title_font = get_config_val(
         config, curr_app_settings, "main_title_font", section="app"
     )
+    query_engine = get_config_val(
+        config, curr_app_settings, "query_engine", section="app"
+    )
 
     global_state.set_app_settings(
         dict(
@@ -88,6 +91,7 @@ def load_app_settings(config):
             max_row_height=max_row_height,
             main_title=main_title,
             main_title_font=main_title_font,
+            query_engine=query_engine,
         )
     )
 

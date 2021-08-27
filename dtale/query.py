@@ -62,8 +62,12 @@ def run_query(
         return _load_pct(df)
 
     is_pandas25 = parse_version(pd.__version__) >= parse_version("0.25.0")
+    curr_app_settings = global_state.get_app_settings()
+    engine = curr_app_settings.get("query_engine", "python")
     df = df.query(
-        query if is_pandas25 else query.replace("`", ""), local_dict=context_vars or {}
+        query if is_pandas25 else query.replace("`", ""),
+        local_dict=context_vars or {},
+        engine=engine,
     )
 
     if not len(df) and not ignore_empty:

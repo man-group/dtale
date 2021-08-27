@@ -166,6 +166,10 @@ function updateTheme(theme, callback) {
   fetchJson(buildURLString("/dtale/update-theme", { theme }), callback);
 }
 
+function updateQueryEngine(engine, callback) {
+  fetchJson(buildURLString("/dtale/update-query-engine", { engine }), callback);
+}
+
 function updatePinMenu(pinned, callback) {
   fetchJson(buildURLString("/dtale/update-pin-menu", { pinned }), callback);
 }
@@ -216,6 +220,7 @@ export default {
   updateFormats,
   editCell,
   updateTheme,
+  updateQueryEngine,
   updatePinMenu,
   updateLanguage,
   updateMaxColumnWidth,

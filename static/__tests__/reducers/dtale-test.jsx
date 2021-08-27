@@ -55,6 +55,7 @@ describe("reducer tests", () => {
       mainTitleFont: null,
       showAllHeatmapColumns: false,
       isVSCode: false,
+      queryEngine: "python",
     };
     expect(state).toEqual(store.getState());
   });

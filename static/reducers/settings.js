@@ -119,6 +119,17 @@ export function mainTitleFont(state = null, action = {}) {
   }
 }
 
+export function queryEngine(state = "python", action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return getHiddenValue("query_engine");
+    case "set-query-engine":
+      return action.engine;
+    default:
+      return state;
+  }
+}
+
 export function showAllHeatmapColumns(state = false, action = {}) {
   switch (action.type) {
     case "update-show-all-heatmap-columns":

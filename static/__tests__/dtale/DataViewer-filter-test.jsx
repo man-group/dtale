@@ -18,7 +18,7 @@ const toggleFilterMenu = async result => {
 };
 
 describe("DataViewer tests", () => {
-  let result, FilterPanel, DataViewerInfo;
+  let result, FilterPanel, DataViewerInfo, store;
   let dataId = 0;
   const { open } = window;
   const dimensions = new DimensionsHelper({
@@ -58,7 +58,7 @@ describe("DataViewer tests", () => {
 
   beforeEach(async () => {
     const { DataViewer } = require("../../dtale/DataViewer");
-    const store = reduxUtils.createDtaleStore();
+    store = reduxUtils.createDtaleStore();
     const finalDataId = dataId === 2 ? "error" : dataId + "";
     buildInnerHTML({ settings: "", dataId: finalDataId }, store);
     dataId++;
@@ -89,6 +89,14 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     expect(result.find(FilterPanel).length).toBe(0);
     await toggleFilterMenu(result);
+    result
+      .find(FilterPanel)
+      .find("button")
+      .findWhere(btn => btn.text() === "numexpr")
+      .first()
+      .simulate("click");
+    await tickUpdate(result);
+    expect(store.getState().queryEngine).toBe("numexpr");
     result
       .find(FilterPanel)
       .first()

@@ -20,6 +20,7 @@ APP_SETTINGS = {
     "max_row_height": None,
     "main_title": None,
     "main_title_font": None,
+    "query_engine": "python",
 }
 
 AUTH_SETTINGS = {

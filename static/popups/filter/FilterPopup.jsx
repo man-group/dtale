@@ -7,6 +7,7 @@ import { connect } from "react-redux";
 import { Bouncer } from "../../Bouncer";
 import { RemovableError } from "../../RemovableError";
 import { closeChart } from "../../actions/charts";
+import { setQueryEngine } from "../../actions/dtale";
 import { updateSettings } from "../../actions/settings";
 import serverState from "../../dtale/serverStateManagement";
 import ContextVariables from "./ContextVariables";
@@ -75,44 +76,60 @@ class ReactFilterPopup extends React.Component {
     if (this.state.loading) {
       return <Bouncer />;
     }
-    const { t } = this.props;
-    return [
-      <RemovableError key={0} {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />,
-      <div key={1} className="row">
-        <div className="col-md-7">
-          <div className="row h-100">
-            <div className="col-md-12 h-100">
-              <StructuredFilters
-                prop="columnFilters"
-                label={t("Column Filters")}
-                filters={this.state.columnFilters}
-                dropFilter={this.dropFilter}
-              />
-              <StructuredFilters
-                prop="outlierFilters"
-                label={t("Outlier Filters")}
-                filters={this.state.outlierFilters}
-                dropFilter={this.dropFilter}
-              />
-              <div className="font-weight-bold pt-3 pb-3">{`${t("Custom Filter")}:`}</div>
-              <textarea
-                style={{ width: "100%", height: 150 }}
-                value={this.state.query || ""}
-                onChange={event => this.setState({ query: event.target.value })}
-              />
+    const { t, queryEngine, setEngine } = this.props;
+    const updateEngine = engine => () => serverState.updateQueryEngine(engine, () => setEngine(engine));
+    return (
+      <React.Fragment>
+        <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />
+        <div className="row">
+          <div className="col-md-7">
+            <div className="row h-100">
+              <div className="col-md-12 h-100">
+                <StructuredFilters
+                  prop="columnFilters"
+                  label={t("Column Filters")}
+                  filters={this.state.columnFilters}
+                  dropFilter={this.dropFilter}
+                />
+                <StructuredFilters
+                  prop="outlierFilters"
+                  label={t("Outlier Filters")}
+                  filters={this.state.outlierFilters}
+                  dropFilter={this.dropFilter}
+                />
+                <div className="font-weight-bold pt-3 pb-3">{t("Custom Filter")}</div>
+                <textarea
+                  style={{ width: "100%", height: 150 }}
+                  value={this.state.query || ""}
+                  onChange={event => this.setState({ query: event.target.value })}
+                />
+              </div>
             </div>
           </div>
+          <div className="col-md-5">
+            <QueryExamples />
+          </div>
         </div>
-        <div className="col-md-5">
-          <QueryExamples />
+        <div className="row pb-0">
+          <span className="font-weight-bold col-auto pr-0">Query Engine</span>
+          <div className="btn-group compact ml-auto mr-3 font-weight-bold col">
+            {_.map(["python", "numexpr"], value => (
+              <button
+                key={value}
+                className={`btn btn-primary ${value === queryEngine ? "active" : ""} font-weight-bold`}
+                onClick={value === queryEngine ? _.noop : updateEngine(value)}>
+                {value}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>,
-      <div key={2} className="row">
-        <div className="col-md-12">
-          {this.state.contextVars && <ContextVariables contextVars={this.state.contextVars} />}
+        <div className="row">
+          <div className="col-md-12">
+            {this.state.contextVars && <ContextVariables contextVars={this.state.contextVars} />}
+          </div>
         </div>
-      </div>,
-    ];
+      </React.Fragment>
+    );
   }
 
   render() {
@@ -141,13 +158,16 @@ ReactFilterPopup.propTypes = {
   onClose: PropTypes.func,
   updateSettings: PropTypes.func,
   t: PropTypes.func,
+  queryEngine: PropTypes.string,
+  setEngine: PropTypes.func,
 };
 const TranslateReactFilterPopup = withTranslation("filter")(ReactFilterPopup);
 const ReduxFilterPopup = connect(
-  state => _.pick(state, ["dataId", "chartData"]),
+  state => _.pick(state, ["dataId", "chartData", "queryEngine"]),
   dispatch => ({
     onClose: chartData => dispatch(closeChart(chartData || {})),
     updateSettings: (settings, callback) => dispatch(updateSettings(settings, callback)),
+    setEngine: engine => dispatch(setQueryEngine(engine)),
   })
 )(TranslateReactFilterPopup);
 

@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 
 import { Bouncer } from "../../Bouncer";
 import { RemovableError } from "../../RemovableError";
+import { setQueryEngine } from "../../actions/dtale";
 import { updateSettings } from "../../actions/settings";
 import serverState from "../../dtale/serverStateManagement";
 import { SidePanelButtons } from "../../dtale/side/SidePanelButtons";
@@ -60,7 +61,8 @@ class ReactFilterPanel extends React.Component {
     if (this.state.loading) {
       return <Bouncer />;
     }
-    const { t } = this.props;
+    const { t, queryEngine, setEngine } = this.props;
+    const updateEngine = engine => () => serverState.updateQueryEngine(engine, () => setEngine(engine));
     return (
       <React.Fragment>
         <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />
@@ -72,7 +74,7 @@ class ReactFilterPanel extends React.Component {
               <SidePanelButtons />
             </div>
             <div className="row m-0 pb-3">
-              <div className="col p-0 font-weight-bold">{`${t("Custom Filter")}:`}</div>
+              <div className="col p-0 font-weight-bold mt-auto">{t("Custom Filter")}</div>
               <PandasQueryHelp />
               <button className="btn btn-primary col-auto pt-2 pb-2" onClick={this.clear}>
                 <span>{this.props.t("Clear")}</span>
@@ -88,24 +90,39 @@ class ReactFilterPanel extends React.Component {
             />
           </div>
         </div>
-        <div className="row pb-5">
-          <div className="col-md-6">
-            <StructuredFilters
-              prop="columnFilters"
-              label={t("Column Filters")}
-              filters={this.state.columnFilters}
-              dropFilter={this.dropFilter}
-            />
-          </div>
-          <div className="col-md-6">
-            <StructuredFilters
-              prop="outlierFilters"
-              label={t("Outlier Filters")}
-              filters={this.state.outlierFilters}
-              dropFilter={this.dropFilter}
-            />
+        <div className="row pt-3 pb-3">
+          <span className="font-weight-bold col-auto pr-0">Query Engine</span>
+          <div className="btn-group compact ml-auto mr-3 font-weight-bold col">
+            {_.map(["python", "numexpr"], value => (
+              <button
+                key={value}
+                className={`btn btn-primary ${value === queryEngine ? "active" : ""} font-weight-bold`}
+                onClick={value === queryEngine ? _.noop : updateEngine(value)}>
+                {value}
+              </button>
+            ))}
           </div>
         </div>
+        {(this.state.columnFilters || this.state.outlierFilters) && (
+          <div className="row pb-5">
+            <div className="col-md-6">
+              <StructuredFilters
+                prop="columnFilters"
+                label={t("Column Filters")}
+                filters={this.state.columnFilters}
+                dropFilter={this.dropFilter}
+              />
+            </div>
+            <div className="col-md-6">
+              <StructuredFilters
+                prop="outlierFilters"
+                label={t("Outlier Filters")}
+                filters={this.state.outlierFilters}
+                dropFilter={this.dropFilter}
+              />
+            </div>
+          </div>
+        )}
         <div className="row">
           <div className="col-md-12">
             <QueryExamples />
@@ -122,13 +139,16 @@ ReactFilterPanel.propTypes = {
   updateSettings: PropTypes.func,
   hideSidePanel: PropTypes.func,
   t: PropTypes.func,
+  queryEngine: PropTypes.string,
+  setEngine: PropTypes.func,
 };
 const TranslateReactFilterPanel = withTranslation("filter")(ReactFilterPanel);
 const ReduxFilterPanel = connect(
-  ({ dataId }) => ({ dataId }),
+  ({ dataId, queryEngine }) => ({ dataId, queryEngine }),
   dispatch => ({
     hideSidePanel: () => dispatch({ type: "hide-side-panel" }),
     updateSettings: (settings, callback) => dispatch(updateSettings(settings, callback)),
+    setEngine: engine => dispatch(setQueryEngine(engine)),
   })
 )(TranslateReactFilterPanel);
 

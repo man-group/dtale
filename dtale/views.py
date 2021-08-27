@@ -1292,6 +1292,16 @@ def update_maximum_row_height():
     return jsonify(dict(success=True))
 
 
+@dtale.route("/update-query-engine")
+@exception_decorator
+def update_query_engine():
+    engine = get_str_arg(request, "engine")
+    curr_app_settings = global_state.get_app_settings()
+    curr_app_settings["query_engine"] = engine
+    global_state.set_app_settings(curr_app_settings)
+    return jsonify(dict(success=True))
+
+
 @dtale.route("/update-formats/<data_id>")
 @exception_decorator
 def update_formats(data_id):

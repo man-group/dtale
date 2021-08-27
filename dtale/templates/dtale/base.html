@@ -53,6 +53,7 @@
         <input type="hidden" id="max_row_height" value={{max_row_height}} />
         <input type="hidden" id="main_title" value="{{main_title}}" />
         <input type="hidden" id="main_title_font" value="{{main_title_font}}" />
+        <input type="hidden" id="query_engine" value="{{query_engine}}" />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

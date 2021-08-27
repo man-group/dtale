@@ -171,7 +171,7 @@
     "css-what": "5.0.1",
     "d3-array": "2.3.3",
     "node-notifier": "9.0.1",
-    "postcss": "8.2.15",
+    "postcss": "8.3.6",
     "ws": "7.4.6"
   }
 }

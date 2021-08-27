@@ -11,7 +11,7 @@ import StructuredFilters from "../../../popups/filter/StructuredFilters";
 import * as filterUtils from "../../../popups/filter/filterUtils";
 
 describe("FilterPopup", () => {
-  let wrapper, props, loadInfoSpy, saveFilterSpy, updateSettingsSpy;
+  let wrapper, props, loadInfoSpy, saveFilterSpy, updateSettingsSpy, updateQueryEngineSpy;
 
   beforeEach(() => {
     loadInfoSpy = jest.spyOn(filterUtils, "loadInfo");
@@ -32,6 +32,10 @@ describe("FilterPopup", () => {
     updateSettingsSpy.mockImplementation((_settings, _dataId, callback) => {
       callback();
     });
+    updateQueryEngineSpy = jest.spyOn(serverState, "updateQueryEngine");
+    updateQueryEngineSpy.mockImplementation((_engine, callback) => {
+      callback();
+    });
     props = {
       dataId: "1",
       chartData: {
@@ -39,6 +43,8 @@ describe("FilterPopup", () => {
       },
       updateSettings: jest.fn(),
       onClose: jest.fn(),
+      queryEngine: "python",
+      setEngine: jest.fn(),
     };
     wrapper = shallow(<ReactFilterPopup {...props} />);
   });
@@ -110,6 +116,17 @@ describe("FilterPopup", () => {
     });
     props.updateSettings.mock.calls[0][1]();
     expect(props.onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("updates query engine", () => {
+    wrapper
+      .find("button")
+      .findWhere(btn => btn.text() == "numexpr")
+      .first()
+      .simulate("click");
+    expect(updateQueryEngineSpy).toHaveBeenCalledTimes(1);
+    expect(updateQueryEngineSpy.mock.calls[0][0]).toBe("numexpr");
+    expect(props.setEngine).toHaveBeenCalledWith("numexpr");
   });
 
   describe("new window", () => {
