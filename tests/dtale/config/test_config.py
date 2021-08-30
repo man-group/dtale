@@ -120,6 +120,7 @@ def test_build_show_options(unittest):
     unittest.assertEqual(
         final_options["column_formats"], {"a": {"fmt": {"html": True}}}
     )
+    unittest.assertEqual(final_options["sort"], [("a", "ASC")])
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

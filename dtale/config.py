@@ -167,6 +167,7 @@ def build_show_options(options=None):
         show_columns=None,
         hide_columns=None,
         column_formats=None,
+        sort=None,
     )
     config_options = {}
     config = get_config()
@@ -224,6 +225,11 @@ def build_show_options(options=None):
             config_options["column_formats"] = json.loads(
                 config_options["column_formats"]
             )
+        config_options["sort"] = get_config_val(config, defaults, "sort")
+        if config_options["sort"]:
+            config_options["sort"] = [
+                tuple(sort.split("|")) for sort in config_options["sort"].split(",")
+            ]
 
     return dict_merge(defaults, config_options, options)
 

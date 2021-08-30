@@ -59,7 +59,9 @@ def test_startup(unittest):
 
     test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)])
     test_data = test_data.set_index(["date", "security_id"])
-    instance = views.startup(URL, data_loader=lambda: test_data)
+    instance = views.startup(
+        URL, data_loader=lambda: test_data, sort=[("security_id", "ASC")]
+    )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
     unittest.assertEqual(
@@ -69,6 +71,7 @@ def test_startup(unittest):
             columnFormats=None,
             locked=["date", "security_id"],
             precision=2,
+            sortInfo=[("security_id", "ASC")],
         ),
         "should lock index columns",
     )

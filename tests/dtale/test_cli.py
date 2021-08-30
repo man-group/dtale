@@ -25,11 +25,12 @@ def test_main(unittest):
         "reaper_on",
         "show_columns",
         "hide_columns",
+        "sort",
     ]
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
         args = ["--host", "test", "--port", "9999", "--csv-path", csv_path]
-        args += ["--show-columns", "a,b", "--hide-columns", "c"]
+        args += ["--show-columns", "a,b", "--hide-columns", "c", "--sort", "a|ASC"]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
@@ -42,6 +43,7 @@ def test_main(unittest):
             reaper_on,
             show_columns,
             hide_columns,
+            sort,
         ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
@@ -51,6 +53,7 @@ def test_main(unittest):
         assert data_loader is not None
         unittest.assertEqual(show_columns, ["a", "b"])
         unittest.assertEqual(hide_columns, ["c"])
+        unittest.assertEqual(sort, [("a", "ASC")])
 
     with ExitStack() as stack:
         mock_show = stack.enter_context(
@@ -74,6 +77,7 @@ def test_main(unittest):
             reaper_on,
             show_columns,
             hide_columns,
+            sort,
         ) = map(kwargs.get, props)
         assert host is None
         assert not subprocess
@@ -83,6 +87,7 @@ def test_main(unittest):
         assert data_loader is not None
         assert show_columns is None
         assert hide_columns is None
+        assert sort is None
         df = data_loader()
         pdt.assert_frame_equal(
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
@@ -115,6 +120,7 @@ def test_main(unittest):
                 reaper_on,
                 show_columns,
                 hide_columns,
+                sort,
             ) = map(kwargs.get, props)
             assert host is None
             assert not subprocess
@@ -124,6 +130,7 @@ def test_main(unittest):
             assert data_loader is not None
             assert show_columns is None
             assert hide_columns is None
+            assert sort is None
             df = data_loader()
             pdt.assert_frame_equal(
                 df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load xlsx"
@@ -144,6 +151,7 @@ def test_main(unittest):
             reaper_on,
             show_columns,
             hide_columns,
+            sort,
         ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
@@ -153,6 +161,7 @@ def test_main(unittest):
         assert data_loader is not None
         assert show_columns is None
         assert hide_columns is None
+        assert sort is None
         df = data_loader()
         pdt.assert_frame_equal(
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load json"
@@ -177,6 +186,7 @@ def test_main(unittest):
             reaper_on,
             show_columns,
             hide_columns,
+            sort,
         ) = map(kwargs.get, props)
         assert host == "test"
         assert not subprocess
@@ -186,6 +196,7 @@ def test_main(unittest):
         assert data_loader is not None
         assert show_columns is None
         assert hide_columns is None
+        assert sort is None
         df = data_loader()
         pdt.assert_frame_equal(
             df,

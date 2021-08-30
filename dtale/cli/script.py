@@ -72,6 +72,13 @@ def validate_allow_cell_edits(ctx, param, value):
     type=click.Choice(["python", "numexpr"]),
     help='query engine you would like used for D-Tale, the default is "python"',
 )
+@click.option(
+    "--sort",
+    help=(
+        "Comma-separated string of pipe-separated column names/sort directions you would like applied on load. "
+        "EX: col1|ASC,col2|DESC"
+    ),
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(
@@ -116,6 +123,11 @@ def main(
     )
     kwargs["hide_columns"] = (
         kwargs["hide_columns"].split(",") if kwargs.get("hide_columns") else None
+    )
+    kwargs["sort"] = (
+        [tuple(sort.split("|")) for sort in kwargs["sort"].split(",")]
+        if kwargs.get("sort")
+        else None
     )
     show(
         host=host,

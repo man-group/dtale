@@ -817,6 +817,7 @@ def startup(
     hide_columns=None,
     optimize_dataframe=False,
     column_formats=None,
+    sort=None,
 ):
     """
     Loads and stores data globally
@@ -853,7 +854,8 @@ def startup(
     :type optimize_dataframe: boolean
     :param column_formats: The formatting to apply to certain columns on the front-end
     :type column_formats: dict, optional
-
+    :param sort: The sort to apply to the data on startup (EX: [("col1", "ASC"), ("col2", "DESC"),...])
+    :type sort: list[tuple], optional
     """
 
     if (
@@ -898,6 +900,7 @@ def startup(
                 show_columns=show_columns,
                 hide_columns=hide_columns,
                 column_formats=column_formats,
+                sort=sort,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -943,6 +946,9 @@ def startup(
         base_predefined = predefined_filters.init_filters()
         if base_predefined:
             base_settings["predefinedFilters"] = base_predefined
+        if sort:
+            base_settings["sortInfo"] = sort
+            data = sort_df_for_grid(data, dict(sort=sort))
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
             data = optimize_df(data)

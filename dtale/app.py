@@ -689,6 +689,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             show_columns=final_options["show_columns"],
             hide_columns=final_options["hide_columns"],
             column_formats=final_options["column_formats"],
+            sort=final_options["sort"],
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)
