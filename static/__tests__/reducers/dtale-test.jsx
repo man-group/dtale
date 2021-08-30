@@ -56,6 +56,8 @@ describe("reducer tests", () => {
       showAllHeatmapColumns: false,
       isVSCode: false,
       queryEngine: "python",
+      openCustomFilterOnStartup: false,
+      openPredefinedFiltersOnStartup: false,
     };
     expect(state).toEqual(store.getState());
   });

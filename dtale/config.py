@@ -79,6 +79,20 @@ def load_app_settings(config):
     query_engine = get_config_val(
         config, curr_app_settings, "query_engine", section="app"
     )
+    open_custom_filter_on_startup = get_config_val(
+        config,
+        curr_app_settings,
+        "open_custom_filter_on_startup",
+        section="app",
+        getter="getboolean",
+    )
+    open_predefined_filters_on_startup = get_config_val(
+        config,
+        curr_app_settings,
+        "open_predefined_filters_on_startup",
+        section="app",
+        getter="getboolean",
+    )
 
     global_state.set_app_settings(
         dict(
@@ -92,6 +106,8 @@ def load_app_settings(config):
             main_title=main_title,
             main_title_font=main_title_font,
             query_engine=query_engine,
+            open_custom_filter_on_startup=open_custom_filter_on_startup,
+            open_predefined_filters_on_startup=open_predefined_filters_on_startup,
         )
     )
 

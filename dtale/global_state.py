@@ -21,6 +21,8 @@ APP_SETTINGS = {
     "main_title": None,
     "main_title_font": None,
     "query_engine": "python",
+    "open_custom_filter_on_startup": False,
+    "open_predefined_filters_on_startup": False,
 }
 
 AUTH_SETTINGS = {

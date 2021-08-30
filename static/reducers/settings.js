@@ -13,6 +13,28 @@ export function hideShutdown(state = false, action = {}) {
   }
 }
 
+export function openCustomFilterOnStartup(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("open_custom_filter_on_startup"));
+    case "load-preview":
+      return false;
+    default:
+      return state;
+  }
+}
+
+export function openPredefinedFiltersOnStartup(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("open_predefined_filters_on_startup")) && getHiddenValue("predefined_filters");
+    case "load-preview":
+      return false;
+    default:
+      return state;
+  }
+}
+
 export function allowCellEdits(state = true, action = {}) {
   switch (action.type) {
     case "init-params":

@@ -27,7 +27,7 @@ describe("FilterDisplay", () => {
       query: "query",
       columnFilters: { foo: { query: "foo == 1" } },
       outlierFilters: { foo: { query: "foo == 1" } },
-      predefinedFilters: { foo: 1 },
+      predefinedFilters: { foo: { value: 1, active: true } },
       predefinedFilterConfigs: [
         {
           name: "custom_foo",
@@ -58,7 +58,7 @@ describe("FilterDisplay", () => {
       query: "",
       columnFilters: {},
       outlierFilters: {},
-      predefinedFilters: {},
+      predefinedFilters: { foo: { value: 1, active: false } },
       invertFilter: false,
     });
   });
@@ -74,7 +74,7 @@ describe("FilterDisplay", () => {
     expect(props.updateSettings).toHaveBeenCalledWith({ columnFilters: {} });
     expect(props.updateSettings).toHaveBeenCalledWith({ outlierFilters: {} });
     expect(props.updateSettings).toHaveBeenCalledWith({
-      predefinedFilters: {},
+      predefinedFilters: { foo: { value: 1, active: false } },
     });
   });
 
@@ -96,7 +96,7 @@ describe("FilterDisplay", () => {
       query: "",
       columnFilters: {},
       outlierFilters: {},
-      predefinedFilters: {},
+      predefinedFilters: { foo: { value: 1, active: false } },
       invertFilter: false,
     });
   });

@@ -958,7 +958,8 @@
     "Description": "Description",
     "Current Value": "Current Value",
     "Edit": "Edit",
-    "Save": "Save"
+    "Save": "Save",
+    "Cancel": "Cancel"
   },
   "corr_analysis": {
     "Keep": "Keep",

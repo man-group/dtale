@@ -15,9 +15,9 @@ class ButtonToggle extends React.Component {
   }
 
   render() {
-    const { options, update } = this.props;
+    const { options, update, className } = this.props;
     return (
-      <div className="btn-group compact col-auto">
+      <div className={`btn-group compact col-auto ${className ?? ""}`}>
         {_.map(options, ({ label, value }) => {
           const buttonProps = { className: "btn" };
           if (value === this.state.active) {
@@ -46,6 +46,7 @@ ButtonToggle.propTypes = {
   defaultValue: PropTypes.string,
   allowDeselect: PropTypes.bool,
   disabled: PropTypes.bool,
+  className: PropTypes.string,
 };
 ButtonToggle.defaultProps = { allowDeselect: false };
 

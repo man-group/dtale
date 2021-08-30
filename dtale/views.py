@@ -940,6 +940,9 @@ def startup(
             precision=precision,
             columnFormats=column_formats,
         )
+        base_predefined = predefined_filters.init_filters()
+        if base_predefined:
+            base_settings["predefinedFilters"] = base_predefined
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
             data = optimize_df(data)
@@ -3413,13 +3416,16 @@ def drop_filtered_rows(data_id):
     )
     global_state.set_data(data_id, data)
     global_state.set_dtypes(data_id, build_dtypes_state(data, []))
+    curr_predefined = curr_settings.get("predefinedFilters", {})
     _update_settings(
         data_id,
         dict(
             query="",
             columnFilters={},
             outlierFilters={},
-            predefinedFilters={},
+            predefinedFilters={
+                k: dict_merge(v, {"active": False}) for k, v in curr_predefined.items()
+            },
             invertFilter=False,
         ),
     )

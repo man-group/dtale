@@ -54,6 +54,8 @@
         <input type="hidden" id="main_title" value="{{main_title}}" />
         <input type="hidden" id="main_title_font" value="{{main_title_font}}" />
         <input type="hidden" id="query_engine" value="{{query_engine}}" />
+        <input type="hidden" id="open_custom_filter_on_startup" value="{{open_custom_filter_on_startup}}" />
+        <input type="hidden" id="open_predefined_filters_on_startup" value="{{open_predefined_filters_on_startup}}" />
         {% block full_content %}{% endblock %}
         {% if missing_js is not defined %}
         <script type="text/javascript" src="{{ url_for('static', filename='dist/polyfills_bundle.js') }}"></script>

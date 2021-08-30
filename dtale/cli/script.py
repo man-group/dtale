@@ -66,6 +66,12 @@ def validate_allow_cell_edits(ctx, param, value):
     "--hide-columns",
     help="Comma-separated string of column names you would like hidden on load",
 )
+@click.option(
+    "--query-engine",
+    default="python",
+    type=click.Choice(["python", "numexpr"]),
+    help='query engine you would like used for D-Tale, the default is "python"',
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(

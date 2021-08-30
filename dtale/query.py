@@ -91,5 +91,10 @@ def handle_predefined(data_id, df=None):
 
     for f in filters:
         if f.name in filter_values:
-            df = f.handler(df, filter_values[f.name])
+            filter_value = filter_values[f.name]
+            if (
+                filter_value.get("active", True)
+                and filter_value.get("value") is not None
+            ):
+                df = f.handler(df, filter_value["value"])
     return df

@@ -43,7 +43,11 @@ describe("PredefinedFilters panel", () => {
           inputType: "multiselect",
         },
       ],
-      filterValues: { custom_foo1: 1, custom_foo2: 1, custom_foo3: [1, 2] },
+      filterValues: {
+        custom_foo1: { value: 1, active: true },
+        custom_foo2: { value: 1, active: true },
+        custom_foo3: { value: [1, 2], active: true },
+      },
       hideSidePanel: jest.fn(),
       updateSettings: jest.fn(),
     };
@@ -59,18 +63,26 @@ describe("PredefinedFilters panel", () => {
   });
 
   it("saves correctly", () => {
-    wrapper.find(FilterInput).first().props().save("custom_foo1", 2);
+    wrapper.find(FilterInput).first().props().save("custom_foo1", 2, true);
     updateSettingsSpy.mock.calls[0][2]();
     expect(props.updateSettings).toHaveBeenCalledWith({
-      predefinedFilters: { custom_foo1: 2, custom_foo2: 1, custom_foo3: [1, 2] },
+      predefinedFilters: {
+        custom_foo1: { value: 2, active: true },
+        custom_foo2: { value: 1, active: true },
+        custom_foo3: { value: [1, 2], active: true },
+      },
     });
   });
 
   it("removes correctly", () => {
-    wrapper.find(FilterInput).first().props().save("custom_foo1", undefined);
+    wrapper.find(FilterInput).first().props().save("custom_foo1", undefined, false);
     updateSettingsSpy.mock.calls[0][2]();
     expect(props.updateSettings).toHaveBeenCalledWith({
-      predefinedFilters: { custom_foo2: 1, custom_foo3: [1, 2] },
+      predefinedFilters: {
+        custom_foo1: { active: false },
+        custom_foo2: { value: 1, active: true },
+        custom_foo3: { value: [1, 2], active: true },
+      },
     });
   });
 
@@ -78,7 +90,11 @@ describe("PredefinedFilters panel", () => {
     wrapper.find("button").last().simulate("click");
     updateSettingsSpy.mock.calls[0][2]();
     expect(props.updateSettings).toHaveBeenCalledWith({
-      predefinedFilters: {},
+      predefinedFilters: {
+        custom_foo1: { value: 1, active: false },
+        custom_foo2: { value: 1, active: false },
+        custom_foo3: { value: [1, 2], active: false },
+      },
     });
   });
 

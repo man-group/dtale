@@ -40,21 +40,26 @@ class ReactPanel extends React.Component {
     });
   }
 
-  save(name, value) {
+  save(name, value, active) {
     const { dataId, updateSettings } = this.props;
     const filterValues = { ...this.props.filterValues };
     if (value) {
-      filterValues[name] = value;
+      filterValues[name] = { value, active };
     } else {
-      delete filterValues[name];
+      filterValues[name] = { active };
     }
     const settings = { predefinedFilters: filterValues };
     serverStateManagement.updateSettings(settings, dataId, () => updateSettings(settings));
   }
 
   clearAll() {
-    const { dataId, updateSettings } = this.props;
-    const settings = { predefinedFilters: {} };
+    const { dataId, updateSettings, filterValues } = this.props;
+    const settings = {
+      predefinedFilters: _.mapValues(filterValues, value => ({
+        ...value,
+        active: false,
+      })),
+    };
     serverStateManagement.updateSettings(settings, dataId, () => updateSettings(settings));
   }
 

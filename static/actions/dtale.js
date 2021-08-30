@@ -7,6 +7,14 @@ export function init() {
   return dispatch => dispatch({ type: "init-params" });
 }
 
+export function openCustomFilter() {
+  return dispatch => dispatch({ type: "show-side-panel", view: "filter" });
+}
+
+export function openPredefinedFilters() {
+  return dispatch => dispatch({ type: "show-side-panel", view: "predefined_filters" });
+}
+
 export function toggleColumnMenu(colName) {
   return dispatch => dispatch({ type: "toggle-column-menu", colName });
 }

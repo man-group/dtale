@@ -59,6 +59,7 @@ def test_set_filters(unittest):
                 "column": "A",
                 "description": "Filter A with B greater than 2",
                 "inputType": "input",
+                "default": None,
             },
         )
 
@@ -71,8 +72,15 @@ def test_set_filters(unittest):
         global_state.set_data("1", df)
         assert len(handle_predefined("1")) == 3
 
-        global_state.set_settings("1", dict(predefinedFilters={"A and B > 2": 7}))
+        global_state.set_settings(
+            "1", dict(predefinedFilters={"A and B > 2": {"value": 7, "active": True}})
+        )
         assert len(handle_predefined("1")) == 1
+
+        global_state.set_settings(
+            "1", dict(predefinedFilters={"A and B > 2": {"value": 7, "active": False}})
+        )
+        assert len(handle_predefined("1")) == 3
 
 
 @pytest.mark.unit

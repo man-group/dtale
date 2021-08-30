@@ -41,14 +41,17 @@ class ReactFilterDisplay extends React.Component {
 
   displayPredefined() {
     const { predefinedFilters, predefinedFilterConfigs, dataId, updateSettings } = this.props;
-    return _.map(predefinedFilters, (value, name) => {
+    return _.map(gu.filterPredefined(predefinedFilters), (value, name) => {
       const dropFilter = () => {
         const updatedSettings = {
-          predefinedFilters: _.pickBy(predefinedFilters, (_, k) => k !== name),
+          predefinedFilters: {
+            ...predefinedFilters,
+            [name]: { value: predefinedFilters[name].value, active: false },
+          },
         };
         serverState.updateSettings(updatedSettings, dataId, () => updateSettings(updatedSettings));
       };
-      const displayValue = predefinedFilterStr(predefinedFilterConfigs, name, value);
+      const displayValue = predefinedFilterStr(predefinedFilterConfigs, name, value.value);
       return (
         <li key={`predefined-${name}`}>
           <span className="toggler-action">
@@ -73,8 +76,8 @@ class ReactFilterDisplay extends React.Component {
       _.map(columnFilters, "query"),
       _.map(outlierFilters, "query"),
       _.map(
-        this.props.predefinedFilters,
-        (value, name) => `${name}: ${predefinedFilterStr(predefinedFilterConfigs, name, value)}`
+        gu.filterPredefined(this.props.predefinedFilters),
+        (value, name) => `${name}: ${predefinedFilterStr(predefinedFilterConfigs, name, value.value)}`
       )
     );
     if (query) {
@@ -87,7 +90,10 @@ class ReactFilterDisplay extends React.Component {
           query: "",
           columnFilters: {},
           outlierFilters: {},
-          predefinedFilters: {},
+          predefinedFilters: _.mapValues(this.props.predefinedFilters, value => ({
+            ...value,
+            active: false,
+          })),
           invertFilter: false,
         };
         const callback = () => updateSettings(settingsUpdates);

@@ -126,6 +126,11 @@ if (_.startsWith(pathname, "/dtale/popup")) {
 } else {
   const store = createStore(app.store);
   store.dispatch(actions.init());
+  if (store.getState().openPredefinedFiltersOnStartup) {
+    store.dispatch(actions.openPredefinedFilters());
+  } else if (store.getState().openCustomFilterOnStartup) {
+    store.dispatch(actions.openCustomFilter());
+  }
   ReactDOM.render(
     <Provider store={store}>
       <DataViewer />

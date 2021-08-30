@@ -10,9 +10,11 @@ import AsyncValueSelect from "../../../filters/AsyncValueSelect";
 import ValueSelect from "../../../filters/ValueSelect";
 import { buildStat } from "../../../popups/describe/detailUtils";
 import { predefinedFilterStr } from "../../info/infoUtils";
+import ButtonToggle from "../../../ButtonToggle";
 
 function buildCurrent(props) {
-  const { value, filter } = props;
+  const { filter } = props;
+  const { value } = props.value ?? {};
   const { inputType } = filter;
   switch (inputType) {
     case "input":
@@ -42,12 +44,14 @@ class FilterInput extends React.Component {
     super(props);
     this.state = {
       edit: false,
+      active: props.value?.active ?? true,
       toggleCt: 0,
       currentValue: buildCurrent(props),
     };
     this.toggleEdited = this.toggleEdited.bind(this);
     this.renderEdited = this.renderEdited.bind(this);
     this.save = this.save.bind(this);
+    this.toggleActive = this.toggleActive.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -111,8 +115,12 @@ class FilterInput extends React.Component {
       if (inputType !== "multiselect") {
         finalValues = finalValues[0];
       }
-      this.setState({ errors: null, edit: false }, () => this.props.save(name, finalValues));
+      this.setState({ errors: null, edit: false }, () => this.props.save(name, finalValues, this.state.active));
     }
+  }
+
+  toggleActive(active) {
+    this.setState({ active }, () => this.props.save(this.props.filter.name, this.props.value?.value, active));
   }
 
   renderEdited() {
@@ -192,13 +200,36 @@ class FilterInput extends React.Component {
           </ul>
         </div>
         <div className="col-md-6">
-          {!edit && (
-            <>
-              <span className="font-weight-bold pr-3">{t("predefined:Current Value")}:</span>
-              <span>{value ? predefinedFilterStr([filter], name, value) : "--"}</span>
-            </>
-          )}
-          {this.renderEdited()}
+          <div className="row">
+            <div className="col-md-12">
+              {!edit && (
+                <>
+                  <span className="font-weight-bold pr-3">{t("predefined:Current Value")}:</span>
+                  <span>{value?.value ? predefinedFilterStr([filter], name, value.value) : "--"}</span>
+                </>
+              )}
+              {this.renderEdited()}
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-12">
+              <ButtonToggle
+                options={_.map(
+                  [
+                    ["Enabled", "true"],
+                    ["Disabled", "false"],
+                  ],
+                  ([l, v]) => ({
+                    label: l,
+                    value: v,
+                  })
+                )}
+                update={active => this.toggleActive(active === "true")}
+                defaultValue={this.state.active ? "true" : "false"}
+                className="pl-0 pr-0 pt-3 float-right"
+              />
+            </div>
+          </div>
           {errors && (
             <ul className="predefined-filter-errors">
               {errors.map((error, i) => (

@@ -7,7 +7,13 @@ PREDEFINED_FILTERS = []
 
 class PredefinedFilter(object):
     def __init__(
-        self, name=None, description=None, handler=None, column=None, input_type=None
+        self,
+        name=None,
+        description=None,
+        handler=None,
+        column=None,
+        input_type=None,
+        default=None,
     ):
         assert name is not None
         assert column is not None
@@ -24,6 +30,7 @@ class PredefinedFilter(object):
         self.handler = handler
         self.column = column
         self.input_type = input_type
+        self.default = default
 
     def asdict(self):
         return {
@@ -31,6 +38,7 @@ class PredefinedFilter(object):
             "description": self.description,
             "column": self.column,
             "inputType": self.input_type,
+            "default": self.default,
         }
 
 
@@ -67,3 +75,13 @@ def add_filters(filters):
             )
         valid_filters.append(new_filter)
     PREDEFINED_FILTERS += valid_filters
+
+
+def init_filters():
+    global PREDEFINED_FILTERS
+
+    return {
+        f.name: dict(value=f.default, active=True)
+        for f in PREDEFINED_FILTERS
+        if f.default is not None
+    }
