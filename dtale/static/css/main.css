@@ -10458,6 +10458,11 @@ div.hoverable.label > div.hoverable__content {
   width: inherit;
 }
 
+div.hoverable.filtered {
+  border-bottom: none;
+  color: inherit;
+}
+
 .hoverable__content::before,
 .hoverable__click-content::before {
   position: absolute;

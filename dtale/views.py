@@ -1864,7 +1864,18 @@ def describe(data_id):
 
     """
     column = get_str_arg(request, "col")
-    data = global_state.get_data(data_id)[[column]]
+    filtered = get_bool_arg(request, "filtered")
+    data = global_state.get_data(data_id)
+    curr_settings = global_state.get_settings(data_id) or {}
+    if filtered:
+        final_query = build_query(data_id, curr_settings.get("query"))
+        data = run_query(
+            handle_predefined(data_id),
+            final_query,
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+        )
+    data = data[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
     classification = classify_type(dtype["dtype"])

@@ -14,6 +14,7 @@ class PredefinedFilter(object):
         column=None,
         input_type=None,
         default=None,
+        active=True,
     ):
         assert name is not None
         assert column is not None
@@ -31,6 +32,7 @@ class PredefinedFilter(object):
         self.column = column
         self.input_type = input_type
         self.default = default
+        self.active = active
 
     def asdict(self):
         return {
@@ -39,6 +41,7 @@ class PredefinedFilter(object):
             "column": self.column,
             "inputType": self.input_type,
             "default": self.default,
+            "active": self.active,
         }
 
 
@@ -81,7 +84,7 @@ def init_filters():
     global PREDEFINED_FILTERS
 
     return {
-        f.name: dict(value=f.default, active=True)
+        f.name: dict(value=f.default, active=f.get("active", True))
         for f in PREDEFINED_FILTERS
         if f.default is not None
     }

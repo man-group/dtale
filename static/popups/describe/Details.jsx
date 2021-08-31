@@ -2,6 +2,7 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
+import { connect } from "react-redux";
 
 import { Bouncer } from "../../Bouncer";
 import { JSAnchor } from "../../JSAnchor";
@@ -17,6 +18,7 @@ import Uniques from "./Uniques";
 class Details extends React.Component {
   constructor(props) {
     super(props);
+    const hasFilters = gu.noFilters(props.settings);
     this.state = {
       error: null,
       details: null,
@@ -25,6 +27,8 @@ class Details extends React.Component {
       wordValues: null,
       outliers: null,
       loadingOutliers: false,
+      hasFilters: !hasFilters,
+      filtered: !hasFilters,
     };
     this.loadDetails = this.loadDetails.bind(this);
     this.renderUniques = this.renderUniques.bind(this);
@@ -40,14 +44,14 @@ class Details extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
-    if (!_.isEqual(this.props.selected, prevProps.selected)) {
+  componentDidUpdate(prevProps, prevState) {
+    if (!_.isEqual(this.props.selected, prevProps.selected) || this.state.filtered !== prevState.filtered) {
       this.loadDetails();
     }
   }
 
   loadDetails() {
-    fetchJson(describeUrl(this.props.dataId, this.props.selected.name), detailData => {
+    fetchJson(describeUrl(this.props.dataId, this.props.selected.name, this.state.filtered), detailData => {
       const newState = {
         error: null,
         details: null,
@@ -241,6 +245,18 @@ class Details extends React.Component {
               ({this.props.t("navigate")})
             </small>
           </div>
+          {this.state.hasFilters && (
+            <div className="col-auto pr-0 mt-auto mb-auto hoverable filtered">
+              <span className="font-weight-bold pr-3">{this.props.t("Filtered")}:</span>
+              <i
+                className={`ico-check-box${this.state.filtered ? "" : "-outline-blank"} pointer`}
+                onClick={() => this.setState({ filtered: !this.state.filtered })}
+              />
+              <div className="hoverable__content">
+                {`Filters currently exist on your data and can be toggled on/off here by clicking the checkbox.`}
+              </div>
+            </div>
+          )}
           {this.props.close}
         </div>
         <DetailsCharts
@@ -268,6 +284,8 @@ Details.propTypes = {
   close: PropTypes.node,
   updateSettings: PropTypes.func,
   t: PropTypes.func,
+  settings: PropTypes.object,
 };
 const TranslateDetails = withTranslation("describe")(Details);
-export { TranslateDetails as Details };
+const ReduxDetails = connect(({ settings }) => ({ settings }))(TranslateDetails);
+export { TranslateDetails as ReactDetails, ReduxDetails as Details };

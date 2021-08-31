@@ -50,8 +50,8 @@ function toggleOutlierFilterUrl(dataId) {
   return `/dtale/toggle-outlier-filter/${dataId}`;
 }
 
-function describeUrl(dataId, col) {
-  return buildURLString(`/dtale/describe/${dataId}`, { col });
+function describeUrl(dataId, col, filtered) {
+  return buildURLString(`/dtale/describe/${dataId}`, { col, filtered });
 }
 
 function outliersUrl(dataId, col) {

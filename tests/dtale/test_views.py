@@ -1001,7 +1001,7 @@ def test_dtypes(test_data):
     test_data.loc[0, "mixed_col"] = "x"
 
     with app.test_client() as c:
-        with ExitStack() as stack:
+        with ExitStack():
             build_data_inst({c.port: test_data})
             build_dtypes({c.port: build_dtypes_state(test_data)})
             response = c.get("/dtale/dtypes/{}".format(c.port))
@@ -1017,7 +1017,7 @@ def test_dtypes(test_data):
 
     lots_of_groups = pd.DataFrame([dict(a=i, b=1) for i in range(150)])
     with app.test_client() as c:
-        with ExitStack() as stack:
+        with ExitStack():
             build_data_inst({c.port: lots_of_groups})
             build_dtypes({c.port: build_dtypes_state(lots_of_groups)})
             response = c.get("/dtale/dtypes/{}".format(c.port))
@@ -1065,6 +1065,15 @@ def test_dtypes(test_data):
             response_data = json.loads(response.data)
             assert response_data["describe"]["min"] == "2"
             assert response_data["describe"]["max"] == "inf"
+
+            global_state.set_settings(c.port, dict(query="security_id == 1"))
+            response = c.get(
+                "/dtale/describe/{}".format(c.port),
+                query_string=dict(col="foo", filtered="true"),
+            )
+            response_data = json.loads(response.data)
+            assert response_data["describe"]["min"] == "1"
+            assert response_data["describe"]["max"] == "2"
 
 
 @pytest.mark.unit

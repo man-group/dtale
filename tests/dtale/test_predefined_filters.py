@@ -60,6 +60,7 @@ def test_set_filters(unittest):
                 "description": "Filter A with B greater than 2",
                 "inputType": "input",
                 "default": None,
+                "active": True,
             },
         )
 
