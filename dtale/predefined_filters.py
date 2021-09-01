@@ -84,7 +84,8 @@ def init_filters():
     global PREDEFINED_FILTERS
 
     return {
-        f.name: dict(value=f.default, active=f.get("active", True))
-        for f in PREDEFINED_FILTERS
+        f.name: dict(value=f.default, active=f.active)
         if f.default is not None
+        else dict(active=f.active)
+        for f in PREDEFINED_FILTERS
     }

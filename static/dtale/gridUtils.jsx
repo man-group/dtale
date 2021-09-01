@@ -218,7 +218,16 @@ export const buildState = props => ({
 
 export const noHidden = columns => !_.some(columns, { visible: false });
 
-export const filterPredefined = filters => _.pickBy(filters, value => value.active && value.value);
+export const predefinedHasValue = value => {
+  if (value?.value === undefined) {
+    return false;
+  }
+  if (Array.isArray(value.value) && _.isEmpty(value.value)) {
+    return false;
+  }
+  return true;
+};
+export const filterPredefined = filters => _.pickBy(filters, value => value.active && predefinedHasValue(value));
 export const noFilters = ({ query, columnFilters, outlierFilters, predefinedFilters }) =>
   _.isEmpty(query) &&
   _.isEmpty(columnFilters) &&

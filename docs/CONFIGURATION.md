@@ -17,6 +17,13 @@ hide_shutdown = False
 pin_menu = False
 language = en
 max_column_width = 100 # the default value is None
+main_title = My App # only use this if you don't want to see the D-Tale logo
+main_title_font = Arial # this font is applied to your custom title
+query_engine = python
+
+[charts] # this controls how many points can be contained within scatter & 3D charts
+scatter_points = 15000
+3d_points = 4000
 
 [auth]
 active = True
@@ -34,6 +41,11 @@ allow_cell_edits = True
 inplace = False
 drop_index = False
 app_root = additional_path
+precision = 6 # how many digits to show on floats
+show_columns = a,b
+hide_columns = c
+column_formats = {"a": {"fmt": {"html": true}}}
+sort = a|ASC,b|DESC
 ```
 
 Some notes on these properties:

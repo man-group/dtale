@@ -517,6 +517,9 @@ Users can build their own custom filters which can be used from the front-end us
 import pandas as pd
 import dtale
 import dtale.predefined_filters as predefined_filters
+import dtale.global_state as global_state
+
+global_state.set_app_settings(dict(open_predefined_filters_on_startup=True))
 
 predefined_filters.set_filters([
     {
@@ -525,6 +528,8 @@ predefined_filters.set_filters([
         "description": "Filter A with B greater than 2",
         "handler": lambda df, val: df[(df["A"] == val) & (df["B"] > 2)],
         "input_type": "input",
+        "default": 1,
+        "active": False,
     },
     {
         "name": "A and (B % 2) == 0",
@@ -532,6 +537,8 @@ predefined_filters.set_filters([
         "description": "Filter A with B mod 2 equals zero (is even)",
         "handler": lambda df, val: df[(df["A"] == val) & (df["B"] % 2 == 0)],
         "input_type": "select",
+        "default": 1,
+        "active": False,
     },
     {
         "name": "A in values and (B % 2) == 0",
@@ -539,6 +546,8 @@ predefined_filters.set_filters([
         "description": "A is within a group of values and B mod 2 equals zero (is even)",
         "handler": lambda df, val: df[df["A"].isin(val) & (df["B"] % 2 == 0)],
         "input_type": "multiselect",
+        "default": [1],
+        "active": True,
     }
 ])
 
@@ -555,7 +564,7 @@ This code illustrates the types of inputs you can have on the front end:
 * __multiselect__: same as "select" but it will allow you to choose multiple values (handy if you want to perform an `isin` operation in your filter)
 
 Here is a demo of the functionality:
-[![](http://img.youtube.com/vi/5E_dkVJizcY/0.jpg)](http://www.youtube.com/watch?v=5E_dkVJizcY "Predefined Filters")
+[![](http://img.youtube.com/vi/8mryVxpxjM4/0.jpg)](http://www.youtube.com/watch?v=8mryVxpxjM4 "Predefined Filters")
 
 If there are any new types of inputs you would like available please don't hesitate to submit a request on the "Issues" page of the repo.
 
