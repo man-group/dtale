@@ -1,5 +1,14 @@
 ## Changelog
 
+### 1.56.0 (2021-8-31)
+* [#557](https://github.com/man-group/dtale/issues/557): allow filters to be applied to the "Describe" page
+* [#555](https://github.com/man-group/dtale/issues/555)
+  * added option to specify default sort in config/show/CLI
+  * predefined filter updates
+* [#552](https://github.com/man-group/dtale/issues/552): added query engine toggle
+* [#553](https://github.com/man-group/dtale/issues/553): boolean chart axis ticks
+* [#554](https://github.com/man-group/dtale/issues/554): dash callback input update
+
 ### 1.55.0 (2021-8-17)
 * [#553](https://github.com/man-group/dtale/issues/553): charts with boolean values as y or z axes
 * [#552](https://github.com/man-group/dtale/issues/552): exceptions with unsigned integers and NA values
