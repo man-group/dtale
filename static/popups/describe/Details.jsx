@@ -12,6 +12,7 @@ import { buildURLString, describeUrl, outliersUrl, toggleOutlierFilterUrl } from
 import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { buildButton } from "../../toggleUtils";
+import { FilterableToggle } from "../FilterableToggle";
 import DetailsCharts from "./DetailsCharts";
 import Uniques from "./Uniques";
 
@@ -245,18 +246,7 @@ class Details extends React.Component {
               ({this.props.t("navigate")})
             </small>
           </div>
-          {this.state.hasFilters && (
-            <div className="col-auto pr-0 mt-auto mb-auto hoverable filtered">
-              <span className="font-weight-bold pr-3">{this.props.t("Filtered")}:</span>
-              <i
-                className={`ico-check-box${this.state.filtered ? "" : "-outline-blank"} pointer`}
-                onClick={() => this.setState({ filtered: !this.state.filtered })}
-              />
-              <div className="hoverable__content">
-                {`Filters currently exist on your data and can be toggled on/off here by clicking the checkbox.`}
-              </div>
-            </div>
-          )}
+          <FilterableToggle {...this.state} propagateState={state => this.setState(state)} className="pr-0" />
           {this.props.close}
         </div>
         <DetailsCharts
@@ -267,6 +257,7 @@ class Details extends React.Component {
           col={selected.name}
           dataId={dataId}
           propagateState={this.propagateState}
+          filtered={this.state.filtered}
         />
         {this.renderDeepDataToggle()}
         {this.renderUniques()}

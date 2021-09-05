@@ -8,7 +8,7 @@ import { createChart, isPlotly } from "./columnAnalysisUtils";
 class ColumnAnalysisChart extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { chart: null };
+    this.state = { chart: null, id: `chart${new Date().getTime()}` };
     this.createChart = this.createChart.bind(this);
   }
 
@@ -24,15 +24,19 @@ class ColumnAnalysisChart extends React.Component {
     this.createChart();
   }
 
+  componentWillUnmount() {
+    this.state.chart?.destroy?.();
+  }
+
   createChart() {
     const { fetchedChartData, finalParams } = this.props;
     const builder = ctx => {
       if (finalParams.type === "geolocation") {
-        chartUtils.createGeolocation("columnAnalysisChart", fetchedChartData);
+        chartUtils.createGeolocation(this.state.id, fetchedChartData);
         return null;
       }
       if (finalParams.type === "qq") {
-        chartUtils.createQQ("columnAnalysisChart", fetchedChartData);
+        chartUtils.createQQ(this.state.id, fetchedChartData);
         return null;
       }
       if (!_.get(fetchedChartData, "data", []).length && !_.get(fetchedChartData, "targets", []).length) {
@@ -40,7 +44,7 @@ class ColumnAnalysisChart extends React.Component {
       }
       return createChart(ctx, fetchedChartData, finalParams);
     };
-    const chart = chartUtils.chartWrapper("columnAnalysisChart", this.state.chart, builder);
+    const chart = chartUtils.chartWrapper(this.state.id, this.state.chart, builder);
     this.setState({ chart });
   }
 
@@ -48,8 +52,8 @@ class ColumnAnalysisChart extends React.Component {
     const plotly = isPlotly(this.props.finalParams?.type);
     return (
       <div style={{ height: this.props.height }}>
-        {plotly && <div id="columnAnalysisChart" />}
-        {!plotly && <canvas id="columnAnalysisChart" />}
+        {plotly && <div id={this.state.id} />}
+        {!plotly && <canvas id={this.state.id} />}
       </div>
     );
   }

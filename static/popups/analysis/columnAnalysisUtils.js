@@ -1,3 +1,4 @@
+/* eslint max-statements: "off" */
 import _ from "lodash";
 import $ from "jquery";
 import qs from "querystring";
@@ -183,7 +184,7 @@ const emptyVal = val => (
 
 const PARAM_PROPS = _.concat(
   ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
-  ["categoryAgg", "cleaners", "latCol", "lonCol", "target"]
+  ["categoryAgg", "cleaners", "latCol", "lonCol", "target", "filtered"]
 );
 
 const isPlotly = type => _.includes(["geolocation", "qq"], type);
@@ -194,6 +195,7 @@ function dataLoader(props, state, propagateState, chartParams) {
   const { selectedCol } = chartData;
   const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
   params.type = _.get(finalParams, "type");
+  params.filtered = props.filtered ?? true;
   if (isPlotly(params.type) || finalParams?.target) {
     state.chartRef?.current?.state?.chart?.destroy?.();
     propagateState({ chart: <Bouncer /> });

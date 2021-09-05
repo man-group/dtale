@@ -3,6 +3,8 @@ from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 
+from dtale.utils import get_bool_arg
+
 
 def build_col_key(col):
     # Use backticks for pandas >= 0.25 to handle column names with spaces or protected words
@@ -98,3 +100,17 @@ def handle_predefined(data_id, df=None):
             ):
                 df = f.handler(df, filter_value["value"])
     return df
+
+
+def load_filterable_data(data_id, req, query=None):
+    filtered = get_bool_arg(req, "filtered")
+    curr_settings = global_state.get_settings(data_id) or {}
+    if filtered:
+        final_query = query or build_query(data_id, curr_settings.get("query"))
+        return run_query(
+            handle_predefined(data_id),
+            final_query,
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+        )
+    return global_state.get_data(data_id)

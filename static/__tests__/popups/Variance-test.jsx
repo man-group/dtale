@@ -3,11 +3,13 @@ import qs from "querystring";
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
+import { Provider } from "react-redux";
 
 import { expect, it } from "@jest/globals";
 
 import { RemovableError } from "../../RemovableError";
 import mockPopsicle from "../MockPopsicle";
+import reduxUtils from "../redux-test-utils";
 import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from "../test-utils";
 
 const VARIANCE_DATA = {
@@ -78,27 +80,30 @@ describe("Variance tests", () => {
     jest.mock("popsicle", () => mockBuildLibs);
   });
 
-  beforeEach(async () => {
+  const input = () => result.find("input");
+  const chart = () => result.find(ColumnAnalysisChart).instance().state.chart;
+  const updateProps = async newProps => {
     const { Variance } = require("../../popups/variance/Variance");
     ColumnAnalysisChart = require("../../popups/analysis/ColumnAnalysisChart").default;
     TextEnterFilter = require("../../popups/analysis/filters/TextEnterFilter").default;
 
-    buildInnerHTML();
-    result = mount(<Variance {...props} />, {
-      attachTo: document.getElementById("content"),
-    });
-    await tickUpdate(result);
-  });
-
-  const input = () => result.find("input");
-  const chart = () => result.find(ColumnAnalysisChart).instance().state.chart;
-  const updateProps = async newProps => {
-    result.setProps(newProps);
-    await tickUpdate(result);
-    result.unmount();
-    result.mount();
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: "" }, store);
+    store.getState().dataId = props.dataId;
+    result = mount(
+      <Provider store={store}>
+        <Variance {...newProps} />
+      </Provider>,
+      {
+        attachTo: document.getElementById("content"),
+      }
+    );
     await tickUpdate(result);
   };
+
+  beforeEach(async () => {
+    await updateProps(props);
+  });
 
   it("Variance rendering variance report", async () => {
     expect(result.find("h1").text()).toBe(`Based on checks 1 & 2 "bar" does not have Low Variance`);

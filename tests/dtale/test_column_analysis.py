@@ -21,12 +21,13 @@ def test_get_column_analysis(unittest, test_data):
     import dtale.views as views
 
     with app.test_client() as c:
-        with ExitStack() as stack:
+        with ExitStack():
             build_data_inst({c.port: test_data})
             build_dtypes({c.port: views.build_dtypes_state(test_data)})
             build_settings({c.port: {}})
             response = c.get(
-                "/dtale/column-analysis/{}".format(c.port), query_string=dict(col="foo")
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="foo", filtered="true"),
             )
             response_data = json.loads(response.data)
             expected = dict(
@@ -81,7 +82,7 @@ def test_get_column_analysis(unittest, test_data):
 
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
-                query_string=dict(col="foo", bins=5),
+                query_string=dict(col="foo", bins=5, filtered="true"),
             )
             response_data = json.loads(response.data)
             expected = dict(
@@ -113,7 +114,7 @@ def test_get_column_analysis(unittest, test_data):
             )
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
-                query_string=dict(col="foo", bins=5, target="baz"),
+                query_string=dict(col="foo", bins=5, target="baz", filtered="true"),
             )
             response_data = json.loads(response.data)
             assert len(response_data["targets"])
@@ -122,7 +123,7 @@ def test_get_column_analysis(unittest, test_data):
             global_state.set_settings(c.port, dict(query="security_id > 10"))
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
-                query_string=dict(col="foo", bins=5),
+                query_string=dict(col="foo", bins=5, filtered="true"),
             )
             response_data = json.loads(response.data)
             expected = dict(
@@ -155,7 +156,9 @@ def test_get_column_analysis(unittest, test_data):
             global_state.set_settings(c.port, {})
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
-                query_string=dict(col="foo", type="value_counts", top=2),
+                query_string=dict(
+                    col="foo", type="value_counts", top=2, filtered="true"
+                ),
             )
             response_data = json.loads(response.data)
             assert response_data["chart_type"] == "value_counts"
@@ -163,7 +166,11 @@ def test_get_column_analysis(unittest, test_data):
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(
-                    col="foo", type="value_counts", ordinalCol="bar", ordinalAgg="mean"
+                    col="foo",
+                    type="value_counts",
+                    ordinalCol="bar",
+                    ordinalAgg="mean",
+                    filtered="true",
                 ),
             )
             response_data = json.loads(response.data)
@@ -176,6 +183,7 @@ def test_get_column_analysis(unittest, test_data):
                     type="value_counts",
                     ordinalCol="bar",
                     ordinalAgg="pctsum",
+                    filtered="true",
                 ),
             )
             response_data = json.loads(response.data)
@@ -184,7 +192,11 @@ def test_get_column_analysis(unittest, test_data):
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(
-                    col="bar", type="categories", categoryCol="foo", categoryAgg="mean"
+                    col="bar",
+                    type="categories",
+                    categoryCol="foo",
+                    categoryAgg="mean",
+                    filtered="true",
                 ),
             )
             response_data = json.loads(response.data)
@@ -197,6 +209,7 @@ def test_get_column_analysis(unittest, test_data):
                     type="categories",
                     categoryCol="foo",
                     categoryAgg="pctsum",
+                    filtered="true",
                 ),
             )
             response_data = json.loads(response.data)
@@ -213,7 +226,8 @@ def test_get_column_analysis(unittest, test_data):
             )
 
             response = c.get(
-                "/dtale/column-analysis/{}".format(c.port), query_string=dict(col="foo")
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="foo", filtered="true"),
             )
             response_data = json.loads(response.data)
             unittest.assertEqual(

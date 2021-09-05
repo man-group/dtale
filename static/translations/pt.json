@@ -971,5 +971,9 @@
     "Threshold": "Limiar",
     "Drop Columns": "Remover Colunas",
     "Drop Unselected Columns": "Remover Colunas Não Selecionadas"
+  },
+  "filterable": {
+    "Filtered": "Filtered",
+    "description": "Filters currently exist on your data and can be toggled on/off here by clicking the checkbox."
   }
 }

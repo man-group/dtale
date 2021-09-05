@@ -11,7 +11,6 @@ class DetailsCharts extends React.Component {
     super(props);
     this.state = {
       chart: null,
-      chartRef: React.createRef(),
       type: "boxplot",
       error: null,
       chartParams: null,
@@ -68,6 +67,7 @@ class DetailsCharts extends React.Component {
         chartData: { selectedCol: this.props.col },
         height: 400,
         dataId: this.props.dataId,
+        filtered: this.props.filtered,
       };
       dataLoader(props, this.state, propagateState, finalParams);
     }
@@ -103,6 +103,7 @@ DetailsCharts.propTypes = {
   col: PropTypes.string,
   dataId: PropTypes.string,
   propagateState: PropTypes.func,
+  filtered: PropTypes.bool,
 };
 
 export default DetailsCharts;

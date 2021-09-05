@@ -2,27 +2,34 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
+import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
-import { buildURLString, varianceUrl } from "../../actions/url-utils";
+import { varianceUrl } from "../../actions/url-utils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import { renderCodePopupAnchor } from "../CodePopup";
+import { FilterableToggle } from "../FilterableToggle";
 import VarianceChart from "./VarianceChart";
 
 class Variance extends React.Component {
   constructor(props) {
     super(props);
+    const hasFilters = gu.noFilters(props.settings);
     this.state = {
       loadingVariance: true,
       varianceData: null,
+      hasFilters: !hasFilters,
+      filtered: !hasFilters,
     };
     this.renderCheck2 = this.renderCheck2.bind(this);
+    this.loadVariance = this.loadVariance.bind(this);
   }
 
-  componentDidMount() {
+  loadVariance() {
     const column = _.get(this.props, "chartData.selectedCol");
-    fetchJson(buildURLString(varianceUrl(this.props.dataId), { col: column }), varianceData => {
+    fetchJson(varianceUrl(this.props.dataId, column, this.state.filtered), varianceData => {
       const newState = {
         error: null,
         loadingVariance: false,
@@ -34,6 +41,16 @@ class Variance extends React.Component {
       newState.varianceData = varianceData;
       this.setState(newState);
     });
+  }
+
+  componentDidMount() {
+    this.loadVariance();
+  }
+
+  componentDidUpdate(_prevProps, prevState) {
+    if (this.state.filtered !== prevState.filtered) {
+      this.loadVariance();
+    }
   }
 
   renderCheck2() {
@@ -99,7 +116,12 @@ class Variance extends React.Component {
     return (
       <div key="body" className="modal-body describe-body">
         <BouncerWrapper showBouncer={this.state.loadingVariance}>
-          <h1>{header}</h1>
+          <div className="row">
+            <div className="col">
+              <h1>{header}</h1>
+            </div>
+            <FilterableToggle {...this.state} propagateState={state => this.setState(state)} />
+          </div>
           <ul>
             <li>
               <span className="mr-3">{`${check1Msg} =>`}</span>
@@ -163,7 +185,7 @@ class Variance extends React.Component {
               right: 25,
               bottom: 0,
             }}>
-            <VarianceChart {...this.props} height={275} />
+            <VarianceChart {...this.props} filtered={this.state.filtered} height={275} />
           </div>
         </BouncerWrapper>
       </div>
@@ -178,6 +200,9 @@ Variance.propTypes = {
     selectedCol: PropTypes.string,
   }),
   t: PropTypes.func,
+  settings: PropTypes.object,
 };
 const TranslateVariance = withTranslation("variance")(Variance);
-export { TranslateVariance as Variance };
+const ReduxVariance = connect(({ dataId, settings }) => ({ dataId, settings }))(TranslateVariance);
+
+export { ReduxVariance as Variance, TranslateVariance as ReactVariance };

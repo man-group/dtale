@@ -77,6 +77,7 @@ VarianceChart.propTypes = {
   }),
   height: PropTypes.number,
   t: PropTypes.func,
+  filtered: PropTypes.bool,
 };
 VarianceChart.defaultProps = { height: 400 };
 

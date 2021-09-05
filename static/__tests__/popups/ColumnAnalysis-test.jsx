@@ -210,7 +210,8 @@ describe("ColumnAnalysis tests", () => {
   it("geolocation chart functionality", async () => {
     result.find("ButtonToggle").find("button").at(2).simulate("click");
     await tickUpdate(result);
-    expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
+    const id = result.find(ColumnAnalysisChart).instance().state.id;
+    expect(result.find(`div#${id}`)).toHaveLength(1);
     expect(result.find("GeoFilters")).toHaveLength(1);
     expect(result.find("GeoFilters").text()).toBe("Latitude:barLongitude:lon");
   });
@@ -218,7 +219,8 @@ describe("ColumnAnalysis tests", () => {
   it("qq plot chart functionality", async () => {
     result.find("ButtonToggle").find("button").last().simulate("click");
     await tickUpdate(result);
-    expect(result.find("div#columnAnalysisChart")).toHaveLength(1);
+    const id = result.find(ColumnAnalysisChart).instance().state.id;
+    expect(result.find(`div#${id}`)).toHaveLength(1);
   });
 
   it("ColumnAnalysis rendering int data", async () => {
