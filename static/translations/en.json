@@ -971,5 +971,9 @@
     "Threshold": "Threshold",
     "Drop Columns": "Drop Columns",
     "Drop Unselected Columns": "Drop Unselected Columns"
+  },
+  "filterable": {
+    "Filtered": "Filtered",
+    "description": "Filters currently exist on your data and can be toggled on/off here by clicking the checkbox."
   }
 }

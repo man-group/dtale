@@ -58,7 +58,13 @@ from dtale.dash_application.charts import (
 )
 from dtale.data_reshapers import DataReshaper
 from dtale.code_export import build_code_export
-from dtale.query import build_col_key, build_query, handle_predefined, run_query
+from dtale.query import (
+    build_col_key,
+    build_query,
+    handle_predefined,
+    load_filterable_data,
+    run_query,
+)
 from dtale.utils import (
     DuplicateDataError,
     apply,
@@ -1864,17 +1870,7 @@ def describe(data_id):
 
     """
     column = get_str_arg(request, "col")
-    filtered = get_bool_arg(request, "filtered")
-    data = global_state.get_data(data_id)
-    curr_settings = global_state.get_settings(data_id) or {}
-    if filtered:
-        final_query = build_query(data_id, curr_settings.get("query"))
-        data = run_query(
-            handle_predefined(data_id),
-            final_query,
-            global_state.get_context_variables(data_id),
-            ignore_empty=True,
-        )
+    data = load_filterable_data(data_id, request)
     data = data[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
@@ -1984,7 +1980,8 @@ def variance(data_id):
 
     """
     column = get_str_arg(request, "col")
-    s = global_state.get_data(data_id)[column]
+    data = load_filterable_data(data_id, request)
+    s = data[column]
     code = ["s = df['{}']".format(column)]
     unique_ct = unique_count(s)
     code.append("unique_ct = s.unique().size")
@@ -2064,10 +2061,14 @@ def outliers(data_id):
     df = global_state.get_data(data_id)
     s = df[column]
     iqr_lower, iqr_upper = calc_outlier_range(s)
-    formatter = find_dtype_formatter(find_dtype(df[column]))
+    formatter = find_dtype_formatter(find_dtype(s))
+
+    df = load_filterable_data(data_id, request)
+    s = df[column]
     outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
     if not len(outliers):
         return jsonify(outliers=[])
+
     top = len(outliers) > 100
     outliers = [formatter(v) for v in outliers[:100]]
     query = build_outlier_query(iqr_lower, iqr_upper, s.min(), s.max(), column)

@@ -54,16 +54,16 @@ function describeUrl(dataId, col, filtered) {
   return buildURLString(`/dtale/describe/${dataId}`, { col, filtered });
 }
 
-function outliersUrl(dataId, col) {
-  return buildURLString(`/dtale/outliers/${dataId}`, { col });
+function outliersUrl(dataId, col, filtered) {
+  return buildURLString(`/dtale/outliers/${dataId}`, { col, filtered });
 }
 
 function columnFilterDataUrl(dataId, async = false) {
   return `/dtale/${async ? "async-" : ""}column-filter-data/${dataId}`;
 }
 
-function varianceUrl(dataId) {
-  return `/dtale/variance/${dataId}`;
+function varianceUrl(dataId, col, filtered) {
+  return buildURLString(`/dtale/variance/${dataId}`, { col, filtered });
 }
 
 function sequentialDiffsUrl(dataId) {
