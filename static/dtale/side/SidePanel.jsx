@@ -13,6 +13,7 @@ import { MissingNoCharts } from "./MissingNoCharts";
 import { Panel as PredefinedFilters } from "./predefined_filters/Panel";
 import * as panelUtils from "./sidePanelUtils";
 import { CorrelationAnalysis } from "./CorrelationAnalysis";
+import { GageRnR } from "./GageRnR";
 
 require("./SidePanel.scss");
 
@@ -86,6 +87,7 @@ class ReactSidePanel extends React.Component {
           <FilterPanel dataId={dataId} chartData={{ visible: true, propagateState: _.noop }} onClose={hideSidePanel} />
         )}
         {visible && view == "predefined_filters" && <PredefinedFilters />}
+        {visible && view == "gage_rnr" && <GageRnR />}
       </div>
     );
   }

@@ -81,6 +81,10 @@ function corrAnalysisUrl(dataId) {
   return `/dtale/corr-analysis/${dataId}`;
 }
 
+function gageUrl(dataId, operator, measurements, filterable) {
+  return buildURLString(`/dtale/gage-rnr/${dataId}`, { operator, measurements, filterable });
+}
+
 export {
   buildURLParams,
   buildURLString,
@@ -95,4 +99,5 @@ export {
   sequentialDiffsUrl,
   cleanupEndpoint,
   corrAnalysisUrl,
+  gageUrl,
 };

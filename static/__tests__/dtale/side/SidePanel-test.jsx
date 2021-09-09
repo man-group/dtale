@@ -42,6 +42,12 @@ describe("SidePanel", () => {
     expect(wrapper.find("div").children()).toHaveLength(5);
   });
 
+  it("shows Gage R&R", () => {
+    wrapper.setProps({ visible: true, view: "gage_rnr" });
+    expect(wrapper.find("div.side-panel-content.is-expanded")).toHaveLength(1);
+    expect(wrapper.find("div").children()).toHaveLength(5);
+  });
+
   it("shows predefined filters", () => {
     wrapper.setProps({ visible: true, view: "predefined_filters" });
     expect(wrapper.find("div.side-panel-content.is-expanded")).toHaveLength(1);

@@ -19,6 +19,7 @@ import DescribeOption from "./DescribeOption";
 import DuplicatesOption from "./DuplicatesOption";
 import ExportOption from "./ExportOption";
 import FilterOption from "./FilterOption";
+import GageRnROption from "./GageRnROption";
 import { HeatMapOption } from "./HeatMapOption";
 import HighlightOption from "./HighlightOption";
 import InstancesOption from "./InstancesOption";
@@ -119,6 +120,7 @@ class ReactDataViewerMenu extends React.Component {
               toggleLowVarianceBackground={toggleBackground("lowVariance")}
               backgroundMode={backgroundMode}
             />
+            <GageRnROption open={() => this.props.showSidePanel("gage_rnr")} />
             <InstancesOption open={openPopup("instances", 450, 750)} />
             <CodeExportOption open={buttonHandlers.CODE} />
             <ExportOption open={exportFile} />
