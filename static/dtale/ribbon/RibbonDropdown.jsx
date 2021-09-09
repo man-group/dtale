@@ -19,6 +19,7 @@ import DescribeOption from "../menu/DescribeOption";
 import DuplicatesOption from "../menu/DuplicatesOption";
 import ExportOption from "../menu/ExportOption";
 import FilterOption from "../menu/FilterOption";
+import GageRnROption from "../menu/GageRnROption";
 import { HeatMapOption } from "../menu/HeatMapOption";
 import HighlightOption from "../menu/HighlightOption";
 import InstancesOption from "../menu/InstancesOption";
@@ -191,6 +192,7 @@ class ReactRibbonDropdown extends React.Component {
             <PPSOption open={hideWrapper(() => this.props.showSidePanel("pps"))} />
             <ChartsOption open={hideWrapper(buttonHandlers.CHARTS)} />
             <NetworkOption open={hideWrapper(buttonHandlers.NETWORK)} />
+            <GageRnROption open={hideWrapper(() => this.props.showSidePanel("gage_rnr"))} />
           </ul>
         )}
         {name === "highlight" && visible && (

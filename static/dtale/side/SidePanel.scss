@@ -17,7 +17,8 @@
 
   &.is-expanded.missingno,
   &.is-expanded.correlations,
-  &.is-expanded.pps {
+  &.is-expanded.pps,
+  &.is-expanded.gage_rnr  {
     width: calc(75vw);
   }
 

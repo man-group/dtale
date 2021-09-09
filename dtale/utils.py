@@ -547,7 +547,7 @@ def grid_formatter(col_types, nan_display="", overrides=None, as_string=False):
     return f
 
 
-def format_grid(df):
+def format_grid(df, overrides=None):
     """
     Translate :class:`pandas:pandas.DataFrame` to well-formed JSON.  Structure is as follows:
     {
@@ -568,7 +568,7 @@ def format_grid(df):
     :return: JSON
     """
     col_types = grid_columns(df)
-    f = grid_formatter(col_types)
+    f = grid_formatter(col_types, overrides=overrides)
     return {"results": f.format_dicts(df.itertuples()), "columns": col_types}
 
 

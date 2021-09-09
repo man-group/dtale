@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { expect, it } from "@jest/globals";
 
 import CorrelationsOption from "../../../dtale/menu/CorrelationsOption";
+import GageRnROption from "../../../dtale/menu/GageRnROption";
 import { LanguageOption } from "../../../dtale/menu/LanguageOption";
 import MergeOption from "../../../dtale/menu/MergeOption";
 import MissingOption from "../../../dtale/menu/MissingOption";
@@ -91,6 +92,8 @@ describe("DataViewerMenu tests", () => {
     const result = buildMenu({}, { predefinedFilters: PREDEFINED_FILTERS });
     result.find(MissingOption).props().open();
     expect(store.getState().sidePanel.view).toBe("missingno");
+    result.find(GageRnROption).props().open();
+    expect(store.getState().sidePanel.view).toBe("gage_rnr");
     result.find(CorrelationsOption).props().open();
     expect(store.getState().sidePanel.view).toBe("correlations");
     result.find(PPSOption).props().open();

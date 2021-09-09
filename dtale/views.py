@@ -35,6 +35,7 @@ from six import BytesIO, string_types, StringIO
 import dtale.correlations as correlations
 import dtale.datasets as datasets
 import dtale.env_util as env_util
+import dtale.gage_rnr as gage_rnr
 import dtale.global_state as global_state
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
@@ -3448,3 +3449,37 @@ def drop_filtered_rows(data_id):
         ),
     )
     return jsonify(dict(success=True))
+
+
+@dtale.route("/gage-rnr/<data_id>")
+@exception_decorator
+def build_gage_rnr(data_id):
+    data = load_filterable_data(data_id, request)
+    operator_cols = get_json_arg(request, "operator")
+    operators = data.groupby(operator_cols)
+    measurements = get_json_arg(request, "measurements") or [
+        col for col in data.columns if col not in operator_cols
+    ]
+    sizes = set((len(operator) for _, operator in operators))
+    if len(sizes) > 1:
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Operators do not have the same amount of parts! Please select a new operator with equal rows in "
+                    "each group."
+                ),
+            )
+        )
+
+    res = gage_rnr.GageRnR(
+        np.array([operator[measurements].values for _, operator in operators])
+    ).calculate()
+    df = pd.DataFrame({name: res[name] for name in gage_rnr.ResultNames})
+    df.index = df.index.map(lambda idx: gage_rnr.ComponentNames.get(idx, idx))
+    df.index.name = "Sources of Variance"
+    df.columns = [gage_rnr.ResultNames.get(col, col) for col in df.columns]
+    df = df[df.index.isin(df.index.dropna())]
+    df = df.reset_index()
+    overrides = {"F": lambda f, i, c: f.add_float(i, c, precision=3)}
+    return jsonify(dict_merge(dict(success=True), format_grid(df, overrides)))

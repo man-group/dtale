@@ -56,7 +56,8 @@
     "Max Height": "Max Height",
     "Show All Heatmap Columns": "Show All Heatmap Columns",
     "Feature Analysis": "Feature Analysis",
-    "Timeseries": "Timeseries"
+    "Timeseries": "Timeseries",
+    "gage_rnr": "Gage R & R"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -101,7 +102,8 @@
     "max_height": "Rebuild the heights of the cells in the grid and set a maximum height in pixels.",
     "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting.",
     "corr_analysis": "Remove columns (features) based on their correlations with other columns in your dataset. If there is a strong correlation amongst some columns (features) then maybe they aren't relevant to keep around?",
-    "timeseries": "Reshape timeseries data using operations like \"Resample\""
+    "timeseries": "Reshape timeseries data using operations like \"Resample\"",
+    "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device."
   },
   "column_menu": {
     "Asc": "Asc",
@@ -975,5 +977,9 @@
   "filterable": {
     "Filtered": "Filtered",
     "description": "Filters currently exist on your data and can be toggled on/off here by clicking the checkbox."
+  },
+  "gage_rnr": {
+    "Operator": "Operator",
+    "Measurements": "Measurements"
   }
 }

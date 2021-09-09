@@ -22,8 +22,8 @@ class ReactFilterableToggle extends React.Component {
 }
 ReactFilterableToggle.displayName = "ReactFilterableToggle";
 ReactFilterableToggle.propTypes = {
-  hasFilters: PropTypes.boolean,
-  filtered: PropTypes.boolean,
+  hasFilters: PropTypes.bool,
+  filtered: PropTypes.bool,
   propagateState: PropTypes.func,
   t: PropTypes.func,
   className: PropTypes.string,

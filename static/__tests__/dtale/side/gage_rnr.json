@@ -1,0 +1,99 @@
+{
+  "columns": [
+    {
+      "dtype": "string",
+      "name": "Sources of Variance"
+    },
+    {
+      "dtype": "float64",
+      "name": "DF"
+    },
+    {
+      "dtype": "float64",
+      "name": "SS"
+    },
+    {
+      "dtype": "float64",
+      "name": "MS"
+    },
+    {
+      "dtype": "float64",
+      "name": "Var (\u03c3\u00b2)"
+    },
+    {
+      "dtype": "float64",
+      "name": "Std (\u03c3)"
+    },
+    {
+      "dtype": "float64",
+      "name": "F-value"
+    },
+    {
+      "dtype": "float64",
+      "name": "P-value"
+    }
+  ],
+  "results": [
+    {
+      "DF": 2.0,
+      "F-value": 100.322,
+      "MS": 0.611,
+      "P-value": 0.0,
+      "SS": 1.223,
+      "Sources of Variance": "Operator",
+      "Std (\u03c3)": 0.174,
+      "Var (\u03c3\u00b2)": 0.03
+    },
+    {
+      "DF": 4.0,
+      "F-value": 966.581,
+      "MS": 5.891,
+      "P-value": 0.0,
+      "SS": 23.562,
+      "Sources of Variance": "Part",
+      "Std (\u03c3)": 0.7,
+      "Var (\u03c3\u00b2)": 0.49
+    },
+    {
+      "DF": 8.0,
+      "F-value": 0.007,
+      "MS": 0.006,
+      "P-value": 1.0,
+      "SS": 0.049,
+      "Sources of Variance": "Operator by Part",
+      "Std (\u03c3)": 0.0,
+      "Var (\u03c3\u00b2)": 0.0
+    },
+    {
+      "DF": 45.0,
+      "F-value": "",
+      "MS": 0.834,
+      "P-value": "",
+      "SS": 37.519,
+      "Sources of Variance": "Measurement",
+      "Std (\u03c3)": 0.913,
+      "Var (\u03c3\u00b2)": 0.834
+    },
+    {
+      "DF": 59.0,
+      "F-value": "",
+      "MS": 1.057,
+      "P-value": "",
+      "SS": 62.352,
+      "Sources of Variance": "Total",
+      "Std (\u03c3)": 1.164,
+      "Var (\u03c3\u00b2)": 1.354
+    },
+    {
+      "DF": "",
+      "F-value": "",
+      "MS": "",
+      "P-value": "",
+      "SS": "",
+      "Sources of Variance": "Gage R&R",
+      "Std (\u03c3)": 0.93,
+      "Var (\u03c3\u00b2)": 0.864
+    }
+  ],
+  "success": true
+}
