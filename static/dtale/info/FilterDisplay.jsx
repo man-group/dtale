@@ -107,6 +107,10 @@ class ReactFilterDisplay extends React.Component {
       const settingsUpdates = { invertFilter: !this.props.invertFilter };
       serverState.updateSettings(settingsUpdates, dataId, () => updateSettings(settingsUpdates));
     };
+    const moveToCustom = () =>
+      serverState.moveFiltersToCustom(dataId, ({ settings }) => {
+        updateSettings(settings, () => this.props.showSidePanel("filter"));
+      });
     const allButtons = (
       <>
         <i
@@ -115,12 +119,14 @@ class ReactFilterDisplay extends React.Component {
           onClick={clearFilter()}
           title={t("Clear Filters")}
         />
-        <i
-          className="fas fa-eraser pl-3 pointer"
-          style={{ marginTop: "-0.1em" }}
-          onClick={clearFilter(true)}
-          title={t("Drop Filtered Rows")}
-        />
+        {!this.props.hideDropRows && (
+          <i
+            className="fas fa-eraser pl-3 pointer"
+            style={{ marginTop: "-0.1em" }}
+            onClick={clearFilter(true)}
+            title={t("Drop Filtered Rows")}
+          />
+        )}
         <i
           className="fas fa-retweet pl-3 pointer"
           style={{
@@ -130,6 +136,14 @@ class ReactFilterDisplay extends React.Component {
           onClick={toggleInvert}
           title={t("Invert Filter")}
         />
+        {(!_.isEmpty(columnFilters) || !_.isEmpty(outlierFilters)) && (
+          <i
+            className="fa fa-filter pl-3 pointer"
+            style={{ marginTop: "-0.1em" }}
+            onClick={moveToCustom}
+            title={t("Move Filters To Custom")}
+          />
+        )}
       </>
     );
 
@@ -193,17 +207,21 @@ ReactFilterDisplay.propTypes = {
   menuOpen: PropTypes.string,
   propagateState: PropTypes.func,
   t: PropTypes.func,
+  hideDropRows: PropTypes.bool,
+  showSidePanel: PropTypes.func,
 };
 
 const TranslatedFilterDisplay = withTranslation("main")(ReactFilterDisplay);
 const ReduxFilterDisplay = connect(
-  ({ dataId, predefinedFilters, settings }) => ({
+  ({ dataId, predefinedFilters, settings, hideDropRows }) => ({
     dataId,
     predefinedFilterConfigs: predefinedFilters,
     ...settings,
+    hideDropRows,
   }),
   dispatch => ({
     updateSettings: (settings, callback) => dispatch(updateSettings(settings, callback)),
+    showSidePanel: view => dispatch({ type: "show-side-panel", view }),
   })
 )(TranslatedFilterDisplay);
 export { ReduxFilterDisplay as FilterDisplay, TranslatedFilterDisplay as ReactFilterDisplay };

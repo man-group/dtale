@@ -121,6 +121,7 @@ def test_build_show_options(unittest):
         final_options["column_formats"], {"a": {"fmt": {"html": True}}}
     )
     unittest.assertEqual(final_options["sort"], [("a", "ASC")])
+    unittest.assertEqual(final_options["locked"], ["a", "b"])
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

@@ -46,6 +46,7 @@ show_columns = a,b
 hide_columns = c
 column_formats = {"a": {"fmt": {"html": true}}}
 sort = a|ASC,b|DESC
+locked = a,b
 ```
 
 Some notes on these properties:

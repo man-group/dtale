@@ -135,6 +135,10 @@ function dropFilteredRows(dataId, callback = _.noop) {
     });
 }
 
+function moveFiltersToCustom(dataId, callback) {
+  fetchJson(`/dtale/move-filters-to-custom/${dataId}`, callback);
+}
+
 function renameColumn(dataId, col, rename, callback) {
   fetchJson(buildURLString(`/dtale/rename-col/${dataId}`, { col, rename }), callback);
 }
@@ -227,4 +231,5 @@ export default {
   updateMaxRowHeight,
   loadFilteredRanges,
   dropFilteredRows,
+  moveFiltersToCustom,
 };

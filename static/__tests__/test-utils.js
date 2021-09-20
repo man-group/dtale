@@ -53,6 +53,7 @@ function buildInnerHTML(props = {}, store = null) {
     buildHidden("version", pjson.version),
     buildHidden("python_version", props.pythonVersion ?? "3.8.0"),
     buildHidden("hide_shutdown", props.hideShutdown ?? HIDE_SHUTDOWN),
+    buildHidden("hide_drop_rows", props.hideDropRows ?? "False"),
     buildHidden("processes", props.processes ?? PROCESSES),
     buildHidden("iframe", props.iframe ?? IFRAME),
     buildHidden("data_id", props.dataId ?? DATA_ID),

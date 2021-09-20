@@ -21,7 +21,10 @@ function baseIsInRowColRange(currCol, range) {
   return currCol >= finalRange[0] && currCol <= finalRange[1];
 }
 
-export function isInRange(currCol, currRow, { rangeSelect, columnRange, rowRange, ctrlRows, ctrlCols }) {
+export function isInRange(currCol, currRow, { rangeSelect, columnRange, rowRange, ctrlRows, ctrlCols, selectedRow }) {
+  if (currRow === selectedRow) {
+    return true;
+  }
   if (columnRange && columnRange.start && columnRange.end) {
     return baseIsInRowColRange(currCol, columnRange);
   }
@@ -119,6 +122,7 @@ export function buildRangeState(currState) {
     rangeSelect: null,
     ctrlRows: null,
     ctrlCols: null,
+    selectedRow: null,
     ...currState,
   };
 }

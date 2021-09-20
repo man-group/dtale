@@ -2503,6 +2503,13 @@ def test_save_column_filter(unittest, custom_data):
         )
         assert "date" not in json.loads(response.data)["currFilters"]
 
+        response = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
+        assert response.json["success"]
+        unittest.assertEqual(
+            response.json["settings"]["query"],
+            "`bool_val`.isnull() and `str_val` in ('a', 'b') and `int_val` == 4",
+        )
+
 
 @pytest.mark.unit
 def test_build_dtypes_state(test_data):

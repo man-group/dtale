@@ -162,6 +162,10 @@ class ReactGridEventHandler extends React.Component {
         handleCtrlRowSelect(this.props, cellIdx);
       }
       return;
+    } else if (_.startsWith(cellIdx, "0|")) {
+      const coords = convertCellIdxToCoords(cellIdx);
+      this.props.propagateState(buildRangeState({ selectedRow: coords[1] }));
+      return;
     }
 
     if (this.props.allowCellEdits) {
@@ -171,7 +175,6 @@ class ReactGridEventHandler extends React.Component {
           this.clickTimeout = null;
         }, 2000);
       } else {
-        const cellIdx = _.get(e, "target.attributes.cell_idx.nodeValue");
         if (cellIdx) {
           this.props.editCell(cellIdx);
         }

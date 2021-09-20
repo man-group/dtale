@@ -35,6 +35,15 @@ export function openPredefinedFiltersOnStartup(state = false, action = {}) {
   }
 }
 
+export function hideDropRows(state = false, action = {}) {
+  switch (action.type) {
+    case "init-params":
+      return toBool(getHiddenValue("hide_drop_rows"));
+    default:
+      return state;
+  }
+}
+
 export function allowCellEdits(state = true, action = {}) {
   switch (action.type) {
     case "init-params":
