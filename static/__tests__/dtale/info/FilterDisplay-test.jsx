@@ -8,7 +8,7 @@ import serverState from "../../../dtale/serverStateManagement";
 import menuUtils from "../../../menuUtils";
 
 describe("FilterDisplay", () => {
-  let wrapper, props, updateSettingsSpy, openMenuSpy, dropFilteredRowsSpy;
+  let wrapper, props, updateSettingsSpy, openMenuSpy, dropFilteredRowsSpy, moveFiltersToCustomSpy;
 
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, "updateSettings");
@@ -18,6 +18,10 @@ describe("FilterDisplay", () => {
     dropFilteredRowsSpy = jest.spyOn(serverState, "dropFilteredRows");
     dropFilteredRowsSpy.mockImplementation((_dataId, callback) => {
       callback();
+    });
+    moveFiltersToCustomSpy = jest.spyOn(serverState, "moveFiltersToCustom");
+    moveFiltersToCustomSpy.mockImplementation((_dataId, callback) => {
+      callback({ settings: {} });
     });
     openMenuSpy = jest.spyOn(menuUtils, "openMenu");
     openMenuSpy.mockImplementation(() => undefined);
@@ -38,6 +42,8 @@ describe("FilterDisplay", () => {
       ],
       menuOpen: null,
       propagateState: jest.fn(),
+      hideDropRows: false,
+      showSidePanel: jest.fn(),
     };
     wrapper = shallow(<ReactFilterDisplay {...props} />);
   });
@@ -99,6 +105,19 @@ describe("FilterDisplay", () => {
       predefinedFilters: { foo: { value: 1, active: false } },
       invertFilter: false,
     });
+  });
+
+  it("hides drop-filtered-rows", () => {
+    wrapper.setProps({ hideDropRows: true });
+    expect(wrapper.find("i.fas.fa-eraser")).toHaveLength(0);
+  });
+
+  it("correctly calls move filters to custom", () => {
+    wrapper.find("i.fa.fa-filter").simulate("click");
+    expect(moveFiltersToCustomSpy).toHaveBeenCalledTimes(1);
+    expect(props.updateSettings).toHaveBeenCalled();
+    props.updateSettings.mock.calls[0][1]();
+    expect(props.showSidePanel).toHaveBeenCalledWith("filter");
   });
 
   it("inverts filter", () => {

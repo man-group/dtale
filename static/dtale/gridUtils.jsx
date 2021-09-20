@@ -35,8 +35,8 @@ export const findColType = dtype => {
   return "unknown";
 };
 
-function buildNumeral(val, fmt) {
-  return _.includes(["nan", "inf", "-", ""], val) ? val : numeral(val).format(fmt);
+function buildNumeral(val, fmt, nanDisplay) {
+  return _.includes(["nan", "inf", "-", "", nanDisplay], val) ? val : numeral(val).format(fmt);
 }
 
 function buildString(val, { truncate }) {
@@ -48,9 +48,9 @@ function buildValue({ name, dtype }, rawValue, { columnFormats, settings }) {
     const fmt = _.get(columnFormats, [name, "fmt"]);
     switch (findColType(dtype)) {
       case "float":
-        return buildNumeral(rawValue, fmt || `0.${_.repeat("0", settings.precision ?? 2)}`);
+        return buildNumeral(rawValue, fmt || `0.${_.repeat("0", settings.precision ?? 2)}`, settings.nanDisplay);
       case "int":
-        return buildNumeral(rawValue, fmt || "0");
+        return buildNumeral(rawValue, fmt || "0", settings.nanDisplay);
       case "date":
         return fmt ? moment(new Date(rawValue)).format(fmt) : rawValue;
       case "string":

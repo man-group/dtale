@@ -18,6 +18,7 @@ describe("reducer tests", () => {
     const state = {
       chartData: { visible: false },
       hideShutdown: false,
+      hideDropRows: false,
       iframe: false,
       columnMenuOpen: false,
       selectedCol: null,

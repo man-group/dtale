@@ -23,6 +23,7 @@ APP_SETTINGS = {
     "query_engine": "python",
     "open_custom_filter_on_startup": False,
     "open_predefined_filters_on_startup": False,
+    "hide_drop_rows": False,
 }
 
 AUTH_SETTINGS = {

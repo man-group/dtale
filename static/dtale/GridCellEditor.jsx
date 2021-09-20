@@ -11,10 +11,22 @@ class ReactGridCellEditor extends React.Component {
     this.state = { value: props.value || "" };
     this.input = React.createRef();
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.escapeHandler = this.escapeHandler.bind(this);
+  }
+
+  escapeHandler(event) {
+    if (event.key === "Escape") {
+      this.props.clearEdit();
+    }
   }
 
   componentDidMount() {
     this.input.current?.focus();
+    window.addEventListener("keydown", this.escapeHandler);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.escapeHandler);
   }
 
   onKeyDown(e) {

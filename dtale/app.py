@@ -640,6 +640,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param github_fork: If true, this will display a "Fork me on GitHub" ribbon in the upper right-hand corner of the
                         app
     :type github_fork: bool, optional
+    :param hide_drop_rows: If true, this will hide the "Drop Rows" buton from users
+    :type hide_drop_rows: bool, optional
 
     :Example:
 
@@ -693,7 +695,9 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             show_columns=final_options["show_columns"],
             hide_columns=final_options["hide_columns"],
             column_formats=final_options["column_formats"],
+            nan_display=final_options["nan_display"],
             sort=final_options["sort"],
+            locked=final_options["locked"],
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

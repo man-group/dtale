@@ -93,6 +93,13 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    hide_drop_rows = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_drop_rows",
+        section="app",
+        getter="getboolean",
+    )
 
     global_state.set_app_settings(
         dict(
@@ -108,6 +115,7 @@ def load_app_settings(config):
             query_engine=query_engine,
             open_custom_filter_on_startup=open_custom_filter_on_startup,
             open_predefined_filters_on_startup=open_predefined_filters_on_startup,
+            hide_drop_rows=hide_drop_rows,
         )
     )
 
@@ -167,7 +175,9 @@ def build_show_options(options=None):
         show_columns=None,
         hide_columns=None,
         column_formats=None,
+        nan_display=None,
         sort=None,
+        locked=None,
     )
     config_options = {}
     config = get_config()
@@ -225,11 +235,15 @@ def build_show_options(options=None):
             config_options["column_formats"] = json.loads(
                 config_options["column_formats"]
             )
+        config_options["nan_display"] = get_config_val(config, defaults, "nan_display")
         config_options["sort"] = get_config_val(config, defaults, "sort")
         if config_options["sort"]:
             config_options["sort"] = [
                 tuple(sort.split("|")) for sort in config_options["sort"].split(",")
             ]
+        config_options["locked"] = get_config_val(config, defaults, "locked")
+        if config_options["locked"]:
+            config_options["locked"] = config_options["locked"].split(",")
 
     return dict_merge(defaults, config_options, options)
 

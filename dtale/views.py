@@ -63,6 +63,7 @@ from dtale.query import (
     build_col_key,
     build_query,
     handle_predefined,
+    inner_build_query,
     load_filterable_data,
     run_query,
 )
@@ -824,7 +825,9 @@ def startup(
     hide_columns=None,
     optimize_dataframe=False,
     column_formats=None,
+    nan_display=None,
     sort=None,
+    locked=None,
 ):
     """
     Loads and stores data globally
@@ -863,6 +866,8 @@ def startup(
     :type column_formats: dict, optional
     :param sort: The sort to apply to the data on startup (EX: [("col1", "ASC"), ("col2", "DESC"),...])
     :type sort: list[tuple], optional
+    :param locked: Columns to lock to the left of your grid on load
+    :type locked: list, optional
     """
 
     if (
@@ -907,7 +912,9 @@ def startup(
                 show_columns=show_columns,
                 hide_columns=hide_columns,
                 column_formats=column_formats,
+                nan_display=nan_display,
                 sort=sort,
+                locked=locked,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -940,7 +947,7 @@ def startup(
                     curr_index, data_id
                 )
             )
-            curr_locked = curr_index
+            curr_locked = locked or curr_index
             global_state.set_metadata(data_id, dict(start=pd.Timestamp("now")))
         global_state.set_name(data_id, name)
         # in the case that data has been updated we will drop any sorts or filter for ease of use
@@ -956,6 +963,8 @@ def startup(
         if sort:
             base_settings["sortInfo"] = sort
             data = sort_df_for_grid(data, dict(sort=sort))
+        if nan_display is not None:
+            base_settings["nanDisplay"] = nan_display
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
             data = optimize_df(data)
@@ -3449,6 +3458,25 @@ def drop_filtered_rows(data_id):
         ),
     )
     return jsonify(dict(success=True))
+
+
+@dtale.route("/move-filters-to-custom/<data_id>")
+@exception_decorator
+def move_filters_to_custom(data_id):
+    curr_settings = global_state.get_settings(data_id) or {}
+    query = build_query(data_id, curr_settings.get("query"))
+    _update_settings(
+        data_id,
+        {
+            "columnFilters": {},
+            "outlierFilters": {},
+            "invertFilter": False,
+            "query": query,
+        },
+    )
+    return jsonify(
+        dict(success=True, settings=global_state.get_settings(data_id) or {})
+    )
 
 
 @dtale.route("/gage-rnr/<data_id>")

@@ -122,6 +122,7 @@ ReactGridCell.propTypes = {
     rangeSelect: PropTypes.object,
     columnRange: PropTypes.object,
     rowRange: PropTypes.object,
+    selectedRow: PropTypes.number,
   }),
   propagateState: PropTypes.func,
   dataId: PropTypes.string,

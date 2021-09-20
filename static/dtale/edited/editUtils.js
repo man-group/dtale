@@ -32,7 +32,5 @@ export function onKeyDown(e, colCfg, rowIndex, value, origValue, props) {
       propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, props.clearEdit);
     };
     serverState.editCell(dataId, colCfg.name, rowIndex - 1, value, callback);
-  } else if (e.key === "Escape") {
-    props.clearEdit();
   }
 }

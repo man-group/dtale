@@ -99,4 +99,11 @@ describe("RibbonDropdown", () => {
     wrapper.find("div").last().props().onMouseOver({ target });
     expect(props.showTooltip).toHaveBeenLastCalledWith(childDiv, "Hello World");
   });
+
+  it("selects row on click of index", () => {
+    wrapper.instance().handleClicks({
+      target: { attributes: { cell_idx: { nodeValue: "0|1" } } },
+    });
+    expect(props.propagateState).toHaveBeenCalledWith(expect.objectContaining({ selectedRow: 1 }));
+  });
 });

@@ -47,6 +47,9 @@ def validate_allow_cell_edits(ctx, param, value):
 )
 @click.option("--app-root", type=str)
 @click.option(
+    "--hide-drop-rows", is_flag=True, help='flag to hide "Drop Rows" button from users'
+)
+@click.option(
     "--theme",
     default="light",
     type=click.Choice(["light", "dark"]),
@@ -79,6 +82,10 @@ def validate_allow_cell_edits(ctx, param, value):
         "EX: col1|ASC,col2|DESC"
     ),
 )
+@click.option(
+    "--locked",
+    help="Comma-separated string of column names you would like locked on the left-hand side of your grid on load",
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(
@@ -100,6 +107,7 @@ def main(
     hide_shutdown=None,
     github_fork=None,
     app_root=None,
+    hide_drop_rows=None,
     **kwargs
 ):
     """
@@ -129,6 +137,7 @@ def main(
         if kwargs.get("sort")
         else None
     )
+    kwargs["locked"] = kwargs["locked"].split(",") if kwargs.get("locked") else None
     show(
         host=host,
         port=int(port or find_free_port()),
@@ -142,6 +151,7 @@ def main(
         hide_shutdown=hide_shutdown,
         github_fork=github_fork,
         app_root=app_root,
+        hide_drop_rows=hide_drop_rows,
         **kwargs
     )
 
