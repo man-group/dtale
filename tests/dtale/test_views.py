@@ -2503,12 +2503,11 @@ def test_save_column_filter(unittest, custom_data):
         )
         assert "date" not in json.loads(response.data)["currFilters"]
 
+        assert settings[c.port].get("query") is None
+
         response = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
         assert response.json["success"]
-        unittest.assertEqual(
-            response.json["settings"]["query"],
-            "`bool_val`.isnull() and `str_val` in ('a', 'b') and `int_val` == 4",
-        )
+        assert response.json["settings"].get("query") is not None
 
 
 @pytest.mark.unit

@@ -6,44 +6,55 @@ import Select, { createFilter } from "react-select";
 
 import { pivotAggs } from "../analysis/filters/Constants";
 
+const aggregateAggs = t => _.concat(pivotAggs(t), [{ value: "gmean", label: t("constants:Geometric Mean") }]);
+
 function validateAggregateCfg(cfg) {
-  const { index, agg } = cfg;
-  if (!_.size(index || [])) {
-    return "Missing an index selection!";
-  }
-  const { type, cols, func } = agg;
+  const { agg } = cfg ?? {};
+  const { type, cols, func } = agg ?? {};
   if (type === "func" && _.isNil(func)) {
     return "Missing an aggregation selection!";
   } else if (type === "col" && !_.size(_.pickBy(cols || {}, v => _.size(v || [])))) {
+    return "Missing an aggregation selection!";
+  } else if (type === undefined) {
     return "Missing an aggregation selection!";
   }
   return null;
 }
 
 function buildCode({ index, columns, agg }) {
-  if (!_.size(index || []) || _.isNil(agg)) {
+  if (_.isNil(agg)) {
     return null;
   }
   const { type, cols, func } = agg;
-  let code = `df.groupby(['${_.join(_.map(index, "value"), "', '")}'])`;
+  let dfStr = index ? `df.groupby(['${_.join(_.map(index, "value"), "', '")}'])` : "df";
+  const code = [];
   if (type === "func") {
     if (_.isNil(func)) {
       return null;
     }
-    if (_.size(columns || [])) {
-      code = `df.groupby(['${_.join(_.map(index, "value"), "', '")}'])['${_.join(_.map(columns, "value"), "', '")}']`;
+    const isGmean = func.value === "gmean";
+    if (isGmean) {
+      code.push("from scipy.stats import gmean");
     }
-    code += `.${func.value}()`;
+    if (_.size(columns || [])) {
+      dfStr = `${dfStr}['${_.join(_.map(columns, "value"), "', '")}']`;
+    }
+    code.push(isGmean ? `${dfStr}.apply(gmean)` : `${dfStr}.${func.value}()`);
   } else {
     if (_.isNil(cols)) {
       return null;
     }
-    code += ".aggregate({";
-    code += _.join(
-      _.map(cols || {}, (aggs, col) => `'${col}': ['${_.join(aggs || [], "', '")}']`),
+    let aggStr = "${dfStr}.aggregate({";
+    const aggFmt = agg => (agg === "gmean" ? "gmean" : `'${agg}'`);
+    aggStr += _.join(
+      _.map(cols || {}, (aggs, col) => `'${col}': ['${_.join(_.map(aggs || [], aggFmt), "', '")}']`),
       ", "
     );
-    code += "})";
+    aggStr += "})";
+    code.push(aggStr);
+  }
+  if (!index) {
+    code[code.length - 1] = `${code[code.length - 1]}.to_frame().T`;
   }
   return code;
 }
@@ -155,7 +166,7 @@ class Aggregate extends React.Component {
                   ref={r => (this._curr_agg_func = r)}
                   className="Select is-clearable is-searchable Select--single"
                   classNamePrefix="Select"
-                  options={pivotAggs(t)}
+                  options={aggregateAggs(t)}
                   getOptionLabel={_.property("label")}
                   getOptionValue={_.property("value")}
                   isClearable
@@ -196,7 +207,7 @@ class Aggregate extends React.Component {
               <Select
                 className="Select is-clearable is-searchable Select--single"
                 classNamePrefix="Select"
-                options={pivotAggs(t)}
+                options={aggregateAggs(t)}
                 getOptionLabel={_.property("label")}
                 getOptionValue={_.property("value")}
                 value={_.get(this.state.agg, "func", null)}

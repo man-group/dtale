@@ -1,5 +1,7 @@
 import pandas as pd
 
+from scipy import stats
+
 import dtale.global_state as global_state
 from dtale.query import run_query
 from dtale.utils import make_list
@@ -96,44 +98,110 @@ class PivotBuilder(object):
         return "\n".join(code)
 
 
+def gmean_handler(agg):
+    return stats.gmean if agg == "gmean" else agg
+
+
+def gmean_aggregate_handler(cols):
+    return {col: [gmean_handler(agg) for agg in aggs] for col, aggs in cols.items()}
+
+
+def gmean_str_handler(aggs):
+    return [agg if agg == "gmean" else "'{}'".format(agg) for agg in aggs]
+
+
 class AggregateBuilder(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
     def reshape(self, data):
         index, agg = (self.cfg.get(p) for p in ["index", "agg"])
-        agg_data = data.groupby(index)
         agg_type, func, cols = (agg.get(p) for p in ["type", "func", "cols"])
+
+        if index:
+            agg_data = data.groupby(index)
+            if agg_type == "func":
+                if cols:
+                    agg_data = agg_data[cols]
+                return (
+                    agg_data.agg(stats.gmean)
+                    if func == "gmean"
+                    else getattr(agg_data, func)()
+                )
+            agg_data = agg_data.aggregate(gmean_aggregate_handler(cols))
+            agg_data.columns = flatten_columns(agg_data)
+            return agg_data
+
+        agg_data = data[cols] if cols else data
         if agg_type == "func":
-            if cols:
-                agg_data = agg_data[cols]
-            return getattr(agg_data, func)()
-        agg_data = agg_data.aggregate(cols)
-        agg_data.columns = flatten_columns(agg_data)
+            agg_data = (
+                agg_data.apply(stats.gmean)
+                if func == "gmean"
+                else getattr(agg_data, func)()
+            )
+            return agg_data.to_frame().T
+
+        agg_data = agg_data.aggregate(gmean_aggregate_handler(cols))
+        agg_data = agg_data.to_frame().T
         return agg_data
 
     def build_code(self):
         index, agg = (self.cfg.get(p) for p in ["index", "agg"])
-        index = "', '".join(index)
         agg_type, func, cols = (agg.get(p) for p in ["type", "func", "cols"])
-        if agg_type == "func":
-            if cols is not None:
-                return "df = df.groupby(['{index}'])['{columns}'].{agg}()".format(
-                    index=index, columns="', '".join(cols), agg=agg
+        code = []
+        if (agg_type == "func" and func == "gmean") or (
+            agg_type != "func" and "gmean" in cols.values()
+        ):
+            code.append("\nfrom scipy.stats import gmean\n\n")
+
+        if index:
+            index = "', '".join(index)
+            if agg_type == "func":
+                agg_str = ".agg(gmean)" if agg == "gmean" else ".{}()".format(agg)
+                if cols is not None:
+                    code.append(
+                        "df = df.groupby(['{index}'])['{columns}']{agg}".format(
+                            index=index, columns="', '".join(cols), agg=agg_str
+                        )
+                    )
+                    return code
+                code.append(
+                    "df = df.groupby(['{index}']){agg}".format(
+                        index="', '".join(index), agg=agg_str
+                    )
                 )
-            return "df = df.groupby(['{index}']).{agg}()".format(
-                index="', '".join(index), agg=agg
-            )
-        code = [
-            "df = df.groupby(['{index}']).aggregate(".format(index=index) + "{",
-            ",\n".join(
-                "\t'{col}': ['{aggs}']".format(col=col, aggs="', '".join(aggs))
+                return code
+            code += [
+                "df = df.groupby(['{index}']).aggregate(".format(index=index) + "{",
+                ",\n".join(
+                    "\t'{col}': ['{aggs}']".format(
+                        col=col, aggs=", ".join(gmean_str_handler(aggs))
+                    )
+                    for col, aggs in cols.items()
+                ),
+                "})",
+                "df.columns = [' '.join([str(c) for c in col]).strip() for col in df.columns.values]",
+            ]
+            return "\n".join(code)
+
+        if cols:
+            code.append("df = df[[{}]]".format("', '".join(cols)))
+        if agg_type == "func":
+            agg_str = ".apply(gmean)" if agg == "gmean" else ".{}()".format(agg)
+            code += ["df = df{}".format(agg_str), "df = df.to_frame().T"]
+            return code
+        code += [
+            "df = df.aggregate({"
+            + ",\n".join(
+                "\t'{col}': ['{aggs}']".format(
+                    col=col, aggs=", ".join(gmean_handler(aggs))
+                )
                 for col, aggs in cols.items()
-            ),
-            "})",
-            "df.columns = [' '.join([str(c) for c in col]).strip() for col in df.columns.values]",
+            )
+            + "})",
+            "df = df.to_frame().T",
         ]
-        return "\n".join(code)
+        return code
 
 
 class TransposeBuilder(object):

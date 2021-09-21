@@ -88,11 +88,9 @@ describe("DataViewer tests", () => {
     await tickUpdate(result);
     expect(result.find(Reshape)).toHaveLength(0);
 
-    const cfg = { index: null, agg: null };
-    expect(validateAggregateCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = ["x"];
-    cfg.agg = { type: "func" };
+    const cfg = { index: null, agg: { type: "func" } };
     expect(validateAggregateCfg(cfg)).toBe("Missing an aggregation selection!");
+    cfg.index = ["x"];
     cfg.agg = { type: "col" };
     expect(validateAggregateCfg(cfg)).toBe("Missing an aggregation selection!");
   });

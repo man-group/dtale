@@ -136,6 +136,46 @@ def test_aggregate(custom_data, unittest):
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
+        reshape_cfg = dict(
+            index="date", agg=dict(type="func", func="gmean", cols=["Col0", "Col1"])
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["date", "Col0", "Col1"],
+        )
+        assert len(global_state.get_data(new_key)) == 365
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+        reshape_cfg = dict(
+            index=None, agg=dict(type="func", func="gmean", cols=["Col0", "Col1"])
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["Col0", "Col1"],
+        )
+        assert len(global_state.get_data(new_key)) == 1
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
         reshape_cfg = dict(index="date", agg=dict(type="func", func="mean"))
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
