@@ -37,10 +37,5 @@ export default class DimensionsHelper {
     }
   }
 
-  afterAll() {
-    Object.defineProperty(HTMLElement.prototype, "offsetHeight", this.originalOffsetHeight);
-    Object.defineProperty(HTMLElement.prototype, "offsetWidth", this.originalOffsetWidth);
-    Object.defineProperty(window, "innerWidth", this.originalInnerWidth);
-    Object.defineProperty(window, "innerHeight", this.originalInnerHeight);
-  }
+  afterAll() {}
 }

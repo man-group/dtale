@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 function withGlobalJquery(callback) {
-  global.jQuery = require("jquery");
+  global.jQuery = jest.requireActual("jquery");
   const results = callback();
   delete global.jQuery;
   return results;

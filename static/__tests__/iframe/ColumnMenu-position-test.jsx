@@ -6,18 +6,12 @@ import { expect, it } from "@jest/globals";
 import { positionMenu } from "../../dtale/column/ColumnMenu";
 import { buildInnerHTML } from "../test-utils";
 
-const originalInnerWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerWidth");
-
 describe("ColumnMenu position tests", () => {
   beforeAll(() => {
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
       value: 100,
     });
-  });
-
-  afterAll(() => {
-    Object.defineProperty(window, "innerWidth", originalInnerWidth);
   });
 
   it("ColumnMenu: calculations for menus on edge of browser window...", () => {

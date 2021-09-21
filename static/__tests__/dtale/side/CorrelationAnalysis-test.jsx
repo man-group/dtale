@@ -32,10 +32,9 @@ describe("CorrelationAnalysis", () => {
     offsetHeight: 775,
   });
 
-  beforeAll(dimensions.beforeAll);
+  beforeAll(() => dimensions.beforeAll());
 
   beforeEach(async () => {
-    dimensions.beforeAll();
     fetchJsonSpy = jest.spyOn(fetcher, "fetchJson");
     fetchJsonSpy.mockImplementation((_url, callback) => {
       callback({ ...ANALYSIS, success: true });
