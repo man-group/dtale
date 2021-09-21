@@ -74,7 +74,7 @@ describe("DataViewer tests", () => {
     result.find(Reshape).find("div.modal-body").find("button").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     result.update();
-    expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
+    expect(result.find(RemovableError).text()).toBe("Missing an aggregation selection!");
     const aggComp = result.find(Aggregate).first();
     const aggInputs = aggComp.find(Select);
     aggInputs.first().instance().onChange({ value: "col1" });

@@ -810,7 +810,8 @@
     "Copied to clipboard": "Copied to clipboard",
     "navigate": "Use ← → buttons to switch charts",
     "Target": "Target",
-    "Choose Col": "Choose Col"
+    "Choose Col": "Choose Col",
+    "Geometric Mean": "Geometric Mean"
   },
   "charts": {
     "Window": "窗口",
