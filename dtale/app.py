@@ -521,7 +521,11 @@ def initialize_process_props(host=None, port=None, force=False):
 
 def is_port_in_use(port):
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        return s.connect_ex(("localhost", port)) == 0
+        try:
+            s.bind(("localhost", port))
+            return False
+        except BaseException:
+            return True
 
 
 def find_free_port():
