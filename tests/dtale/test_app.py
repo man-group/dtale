@@ -67,13 +67,13 @@ def test_find_free_port():
 
         assert find_free_port() == 40000
         mock_socket.assert_called_once()
-        mock_socket.return_value.connect_ex.assert_called_once()
+        mock_socket.return_value.bind.assert_called_once()
 
     class MockSocket(object):
-        def connect_ex(self, addr):
+        def bind(self, addr):
             (host, port) = addr
             if port == 40000:
-                return 0
+                raise Exception("cannot connect!")
             return 1
 
         def close(self):
@@ -86,8 +86,8 @@ def test_find_free_port():
         assert find_free_port() == 40001
 
     class MockSocket2(object):
-        def connect_ex(self, _addr):
-            return 0
+        def bind(self, _addr):
+            raise Exception("cannot connect!")
 
         def close(self):
             pass
