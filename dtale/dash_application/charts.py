@@ -254,8 +254,9 @@ def chart_url_querystring(params, data=None, group_filter=None):
         if group_val:
             final_params["group_filter"] = group_val
         if y_val:
-            y_val, _ = parse_final_col(y_val)
-            final_params["y"] = json.dumps([y_val])
+            final_params["y"] = json.dumps(
+                [parse_final_col(y_val2)[0] for y_val2 in make_list(y_val)]
+            )
     return url_encode_func()(final_params)
 
 
@@ -702,6 +703,7 @@ def scatter_builder(
     colorscale=None,
     data_id=None,
     extended_aggregation=[],
+    cpg=False,
 ):
     """
     Builder function for :plotly:`plotly.graph_objs.Scatter <plotly.graph_objs.Scatter>`
@@ -729,39 +731,42 @@ def scatter_builder(
     """
 
     scatter_func = go.Scatter3d if z is not None else go.Scattergl
+    final_cols = make_list(build_final_cols(y, z, agg, extended_aggregation))
+    name_builder = build_series_name(final_cols, cpg)
 
     def _build_final_scatter(y_val):
         def _build_data():
             for series_key, d in data["data"].items():
-                valid = y_val in d and (group is None or group == series_key)
-                if not valid:
-                    continue
-                yield scatter_func(
-                    **dict_merge(
-                        dict(
-                            x=d["x"],
-                            y=d[y[0] if z else y_val],
-                            mode="markers",
-                            opacity=0.7,
-                            name=series_key,
-                            marker=build_scatter_marker(
-                                d, y_val if z else None, colorscale
+                for sub_y_val in make_list(y_val):
+                    valid = sub_y_val in d and (group is None or group == series_key)
+                    if not valid:
+                        continue
+                    yield scatter_func(
+                        **dict_merge(
+                            dict(
+                                x=d["x"],
+                                y=d[y[0] if z else sub_y_val],
+                                mode="markers",
+                                opacity=0.7,
+                                marker=build_scatter_marker(
+                                    d, sub_y_val if z else None, colorscale
+                                ),
                             ),
-                        ),
-                        dict(z=d[y_val]) if z is not None else dict(),
+                            name_builder(sub_y_val, series_key),
+                            dict(z=d[sub_y_val]) if z is not None else dict(),
+                        )
                     )
-                )
-                if trendline:
-                    yield build_scatter_trendline(
-                        d["x"], d[y_val], trendline, data_id, x, y_val
-                    )
+                    if trendline:
+                        yield build_scatter_trendline(
+                            d["x"], d[sub_y_val], trendline, data_id, x, sub_y_val
+                        )
 
         figure_cfg = {
             "data": list(_build_data()),
             "layout": build_layout(
                 dict_merge(
                     build_title(x, y if z else y_val, group, z=y_val if z else None),
-                    build_scatter_layout(axes_builder([y_val])[0], z),
+                    build_scatter_layout(axes_builder(make_list(y_val))[0], z),
                 )
             ),
         }
@@ -769,20 +774,23 @@ def scatter_builder(
 
             def build_frame(frame, frame_name):
                 for series_key, series in frame.items():
-                    if y_val in series and (group is None or group == series_key):
-                        yield scatter_func(
-                            **dict(
-                                x=series["x"],
-                                y=series[y_val],
-                                mode="markers",
-                                opacity=0.7,
-                                name=series_key,
-                                marker=build_scatter_marker(
-                                    series, y_val if z else None, colorscale
-                                ),
-                                customdata=[frame_name] * len(series["x"]),
+                    for sub_y_val in make_list(y_val):
+                        if sub_y_val in series and (
+                            group is None or group == series_key
+                        ):
+                            yield scatter_func(
+                                **dict(
+                                    x=series["x"],
+                                    y=series[sub_y_val],
+                                    mode="markers",
+                                    opacity=0.7,
+                                    name=series_key,
+                                    marker=build_scatter_marker(
+                                        series, sub_y_val if z else None, colorscale
+                                    ),
+                                    customdata=[frame_name] * len(series["x"]),
+                                )
                             )
-                        )
 
             update_cfg_w_frames(
                 figure_cfg, animate_by, *build_frames(data, build_frame)
@@ -792,13 +800,12 @@ def scatter_builder(
             graph_wrapper(figure=figure_cfg, modal=modal),
             group_filter=dict_merge(
                 dict(y=y_val), {} if group_filter is None else dict(group=group_filter)
-            ),
+            )
+            if group_filter is not None
+            else None,
         )
 
-    return [
-        _build_final_scatter(sub_col)
-        for sub_col in build_final_cols(y, z, agg, extended_aggregation)
-    ]
+    return [_build_final_scatter(final_cols)]
 
 
 def scatter_code_builder(
@@ -3268,7 +3275,11 @@ def build_chart(data_id=None, data=None, **inputs):
             data, x, axis_inputs, z=z, scale=scale, data_id=data_id
         )
         if chart_type in ["scatter", "3d_scatter"]:
-            kwargs = dict(agg=agg, extended_aggregation=extended_aggregation)
+            kwargs = dict(
+                agg=agg,
+                extended_aggregation=extended_aggregation,
+                cpg=inputs["cpg"] or inputs["cpy"],
+            )
             if chart_type == "scatter":
                 kwargs["trendline"] = trendline
                 kwargs["data_id"] = data_id
