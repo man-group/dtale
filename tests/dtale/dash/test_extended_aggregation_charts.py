@@ -38,13 +38,12 @@ def test_scatter():
         )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
-        assert len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 2
-        plot_data = resp_data["chart-content"]["children"][0]["props"]["children"][0][
+        assert len(resp_data["chart-content"]["children"][0]["props"]["children"]) == 4
+        chart1 = resp_data["chart-content"]["children"][0]["props"]["children"][1][
             "props"
         ]
-        chart1 = plot_data["children"]["props"]["children"][1]["props"]
         assert chart1["id"] == "chart-1"
-        assert chart1["figure"]["layout"]["title"]["text"] == "Sum of b by a"
+        assert chart1["figure"]["layout"]["title"]["text"] == "Sum of b, Mean of b by a"
 
 
 @pytest.mark.unit
