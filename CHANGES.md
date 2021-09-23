@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.57.0 (2021-9-22)
+* [#565](https://github.com/man-group/dtale/issues/565): allow "chart per group" display in scatter charts
+* [#564](https://github.com/man-group/dtale/issues/564): geometric mean aggregation in "Summarize Data"
+* [#559](https://github.com/man-group/dtale/issues/559): lock columns from config, highlight rows, move filters to custom filter, nan display
+* [#560](https://github.com/man-group/dtale/issues/560): Add "Gage R&R" computation
+* [#558](https://github.com/man-group/dtale/issues/558): added "Filtered" toggle to "Variance Report"
+* [#561](https://github.com/man-group/dtale/issues/561): Modify behaviour for finding free port
+
 ### 1.56.0 (2021-8-31)
 * [#557](https://github.com/man-group/dtale/issues/557): allow filters to be applied to the "Describe" page
 * [#555](https://github.com/man-group/dtale/issues/555)
