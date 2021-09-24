@@ -72,6 +72,7 @@ def test_startup(unittest):
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
+            rangeHighlight=None,
         ),
         "should lock index columns",
     )
@@ -80,12 +81,33 @@ def test_startup(unittest):
     with pytest.raises(DuplicateDataError):
         views.startup(URL, data=test_data, ignore_duplicate=False)
 
+    range_highlights = {
+        "foo": {
+            "active": True,
+            "equals": {
+                "active": True,
+                "value": 3,
+                "color": {"r": 255, "g": 245, "b": 157, "a": 1},
+            },  # light yellow
+            "greaterThan": {
+                "active": True,
+                "value": 3,
+                "color": {"r": 80, "g": 227, "b": 194, "a": 1},
+            },  # mint green
+            "lessThan": {
+                "active": True,
+                "value": 3,
+                "color": {"r": 245, "g": 166, "b": 35, "a": 1},
+            },  # orange
+        }
+    }
     instance = views.startup(
         URL,
         data=test_data,
         ignore_duplicate=True,
         allow_cell_edits=False,
         precision=6,
+        range_highlights=range_highlights,
     )
     pdt.assert_frame_equal(instance.data, test_data)
     unittest.assertEqual(
@@ -95,6 +117,7 @@ def test_startup(unittest):
             columnFormats=None,
             locked=[],
             precision=6,
+            rangeHighlight=range_highlights,
         ),
         "no index = nothing locked",
     )
@@ -110,6 +133,7 @@ def test_startup(unittest):
             columnFormats=None,
             locked=["security_id"],
             precision=2,
+            rangeHighlight=None,
         ),
         "should lock index columns",
     )
@@ -119,7 +143,13 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.get_settings(instance._data_id),
-        dict(allow_cell_edits=True, locked=[], precision=2, columnFormats=None),
+        dict(
+            allow_cell_edits=True,
+            locked=[],
+            precision=2,
+            columnFormats=None,
+            rangeHighlight=None,
+        ),
         "should lock index columns",
     )
 
@@ -128,7 +158,13 @@ def test_startup(unittest):
     pdt.assert_frame_equal(instance.data, test_data.to_frame(index=False))
     unittest.assertEqual(
         global_state.get_settings(instance._data_id),
-        dict(allow_cell_edits=True, locked=[], precision=2, columnFormats=None),
+        dict(
+            allow_cell_edits=True,
+            locked=[],
+            precision=2,
+            columnFormats=None,
+            rangeHighlight=None,
+        ),
         "should lock index columns",
     )
 
@@ -2730,3 +2766,36 @@ def test_drop_filtered_rows():
         c.get("/dtale/drop-filtered-rows/{}".format(c.port))
         assert len(global_state.get_data(c.port)) == 1
         assert global_state.get_settings(c.port)["query"] == ""
+
+
+@pytest.mark.unit
+def test_save_range_highlights():
+    with build_app(url=URL).test_client() as c:
+        settings = {c.port: {}}
+        build_settings(settings)
+        range_highlights = {
+            "foo": {
+                "active": True,
+                "equals": {
+                    "active": True,
+                    "value": 3,
+                    "color": {"r": 255, "g": 245, "b": 157, "a": 1},
+                },  # light yellow
+                "greaterThan": {
+                    "active": True,
+                    "value": 3,
+                    "color": {"r": 80, "g": 227, "b": 194, "a": 1},
+                },
+                # mint green
+                "lessThan": {
+                    "active": True,
+                    "value": 3,
+                    "color": {"r": 245, "g": 166, "b": 35, "a": 1},
+                },  # orange
+            }
+        }
+        c.post(
+            "/dtale/save-range-highlights/{}".format(c.port),
+            data=dict(ranges=json.dumps(range_highlights)),
+        )
+        assert global_state.get_settings(c.port)["rangeHighlight"] is not None

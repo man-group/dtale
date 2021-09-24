@@ -9,10 +9,17 @@ import DimensionsHelper from "../DimensionsHelper";
 import mockPopsicle from "../MockPopsicle";
 import reduxUtils from "../redux-test-utils";
 
-import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, tick, withGlobalJquery } from "../test-utils";
+import {
+  buildInnerHTML,
+  clickMainMenuButton,
+  findMainMenuButton,
+  tick,
+  tickUpdate,
+  withGlobalJquery,
+} from "../test-utils";
 
 describe("DataViewer highlighting tests", () => {
-  let result, DataViewer, ReactDataViewer, RangeHighlight;
+  let result, DataViewer, ReactDataViewer, RangeHighlight, saveRangeHighlightsSpy;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -32,6 +39,9 @@ describe("DataViewer highlighting tests", () => {
     DataViewer = dv.DataViewer;
     ReactDataViewer = dv.ReactDataViewer;
     RangeHighlight = require("../../popups/RangeHighlight").RangeHighlight;
+    const serverState = require("../../dtale/serverStateManagement").default;
+    saveRangeHighlightsSpy = jest.spyOn(serverState, "saveRangeHighlights");
+    saveRangeHighlightsSpy.mockImplementation(() => undefined);
   });
 
   beforeEach(async () => {
@@ -51,6 +61,10 @@ describe("DataViewer highlighting tests", () => {
   const heatMapBtn = () => findMainMenuButton(result, "By Col", "div.btn-group");
   const dataViewer = () => result.find(ReactDataViewer);
   const allRange = () => result.find(RangeHighlight).find("div.form-group").last();
+  const updateRange = () => {
+    saveRangeHighlightsSpy.mock.calls[saveRangeHighlightsSpy.mock.calls.length - 1][2]();
+    result.update();
+  };
 
   it("DataViewer: heatmap", async () => {
     heatMapBtn().find("button").first().simulate("click");
@@ -125,42 +139,25 @@ describe("DataViewer highlighting tests", () => {
         }
       });
     result.find(RangeHighlight).find("div.form-group").at(4).find("button").simulate("click");
+    await tickUpdate(result);
+    expect(saveRangeHighlightsSpy).toHaveBeenCalledTimes(1);
+    updateRange();
     expect(dataViewer().instance().state.backgroundMode).toBe("range");
-    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
-      all: {
-        active: true,
-        isEquals: true,
-        equals: 3,
-        isGreaterThan: true,
-        greaterThan: 3,
-        isLessThan: true,
-        lessThan: 3,
-      },
-    });
+    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual(saveRangeHighlightsSpy.mock.calls[0][1]);
     result.find(RangeHighlightOption).find("i").simulate("click");
     result.update();
     expect(dataViewer().instance().state.backgroundMode).toBeNull();
-    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual({
-      all: {
-        active: false,
-        isEquals: true,
-        equals: 3,
-        isGreaterThan: true,
-        greaterThan: 3,
-        isLessThan: true,
-        lessThan: 3,
-      },
-    });
+    expect(dataViewer().instance().state.rangeHighlight).toStrictEqual(saveRangeHighlightsSpy.mock.calls[0][1]);
     clickMainMenuButton(result, "Highlight Range");
     result.update();
     allRange().find("i.ico-check-box-outline-blank").simulate("click");
-    result.update();
+    updateRange();
     expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(true);
     allRange().find("i.ico-check-box").simulate("click");
-    result.update();
+    updateRange();
     expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(false);
     allRange().find("i.ico-remove-circle").simulate("click");
-    result.update();
+    updateRange();
     expect(_.size(dataViewer().instance().state.rangeHighlight)).toBe(0);
   });
 

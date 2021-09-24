@@ -178,6 +178,7 @@ def build_show_options(options=None):
         nan_display=None,
         sort=None,
         locked=None,
+        range_highlights=None,
     )
     config_options = {}
     config = get_config()
@@ -244,6 +245,13 @@ def build_show_options(options=None):
         config_options["locked"] = get_config_val(config, defaults, "locked")
         if config_options["locked"]:
             config_options["locked"] = config_options["locked"].split(",")
+        config_options["range_highlights"] = get_config_val(
+            config, defaults, "range_highlights"
+        )
+        if config_options["range_highlights"]:
+            config_options["range_highlights"] = json.loads(
+                config_options["range_highlights"]
+            )
 
     return dict_merge(defaults, config_options, options)
 

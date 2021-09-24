@@ -155,6 +155,14 @@ function updateFormats(dataId, col, format, all, nanDisplay, callback = _.noop) 
   );
 }
 
+function saveRangeHighlights(dataId, ranges, callback) {
+  try {
+    $.post(menuFuncs.fullPath("/dtale/save-range-highlights", dataId), { ranges: JSON.stringify(ranges) }, callback);
+  } catch (e) {
+    logException(e, e.stack);
+  }
+}
+
 function editCell(dataId, col, rowIndex, updated, callback) {
   fetchJson(
     buildURLString(`/dtale/edit-cell/${dataId}`, {
@@ -232,4 +240,5 @@ export default {
   loadFilteredRanges,
   dropFilteredRows,
   moveFiltersToCustom,
+  saveRangeHighlights,
 };
