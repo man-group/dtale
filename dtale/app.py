@@ -698,6 +698,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             nan_display=final_options["nan_display"],
             sort=final_options["sort"],
             locked=final_options["locked"],
+            range_highlights=final_options["range_highlights"],
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

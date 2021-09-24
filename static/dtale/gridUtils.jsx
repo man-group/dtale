@@ -211,8 +211,8 @@ export const buildState = props => ({
   menuOpen: false,
   formattingOpen: false,
   triggerResize: false,
-  backgroundMode: null,
-  rangeHighlight: {},
+  backgroundMode: _.size(_.get(props, "settings.rangeHighlight")) ? "range" : null,
+  rangeHighlight: _.get(props, "settings.rangeHighlight", {}),
   ...buildRangeState(),
 });
 

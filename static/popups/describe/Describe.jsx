@@ -2,9 +2,11 @@ import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
+import { connect } from "react-redux";
 
 import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
+import { updateSettings } from "../../actions/settings";
 import { dtypesUrl } from "../../actions/url-utils";
 import serverState from "../../dtale/serverStateManagement";
 import { fetchJson } from "../../fetcher";
@@ -75,7 +77,12 @@ class Describe extends React.Component {
             </BouncerWrapper>
           </div>
           <div className="col-md-7 describe-details-col">
-            <Details selected={this.state.selected} dataId={this.props.dataId} dtypes={this.state.dtypes} />
+            <Details
+              selected={this.state.selected}
+              dataId={this.props.dataId}
+              dtypes={this.state.dtypes}
+              updateSettings={this.props.updateSettings}
+            />
           </div>
         </div>
       </div>,
@@ -94,7 +101,14 @@ Describe.propTypes = {
     visible: PropTypes.bool.isRequired,
     selectedCol: PropTypes.string,
   }),
+  updateSettings: PropTypes.func,
   t: PropTypes.func,
 };
 const TranslateDescribe = withTranslation("describe")(Describe);
-export { TranslateDescribe as Describe };
+const ReduxDescribe = connect(
+  ({ settings }) => ({ settings }),
+  dispatch => ({
+    updateSettings: settings => dispatch(updateSettings(settings)),
+  })
+)(TranslateDescribe);
+export { ReduxDescribe as Describe, TranslateDescribe as ReactDescribe };

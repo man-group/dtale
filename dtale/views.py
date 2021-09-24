@@ -251,6 +251,24 @@ class DtaleData(object):
         """Helper function to clean up data associated with this instance from global state."""
         global_state.cleanup(self._data_id)
 
+    def update_settings(self, **updates):
+        """
+        Helper function for updating instance-specific settings. For example:
+        * allow_cell_edits - whether cells can be edited
+        * locked - which columns are locked to the left of the grid
+        * custom_formats - display formatting for specific columns
+        * range_highlights - specify background colors for ranges of values in the grid
+        """
+        name_updates = dict(
+            range_highlights="rangeHighlight", column_formats="columnFormats"
+        )
+        settings = {name_updates.get(k, k): v for k, v in updates.items()}
+        _update_settings(self._data_id, settings)
+
+    def get_settings(self):
+        """Helper function for retrieving any instance-specific settings."""
+        return global_state.get_settings(self._data_id) or {}
+
     def open_browser(self):
         """
         This function uses the :mod:`python:webbrowser` library to try and automatically open server's default browser
@@ -828,6 +846,7 @@ def startup(
     nan_display=None,
     sort=None,
     locked=None,
+    range_highlights=None,
 ):
     """
     Loads and stores data globally
@@ -868,6 +887,9 @@ def startup(
     :type sort: list[tuple], optional
     :param locked: Columns to lock to the left of your grid on load
     :type locked: list, optional
+    :param range_highlights: Definitions for equals, less-than or greater-than ranges for individual (or all) columns
+                             which apply different background colors to cells which fall in those ranges.
+    :type range_highlights: dict, optional
     """
 
     if (
@@ -915,6 +937,7 @@ def startup(
                 nan_display=nan_display,
                 sort=sort,
                 locked=locked,
+                range_highlights=range_highlights,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -956,6 +979,7 @@ def startup(
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
             columnFormats=column_formats,
+            rangeHighlight=range_highlights,
         )
         base_predefined = predefined_filters.init_filters()
         if base_predefined:
@@ -1364,6 +1388,16 @@ def update_formats(data_id):
     updated_settings = dict_merge(
         curr_settings, dict(columnFormats=updated_formats, nanDisplay=nan_display)
     )
+    global_state.set_settings(data_id, updated_settings)
+    return jsonify(dict(success=True))
+
+
+@dtale.route("/save-range-highlights/<data_id>", methods=["POST"])
+@exception_decorator
+def save_range_highlights(data_id):
+    ranges = json.loads(request.form.get("ranges", "{}"))
+    curr_settings = global_state.get_settings(data_id) or {}
+    updated_settings = dict_merge(curr_settings, dict(rangeHighlight=ranges))
     global_state.set_settings(data_id, updated_settings)
     return jsonify(dict(success=True))
 

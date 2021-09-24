@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 import _ from "lodash";
 
-import { MODES } from "../popups/RangeHighlight";
+import { BASE_COLOR, MODES } from "../popups/RangeHighlight";
 import * as gu from "./gridUtils";
 
 const RESIZABLE = ["outliers", "missing"];
@@ -110,9 +110,11 @@ const rangeHighlighting = (state, { name, dtype }, { raw }) => {
   const colType = gu.findColType(lowerDtype);
   if (_.includes(["float", "int"], colType)) {
     let styles = {};
-    _.forEach(MODES, ([_label, flag, value, filter]) => {
-      if (range[flag] && !_.isNil(range[value]) && filter(raw, range[value])) {
-        styles = { background: "#FFF59D" };
+    _.forEach(MODES, ([_label, key, filter]) => {
+      const { active, value, color } = range[key];
+      if (active && !_.isNil(value) && filter(raw, value)) {
+        const { r, g, b, a } = color ?? BASE_COLOR;
+        styles = { background: `rgba(${r},${g},${b},${a})` };
       }
     });
     return styles;

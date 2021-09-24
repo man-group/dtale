@@ -3,16 +3,22 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withTranslation } from "react-i18next";
 import { connect } from "react-redux";
+import reactCSS from "reactcss";
+import { SketchPicker } from "react-color";
 
 import ColumnSelect from "./create/ColumnSelect";
+import serverState from "../dtale/serverStateManagement";
 
+export const BASE_COLOR = {
+  r: "255",
+  g: "245",
+  b: "157",
+  a: "1",
+};
 const BASE_RANGE = {
-  isEquals: false,
-  equals: null,
-  isGreaterThan: false,
-  greaterThan: null,
-  isLessThan: false,
-  lessThan: null,
+  equals: { active: false, value: null, color: { ...BASE_COLOR } },
+  greaterThan: { active: false, value: null, color: { ...BASE_COLOR } },
+  lessThan: { active: false, value: null, color: { ...BASE_COLOR } },
 };
 const allOption = t => ({
   name: "all",
@@ -21,17 +27,17 @@ const allOption = t => ({
   dtype: "int",
 });
 const MODES = [
-  ["Equals", "isEquals", "equals", (val, equals) => val === equals],
-  ["Greater Than", "isGreaterThan", "greaterThan", (val, greaterThan) => val > greaterThan],
-  ["Less Than", "isLessThan", "lessThan", (val, lessThan) => val < lessThan],
+  ["Equals", "equals", (val, equals) => val === equals],
+  ["Greater Than", "greaterThan", (val, greaterThan) => val > greaterThan],
+  ["Less Than", "lessThan", (val, lessThan) => val < lessThan],
 ];
 
 function retrieveRange(col, ranges) {
   const range = _.get(ranges, col?.value);
   if (range) {
-    _.forEach(MODES, ([_label, _flag, value, _filter]) => {
-      if (!_.isNil(range[value])) {
-        range[value] = range[value] + "";
+    _.forEach(MODES, ([_label, key, _filter]) => {
+      if (!_.isNil(range[key].value)) {
+        range[key].value = range[key].value + "";
       }
     });
     return range;
@@ -39,26 +45,64 @@ function retrieveRange(col, ranges) {
   return { ...BASE_RANGE };
 }
 
-function rangeAsStr({ isEquals, equals, isGreaterThan, greaterThan, isLessThan, lessThan }) {
+const styles = color =>
+  reactCSS({
+    default: {
+      color: {
+        width: "30px",
+        height: "14px",
+        borderRadius: "2px",
+        background: `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`,
+      },
+      swatch: {
+        padding: "5px",
+        background: "#fff",
+        borderRadius: "1px",
+        boxShadow: "0 0 0 1px rgba(0,0,0,.1)",
+        display: "inline-block",
+        cursor: "pointer",
+      },
+      popover: {
+        position: "absolute",
+        zIndex: "2",
+      },
+      cover: {
+        position: "fixed",
+        top: "0px",
+        right: "0px",
+        bottom: "0px",
+        left: "0px",
+      },
+    },
+  });
+
+export const rgbaStr = ({ r, g, b, a }) => `rgba(${r},${g},${b},${a})`;
+
+function rangeAsStr(range) {
   const subRanges = [];
-  if (isEquals) {
-    subRanges.push(`Equals ${equals}`);
-  }
-  if (isGreaterThan) {
-    subRanges.push(`Greater Than ${greaterThan}`);
-  }
-  if (isLessThan) {
-    subRanges.push(`Less Than ${lessThan}`);
-  }
-  return _.join(subRanges, " or ");
+  _.forEach(MODES, ([label, key, _filter]) => {
+    const { active, value, color } = range[key];
+    if (active) {
+      subRanges.push(<span key={subRanges.length}>{label} </span>);
+      subRanges.push(
+        <span key={subRanges.length} style={{ background: rgbaStr(color), padding: 3 }}>
+          {value}
+        </span>
+      );
+      subRanges.push(<span key={subRanges.length}> or </span>);
+    }
+  });
+  subRanges.pop();
+  return subRanges;
 }
 
 class ReactRangeHighlight extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      ranges: _.get(props, "chartData.rangeHighlight", {}),
+      ranges: _.get(props, "chartData.rangeHighlight", { ...BASE_RANGE }),
       col: allOption(props.t),
+      editColor: null,
     };
     this.state.currRange = retrieveRange(allOption(props.t), this.state.ranges);
     this.updateHighlights = this.updateHighlights.bind(this);
@@ -67,18 +111,19 @@ class ReactRangeHighlight extends React.Component {
     this.toggleRange = this.toggleRange.bind(this);
   }
 
-  updateHighlights(rangeState) {
-    const currRange = _.assignIn({}, this.state.currRange, rangeState);
-    this.setState({ currRange });
+  updateHighlights(key, rangeState) {
+    const { currRange } = this.state;
+    this.setState({ currRange: { ...currRange, [key]: { ...currRange[key], ...rangeState } } });
   }
 
   applyRange() {
     const { ranges, col, currRange } = this.state;
     const updatedRange = { ...currRange, active: true };
     let backgroundMode = {};
-    _.forEach(MODES, ([_label, flag, value, _filter]) => {
-      if (currRange[flag] && !_.isNil(currRange[value])) {
-        updatedRange[value] = parseFloat(updatedRange[value]);
+    _.forEach(MODES, ([_label, key, _filter]) => {
+      const { active, value } = currRange[key];
+      if (active && !_.isNil(value)) {
+        updatedRange[key].value = parseFloat(value);
         backgroundMode = { backgroundMode: "range", triggerBgResize: true };
       }
     });
@@ -86,21 +131,31 @@ class ReactRangeHighlight extends React.Component {
     if (_.get(this.props, "chartData.backgroundMode") === "range" && !_.has(backgroundMode, "backgroundMode")) {
       backgroundMode.backgroundMode = null;
     }
-    this.setState({ ranges: rangeHighlight }, () => this.props.propagateState({ ...backgroundMode, rangeHighlight }));
+    this.setState(
+      { ranges: rangeHighlight },
+      serverState.saveRangeHighlights(this.props.dataId, rangeHighlight, () =>
+        this.props.propagateState({ ...backgroundMode, rangeHighlight })
+      )
+    );
   }
 
   removeRange(col) {
+    const { dataId, propagateState } = this.props;
     const ranges = { ...this.state.ranges };
     delete ranges[col];
     const props = {
-      backgroundMode: "range",
+      backgroundMode: _.size(ranges) ? "range" : null,
       triggerBgResize: true,
       rangeHighlight: ranges,
     };
-    this.setState({ ranges }, () => this.props.propagateState(props));
+    this.setState(
+      { ranges },
+      serverState.saveRangeHighlights(dataId, ranges, () => propagateState(props))
+    );
   }
 
   toggleRange(col) {
+    const { dataId, propagateState } = this.props;
     const ranges = { ...this.state.ranges };
     ranges[col].active = !ranges[col].active;
     const props = {
@@ -108,7 +163,10 @@ class ReactRangeHighlight extends React.Component {
       triggerBgResize: true,
       rangeHighlight: ranges,
     };
-    this.setState({ ranges }, () => this.props.propagateState(props));
+    this.setState(
+      { ranges },
+      serverState.saveRangeHighlights(dataId, ranges, () => propagateState(props))
+    );
   }
 
   render() {
@@ -127,26 +185,44 @@ class ReactRangeHighlight extends React.Component {
           columns={cols}
           dtypes={["int", "float"]}
         />
-        {_.map(MODES, ([label, flag, value, _filter], i) => (
-          <div key={i} className="form-group row">
-            <label className="col-md-4 col-form-label text-right">
-              <i
-                className={`ico-check-box${this.state.currRange[flag] ? "" : "-outline-blank"} pointer mr-3 float-left`}
-                onClick={() => this.updateHighlights({ [flag]: !this.state.currRange[flag] })}
-              />
-              {this.props.t(`column_filter:${label}`)}
-            </label>
-            <div className="col-md-7">
-              <input
-                type="number"
-                disabled={!this.state.currRange[flag]}
-                className="form-control"
-                value={this.state.currRange[value] || ""}
-                onChange={e => this.updateHighlights({ [value]: e.target.value })}
-              />
+        {_.map(MODES, ([label, key, _filter], i) => {
+          const { currRange, editColor } = this.state;
+          const { active, value, color } = currRange[key];
+          const modeStyles = styles(color ?? BASE_COLOR);
+          return (
+            <div key={i} className="form-group row">
+              <label className="col-md-4 col-form-label text-right">
+                <i
+                  className={`ico-check-box${active ? "" : "-outline-blank"} pointer mr-3 float-left`}
+                  onClick={() => this.updateHighlights(key, { active: !active })}
+                />
+                {this.props.t(`column_filter:${label}`)}
+              </label>
+              <div className="col-md-6">
+                <input
+                  type="number"
+                  disabled={!active}
+                  className="form-control"
+                  value={value || ""}
+                  onChange={e => this.updateHighlights(key, { value: e.target.value })}
+                />
+              </div>
+              <div className="col-md-1">
+                <div
+                  style={modeStyles.swatch}
+                  onClick={() => this.setState({ editColor: editColor === key ? null : key })}>
+                  <div style={modeStyles.color} />
+                </div>
+                {editColor === key ? (
+                  <div style={modeStyles.popover}>
+                    <div style={styles.cover} onClick={() => this.setState({ editColor: null })} />
+                    <SketchPicker color={color} onChange={({ rgb }) => this.updateHighlights(key, { color: rgb })} />
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div className="form-group row">
           <div className="col-md-4" />
           <div className="col-md-7">
@@ -165,7 +241,8 @@ class ReactRangeHighlight extends React.Component {
             </div>
             <div className="col-md-9">
               <b>{col === "all" ? allOption(this.props.t).label : col}</b>
-              {`: ${rangeAsStr(range)}`}
+              {`: `}
+              {rangeAsStr(range)}
             </div>
             <div className="col-md-2 p-0">
               <i className="ico-remove-circle pointer mt-auto mb-auto" onClick={() => this.removeRange(col)} />
@@ -178,6 +255,7 @@ class ReactRangeHighlight extends React.Component {
 }
 ReactRangeHighlight.displayName = "RangeHighlight";
 ReactRangeHighlight.propTypes = {
+  dataId: PropTypes.string,
   chartData: PropTypes.shape({
     visible: PropTypes.bool.isRequired,
     rangeHighlight: PropTypes.object,
@@ -187,5 +265,5 @@ ReactRangeHighlight.propTypes = {
   t: PropTypes.func,
 };
 const TranslateReactRangeHighlight = withTranslation(["column_filter", "range_highlight"])(ReactRangeHighlight);
-const ReduxRangeHighlight = connect(state => _.pick(state, ["chartData"]))(TranslateReactRangeHighlight);
+const ReduxRangeHighlight = connect(state => _.pick(state, ["dataId", "chartData"]))(TranslateReactRangeHighlight);
 export { TranslateReactRangeHighlight as ReactRangeHighlight, ReduxRangeHighlight as RangeHighlight, MODES };
