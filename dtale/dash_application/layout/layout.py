@@ -207,6 +207,7 @@ CHARTS = [
     dict(value="candlestick"),
     dict(value="treemap"),
     dict(value="funnel"),
+    dict(value="clustergram"),
 ]
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -290,6 +291,17 @@ CHART_INPUT_SETTINGS = {
         cs_group=dict(display=False),
         treemap_group=dict(display=False),
         funnel_group=dict(display=True),
+    ),
+    "clustermap": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=False),
+        treemap_group=dict(display=False),
+        funnel_group=dict(display=False),
+        clustergram_group=dict(display=False),
     ),
 }
 LOAD_TYPES = ["random", "head", "tail"]
@@ -635,6 +647,8 @@ def get_group_types(inputs, group_cols=None):
         return _flags("treemap_group")
     elif show_input_handler(chart_type)("funnel_group"):
         return _flags("funnel_group")
+    elif show_input_handler(chart_type)("clustergram_group"):
+        return _flags("clustergram_group")
     return False, False
 
 
@@ -819,7 +833,9 @@ def build_candlestick_options(
     return x_options, close_options, open_options, low_options, high_options
 
 
-def build_label_value_options(df, selected_value=None, selected_label=None):
+def build_label_value_options(
+    df, selected_value=None, selected_label=None, all_value=False
+):
     dtypes = get_dtypes(df)
     cols = sorted(dtypes.keys())
     num_cols = []
@@ -832,6 +848,8 @@ def build_label_value_options(df, selected_value=None, selected_label=None):
     value_options = [
         build_option(c) for c in num_cols if c not in build_selections(selected_label)
     ]
+    if all_value:
+        value_options = [build_option("_all_columns_", "All Columns")] + value_options
     label_options = [
         build_option(c) for c in cols if c not in build_selections(selected_value)
     ]
@@ -854,8 +872,16 @@ def build_label_value_store(prop, inputs):
     )
 
 
-def build_label_value_inputs(prop, inputs, df, group_options, additional_inputs=[]):
-    show_inputs = inputs.get("chart_type") == "treemap"
+def build_label_value_inputs(
+    prop,
+    inputs,
+    df,
+    group_options,
+    additional_inputs=[],
+    multi_value=False,
+    all_option=False,
+):
+    show_inputs = inputs.get("chart_type") == prop
     props = ["{}_value", "{}_label", "{}_group"]
     selected_value, selected_label, selected_group = (
         inputs.get(p.format(prop)) for p in props
@@ -864,17 +890,21 @@ def build_label_value_inputs(prop, inputs, df, group_options, additional_inputs=
         df,
         selected_value=selected_value,
         selected_label=selected_label,
+        all_value=multi_value and all_option,
     )
     return html.Div(
         [
             build_input(
-                text("Value"),
+                text("Value(s)" if multi_value else "Value"),
                 dcc.Dropdown(
                     id="{}-value-dropdown".format(prop),
                     options=value_options,
-                    placeholder=text("Select Column"),
+                    placeholder=text(
+                        "Select Column(s)" if multi_value else "Select Column"
+                    ),
                     style=dict(width="inherit"),
                     value=selected_value,
+                    multi=multi_value,
                 ),
             ),
             build_input(
@@ -972,7 +1002,8 @@ def bar_input_style(**inputs):
 def colorscale_input_style(**inputs):
     return dict(
         display="block"
-        if inputs.get("chart_type") in ["heatmap", "maps", "3d_scatter", "surface"]
+        if inputs.get("chart_type")
+        in ["heatmap", "maps", "3d_scatter", "surface", "clustergram"]
         else "none"
     )
 
@@ -1006,7 +1037,7 @@ def show_chart_per_group(**inputs):
     Boolean function to determine whether "Chart Per Group" toggle should be displayed or not
     """
     chart_type, group = (inputs.get(p) for p in ["chart_type", "group"])
-    invalid_type = chart_type in ["pie", "wordcloud", "maps", "funnel"]
+    invalid_type = chart_type in ["pie", "wordcloud", "maps", "funnel", "clustergram"]
     return (
         show_input_handler(chart_type)("group")
         and len(group or [])
@@ -1284,6 +1315,7 @@ def charts_layout(df, settings, **inputs):
         ),
         build_label_value_store("treemap", inputs),
         build_label_value_store("funnel", inputs),
+        build_label_value_store("clustergram", inputs),
         dcc.Store(id="range-data"),
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
@@ -1557,7 +1589,7 @@ def charts_layout(df, settings, **inputs):
                             style={}
                             if not show_map
                             and not show_candlestick
-                            and chart_type not in ["treemap", "funnel"]
+                            and chart_type not in ["treemap", "funnel", "clustergram"]
                             else {"display": "none"},
                             className="row p-0 charts-filters",
                         ),
@@ -1800,6 +1832,14 @@ def charts_layout(df, settings, **inputs):
                         ),
                         build_label_value_inputs("treemap", inputs, df, group_options),
                         build_funnel_inputs(inputs, df, group_options),
+                        build_label_value_inputs(
+                            "clustergram",
+                            inputs,
+                            df,
+                            group_options,
+                            multi_value=True,
+                            all_option=True,
+                        ),
                         html.Div(
                             [
                                 html.Div(

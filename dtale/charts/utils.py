@@ -116,6 +116,16 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
         chart_props = ["{}_value", "{}_label"]
         return all(inputs.get(p.format(chart_type)) is not None for p in chart_props)
 
+    if chart_type == "clustergram":
+        if (
+            inputs.get("clustergram_value") is None
+            or inputs.get("clustergram_label") is None
+        ):
+            return False
+        if len(make_list(inputs["clustergram_value"])) == 0:
+            return False
+        return True
+
     if not x:
         return False
 

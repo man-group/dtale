@@ -12,6 +12,7 @@ from logging import getLogger
 
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bio as dashbio
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -126,9 +127,11 @@ def chart_url_params(search):
         "group_val",
         "treemap_group",
         "funnel_group",
+        "clustergram_group",
         "yaxis",
         "extended_aggregation",
         "cleaners",
+        "clustergram_value",
     ]:
         if gp in params:
             params[gp] = json.loads(params[gp])
@@ -161,6 +164,7 @@ def chart_url_params(search):
                     "map_group",
                     "treemap_group",
                     "funnel_group",
+                    "clustergram_group",
                 ]
             }
 
@@ -212,6 +216,8 @@ def chart_url_querystring(params, data=None, group_filter=None):
         base_props += ["treemap_value", "treemap_label", "treemap_group"]
     elif chart_type == "funnel":
         base_props += ["funnel_value", "funnel_label", "funnel_group"]
+    elif chart_type == "clustergram":
+        base_props += ["clustergram_label", "clustergram_group"]
     elif chart_type == "scatter":
         base_props += ["trendline"]
 
@@ -232,8 +238,10 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "extended_aggregation",
         "cleaners",
     ]
-    if chart_type in ["maps", "3d_scatter", "heatmap", "surface"]:
+    if chart_type in ["maps", "3d_scatter", "heatmap", "surface", "clustergram"]:
         list_props += ["colorscale"]
+    if chart_type == "clustergram":
+        list_props += ["clustergram_value"]
     for gp in list_props:
         list_param = [val for val in params.get(gp) or [] if val is not None]
         if len(list_param):
@@ -2548,6 +2556,149 @@ def funnel_builder(data_id, export=False, **inputs):
     return funnels, code
 
 
+def clustergram_builder(data_id, export=False, **inputs):
+    """
+    Builder function for :plotly:`dash_bio.Clustergram <dash_bio.Clustergram>`
+
+    :param data: raw data to be represented within surface chart
+    :type data: dict
+    :param x: column to use for the X-Axis
+    :type x: str
+    :param y: columns to use for the Y-Axes
+    :type y: list of str
+    :param wrapper: wrapper function returned by :meth:`dtale.charts.utils.chart_wrapper`
+    :type wrapper: func
+    :param inputs: Optional keyword arguments containing information about which aggregation (if any) has been used
+    :type inputs: dict
+    :return: pie chart
+    :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
+    """
+
+    selected_values, selected_label, group, colorscale = (
+        inputs.get(p)
+        for p in [
+            "clustergram_value",
+            "clustergram_label",
+            "clustergram_group",
+            "colorscale",
+        ]
+    )
+
+    if "_all_columns_" in make_list(selected_values):
+        selected_values = []
+        dtypes = global_state.get_dtypes(data_id)
+        for col_info in dtypes:
+            name, dtype = map(col_info.get, ["name", "dtype"])
+            dtype = classify_type(dtype)
+            if dtype in ["I", "F"] and name != selected_label:
+                selected_values.append(name)
+        inputs["clustergram_value"] = selected_values
+
+    if len(inputs["clustergram_value"]) < 2:
+        raise Exception("Please select at least 2 values for clustergram.")
+
+    group = make_list(group)
+    data, code = build_figure_data(data_id, **inputs)
+    if data is None:
+        return None, None
+    final_cols = build_final_cols(selected_values, None, inputs.get("agg"), [])
+    chart_builder = chart_wrapper(data_id, data, inputs)
+
+    def build_clustergram_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"].get(series_key)
+        title = build_title(selected_label, final_cols[0])["title"]["text"]
+        clustergram_code = []
+        if len(data["data"]) > 1:
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
+            title = build_title(selected_label, final_cols, group=series_key)["title"][
+                "text"
+            ]
+
+        pp = pprint.PrettyPrinter(indent=4)
+        color_map = pp.format(build_colorscale(colorscale)) if colorscale else ""
+        if color_map:
+            color_map = "\t\tcolor_map={color_map},\n".format(color_map=color_map)
+        clustergram_code.append("\nfrom dash_bio import Clustergram\n")
+        clustergram_code.append(
+            (
+                "charts = []\n"
+                "chart_data = chart_data[chart_data[['{value}']] > 0]"
+                "for group_key, group in chart_data.groupby(['{group}']):\n"
+                "\tchart = Clustergram(\n"
+                "\t\tdata=group[['{value}']].values,\n"
+                "\t\tcolumn_labels=['{value}'],\n"
+                "\t\trow_labels=group['x'],\n"
+                "\t\thidden_labels='row',\n"
+                "\t\tcolor_threshold={color_threshold},\n"
+                "{color_map}"
+                "\t\theight=math.inf,\n"
+                "\t\twidth=math.inf,\n"
+                "\t).to_dict()\n"
+                "\tchart['layout']['title'] = {title}"
+                "\tcharts.append(chart)\n"
+            ).format(
+                group="','".join(group),
+                value="','".join(inputs["clustergram_value"]),
+                color_map=color_map,
+                color_threshold="{'row': 250, 'col': 700}",
+                title="{'text': '" + title + "'}",
+            )
+        )
+        chart_val = "charts"
+        clustergram_code.append("figure = go.Figure(data={})".format(chart_val))
+        return clustergram_code
+
+    # run this before we pop off group filters
+    code += build_clustergram_code()
+
+    def build_charts():
+        for series_key, series in data["data"].items():
+            df_cols = [col for col in series if col != "x"]
+            df = pd.DataFrame({col: series[col] for col in df_cols})
+            df[df < 0] = 0
+
+            figure = dashbio.Clustergram(
+                data=df[df_cols].values,
+                column_labels=selected_values,
+                row_labels=series["x"],
+                hidden_labels="row",
+                color_threshold={"row": 250, "col": 700},
+                color_map=build_colorscale(colorscale) if colorscale else None,
+                height=math.inf,
+                width=math.inf,
+            ).to_dict()
+            figure["layout"] = dict_merge(
+                figure["layout"],
+                build_title(selected_label, selected_values, group=series_key),
+            )
+            graph = graph_wrapper(
+                figure=figure,
+                modal=inputs.get("modal", False),
+                export=export,
+            )
+            if export:
+                yield graph
+
+            chart = chart_builder(
+                graph,
+                group_filter={}
+                if series_key == "all"
+                else dict(group=series.get("_filter_")),
+            )
+
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
+            yield chart
+
+    if export:
+        return next(build_charts())
+    grams = cpg_chunker(list(build_charts()))
+    return grams, code
+
+
 def build_map_frames(data, animate_by, frame_builder):
     freq_handler = date_freq_handler(data)
     s, _ = freq_handler(animate_by)
@@ -3025,7 +3176,9 @@ def build_figure_data(
             {
                 k: v
                 for k, v in kwargs.items()
-                if k.startswith("treemap_") or k.startswith("funnel_")
+                if k.startswith("treemap_")
+                or k.startswith("funnel_")
+                or k.startswith("clustergram_")
             },
         )
     ):
@@ -3041,14 +3194,14 @@ def build_figure_data(
     if data is None or not len(data):
         return None, None
 
-    if chart_type in ["treemap", "funnel"]:
+    if chart_type in ["treemap", "funnel", "clustergram"]:
         props = [
             "{}_value".format(chart_type),
             "{}_label".format(chart_type),
             "{}_group".format(chart_type),
         ]
         y, x, group = (kwargs.get(p) for p in props)
-        y = [y]
+        y = make_list(y)
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
@@ -3181,6 +3334,7 @@ def build_chart(data_id=None, data=None, **inputs):
         - candlestick
         - treemap
         - funnel
+        - clustergram
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -3215,6 +3369,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "funnel":
             chart, code = funnel_builder(data_id, **inputs)
+            return chart, None, code
+
+        if chart_type == "clustergram":
+            chart, code = clustergram_builder(data_id, **inputs)
             return chart, None, code
 
         data, code = build_figure_data(data_id, data=data, **inputs)
@@ -3412,6 +3570,12 @@ def build_raw_chart(data_id=None, **inputs):
             chart = treemap_builder(data_id, **inputs)
             return chart
 
+        if chart_type == "funnel":
+            return funnel_builder(data_id, **inputs)
+
+        if chart_type == "clustergram":
+            return clustergram_builder(data_id, **inputs)
+
         data, _ = build_figure_data(data_id, **inputs)
         if data is None:
             return None
@@ -3434,9 +3598,6 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "pie":
             return pie_builder(data, x, y, chart_builder, **chart_inputs)
-
-        if chart_type == "funnel":
-            return funnel_builder(data, x, y, chart_builder, **chart_inputs)
 
         axes_builder = build_axes(data, x, axis_inputs, z=z, data_id=data_id)
         if chart_type == "scatter":
@@ -3493,8 +3654,11 @@ def export_chart(data_id, params):
             (
                 "css.appendChild(document.createTextNode('div.modebar > div.modebar-group:last-child,"
                 "div.modebar > div.modebar-group:first-child { display: none; }'));"
+                "css.appendChild(document.createTextNode('.plot-container, .svg-container "
+                "{ height: 100% !important }'));"
             ),
             'document.getElementsByTagName("head")[0].appendChild(css);',
+            "window.dispatchEvent(new Event('resize'));",
         ]
     )
     html_buffer = StringIO()

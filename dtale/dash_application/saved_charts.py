@@ -92,6 +92,10 @@ def build_saved_header(config):
         group_by = config["funnel_group"]
         for prop in ["funnel_value", "funnel_label"]:
             final_data.append((prop.split("_")[-1], config.get(prop)))
+    elif chart_type == "clustergram":
+        group_by = config["clustergram_group"]
+        for prop in ["clustergram_value", "clustergram_label"]:
+            final_data.append((prop.split("_")[-1], config.get(prop)))
     else:
         group_by = config.get("group")
         final_data.append(("X-Axis", config["x"]))

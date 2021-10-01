@@ -182,6 +182,15 @@ def network_data():
 
 
 @pytest.fixture(scope="module")
+def clustergram_data():
+    return pd.read_csv(
+        os.path.join(os.path.dirname(__file__), "data/clustergram_mtcars.tsv"),
+        sep="	",
+        skiprows=4,
+    ).set_index("model")
+
+
+@pytest.fixture(scope="module")
 def builtin_pkg():
     if PY3:
         return "builtins"
