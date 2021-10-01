@@ -205,6 +205,7 @@ def init_callbacks(dash_app):
             Output("candlestick-inputs", "style"),
             Output("treemap-inputs", "style"),
             Output("funnel-inputs", "style"),
+            Output("clustergram-inputs", "style"),
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
@@ -312,9 +313,11 @@ def init_callbacks(dash_app):
         treemap_style = {} if show_treemap else {"display": "none"}
         show_funnel = chart_type == "funnel"
         funnel_style = {} if show_funnel else {"display": "none"}
+        show_clustergram = chart_type == "clustergram"
+        clustergram_style = {} if show_clustergram else {"display": "none"}
         standard_style = (
             {"display": "none"}
-            if show_map or show_cs or show_treemap or show_funnel
+            if show_map or show_cs or show_treemap or show_funnel or show_clustergram
             else {}
         )
         cscale_style = colorscale_input_style(chart_type=chart_type)
@@ -333,6 +336,7 @@ def init_callbacks(dash_app):
             cs_style,
             treemap_style,
             funnel_style,
+            clustergram_style,
             cscale_style,
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
@@ -564,6 +568,7 @@ def init_callbacks(dash_app):
                 df,
                 selected_value=selected_value,
                 selected_label=selected_label,
+                all_value=prop == "clustergram",
             )
             return label_value_data, value_options, label_options
 
@@ -578,6 +583,16 @@ def init_callbacks(dash_app):
             value_options,
             label_options,
             show_style(len(make_list(group)) > 0),
+        )
+
+    def clustergram_callback(selected_value, selected_label, group, data_id):
+        label_value_data, value_options, label_options = label_value_callback(
+            "clustergram"
+        )(selected_value, selected_label, group, data_id)
+        return (
+            label_value_data,
+            value_options,
+            label_options,
         )
 
     dash_app.callback(
@@ -609,6 +624,20 @@ def init_callbacks(dash_app):
         ],
         [State("data-tabs", "value")],
     )(funnel_callback)
+
+    dash_app.callback(
+        [
+            Output("clustergram-input-data", "data"),
+            Output("clustergram-value-dropdown", "options"),
+            Output("clustergram-label-dropdown", "options"),
+        ],
+        [
+            Input("clustergram-value-dropdown", "value"),
+            Input("clustergram-label-dropdown", "value"),
+            Input("clustergram-group-dropdown", "value"),
+        ],
+        [State("data-tabs", "value")],
+    )(clustergram_callback)
 
     @dash_app.callback(
         [
@@ -778,6 +807,7 @@ def init_callbacks(dash_app):
             Input("candlestick-input-data", "modified_timestamp"),
             Input("treemap-input-data", "modified_timestamp"),
             Input("funnel-input-data", "modified_timestamp"),
+            Input("clustergram-input-data", "modified_timestamp"),
             Input("extended-aggregations", "modified_timestamp"),
             Input("load-btn", "n_clicks"),
         ],
@@ -789,6 +819,7 @@ def init_callbacks(dash_app):
             State("candlestick-input-data", "data"),
             State("treemap-input-data", "data"),
             State("funnel-input-data", "data"),
+            State("clustergram-input-data", "data"),
             State("last-chart-input-data", "data"),
             State("auto-load-toggle", "on"),
             State("load-clicks", "data"),
@@ -804,6 +835,7 @@ def init_callbacks(dash_app):
         _ts6,
         _ts7,
         _ts8,
+        _ts9,
         load_clicks,
         inputs,
         chart_inputs,
@@ -812,6 +844,7 @@ def init_callbacks(dash_app):
         cs_data,
         treemap_data,
         funnel_data,
+        clustergram_data,
         last_chart_inputs,
         auto_load,
         prev_load_clicks,
@@ -828,6 +861,7 @@ def init_callbacks(dash_app):
             cs_data,
             treemap_data,
             funnel_data,
+            clustergram_data,
             dict(extended_aggregation=ext_aggs or [])
             if inputs.get("chart_type") not in NON_EXT_AGGREGATION
             else {},
@@ -1037,6 +1071,7 @@ def init_callbacks(dash_app):
             Input("candlestick-input-data", "modified_timestamp"),
             Input("treemap-input-data", "modified_timestamp"),
             Input("funnel-input-data", "modified_timestamp"),
+            Input("clustergram-input-data", "modified_timestamp"),
         ],
         [
             State("input-data", "data"),
@@ -1044,6 +1079,7 @@ def init_callbacks(dash_app):
             State("candlestick-input-data", "data"),
             State("treemap-input-data", "data"),
             State("funnel-input-data", "data"),
+            State("clustergram-input-data", "data"),
         ],
     )
     def main_input_class(
@@ -1052,14 +1088,23 @@ def init_callbacks(dash_app):
         _ts3,
         _ts4,
         _ts5,
+        _ts6,
         inputs,
         map_inputs,
         cs_inputs,
         treemap_inputs,
         funnel_inputs,
+        clustergram_inputs,
     ):
         return main_inputs_and_group_val_display(
-            dict_merge(inputs, map_inputs, cs_inputs, treemap_inputs, funnel_inputs)
+            dict_merge(
+                inputs,
+                map_inputs,
+                cs_inputs,
+                treemap_inputs,
+                funnel_inputs,
+                clustergram_inputs,
+            )
         )
 
     @dash_app.callback(
@@ -1074,6 +1119,7 @@ def init_callbacks(dash_app):
             Input("candlestick-group-dropdown", "value"),
             Input("treemap-group-dropdown", "value"),
             Input("funnel-group-dropdown", "value"),
+            Input("clustergram-group-dropdown", "value"),
         ],
         [
             State("input-data", "data"),
@@ -1087,6 +1133,7 @@ def init_callbacks(dash_app):
         cs_group_cols,
         treemap_group_cols,
         funnel_group_cols,
+        clustergram_group_cols,
         inputs,
         prev_group_vals,
     ):
@@ -1100,6 +1147,8 @@ def init_callbacks(dash_app):
             group_cols = treemap_group_cols
         elif chart_type == "funnel":
             group_cols = funnel_group_cols
+        elif chart_type == "clustergram":
+            group_cols = clustergram_group_cols
         group_cols = make_list(group_cols)
         group_types = get_group_types(inputs, group_cols)
         if "groups" not in group_types:

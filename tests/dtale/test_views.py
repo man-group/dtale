@@ -1918,8 +1918,48 @@ def test_chart_exports(custom_data, state_data):
 
 
 @pytest.mark.unit
+def test_chart_exports_funnel(treemap_data):
+    import dtale.views as views
+
+    global_state.clear_store()
+    with app.test_client() as c:
+        build_data_inst({c.port: treemap_data})
+        build_dtypes({c.port: views.build_dtypes_state(treemap_data)})
+
+        params = dict(
+            chart_type="funnel",
+            agg="mean",
+            funnel_value="volume",
+            funnel_label="label",
+            funnel_group=json.dumps(["group"]),
+            funnel_stacked=False,
+        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
+        assert response.content_type == "text/html"
+
+
+@pytest.mark.unit
+def test_chart_exports_clustergram(clustergram_data):
+    import dtale.views as views
+
+    global_state.clear_store()
+    with app.test_client() as c:
+        df, _ = views.format_data(clustergram_data)
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+
+        params = dict(
+            chart_type="clustergram",
+            clustergram_value=json.dumps(["_all_columns_"]),
+            clustergram_label="model",
+        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
+        assert response.content_type == "text/html"
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
-def test_chart_png_export(custom_data, state_data):
+def test_chart_png_export(custom_data):
     import dtale.views as views
 
     with app.test_client() as c:

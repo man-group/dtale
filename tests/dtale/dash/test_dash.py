@@ -71,7 +71,7 @@ def test_display_page(unittest):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-        x_dd = component_defs[18]["props"]["children"][0]
+        x_dd = component_defs[19]["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
@@ -215,8 +215,8 @@ def test_input_changes(unittest):
                 "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
                 "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
                 "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
-                "..funnel-inputs.style...colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
-                "..open-extended-agg-modal.style...selected-cleaners.children.."
+                "..funnel-inputs.style...clustergram-inputs.style...colorscale-input.style...drilldown-input.style."
+                "..lock-zoom-btn.style...open-extended-agg-modal.style...selected-cleaners.children.."
             ),
             "changedPropIds": ["chart-tabs.value"],
             "inputs": [
@@ -440,6 +440,11 @@ def test_group_values(unittest):
                     "property": "value",
                     "value": None,
                 },
+                {
+                    "id": "clustergram-group-dropdown",
+                    "property": "value",
+                    "value": None,
+                },
             ],
             "state": [
                 {"id": "input-data", "property": "data", "value": {"data_id": c.port}},
@@ -526,6 +531,7 @@ def test_main_input_styling(unittest):
                 ts_builder("candlestick-input-data"),
                 ts_builder("treemap-input-data"),
                 ts_builder("funnel-input-data"),
+                ts_builder("clustergram-input-data"),
             ],
             "state": [
                 {
@@ -537,6 +543,7 @@ def test_main_input_styling(unittest):
                 {"id": "candlestick-input-data", "property": "data", "value": {}},
                 {"id": "treemap-input-data", "property": "data", "value": {}},
                 {"id": "funnel-input-data", "property": "data", "value": {}},
+                {"id": "clustergram-input-data", "property": "data", "value": {}},
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -992,6 +999,7 @@ def build_chart_params(
     cs_inputs={},
     treemap_inputs={},
     funnel_inputs={},
+    clustergram_inputs={},
     extended_aggregation=[],
 ):
     return build_dash_request(
@@ -1011,6 +1019,7 @@ def build_chart_params(
                 "candlestick-input-data",
                 "treemap-input-data",
                 "funnel-input-data",
+                "clustergram-input-data",
                 "extended-aggregations",
             ]
         ]
@@ -1027,6 +1036,11 @@ def build_chart_params(
             {"id": "candlestick-input-data", "property": "data", "value": cs_inputs},
             {"id": "treemap-input-data", "property": "data", "value": treemap_inputs},
             {"id": "funnel-input-data", "property": "data", "value": funnel_inputs},
+            {
+                "id": "clustergram-input-data",
+                "property": "data",
+                "value": clustergram_inputs,
+            },
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
             {"id": "auto-load-toggle", "property": "on", "value": True},
             {"id": "load-clicks", "property": "data", "value": 0},
@@ -2290,6 +2304,49 @@ def test_funnel_data(treemap_data, unittest):
 
 
 @pytest.mark.unit
+def test_clustergram_data(clustergram_data, unittest):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        df, _ = views.format_data(clustergram_data)
+        build_data_inst({c.port: df})
+        params = {
+            "output": (
+                "..clustergram-input-data.data...clustergram-value-dropdown.options."
+                "..clustergram-label-dropdown.options.."
+            ),
+            "changedPropIds": ["clustergram-value-dropdown.value"],
+            "inputs": [
+                {
+                    "id": "clustergram-value-dropdown",
+                    "property": "value",
+                    "value": ["mpg", "cyl"],
+                },
+                {
+                    "id": "clustergram-label-dropdown",
+                    "property": "value",
+                    "value": "model",
+                },
+                {
+                    "id": "clustergram-group-dropdown",
+                    "property": "value",
+                    "value": None,
+                },
+            ],
+            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["clustergram-input-data"]["data"],
+            {
+                "clustergram_value": ["mpg", "cyl"],
+                "clustergram_label": "model",
+            },
+        )
+
+
+@pytest.mark.unit
 def test_chart_building_funnel(treemap_data):
     import dtale.views as views
 
@@ -2347,6 +2404,43 @@ def test_chart_building_funnel(treemap_data):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         exception = print_traceback(response, return_output=True)
         assert "found no data" in exception
+
+
+@pytest.mark.unit
+def test_chart_building_clustergram(clustergram_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        df, _ = views.format_data(clustergram_data)
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        inputs = {
+            "chart_type": "clustergram",
+        }
+        chart_inputs = {}
+        clustergram_inputs = {
+            "clustergram_value": ["_all_columns_"],
+            "clustergram_label": "model",
+        }
+        params = build_chart_params(
+            c.port, inputs, chart_inputs, clustergram_inputs=clustergram_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"][0]["props"]["children"][1]["props"][
+                "id"
+            ]
+            == "chart-1"
+        )
+
+        clustergram_inputs["clustergram_value"] = ["mpg"]
+        params = build_chart_params(
+            c.port, inputs, chart_inputs, clustergram_inputs=clustergram_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        exception = print_traceback(response, return_output=True)
+        assert "Please select at least 2 values for clustergram." in exception
 
 
 @pytest.mark.unit
