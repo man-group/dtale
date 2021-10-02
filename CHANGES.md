@@ -1,5 +1,13 @@
 ## Changelog
 
+### 1.58.0 (2021-10-2)
+* [#568](https://github.com/man-group/dtale/issues/568): range highlight updates
+* [#566](https://github.com/man-group/dtale/issues/566): clustergram charts
+* [#578](https://github.com/man-group/dtale/issues/578): dataset correlations error
+* [#576](https://github.com/man-group/dtale/issues/576): dash_core_components and dash_html_component import updates
+* [#579](https://github.com/man-group/dtale/issues/579): fix for pandas.Series.between FutureWarning
+* [#577](https://github.com/man-group/dtale/issues/577): specifying backgrounds programmatically
+
 ### 1.57.0 (2021-9-22)
 * [#565](https://github.com/man-group/dtale/issues/565): allow "chart per group" display in scatter charts
 * [#564](https://github.com/man-group/dtale/issues/564): geometric mean aggregation in "Summarize Data"
