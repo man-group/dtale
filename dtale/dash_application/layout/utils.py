@@ -1,7 +1,6 @@
-import dash_html_components as html
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
 
+from dtale.dash_application import dcc, html
 from dtale.translations import text
 from dtale.utils import dict_merge, classify_type, flatten_lists, make_list
 from dtale.charts.utils import INDEX_COL

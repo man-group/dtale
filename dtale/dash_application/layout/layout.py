@@ -2,13 +2,12 @@ import json
 
 import dash_bootstrap_components as dbc
 import dash_colorscales as dcs
-import dash_core_components as dcc
 import dash_daq as daq
-import dash_html_components as html
 import os
 import plotly
 from pkg_resources import parse_version
 
+from dtale.dash_application import dcc, html
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.global_state as global_state

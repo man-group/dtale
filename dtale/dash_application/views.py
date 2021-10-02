@@ -2,11 +2,10 @@ import json as json
 from logging import getLogger
 
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
+from dtale.dash_application import dcc, html
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.drilldown_modal as drilldown_modal
 import dtale.dash_application.extended_aggregations as extended_aggregations
