@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import dtale.global_state as global_state
+from six import PY3
 
 
 from dtale.app import build_app
@@ -2406,7 +2407,7 @@ def test_chart_building_funnel(treemap_data):
         assert "found no data" in exception
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_chart_building_clustergram(clustergram_data):
     import dtale.views as views
 
