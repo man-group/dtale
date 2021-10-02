@@ -1917,7 +1917,7 @@ def test_chart_exports(custom_data, state_data):
         assert response.content_type == "text/csv"
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_chart_exports_funnel(treemap_data):
     import dtale.views as views
 
@@ -1938,7 +1938,7 @@ def test_chart_exports_funnel(treemap_data):
         assert response.content_type == "text/html"
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_chart_exports_clustergram(clustergram_data):
     import dtale.views as views
 

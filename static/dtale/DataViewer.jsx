@@ -16,6 +16,7 @@ import { DtaleHotkeys } from "./DtaleHotkeys";
 import { GridCell } from "./GridCell";
 import { GridEventHandler } from "./GridEventHandler";
 import { ColumnMenu } from "./column/ColumnMenu";
+import bu from "./backgroundUtils";
 import * as gu from "./gridUtils";
 import { DataViewerInfo } from "./info/DataViewerInfo";
 import { DataViewerMenu } from "./menu/DataViewerMenu";
@@ -168,6 +169,9 @@ class ReactDataViewer extends React.Component {
             }),
             ...c,
           }));
+          if (this.state.backgroundMode === "outliers") {
+            newState.columns = _.map(newState.columns, bu.buildOutlierScales);
+          }
           newState = { ...newState, ...gu.getTotalRange(newState.columns) };
         } else {
           newState = gu.refreshColumns(data, columns, newState, settings, maxColumnWidth);

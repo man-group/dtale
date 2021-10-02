@@ -193,6 +193,17 @@ export const getTotalRange = columns => {
   };
 };
 
+const loadBackgroundMode = props => {
+  const backgroundMode = _.get(props, "settings.backgroundMode");
+  if (backgroundMode) {
+    return backgroundMode;
+  }
+  if (_.size(_.get(props, "settings.rangeHighlight"))) {
+    return "range";
+  }
+  return null;
+};
+
 export const buildState = props => ({
   ...buildGridStyles(props.theme),
   columnFormats: _.get(props, "settings.columnFormats", {}),
@@ -211,7 +222,7 @@ export const buildState = props => ({
   menuOpen: false,
   formattingOpen: false,
   triggerResize: false,
-  backgroundMode: _.size(_.get(props, "settings.rangeHighlight")) ? "range" : null,
+  backgroundMode: loadBackgroundMode(props),
   rangeHighlight: _.get(props, "settings.rangeHighlight", {}),
   ...buildRangeState(),
 });

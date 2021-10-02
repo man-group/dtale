@@ -510,6 +510,101 @@ From there you can enter the credentials you either set in your `.ini` file or i
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/logout.png)
 
+### Instance Settings
+
+Users can set front-end properties on their instances programmatically in the `dtale.show` function or by calling the `update_settings` function on their instance.  For example:
+
+```python
+import dtale
+import pandas as pd
+
+df = pd.DataFrame(dict(
+  a=[1,2,3,4,5],
+  b=[6,7,8,9,10],
+  c=['a','b','c','d','e']
+))
+dtale.show(
+  df,
+  locked=['c'],
+  column_formats={'a': {'fmt': '0.0000'}},
+  nan_display='...',
+  background_mode='heatmap-col',
+  sort=[('a','DESC')]
+)
+```
+
+or
+
+```python
+import dtale
+import pandas as pd
+
+df = pd.DataFrame(dict(
+  a=[1,2,3,4,5],
+  b=[6,7,8,9,10],
+  c=['a','b','c','d','e']
+))
+d = dtale.show(
+  df
+)
+d.update_settings(
+  locked=['c'],
+  column_formats={'a': {'fmt': '0.0000'}},
+  nan_display='...',
+  background_mode='heatmap-col',
+  sort=[('a','DESC')]
+)
+d
+```
+
+Here's a short description of each instance setting available:
+
+#### show_columns
+A list of column names you would like displayed in your grid. Anything else will be hidden.
+
+#### hide_columns
+A list of column names you would like initially hidden from the grid display.
+
+#### column_formats
+A dictionary of column name keys and their front-end display configuration. Here are examples of the different format configurations:
+* Numeric: `{'fmt': '0.00000'}`
+* String:
+  * `{'fmt': {'truncate': 10}}` truncate string values to no more than 10 characters followed by an ellipses 
+  * `{'fmt': {'link': True}}` if your strings are URLs convert them to clickable links
+  * `{'fmt': {'html': True}}` if your strings are HTML fragments render them as HTML
+* Date: `{'fmt': 'MMMM Do YYYY, h:mm:ss a'}` uses [Moment.js formatting](https://momentjs.com/docs/#/displaying/format/)
+
+#### nan_display
+Converts any `nan` values in your dataframe to this when it is sent to the browser (doesn't actually change the state of your dataframe)
+
+#### sort
+List of tuples which sort your dataframe (EX: `[('a', 'ASC'), ('b', 'DESC')]`)
+
+#### locked
+List of column names which will be locked to the right side of your grid while you scroll to the left.
+
+#### background_mode
+A string denoting one of the many background displays available in D-Tale. Options are:
+* heatmap-all: turn on heatmap for all numeric columns where the colors are determined by the range of values over all numeric columns combined
+* heatmap-col: turn on heatmap for all numeric columns where the colors are determined by the range of values in the column
+* heatmap-col-[column name]: turn on heatmap highlighting for a specific column
+* dtypes: highlight columns based on it's data type
+* missing: highlight any missing values (np.nan, empty strings, strings of all spaces)
+* outliers: highlight any outliers
+* range: highlight values for any matchers entered in the "range_highlights" option
+* lowVariance: highlight values with a low variance
+
+#### range_highlights
+Dictionary of column name keys and range configurations which if the value for that column exists then it will be shaded that color.  Here is an example input:
+```
+'a': {
+  'active': True,
+  'equals': {'active': True, 'value': 3, 'color': {'r': 255, 'g': 245, 'b': 157, 'a': 1}}, # light yellow
+  'greaterThan': {'active': True, 'value': 3, 'color': {'r': 80, 'g': 227, 'b': 194, 'a': 1}}, # mint green
+  'lessThan': {'active': True, 'value': 3, 'color': {'r': 245, 'g': 166, 'b': 35, 'a': 1}}, # orange
+}
+```
+
 ### Predefined Filters
 
 Users can build their own custom filters which can be used from the front-end using the following code snippet:

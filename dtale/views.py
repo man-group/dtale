@@ -846,6 +846,7 @@ def startup(
     nan_display=None,
     sort=None,
     locked=None,
+    background_mode=None,
     range_highlights=None,
 ):
     """
@@ -887,6 +888,18 @@ def startup(
     :type sort: list[tuple], optional
     :param locked: Columns to lock to the left of your grid on load
     :type locked: list, optional
+    :param background_mode: Different background highlighting modes available on the frontend. Possible values are:
+                            - heatmap-all: turn on heatmap for all numeric columns where the colors are determined by
+                                           the range of values over all numeric columns combined
+                            - heatmap-col: turn on heatmap for all numeric columns where the colors are determined by
+                                           the range of values in the column
+                            - heatmap-col-[column name]: turn on heatmap highlighting for a specific column
+                            - dtypes: highlight columns based on it's data type
+                            - missing: highlight any missing values (np.nan, empty strings, strings of all spaces)
+                            - outliers: highlight any outliers
+                            - range: highlight values for any matchers entered in the "range_highlights" option
+                            - lowVariance: highlight values with a low variance
+    :type background_mode: string, optional
     :param range_highlights: Definitions for equals, less-than or greater-than ranges for individual (or all) columns
                              which apply different background colors to cells which fall in those ranges.
     :type range_highlights: dict, optional
@@ -937,6 +950,7 @@ def startup(
                 nan_display=nan_display,
                 sort=sort,
                 locked=locked,
+                background_mode=background_mode,
                 range_highlights=range_highlights,
             )
 
@@ -979,6 +993,7 @@ def startup(
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
             columnFormats=column_formats,
+            backgroundMode=background_mode,
             rangeHighlight=range_highlights,
         )
         base_predefined = predefined_filters.init_filters()
