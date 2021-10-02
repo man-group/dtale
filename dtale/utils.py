@@ -14,6 +14,7 @@ from flask import jsonify as _jsonify
 
 import numpy as np
 import pandas as pd
+from pkg_resources import parse_version
 from past.utils import old_div
 from six import StringIO
 
@@ -498,10 +499,18 @@ def get_dtypes(df):
 def coord_type(s):
     if classify_type(find_dtype(s)) not in ["F", "I"]:
         return None
+    is_pandas_1_3 = parse_version(pd.__version__) >= parse_version("1.3.0")
+    inclusive = "both" if is_pandas_1_3 else True
     if "lat" in s.name.lower():
-        return None if (~s.dropna().between(-90, 90, inclusive=True)).sum() else "lat"
+        return (
+            None if (~s.dropna().between(-90, 90, inclusive=inclusive)).sum() else "lat"
+        )
     if "lon" in s.name.lower():
-        return None if (~s.dropna().between(-180, 180, inclusive=True)).sum() else "lon"
+        return (
+            None
+            if (~s.dropna().between(-180, 180, inclusive=inclusive)).sum()
+            else "lon"
+        )
     return None
 
 
