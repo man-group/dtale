@@ -3262,7 +3262,9 @@ def web_upload():
 @exception_decorator
 def dataset_upload():
     dataset = get_str_arg(request, "dataset")
-    startup_code = "from dtale.datasets import {dataset}\n\n" "df = {dataset}()"
+    startup_code = "from dtale.datasets import {dataset}\n\n" "df = {dataset}()".format(
+        dataset=dataset
+    )
     df, settings = getattr(datasets, dataset)()
     return load_new_data(df, startup_code, settings=settings)
 
