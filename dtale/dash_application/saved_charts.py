@@ -1,10 +1,9 @@
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from dtale.charts.utils import ANIMATION_CHARTS, ANIMATE_BY_CHARTS, ZAXIS_CHARTS
+from dtale.dash_application import dcc, html
 from dtale.dash_application.charts import build_chart, valid_chart
 from dtale.dash_application.layout.utils import build_hoverable
 from dtale.utils import dict_merge, is_app_root_defined, flatten_lists, make_list

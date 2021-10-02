@@ -10,8 +10,6 @@ import traceback
 import urllib
 from logging import getLogger
 
-import dash_core_components as dcc
-import dash_html_components as html
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -20,6 +18,7 @@ import plotly.graph_objs as go
 from plotly.io import write_html, write_image
 from six import PY3, BytesIO, StringIO, string_types
 
+from dtale.dash_application import dcc, html
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
