@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.58.2 (2021-10-3)
+* fix for `background_mode` in `dtale.show`
+
 ### 1.58.1 (2021-10-2)
 * re-pinned dash to 2.0.0
 
