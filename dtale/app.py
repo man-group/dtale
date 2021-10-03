@@ -698,6 +698,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             nan_display=final_options["nan_display"],
             sort=final_options["sort"],
             locked=final_options["locked"],
+            background_mode=final_options["background_mode"],
             range_highlights=final_options["range_highlights"],
         )
         instance.started_with_open_browser = final_options["open_browser"]

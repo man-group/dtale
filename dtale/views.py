@@ -257,10 +257,13 @@ class DtaleData(object):
         * allow_cell_edits - whether cells can be edited
         * locked - which columns are locked to the left of the grid
         * custom_formats - display formatting for specific columns
+        * background_mode - different background displays in grid
         * range_highlights - specify background colors for ranges of values in the grid
         """
         name_updates = dict(
-            range_highlights="rangeHighlight", column_formats="columnFormats"
+            range_highlights="rangeHighlight",
+            column_formats="columnFormats",
+            background_mode="backgroundMode",
         )
         settings = {name_updates.get(k, k): v for k, v in updates.items()}
         _update_settings(self._data_id, settings)

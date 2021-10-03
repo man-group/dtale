@@ -178,6 +178,7 @@ def build_show_options(options=None):
         nan_display=None,
         sort=None,
         locked=None,
+        background_mode=None,
         range_highlights=None,
     )
     config_options = {}
@@ -245,6 +246,9 @@ def build_show_options(options=None):
         config_options["locked"] = get_config_val(config, defaults, "locked")
         if config_options["locked"]:
             config_options["locked"] = config_options["locked"].split(",")
+        config_options["background_mode"] = get_config_val(
+            config, defaults, "background_mode"
+        )
         config_options["range_highlights"] = get_config_val(
             config, defaults, "range_highlights"
         )
