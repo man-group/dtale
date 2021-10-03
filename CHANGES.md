@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.58.1 (2021-10-2)
+* re-pinned dash to 2.0.0
+
 ### 1.58.0 (2021-10-2)
 * [#568](https://github.com/man-group/dtale/issues/568): range highlight updates
 * [#566](https://github.com/man-group/dtale/issues/566): clustergram charts
