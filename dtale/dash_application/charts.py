@@ -10,7 +10,6 @@ import traceback
 import urllib
 from logging import getLogger
 
-import dash_bio as dashbio
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -45,6 +44,7 @@ from dtale.dash_application.layout.layout import (
     ANIMATE_BY_CHARTS,
     ANIMATION_CHARTS,
     build_error,
+    get_dashbio,
     test_plotly_version,
     update_label_for_freq_and_agg,
 )
@@ -2659,16 +2659,20 @@ def clustergram_builder(data_id, export=False, **inputs):
             df = pd.DataFrame({col: series[col] for col in df_cols})
             df[df < 0] = 0
 
-            figure = dashbio.Clustergram(
-                data=df[df_cols].values,
-                column_labels=selected_values,
-                row_labels=series["x"],
-                hidden_labels="row",
-                color_threshold={"row": 250, "col": 700},
-                color_map=build_colorscale(colorscale) if colorscale else None,
-                height=math.inf,
-                width=math.inf,
-            ).to_dict()
+            figure = (
+                get_dashbio()
+                .Clustergram(
+                    data=df[df_cols].values,
+                    column_labels=selected_values,
+                    row_labels=series["x"],
+                    hidden_labels="row",
+                    color_threshold={"row": 250, "col": 700},
+                    color_map=build_colorscale(colorscale) if colorscale else None,
+                    height=math.inf,
+                    width=math.inf,
+                )
+                .to_dict()
+            )
             figure["layout"] = dict_merge(
                 figure["layout"],
                 build_title(selected_label, selected_values, group=series_key),

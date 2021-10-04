@@ -84,6 +84,7 @@ setup(
     install_requires=read_file("requirements.txt"),
     extras_require={
         "arctic": ["arctic"],
+        "dash-bio": ["dash-bio"],
         "r": ["rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
         "streamlit": ["streamlit"],

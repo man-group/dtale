@@ -51,6 +51,20 @@ def test_plotly_version(version_num):
     return parse_version(plotly.__version__) >= parse_version(version_num)
 
 
+def get_dashbio():
+    import dash_bio as dashbio  # noqa: F401
+
+    return dashbio
+
+
+def has_dashbio():
+    try:
+        get_dashbio()
+        return True
+    except ImportError:
+        return False
+
+
 def base_layout(app_root, **kwargs):
     """
     Base layout to be returned by :meth:`dtale.dash_application.views.DtaleDash.interpolate_index`
@@ -206,8 +220,10 @@ CHARTS = [
     dict(value="candlestick"),
     dict(value="treemap"),
     dict(value="funnel"),
-    dict(value="clustergram"),
 ]
+if has_dashbio():
+    CHARTS.append(dict(value="clustergram"))
+
 CHART_INPUT_SETTINGS = {
     "line": dict(
         x=dict(type="single"),
