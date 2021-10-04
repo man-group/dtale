@@ -2,7 +2,6 @@ lz4<=2.2.1; python_version < '3.0'
 lz4; python_version > '3.0'
 dash==1.21.0; python_version == '2.7'
 dash>=2.0.0; python_version > '3.0'
-dash-bio
 dash-bootstrap-components<=0.10.5; python_version < '3.0'
 dash-bootstrap-components; python_version > '3.0'
 dash-colorscales

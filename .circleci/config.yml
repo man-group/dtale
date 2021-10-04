@@ -156,6 +156,7 @@ python: &python
            export TZ=America/New_York
            export MPLBACKEND=Agg
            pip install -e ".[arctic]"
+           pip install -e ".[dash-bio]"
            pip install -e ".[redis]"
            pip install -e ".[r]"
            pip install -e ".[tests]"
