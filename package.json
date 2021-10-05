@@ -1,6 +1,6 @@
 {
   "name": "dtale",
-  "version": "1.58.2",
+  "version": "1.58.3",
   "description": "Visualizer for Pandas Data Structures",
   "main": "main.js",
   "directories": {
