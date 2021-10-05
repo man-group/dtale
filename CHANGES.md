@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.58.3 (2021-10-4)
+* updated dash-bio to an optional dependency
+
 ### 1.58.2 (2021-10-3)
 * fix for `background_mode` in `dtale.show`
 
