@@ -30,7 +30,7 @@ import requests
 import scipy.stats as sts
 import xarray as xr
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from six import BytesIO, string_types, StringIO
+from six import BytesIO, PY3, string_types, StringIO
 
 import dtale.correlations as correlations
 import dtale.datasets as datasets
@@ -200,17 +200,24 @@ class DtaleData(object):
         >>> d.kill()
     """
 
-    def __init__(self, data_id, url):
+    def __init__(self, data_id, url, is_proxy=False, app_root=None):
         if data_id is not None:
             data_id = int(data_id)
         self._data_id = data_id
         self._url = url
-        self._main_url = self.build_main_url()
         self._notebook_handle = None
         self.started_with_open_browser = False
+        self.is_proxy = is_proxy
+        self.app_root = app_root
 
-    def build_main_url(self, data_id=None):
-        return "{}/dtale/main/{}".format(self._url, self._data_id)
+    def build_main_url(self):
+        return "{}/dtale/main/{}".format(
+            self.app_root if self.is_proxy else self._url, self._data_id
+        )
+
+    @property
+    def _main_url(self):
+        return self.build_main_url()
 
     @property
     def data(self):
@@ -338,7 +345,9 @@ class DtaleData(object):
         except ImportError:
             logger.info("in order to use this function, please install IPython")
             return None
-        iframe_url = "{}{}{}".format(self._url, route, self._data_id)
+        iframe_url = "{}{}{}".format(
+            self.app_root if self.is_proxy else self._url, route, self._data_id
+        )
         if params is not None:
             if isinstance(params, string_types):  # has this already been encoded?
                 iframe_url = "{}?{}".format(iframe_url, params)
@@ -851,6 +860,8 @@ def startup(
     locked=None,
     background_mode=None,
     range_highlights=None,
+    app_root=None,
+    is_proxy=None,
 ):
     """
     Loads and stores data globally
@@ -911,7 +922,7 @@ def startup(
     if (
         data_loader is None and data is None
     ):  # scenario where we'll force users to upload a CSV/TSV
-        return DtaleData(1, url)
+        return DtaleData(1, url, is_proxy=is_proxy, app_root=app_root)
 
     if data_loader is not None:
         data = data_loader()
@@ -955,6 +966,8 @@ def startup(
                 locked=locked,
                 background_mode=background_mode,
                 range_highlights=range_highlights,
+                app_root=app_root,
+                is_proxy=is_proxy,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1022,7 +1035,7 @@ def startup(
         global_state.set_context_variables(
             data_id, build_context_variables(data_id, context_vars)
         )
-        return DtaleData(data_id, url)
+        return DtaleData(data_id, url, is_proxy=is_proxy, app_root=app_root)
     else:
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
 
@@ -3178,6 +3191,9 @@ def handle_excel_upload(dfs):
     return jsonify(dict(sheets=data_ids, success=True))
 
 
+UPLOAD_SEPARATORS = {"comma": ",", "tab": "\t", "colon": ":", "pipe": "|"}
+
+
 @dtale.route("/upload", methods=["POST"])
 @exception_decorator
 def upload():
@@ -3190,17 +3206,14 @@ def upload():
             # Set engine to python to auto detect delimiter...
             kwargs = {"sep": None}
             sep_type = request.form.get("separatorType")
-            if sep_type:
-                if sep_type == "comma":
-                    kwargs["sep"] = ","
-                elif sep_type == "tab":
-                    kwargs["sep"] = "\t"
-                elif sep_type == "colon":
-                    kwargs["sep"] = ":"
-                elif sep_type == "pipe":
-                    kwargs["sep"] = "|"
-                elif sep_type == "custom" and request.form.get("separator"):
-                    kwargs["sep"] = request.form["separator"]
+            if sep_type in UPLOAD_SEPARATORS:
+                kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
+            elif sep_type == "custom" and request.form.get("separator"):
+                kwargs["sep"] = request.form["separator"]
+                kwargs["sep"] = (
+                    str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
+                )
+
             if "header" in request.form:
                 kwargs["header"] = 0 if request.form["header"] == "true" else None
             df = pd.read_csv(

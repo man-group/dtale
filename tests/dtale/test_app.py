@@ -5,6 +5,7 @@ from flask import Flask
 
 import mock
 import numpy as np
+import os
 import pandas as pd
 import pandas.util.testing as pdt
 import pytest
@@ -658,6 +659,13 @@ def test_build_startup_url_and_app_root():
         url, app_root = build_startup_url_and_app_root("/test_route/")
         assert url == "/test_route/40000"
         assert app_root == "/test_route/40000"
+
+        os.environ["JUPYTERHUB_SERVICE_PREFIX"] = "/user/foo"
+        url, app_root = build_startup_url_and_app_root()
+        assert url == "/user/foo/proxy/40000"
+        assert app_root == "/user/foo/proxy/40000"
+
+        del os.environ["JUPYTERHUB_SERVICE_PREFIX"]
 
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", False))

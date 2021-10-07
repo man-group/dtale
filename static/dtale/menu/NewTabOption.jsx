@@ -14,7 +14,7 @@ class ReactNewTabOption extends React.Component {
     const iframe = global.top !== global.self;
     if (iframe) {
       return (
-        <MenuItem onClick={() => window.open(window.location.pathname, "_blank")}>
+        <MenuItem onClick={() => window.open(window.location.pathname?.replace("/iframe/", "/main/"), "_blank")}>
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="ico-open-in-new" />

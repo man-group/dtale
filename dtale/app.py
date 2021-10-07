@@ -567,7 +567,14 @@ def build_startup_url_and_app_root(app_root=None):
     url = build_url(ACTIVE_PORT, ACTIVE_HOST)
     final_app_root = app_root
     if final_app_root is None and JUPYTER_SERVER_PROXY:
-        final_app_root = "/user/{}/proxy/".format(getpass.getuser())
+        final_app_root = os.environ.get("JUPYTERHUB_SERVICE_PREFIX")
+        if final_app_root is None:
+            final_app_root = "/user/{}".format(getpass.getuser())
+        final_app_root = (
+            "{}/proxy".format(final_app_root)
+            if not final_app_root.endswith("/proxy")
+            else final_app_root
+        )
     if final_app_root is not None:
         if JUPYTER_SERVER_PROXY:
             final_app_root = fix_url_path("{}/{}".format(final_app_root, ACTIVE_PORT))
@@ -700,6 +707,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             locked=final_options["locked"],
             background_mode=final_options["background_mode"],
             range_highlights=final_options["range_highlights"],
+            is_proxy=JUPYTER_SERVER_PROXY,
+            app_root=final_app_root,
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)
@@ -779,14 +788,20 @@ def instances():
 
         def _instance_msgs():
             for data_id in global_state.keys():
-                data_obj = DtaleData(data_id, build_url(ACTIVE_PORT, ACTIVE_HOST))
+                startup_url, final_app_root = build_startup_url_and_app_root()
+                instance = DtaleData(
+                    data_id,
+                    startup_url,
+                    is_proxy=JUPYTER_SERVER_PROXY,
+                    app_root=final_app_root,
+                )
                 name = global_state.get_name(data_id)
-                yield [data_id, name or "", data_obj.build_main_url(data_id=data_id)]
+                yield [data_id, name or "", instance.build_main_url()]
                 if name is not None:
                     yield [
                         global_state.convert_name_to_url_path(name),
                         name,
-                        data_obj.build_main_url(),
+                        instance.build_main_url(),
                     ]
 
         data = pd.DataFrame(
@@ -813,8 +828,13 @@ def get_instance(data_id):
     if not global_state.contains(data_id):
         return None
     if data_id is not None:
-        startup_url, _ = build_startup_url_and_app_root()
-        return DtaleData(data_id, startup_url)
+        startup_url, final_app_root = build_startup_url_and_app_root()
+        return DtaleData(
+            data_id,
+            startup_url,
+            is_proxy=JUPYTER_SERVER_PROXY,
+            app_root=final_app_root,
+        )
     return None
 
 
@@ -877,7 +897,7 @@ def offline_chart(
              - if 'filepath' is specified it will save the chart to the path specified
              - otherwise it will return the HTML output as a string
     """
-    instance = startup(url=None, data=df, data_id=999)
+    instance = startup(url=None, data=df, data_id=999, is_proxy=JUPYTER_SERVER_PROXY)
     output = instance.offline_chart(
         chart_type=chart_type,
         query=query,

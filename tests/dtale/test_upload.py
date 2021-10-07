@@ -28,7 +28,6 @@ def test_upload(unittest):
     global_state.clear_store()
     df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
     with build_app(url=URL).test_client() as c:
-        data = {c.port: df}
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
 
@@ -37,7 +36,10 @@ def test_upload(unittest):
 
         c.post(
             "/dtale/upload",
-            data={"tests_df.csv": (build_upload_data(), "test_df.csv")},
+            data={
+                "tests_df.csv": (build_upload_data(), "test_df.csv"),
+                "separatorType": "csv",
+            },
         )
         assert global_state.size() == 2
         new_key = next((k for k in global_state.keys() if k != c.port), None)
@@ -45,7 +47,26 @@ def test_upload(unittest):
 
     with build_app(url=URL).test_client() as c:
         global_state.clear_store()
-        data = {c.port: df}
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+
+        resp = c.post("/dtale/upload")
+        assert not resp.get_json()["success"]
+
+        c.post(
+            "/dtale/upload",
+            data={
+                "tests_df.csv": (build_upload_data(), "test_df.csv"),
+                "separatorType": "custom",
+                "separator": ",",
+            },
+        )
+        assert global_state.size() == 2
+        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
+
+    with build_app(url=URL).test_client() as c:
+        global_state.clear_store()
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         assert global_state.size() == 1
