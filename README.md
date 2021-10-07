@@ -66,6 +66,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Docker Container](#docker-container)
   - [Google Colab](#google-colab)
   - [Kaggle](#kaggle)
+  - [Binder](#binder)
   - [R with Reticulate](#r-with-reticulate)
   - [Startup with No Data](#startup-with-no-data)
   - [Command-line](#command-line)
@@ -336,6 +337,15 @@ It is important to note that using NGROK will limit you to 20 connections per mi
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/ngrok_limit.png)
 
 Wait a little while and it should allow you to do work again.  I am actively working on finding a more sustainable solution similar to what I did for google colab. :pray:
+
+### Binder
+
+I have built a repo which shows an example of how to run D-Tale within Binder [here](https://github.com/aschonfeld/dtale-binder).
+
+The important take-aways are:
+* you must have `jupyter-server-proxy` installed
+* look at the `environment.yml` file to see how to add it to your environment
+* look at the `postBuild` file for how to activate it on startup
 
 
 ### R with Reticulate

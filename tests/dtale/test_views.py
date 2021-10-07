@@ -936,6 +936,26 @@ def test_build_column():
 
 
 @pytest.mark.unit
+def test_build_column_apply_all():
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"))])
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        cfg = {"col": "a", "to": "float", "from": "int64", "applyAllType": True}
+        c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(type="type_conversion", name="test", cfg=json.dumps(cfg)),
+        )
+        assert all(
+            data[c.port].dtypes[col].name == "float64" for col in ["a", "b", "c"]
+        )
+
+
+@pytest.mark.unit
 def test_build_column_bins():
     from dtale.views import build_dtypes_state
 
@@ -2075,6 +2095,8 @@ def test_200():
         "/dtale/static/images/map_type/choropleth.png",
         "/dtale/static/maps/usa_110m.json",
         "/dtale/network/{port}",
+        "/dtale/calculation/skew",
+        "/dtale/calculation/kurtosis",
     ]
     with app.test_client() as c:
         build_data_inst({c.port: None})

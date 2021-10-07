@@ -154,6 +154,29 @@ def test_jupyter_server_proxy_kill():
 
 
 @pytest.mark.unit
+def test_jupyter_server_proxy_is_proxy():
+    from dtale.views import DtaleData
+
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_HOST", "foo"))
+        stack.enter_context(mock.patch("dtale.app.ACTIVE_PORT", 40000))
+        stack.enter_context(mock.patch("dtale.app.JUPYTER_SERVER_PROXY", True))
+        stack.enter_context(
+            mock.patch("dtale.views.in_ipython_frontend", return_value=True)
+        )
+        mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = DtaleData(
+            9999,
+            "user/root/proxy/40000",
+            is_proxy=True,
+            app_root="user/root/proxy/40000",
+        )
+        assert instance.build_main_url() == "user/root/proxy/40000/dtale/main/9999"
+        instance.kill()
+        mock_requests.assert_called_once_with("http://foo:40000/shutdown")
+
+
+@pytest.mark.unit
 def test_cleanup():
     from dtale.views import DtaleData
 
@@ -162,6 +185,24 @@ def test_cleanup():
         instance = DtaleData(9999, "user/root/proxy/9999")
         instance.cleanup()
         mock_cleanup.assert_called_once_with(9999)
+
+
+@pytest.mark.unit
+def test_started_with_open_browser():
+    from dtale.views import DtaleData
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch("dtale.views.in_ipython_frontend", return_value=True)
+        )
+        instance = DtaleData(9999, "user/root/proxy/9999")
+        instance.started_with_open_browser = True
+        assert instance.__str__() == ""
+        assert instance.started_with_open_browser is False
+
+        instance.started_with_open_browser = True
+        assert instance.__repr__() == ""
+        assert instance.started_with_open_browser is False
 
 
 @pytest.mark.unit
