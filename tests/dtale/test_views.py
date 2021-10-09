@@ -74,6 +74,7 @@ def test_startup(unittest):
             sortInfo=[("security_id", "ASC")],
             rangeHighlight=None,
             backgroundMode=None,
+            verticalHeaders=False,
         ),
         "should lock index columns",
     )
@@ -120,6 +121,7 @@ def test_startup(unittest):
             precision=6,
             rangeHighlight=range_highlights,
             backgroundMode=None,
+            verticalHeaders=False,
         ),
         "no index = nothing locked",
     )
@@ -137,6 +139,7 @@ def test_startup(unittest):
             precision=2,
             rangeHighlight=None,
             backgroundMode=None,
+            verticalHeaders=False,
         ),
         "should lock index columns",
     )
@@ -153,6 +156,7 @@ def test_startup(unittest):
             columnFormats=None,
             rangeHighlight=None,
             backgroundMode=None,
+            verticalHeaders=False,
         ),
         "should lock index columns",
     )
@@ -169,6 +173,7 @@ def test_startup(unittest):
             columnFormats=None,
             rangeHighlight=None,
             backgroundMode=None,
+            verticalHeaders=False,
         ),
         "should lock index columns",
     )

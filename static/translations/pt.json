@@ -57,7 +57,8 @@
     "Show All Heatmap Columns": "Mostrar as Colunas de Mapas de Calor",
     "Feature Analysis": "Análise de Recursos",
     "Timeseries": "Séries Temporais",
-    "gage_rnr": "Gage R & R"
+    "gage_rnr": "Gage R & R",
+    "Vertical Column Headers": "Vertical Column Headers"
   },
   "menu_description": {
     "describe": "Descreve valores das colunas (Valores únicos, Min, Max, Soma, STD, Var,...)",
@@ -103,7 +104,8 @@
     "show_all_heatmap": "Mostre todas as colunas não numéricas ao exibir o destaque do Mapa de Calor.",
     "corr_analysis": "Remover colunas (recursos) com base em suas correlações com outras colunas no seu conjunto de dados. Se houver uma forte correlação entre algumas colunas (características), então talvez eles não sejam relevantes para manter por aí?",
     "timeseries": "Reformular dados de intervenções usando operações como \"Redimensionamento\"",
-    "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device."
+    "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device.",
+    "vertical_headers": "Rotate column headers vertically"
   },
   "column_menu": {
     "Asc": "Asc",

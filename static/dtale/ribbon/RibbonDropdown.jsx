@@ -43,6 +43,7 @@ import SummarizeOption from "../menu/SummarizeOption";
 import { ThemeOption } from "../menu/ThemeOption";
 import TimeseriesOption from "../menu/TimeseriesOption";
 import UploadOption from "../menu/UploadOption";
+import { VerticalColumnHeaders } from "../menu/VerticalColumnHeaders";
 import { XArrayOption } from "../menu/XArrayOption";
 import menuFuncs from "../menu/dataViewerMenuUtils";
 import { DataMenuItem } from "./DataMenuItem";
@@ -230,6 +231,7 @@ class ReactRibbonDropdown extends React.Component {
             <MaxWidthOption ribbonWrapper={hideWrapper} />
             <MaxHeightOption ribbonWrapper={hideWrapper} />
             <ShowNonNumericHeatmapColumns backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
+            <VerticalColumnHeaders />
           </ul>
         )}
       </div>

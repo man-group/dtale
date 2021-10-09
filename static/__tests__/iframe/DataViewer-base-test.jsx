@@ -22,7 +22,16 @@ import {
 
 import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from "./iframe-utils";
 
-const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => _.assignIn({ width: i == 0 ? 70 : 20, locked: i == 0 }, c));
+const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => {
+  const width = i == 0 ? 70 : 20;
+  return {
+    ...c,
+    width,
+    headerWidth: i == 0 ? 70 : 20,
+    dataWidth: width,
+    locked: i == 0,
+  };
+});
 
 class MockDateInput extends React.Component {
   render() {

@@ -40,7 +40,7 @@ class ReactMaxDimensionOption extends React.Component {
     return (
       <MenuItem style={{ color: "#565b68" }} description={t(`menu_description:max_${description}`)}>
         <span className="toggler-action">
-          <i className={`fas fa-arrows-alt-${icon} mr-4 ml-1`} />
+          <i className={`fas fa-arrows-alt-${icon}`} />
         </span>
         <div className="w-100">
           <div className="row m-0">
@@ -102,7 +102,7 @@ const ReduxMaxWidthOption = connect(
   ({ maxColumnWidth }) => ({
     label: "Width",
     description: "width",
-    icon: "h",
+    icon: "h mr-4 ml-1",
     maxDimension: maxColumnWidth,
   }),
   dispatch => ({
@@ -115,7 +115,7 @@ const ReduxMaxHeightOption = connect(
   ({ maxRowHeight }) => ({
     label: "Height",
     description: "height",
-    icon: "v",
+    icon: "v mr-5 ml-3",
     maxDimension: maxRowHeight,
   }),
   dispatch => ({

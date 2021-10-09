@@ -78,7 +78,8 @@ class ReactDataViewer extends React.Component {
       this.getData(this.state.ids, refresh);
     }
     if (this.state.triggerResize) {
-      this.setState({ triggerResize: false }, () => {
+      const styles = gu.buildGridStyles(this.props.theme, gu.getRowHeight(0, this.state, this.props));
+      this.setState({ ...styles, triggerResize: false }, () => {
         if (_.size(this.state.data)) {
           this._grid.forceUpdate();
           this._grid.recomputeGridSize();
@@ -98,7 +99,12 @@ class ReactDataViewer extends React.Component {
         },
       });
     }
-
+    if (prevProps.verticalHeaders !== this.props.verticalHeaders) {
+      this.setState(gu.buildGridStyles(this.props.theme, gu.getRowHeight(0, this.state, this.props)), () => {
+        this._grid.forceUpdate();
+        this._grid.recomputeGridSize();
+      });
+    }
     reduxUtils.handleReduxState(this.state, this.props, this.propagateState);
   }
 
@@ -169,6 +175,7 @@ class ReactDataViewer extends React.Component {
             }),
             ...c,
           }));
+          newState.triggerResize = this.props.verticalHeaders;
           if (this.state.backgroundMode === "outliers") {
             newState.columns = _.map(newState.columns, bu.buildOutlierScales);
           }
@@ -240,8 +247,8 @@ class ReactDataViewer extends React.Component {
                       cellRenderer={this._cellRenderer}
                       height={gu.gridHeight(height, this.state.columns, this.props)}
                       width={width - (this.props.menuPinned ? 198 : 3)}
-                      columnWidth={({ index }) => gu.getColWidth(index, this.state)}
-                      rowHeight={({ index }) => gu.getRowHeight(index, this.props)}
+                      columnWidth={({ index }) => gu.getColWidth(index, this.state, this.props)}
+                      rowHeight={({ index }) => gu.getRowHeight(index, this.state, this.props)}
                       onSectionRendered={this._onSectionRendered}
                       ref={mg => (this._grid = mg)}
                     />
@@ -283,6 +290,7 @@ ReactDataViewer.propTypes = {
   clearDataViewerUpdate: PropTypes.func,
   maxColumnWidth: PropTypes.number,
   editedTextAreaHeight: PropTypes.number,
+  verticalHeaders: PropTypes.bool,
 };
 const ReduxDataViewer = connect(gu.reduxState, gu.reduxDispatch)(ReactDataViewer);
 export { ReduxDataViewer as DataViewer, ReactDataViewer };

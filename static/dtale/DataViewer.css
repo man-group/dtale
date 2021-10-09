@@ -27,6 +27,10 @@
   display: block;
 }
 
+.rotate-header {
+  transform: rotate(-90deg);
+}
+
 .active-resize {
   background-color: white;
   z-index: 20;

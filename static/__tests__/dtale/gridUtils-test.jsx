@@ -36,6 +36,8 @@ describe("gridUtils tests", () => {
       measureTextSpy.mockImplementation(() => 150);
       expect(gu.calcColWidth({}, { maxColumnWidth: 100 })).toEqual({
         width: 100,
+        dataWidth: 70,
+        headerWidth: 150,
         resized: true,
       });
     });
@@ -43,8 +45,28 @@ describe("gridUtils tests", () => {
     it("column unaffected", () => {
       measureTextSpy.mockImplementation(() => 50);
       expect(gu.calcColWidth({}, { maxColumnWidth: 100 })).toEqual({
-        width: 50,
+        width: 70,
+        dataWidth: 70,
+        headerWidth: 50,
       });
+    });
+  });
+
+  describe("verticalHeaders", () => {
+    const columns = [
+      { index: 0, visible: true },
+      { index: 1, width: 100, headerWidth: 100, dataWidth: 75, visible: true },
+    ];
+    it("getColWidth", () => {
+      const width = gu.getColWidth(1, { columns }, { verticalHeaders: true });
+      expect(width).toEqual(75);
+    });
+
+    it("getRowHeight", () => {
+      let height = gu.getRowHeight(0, { columns }, { verticalHeaders: true });
+      expect(height).toEqual(100);
+      height = gu.getRowHeight(0, { columns }, { verticalHeaders: false });
+      expect(height).toEqual(gu.HEADER_HEIGHT);
     });
   });
 });

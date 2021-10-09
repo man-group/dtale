@@ -59,4 +59,9 @@ describe("Header", () => {
     wrapper.setProps({ columns: updatedColumns });
     expect(wrapper.find(".resized")).toHaveLength(1);
   });
+
+  it("vertical headers", () => {
+    wrapper.setProps({ verticalHeaders: true });
+    expect(wrapper.find("div").at(1).props().className).toBe("text-nowrap rotate-header");
+  });
 });
