@@ -28,7 +28,6 @@ describe("DataViewer tests", () => {
   let result, Duplicates, Columns, ColumnNames, Rows, ShowDuplicates;
 
   beforeAll(() => {
-    jest.setTimeout(10000);
     dimensions.beforeAll();
     delete window.location;
     delete window.open;

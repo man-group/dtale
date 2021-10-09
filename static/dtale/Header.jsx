@@ -144,7 +144,7 @@ class ReactHeader extends React.Component {
   }
 
   render() {
-    const { columnIndex, style, toggleColumnMenu, hideColumnMenu, propagateState, t } = this.props;
+    const { columnIndex, style, toggleColumnMenu, hideColumnMenu, propagateState, verticalHeaders, t } = this.props;
     const { columns, menuOpen, sortInfo, backgroundMode, columnRange, rowCount, ctrlCols } = this.props;
     if (columnIndex == 0) {
       return (
@@ -175,6 +175,19 @@ class ReactHeader extends React.Component {
     const rangeClass =
       isInRowOrColumnRange(columnIndex, columnRange) || _.includes(ctrlCols, columnIndex) ? " in-range" : "";
     const { colWidth, drag } = this.state;
+    const classes = ["text-nowrap"];
+    const textStyle = { cursor: "default" };
+    if (!drag && colCfg.resized) {
+      classes.push("resized");
+    }
+    if (verticalHeaders) {
+      headerStyle.height = "inherit";
+      textStyle.width = gu.getRowHeight(0, this.props, this.props) - 15;
+      textStyle.textAlign = "left";
+      classes.push("rotate-header");
+    } else {
+      classes.push("w-100");
+    }
     return (
       <div
         className={`headerCell ${markupProps.className}${rangeClass}${drag ? " active-resize" : ""}`}
@@ -182,8 +195,8 @@ class ReactHeader extends React.Component {
         onMouseOver={this.handleMouseOver}
         name={escape(colName)}>
         <div
-          className={`text-nowrap w-100${!drag && colCfg.resized ? " resized" : ""}`}
-          style={{ cursor: "default" }}
+          className={_.join(classes, " ")}
+          style={textStyle}
           onClick={e => {
             if (this.state.drag) {
               return;
@@ -226,6 +239,7 @@ ReactHeader.propTypes = {
   hideColumnMenu: PropTypes.func,
   updateDragResize: PropTypes.func,
   stopDragResize: PropTypes.func,
+  verticalHeaders: PropTypes.bool,
   t: PropTypes.func,
 };
 const TranslateReactHeader = withTranslation("main")(ReactHeader);

@@ -271,6 +271,7 @@ class DtaleData(object):
             range_highlights="rangeHighlight",
             column_formats="columnFormats",
             background_mode="backgroundMode",
+            vertical_headers="verticalHeaders",
         )
         settings = {name_updates.get(k, k): v for k, v in updates.items()}
         _update_settings(self._data_id, settings)
@@ -862,6 +863,7 @@ def startup(
     range_highlights=None,
     app_root=None,
     is_proxy=None,
+    vertical_headers=False,
 ):
     """
     Loads and stores data globally
@@ -968,6 +970,7 @@ def startup(
                 range_highlights=range_highlights,
                 app_root=app_root,
                 is_proxy=is_proxy,
+                vertical_headers=vertical_headers,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1011,6 +1014,7 @@ def startup(
             columnFormats=column_formats,
             backgroundMode=background_mode,
             rangeHighlight=range_highlights,
+            verticalHeaders=vertical_headers,
         )
         base_predefined = predefined_filters.init_filters()
         if base_predefined:

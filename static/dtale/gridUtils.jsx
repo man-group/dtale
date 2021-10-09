@@ -80,14 +80,25 @@ export const getActiveCols = ({ columns, backgroundMode }) =>
 export const getCol = (index, { columns, backgroundMode }) =>
   _.get(getActiveCols({ columns, backgroundMode }), index, {});
 
-export const getColWidth = (index, { columns, backgroundMode }) =>
-  _.get(getCol(index, { columns, backgroundMode }), "width", DEFAULT_COL_WIDTH);
+export const getColWidth = (index, { columns, backgroundMode }, props) => {
+  const col = getCol(index, { columns, backgroundMode });
+  let width = col.width;
+  if (props.verticalHeaders) {
+    width = col.resized ? col.width : col.dataWidth ?? col.width;
+  }
+  return width ?? DEFAULT_COL_WIDTH;
+};
 
 export const ROW_HEIGHT = 25;
 export const HEADER_HEIGHT = 35;
 
-export const getRowHeight = (index, props) => {
+export const getRowHeight = (index, state, props) => {
   if (index === 0) {
+    if (props.verticalHeaders) {
+      const cols = getActiveCols(state);
+      const maxWidth = _.max(_.map(cols, col => col.headerWidth ?? col.width)) ?? HEADER_HEIGHT;
+      return maxWidth < HEADER_HEIGHT ? HEADER_HEIGHT : maxWidth;
+    }
     return HEADER_HEIGHT;
   }
   return props.maxRowHeight ?? ROW_HEIGHT;
@@ -129,16 +140,17 @@ const calcDataWidth = (name, dtype, data) => {
 };
 
 export const calcColWidth = (
-  { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width },
+  { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth },
   { data, rowCount, sortInfo, backgroundMode, maxColumnWidth }
 ) => {
   if (resized === true) {
-    return { width };
+    return { width, headerWidth, dataWidth };
   }
   let w;
   if (name === IDX) {
     w = measureText(rowCount - 1 + "");
-    w = { width: w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w };
+    w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
+    w = { width: w, headerWidth: w, dataWidth: w };
   } else {
     const sortDir = (_.find(sortInfo, ([col, _dir]) => col === name) || [null, null])[1];
     let headerWidth = measureText(name) + (_.includes(["ASC", "DESC"], sortDir) ? 10 : 0);
@@ -149,9 +161,11 @@ export const calcColWidth = (
     } else if (backgroundMode === "lowVariance" && lowVariance) {
       headerWidth += 15; // star emoji
     }
-    w = calcDataWidth(name, dtype, data) ?? headerWidth;
-    w = headerWidth > w ? headerWidth : w;
+    const dataWidth = calcDataWidth(name, dtype, data) ?? DEFAULT_COL_WIDTH;
+    w = headerWidth > dataWidth ? headerWidth : dataWidth;
     w = maxColumnWidth && w >= maxColumnWidth ? { width: maxColumnWidth, resized: true } : { width: w };
+    w.headerWidth = headerWidth;
+    w.dataWidth = dataWidth;
   }
   return w;
 };
@@ -313,8 +327,8 @@ export const toggleColumns = ({ columns }, { columnsToToggle }) => ({
   triggerResize: true,
 });
 
-export const reduxState = state =>
-  _.pick(state, [
+export const reduxState = state => ({
+  ..._.pick(state, [
     "dataId",
     "iframe",
     "theme",
@@ -325,7 +339,9 @@ export const reduxState = state =>
     "maxColumnWidth",
     "maxRowHeight",
     "editedTextAreaHeight",
-  ]);
+  ]),
+  verticalHeaders: _.get(state, "settings.verticalHeaders", false),
+});
 
 export const reduxDispatch = dispatch => ({
   closeColumnMenu: () => dispatch(actions.closeColumnMenu()),

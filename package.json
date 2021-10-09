@@ -51,7 +51,8 @@
       "html",
       "lcovonly",
       "text-summary"
-    ]
+    ],
+    "testTimeout": 30000
   },
   "jest-junit": {
     "outputDirectory": "/tmp/circleci-test-results",
