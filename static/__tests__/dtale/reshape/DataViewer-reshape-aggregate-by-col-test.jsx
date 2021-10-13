@@ -75,10 +75,21 @@ describe("DataViewer tests", () => {
     expect(result.find(Aggregate).length).toBe(1);
     const aggComp = result.find(Aggregate).first();
     const aggInputs = aggComp.find(Select);
-    aggInputs.first().instance().onChange({ value: "col1" });
-    aggInputs.at(1).instance().onChange({ value: "col2" });
-    aggInputs.at(2).instance().onChange({ value: "count" });
+    aggInputs.first().props().onChange({ value: "col1" });
+    aggInputs
+      .at(2)
+      .find("input")
+      .simulate("change", { target: { value: "count" } });
+    aggInputs.at(2).find("input").simulate("keyDown", { keyCode: 9, key: "Tab" });
+    aggInputs
+      .at(1)
+      .find("input")
+      .simulate("change", { target: [{ value: "col2" }] });
+    aggInputs.at(1).find("input").simulate("keyDown", { keyCode: 9, key: "Tab" });
     aggComp.find("i").first().simulate("click");
+    result.find(Reshape).setState({
+      cfg: { index: ["col"], agg: { type: "col", cols: { col2: "count" } } },
+    });
     result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);

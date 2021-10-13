@@ -15,7 +15,7 @@ class SummarizeOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-tools ml-2 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:Summarize Data")}</span>
+            <span className="font-weight-bold">{this.props.t("Summarize Data", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

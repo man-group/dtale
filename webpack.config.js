@@ -86,27 +86,55 @@ function createConfig(entry) {
         },
         {
           test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "url-loader",
-          options: { limit: 10000, mimetype: "image/svg+xml" },
+          type: "asset",
+          parser: {
+            dataUrlCondition: {
+              maxSize: 10000,
+            },
+          },
+          generator: {
+            filename: "[name]-[contenthash:8][ext]",
+          },
         },
         {
           test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "url-loader",
-          options: { limit: 10000, mimetype: "application/font-woff" },
+          type: "asset",
+          parser: {
+            dataUrlCondition: {
+              maxSize: 10000,
+            },
+          },
+          generator: {
+            filename: "[name]-[contenthash:8][ext]",
+          },
         },
         {
           test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "url-loader",
-          options: { limit: 10000, mimetype: "application/octet-stream" },
+          type: "asset",
+          parser: {
+            dataUrlCondition: {
+              maxSize: 10000,
+            },
+          },
+          generator: {
+            filename: "[name]-[contenthash:8][ext]",
+          },
         },
         {
           test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "url-loader",
-          options: { limit: 10000, mimetype: "image/png" },
+          type: "asset",
+          parser: {
+            dataUrlCondition: {
+              maxSize: 10000,
+            },
+          },
+          generator: {
+            filename: "[name]-[contenthash:8][ext]",
+          },
         },
         {
           test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-          loader: "file-loader",
+          type: "asset",
         },
       ],
     },

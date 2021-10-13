@@ -197,7 +197,7 @@ describe("ColumnAnalysis tests", () => {
     });
     result.find(ColumnAnalysisFilters).find("button").at(1).simulate("click");
     result.update();
-    filters().find(Select).first().instance().onChange({ value: "col1" });
+    filters().find(Select).first().props().onChange({ value: "col1" });
     await tickUpdate(result);
     filters()
       .find("input")
@@ -242,7 +242,7 @@ describe("ColumnAnalysis tests", () => {
     currProps.chartData.selectedCol = "dateCol";
     updateProps(currProps);
     const ordinalInputs = result.find(Select);
-    ordinalInputs.first().instance().onChange({ value: "col1" });
+    ordinalInputs.first().props().onChange({ value: "col1" });
     await tickUpdate(result);
   });
 

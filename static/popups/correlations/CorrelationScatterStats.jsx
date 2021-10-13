@@ -16,7 +16,7 @@ class CorrelationScatterStats extends React.Component {
   renderDescription() {
     const { selectedCols, t } = this.props;
     const [col0, col1] = selectedCols;
-    return <b>{`${col0} ${t("correlations:vs.")} ${col1}${this.props.date || ""}`}</b>;
+    return <b>{`${col0} ${t("vs.", { ns: "correlations" })} ${col1}${this.props.date || ""}`}</b>;
   }
 
   render() {
@@ -47,7 +47,7 @@ class CorrelationScatterStats extends React.Component {
             <dd className="hoverable">
               {displayScore(pps)}
               <div className="hoverable__content">
-                <h4>{t("menu:Predictive Power Score")}</h4>
+                <h4>{t("Predictive Power Score", { ns: "menu" })}</h4>
                 <PPSDetails ppsInfo={pps} />
               </div>
             </dd>
@@ -58,19 +58,21 @@ class CorrelationScatterStats extends React.Component {
           <dd>{correlated}</dd>
         </dl>
         <dl className="property-pair inline">
-          <dt>{`${t("correlations:Only in")} ${col0}`}</dt>
+          <dt>{`${t("Only in", { ns: "correlations" })} ${col0}`}</dt>
           <dd>{stats.only_in_s0}</dd>
         </dl>
         <dl className="property-pair inline">
-          <dt>{`${t("correlations:Only in")} ${col1}`}</dt>
+          <dt>{`${t("Only in", { ns: "correlations" })} ${col1}`}</dt>
           <dd>{stats.only_in_s1}</dd>
         </dl>
         <dl className="property-pair inline float-right">
-          {renderCodePopupAnchor(this.props.scatterCode, t("correlations:Correlations Scatter"))}
+          {renderCodePopupAnchor(this.props.scatterCode, t("Correlations Scatter", { ns: "correlations" }))}
         </dl>
       </div>,
       <div key={1} style={{ marginTop: "-.5em" }}>
-        <small>{t("correlations:(Click on any point in the scatter to filter the grid down to that record)")}</small>
+        <small>
+          {t("(Click on any point in the scatter to filter the grid down to that record)", { ns: "correlations" })}
+        </small>
       </div>,
     ];
   }

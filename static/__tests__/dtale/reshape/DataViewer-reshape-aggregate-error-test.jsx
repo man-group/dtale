@@ -77,7 +77,7 @@ describe("DataViewer tests", () => {
     expect(result.find(RemovableError).text()).toBe("Missing an aggregation selection!");
     const aggComp = result.find(Aggregate).first();
     const aggInputs = aggComp.find(Select);
-    aggInputs.first().instance().onChange({ value: "col1" });
+    aggInputs.first().props().onChange({ value: "col1" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     expect(result.find(RemovableError).text()).toBe("Missing an aggregation selection!");
     aggComp.find("button").last().simulate("click");

@@ -82,6 +82,8 @@ def get_analysis(data_id):
     upper = upper.loc[score.index]
     column_name = upper.index[0]
     max_score = score.loc[column_name]
+    if pd.isnull(max_score):
+        max_score = "N/A"
     upper = upper.fillna(0).to_dict(orient="index")
 
     missing = df[valid_corr_cols].isna().sum()

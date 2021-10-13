@@ -15,7 +15,7 @@ class BuildColumnOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-build" />
-            <span className="font-weight-bold">{this.props.t("menu:Dataframe Functions")}</span>
+            <span className="font-weight-bold">{this.props.t("Dataframe Functions", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

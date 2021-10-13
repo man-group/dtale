@@ -97,14 +97,14 @@ describe("DataViewer tests", () => {
     await simulateClick(findLeftInputs(result).find("button").first());
     await simulateClick(findLeftInputs(result).find("button").last());
     await simulateClick(findLeftInputs(result).find("button").first());
-    findLeftInputs(result).find(Select).first().instance().onChange({ value: "col1" });
+    findLeftInputs(result).find(Select).first().props().onChange({ value: "col1" });
     await tick();
     findConcatenateInputs(result)
       .find("div.form-group")
       .last()
       .find(Select)
       .first()
-      .instance()
+      .props()
       .onChange({ value: "col2" });
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       left: { col: "col1", type: "col" },

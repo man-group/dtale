@@ -2849,7 +2849,7 @@ def get_correlations_ts(data_id):
 
     data.columns = ["date", "corr"]
     code.append("corr_ts.columns = ['date', 'corr']")
-    return_data, _code = build_base_chart(data.fillna(0), "date", "corr")
+    return_data, _code = build_base_chart(data.fillna(0), "date", "corr", agg="raw")
     return_data["success"] = True
     return_data["code"] = "\n".join(code)
     return_data["pps"] = pps

@@ -32,7 +32,9 @@ class HeatMapOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain" onClick={this.toggleBackground}>
             <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
-            <span className={`font-weight-bold pl-3${heatmapActive ? " flames" : ""}`}>{t("menu:Heat Map")}</span>
+            <span className={`font-weight-bold pl-3${heatmapActive ? " flames" : ""}`}>
+              {t("Heat Map", { ns: "menu" })}
+            </span>
           </button>
         </span>
       </li>

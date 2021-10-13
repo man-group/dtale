@@ -70,7 +70,7 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Bins");
     expect(result.find(CreateBins).length).toBe(1);
     const binInputs = result.find(CreateBins).first();
-    binInputs.find(Select).first().instance().onChange({ value: "col2" });
+    binInputs.find(Select).first().props().onChange({ value: "col2" });
     binInputs.find("div.form-group").at(1).find("button").first().simulate("click");
     binInputs
       .find("div.form-group")

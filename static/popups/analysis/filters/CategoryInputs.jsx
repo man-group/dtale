@@ -35,10 +35,10 @@ class CategoryInputs extends React.Component {
       <React.Fragment>
         <div className="col-auto text-center pr-4">
           <div>
-            <b>{t("analysis:Category Breakdown")}</b>
+            <b>{t("Category Breakdown", { ns: "analysis" })}</b>
           </div>
           <div style={{ marginTop: "-.5em" }}>
-            <small>{`(${t("analysis:Choose Col/Agg")})`}</small>
+            <small>{`(${t("Choose Col/Agg", { ns: "analysis" })})`}</small>
           </div>
         </div>
         <div className="col-auto pl-0 mr-3 ordinal-dd">

@@ -77,6 +77,7 @@ function createCharts(data, props, state, funcs = {}) {
   if (chartTypeVal === "wordcloud") {
     return null;
   }
+  const charts = state.charts ?? [];
   if (state.chartPerGroup) {
     return _.map(_.get(data, "data", {}), (series, seriesKey) => {
       const mainProps = _.pick(props, ["columns", "x", "y", "additionalOptions", "configHandler"]);
@@ -86,11 +87,11 @@ function createCharts(data, props, state, funcs = {}) {
       });
       const subData = { data: { all: series }, min: data.min, max: data.max };
       const builder = ctx => createChartCfg(ctx, subData, mainProps, funcs);
-      return chartUtils.chartWrapper(`chartCanvas-${seriesKey}`, null, builder);
+      return chartUtils.chartWrapper(`chartCanvas-${seriesKey}`, charts[seriesKey], builder);
     });
   }
   const builder = ctx => createChartCfg(ctx, data, _.assignIn({}, props, { chartType: chartTypeVal }), funcs);
-  return [chartUtils.chartWrapper("chartCanvas", null, builder)];
+  return [chartUtils.chartWrapper("chartCanvas", charts[0], builder)];
 }
 
 function sortBars(data, sort, props, state) {
@@ -205,7 +206,7 @@ class ChartsBody extends React.Component {
           this.setState({
             error: <RemovableError error="No data found." />,
             chartSort: _.clone(this.props.x),
-            chart: null,
+            charts: null,
           });
           return;
         }

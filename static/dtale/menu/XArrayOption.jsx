@@ -14,7 +14,7 @@ function renderDimensionSelection(dimensionSelection, t) {
       ", "
     );
   }
-  return t("menu:ALL DATA");
+  return t("ALL DATA", { ns: "menu" });
 }
 
 class ReactXArrayOption extends React.Component {
@@ -33,7 +33,7 @@ class ReactXArrayOption extends React.Component {
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="ico-key" />
-              <span className="font-weight-bold">{t("menu:XArray Dimensions")}</span>
+              <span className="font-weight-bold">{t("XArray Dimensions", { ns: "menu" })}</span>
             </button>
           </span>
         </MenuItem>
@@ -44,7 +44,7 @@ class ReactXArrayOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-tune" />
-            <span className="font-weight-bold">{t("menu:Convert To XArray")}</span>
+            <span className="font-weight-bold">{t("Convert To XArray", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

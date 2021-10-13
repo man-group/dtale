@@ -15,7 +15,7 @@ class MergeOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-object-group pl-3 pr-3" />
-            <span className="font-weight-bold">{this.props.t("menu:Merge & Stack")}</span>
+            <span className="font-weight-bold">{this.props.t("Merge & Stack", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

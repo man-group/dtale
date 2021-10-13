@@ -57,7 +57,7 @@ class StringFilter extends React.Component {
   renderInputHint() {
     const { action } = this.state;
     const { t } = this.props;
-    const base = t("correlations:Press ENTER to submit");
+    const base = t("Press ENTER to submit", { ns: "correlations" });
     if (action.value === "length") {
       return `${base}. Enter integers for length. For a range enter '1,3' which means '1 <= str.length <= 3'.`;
     }

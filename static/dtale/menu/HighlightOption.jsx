@@ -17,7 +17,7 @@ class HighlightOption extends React.Component {
           <button className="btn btn-plain">
             <div style={{ display: "inherit" }}>
               <div className={`bg-icon ${mode}-bg${current === mode ? " spin" : ""}`} />
-              <span className="font-weight-bold pl-4">{t(`menu:Highlight ${label}`)}</span>
+              <span className="font-weight-bold pl-4">{t(`Highlight ${label}`, { ns: "menu" })}</span>
             </div>
           </button>
         </span>

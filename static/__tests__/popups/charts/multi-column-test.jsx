@@ -13,7 +13,7 @@ import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 function updateChartType(result, cmp, chartType) {
-  result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
+  result.find(cmp).find(Select).first().props().onChange({ value: chartType });
   result.update();
 }
 
@@ -53,19 +53,19 @@ describe("Charts tests", () => {
 
     await tickUpdate(result);
     let filters = result.find(Charts).find(Select);
-    filters.first().instance().onChange({ value: "col4" });
+    filters.first().props().onChange({ value: "col4" });
     filters
       .at(1)
-      .instance()
+      .props()
       .onChange([{ value: "col1" }, { value: "col2" }]);
-    filters.at(3).instance().onChange({ value: "rolling", label: "Rolling" });
+    filters.at(3).props().onChange({ value: "rolling", label: "Rolling" });
     result.update();
     result
       .find(Aggregations)
       .find("input")
       .at(1)
       .simulate("change", { target: { value: "10" } });
-    result.find(Aggregations).find(Select).last().instance().onChange({ value: "corr", label: "Correlation" });
+    result.find(Aggregations).find(Select).last().props().onChange({ value: "corr", label: "Correlation" });
     result
       .find(Charts)
       .find("input.form-control")
@@ -101,10 +101,10 @@ describe("Charts tests", () => {
     updateChartType(result, ChartsBody, "pie");
     expect(result.find(ChartsBody).instance().state.charts[0].cfg.type).toBe("pie");
     filters = result.find(Charts).find(Select);
-    filters.at(3).instance().onChange(null);
+    filters.at(3).props().onChange(null);
     filters
       .at(2)
-      .instance()
+      .props()
       .onChange([{ value: "col1" }, { value: "col3" }]);
     result.find(Charts).find("button").first().simulate("click");
     await tickUpdate(result);
@@ -118,7 +118,7 @@ describe("Charts tests", () => {
     ).toBe("val1 - col1: 1.1235");
     updateChartType(result, ChartsBody, "wordcloud");
     updateChartType(result, ChartsBody, "line");
-    result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "On" });
+    result.find(ChartsBody).find(Select).at(1).props().onChange({ value: "On" });
     result.update();
     expect(result.find(ChartsBody).instance().state.charts.length).toBe(2);
     chartObj = result.find(ChartsBody).instance().state.charts[0];

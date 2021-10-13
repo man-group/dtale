@@ -6,7 +6,8 @@ import Select, { createFilter } from "react-select";
 
 import { pivotAggs } from "../analysis/filters/Constants";
 
-const aggregateAggs = t => _.concat(pivotAggs(t), [{ value: "gmean", label: t("constants:Geometric Mean") }]);
+const aggregateAggs = t =>
+  _.concat(pivotAggs(t), [{ value: "gmean", label: t("Geometric Mean", { ns: "constants" }) }]);
 
 function validateAggregateCfg(cfg) {
   const { agg } = cfg ?? {};
@@ -132,8 +133,8 @@ class Aggregate extends React.Component {
     if (agg.type === "col") {
       const addAgg = () => {
         const aggCols = _.assignIn({}, _.get(this.state, "agg.cols", {}));
-        const currCol = _.get(this._curr_agg_col.select.state.selectValue, "0.value");
-        const currAgg = this._curr_agg_func.select.state.selectValue;
+        const currCol = _.get(this._curr_agg_col, "select.state.selectValue.0.value");
+        const currAgg = _.get(this._curr_agg_func, "select.state.selectValue");
         if (!currCol || !currAgg) {
           return;
         }

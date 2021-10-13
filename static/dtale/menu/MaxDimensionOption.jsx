@@ -45,12 +45,12 @@ class ReactMaxDimensionOption extends React.Component {
         <div className="w-100">
           <div className="row m-0">
             <span className="font-weight-bold col">
-              {t(`menu:Max ${label}`)}
+              {t(`Max ${label}`, { ns: "menu" })}
               <small className="pl-2">(px)</small>
             </span>
             <i className={`${checkBoxClass} col-auto pointer mb-auto mt-auto`} onClick={checkBoxClick} />
           </div>
-          <div className="row m-0 mb-3" data-tip={t("text_enter:Press ENTER to submit")}>
+          <div className="row m-0 mb-3" data-tip={t("Press ENTER to submit", { ns: "text_enter" })}>
             <input
               type="text"
               className="form-control ml-3 slider-input col-auto pt-0 pb-0 pl-3 pr-3 align-center"

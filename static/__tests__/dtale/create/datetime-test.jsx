@@ -82,7 +82,7 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Datetime");
     expect(result.find(CreateDatetime).length).toBe(1);
     const dateInputs = result.find(CreateDatetime).first();
-    dateInputs.find(Select).first().instance().onChange({ value: "col4" });
+    dateInputs.find(Select).first().props().onChange({ value: "col4" });
     dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
@@ -99,7 +99,7 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Datetime");
     expect(result.find(CreateDatetime).length).toBe(1);
     const dateInputs = result.find(CreateDatetime).first();
-    dateInputs.find(Select).first().instance().onChange({ value: "col4" });
+    dateInputs.find(Select).first().props().onChange({ value: "col4" });
     dateInputs.find("div.form-group").at(1).find("button").last().simulate("click");
     dateInputs.find("div.form-group").at(2).find("button").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");

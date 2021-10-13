@@ -33,7 +33,7 @@ class ReactLanguageOption extends React.Component {
               style={{ color: "#565b68" }}
               className={`btn btn-primary ${value === language ? "active" : ""} font-weight-bold`}
               onClick={value === language ? _.noop : ribbonWrapper(updateLanguage(value))}>
-              {t(`menu:${value}`)}
+              {t(value, { ns: "menu" })}
             </button>
           ))}
         </div>

@@ -15,7 +15,7 @@ class ShowHideColumnsOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-visibility" />
-            <span className="font-weight-bold">{this.props.t("menu:show_hide")}</span>
+            <span className="font-weight-bold">{this.props.t("show_hide", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

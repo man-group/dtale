@@ -76,8 +76,8 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build rolling column", async () => {
     expect(result.find(CreateRolling).length).toBe(1);
-    result.find(CreateRolling).find(Select).first().instance().onChange({ value: "col1" });
-    result.find(CreateRolling).find(Select).at(1).instance().onChange({ value: "mean" });
+    result.find(CreateRolling).find(Select).first().props().onChange({ value: "col1" });
+    result.find(CreateRolling).find(Select).at(1).props().onChange({ value: "mean" });
     result
       .find(CreateRolling)
       .find("div.form-group")
@@ -86,8 +86,8 @@ describe("DataViewer tests", () => {
       .last()
       .simulate("change", { target: { value: "1" } });
     result.find(CreateRolling).find("i.ico-check-box-outline-blank").simulate("click");
-    result.find(CreateRolling).find(Select).at(2).instance().onChange({ value: "col2" });
-    result.find(CreateRolling).find(Select).at(3).instance().onChange({ value: "triang" });
+    result.find(CreateRolling).find(Select).at(2).props().onChange({ value: "col2" });
+    result.find(CreateRolling).find(Select).at(3).props().onChange({ value: "triang" });
     result.find(CreateRolling).find("div.form-group").last().find("button").last().simulate("click");
     result.update();
     submit(result);

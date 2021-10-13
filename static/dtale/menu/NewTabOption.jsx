@@ -18,7 +18,7 @@ class ReactNewTabOption extends React.Component {
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="ico-open-in-new" />
-              <span className="font-weight-bold">{t("menu:Open In New Tab")}</span>
+              <span className="font-weight-bold">{t("Open In New Tab", { ns: "menu" })}</span>
             </button>
           </span>
         </MenuItem>

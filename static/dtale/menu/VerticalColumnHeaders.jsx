@@ -35,7 +35,7 @@ class ReactVerticalColumnHeaders extends React.Component {
           <button className="btn btn-plain">
             <i className={iconClass} style={{ marginTop: "-.25em" }} />
             <span className="font-weight-bold" style={{ fontSize: "95%" }}>
-              {t("menu:Vertical Column Headers")}
+              {t("Vertical Column Headers", { ns: "menu" })}
             </span>
           </button>
         </span>

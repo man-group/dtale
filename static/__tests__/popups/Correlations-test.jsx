@@ -121,11 +121,11 @@ describe("Correlations tests", () => {
     const result = await buildResult();
     let corrGrid = result.find(CorrelationsGrid).first();
     const filters = corrGrid.find(Select);
-    filters.first().instance().onChange({ value: "col1" });
+    filters.first().props().onChange({ value: "col1" });
     result.update();
     corrGrid = result.find(CorrelationsGrid).first();
     expect([correlationsData.data[0]]).toEqual(corrGrid.instance().state.correlations);
-    filters.last().instance().onChange({ value: "col3" });
+    filters.last().props().onChange({ value: "col3" });
     result.update();
     expect([{ column: "col1", col3: -0.098802 }]).toEqual(corrGrid.instance().state.correlations);
   });

@@ -101,7 +101,7 @@ describe("DataViewer tests", () => {
     _.forEach(_.range(1, 6), i => {
       result.find(NumericFormatting).find("div.form-group").at(i).find("button").last().simulate("click");
     });
-    result.find(Formatting).find("div.form-group").last().find(Select).instance().onChange({ value: "-" });
+    result.find(Formatting).find("div.form-group").last().find(Select).props().onChange({ value: "-" });
     result.find(Formatting).find(Modal.Footer).first().find("button").first().simulate("click");
     await tickUpdate(result);
     const grid = result.find(MultiGrid).first().instance();

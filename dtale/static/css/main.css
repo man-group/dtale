@@ -8001,6 +8001,7 @@ a.text-dark:focus, a.text-dark:hover {
 .Select__input, .Select-input {
   vertical-align: middle;
   border: 0;
+  box-shadow: none !important;
 }
 
 .Select__input > input, .Select-input > input {

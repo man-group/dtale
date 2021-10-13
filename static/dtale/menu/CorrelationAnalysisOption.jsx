@@ -15,7 +15,7 @@ class CorrelationAnalysisOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-bubble-chart" />
-            <span className="font-weight-bold">{this.props.t("menu:Feature Analysis")}</span>
+            <span className="font-weight-bold">{this.props.t("Feature Analysis", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

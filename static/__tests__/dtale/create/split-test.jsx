@@ -74,7 +74,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build split column", async () => {
     expect(result.find(CreateStringSplitting).length).toBe(1);
-    result.find(CreateStringSplitting).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateStringSplitting).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateColumn)
       .find("div.form-group")

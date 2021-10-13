@@ -95,7 +95,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build config", async () => {
     expect(result.find(CreateCleaning).length).toBe(1);
-    result.find(CreateCleaning).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateCleaning).find(Select).first().props().onChange({ value: "col1" });
     result.update();
     result.find(CreateCleaning).find("div.form-group").at(1).find("button").first().simulate("click");
     result
@@ -137,7 +137,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: toggle off cleaner", async () => {
     expect(result.find(CreateCleaning).length).toBe(1);
-    result.find(CreateCleaning).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateCleaning).find(Select).first().props().onChange({ value: "col1" });
     result.update();
     result.find(CreateCleaning).find("div.form-group").at(1).find("button").first().simulate("click");
     result.find(CreateCleaning).find("div.form-group").at(1).find("button").first().simulate("click");

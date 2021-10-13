@@ -19,7 +19,7 @@ class ReactPinMenuOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fa fa-anchor la-lg mr-3 ml-1" />
-            <span className="font-weight-bold">{t(`menu:${menuPinned ? "Unpin menu" : "Pin menu"}`)}</span>
+            <span className="font-weight-bold">{t(menuPinned ? "Unpin menu" : "Pin menu", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

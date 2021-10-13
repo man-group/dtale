@@ -17,7 +17,7 @@ class ExportOption extends React.Component {
         <span className="toggler-action">
           <i className="far fa-file" />
         </span>
-        <span className="font-weight-bold pl-2">{t("menu:Export")}</span>
+        <span className="font-weight-bold pl-2">{t("Export", { ns: "menu" })}</span>
         <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
           {_.map(
             [
@@ -30,7 +30,7 @@ class ExportOption extends React.Component {
                 style={{ color: "#565b68" }}
                 className="btn btn-primary font-weight-bold"
                 onClick={open(tsv)}>
-                {t(`menu:${label}`)}
+                {t(label, { ns: "menu" })}
               </button>
             )
           )}

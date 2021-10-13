@@ -117,7 +117,7 @@ describe("DataViewer tests", () => {
     expect(result.find(Columns).length).toBe(1);
     const columnsComp = result.find(Columns).first();
     const columnsInputs = columnsComp.find(Select);
-    columnsInputs.first().instance().onChange({ value: "first" });
+    columnsInputs.first().props().onChange({ value: "first" });
     columnsComp.find("button").last().simulate("click");
     await tickUpdate(result);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
@@ -130,7 +130,7 @@ describe("DataViewer tests", () => {
     expect(result.find(Columns).length).toBe(1);
     const columnsComp = result.find(Columns).first();
     const columnsInputs = columnsComp.find(Select);
-    columnsInputs.first().instance().onChange({ value: "last" });
+    columnsInputs.first().props().onChange({ value: "last" });
     columnsComp.find("button").last().simulate("click");
     await tickUpdate(result);
     expect(result.find(Columns).find(BouncerWrapper).last().text()).toBe("No duplicate columns exist.");
@@ -141,7 +141,7 @@ describe("DataViewer tests", () => {
     expect(result.find(Columns).length).toBe(1);
     const columnsComp = result.find(Columns).first();
     const columnsInputs = columnsComp.find(Select);
-    columnsInputs.first().instance().onChange({ value: "none" });
+    columnsInputs.first().props().onChange({ value: "none" });
     columnsComp.find("button").last().simulate("click");
     await tickUpdate(result);
     expect(result.find(Columns).find(RemovableError)).toHaveLength(1);
@@ -152,7 +152,7 @@ describe("DataViewer tests", () => {
     expect(result.find(ColumnNames).length).toBe(1);
     const columnNamesComp = result.find(ColumnNames).first();
     const columnNamesInputs = columnNamesComp.find(Select);
-    columnNamesInputs.first().instance().onChange({ value: "first" });
+    columnNamesInputs.first().props().onChange({ value: "first" });
     columnNamesComp.find("button").last().simulate("click");
     await tickUpdate(result);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
@@ -165,7 +165,7 @@ describe("DataViewer tests", () => {
     expect(result.find(ColumnNames).length).toBe(1);
     const columnNamesComp = result.find(ColumnNames).first();
     const columnNamesInputs = columnNamesComp.find(Select);
-    columnNamesInputs.first().instance().onChange({ value: "last" });
+    columnNamesInputs.first().props().onChange({ value: "last" });
     columnNamesComp.find("button").last().simulate("click");
     await tickUpdate(result);
     expect(result.find(ColumnNames).find(BouncerWrapper).last().text()).toBe("No duplicate column names exist.");
@@ -176,7 +176,7 @@ describe("DataViewer tests", () => {
     expect(result.find(ColumnNames).length).toBe(1);
     const columnNamesComp = result.find(ColumnNames).first();
     const columnNamesInputs = columnNamesComp.find(Select);
-    columnNamesInputs.first().instance().onChange({ value: "none" });
+    columnNamesInputs.first().props().onChange({ value: "none" });
     columnNamesComp.find("button").last().simulate("click");
     await tickUpdate(result);
     expect(result.find(ColumnNames).find(RemovableError)).toHaveLength(1);
@@ -187,10 +187,10 @@ describe("DataViewer tests", () => {
     expect(result.find(Rows).length).toBe(1);
     const rowsComp = result.find(Rows).first();
     const rowsInputs = rowsComp.find(Select);
-    rowsInputs.first().instance().onChange({ value: "first" });
+    rowsInputs.first().props().onChange({ value: "first" });
     rowsInputs
       .last()
-      .instance()
+      .props()
       .onChange([{ value: "foo" }, { value: "bar" }]);
     rowsComp.find("button").last().simulate("click");
     await tickUpdate(result);
@@ -204,10 +204,10 @@ describe("DataViewer tests", () => {
     expect(result.find(Rows).length).toBe(1);
     const rowsComp = result.find(Rows).first();
     const rowsInputs = rowsComp.find(Select);
-    rowsInputs.first().instance().onChange({ value: "last" });
+    rowsInputs.first().props().onChange({ value: "last" });
     rowsInputs
       .last()
-      .instance()
+      .props()
       .onChange([{ value: "foo" }, { value: "bar" }]);
     rowsComp.find("button").last().simulate("click");
     await tickUpdate(result);
@@ -221,7 +221,7 @@ describe("DataViewer tests", () => {
     expect(result.find(Rows).length).toBe(1);
     const rowsComp = result.find(Rows).first();
     const rowsInputs = rowsComp.find(Select);
-    rowsInputs.first().instance().onChange({ value: "none" });
+    rowsInputs.first().props().onChange({ value: "none" });
     rowsComp.find("button").last().simulate("click");
     await tickUpdate(result);
     expect(result.find(Rows).find(RemovableError)).toHaveLength(1);
@@ -234,7 +234,7 @@ describe("DataViewer tests", () => {
     const showInputs = showComp.find(Select);
     showInputs
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "bar" }]);
     showComp.find("button").last().simulate("click");
     await tickUpdate(result);
@@ -250,7 +250,7 @@ describe("DataViewer tests", () => {
     const showInputs = showComp.find(Select);
     showInputs
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "foo" }]);
     showComp.find("button").last().simulate("click");
     await tickUpdate(result);
@@ -267,7 +267,7 @@ describe("DataViewer tests", () => {
     const showInputs = showComp.find(Select);
     showInputs
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "baz" }]);
     await tickUpdate(result);
     expect(result.find(ShowDuplicates).find(RemovableError)).toHaveLength(1);

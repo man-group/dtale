@@ -117,7 +117,7 @@ class CorrelationsGrid extends React.Component {
           getOptionValue={_.property("value")}
           value={this.state[prop]}
           onChange={onChange}
-          noOptionsText={() => t("correlations:No columns found")}
+          noOptionsText={() => t("No columns found", { ns: "correlations" })}
           isClearable
           filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
         />
@@ -133,10 +133,16 @@ class CorrelationsGrid extends React.Component {
         <div className="row pb-5">
           <div className="col-auto p-0">
             <h2 className="m-0">
-              {!this.props.isPPS && t("correlations:Pearson Correlation Matrix")}
-              {this.props.isPPS && t("menu:Predictive Power Score")}
+              {!this.props.isPPS && t("Pearson Correlation Matrix", { ns: "correlations" })}
+              {this.props.isPPS && t("Predictive Power Score", { ns: "menu" })}
             </h2>
-            <small>({t("correlations:Click on any cell to view the details of that correlation")})</small>
+            <small>
+              (
+              {t("Click on any cell to view the details of that correlation", {
+                ns: "correlations",
+              })}
+              )
+            </small>
           </div>
           <div className="col" />
           <SidePanelButtons />
@@ -145,17 +151,17 @@ class CorrelationsGrid extends React.Component {
           {({ width }) => (
             <>
               <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
-                <span className="mb-auto mt-auto">{t("correlations:View Correlation(s) For")}</span>
+                <span className="mb-auto mt-auto">{t("View Correlation(s) For", { ns: "correlations" })}</span>
                 <div className="col-auto">{this.renderSelect("col1", "col2")}</div>
-                <span className="mb-auto mt-auto">{t("correlations:vs.")}</span>
+                <span className="mb-auto mt-auto">{t("vs.", { ns: "correlations" })}</span>
                 <div className="col-auto">{this.renderSelect("col2", "col1")}</div>
                 <div className="col pr-0 text-right">
-                  {renderCodePopupAnchor(this.props.gridCode, t("menu:Correlations"))}
+                  {renderCodePopupAnchor(this.props.gridCode, t("Correlations", { ns: "menu" }))}
                 </div>
               </div>
               {this.props.strings.length && (
                 <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
-                  <span className="mb-auto mt-auto">{t("correlations:Encode Strings")}?</span>
+                  <span className="mb-auto mt-auto">{t("Encode Strings", { ns: "correlations" })}?</span>
                   <div className="col-auto mt-auto mb-auto pl-5 hoverable" style={{ borderBottom: "none" }}>
                     <i
                       className={`ico-check-box${this.props.encodeStrings ? "" : "-outline-blank"} pointer`}

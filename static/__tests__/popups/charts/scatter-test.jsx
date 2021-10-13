@@ -12,7 +12,7 @@ import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 function updateChartType(result, cmp, chartType) {
-  result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
+  result.find(cmp).find(Select).first().props().onChange({ value: chartType });
   result.update();
 }
 
@@ -55,10 +55,10 @@ describe("Charts scatter tests", () => {
 
   it("Charts: rendering", async () => {
     const filters = result.find(Charts).find(Select);
-    filters.first().instance().onChange({ value: "col4" });
+    filters.first().props().onChange({ value: "col4" });
     filters
       .at(1)
-      .instance()
+      .props()
       .onChange([{ value: "col1" }]);
     updateChartType(result, ChartsBody, "scatter");
     result.find(Charts).find("button").first().simulate("click");

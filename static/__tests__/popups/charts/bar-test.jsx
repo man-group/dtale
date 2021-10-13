@@ -13,7 +13,7 @@ import mockPopsicle from "../../MockPopsicle";
 import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate, withGlobalJquery } from "../../test-utils";
 
 function updateChartType(result, cmp, chartType) {
-  result.find(cmp).find(Select).first().instance().onChange({ value: chartType });
+  result.find(cmp).find(Select).first().props().onChange({ value: chartType });
   result.update();
 }
 
@@ -58,16 +58,16 @@ describe("Charts bar tests", () => {
 
   it("Charts: rendering", async () => {
     const filters = result.find(Charts).find(Select);
-    filters.first().instance().onChange({ value: "col4" });
+    filters.first().props().onChange({ value: "col4" });
     filters
       .at(1)
-      .instance()
+      .props()
       .onChange([{ value: "col1" }]);
     updateChartType(result, ChartsBody, "bar");
     result.find(Charts).find("button").first().simulate("click");
     await tickUpdate(result);
     expect(result.find(ChartsBody).instance().state.charts.length).toBe(1);
-    result.find(ChartsBody).find(Select).at(1).instance().onChange({ value: "col1" });
+    result.find(ChartsBody).find(Select).at(1).props().onChange({ value: "col1" });
     result.update();
     axisEditor().find("span.axis-select").simulate("click");
     axisEditor()

@@ -148,6 +148,7 @@
     "Rolling": "Rolling",
     "Exponential Smoothing": "Suavização Exponencial",
     "Cumulative Sum": "Soma Cumulativa",
+    "replace": "Execute different string replacement functions.",
     "numeric": "Adicionar, subtrair, multiplicar ou dividir duas colunas de dados numéricos ou valores numéricos estáticos",
     "string": "Concatenar colunas juntas para formar uma string",
     "bins": "Converta dados numéricos em raios usando as funções de cut ou qcut do pandas.",
@@ -348,7 +349,8 @@
     "Expanding": "Expanding",
     "Split By Character": "Split By Character",
     "Delimiter": "Delimiter",
-    "Concatenate": "Concatenate"
+    "Concatenate": "Concatenate",
+    "Replace": "Replace"
   },
   "column_filter": {
     "filter": "Para filtros mais complexos use a janela \"Filtro Customizado\" no menu principal.",
@@ -403,7 +405,8 @@
     "Sheet Selection": "Seleção de Planilhas",
     "CSV Options": "Opções do CSV",
     "Header": "Cabeçalho",
-    "Separator": "Separador"
+    "Separator": "Separador",
+    "Cancel": "Cancel"
   },
   "code_export": {
     "Code Export": "Exportar Código",
@@ -560,7 +563,8 @@
     "Missing a columns selection!": "Falta selecionar colunas!",
     "Missing a value(s) selection!": "Falta selecionar valor(es)!",
     "Col": "Col",
-    "Offset": "Deslocamento"
+    "Offset": "Deslocamento",
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
   },
   "replacement": {
     "Inplace": "No lugar",
@@ -811,7 +815,8 @@
     "navigate": "Use botões ← → para alternar os gráficos",
     "Target": "Alvo",
     "Choose Col": "Escolha a Col",
-    "Geometric Mean": "Geometric Mean"
+    "Geometric Mean": "Geometric Mean",
+    "OHLC": "OHLC"
   },
   "charts": {
     "Window": "Janela",
@@ -920,7 +925,8 @@
   "side": {
     "Close": "Fechar",
     "Open In New Tab": "Abrir Em Uma Nova Aba",
-    "Feature Analysis by Correlation": "Análise de Recursos por Correlação"
+    "Feature Analysis by Correlation": "Análise de Recursos por Correlação",
+    "Save Visibility": "Save Visibility"
   },
   "missing": {
     "Matrix": "Matrix",

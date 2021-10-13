@@ -18,7 +18,7 @@ class InstancesOption extends React.Component {
           <button className="btn btn-plain">
             <i className="ico-apps" />
             <span className="font-weight-bold">
-              {`${this.props.t("menu:Instances")} `}
+              {`${this.props.t("Instances", { ns: "menu" })} `}
               <span className="badge badge-secondary">{processCt}</span>
             </span>
           </button>

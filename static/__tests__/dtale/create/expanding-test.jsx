@@ -68,13 +68,13 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Expanding");
     expect(result.find(CreateExpanding).length).toBe(1);
     const expandingInputs = result.find(CreateExpanding).first();
-    expandingInputs.find(Select).first().instance().onChange({ value: "col2" });
+    expandingInputs.find(Select).first().props().onChange({ value: "col2" });
     expandingInputs
       .find("div.form-group")
       .at(1)
       .find("input")
       .simulate("change", { target: { value: "4" } });
-    expandingInputs.find(Select).last().instance().onChange({ value: "sum" });
+    expandingInputs.find(Select).last().props().onChange({ value: "sum" });
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: "col2",
       periods: "4",

@@ -57,7 +57,7 @@ describe("DataViewer tests", () => {
       .first()
       .find(Select)
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "col1" }]);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);

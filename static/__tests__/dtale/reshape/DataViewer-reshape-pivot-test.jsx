@@ -90,13 +90,13 @@ describe("DataViewer tests", () => {
     expect(result.find(Pivot).length).toBe(1);
     const pivotComp = result.find(Pivot).first();
     const pivotInputs = pivotComp.find(Select);
-    pivotInputs.first().instance().onChange({ value: "col1" });
-    pivotInputs.at(1).instance().onChange({ value: "col2" });
+    pivotInputs.first().props().onChange({ value: "col1" });
+    pivotInputs.at(1).props().onChange({ value: "col2" });
     pivotInputs
       .at(2)
-      .instance()
+      .props()
       .onChange([{ value: "col3" }]);
-    pivotInputs.last().instance().onChange({ value: "count" });
+    pivotInputs.last().props().onChange({ value: "count" });
     result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);

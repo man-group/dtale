@@ -20,7 +20,7 @@ class ReactShutdownOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fa fa-power-off ml-2 mr-4" />
-            <span className="font-weight-bold">{t("menu:Shutdown")}</span>
+            <span className="font-weight-bold">{t("Shutdown", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

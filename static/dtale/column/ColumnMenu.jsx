@@ -192,7 +192,7 @@ class ReactColumnMenu extends React.Component {
                   style={_.assign({ color: "#565b68", width: "2em" }, icnStyle)}
                   className={`btn btn-primary font-weight-bold`}
                   onClick={func(selectedCol, this.props)}
-                  title={t(`column_menu:${hint}`)}>
+                  title={t(hint, { ns: "column_menu" })}>
                   <i className={`fas fa-${icon}`} />
                 </button>
               ))}
@@ -222,27 +222,27 @@ class ReactColumnMenu extends React.Component {
           />
           <ColumnMenuOption
             open={openAction("type-conversion")}
-            label={t("builders:Type Conversion")}
+            label={t("Type Conversion", { ns: "builders" })}
             iconClass="ico-swap-horiz"
           />
           {gu.findColType(colCfg.dtype) === "string" && (
             <ColumnMenuOption
               open={openAction("cleaners")}
-              label={t("menu:Clean Column")}
+              label={t("Clean Column", { ns: "menu" })}
               iconClass="fas fa-pump-soap ml-3 mr-4"
             />
           )}
           <ColumnMenuOption
             open={openAction("duplicates")}
-            label={t("menu:Duplicates")}
+            label={t("Duplicates", { ns: "menu" })}
             iconClass="fas fa-clone ml-2 mr-4"
           />
           <ColumnMenuOption
             open={openDescribe}
             label={
               <>
-                {t("menu:Describe")}
-                <small className="pl-3">({t("column_menu:Column Analysis")})</small>
+                {t("Describe", { ns: "menu" })}
+                <small className="pl-3">({t("Column Analysis", { ns: "column_menu" })})</small>
               </>
             }
             iconClass="ico-view-column"
@@ -250,7 +250,7 @@ class ReactColumnMenu extends React.Component {
           {_.has(colCfg, "lowVariance") && (
             <ColumnMenuOption
               open={openPopup("variance", 400, 770)}
-              label={t("column_menu:Variance Report")}
+              label={t("Variance Report", { ns: "column_menu" })}
               iconClass="fas fa-chart-bar ml-2 mr-4"
             />
           )}

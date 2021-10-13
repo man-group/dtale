@@ -204,7 +204,7 @@ class FilterInput extends React.Component {
             <div className="col-md-12">
               {!edit && (
                 <>
-                  <span className="font-weight-bold pr-3">{t("predefined:Current Value")}:</span>
+                  <span className="font-weight-bold pr-3">{t("Current Value", { ns: "predefined" })}:</span>
                   <span>{gu.predefinedHasValue(value) ? predefinedFilterStr([filter], name, value.value) : "--"}</span>
                 </>
               )}

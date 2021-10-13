@@ -74,7 +74,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build substring column", async () => {
     expect(result.find(CreateSubstring).length).toBe(1);
-    result.find(CreateSubstring).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateSubstring).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateSubstring)
       .find("div.form-group")

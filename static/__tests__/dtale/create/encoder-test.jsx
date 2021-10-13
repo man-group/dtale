@@ -76,14 +76,14 @@ describe("DataViewer tests", () => {
   it("DataViewer: build encoder column", async () => {
     expect(result.find(CreateEncoder).length).toBe(1);
     const selects = () => result.find(CreateEncoder).find(Select);
-    selects().at(1).instance().onChange({ value: "col1" });
+    selects().at(1).props().onChange({ value: "col1" });
     result.update();
-    selects().first().instance().onChange({ value: "one_hot" });
+    selects().first().props().onChange({ value: "one_hot" });
     result.update();
     expect(result.find(CreateColumn).instance().state.name).toBe("col1_one_hot");
-    selects().first().instance().onChange({ value: "ordinal" });
+    selects().first().props().onChange({ value: "ordinal" });
     result.update();
-    selects().first().instance().onChange({ value: "feature_hasher" });
+    selects().first().props().onChange({ value: "feature_hasher" });
     result.update();
     result
       .find(CreateEncoder)

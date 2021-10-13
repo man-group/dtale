@@ -15,7 +15,7 @@ class UploadOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-file-upload" />
-            <span className="font-weight-bold">{this.props.t("menu:Load Data")}</span>
+            <span className="font-weight-bold">{this.props.t("Load Data", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

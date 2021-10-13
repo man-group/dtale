@@ -7,7 +7,7 @@
     "globals": {
         "Promise": true
     },
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "parserOptions": {
         "ecmaVersion": 6,
         "ecmaFeatures": {
@@ -70,7 +70,7 @@
         "prefer-const": ["error", {"destructuring": "all"}],
         "prefer-rest-params": "error",
         "prefer-spread": "error",
-        "prettier/prettier": ["error", {"trailingComma": "es5", "printWidth": 120, "jsxBracketSameLine": true}],
+        "prettier/prettier": ["error", {"trailingComma": "es5", "printWidth": 120, "bracketSameLine": true}],
         "promise/catch-or-return": "error",
         "react/no-unused-prop-types": "error",
         "react/jsx-key": "error",

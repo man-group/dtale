@@ -47,7 +47,7 @@ class ReactColumnAnalysis extends React.Component {
         <div key="description" className="modal-header">
           <h4 className="modal-title">
             <i className="ico-equalizer" />
-            {` ${t(`constants:${this.state.type === "histogram" ? "Histogram" : "Value Counts"}`)} `}
+            {` ${t(this.state.type === "histogram" ? "Histogram" : "Value Counts", { ns: "constants" })} `}
             {`${t("analysis:for")} `}
             <strong>{_.get(this.props, "chartData.selectedCol")}</strong>
             {this.state.query && <small>{this.state.query}</small>}

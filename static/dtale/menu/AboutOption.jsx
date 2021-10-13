@@ -15,7 +15,7 @@ class AboutOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fa fa-info-circle la-lg mr-4 ml-1" />
-            <span className="font-weight-bold">{this.props.t("menu:About")}</span>
+            <span className="font-weight-bold">{this.props.t("About", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>
