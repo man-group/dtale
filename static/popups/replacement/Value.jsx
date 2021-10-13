@@ -224,7 +224,9 @@ class Value extends React.Component {
     return _.concat(
       [
         <div key={0} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">{this.props.t("replacement:Search For")}</label>
+          <label className="col-md-3 col-form-label text-right">
+            {this.props.t("Search For", { ns: "replacement" })}
+          </label>
           <div className="col-md-8">
             <input
               type="text"
@@ -236,7 +238,9 @@ class Value extends React.Component {
           </div>
         </div>,
         <div key={1} className="form-group row">
-          <label className="col-md-3 col-form-label text-right">{this.props.t("replacement:Replace With")}</label>
+          <label className="col-md-3 col-form-label text-right">
+            {this.props.t("Replace With", { ns: "replacement" })}
+          </label>
           <div className="col-md-8">
             <div className="row">
               <div className="col-auto btn-group" style={{ height: "fit-content" }}>
@@ -250,7 +254,7 @@ class Value extends React.Component {
                   }
                   return (
                     <button key={`type-${t}`} {...buttonProps}>
-                      {this.props.t(`replacement:${_.capitalize(t)}`)}
+                      {this.props.t(_.capitalize(t), { ns: "replacement" })}
                     </button>
                   );
                 })}

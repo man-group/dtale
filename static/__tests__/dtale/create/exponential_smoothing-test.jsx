@@ -76,7 +76,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build exponential smoothing column", async () => {
     expect(result.find(CreateExponentialSmoothing).length).toBe(1);
-    result.find(CreateExponentialSmoothing).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateExponentialSmoothing).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateExponentialSmoothing)
       .find("div.form-group")

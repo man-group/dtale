@@ -79,11 +79,11 @@ describe("DataViewer tests", () => {
     const transposeInputs = transposeComp.find(Select);
     transposeInputs
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "col1" }]);
     transposeInputs
       .last()
-      .instance()
+      .props()
       .onChange([{ value: "col2" }]);
     result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");

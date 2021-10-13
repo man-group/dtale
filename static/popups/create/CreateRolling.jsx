@@ -127,7 +127,7 @@ class CreateRolling extends React.Component {
               onChange={e => this.updateState({ window: e.target.value })}
             />
           </div>
-          <label className="col-auto col-form-label text-right">{t("builders:Min Periods")}</label>
+          <label className="col-auto col-form-label text-right">{t("Min Periods", { ns: "builders" })}</label>
           <div className="col-md-2">
             <input
               type="number"
@@ -153,7 +153,7 @@ class CreateRolling extends React.Component {
           columns={this.props.columns}
         />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">{t("builders:Window Type")}</label>
+          <label className="col-md-3 col-form-label text-right">{t("Window Type", { ns: "builders" })}</label>
           <div className="col-md-3">
             <Select
               className="Select is-clearable is-searchable Select--single"

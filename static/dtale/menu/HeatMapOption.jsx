@@ -20,7 +20,9 @@ class ReactHeatMapOption extends React.Component {
         <span className="toggler-action">
           <i className={`fa fa-${heatmapActive ? "fire-extinguisher" : "fire-alt"} ml-2 mr-4`} />
         </span>
-        <span className={`font-weight-bold pl-2${heatmapActive ? " flames" : ""}`}>{t("menu:Heat Map")}</span>
+        <span className={`font-weight-bold pl-2${heatmapActive ? " flames" : ""}`}>
+          {t("Heat Map", { ns: "menu" })}
+        </span>
         <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" style={{ fontSize: "75%" }}>
           {_.map(
             [
@@ -33,8 +35,8 @@ class ReactHeatMapOption extends React.Component {
                 style={{ color: "#565b68" }}
                 className="btn btn-primary font-weight-bold"
                 onClick={toggleBackground(mode)}>
-                {mode === backgroundMode && <span className="flames">{t(`menu:${label}`)}</span>}
-                {mode !== backgroundMode && t(`menu:${label}`)}
+                {mode === backgroundMode && <span className="flames">{t(label, { ns: "menu" })}</span>}
+                {mode !== backgroundMode && t(label, { ns: "menu" })}
               </button>
             )
           )}

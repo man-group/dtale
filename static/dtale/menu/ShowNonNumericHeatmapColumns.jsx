@@ -37,7 +37,7 @@ class ReactShowNonNumericHeatmapColumns extends React.Component {
           <button className="btn btn-plain">
             <i className={iconClass} style={{ marginTop: "-.25em" }} />
             <span className="font-weight-bold" style={{ fontSize: "95%" }}>
-              {t("menu:Show All Heatmap Columns")}
+              {t("Show All Heatmap Columns", { ns: "menu" })}
             </span>
           </button>
         </span>

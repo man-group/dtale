@@ -15,7 +15,7 @@ class TimeseriesOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-schedule ml-2" />
-            <span className="font-weight-bold">{this.props.t("menu:Timeseries")}</span>
+            <span className="font-weight-bold">{this.props.t("Timeseries", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

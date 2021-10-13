@@ -18,7 +18,7 @@ class ReactPPSOption extends React.Component {
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="ico-bubble-chart" />
-              <span className="font-weight-bold">{t("menu:Predictive Power Score")}</span>
+              <span className="font-weight-bold">{t("Predictive Power Score", { ns: "menu" })}</span>
             </button>
           </span>
         </MenuItem>

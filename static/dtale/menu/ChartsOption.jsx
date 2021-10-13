@@ -15,7 +15,7 @@ class ChartsOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-show-chart" />
-            <span className="font-weight-bold">{this.props.t("menu:Charts")}</span>
+            <span className="font-weight-bold">{this.props.t("Charts", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

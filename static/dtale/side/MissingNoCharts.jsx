@@ -41,7 +41,7 @@ const FREQS = _.concat(
   ["B", "C", "D", "W", "M", "SM", "BM", "CBM", "MS", "SMS", "BMS", "CBMS", "Q", "BQ", "QS", "BQS", "Y", "BY"],
   ["YS", "BYS", "BH", "H", "T", "S", "L", "U", "N"]
 );
-const freqOpts = t => FREQS.map(f => ({ label: `${f} - ${t(`missing:${f}`)}`, value: f }));
+const freqOpts = t => FREQS.map(f => ({ label: `${f} - ${t(f, { ns: "missing" })}`, value: f }));
 
 class ReactMissingNoCharts extends React.Component {
   constructor(props) {
@@ -92,12 +92,12 @@ class ReactMissingNoCharts extends React.Component {
         {this.state.error}
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-0">
-            <h2>{t("menu:Missing Analysis")}</h2>
+            <h2>{t("Missing Analysis", { ns: "menu" })}</h2>
           </div>
           <div className="col" />
           <div className="col-auto pr-0">
             <button className="btn btn-plain" onClick={() => window.open(imageUrl, "_blank")}>
-              <i className="ico-open-in-new pointer" title={t("side:Open In New Tab")} />
+              <i className="ico-open-in-new pointer" title={t("Open In New Tab", { ns: "side" })} />
             </button>
           </div>
           <div className="col-auto pr-0">

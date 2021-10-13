@@ -74,7 +74,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build replace column", async () => {
     expect(result.find(CreateReplace).length).toBe(1);
-    result.find(CreateReplace).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateReplace).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateReplace)
       .find("div.form-group")

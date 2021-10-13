@@ -79,16 +79,16 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build winsorize column", async () => {
     expect(result.find(CreateWinsorize).length).toBe(1);
-    findWinsorize().find(Select).first().instance().onChange({ value: "col1" });
+    findWinsorize().find(Select).first().props().onChange({ value: "col1" });
     result.update();
-    findWinsorize().find(Select).first().instance().onChange(null);
+    findWinsorize().find(Select).first().props().onChange(null);
     result.update();
-    findWinsorize().find(Select).first().instance().onChange({ value: "col1" });
+    findWinsorize().find(Select).first().props().onChange({ value: "col1" });
     result.update();
     findWinsorize()
       .find(Select)
       .last()
-      .instance()
+      .props()
       .onChange([{ value: "col2" }]);
     result.update();
     findWinsorize().find(ReactSlider).prop("onAfterChange")([20, 80]);

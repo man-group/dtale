@@ -15,7 +15,7 @@ class CodeExportOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-code" />
-            <span className="font-weight-bold">{this.props.t("code_export:Code Export")}</span>
+            <span className="font-weight-bold">{this.props.t("Code Export", { ns: "code_export" })}</span>
           </button>
         </span>
       </MenuItem>

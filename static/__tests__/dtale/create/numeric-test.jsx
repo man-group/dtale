@@ -113,9 +113,9 @@ describe("DataViewer tests", () => {
     await simulateClick(findLeftInputs(result).find("button").first());
     await simulateClick(findLeftInputs(result).find("button").last());
     await simulateClick(findLeftInputs(result).find("button").first());
-    findLeftInputs(result).find(Select).first().instance().onChange({ value: "col1" });
+    findLeftInputs(result).find(Select).first().props().onChange({ value: "col1" });
     await tick();
-    findNumericInputs(result).find("div.form-group").at(2).find(Select).first().instance().onChange({ value: "col2" });
+    findNumericInputs(result).find("div.form-group").at(2).find(Select).first().props().onChange({ value: "col2" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
     expect(result.find(CreateColumn)).toHaveLength(0);

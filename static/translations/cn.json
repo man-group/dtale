@@ -147,6 +147,7 @@
     "Rolling": "Rolling",
     "Exponential Smoothing": "Exponential Smoothing",
     "Cumulative Sum": "Cumulative Sum",
+    "replace": "Execute different string replacement functions.",
     "numeric": "加，减，乘或除两列数值数据或静态数值。",
     "string": "将列连接在一起以形成字符串。",
     "bins": "使用pandas cut或qcut函数将数字数据转换为bin。",
@@ -347,7 +348,8 @@
     "Expanding": "Expanding",
     "Split By Character": "Split By Character",
     "Delimiter": "Delimiter",
-    "Concatenate": "Concatenate"
+    "Concatenate": "Concatenate",
+    "Replace": "Replace"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -402,7 +404,8 @@
     "Sheet Selection": "Sheet Selection",
     "CSV Options": "CSV Options",
     "Header": "Header",
-    "Separator": "Separator"
+    "Separator": "Separator",
+    "Cancel": "Cancel"
   },
   "code_export": {
     "Code Export": "代码导出",
@@ -559,7 +562,8 @@
     "Missing a columns selection!": "Missing a columns selection!",
     "Missing a value(s) selection!": "Missing a value(s) selection!",
     "Col": "列",
-    "Offset": "Offset"
+    "Offset": "Offset",
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
   },
   "replacement": {
     "Inplace": "替换",
@@ -813,7 +817,8 @@
     "navigate": "Use ← → buttons to switch charts",
     "Target": "Target",
     "Choose Col": "Choose Col",
-    "Geometric Mean": "Geometric Mean"
+    "Geometric Mean": "Geometric Mean",
+    "OHLC": "OHLC"
   },
   "charts": {
     "Window": "窗口",
@@ -922,7 +927,8 @@
   "side": {
     "Close": "Close",
     "Open In New Tab": "Open In New Tab",
-    "Feature Analysis by Correlation": "Feature Analysis by Correlation"
+    "Feature Analysis by Correlation": "Feature Analysis by Correlation",
+    "Save Visibility": "Save Visibility"
   },
   "missing": {
     "Matrix": "Matrix",

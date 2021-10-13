@@ -74,12 +74,12 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build cumulative sum column", async () => {
     expect(result.find(CreateCumsum).length).toBe(1);
-    result.find(CreateCumsum).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateCumsum).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateCumsum)
       .find(Select)
       .last()
-      .instance()
+      .props()
       .onChange([{ value: "col2" }]);
     result.update();
     submit(result);

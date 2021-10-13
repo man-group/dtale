@@ -80,7 +80,7 @@ describe("DataViewer tests", () => {
       .find(CreateString)
       .find(Select)
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "col1" }, { value: "col2" }]);
     result.update();
     submit(result);

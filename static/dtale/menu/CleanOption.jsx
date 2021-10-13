@@ -15,7 +15,7 @@ class CleanOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-pump-soap ml-3 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:Clean Column")}</span>
+            <span className="font-weight-bold">{this.props.t("Clean Column", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

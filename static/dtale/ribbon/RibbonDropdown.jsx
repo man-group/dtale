@@ -149,7 +149,7 @@ class ReactRibbonDropdown extends React.Component {
               <span className="toggler-action">
                 <button className="btn btn-plain">
                   <i className="ico-delete ml-2 mr-4" />
-                  <span className="font-weight-bold align-middle">{t("menu:Clear Data")}</span>
+                  <span className="font-weight-bold align-middle">{t("Clear Data", { ns: "menu" })}</span>
                 </button>
               </span>
             </MenuItem>

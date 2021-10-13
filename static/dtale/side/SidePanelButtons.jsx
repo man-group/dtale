@@ -28,7 +28,7 @@ class ReactSidePanelButtons extends React.Component {
         <div className="col-auto pr-0 mb-auto mt-auto">
           <button className="btn btn-plain" onClick={openTab}>
             <i className="ico-open-in-new pointer" />
-            <span className="align-middle">{t("side:Open In New Tab")}</span>
+            <span className="align-middle">{t("Open In New Tab", { ns: "side" })}</span>
           </button>
         </div>
         <div className="col-auto pr-0 mb-auto mt-auto">

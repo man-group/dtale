@@ -80,16 +80,16 @@ describe("DataViewer tests", () => {
       .find(CreateTransform)
       .find(Select)
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "col1" }]);
     result.update();
     expect(result.find(CreateTransform).find(Select).first().prop("noOptionsMessage")()).toBe("No columns available!");
     expect(result.find(CreateTransform).find(Select).at(1).prop("noOptionsMessage")()).toBe(
       "No columns available for the following dtypes: int, float!"
     );
-    result.find(CreateTransform).find(Select).at(1).instance().onChange({ value: "col2" });
+    result.find(CreateTransform).find(Select).at(1).props().onChange({ value: "col2" });
     result.update();
-    result.find(CreateTransform).find(Select).last().instance().onChange({ value: "mean" });
+    result.find(CreateTransform).find(Select).last().props().onChange({ value: "mean" });
     result.update();
     submit(result);
     await tick();

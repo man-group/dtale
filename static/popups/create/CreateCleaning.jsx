@@ -27,64 +27,67 @@ export function validateCleaningCfg(t, { col, cleaners, stopwords, caseType }) {
 export const cleaners = t => [
   {
     value: "drop_multispace",
-    label: t("builders:Replace Multi-Space w/ Single-Space"),
+    label: t("Replace Multi-Space w/ Single-Space", { ns: "builders" }),
   },
   {
     value: "drop_punctuation",
-    label: t("builders:Remove Punctuation"),
+    label: t("Remove Punctuation", { ns: "builders" }),
     word_count: true,
   },
-  { value: "stopwords", label: t("builders:Drop Stop Words") },
-  { value: "nltk_stopwords", label: t("builders:Drop NLTK Stop Words") },
+  { value: "stopwords", label: t("Drop Stop Words", { ns: "builders" }) },
+  {
+    value: "nltk_stopwords",
+    label: t("Drop NLTK Stop Words", { ns: "builders" }),
+  },
   {
     value: "drop_numbers",
-    label: t("builders:Remove Numbers"),
+    label: t("Remove Numbers", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "keep_alpha",
-    label: t("builders:Keep Only Alpha"),
+    label: t("Keep Only Alpha", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "normalize_accents",
-    label: t("builders:Normalize Accent Characters"),
+    label: t("Normalize Accent Characters", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "drop_all_space",
-    label: t("builders:Remove Spaces"),
+    label: t("Remove Spaces", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "drop_repeated_words",
-    label: t("builders:Drop Repeated Words"),
+    label: t("Drop Repeated Words", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "add_word_number_space",
-    label: t("builders:Add Space Between Word and Numbers"),
+    label: t("Add Space Between Word and Numbers", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "drop_repeated_chars",
-    label: t("builders:Remove Repeated Chars"),
+    label: t("Remove Repeated Chars", { ns: "builders" }),
     word_count: true,
   },
-  { value: "update_case", label: t("builders:Update Word Case") },
+  { value: "update_case", label: t("Update Word Case", { ns: "builders" }) },
   {
     value: "space_vals_to_empty",
-    label: t("builders:Update Space Values to Empty String"),
+    label: t("Update Space Values to Empty String", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "hidden_chars",
-    label: t("builders:Remove Hidden Characters"),
+    label: t("Remove Hidden Characters", { ns: "builders" }),
     word_count: true,
   },
   {
     value: "replace_hyphen_w_space",
-    label: t("builders:Replace Hyphens w/ Space"),
+    label: t("Replace Hyphens w/ Space", { ns: "builders" }),
     word_count: true,
   },
 ];

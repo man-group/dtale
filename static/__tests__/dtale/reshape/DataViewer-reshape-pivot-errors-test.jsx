@@ -79,16 +79,16 @@ describe("DataViewer tests", () => {
     expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
     const pivotComp = result.find(Pivot).first();
     const pivotInputs = pivotComp.find(Select);
-    pivotInputs.first().instance().onChange({ value: "col1" });
+    pivotInputs.first().props().onChange({ value: "col1" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     expect(result.find(RemovableError).text()).toBe("Missing a columns selection!");
-    pivotInputs.at(1).instance().onChange({ value: "col2" });
+    pivotInputs.at(1).props().onChange({ value: "col2" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     expect(result.find(RemovableError).text()).toBe("Missing a value(s) selection!");
     pivotInputs
       .at(2)
-      .instance()
+      .props()
       .onChange([{ value: "col3" }]);
-    pivotInputs.last().instance().onChange({ value: "count" });
+    pivotInputs.last().props().onChange({ value: "count" });
   });
 });

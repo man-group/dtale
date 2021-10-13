@@ -63,7 +63,7 @@ describe("ColumnFilter numeric tests", () => {
     const uniqueSelect = result.find(Select);
     uniqueSelect
       .first()
-      .instance()
+      .props()
       .onChange([{ value: 1 }]);
     await tickUpdate(result);
     expect(result.state().cfg).toEqual({

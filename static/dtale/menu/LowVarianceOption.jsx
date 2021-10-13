@@ -31,7 +31,7 @@ class LowVarianceOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className={iconClass} style={{ marginTop: "-.25em" }} />
-            <span className="font-weight-bold">{t("menu:Low Variance Flag")}</span>
+            <span className="font-weight-bold">{t("Low Variance Flag", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

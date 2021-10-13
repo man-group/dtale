@@ -43,7 +43,7 @@ class SortOptions extends React.Component {
                 className={`btn btn-primary ${active ? "active" : ""} font-weight-bold`}
                 onClick={active ? _.noop : () => menuFuncs.updateSort([selectedCol], dir, this.props)}
                 disabled={active}>
-                {t(`column_menu:${col.label}`)}
+                {t(col.label, { ns: "column_menu" })}
               </button>
             );
           })}

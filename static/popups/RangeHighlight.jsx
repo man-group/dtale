@@ -23,7 +23,7 @@ const BASE_RANGE = {
 const allOption = t => ({
   name: "all",
   value: "all",
-  label: t("range_highlight:Apply To All Columns"),
+  label: t("Apply To All Columns", { ns: "range_highlight" }),
   dtype: "int",
 });
 const MODES = [
@@ -196,7 +196,7 @@ class ReactRangeHighlight extends React.Component {
                   className={`ico-check-box${active ? "" : "-outline-blank"} pointer mr-3 float-left`}
                   onClick={() => this.updateHighlights(key, { active: !active })}
                 />
-                {this.props.t(`column_filter:${label}`)}
+                {this.props.t(label, { ns: "column_filter" })}
               </label>
               <div className="col-md-6">
                 <input

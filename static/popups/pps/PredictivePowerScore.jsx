@@ -94,8 +94,8 @@ class PredictivePowerScore extends React.Component {
             {ppsInfo !== undefined && (
               <React.Fragment>
                 <h2 className="pt-5">
-                  {`${t("pps:Prediction Power Score for")} ${ppsInfo.x} `}
-                  {`${t("correlations:vs.")} ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
+                  {`${t("Prediction Power Score for", { ns: "pps" })} ${ppsInfo.x} `}
+                  {`${t("vs.", { ns: "correlations" })} ${ppsInfo.y}: ${displayScore(ppsInfo)}`}
                 </h2>
                 <PPSDetails ppsInfo={ppsInfo} />
               </React.Fragment>

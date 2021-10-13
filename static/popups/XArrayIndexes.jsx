@@ -48,7 +48,7 @@ class ReactXArrayIndexes extends React.Component {
       <div key="body" className="modal-body">
         {this.state.error}
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">{this.props.t("menu:Index")}</label>
+          <label className="col-md-3 col-form-label text-right">{this.props.t("Index", { ns: "menu" })}</label>
           <div className="col-md-8">
             <div className="input-group">
               <Select
@@ -59,7 +59,7 @@ class ReactXArrayIndexes extends React.Component {
                 getOptionValue={_.property("value")}
                 value={this.state.index}
                 onChange={index => this.setState({ index })}
-                noOptionsText={() => this.props.t("correlations:No columns found")}
+                noOptionsText={() => this.props.t("No columns found", { ns: "correlations" })}
                 isClearable
                 isMulti
                 filterOption={createFilter({
@@ -72,7 +72,7 @@ class ReactXArrayIndexes extends React.Component {
       </div>,
       <div key="footer" className="modal-footer">
         <button className="btn btn-primary" disabled={_.size(this.state.index) === 0} onClick={this.convert}>
-          <span>{this.props.t("menu:Convert To XArray")}</span>
+          <span>{this.props.t("Convert To XArray", { ns: "menu" })}</span>
         </button>
       </div>,
     ];

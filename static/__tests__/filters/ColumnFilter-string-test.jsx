@@ -51,7 +51,7 @@ describe("ColumnFilter string tests", () => {
     const uniqueSelect = result.find(Select).last();
     uniqueSelect
       .first()
-      .instance()
+      .props()
       .onChange([{ value: "a" }]);
     await tickUpdate(result);
     expect(result.state().cfg).toEqual(

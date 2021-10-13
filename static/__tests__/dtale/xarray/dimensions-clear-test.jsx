@@ -71,7 +71,7 @@ describe("DataViewer tests", () => {
   afterAll(dimensions.afterAll);
 
   it("DataViewer: clearing selected dimensions", async () => {
-    result.find(XArrayDimensions).find("li").first().find(Select).first().instance().onChange(null);
+    result.find(XArrayDimensions).find("li").first().find(Select).first().props().onChange(null);
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
     expect(store.getState().xarrayDim).toEqual({});

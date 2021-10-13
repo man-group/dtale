@@ -76,7 +76,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build row difference column", async () => {
     expect(result.find(CreateDiff).length).toBe(1);
-    result.find(CreateDiff).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateDiff).find(Select).first().props().onChange({ value: "col1" });
     result
       .find(CreateDiff)
       .find("div.form-group")

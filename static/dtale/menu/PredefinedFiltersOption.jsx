@@ -19,7 +19,7 @@ class ReactPredefinedFiltersOption extends React.Component {
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="fa fa-filter ml-2 mr-4" />
-              <span className="font-weight-bold">{t("menu:Predefined Filters")}</span>
+              <span className="font-weight-bold">{t("Predefined Filters", { ns: "menu" })}</span>
             </button>
           </span>
         </MenuItem>

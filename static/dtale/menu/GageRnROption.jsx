@@ -15,7 +15,7 @@ class GageRnROption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-tachometer-alt ml-2 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:gage_rnr")}</span>
+            <span className="font-weight-bold">{this.props.t("gage_rnr", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

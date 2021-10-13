@@ -15,7 +15,7 @@ class DuplicatesOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-clone ml-2 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:Duplicates")}</span>
+            <span className="font-weight-bold">{this.props.t("Duplicates", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

@@ -33,7 +33,7 @@ class RangeHighlightOption extends React.Component {
                 </div>
               )}
               {this.props.backgroundMode !== "range" && <div className="bg-range-icon" />}
-              <span className="font-weight-bold pl-4">{this.props.t("menu:Highlight Range")}</span>
+              <span className="font-weight-bold pl-4">{this.props.t("Highlight Range", { ns: "menu" })}</span>
             </div>
           </button>
         </span>

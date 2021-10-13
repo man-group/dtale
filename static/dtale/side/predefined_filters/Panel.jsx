@@ -71,7 +71,7 @@ class ReactPanel extends React.Component {
         {this.state.error}
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-0">
-            <h2>{t("menu:Predefined Filters")}</h2>
+            <h2>{t("Predefined Filters", { ns: "menu" })}</h2>
           </div>
           <div className="col" />
           <div className="col-auto pr-0">
@@ -83,7 +83,7 @@ class ReactPanel extends React.Component {
         <div className="row m-0 pb-3">
           <div className="col" />
           <button className="btn btn-primary col-auto pt-2 pb-2" onClick={this.clearAll}>
-            <span>{this.props.t("predefined:Clear All")}</span>
+            <span>{this.props.t("Clear All", { ns: "predefined" })}</span>
           </button>
         </div>
         {_.map(filters, (f, i) => (

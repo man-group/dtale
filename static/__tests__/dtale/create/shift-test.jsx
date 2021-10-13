@@ -68,7 +68,7 @@ describe("DataViewer tests", () => {
     clickBuilder(result, "Shifting");
     expect(result.find(CreateShift).length).toBe(1);
     const shiftInputs = result.find(CreateShift).first();
-    shiftInputs.find(Select).first().instance().onChange({ value: "col2" });
+    shiftInputs.find(Select).first().props().onChange({ value: "col2" });
     shiftInputs
       .find("div.form-group")
       .at(1)

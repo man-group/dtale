@@ -78,7 +78,7 @@ class ReactGageRnR extends React.Component {
         {this.state.error}
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-0">
-            <h2>{t("menu:gage_rnr")}</h2>
+            <h2>{t("gage_rnr", { ns: "menu" })}</h2>
           </div>
           <div className="col" />
           <FilterableToggle {...this.state} propagateState={state => this.loadReport(state)} />

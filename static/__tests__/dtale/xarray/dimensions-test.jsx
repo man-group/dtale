@@ -71,13 +71,13 @@ describe("DataViewer tests", () => {
   afterAll(dimensions.afterAll);
 
   it("DataViewer: update selected dimensions of xarray", async () => {
-    expect(result.find(XArrayDimensions).find("li").first().find(Select).instance().state.value).toEqual({
+    expect(result.find(XArrayDimensions).state().dimensionData[0]).toEqual({
       value: "foo1",
     });
-    result.find(XArrayDimensions).find("li").first().find(Select).first().instance().onChange({ value: "foo2" });
+    result.find(XArrayDimensions).find("li").first().find(Select).first().props().onChange({ value: "foo2" });
     result.find(XArrayDimensions).find("li").last().simulate("click");
     await tickUpdate(result);
-    result.find(XArrayDimensions).find("li").last().find(Select).first().instance().onChange({ value: "bar2" });
+    result.find(XArrayDimensions).find("li").last().find(Select).first().props().onChange({ value: "bar2" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
     expect(store.getState().xarrayDim).toEqual({ foo: "foo2", bar: "bar2" });

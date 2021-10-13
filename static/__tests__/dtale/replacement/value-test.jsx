@@ -88,7 +88,7 @@ describe("DataViewer tests", () => {
     result.find(CreateReplacement).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
     findValueInputRow(1).find("button").at(1).simulate("click");
-    findValueInputRow(1).find(Select).first().instance().onChange({ value: "median" });
+    findValueInputRow(1).find(Select).first().props().onChange({ value: "median" });
     findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
@@ -103,7 +103,7 @@ describe("DataViewer tests", () => {
     result.find(CreateReplacement).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
     findValueInputRow(1).find("button").last().simulate("click");
-    findValueInputRow(1).find(Select).first().instance().onChange({ value: "col2" });
+    findValueInputRow(1).find(Select).first().props().onChange({ value: "col2" });
     findValueInputRow(1).find("i").first().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);

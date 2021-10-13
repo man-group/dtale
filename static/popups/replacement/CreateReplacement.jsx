@@ -153,7 +153,7 @@ class ReactCreateReplacement extends React.Component {
       <div key="body" className="modal-body">
         <ColumnSaveType propagateState={state => this.setState(state)} {...this.state} />
         <div className="form-group row">
-          <label className="col-md-3 col-form-label text-right">{t("replacement:Replacement Type")}</label>
+          <label className="col-md-3 col-form-label text-right">{t("Replacement Type", { ns: "replacement" })}</label>
           <div className="col-md-8">
             <div className="btn-group">
               {_.map(types, ([type, label, _filterer], i) => {
@@ -166,12 +166,12 @@ class ReactCreateReplacement extends React.Component {
                 }
                 return (
                   <button key={i} {...buttonProps}>
-                    {t(`replacement:${label}`)}
+                    {t(label, { ns: "replacement" })}
                   </button>
                 );
               })}
             </div>
-            {this.state.type && <small className="d-block pt-3">{t(`replacement:${this.state.type}`)}</small>}
+            {this.state.type && <small className="d-block pt-3">{t(this.state.type, { ns: "replacement" })}</small>}
           </div>
         </div>
         {body}

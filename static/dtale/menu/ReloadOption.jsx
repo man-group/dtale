@@ -15,7 +15,7 @@ class ReloadOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-sync" />
-            <span className="font-weight-bold">{this.props.t("menu:Reload Data")}</span>
+            <span className="font-weight-bold">{this.props.t("Reload Data", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

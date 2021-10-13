@@ -15,7 +15,7 @@ class FilterOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fa fa-filter ml-2 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:Custom Filter")}</span>
+            <span className="font-weight-bold">{this.props.t("Custom Filter", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

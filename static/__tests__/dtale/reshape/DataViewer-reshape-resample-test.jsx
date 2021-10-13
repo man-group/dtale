@@ -77,14 +77,14 @@ describe("DataViewer tests", () => {
     expect(result.find(Resample).length).toBe(1);
     const resampleComp = result.find(Resample).first();
     const resampleInputs = resampleComp.find(Select);
-    resampleInputs.first().instance().onChange({ value: "col1" });
+    resampleInputs.first().props().onChange({ value: "col1" });
     resampleComp
       .find("div.form-group.row")
       .at(2)
       .find("input")
       .first()
       .simulate("change", { target: { value: "17min" } });
-    resampleInputs.last().instance().onChange({ value: "mean" });
+    resampleInputs.last().props().onChange({ value: "mean" });
     result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);

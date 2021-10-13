@@ -38,7 +38,7 @@ function buildColumnAnalysis(props) {
   const title = (
     <React.Fragment>
       <i className="ico-equalizer" />
-      {props.t("popup: Column Analysis for ")}
+      {props.t(" Column Analysis for ", { ns: "popup" })}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
       <div id="describe" />
     </React.Fragment>
@@ -62,7 +62,7 @@ function buildPps(props) {
   const title = (
     <React.Fragment>
       <i className="ico-bubble-chart" />
-      <strong>{props.t("menu:Predictive Power Score")}</strong>
+      <strong>{props.t("Predictive Power Score", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <PredictivePowerScore propagateState={props.propagateState} />;
@@ -73,7 +73,7 @@ function buildCreateColumn(props) {
   const title = (
     <React.Fragment>
       <i className="ico-build" />
-      <strong>{props.t("menu:Dataframe Functions")}</strong>
+      <strong>{props.t("Dataframe Functions", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <CreateColumn />;
@@ -84,7 +84,7 @@ function buildTypeConversion(props) {
   const title = (
     <React.Fragment>
       <i className="ico-build" />
-      {props.t("popup: Type Conversion of ")}
+      {props.t(" Type Conversion of ", { ns: "popup" })}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
     </React.Fragment>
   );
@@ -104,7 +104,7 @@ function buildCleaners(props) {
   const title = (
     <React.Fragment>
       <i className="ico-build" />
-      {props.t("popup: Clean ")}
+      {props.t(" Clean ", { ns: "popup" })}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
     </React.Fragment>
   );
@@ -123,7 +123,7 @@ function buildReshape(props) {
   const title = (
     <React.Fragment>
       <i className="fas fa-tools" />
-      <strong>{props.t("menu:Summarize Data")}</strong>
+      <strong>{props.t("Summarize Data", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <Reshape />;
@@ -134,7 +134,7 @@ function buildTimeseries(props) {
   const title = (
     <React.Fragment>
       <i className="ico-schedule" />
-      <strong>{props.t("menu:Timeseries")}</strong>
+      <strong>{props.t("Timeseries", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <Reshape operation="timeseries" />;
@@ -156,7 +156,7 @@ function buildConfirm(props) {
   const title = (
     <React.Fragment>
       <i className="ico-check-circle" />
-      <strong>{props.t("popup:Yes/No")}</strong>
+      <strong>{props.t("Yes/No", { ns: "popup" })}</strong>
       <small className="pl-3">({_.get(props, "chartData.title")})</small>
     </React.Fragment>
   );
@@ -168,7 +168,7 @@ function buildCopyRange(props) {
   const title = (
     <React.Fragment>
       <i className="fas fa-clipboard" />
-      <strong>{props.t("popup:Yes/No")}</strong>
+      <strong>{props.t("Yes/No", { ns: "popup" })}</strong>
       <small className="pl-3">({_.get(props, "chartData.title")})</small>
     </React.Fragment>
   );
@@ -180,7 +180,7 @@ function buildRange(props) {
   const title = (
     <React.Fragment>
       <i className="ico-flag" />
-      <strong>{props.t("menu:Range Highlights")}</strong>
+      <strong>{props.t("Range Highlights", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <RangeHighlight {...props} />;
@@ -191,7 +191,7 @@ function xarrayDimensions(props) {
   const title = (
     <React.Fragment>
       <i className="ico-key" />
-      <strong>{props.t("menu:XArray Dimensions")}</strong>
+      <strong>{props.t("XArray Dimensions", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <XArrayDimensions {...props} />;
@@ -202,7 +202,7 @@ function xarrayIndexes(props) {
   const title = (
     <React.Fragment>
       <i className="ico-tune" />
-      <strong>{props.t("menu:Convert To XArray")}</strong>
+      <strong>{props.t("Convert To XArray", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <XArrayIndexes {...props} />;
@@ -224,7 +224,7 @@ function buildReplacement(props) {
   const title = (
     <React.Fragment>
       <i className="fas fa-backspace" />
-      {props.t("popup: Replacements for ")}
+      {props.t(" Replacements for ", { ns: "popup" })}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
     </React.Fragment>
   );
@@ -247,7 +247,7 @@ function buildInstances(props) {
   const title = (
     <React.Fragment>
       <i className="ico-apps" />
-      <strong>{props.t("popup:Active D-Tale Instances")}</strong>
+      <strong>{props.t("Active D-Tale Instances", { ns: "popup" })}</strong>
     </React.Fragment>
   );
   const body = <Instances {...props} />;
@@ -258,7 +258,7 @@ function buildCode(props) {
   const title = (
     <React.Fragment>
       <i className="ico-code" />
-      <strong>{props.t("menu:Code Export")}</strong>
+      <strong>{props.t("Code Export", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <CodeExport {...props} />;
@@ -269,7 +269,7 @@ function buildVariance(props) {
   const title = (
     <React.Fragment>
       <i className="fas fa-chart-bar" />
-      {`${props.t("popup: Variance Report for ")}"`}
+      {`${props.t(" Variance Report for ", { ns: "popup" })}"`}
       <strong>{_.get(props, "chartData.selectedCol")}</strong>
       {`"`}
     </React.Fragment>
@@ -282,7 +282,7 @@ function buildUpload(props) {
   const title = (
     <React.Fragment>
       <i className="ico-file-upload" />
-      <strong>{props.t("menu:Load Data")}</strong>
+      <strong>{props.t("Load Data", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <Upload {...props} />;
@@ -293,7 +293,7 @@ function buildDuplicates(props) {
   const title = (
     <React.Fragment>
       <i className="fas fa-clone" />
-      <strong>{props.t("menu:Duplicates")}</strong>
+      <strong>{props.t("Duplicates", { ns: "menu" })}</strong>
     </React.Fragment>
   );
   const body = <Duplicates />;

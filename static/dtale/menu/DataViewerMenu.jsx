@@ -129,7 +129,7 @@ class ReactDataViewerMenu extends React.Component {
               <span className="toggler-action">
                 <button className="btn btn-plain">
                   <i className="fas fa-columns ml-2 mr-4" />
-                  <span className="font-weight-bold">{t("menu:Refresh Widths")}</span>
+                  <span className="font-weight-bold">{t("Refresh Widths", { ns: "menu" })}</span>
                 </button>
               </span>
             </MenuItem>

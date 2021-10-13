@@ -215,7 +215,11 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
         plugins: {
           zoom: {
             pan: { enabled: true, mode: "x" },
-            zoom: { enabled: true, mode: "x", speed: 0.5 },
+            zoom: {
+              wheel: { enabled: true, speed: 0.5 },
+              pinch: { enabled: true },
+              mode: "x",
+            },
           },
           tooltip: {
             mode: "index",
@@ -347,7 +351,11 @@ function createScatterCfg({ data, min, max }, { x, y, additionalOptions, configH
       plugins: {
         zoom: {
           pan: { enabled: true, mode: "x" },
-          zoom: { enabled: true, mode: "x" },
+          zoom: {
+            wheel: { enabled: true, speed: 0.5 },
+            pinch: { enabled: true },
+            mode: "x",
+          },
         },
         tooltip: {
           callbacks: {

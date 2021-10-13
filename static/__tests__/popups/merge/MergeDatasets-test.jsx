@@ -48,9 +48,9 @@ describe("MergeDatasets", () => {
   it("triggers dataset functions", () => {
     result.find("dt").first().simulate("click");
     expect(result.props().toggleDataset).toHaveBeenLastCalledWith(0);
-    result.find(Select).first().instance().props.onChange(null);
+    result.find(Select).first().props().onChange(null);
     expect(result.props().updateDataset).toHaveBeenLastCalledWith(0, "index", null);
-    result.find(Select).last().instance().props.onChange(null);
+    result.find(Select).last().props().onChange(null);
     expect(result.props().updateDataset).toHaveBeenLastCalledWith(0, "columns", null);
     result
       .find("input")

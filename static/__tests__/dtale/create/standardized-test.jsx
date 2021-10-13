@@ -77,11 +77,11 @@ describe("DataViewer tests", () => {
   it("DataViewer: build standardized column", async () => {
     expect(result.find(CreateStandardized).length).toBe(1);
     const selects = () => result.find(CreateStandardized).find(Select);
-    selects().at(1).instance().onChange({ value: "col1" });
+    selects().at(1).props().onChange({ value: "col1" });
     result.update();
-    selects().first().instance().onChange({ value: "quantile" });
+    selects().first().props().onChange({ value: "quantile" });
     result.update();
-    selects().first().instance().onChange({ value: "robust" });
+    selects().first().props().onChange({ value: "robust" });
     result.update();
     submit(result);
     await tick();

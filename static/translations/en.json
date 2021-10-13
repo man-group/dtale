@@ -148,6 +148,7 @@
     "Rolling": "Rolling",
     "Exponential Smoothing": "Exponential Smoothing",
     "Cumulative Sum": "Cumulative Sum",
+    "replace": "Execute different string replacement functions.",
     "numeric": "Add, subtract, multiply or divide two columns of numeric data or static numeric values.",
     "string": "Concatenate columns together to form a string.",
     "bins": "Convert numeric data into bins using pandas cut or qcut functions.",
@@ -348,7 +349,12 @@
     "Expanding": "Expanding",
     "Split By Character": "Split By Character",
     "Delimiter": "Delimiter",
-    "Concatenate": "Concatenate"
+    "Concatenate": "Concatenate",
+    "Replace": "Replace",
+    "Replacement": "Replacement",
+    "Case Sensitive": "Case Sensitive",
+    "Regex": "Regex",
+    "Search For": "Search For"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -403,7 +409,8 @@
     "Sheet Selection": "Sheet Selection",
     "CSV Options": "CSV Options",
     "Header": "Header",
-    "Separator": "Separator"
+    "Separator": "Separator",
+    "Cancel": "Cancel"
   },
   "code_export": {
     "Code Export": "Code Export",
@@ -560,7 +567,8 @@
     "Missing a columns selection!": "Missing a columns selection!",
     "Missing a value(s) selection!": "Missing a value(s) selection!",
     "Col": "Col",
-    "Offset": "Offset"
+    "Offset": "Offset",
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
   },
   "replacement": {
     "Inplace": "Inplace",
@@ -811,7 +819,8 @@
     "navigate": "Use ← → buttons to switch charts",
     "Target": "Target",
     "Choose Col": "Choose Col",
-    "Geometric Mean": "Geometric Mean"
+    "Geometric Mean": "Geometric Mean",
+    "OHLC": "OHLC"
   },
   "charts": {
     "Window": "Window",
@@ -920,7 +929,8 @@
   "side": {
     "Close": "Close",
     "Open In New Tab": "Open In New Tab",
-    "Feature Analysis by Correlation": "Feature Analysis by Correlation"
+    "Feature Analysis by Correlation": "Feature Analysis by Correlation",
+    "Save Visibility": "Save Visibility"
   },
   "missing": {
     "Matrix": "Matrix",

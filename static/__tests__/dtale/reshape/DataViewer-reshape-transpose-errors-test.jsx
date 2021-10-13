@@ -77,7 +77,7 @@ describe("DataViewer tests", () => {
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     result.update();
     expect(result.find(RemovableError).text()).toBe("Missing an index selection!");
-    result.find(Transpose).first().find(Select).first().instance().onChange({ value: "col1" });
+    result.find(Transpose).first().find(Select).first().props().onChange({ value: "col1" });
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
   });

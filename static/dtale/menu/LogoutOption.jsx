@@ -18,7 +18,9 @@ class ReactLogoutOption extends React.Component {
           <span className="toggler-action">
             <button className="btn btn-plain">
               <i className="fas fa-sign-out-alt ml-2 mr-4" />
-              <span className="font-weight-bold">{`${t("menu:Logout")}, ${username}`}</span>
+              <span className="font-weight-bold">{`${t("Logout", {
+                ns: "menu",
+              })}, ${username}`}</span>
             </button>
           </span>
         </MenuItem>

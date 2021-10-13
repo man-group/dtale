@@ -143,7 +143,9 @@ class ReactCorrelationAnalysis extends React.Component {
             />
             <Column
               dataKey="score"
-              label={t("corr_analysis:Max Correlation w/ Other Columns")}
+              label={t("Max Correlation w/ Other Columns", {
+                ns: "corr_analysis",
+              })}
               headerRenderer={this.headerRenderer}
               width={100}
               flexGrow={1}
@@ -155,7 +157,7 @@ class ReactCorrelationAnalysis extends React.Component {
             />
             <Column
               dataKey="corrs"
-              label={`${t("corr_analysis:Correlations")}\n${t("corr_analysis:Above Threshold")}`}
+              label={`${t("corr_analysis:Correlations")}\n${t("Above Threshold", { ns: "corr_analysis" })}`}
               headerRenderer={this.headerRenderer}
               width={100}
               flexGrow={1}
@@ -165,7 +167,7 @@ class ReactCorrelationAnalysis extends React.Component {
             <Column
               width={100}
               dataKey="missing"
-              label={t("corr_analysis:Missing Rows")}
+              label={t("Missing Rows", { ns: "corr_analysis" })}
               headerRenderer={this.headerRenderer}
               className="cell"
             />
@@ -189,7 +191,7 @@ class ReactCorrelationAnalysis extends React.Component {
     const hasUnselected = _.find(this.state.selections, selected => selected === false) !== undefined;
     const dropColumns = () => {
       const colsToDrop = _.keys(_.pickBy(this.state.selections, selected => !selected));
-      const title = `${t("corr_analysis:Drop Columns")}?`;
+      const title = `${t("Drop Columns", { ns: "corr_analysis" })}?`;
       const msg = `Are you sure you would like to drop the following columns? ${colsToDrop.join(", ")}`;
       const yesAction = () => {
         serverStateManagement.deleteColumns(dataId, colsToDrop)();
@@ -203,7 +205,7 @@ class ReactCorrelationAnalysis extends React.Component {
         {this.state.error}
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-0">
-            <h2>{t("side:Feature Analysis by Correlation")}</h2>
+            <h2>{t("Feature Analysis by Correlation", { ns: "side" })}</h2>
           </div>
           <div className="col" />
           <div className="col-auto">
@@ -227,7 +229,12 @@ class ReactCorrelationAnalysis extends React.Component {
           </div>
           {hasUnselected && (
             <button className="btn btn-primary float-right pt-2 pb-2 d-inline-block" onClick={dropColumns}>
-              <span>{this.props.t("corr_analysis:Drop Unselected Columns")}?</span>
+              <span>
+                {this.props.t("Drop Unselected Columns", {
+                  ns: "corr_analysis",
+                })}
+                ?
+              </span>
             </button>
           )}
         </div>

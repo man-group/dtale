@@ -74,7 +74,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build z-score normalize column", async () => {
     expect(result.find(CreateZScoreNormalize).length).toBe(1);
-    result.find(CreateZScoreNormalize).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateZScoreNormalize).find(Select).first().props().onChange({ value: "col1" });
     result.update();
     submit(result);
     await tick();

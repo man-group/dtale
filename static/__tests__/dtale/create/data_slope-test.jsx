@@ -76,7 +76,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build data slope column", async () => {
     expect(result.find(CreateDataSlope).length).toBe(1);
-    result.find(CreateDataSlope).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateDataSlope).find(Select).first().props().onChange({ value: "col1" });
     result.update();
     submit(result);
     await tick();

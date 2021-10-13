@@ -77,15 +77,15 @@ describe("DataViewer tests", () => {
   it("DataViewer: build similarity column", async () => {
     expect(result.find(CreateSimilarity).length).toBe(1);
     const selects = () => result.find(CreateSimilarity).find(Select);
-    selects().at(1).instance().onChange({ value: "col1" });
+    selects().at(1).props().onChange({ value: "col1" });
     result.update();
-    selects().last().instance().onChange({ value: "col2" });
+    selects().last().props().onChange({ value: "col2" });
     result.update();
-    selects().first().instance().onChange({ value: "damerau-leveneshtein" });
+    selects().first().props().onChange({ value: "damerau-leveneshtein" });
     result.update();
-    selects().first().instance().onChange({ value: "jaro-winkler" });
+    selects().first().props().onChange({ value: "jaro-winkler" });
     result.update();
-    selects().first().instance().onChange({ value: "jaccard" });
+    selects().first().props().onChange({ value: "jaccard" });
     result.update();
     result
       .find(CreateSimilarity)

@@ -15,7 +15,7 @@ class MissingOption extends React.Component {
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="fas fa-chart-area ml-2 mr-4" />
-            <span className="font-weight-bold">{this.props.t("menu:Missing Analysis")}</span>
+            <span className="font-weight-bold">{this.props.t("Missing Analysis", { ns: "menu" })}</span>
           </button>
         </span>
       </MenuItem>

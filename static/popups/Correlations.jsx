@@ -98,9 +98,9 @@ export default class Correlations extends React.Component {
       selectedCols,
       dummyCols: corrUtils.findDummyCols(selectedCols, this.state.dummyColMappings),
       dateCol: selectedDate,
-      rolling,
+      rolling: rolling || useRolling,
     };
-    if (useRolling) {
+    if (urlParams.rolling) {
       urlParams = {
         ...urlParams,
         rollingWindow: window ?? this.state.window,
@@ -121,11 +121,12 @@ export default class Correlations extends React.Component {
       tsUrl,
       rolling,
       useRolling,
+      error: null,
     };
-    if (useRolling && !_.isNull(window)) {
+    if (urlParams.rolling && !_.isNull(window)) {
       updatedState.window = window;
     }
-    if (useRolling && !_.isNull(minPeriods)) {
+    if (urlParams.rolling && !_.isNull(minPeriods)) {
       updatedState.minPeriods = minPeriods;
     }
     this.setState(updatedState);

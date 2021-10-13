@@ -96,13 +96,13 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build int conversion column", async () => {
     expect(result.find(CreateTypeConversion).length).toBe(1);
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col1" });
+    result.find(CreateTypeConversion).find(Select).first().props().onChange({ value: "col1" });
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
-    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "YYYYMMDD" });
+    result.find(CreateTypeConversion).find(Select).at(1).props().onChange({ value: "YYYYMMDD" });
     submit(result);
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
@@ -116,7 +116,7 @@ describe("DataViewer tests", () => {
   });
 
   it("DataViewer: build float conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col2" });
+    result.find(CreateTypeConversion).find(Select).first().props().onChange({ value: "col2" });
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").last().simulate("click");
     result.update();
@@ -134,7 +134,7 @@ describe("DataViewer tests", () => {
   });
 
   it("DataViewer: build string conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col3" });
+    result.find(CreateTypeConversion).find(Select).first().props().onChange({ value: "col3" });
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     result
@@ -158,7 +158,7 @@ describe("DataViewer tests", () => {
 
   it("DataViewer: build mixed conversion column", async () => {
     result.find(CreateColumn).find("div.form-group").first().find("button").first().simulate("click");
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col5" });
+    result.find(CreateTypeConversion).find(Select).first().props().onChange({ value: "col5" });
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     result.find(CreateTypeConversion).find("i.ico-check-box-outline-blank").simulate("click");
@@ -175,11 +175,11 @@ describe("DataViewer tests", () => {
   });
 
   it("DataViewer: build date conversion column", async () => {
-    result.find(CreateTypeConversion).find(Select).first().instance().onChange({ value: "col4" });
+    result.find(CreateTypeConversion).find(Select).first().props().onChange({ value: "col4" });
     result.update();
     result.find(CreateTypeConversion).find("div.form-group").at(1).find("button").first().simulate("click");
     result.update();
-    result.find(CreateTypeConversion).find(Select).at(1).instance().onChange({ value: "ms" });
+    result.find(CreateTypeConversion).find(Select).at(1).props().onChange({ value: "ms" });
     submit(result);
     await tick();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
