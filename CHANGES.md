@@ -1,5 +1,10 @@
 ## Changelog
 
+### 1.59.0 (2021-10-15)
+* [#581](https://github.com/man-group/dtale/issues/581): Binder proxy handling updates
+* [#583](https://github.com/man-group/dtale/issues/583): vertical column headers
+* front-end package upgrades
+
 ### 1.58.3 (2021-10-4)
 * updated dash-bio to an optional dependency
 
