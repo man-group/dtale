@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.59.1 (2021-10-15)
+* [#583](https://github.com/man-group/dtale/issues/583): allow for "vertical_headers" to be set from dtale.show
+
 ### 1.59.0 (2021-10-15)
 * [#581](https://github.com/man-group/dtale/issues/581): Binder proxy handling updates
 * [#583](https://github.com/man-group/dtale/issues/583): vertical column headers
