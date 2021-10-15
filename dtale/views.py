@@ -266,6 +266,7 @@ class DtaleData(object):
         * custom_formats - display formatting for specific columns
         * background_mode - different background displays in grid
         * range_highlights - specify background colors for ranges of values in the grid
+        * vertical_headers - if True, then rotate column headers vertically
         """
         name_updates = dict(
             range_highlights="rangeHighlight",
@@ -919,6 +920,8 @@ def startup(
     :param range_highlights: Definitions for equals, less-than or greater-than ranges for individual (or all) columns
                              which apply different background colors to cells which fall in those ranges.
     :type range_highlights: dict, optional
+    :param vertical_headers: if True, then rotate column headers vertically
+    :type vertical_headers: boolean, optional
     """
 
     if (

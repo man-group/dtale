@@ -180,6 +180,7 @@ def build_show_options(options=None):
         locked=None,
         background_mode=None,
         range_highlights=None,
+        vertical_headers=False,
     )
     config_options = {}
     config = get_config()
@@ -256,6 +257,9 @@ def build_show_options(options=None):
             config_options["range_highlights"] = json.loads(
                 config_options["range_highlights"]
             )
+        config_options["vertical_headers"] = get_config_val(
+            config, defaults, "vertical_headers", "getboolean"
+        )
 
     return dict_merge(defaults, config_options, options)
 

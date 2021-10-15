@@ -707,6 +707,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             locked=final_options["locked"],
             background_mode=final_options["background_mode"],
             range_highlights=final_options["range_highlights"],
+            vertical_headers=final_options["vertical_headers"],
             is_proxy=JUPYTER_SERVER_PROXY,
             app_root=final_app_root,
         )

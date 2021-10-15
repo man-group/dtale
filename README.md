@@ -539,7 +539,8 @@ dtale.show(
   column_formats={'a': {'fmt': '0.0000'}},
   nan_display='...',
   background_mode='heatmap-col',
-  sort=[('a','DESC')]
+  sort=[('a','DESC')],
+  vertical_headers=True,
 )
 ```
 
@@ -562,7 +563,8 @@ d.update_settings(
   column_formats={'a': {'fmt': '0.0000'}},
   nan_display='...',
   background_mode='heatmap-col',
-  sort=[('a','DESC')]
+  sort=[('a','DESC')],
+  vertical_headers=True,
 )
 d
 ```
@@ -614,6 +616,11 @@ Dictionary of column name keys and range configurations which if the value for t
   'lessThan': {'active': True, 'value': 3, 'color': {'r': 245, 'g': 166, 'b': 35, 'a': 1}}, # orange
 }
 ```
+
+#### vertical_headers
+If set to `True` then the headers in your grid will be rotated 90 degrees vertically to conserve width.
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/vertical_headers.png)
+
 
 ### Predefined Filters
 
