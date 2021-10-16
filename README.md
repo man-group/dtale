@@ -60,6 +60,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
 - [Where To Get It](#where-to-get-it)
 - [Getting Started](#getting-started)
   - [Python Terminal](#python-terminal)
+  - [As A Script](#as-a-script)
   - [Jupyter Notebook](#jupyter-notebook)
   - [Jupyterhub w/ Jupyter Server Proxy](#jupyterhub-w-jupyter-server-proxy)
   - [Jupyterhub w/ Kubernetes](https://github.com/man-group/dtale/blob/master/docs/JUPYTERHUB_KUBERNETES.md)
@@ -184,6 +185,17 @@ To help guard against users loading the same data to D-Tale multiple times and t
 If both these conditions are true then you will be presented with an error and a link to the previously loaded data.  Here is an example of how the interaction looks:
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/Duplicate_data.png)
 
+
+### As A Script
+
+D-Tale can be run as script by adding `subprocess=False` to your `dtale.show` command.  Here is an example script:
+```python
+import dtale
+import pandas as pd
+
+if __name__ == '__main__':
+      dtale.show(pd.DataFrame([1,2,3,4,5]), subprocess=False)
+```
 
 ### Jupyter Notebook
 Within any jupyter (ipython) notebook executing a cell like this will display a small instance of D-Tale in the output cell.  Here are some examples:
