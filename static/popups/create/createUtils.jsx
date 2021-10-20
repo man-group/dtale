@@ -1,6 +1,7 @@
 import _ from "lodash";
 import React from "react";
 
+import { Resample, validateResampleCfg } from "../reshape/Resample";
 import { default as CreateBins, validateBinsCfg } from "./CreateBins";
 import { default as CreateCleaning, validateCleaningCfg } from "./CreateCleaning";
 import { default as CreateConcatenate, validateConcatenateCfg } from "./CreateConcatenate";
@@ -38,7 +39,7 @@ export const TYPE_GROUPS = [
     label: "Transform Existing Data",
   },
   {
-    buttons: ["rolling", "exponential_smoothing", "data_slope", "shift", "expanding"],
+    buttons: ["rolling", "exponential_smoothing", "data_slope", "shift", "expanding", "resample"],
     label: "Timeseries",
   },
   {
@@ -114,6 +115,8 @@ export function validateCfg(t, type, cfg) {
       return validateSubstringCfg(t, cfg);
     case "split":
       return validateStringSplittingCfg(t, cfg);
+    case "resample":
+      return validateResampleCfg(cfg);
   }
   return null;
 }
@@ -181,6 +184,8 @@ export function getBody(state, props, updateState) {
       return <CreateShift {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
     case "expanding":
       return <CreateExpanding {..._.pick(state, ["columns", "namePopulated"])} updateState={updateState} />;
+    case "resample":
+      return <Resample {..._.pick(state, ["columns"])} updateState={updateState} />;
   }
   return null;
 }
@@ -195,6 +200,8 @@ export function renderNameInput({ type, cfg }) {
     } else {
       return "name_inplace";
     }
+  } else if (type === "resample") {
+    return "none";
   } else {
     return "name";
   }

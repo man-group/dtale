@@ -11,47 +11,39 @@ import reduxUtils from "../../redux-test-utils";
 
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from "../../test-utils";
 
+import { clickBuilder } from "./create-test-utils";
+
 describe("DataViewer tests", () => {
-  const { location, open, opener } = window;
+  const { location, open } = window;
+  let result, Resample;
   const dimensions = new DimensionsHelper({
-    offsetWidth: 800,
+    offsetWidth: 500,
     offsetHeight: 500,
     innerWidth: 1205,
     innerHeight: 775,
   });
-  let result, Reshape, Resample, validateResampleCfg;
 
   beforeAll(() => {
     dimensions.beforeAll();
-
     delete window.location;
+    window.location = { href: "http://localhost:8080/dtale/main/1" };
     delete window.open;
-    delete window.opener;
-    window.location = {
-      reload: jest.fn(),
-      pathname: "/dtale/iframe/1",
-      assign: jest.fn(),
-    };
     window.open = jest.fn();
-    window.opener = { code_popup: { code: "test code", title: "Test" } };
+
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
         return urlFetcher(url);
       })
     );
-
     mockChartJS();
-
     jest.mock("popsicle", () => mockBuildLibs);
-
-    Reshape = require("../../../popups/reshape/Reshape").ReactReshape;
-    Resample = require("../../../popups/reshape/Resample").ReactResample;
-    validateResampleCfg = require("../../../popups/reshape/Resample").validateResampleCfg;
   });
 
   beforeEach(async () => {
     const { DataViewer } = require("../../../dtale/DataViewer");
+    Resample = require("../../../popups/reshape/Resample").ReactResample;
+
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: "" }, store);
     result = mount(
@@ -60,8 +52,9 @@ describe("DataViewer tests", () => {
       </Provider>,
       { attachTo: document.getElementById("content") }
     );
+
     await tick();
-    clickMainMenuButton(result, "Summarize Data");
+    clickMainMenuButton(result, "Dataframe Functions");
     await tickUpdate(result);
   });
 
@@ -69,11 +62,12 @@ describe("DataViewer tests", () => {
     dimensions.afterAll();
     window.location = location;
     window.open = open;
-    window.opener = opener;
   });
 
-  it("DataViewer: reshape resample", async () => {
-    result.find(Reshape).find("div.modal-body").find("button").at(3).simulate("click");
+  it("DataViewer: build resample", async () => {
+    const fetcher = require("../../../fetcher");
+    const fetchJsonSpy = jest.spyOn(fetcher, "fetchJson");
+    clickBuilder(result, "Resample");
     expect(result.find(Resample).length).toBe(1);
     const resampleComp = result.find(Resample).first();
     const resampleInputs = resampleComp.find(Select);
@@ -85,22 +79,9 @@ describe("DataViewer tests", () => {
       .first()
       .simulate("change", { target: { value: "17min" } });
     resampleInputs.last().props().onChange({ value: "mean" });
-    result.find("div.modal-body").find("div.row").last().find("button").last().simulate("click");
     result.find("div.modal-footer").first().find("button").first().simulate("click");
     await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(1);
-    result.find("div.modal-body").find("div.row").last().find("button").first().simulate("click");
-    result.find("div.modal-footer").first().find("button").first().simulate("click");
-    await tickUpdate(result);
-    expect(result.find(Reshape).length).toBe(0);
-
-    const cfg = { index: null };
-    expect(validateResampleCfg(cfg)).toBe("Missing an index selection!");
-    cfg.index = "x";
-    expect(validateResampleCfg(cfg)).toBe("Missing offset!");
-    cfg.freq = "x";
-    expect(validateResampleCfg(cfg)).toBe("Missing aggregation!");
-    cfg.agg = "x";
-    expect(validateResampleCfg(cfg)).toBeNull();
+    expect(fetchJsonSpy.mock.calls[0][0].startsWith("/dtale/reshape/1")).toBe(true);
+    expect(window.open).toHaveBeenCalledWith("http://localhost:8080/dtale/main/9999", "_blank");
   });
 });

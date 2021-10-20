@@ -64,7 +64,13 @@ class Resample extends React.Component {
       cfg.columns = null;
     }
     cfg.agg = _.get(currState.agg, "value");
-    this.setState(currState, () => this.props.updateState({ cfg, code: buildCode(currState) }));
+    this.setState(currState, () =>
+      this.props.updateState({
+        cfg,
+        code: buildCode(currState),
+        saveAs: "none",
+      })
+    );
   }
 
   render() {

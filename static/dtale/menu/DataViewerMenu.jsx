@@ -40,7 +40,6 @@ import ShowHideColumnsOption from "./ShowHideColumnsOption";
 import { ShutdownOption } from "./ShutdownOption";
 import SummarizeOption from "./SummarizeOption";
 import { ThemeOption } from "./ThemeOption";
-import TimeseriesOption from "./TimeseriesOption";
 import UploadOption from "./UploadOption";
 import { XArrayOption } from "./XArrayOption";
 import menuFuncs from "./dataViewerMenuUtils";
@@ -98,7 +97,6 @@ class ReactDataViewerMenu extends React.Component {
             <CleanColumn open={buttonHandlers.CLEAN} />
             <MergeOption open={() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank")} />
             <SummarizeOption open={openPopup("reshape", 400, 770)} />
-            <TimeseriesOption open={openPopup("timeseries", 400, 770)} />
             <DuplicatesOption open={buttonHandlers.DUPLICATES} />
             <MissingOption open={() => this.props.showSidePanel("missingno")} />
             <CorrelationAnalysisOption open={() => this.props.showSidePanel("corr_analysis")} />

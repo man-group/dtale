@@ -261,7 +261,7 @@ function urlFetcher(url) {
     if (urlParams.index === "error") {
       return { error: "error test" };
     }
-    return { success: true };
+    return { success: true, data_id: 9999 };
   } else if (_.startsWith(url, "/dtale/filter-info")) {
     return getDataId(url) === "error" ? { error: "Error loading context variables" } : CONTEXT_VARIABLES;
   } else if (_.startsWith(url, "/dtale/code-export")) {
