@@ -20,28 +20,26 @@ function buildForwardURL(href, dataId) {
   return `${_.join(_.initial((href || "").split("/")), "/")}/${dataId}`;
 }
 
-const OPERATIONS = {
-  reshape: [
-    ["aggregate", "GroupBy"],
-    ["pivot", "Pivot"],
-    ["transpose", "Transpose"],
-  ],
-  timeseries: [["resample", "Resample"]],
-};
+const OPERATIONS = [
+  ["aggregate", "GroupBy"],
+  ["pivot", "Pivot"],
+  ["transpose", "Transpose"],
+  ["resample", "Resample"],
+];
 
-const baseState = operation => ({
-  type: operation === "timeseries" ? "resample" : "pivot",
+const BASE_STATE = {
+  type: "pivot",
   output: "new",
   cfg: {},
   code: {},
   loadingColumns: true,
   loadingReshape: false,
-});
+};
 
 class ReactReshape extends React.Component {
   constructor(props) {
     super(props);
-    this.state = baseState(props.operation);
+    this.state = { ...BASE_STATE };
     this.save = this.save.bind(this);
     this.renderBody = this.renderBody.bind(this);
   }
@@ -139,7 +137,7 @@ class ReactReshape extends React.Component {
           <label className="col-md-3 col-form-label text-right">{t("Operation")}</label>
           <div className="col-md-8">
             <div className="btn-group">
-              {_.map(OPERATIONS[this.props.operation], ([type, label], i) => {
+              {_.map(OPERATIONS, ([type, label], i) => {
                 const buttonProps = { className: "btn" };
                 if (type === this.state.type) {
                   buttonProps.className += " btn-primary active";
@@ -234,9 +232,7 @@ ReactReshape.propTypes = {
   }),
   onClose: PropTypes.func,
   t: PropTypes.func,
-  operation: PropTypes.string,
 };
-ReactReshape.defaultProps = { operation: "reshape" };
 const TranslateReactReshape = withTranslation("reshape")(ReactReshape);
 const ReduxReshape = connect(
   ({ dataId, chartData }) => ({ dataId, chartData }),

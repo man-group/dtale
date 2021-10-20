@@ -41,7 +41,6 @@ import { ShowNonNumericHeatmapColumns } from "../menu/ShowNonNumericHeatmapColum
 import { ShutdownOption } from "../menu/ShutdownOption";
 import SummarizeOption from "../menu/SummarizeOption";
 import { ThemeOption } from "../menu/ThemeOption";
-import TimeseriesOption from "../menu/TimeseriesOption";
 import UploadOption from "../menu/UploadOption";
 import { VerticalColumnHeaders } from "../menu/VerticalColumnHeaders";
 import { XArrayOption } from "../menu/XArrayOption";
@@ -180,7 +179,6 @@ class ReactRibbonDropdown extends React.Component {
             <CleanColumn open={hideWrapper(buttonHandlers.CLEAN)} />
             <MergeOption open={hideWrapper(() => window.open(menuFuncs.fullPath("/dtale/popup/merge"), "_blank"))} />
             <SummarizeOption open={hideWrapper(openPopup("reshape", 400, 770))} />
-            <TimeseriesOption open={openPopup("timeseries", 400, 770)} />
             <CorrelationAnalysisOption open={hideWrapper(() => this.props.showSidePanel("corr_analysis"))} />
           </ul>
         )}

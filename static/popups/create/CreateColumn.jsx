@@ -10,6 +10,7 @@ import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import ColumnSaveType from "../replacement/ColumnSaveType";
+import { buildForwardURL } from "../reshape/Reshape";
 import * as createUtils from "./createUtils";
 
 require("./CreateColumn.css");
@@ -64,7 +65,12 @@ class ReactCreateColumn extends React.Component {
     }
     this.setState({ loadingColumn: true });
     createParams = { ...createParams, type, cfg: JSON.stringify(cfg) };
-    fetchJson(buildURLString(`/dtale/build-column/${this.props.dataId}?`, createParams), data => {
+    let route = "build-column";
+    if (type === "resample") {
+      createParams.output = "new";
+      route = "reshape";
+    }
+    fetchJson(buildURLString(`/dtale/${route}/${this.props.dataId}?`, createParams), data => {
       if (data.error) {
         this.setState({
           error: <RemovableError {...data} />,
@@ -76,6 +82,11 @@ class ReactCreateColumn extends React.Component {
         if (_.startsWith(window.location.pathname, "/dtale/popup/build")) {
           window.opener.location.reload();
           window.close();
+        } else if (route === "reshape") {
+          const newLoc = buildForwardURL(window.location.href, data.data_id);
+          this.props.onClose();
+          window.open(newLoc, "_blank");
+          return;
         } else {
           this.props.chartData.propagateState({ refresh: true }, this.props.onClose);
         }

@@ -1,4 +1,8 @@
+import warnings
+
 from flask import Blueprint
+
+warnings.filterwarnings("ignore")
 
 dtale = Blueprint("dtale", __name__, url_prefix="/dtale")
 

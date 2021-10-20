@@ -72,7 +72,7 @@ describe("DataViewer within iframe tests", () => {
     ).toEqual(
       _.concat(
         ["Open In New Tab", "Convert To XArray", "Describe", "Custom Filter", "show_hide", "Dataframe Functions"],
-        ["Clean Column", "Merge & Stack", "Summarize Data", "Timeseries", "Duplicates", "Missing Analysis"],
+        ["Clean Column", "Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis"],
         ["Feature Analysis", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
         ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
         ["gage_rnr", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],
