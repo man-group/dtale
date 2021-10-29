@@ -240,7 +240,7 @@ export default class Correlations extends React.Component {
                         data.ticks[data.ticks.length - 1] = { label: null };
                       },
                     };
-                    config.options.scales.x.scaleLabel.display = false;
+                    config.options.scales.x.title.display = false;
                     config.options.onClick = this.viewScatter;
                     config.options.legend = { display: false };
                     config.plugins = [

@@ -83,8 +83,11 @@ setup(
     url="https://github.com/man-group/dtale",
     install_requires=read_file("requirements.txt"),
     extras_require={
-        "arctic": ["arctic"],
-        "dash-bio": ["dash-bio"],
+        "arctic": ["arctic <= 1.79.4"],
+        "dash-bio": [
+            "dash-bio; python_version > '3.0'",
+            "dash-bio==0.7.1; python_version == '2.7'",
+        ],
         "r": ["rpy2; python_version > '3.0'"],
         "redis": ["redislite"],
         "streamlit": ["streamlit"],

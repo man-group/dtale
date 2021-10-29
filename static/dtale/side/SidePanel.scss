@@ -18,7 +18,8 @@
   &.is-expanded.missingno,
   &.is-expanded.correlations,
   &.is-expanded.pps,
-  &.is-expanded.gage_rnr  {
+  &.is-expanded.gage_rnr,
+  &.is-expanded.timeseries_analysis {
     width: calc(75vw);
   }
 

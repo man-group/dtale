@@ -39,7 +39,7 @@ import dtale.gage_rnr as gage_rnr
 import dtale.global_state as global_state
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
-from dtale.charts.utils import build_base_chart, build_formatters, CHART_POINTS_LIMIT
+from dtale.charts.utils import build_base_chart, CHART_POINTS_LIMIT
 from dtale.cli.clickutils import retrieve_meta_info_and_version
 from dtale.column_analysis import ColumnAnalysis
 from dtale.column_builders import ColumnBuilder, printable
@@ -63,13 +63,14 @@ from dtale.query import (
     build_col_key,
     build_query,
     handle_predefined,
-    inner_build_query,
     load_filterable_data,
     run_query,
 )
+from dtale.timeseries_analysis import TimeseriesAnalysis
 from dtale.utils import (
     DuplicateDataError,
     apply,
+    build_formatters,
     build_shutdown_url,
     build_url,
     classify_type,
@@ -599,7 +600,7 @@ class DtaleData(object):
 
 
 def unique_count(s):
-    return int(s.dropna().unique().size)
+    return int(len(s.dropna().unique()))
 
 
 def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
@@ -758,8 +759,8 @@ def format_data(data, inplace=False, drop_index=False):
             data.drop("index", axis=1, errors="ignore", inplace=True)
         else:
             data = data.drop("index", axis=1, errors="ignore")
-    data.columns = [str(c).strip() for c in data.columns]
 
+    data.columns = [str(c).strip() for c in data.columns]
     if len(data.columns) > len(set(data.columns)):
         distinct_cols = set()
         dupes = set()
@@ -778,6 +779,12 @@ def format_data(data, inplace=False, drop_index=False):
             except TypeError:
                 # convert any columns with complex data structures (list, dict, etc...) to strings
                 data.loc[:, col] = data[col].astype("str")
+        elif (
+            find_dtype(data[col]).startswith("period") and not data[col].isnull().all()
+        ):
+            # convert any pandas period_range columns to timestamps
+            data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
+
     return data, index
 
 
@@ -3585,3 +3592,13 @@ def build_gage_rnr(data_id):
     df = df.reset_index()
     overrides = {"F": lambda f, i, c: f.add_float(i, c, precision=3)}
     return jsonify(dict_merge(dict(success=True), format_grid(df, overrides)))
+
+
+@dtale.route("/timeseries-analysis/<data_id>")
+@exception_decorator
+def get_timeseries_analysis(data_id):
+    report_type = get_str_arg(request, "type")
+    cfg = json.loads(get_str_arg(request, "cfg"))
+    ts_rpt = TimeseriesAnalysis(data_id, report_type, cfg)
+    data = ts_rpt.run()
+    return jsonify(dict_merge(dict(success=True), data))

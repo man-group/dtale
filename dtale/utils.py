@@ -556,6 +556,23 @@ def grid_formatter(col_types, nan_display="", overrides=None, as_string=False):
     return f
 
 
+def build_formatters(df, nan_display=None):
+    """
+    Helper around :meth:`dtale.utils.grid_formatters` that will build a formatter for the data being fed into a chart as
+    well as a formatter for the min/max values for each column used in the chart data.
+
+    :param df: dataframe which contains column names and data types for formatters
+    :type df: :class:`pandas:pandas.DataFrame`
+    :return: json formatters for chart data and min/max values for each column used in the chart
+    :rtype: (:class:`dtale.utils.JSONFormatter`, :class:`dtale.utils.JSONFormatter`)
+    """
+    cols = grid_columns(df)
+    data_f = grid_formatter(cols, nan_display=nan_display)
+    overrides = {"F": lambda f, i, c: f.add_float(i, c, precision=2)}
+    range_f = grid_formatter(cols, overrides=overrides, nan_display=nan_display)
+    return data_f, range_f
+
+
 def format_grid(df, overrides=None):
     """
     Translate :class:`pandas:pandas.DataFrame` to well-formed JSON.  Structure is as follows:

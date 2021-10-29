@@ -29,7 +29,7 @@ const OPERATION_MAPPING = {
   sum: " + ",
   difference: " - ",
   multiply: " * ",
-  divide: " \\ ",
+  divide: " / ",
 };
 
 export function buildCode({ left, operation, right }) {

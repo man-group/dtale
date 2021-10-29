@@ -38,7 +38,7 @@ from dtale.charts.utils import (
     valid_chart,
     weekday_tick_handler,
 )
-from dtale.charts.utils import build_formatters as chart_formatters
+from dtale.utils import build_formatters as chart_formatters
 
 from dtale.dash_application.layout.layout import (
     ANIMATE_BY_CHARTS,

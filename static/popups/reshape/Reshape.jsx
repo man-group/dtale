@@ -9,6 +9,7 @@ import { RemovableError } from "../../RemovableError";
 import { closeChart } from "../../actions/charts";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
+import CodeSnippet from "../create/CodeSnippet";
 import { Aggregate, validateAggregateCfg } from "./Aggregate";
 import { Pivot, validatePivotCfg } from "./Pivot";
 import { Resample, validateResampleCfg } from "./Resample";
@@ -199,22 +200,13 @@ class ReactReshape extends React.Component {
         </div>
       );
     }
-    let codeMarkup = null;
-    if (_.get(this.state, ["code", this.state.type])) {
-      codeMarkup = (
-        <div className="col" style={{ paddingRight: 0 }}>
-          <span className="pr-3">{t("Code")}:</span>
-          <span className="font-weight-bold">{_.get(this.state, ["code", this.state.type])}</span>
-        </div>
-      );
-    }
     return [
       error,
       <BouncerWrapper key={0} showBouncer={this.state.loadingColumns}>
         {this.renderBody()}
       </BouncerWrapper>,
       <div key={1} className="modal-footer">
-        {codeMarkup}
+        <CodeSnippet code={_.get(this.state, ["code", this.state.type])} />
         <button className="btn btn-primary" onClick={this.state.loadingReshape ? _.noop : this.save}>
           <BouncerWrapper showBouncer={this.state.loadingReshape}>
             <span>{t("Execute")}</span>

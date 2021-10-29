@@ -196,8 +196,11 @@ describe("chartUtils tests", () => {
       configHandler: cfg => cfg,
     });
     expect(cfg.data.datasets[0].label).toBe("series1");
-    expect(cfg.options.plugins.tooltip.callbacks.label({ parsed: { y: 0.1 }, datasetIndex: 0 }, cfg.data)).toBe(
-      "series1: 0.1"
-    );
+    const tooltipItem = {
+      parsed: { y: 0.1 },
+      dataset: { label: "series1" },
+      datasetIndex: 0,
+    };
+    expect(cfg.options.plugins.tooltip.callbacks.label(tooltipItem, cfg.data)).toBe("series1: 0.1");
   });
 });

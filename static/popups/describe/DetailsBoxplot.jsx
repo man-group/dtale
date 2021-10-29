@@ -64,9 +64,9 @@ class DetailsBoxplot extends React.Component {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          legend: { display: false },
           title: { display: false },
           plugins: {
+            legend: { display: false },
             tooltip: {
               enabled: true,
               callbacks: {
