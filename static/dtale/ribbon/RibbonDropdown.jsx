@@ -41,6 +41,7 @@ import { ShowNonNumericHeatmapColumns } from "../menu/ShowNonNumericHeatmapColum
 import { ShutdownOption } from "../menu/ShutdownOption";
 import SummarizeOption from "../menu/SummarizeOption";
 import { ThemeOption } from "../menu/ThemeOption";
+import TimeseriesAnalysisOption from "../menu/TimeseriesAnalysisOption";
 import UploadOption from "../menu/UploadOption";
 import { VerticalColumnHeaders } from "../menu/VerticalColumnHeaders";
 import { XArrayOption } from "../menu/XArrayOption";
@@ -189,6 +190,7 @@ class ReactRibbonDropdown extends React.Component {
             <MissingOption open={hideWrapper(() => this.props.showSidePanel("missingno"))} />
             <CorrelationsOption open={hideWrapper(() => this.props.showSidePanel("correlations"))} />
             <PPSOption open={hideWrapper(() => this.props.showSidePanel("pps"))} />
+            <TimeseriesAnalysisOption open={hideWrapper(() => this.props.showSidePanel("timeseries_analysis"))} />
             <ChartsOption open={hideWrapper(buttonHandlers.CHARTS)} />
             <NetworkOption open={hideWrapper(buttonHandlers.NETWORK)} />
             <GageRnROption open={hideWrapper(() => this.props.showSidePanel("gage_rnr"))} />

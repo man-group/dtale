@@ -20,17 +20,17 @@ const Tableau20 = _.concat(
 );
 
 function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
-  const xAxes = { scaleLabel: { display: true, labelString: "Value" } };
+  const xAxes = { title: { display: true, text: "Value" } };
   const { data, ordinal } = fetchedData;
   let datasets = [{ label: "Frequency", type: "bar", data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" }];
   const yAxes = {
-    y: { scaleLabel: { display: true, labelString: "Frequency" }, position: "left" },
+    y: { title: { display: true, text: "Frequency" }, position: "left" },
   };
   if (_.has(fetchedData, "ordinal")) {
     const ordinalCol = _.get(chartOpts, "ordinalCol.value");
     const ordinalAgg = _.get(chartOpts, "ordinalAgg.value");
     yAxes["y-2"] = {
-      scaleLabel: { display: true, labelString: `${ordinalCol} (${ordinalAgg})` },
+      title: { display: true, text: `${ordinalCol} (${ordinalAgg})` },
       position: "right",
     };
     datasets = _.concat(
@@ -50,11 +50,11 @@ function buildValueCountsAxes(baseCfg, fetchedData, chartOpts) {
 
 function buildCategoryAxes(baseCfg, fetchedData, chartOpts) {
   const { data, count } = fetchedData;
-  const xAxes = { scaleLabel: { display: true, labelString: _.get(chartOpts, "categoryCol.value") } };
+  const xAxes = { title: { display: true, text: _.get(chartOpts, "categoryCol.value") } };
   const yLabel = `${chartOpts.selectedCol} (${_.get(chartOpts, "categoryAgg.label")})`;
   const yAxes = {
-    y: { scaleLabel: { display: true, labelString: yLabel }, position: "left" },
-    "y-2": { scaleLabel: { display: true, labelString: "Frequency" }, position: "right" },
+    y: { title: { display: true, text: yLabel }, position: "left" },
+    "y-2": { title: { display: true, text: "Frequency" }, position: "right" },
   };
   const datasets = [
     _.assignIn(
@@ -84,9 +84,9 @@ function targetColor(idx) {
 
 function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
   const { data, targets, kde } = fetchedData;
-  const xAxes = { x: { scaleLabel: { display: true, labelString: "Bin" } } };
+  const xAxes = { x: { title: { display: true, text: "Bin" } } };
   const yAxes = {
-    y: { scaleLabel: { display: true, labelString: "Frequency" } },
+    y: { title: { display: true, text: "Frequency" } },
   };
   let datasets = [];
   if (targets) {
@@ -106,7 +106,7 @@ function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
     if (kde) {
       yAxes.y.position = "left";
       yAxes["y-2"] = {
-        scaleLabel: { display: true, labelString: "KDE" },
+        title: { display: true, text: "KDE" },
         position: "right",
         ticks: { min: 0, max: _.max(kde) },
       };
@@ -155,7 +155,7 @@ function createChart(ctx, fetchedData, chartOpts) {
     type: "bar",
     data: { labels },
     options: {
-      legend: { display: false },
+      plugins: { legend: { display: false } },
     },
   };
   let infoBuilder = _.noop;

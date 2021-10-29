@@ -4,6 +4,7 @@ import {
   BarElement,
   Chart,
   CategoryScale,
+  Legend,
   LineController,
   LineElement,
   PointElement,
@@ -28,6 +29,7 @@ Chart.register(
   BarElement,
   BoxPlotController,
   CategoryScale,
+  Legend,
   LineController,
   LineElement,
   PointElement,
@@ -75,7 +77,7 @@ const TS_COLORS = [
   "rgb(231,233,237)",
 ];
 
-const COLOR_PROPS = [
+export const COLOR_PROPS = [
   "borderColor",
   "backgroundColor",
   "pointHoverBackgroundColor",
@@ -164,7 +166,7 @@ const COLOR_SCALE = chroma.scale(["orange", "yellow", "green", "lightblue", "dar
 
 function updateLegend(cfg) {
   if (_.size(cfg.data.datasets) < 2) {
-    cfg.options.legend = { display: false };
+    cfg.options.plugins = { ...cfg.options.plugins, legend: { display: false } };
   }
 }
 
@@ -225,10 +227,10 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
             mode: "index",
             intersect: false,
             callbacks: {
-              label: (tooltipItem, chartData) => {
+              label: (tooltipItem, _chartData) => {
                 const value = _.round(tooltipItem.parsed.y, 4);
                 if (_.size(data) * _.size(y) > 1) {
-                  const label = chartData.datasets[tooltipItem.datasetIndex].label || "";
+                  const label = tooltipItem.dataset.label || "";
                   if (label) {
                     return `${label}: ${value}`;
                   }
@@ -244,9 +246,9 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
         },
         scales: {
           x: {
-            scaleLabel: {
+            title: {
               display: true,
-              labelString: x,
+              text: x,
             },
           },
           ..._.reduce(
@@ -254,9 +256,9 @@ function createBaseCfg({ data, min, max }, { x, y, additionalOptions }, seriesFo
             (res, yProp, idx) => ({
               ...res,
               [`y-${yProp}`]: {
-                scaleLabel: {
+                title: {
                   display: true,
-                  labelString: yProp,
+                  text: yProp,
                 },
                 ticks: buildTicks(yProp, { min, max }),
                 position: idx % 2 == 0 ? "left" : "right",
@@ -340,15 +342,15 @@ function createScatterCfg({ data, min, max }, { x, y, additionalOptions, configH
     options: {
       scales: {
         x: {
-          scaleLabel: { display: true, labelString: x },
+          title: { display: true, text: x },
         },
         y: {
           ticks: buildTicks(yProp, { min, max }),
-          scaleLabel: { display: true, labelString: yProp },
+          title: { display: true, text: yProp },
         },
       },
-      legend: { display: false },
       plugins: {
+        legend: { display: false },
         zoom: {
           pan: { enabled: true, mode: "x" },
           zoom: {
@@ -428,6 +430,7 @@ export default {
   createChart,
   chartWrapper,
   fitToContainer,
+  COLOR_PROPS,
   TS_COLORS,
   gradientLinePlugin,
   lineHoverPlugin,

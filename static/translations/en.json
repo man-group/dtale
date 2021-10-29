@@ -56,7 +56,7 @@
     "Max Height": "Max Height",
     "Show All Heatmap Columns": "Show All Heatmap Columns",
     "Feature Analysis": "Feature Analysis",
-    "Timeseries": "Timeseries",
+    "Time Series Analysis": "Time Series Analysis",
     "gage_rnr": "Gage R & R",
     "Vertical Column Headers": "Vertical Column Headers"
   },
@@ -104,7 +104,8 @@
     "show_all_heatmap": "Show all non-numeric columns when displaying heatmap highlighting.",
     "corr_analysis": "Remove columns (features) based on their correlations with other columns in your dataset. If there is a strong correlation amongst some columns (features) then maybe they aren't relevant to keep around?",
     "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device.",
-    "vertical_headers": "Rotate column headers vertically"
+    "vertical_headers": "Rotate column headers vertically",
+    "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -995,5 +996,30 @@
   "gage_rnr": {
     "Operator": "Operator",
     "Measurements": "Measurements"
+  },
+  "timeseries": {
+    "Build": "Build",
+    "Report": "Report",
+    "Index": "Index",
+    "Column": "Column",
+    "Agg": "Agg",
+    "hpfilter": "Hodrick-Prescott Filter",
+    "bkfilter": "Baxter-King Filter",
+    "cffilter": "Christiano Fitzgerald Asymmetric",
+    "seasonal_decompose": "Seasonal Decompose",
+    "stl": "Season-Trend Decomposition Using LOESS",
+    "Lambda": "Lambda",
+    "Low": "Low",
+    "High": "High",
+    "K": "K",
+    "Model": "Model",
+    "Drift": "Drift",
+    "lamb_desc": "The Hodrick-Prescott smoothing parameter. A value of 1600 is suggested for quarterly data. Ravn and Uhlig suggest using a value of 6.25 (1600/4**4) for annual data and 129600 (1600*3**4) for monthly data.",
+    "low_desc": "Minimum period for oscillations, ie., Baxter and King suggest that the Burns-Mitchell U.S. business cycle has 6 for quarterly data and 1.5 for annual data.",
+    "high_desc": "Maximum period for oscillations BK suggest that the U.S. business cycle has 32 for quarterly data and 8 for annual data.",
+    "K_desc": "Lead-lag length of the filter. Baxter and King propose a truncation length of 12 for quarterly data and 3 for annual data.",
+    "drift_desc": "Whether or not to remove a trend from the data. The trend is estimated as np.arange(nobs)*(x[-1] - x[0])/(len(x)-1).",
+    "additive": "Additive",
+    "multiplicative": "Multiplicative"
   }
 }

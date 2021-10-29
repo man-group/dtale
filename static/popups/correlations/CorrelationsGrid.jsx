@@ -159,7 +159,7 @@ class CorrelationsGrid extends React.Component {
                   {renderCodePopupAnchor(this.props.gridCode, t("Correlations", { ns: "menu" }))}
                 </div>
               </div>
-              {this.props.strings.length && (
+              {this.props.strings.length > 0 && (
                 <div style={{ width }} className="row pt-3 pb-3 correlations-filters">
                   <span className="mb-auto mt-auto">{t("Encode Strings", { ns: "correlations" })}?</span>
                   <div className="col-auto mt-auto mb-auto pl-5 hoverable" style={{ borderBottom: "none" }}>

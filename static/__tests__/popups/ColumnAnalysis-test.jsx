@@ -164,7 +164,7 @@ describe("ColumnAnalysis tests", () => {
     expect(chart().cfg.type).toBe("bar");
     expect(_.get(chart(), "cfg.data.datasets[0].data")).toEqual(ANALYSIS_DATA.data);
     expect(_.get(chart(), "cfg.data.labels")).toEqual(ANALYSIS_DATA.labels);
-    const xlabel = _.get(chart(), "cfg.options.scales.x.scaleLabel.labelString");
+    const xlabel = _.get(chart(), "cfg.options.scales.x.title.text");
     expect(xlabel).toBe("Bin");
     const currChart = chart();
     input().simulate("change", { target: { value: "" } });

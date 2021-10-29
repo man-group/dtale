@@ -90,7 +90,7 @@ describe("DataViewer tests", () => {
     ).toEqual(
       _.concat(
         ["Convert To XArray", "Describe", "Custom Filter", "Predefined Filters", "show_hide", "Dataframe Functions"],
-        ["Clean Column", "Merge & Stack", "Summarize Data", "Duplicates", "Missing Analysis"],
+        ["Clean Column", "Merge & Stack", "Summarize Data", "Time Series Analysis", "Duplicates", "Missing Analysis"],
         ["Feature Analysis", "Correlations", "Predictive Power Score", "Charts", "Network Viewer", "Heat Map"],
         ["Highlight Dtypes", "Highlight Missing", "Highlight Outliers", "Highlight Range", "Low Variance Flag"],
         ["gage_rnr", "Instances 1", "Code Export", "Export", "Load Data", "Refresh Widths", "About", "Theme"],

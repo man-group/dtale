@@ -78,6 +78,23 @@ function createCharts(data, props, state, funcs = {}) {
     return null;
   }
   const charts = state.charts ?? [];
+  if (state.chartPerY) {
+    return _.map(props.y, series => {
+      const seriesKey = series.value;
+      const mainProps = _.pick(props, ["columns", "x", "y", "additionalOptions", "configHandler"]);
+      mainProps.chartType = chartTypeVal;
+      mainProps.additionalOptions = _.assignIn(mainProps.additionalOptions, {
+        title: { display: true, text: seriesKey },
+      });
+      const subData = {
+        data: { all: { [seriesKey]: data.data.all[seriesKey], x: data.data.all.x } },
+        min: data.min,
+        max: data.max,
+      };
+      const builder = ctx => createChartCfg(ctx, subData, mainProps, funcs);
+      return chartUtils.chartWrapper(`chartCanvas-${seriesKey}`, charts[seriesKey], builder);
+    });
+  }
   if (state.chartPerGroup) {
     return _.map(_.get(data, "data", {}), (series, seriesKey) => {
       const mainProps = _.pick(props, ["columns", "x", "y", "additionalOptions", "configHandler"]);
@@ -116,7 +133,8 @@ class ChartsBody extends React.Component {
     this.mounted = false;
     this.state = {
       chartType: { value: props.chartType || "line" },
-      chartPerGroup: props.chartPerGroup === "true",
+      chartPerGroup: props.chartPerGroup === "true" || props.chartPerGroup === true,
+      chartPerY: props.chartPerY === "true" || props.chartPerY === true,
       chartSort: _.clone(this.props.x),
       charts: null,
       error: null,
@@ -137,7 +155,7 @@ class ChartsBody extends React.Component {
       return true;
     }
 
-    const selectedState = ["chartType", "chartPerGroup", "data", "zoomed", "chartSort"];
+    const selectedState = ["chartType", "chartPerGroup", "chartPerY", "data", "zoomed", "chartSort"];
     if (!_.isEqual(_.pick(this.state, selectedState), _.pick(newState, selectedState))) {
       return true;
     }
@@ -151,6 +169,14 @@ class ChartsBody extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if (this.props.chartPerGroup !== prevProps.chartPerGroup) {
+      this.setState({ chartPerGroup: this.props.chartPerGroup });
+      return;
+    }
+    if (this.props.chartPerY !== prevProps.chartPerY) {
+      this.setState({ chartPerY: this.props.chartPerY });
+      return;
+    }
     if (!this.props.visible) {
       return;
     }
@@ -158,12 +184,12 @@ class ChartsBody extends React.Component {
       this.buildChart();
       return;
     }
-    const selectedState = ["chartType", "chartPerGroup"];
+    const selectedState = ["chartType", "chartPerGroup", "chartPerY"];
     if (!_.isEqual(_.pick(this.state, selectedState), _.pick(prevState, selectedState))) {
       if (chartType(this.state) !== chartType({ state: prevState }) && chartType({ state: prevState }) === "scatter") {
         this.buildChart(); //need to reload chart data because scatter charts allow duplicates
       } else if (_.get(this.state, "chartSort.value") === this.props.x.value) {
-        _.forEach(this.state.charts || [], c => c.destroy());
+        _.forEach(this.state.charts || [], c => c?.destroy());
         const funcs = _.pick(this, ["viewTimeDetails"]);
         this.setState({
           error: null,
@@ -189,7 +215,7 @@ class ChartsBody extends React.Component {
       return;
     }
     toggleBouncer(["chart-bouncer", "coveragePopup"]);
-    _.forEach(this.state.charts || [], c => c.destroy());
+    _.forEach(this.state.charts || [], c => c?.destroy());
     fetchJson(`${this.props.url}${chartType(this.state) === "scatter" ? "&allowDupes=true" : ""}`, fetchedChartData => {
       toggleBouncer(["chart-bouncer", "coveragePopup"]);
       if (this.mounted) {
@@ -384,6 +410,21 @@ class ChartsBody extends React.Component {
           ))}
         </div>
       );
+    } else if (this.state.chartPerY) {
+      charts = (
+        <div className="row">
+          {_.map(this.props.y, ({ value }) => {
+            if (value === "x") {
+              return null;
+            }
+            return (
+              <div key={value} className="col-md-12" style={{ height: this.props.height }}>
+                <canvas id={`chartCanvas-${value}`} height={this.props.height} />
+              </div>
+            );
+          })}
+        </div>
+      );
     } else {
       charts = <canvas id="chartCanvas" height={this.props.height} />;
     }
@@ -412,6 +453,7 @@ ChartsBody.propTypes = {
   rollingComputation: PropTypes.string,
   chartType: PropTypes.string,
   chartPerGroup: PropTypes.bool,
+  chartPerY: PropTypes.bool,
   visible: PropTypes.bool.isRequired,
   height: PropTypes.number,
   additionalOptions: PropTypes.object, // eslint-disable-line react/no-unused-prop-types
@@ -423,6 +465,7 @@ ChartsBody.propTypes = {
 ChartsBody.defaultProps = {
   height: 400,
   chartPerGroup: false,
+  chartPerY: false,
   chartType: "line",
   configHandler: config => config,
   showControls: true,

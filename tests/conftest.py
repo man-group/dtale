@@ -191,6 +191,15 @@ def clustergram_data():
 
 
 @pytest.fixture(scope="module")
+def ts_analysis_data():
+    return pd.read_csv(
+        os.path.join(os.path.dirname(__file__), "data/ts_analysis.tsv"),
+        sep="	",
+        parse_dates=["date"],
+    )
+
+
+@pytest.fixture(scope="module")
 def builtin_pkg():
     if PY3:
         return "builtins"

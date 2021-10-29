@@ -8,6 +8,7 @@ import Draggable from "react-draggable";
 import Correlations from "../../popups/Correlations";
 import { FilterPanel } from "../../popups/filter/FilterPanel";
 import PredictivePowerScore from "../../popups/pps/PredictivePowerScore";
+import { Reports } from "../../popups/timeseries/Reports";
 import { DescribePanel } from "./DescribePanel";
 import { MissingNoCharts } from "./MissingNoCharts";
 import { Panel as PredefinedFilters } from "./predefined_filters/Panel";
@@ -88,6 +89,7 @@ class ReactSidePanel extends React.Component {
         )}
         {visible && view == "predefined_filters" && <PredefinedFilters />}
         {visible && view == "gage_rnr" && <GageRnR />}
+        {visible && view == "timeseries_analysis" && <Reports />}
       </div>
     );
   }

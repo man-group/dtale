@@ -11,6 +11,7 @@ import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import { fetchJson } from "../../fetcher";
 import ColumnSaveType from "../replacement/ColumnSaveType";
 import { buildForwardURL } from "../reshape/Reshape";
+import CodeSnippet from "./CodeSnippet";
 import * as createUtils from "./createUtils";
 
 require("./CreateColumn.css");
@@ -175,37 +176,12 @@ class ReactCreateColumn extends React.Component {
   }
 
   renderCode() {
-    const { t } = this.props;
     if (_.get(this.state, ["code", this.state.type])) {
       const code = _.concat(_.get(this.state, ["code", this.state.type], []), []);
-      let markup = null;
-      if (_.size(code) > 2) {
-        const isWindow = _.includes(window.location.pathname, `/dtale/popup/${this.state.type.split("_").join("-")}`);
-        markup = (
-          <div className="font-weight-bold hoverable">
-            <div>{code[0]}</div>
-            <div>{code[1]}</div>
-            <div style={{ fontSize: "85%" }}>{t("hover to see more...")}</div>
-            <div className={`hoverable__content build-code${isWindow ? "-window" : ""}`}>
-              <pre className="mb-0">{_.join(code, "\n")}</pre>
-            </div>
-          </div>
-        );
-      } else {
-        markup = (
-          <div className="font-weight-bold">
-            {_.map(code, (c, i) => (
-              <div key={i}>{c}</div>
-            ))}
-          </div>
-        );
-      }
-      return (
-        <div className="col" style={{ paddingRight: 0 }}>
-          <span className="pr-3">Code:</span>
-          {markup}
-        </div>
-      );
+      const isWindow =
+        _.size(code) > 2 &&
+        _.includes(window.location.pathname, `/dtale/popup/${this.state.type.split("_").join("-")}`);
+      return <CodeSnippet code={code} isWindow={isWindow} />;
     }
     return null;
   }

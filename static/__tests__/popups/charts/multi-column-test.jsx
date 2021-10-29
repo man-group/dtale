@@ -112,7 +112,11 @@ describe("Charts tests", () => {
     let chartObj = result.find(ChartsBody).instance().state.charts[0];
     expect(
       chartObj.cfg.options.plugins.tooltip.callbacks.label(
-        { parsed: { x: 1545973200000, y: 1.123456 }, datasetIndex: 0 },
+        {
+          parsed: { x: 1545973200000, y: 1.123456 },
+          dataset: { label: "val1 - col1" },
+          datasetIndex: 0,
+        },
         chartObj.data
       )
     ).toBe("val1 - col1: 1.1235");
@@ -124,7 +128,11 @@ describe("Charts tests", () => {
     chartObj = result.find(ChartsBody).instance().state.charts[0];
     expect(
       chartObj.cfg.options.plugins.tooltip.callbacks.label(
-        { parsed: { x: 1545973200000, y: 1.123456 }, datasetIndex: 0 },
+        {
+          parsed: { x: 1545973200000, y: 1.123456 },
+          dataset: { label: "col1" },
+          datasetIndex: 0,
+        },
         chartObj.data
       )
     ).toBe("col1: 1.1235");

@@ -8,13 +8,12 @@ from dtale.column_analysis import handle_cleaners
 from dtale.query import build_col_key, run_query
 from dtale.utils import (
     ChartBuildingError,
+    build_formatters,
     classify_type,
     find_dtype,
     find_dtype_formatter,
     flatten_lists,
     get_dtypes,
-    grid_columns,
-    grid_formatter,
     json_int,
     make_list,
     triple_quote,
@@ -142,23 +141,6 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
     ):
         return False
     return True
-
-
-def build_formatters(df, nan_display=None):
-    """
-    Helper around :meth:`dtale.utils.grid_formatters` that will build a formatter for the data being fed into a chart as
-    well as a formatter for the min/max values for each column used in the chart data.
-
-    :param df: dataframe which contains column names and data types for formatters
-    :type df: :class:`pandas:pandas.DataFrame`
-    :return: json formatters for chart data and min/max values for each column used in the chart
-    :rtype: (:class:`dtale.utils.JSONFormatter`, :class:`dtale.utils.JSONFormatter`)
-    """
-    cols = grid_columns(df)
-    data_f = grid_formatter(cols, nan_display=nan_display)
-    overrides = {"F": lambda f, i, c: f.add_float(i, c, precision=2)}
-    range_f = grid_formatter(cols, overrides=overrides, nan_display=nan_display)
-    return data_f, range_f
 
 
 def date_freq_handler(df):

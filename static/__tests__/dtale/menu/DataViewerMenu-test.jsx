@@ -13,6 +13,7 @@ import MissingOption from "../../../dtale/menu/MissingOption";
 import { PPSOption } from "../../../dtale/menu/PPSOption";
 import { PredefinedFiltersOption } from "../../../dtale/menu/PredefinedFiltersOption";
 import ShowHideColumnsOption from "../../../dtale/menu/ShowHideColumnsOption";
+import TimeseriesAnalysisOption from "../../../dtale/menu/TimeseriesAnalysisOption";
 import serverState from "../../../dtale/serverStateManagement";
 import reduxUtils from "../../redux-test-utils";
 import { buildInnerHTML, PREDEFINED_FILTERS, tickUpdate } from "../../test-utils";
@@ -102,6 +103,8 @@ describe("DataViewerMenu tests", () => {
     expect(store.getState().sidePanel.view).toBe("show_hide");
     result.find(PredefinedFiltersOption).props().open();
     expect(store.getState().sidePanel.view).toBe("predefined_filters");
+    result.find(TimeseriesAnalysisOption).props().open();
+    expect(store.getState().sidePanel.view).toBe("timeseries_analysis");
   });
 
   it("calls window.open", () => {

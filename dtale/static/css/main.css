@@ -7965,11 +7965,6 @@ a.text-dark:focus, a.text-dark:hover {
   overflow: hidden;
 }
 
-.is-clearable.Select--single .Select__value-container--has-value > .Select__single-value,
-.is-clearable.Select--single .Select-value-container--has-value > .Select-single-value {
-  padding-right: 40.5px;
-}
-
 .Select--single .Select__value-container--has-value > .Select__single-value,
 .Select--single .Select__control-is-focused .Select__value-container--has-value > .Select__single-value,
 .Select--single .Select-value-container--has-value > .Select-single-value,
@@ -10335,6 +10330,9 @@ select.form-control:focus,
 .cell.hoverable {
   border-bottom: solid 1px rgba(170, 170, 170, 0.25);
 }
+.drift.hoverable {
+  border-bottom-width: 0px;
+}
 .hoverable-click {
   display: inline;
   position: relative;
@@ -10367,6 +10365,9 @@ li.hoverable.clickable-menu-item:hover button {
 .hoverable:hover {
   border-bottom: solid 1px #004c93;
   text-decoration: none;
+}
+.drift.hoverable:hover {
+  border-bottom-width: 0px;
 }
 
 .hoverable:hover .hoverable__content,
