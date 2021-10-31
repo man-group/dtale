@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.60.0 (2021-10-31)
+* [#591](https://github.com/man-group/dtale/issues/591): load parquet from UI
+* [#590](https://github.com/man-group/dtale/issues/590): parquet export
+* [#533](https://github.com/man-group/dtale/issues/533): Time Series Analysis
+* [#537](https://github.com/man-group/dtale/issues/537): moved "Resample" to the "Dataframe Functions" popup]
+
 ### 1.59.1 (2021-10-15)
 * [#583](https://github.com/man-group/dtale/issues/583): allow for "vertical_headers" to be set from dtale.show
 
