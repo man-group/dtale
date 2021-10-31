@@ -21,6 +21,7 @@
     "Export": "Exportar",
     "CSV": "CSV",
     "TSV": "TSV",
+    "Parquet": "Parquet",
     "Load Data": "Carregar Dados",
     "Refresh Widths": "Zerar Larguras",
     "About": "Sobre",

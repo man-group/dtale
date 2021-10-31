@@ -106,9 +106,14 @@ describe("DataViewer iframe tests", () => {
     const exports = findMainMenuButton(result, "CSV", "div.btn-group");
     exports.find("button").first().simulate("click");
     let exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
-    expect(_.startsWith(exportURL, "/test-route/dtale/data-export/1") && _.includes(exportURL, "tsv=false")).toBe(true);
+    expect(_.startsWith(exportURL, "/test-route/dtale/data-export/1") && _.includes(exportURL, "type=csv")).toBe(true);
+    exports.find("button").at(1).simulate("click");
+    exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
+    expect(_.startsWith(exportURL, "/test-route/dtale/data-export/1") && _.includes(exportURL, "type=tsv")).toBe(true);
     exports.find("button").last().simulate("click");
     exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
-    expect(_.startsWith(exportURL, "/test-route/dtale/data-export/1") && _.includes(exportURL, "tsv=true")).toBe(true);
+    expect(_.startsWith(exportURL, "/test-route/dtale/data-export/1") && _.includes(exportURL, "type=parquet")).toBe(
+      true
+    );
   });
 });

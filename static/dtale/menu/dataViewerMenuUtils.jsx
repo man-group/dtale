@@ -100,8 +100,8 @@ function buildHotkeyHandlers(props) {
     }
     props.propagateState(updatedState);
   };
-  const exportFile = tsv => () =>
-    window.open(`${fullPath("/dtale/data-export", dataId)}?tsv=${tsv}&_id=${new Date().getTime()}`, "_blank");
+  const exportFile = fileType => () =>
+    window.open(`${fullPath("/dtale/data-export", dataId)}?type=${fileType}&_id=${new Date().getTime()}`, "_blank");
   return {
     openTab: openPopupTab,
     openPopup,

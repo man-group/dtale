@@ -78,6 +78,7 @@ from dtale.utils import (
     dict_merge,
     divide_chunks,
     export_to_csv_buffer,
+    export_to_parquet_buffer,
     find_dtype,
     find_dtype_formatter,
     format_grid,
@@ -2534,11 +2535,19 @@ def data_export(data_id):
             if c["visible"]
         ]
     ]
-    tsv = get_str_arg(request, "tsv") == "true"
-    file_ext = "tsv" if tsv else "csv"
-    csv_buffer = export_to_csv_buffer(data, tsv=tsv)
-    filename = build_chart_filename("data", ext=file_ext)
-    return send_file(csv_buffer.getvalue(), filename, "text/{}".format(file_ext))
+    file_type = get_str_arg(request, "type", "csv")
+    if file_type in ["csv", "tsv"]:
+        tsv = file_type == "tsv"
+        csv_buffer = export_to_csv_buffer(data, tsv=tsv)
+        filename = build_chart_filename("data", ext=file_type)
+        return send_file(csv_buffer.getvalue(), filename, "text/{}".format(file_type))
+    elif file_type == "parquet":
+        parquet_buffer = export_to_parquet_buffer(data)
+        filename = build_chart_filename("data", ext="parquet.gzip")
+        return send_file(
+            parquet_buffer.getvalue(), filename, "application/octet-stream"
+        )
+    return jsonify(success=False)
 
 
 @dtale.route("/column-analysis/<data_id>")

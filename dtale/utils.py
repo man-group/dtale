@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from pkg_resources import parse_version
 from past.utils import old_div
-from six import StringIO
+from six import BytesIO, StringIO
 
 logger = getLogger(__name__)
 
@@ -743,6 +743,14 @@ def export_to_csv_buffer(data, tsv=False):
     data.to_csv(csv_buffer, **kwargs)
     csv_buffer.seek(0)
     return csv_buffer
+
+
+def export_to_parquet_buffer(data):
+    kwargs = dict(compression="gzip", index=False)
+    parquet_buffer = BytesIO()
+    data.to_parquet(parquet_buffer, **kwargs)
+    parquet_buffer.seek(0)
+    return parquet_buffer
 
 
 def is_app_root_defined(app_root):

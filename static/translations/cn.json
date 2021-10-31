@@ -36,6 +36,7 @@
     "ALL DATA": "所有数据",
     "CSV": "CSV",
     "TSV": "TSV",
+    "Parquet": "Parquet",
     "Network Viewer": "Network Viewer",
     "Merge & Stack": "Merge & Stack",
     "Unpin menu": "Unpin menu",
