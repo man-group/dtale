@@ -1495,11 +1495,16 @@ def test_get_data(unittest, test_data):
         assert response.content_type == "text/csv"
 
         response = c.get(
-            "/dtale/data-export/{}".format(c.port), query_string=dict(tsv="true")
+            "/dtale/data-export/{}".format(c.port), query_string=dict(type="parquet")
+        )
+        assert response.content_type == "application/octet-stream"
+
+        response = c.get(
+            "/dtale/data-export/{}".format(c.port), query_string=dict(type="tsv")
         )
         assert response.content_type == "text/tsv"
 
-        response = c.get("/dtale/data-export/a", query_string=dict(tsv="true"))
+        response = c.get("/dtale/data-export/a", query_string=dict(type="tsv"))
         response_data = json.loads(response.data)
         assert "error" in response_data
 

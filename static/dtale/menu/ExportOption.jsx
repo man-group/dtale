@@ -21,15 +21,16 @@ class ExportOption extends React.Component {
         <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
           {_.map(
             [
-              ["CSV", "false"],
-              ["TSV", "true"],
+              ["CSV", "csv"],
+              ["TSV", "tsv"],
+              ["Parquet", "parquet"],
             ],
-            ([label, tsv]) => (
+            ([label, fileType]) => (
               <button
                 key={label}
                 style={{ color: "#565b68" }}
                 className="btn btn-primary font-weight-bold"
-                onClick={open(tsv)}>
+                onClick={open(fileType)}>
                 {t(label, { ns: "menu" })}
               </button>
             )
