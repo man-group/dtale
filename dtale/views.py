@@ -78,7 +78,6 @@ from dtale.utils import (
     dict_merge,
     divide_chunks,
     export_to_csv_buffer,
-    export_to_parquet_buffer,
     find_dtype,
     find_dtype_formatter,
     format_grid,
@@ -2542,6 +2541,8 @@ def data_export(data_id):
         filename = build_chart_filename("data", ext=file_type)
         return send_file(csv_buffer.getvalue(), filename, "text/{}".format(file_type))
     elif file_type == "parquet":
+        from dtale.utils import export_to_parquet_buffer
+
         parquet_buffer = export_to_parquet_buffer(data)
         filename = build_chart_filename("data", ext="parquet.gzip")
         return send_file(
@@ -3259,6 +3260,9 @@ def upload():
                 for sheet_name, df in dfs.items()
             }
             return handle_excel_upload(dfs)
+        if "parquet" in filename:
+            df = pd.read_parquet(contents)
+            return load_new_data(df, "df = pd.read_parquet('{}')".format(filename))
         raise Exception("File type of {} is not supported!".format(ext))
 
 
@@ -3268,6 +3272,7 @@ def web_upload():
     from dtale.cli.loaders.csv_loader import loader_func as load_csv
     from dtale.cli.loaders.json_loader import loader_func as load_json
     from dtale.cli.loaders.excel_loader import load_file as load_excel
+    from dtale.cli.loaders.parquet_loader import loader_func as load_parquet
 
     data_type = get_str_arg(request, "type")
     url = get_str_arg(request, "url")
@@ -3288,7 +3293,7 @@ def web_upload():
         df = load_json(path=url, proxy=proxy)
         startup_code = (
             "from dtale.cli.loaders.json_loader import loader_func as load_json\n\n"
-            "df = load_csv(path='{url}'{proxy})"
+            "df = load_json(path='{url}'{proxy})"
         ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
     elif data_type == "excel":
         dfs = load_excel(path=url, proxy=proxy)
@@ -3308,7 +3313,12 @@ def web_upload():
             for sheet_name, df in dfs.items()
         }
         return handle_excel_upload(dfs)
-
+    elif data_type == "parquet":
+        df = load_parquet(path=url)
+        startup_code = (
+            "from dtale.cli.loaders.parquet_loader import loader_func as load_parquet\n\n"
+            "df = load_parquet(path='{url}'{proxy})"
+        ).format(url=url, proxy=", '{}'".format(proxy) if proxy else "")
     return load_new_data(df, startup_code)
 
 

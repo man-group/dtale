@@ -746,6 +746,12 @@ def export_to_csv_buffer(data, tsv=False):
 
 
 def export_to_parquet_buffer(data):
+    try:
+        import pyarrow  # noqa: F401
+    except ImportError:
+        raise ImportError(
+            "In order to use the parquet exporter you must install pyarrow!"
+        )
     kwargs = dict(compression="gzip", index=False)
     parquet_buffer = BytesIO()
     data.to_parquet(parquet_buffer, **kwargs)
