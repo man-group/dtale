@@ -49,8 +49,8 @@ export function chartConfig(config, chartConfig) {
   chartConfig.options.scales[`y-${col}`].title.text = `${col}, trend`;
   chartConfig.options.scales["y-seasonal"].position = "right";
   chartConfig.options.scales["y-seasonal"].title.text = `seasonal, resid`;
-  delete chartConfig.options.scales["y-trend"];
-  delete chartConfig.options.scales["y-resid"];
+  chartConfig.options.scales["y-trend"].display = false;
+  chartConfig.options.scales["y-resid"].display = false;
   chartConfig.options.scales.x.title.display = false;
   chartConfig.options.plugins.legend = { display: true };
   return chartConfig;

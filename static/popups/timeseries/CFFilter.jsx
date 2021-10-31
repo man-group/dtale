@@ -49,7 +49,7 @@ export function chartConfig(config, chartConfig) {
   chartConfig.options.scales[`y-${col}`].position = "left";
   chartConfig.options.scales[`y-${col}`].title.text = `${col}, trend`;
   chartConfig.options.scales["y-cycle"].position = "right";
-  delete chartConfig.options.scales["y-trend"];
+  chartConfig.options.scales["y-trend"].display = false;
   chartConfig.options.scales.x.title.display = false;
   chartConfig.options.plugins.legend = { display: true };
   return chartConfig;

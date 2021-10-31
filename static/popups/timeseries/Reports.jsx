@@ -191,37 +191,40 @@ class ReactReports extends React.Component {
         {this.state.url && (
           <>
             <h3 className="mt-3 text-center">{t(`timeseries:${type}`)}</h3>
-            <ChartsBody
-              ref={this._chart}
-              visible={this.state.url !== undefined}
-              url={this.state.url}
-              columns={[
-                { name: "index", dtype: "datetime[ns]" },
-                _.find(this.state.columns, { name: baseCfg.col }),
-                ...chartCols.map(col => ({ name: col, dtype: "float64" })),
-              ]}
-              x={{ value: "index" }}
-              y={[{ value: baseCfg.col }, ...chartCols.map(col => ({ value: col }))]}
-              configHandler={config => {
-                if (this.state.multiChart) {
-                  config.data.datasets = config.data.datasets.filter(dataset => dataset.data);
-                  const field = config.data.datasets[0].label;
-                  chartUtils.COLOR_PROPS.forEach(prop => (config.data.datasets[0][prop] = chartUtils.TS_COLORS[0]));
-                  Object.keys(config.options.scales).forEach(scale => {
-                    if (scale !== `y-${field}` && scale !== "x") {
-                      delete config.options.scales[scale];
-                    }
-                  });
-                  config.options.scales[`y-${field}`].position = "left";
-                  config.options.plugins.legend = { display: false };
-                  return config;
-                }
-                return configHandler(baseCfg, config);
-              }}
-              height={300}
-              showControls={false}
-              chartPerY={this.state.multiChart}
-            />
+            <div className="pl-5 pr-5">
+              <ChartsBody
+                ref={this._chart}
+                visible={this.state.url !== undefined}
+                url={this.state.url}
+                columns={[
+                  { name: baseCfg.index, dtype: "datetime[ns]" },
+                  _.find(this.state.columns, { name: baseCfg.col }),
+                  ...chartCols.map(col => ({ name: col, dtype: "float64" })),
+                ]}
+                x={{ value: baseCfg.index }}
+                y={[{ value: baseCfg.col }, ...chartCols.map(col => ({ value: col }))]}
+                configHandler={config => {
+                  if (this.state.multiChart) {
+                    config.data.datasets = config.data.datasets.filter(dataset => dataset.data);
+                    const field = config.data.datasets[0].label;
+                    chartUtils.COLOR_PROPS.forEach(prop => (config.data.datasets[0][prop] = chartUtils.TS_COLORS[0]));
+                    Object.keys(config.options.scales).forEach(scale => {
+                      if (scale !== `y-${field}` && scale !== "x") {
+                        delete config.options.scales[scale];
+                      }
+                    });
+                    config.options.scales[`y-${field}`].position = "left";
+                    config.options.plugins.legend = { display: false };
+                    config.options.scales.x.title.display = false;
+                    return config;
+                  }
+                  return configHandler(baseCfg, config);
+                }}
+                height={300}
+                showControls={false}
+                chartPerY={this.state.multiChart}
+              />
+            </div>
             <h4 className="mt-3">Code</h4>
             <pre className="mb-0">{_.join(_.get(this.state, ["code", type], []), "\n")}</pre>
           </>
