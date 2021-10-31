@@ -147,10 +147,11 @@ class ReactUpload extends React.Component {
                       className: "filepicker dropzone dz-clickable",
                     })}>
                     <input {...getInputProps()} name="file" />
-                    <div data-filetype=".csv" className="filepicker-file-icon"></div>
-                    <div data-filetype=".tsv" className="filepicker-file-icon"></div>
-                    <div data-filetype=".xls" className="filepicker-file-icon"></div>
-                    <div data-filetype=".xlsx" className="filepicker-file-icon"></div>
+                    <div data-filetype=".csv" className="filepicker-file-icon" />
+                    <div data-filetype=".tsv" className="filepicker-file-icon" />
+                    <div data-filetype=".xls" className="filepicker-file-icon" />
+                    <div data-filetype=".xlsx" className="filepicker-file-icon" />
+                    <div data-filetype=".parquet" className="filepicker-file-icon" />
                     <div className="dz-default dz-message">
                       <span>{t("Drop data files here to upload, or click to select files")}</span>
                     </div>
@@ -191,7 +192,7 @@ class ReactUpload extends React.Component {
           <label className="col-md-3 col-form-label text-right">{t("Data Type")}</label>
           <div className="col-md-8 p-0">
             <div className="btn-group">
-              {_.map(["csv", "tsv", "json", "excel"], urlDataType => {
+              {_.map(["csv", "tsv", "json", "excel", "parquet"], urlDataType => {
                 const buttonProps = { className: "btn btn-primary" };
                 if (urlDataType === this.state.urlDataType) {
                   buttonProps.className += " active";

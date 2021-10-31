@@ -1495,11 +1495,6 @@ def test_get_data(unittest, test_data):
         assert response.content_type == "text/csv"
 
         response = c.get(
-            "/dtale/data-export/{}".format(c.port), query_string=dict(type="parquet")
-        )
-        assert response.content_type == "application/octet-stream"
-
-        response = c.get(
             "/dtale/data-export/{}".format(c.port), query_string=dict(type="tsv")
         )
         assert response.content_type == "text/tsv"
@@ -1575,6 +1570,23 @@ def test_get_data(unittest, test_data):
             ),
             "should update dtypes on data structure change",
         )
+
+
+@pytest.mark.unit
+def test_export_parquet(test_data):
+    pytest.importorskip("pyarrow")
+
+    import dtale.views as views
+
+    with app.test_client() as c:
+        test_data, _ = views.format_data(test_data)
+        build_data_inst({c.port: test_data})
+        build_dtypes({c.port: views.build_dtypes_state(test_data)})
+
+        response = c.get(
+            "/dtale/data-export/{}".format(c.port), query_string=dict(type="parquet")
+        )
+        assert response.content_type == "application/octet-stream"
 
 
 def build_ts_data(size=5, days=5):

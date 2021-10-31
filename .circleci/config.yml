@@ -160,6 +160,7 @@ python: &python
            pip install -e ".[redis]"
            pip install -e ".[r]"
            pip install -e ".[tests]"
+           pip install pyarrow
            python setup.py test
            bash <(curl -s https://codecov.io/bash) -c -F python
            cp -r ./htmlcov /tmp/circleci-test-results
