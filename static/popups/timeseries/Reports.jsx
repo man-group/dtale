@@ -8,6 +8,7 @@ import { BouncerWrapper } from "../../BouncerWrapper";
 import { RemovableError } from "../../RemovableError";
 import { buildURLString, dtypesUrl } from "../../actions/url-utils";
 import chartUtils from "../../chartUtils";
+import * as gu from "../../dtale/gridUtils";
 import { fetchJson } from "../../fetcher";
 import ChartsBody from "../charts/ChartsBody";
 import * as BKFilter from "./BKFilter";
@@ -26,20 +27,18 @@ const reportTypes = pythonVersion => {
   return reports;
 };
 
-const BASE_STATE = {
-  type: "hpfilter",
-  baseCfg: {},
-  cfg: {},
-  code: {},
-  loadingColumns: true,
-  loadingReports: false,
-  multiChart: false,
-};
-
 class ReactReports extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { ...BASE_STATE };
+    this.state = {
+      type: "hpfilter",
+      baseCfg: {},
+      cfg: {},
+      code: {},
+      loadingColumns: true,
+      loadingReports: false,
+      multiChart: false,
+    };
     this.run = this.run.bind(this);
     this.renderBody = this.renderBody.bind(this);
   }
@@ -52,6 +51,10 @@ class ReactReports extends React.Component {
         return;
       }
       newState.columns = dtypesData.dtypes;
+      const dateCols = _.filter(newState.columns || [], c => gu.findColType(c.dtype) === "date");
+      if (dateCols.length === 1) {
+        newState.baseCfg = { ...newState.baseCfg, index: dateCols[0].name };
+      }
       this.setState(newState);
     });
   }
@@ -226,7 +229,7 @@ class ReactReports extends React.Component {
               />
             </div>
             <h4 className="mt-3">Code</h4>
-            <pre className="mb-0">{_.join(_.get(this.state, ["code", type], []), "\n")}</pre>
+            <pre>{_.join(_.get(this.state, ["code", type], []), "\n")}</pre>
           </>
         )}
       </>

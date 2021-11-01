@@ -12,12 +12,12 @@ from dtale.charts.utils import build_base_chart
 
 def build_data(data, cfg):
     index, col, agg = (cfg.get(p) for p in ["index", "col", "agg"])
+    if agg:
+        return getattr(data.groupby(index)[col], agg)()
     if data[index].duplicated().any():
         raise ValueError(
             "It appears there is duplicates in your index, please specify an aggregation!"
         )
-    if agg:
-        return getattr(data.groupby(index)[col], agg)
     return data.set_index(index)[col]
 
 

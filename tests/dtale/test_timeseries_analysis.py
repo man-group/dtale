@@ -9,7 +9,8 @@ from tests.dtale import build_data_inst
 
 
 @pytest.mark.unit
-def test_hpfilter(unittest, ts_analysis_data):
+@pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
+def test_hpfilter(custom_data, ts_analysis_data, unittest):
     import dtale.views as views
 
     df, _ = views.format_data(ts_analysis_data)
@@ -29,6 +30,26 @@ def test_hpfilter(unittest, ts_analysis_data):
         )
         unittest.assertEqual(
             sorted(resp.json["data"]["all"].keys()), ["cycle", "realgdp", "trend", "x"]
+        )
+
+    df, _ = views.format_data(custom_data)
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+
+        cfg = dict(index="date", col="Col1", lamb=1600)
+        resp = c.get(
+            "/dtale/timeseries-analysis/{}".format(c.port),
+            query_string=dict(type="hpfilter", cfg=json.dumps(cfg)),
+        )
+        assert not resp.json["success"]
+
+        cfg["agg"] = "mean"
+        resp = c.get(
+            "/dtale/timeseries-analysis/{}".format(c.port),
+            query_string=dict(type="hpfilter", cfg=json.dumps(cfg)),
+        )
+        unittest.assertEqual(
+            sorted(resp.json["data"]["all"].keys()), ["Col1", "cycle", "trend", "x"]
         )
 
 
