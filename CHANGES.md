@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.60.1 (2021-10-31)
+* updates for "Time Series Analysis" with aggregation
+
 ### 1.60.0 (2021-10-31)
 * [#591](https://github.com/man-group/dtale/issues/591): load parquet from UI
 * [#590](https://github.com/man-group/dtale/issues/590): parquet export
