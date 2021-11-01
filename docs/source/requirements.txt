@@ -1,5 +1,6 @@
 # built using python 3.7
 bs4
+docutils<0.18
 Flask==1.1.4
 future
 ipython[notebook]
