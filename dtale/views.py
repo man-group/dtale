@@ -2311,6 +2311,7 @@ def edit_cell(data_id):
                 row_index=row_index, column=column, updated=updated_str
             )
         )
+    global_state.set_data(data_id, data)
     curr_history = global_state.get_history(data_id) or []
     curr_history += code
     global_state.set_history(data_id, curr_history)
