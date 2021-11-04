@@ -1,5 +1,8 @@
 ## Changelog
 
+### 1.60.2 (2021-11-3)
+* [#594](https://github.com/man-group/dtale/issues/594): fix for editing cells while using redislite
+
 ### 1.60.1 (2021-10-31)
 * updates for "Time Series Analysis" with aggregation
 
