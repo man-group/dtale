@@ -1,5 +1,9 @@
 {
-  "presets" : ["@babel/env", "@babel/react", "@babel/flow"],
+  "presets" : [
+    ["@babel/env", { "targets": ["last 2 versions"] }],
+    "@babel/react",
+    "@babel/flow",
+  ],
   "env": {
     "test": {
       "plugins": ["istanbul"]

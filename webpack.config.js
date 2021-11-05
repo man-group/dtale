@@ -54,8 +54,8 @@ function createConfig(entry) {
           },
           options: {
             cacheDirectory: true,
-            presets: ["@babel/env", "@babel/react", "@babel/flow"],
-            plugins: ["@babel/plugin-proposal-class-properties", "@babel/plugin-transform-classes", "lodash"],
+            presets: [["@babel/env", { targets: ["last 2 versions"] }], "@babel/react", "@babel/flow"],
+            plugins: ["lodash"],
           },
         },
         {

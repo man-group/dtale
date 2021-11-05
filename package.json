@@ -8,10 +8,10 @@
   },
   "scripts": {
     "test-file": "jest \"$TEST\"",
-    "test-all": "jest \"/static/__tests__/.*test\\.jsx?$\" --verbose",
+    "test-all": "jest --verbose",
     "test": "npm run test-all -s",
-    "test-with-coverage": "jest \"/static/__tests__/.*test\\.jsx?$\" --coverage --reporters=jest-junit",
-    "test-with-junit": "jest \"/static/__tests__/.*test\\.jsx?$\" --reporters=jest-junit",
+    "test-with-coverage": "jest --coverage --reporters=jest-junit",
+    "test-with-junit": "jest --reporters=jest-junit",
     "report-duplicate-code": "jsinspect -t 20 static --reporter pmd > /tmp/circleci-test-results/duplicates.xml; echo 'Wrote duplicates.xml'",
     "watch-js": "parallel-webpack --watch --progress",
     "watch": "npm run watch-js",
@@ -31,6 +31,12 @@
     "setupFilesAfterEnv": [
       "<rootDir>/test_env.js"
     ],
+    "testMatch": [
+      "<rootDir>/static/__tests__/**/*-test.js?(x)"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
     "moduleNameMapper": {
       "\\.(css|scss)$": "<rootDir>/__mocks__/styleMock.js"
     },
@@ -42,9 +48,15 @@
     "transform": {
       ".+\\.jsx?$": "<rootDir>/node_modules/babel-jest"
     },
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\]"
+    ],
     "testURL": "http://www.example.com",
     "collectCoverageFrom": [
-      "**/dtale/static/**/*.{js, jsx}"
+      "<rootDir>/static/**/*.{js, jsx}"
+    ],
+    "coveragePathIgnorePatterns": [
+      "<rootDir>/static/__tests__/"
     ],
     "coverageDirectory": "./JS_coverage",
     "coverageReporters": [
@@ -64,8 +76,6 @@
   "devDependencies": {
     "@babel/core": "7.15.8",
     "@babel/eslint-parser": "7.15.8",
-    "@babel/plugin-proposal-class-properties": "7.14.5",
-    "@babel/plugin-transform-classes": "7.15.4",
     "@babel/preset-env": "7.15.8",
     "@babel/preset-flow": "7.14.5",
     "@babel/preset-react": "7.14.5",
