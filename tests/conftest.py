@@ -191,6 +191,18 @@ def clustergram_data():
 
 
 @pytest.fixture(scope="module")
+def pareto_data():
+    return pd.DataFrame(
+        [
+            {"desc": " foo", "count": 10, "cum_pct": 15},
+            {"desc": "bar", "count": 6, "cum_pct": 40},
+            {"desc": "baz", "count": 3, "cum_pct": 75},
+            {"desc": "biz ", "count": 1, "cum_pct": 100},
+        ]
+    )
+
+
+@pytest.fixture(scope="module")
 def ts_analysis_data():
     return pd.read_csv(
         os.path.join(os.path.dirname(__file__), "data/ts_analysis.tsv"),

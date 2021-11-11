@@ -72,7 +72,7 @@ def test_display_page(unittest):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-        x_dd = component_defs[19]["props"]["children"][0]
+        x_dd = component_defs[20]["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
@@ -216,8 +216,9 @@ def test_input_changes(unittest):
                 "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
                 "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
                 "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
-                "..funnel-inputs.style...clustergram-inputs.style...colorscale-input.style...drilldown-input.style."
-                "..lock-zoom-btn.style...open-extended-agg-modal.style...selected-cleaners.children.."
+                "..funnel-inputs.style...clustergram-inputs.style...pareto-inputs.style...colorscale-input.style."
+                "..drilldown-input.style...lock-zoom-btn.style...open-extended-agg-modal.style."
+                "..selected-cleaners.children.."
             ),
             "changedPropIds": ["chart-tabs.value"],
             "inputs": [
@@ -446,6 +447,11 @@ def test_group_values(unittest):
                     "property": "value",
                     "value": None,
                 },
+                {
+                    "id": "pareto-group-dropdown",
+                    "property": "value",
+                    "value": None,
+                },
             ],
             "state": [
                 {"id": "input-data", "property": "data", "value": {"data_id": c.port}},
@@ -533,6 +539,7 @@ def test_main_input_styling(unittest):
                 ts_builder("treemap-input-data"),
                 ts_builder("funnel-input-data"),
                 ts_builder("clustergram-input-data"),
+                ts_builder("pareto-input-data"),
             ],
             "state": [
                 {
@@ -545,6 +552,7 @@ def test_main_input_styling(unittest):
                 {"id": "treemap-input-data", "property": "data", "value": {}},
                 {"id": "funnel-input-data", "property": "data", "value": {}},
                 {"id": "clustergram-input-data", "property": "data", "value": {}},
+                {"id": "pareto-input-data", "property": "data", "value": {}},
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -1001,6 +1009,7 @@ def build_chart_params(
     treemap_inputs={},
     funnel_inputs={},
     clustergram_inputs={},
+    pareto_inputs={},
     extended_aggregation=[],
 ):
     return build_dash_request(
@@ -1021,6 +1030,7 @@ def build_chart_params(
                 "treemap-input-data",
                 "funnel-input-data",
                 "clustergram-input-data",
+                "pareto-input-data",
                 "extended-aggregations",
             ]
         ]
@@ -1041,6 +1051,11 @@ def build_chart_params(
                 "id": "clustergram-input-data",
                 "property": "data",
                 "value": clustergram_inputs,
+            },
+            {
+                "id": "pareto-input-data",
+                "property": "data",
+                "value": pareto_inputs,
             },
             {"id": "last-chart-input-data", "property": "data", "value": last_inputs},
             {"id": "auto-load-toggle", "property": "on", "value": True},
@@ -2344,6 +2359,99 @@ def test_clustergram_data(clustergram_data, unittest):
                 "clustergram_value": ["mpg", "cyl"],
                 "clustergram_label": "model",
             },
+        )
+
+
+@pytest.mark.unit
+def test_pareto_data(pareto_data, unittest):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        df, _ = views.format_data(pareto_data)
+        build_data_inst({c.port: df})
+        params = {
+            "output": (
+                "..pareto-input-data.data...pareto-x-dropdown.options...pareto-bars-dropdown.options."
+                "..pareto-line-dropdown.options.."
+            ),
+            "changedPropIds": ["pareto-x-dropdown.value"],
+            "inputs": [
+                {
+                    "id": "pareto-x-dropdown",
+                    "property": "value",
+                    "value": "desc",
+                },
+                {
+                    "id": "pareto-bars-dropdown",
+                    "property": "value",
+                    "value": "count",
+                },
+                {
+                    "id": "pareto-line-dropdown",
+                    "property": "value",
+                    "value": "cum_pct",
+                },
+                {
+                    "id": "pareto-sort-dropdown",
+                    "property": "value",
+                    "value": None,
+                },
+                {
+                    "id": "pareto-dir-dropdown",
+                    "property": "value",
+                    "value": "DESC",
+                },
+                {
+                    "id": "pareto-group-dropdown",
+                    "property": "value",
+                    "value": None,
+                },
+            ],
+            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+        }
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        unittest.assertEqual(
+            resp_data["pareto-input-data"]["data"],
+            {
+                "pareto_x": "desc",
+                "pareto_bars": "count",
+                "pareto_line": "cum_pct",
+                "pareto_sort": None,
+                "pareto_dir": "DESC",
+            },
+        )
+
+
+@pytest.mark.unit
+def test_chart_building_pareto(pareto_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        df, _ = views.format_data(pareto_data)
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        inputs = {
+            "chart_type": "pareto",
+        }
+        chart_inputs = {}
+        pareto_inputs = {
+            "pareto_x": "desc",
+            "pareto_bars": "count",
+            "pareto_line": "cum_pct",
+            "pareto_sort": None,
+            "pareto_dir": "DESC",
+        }
+        params = build_chart_params(
+            c.port, inputs, chart_inputs, pareto_inputs=pareto_inputs
+        )
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"][0]["props"]["children"][1]["props"][
+                "id"
+            ]
+            == "chart-1"
         )
 
 
