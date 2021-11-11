@@ -2005,6 +2005,27 @@ def test_chart_exports_clustergram(clustergram_data):
 
 
 @pytest.mark.unit
+def test_chart_exports_pareto(pareto_data):
+    import dtale.views as views
+
+    global_state.clear_store()
+    with app.test_client() as c:
+        df, _ = views.format_data(pareto_data)
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+
+        params = dict(
+            chart_type="pareto",
+            pareto_x="desc",
+            pareto_bars="count",
+            pareto_line="cum_pct",
+            pareto_dir="DESC",
+        )
+        response = c.get("/dtale/chart-export/{}".format(c.port), query_string=params)
+        assert response.content_type == "text/html"
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_chart_png_export(custom_data):
     import dtale.views as views

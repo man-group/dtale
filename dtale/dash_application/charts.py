@@ -15,6 +15,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 from plotly.io import write_html, write_image
+from plotly.subplots import make_subplots
 from six import PY3, BytesIO, StringIO, string_types
 
 from dtale.dash_application import dcc, html
@@ -164,6 +165,7 @@ def chart_url_params(search):
                     "treemap_group",
                     "funnel_group",
                     "clustergram_group",
+                    "pareto_group",
                 ]
             }
 
@@ -217,6 +219,15 @@ def chart_url_querystring(params, data=None, group_filter=None):
         base_props += ["funnel_value", "funnel_label", "funnel_group"]
     elif chart_type == "clustergram":
         base_props += ["clustergram_label", "clustergram_group"]
+    elif chart_type == "pareto":
+        base_props += [
+            "pareto_x",
+            "pareto_bars",
+            "pareto_line",
+            "pareto_sort",
+            "pareto_dir",
+            "pareto_group",
+        ]
     elif chart_type == "scatter":
         base_props += ["trendline"]
 
@@ -1455,6 +1466,10 @@ def build_line_cfg(series):
     return {"mode": "lines", "line": {"shape": "spline", "smoothing": 0.3}}
 
 
+def line_func(s):
+    return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
+
+
 def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inputs):
     """
     Builder function for :plotly:`plotly.graph_objs.Scatter(mode='lines') <plotly.graph_objs.Scatter>`
@@ -1484,9 +1499,6 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
     )
     axes, multi_yaxis = axes_builder(final_cols)
     name_builder = build_series_name(final_cols, cpg)
-
-    def line_func(s):
-        return go.Scattergl if len(s["x"]) > 15000 else go.Scatter
 
     if cpg or cpy:
         y_values = [[sub_y] for sub_y in final_cols] if cpy else [final_cols]
@@ -2624,7 +2636,7 @@ def clustergram_builder(data_id, export=False, **inputs):
         clustergram_code.append(
             (
                 "charts = []\n"
-                "chart_data = chart_data[chart_data[['{value}']] > 0]"
+                "chart_data = chart_data[chart_data[['{value}']] > 0]\n"
                 "for group_key, group in chart_data.groupby(['{group}']):\n"
                 "\tchart = Clustergram(\n"
                 "\t\tdata=group[['{value}']].values,\n"
@@ -2679,6 +2691,140 @@ def clustergram_builder(data_id, export=False, **inputs):
             )
             graph = graph_wrapper(
                 figure=figure,
+                modal=inputs.get("modal", False),
+                export=export,
+            )
+            if export:
+                yield graph
+
+            chart = chart_builder(
+                graph,
+                group_filter={}
+                if series_key == "all"
+                else dict(group=series.get("_filter_")),
+            )
+
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
+            yield chart
+
+    if export:
+        return next(build_charts())
+    grams = cpg_chunker(list(build_charts()))
+    return grams, code
+
+
+def pareto_builder(data_id, export=False, **inputs):
+
+    x, bars, line, sort, sort_dir, group = (
+        inputs.get(p)
+        for p in [
+            "pareto_x",
+            "pareto_bars",
+            "pareto_line",
+            "pareto_sort",
+            "pareto_dir",
+            "pareto_group",
+        ]
+    )
+    sort = sort or bars
+    sort_dir = sort_dir or "DESC"
+
+    group = make_list(group)
+    data, code = build_figure_data(data_id, **inputs)
+    if data is None:
+        return None, None
+    final_cols = build_final_cols([x, bars, line], None, inputs.get("agg"), [])
+    chart_builder = chart_wrapper(data_id, data, inputs)
+
+    def build_pareto_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"].get(series_key)
+        title = build_title(x, final_cols[0])["title"]["text"]
+        pareto_code = []
+        if len(data["data"]) > 1:
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
+            title = build_title(x, [line, bars], group=series_key)["title"]["text"]
+
+        pareto_code.append("\nimport plotly.graph_objs as go")
+        pareto_code.append("from plotly.subplots import make_subplots\n")
+        code_kwargs = dict(
+            bars=bars,
+            line=line,
+            sort=sort,
+            sort_dir="True" if sort_dir == "ASC" else "False",
+            title=title,
+            line_func="go.Scattergl" if len(series["x"]) > 15000 else "go.Scatter",
+            specs="{'secondary_y': True}",
+        )
+        if group:
+            pareto_code.append(
+                (
+                    "charts = []\n"
+                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "\tsorted_group = group.sort_values('{sort}', ascending={sort_dir})\n"
+                    "\tchart = make_subplots(specs=[[{specs}]])\n"
+                    "\tchart.add_trace(\n"
+                    "\t\tgo.Bar(x=sorted_group['x'], y=sorted_group['{bars}'], name='{bars}'),\n"
+                    "\t\tsecondary_y=False,\n"
+                    "\t)\n"
+                    "\tchart.add_trace(\n"
+                    "\t\t{line_func}(x=sorted_group['x'], y=sorted_group['{line}'], name='{line}'),\n"
+                    "\t\tsecondary_y=True,\n"
+                    "\t)\n"
+                    "\tchart.update_layout(title='{title}')\n"
+                    "\tcharts.append(chart)\n"
+                    "figure = go.Figure(data=charts)"
+                ).format(group=group, **code_kwargs)
+            )
+        else:
+            pareto_code.append(
+                (
+                    "chart_data = chart_data.sort_values('{sort}', ascending={sort_dir})\n"
+                    "chart = make_subplots(specs=[[{specs}]])\n"
+                    "chart.add_trace(\n"
+                    "\tgo.Bar(x=chart_data['x'], y=chart_data['{bars}'], name='{bars}'),\n"
+                    "\tsecondary_y=False,\n"
+                    ")\n"
+                    "chart.add_trace(\n"
+                    "\t{line_func}(x=chart_data['x'], y=chart_data['{line}'], name='{line}'),\n"
+                    "\tsecondary_y=True,\n"
+                    ")\n"
+                    "chart.update_layout(title='{title}')\n"
+                    "figure = go.Figure(data=chart)"
+                ).format(**code_kwargs)
+            )
+        return pareto_code
+
+    # run this before we pop off group filters
+    code += build_pareto_code()
+
+    def build_charts():
+        for series_key, series in data["data"].items():
+            df = pd.DataFrame({col: series[col] for col in series})
+            df = df.sort_values(sort, ascending=sort_dir == "ASC")
+
+            figure = make_subplots(specs=[[{"secondary_y": True}]])
+            figure.add_trace(
+                go.Bar(x=df["x"].values, y=df[bars].values, name=bars),
+                secondary_y=False,
+            )
+            figure.add_trace(
+                line_func(df)(
+                    **dict_merge(
+                        build_line_cfg(df),
+                        {"x": df["x"].values, "y": df[line].values, "name": line},
+                    )
+                ),
+                secondary_y=True,
+            )
+            figure.update_layout(
+                title=build_title(x, [line, bars], group=series_key)["title"],
+            )
+            graph = graph_wrapper(
+                figure=figure.to_dict(),
                 modal=inputs.get("modal", False),
                 export=export,
             )
@@ -3182,6 +3328,7 @@ def build_figure_data(
                 if k.startswith("treemap_")
                 or k.startswith("funnel_")
                 or k.startswith("clustergram_")
+                or k.startswith("pareto_")
             },
         )
     ):
@@ -3205,6 +3352,14 @@ def build_figure_data(
         ]
         y, x, group = (kwargs.get(p) for p in props)
         y = make_list(y)
+
+    if chart_type == "pareto":
+        x, bars, line, sort, sort_dir, group = (
+            kwargs.get("pareto_{}".format(prop))
+            for prop in ["x", "bars", "line", "sort", "dir", "group"]
+        )
+        y = [c for c in [bars, line, sort] if c is not None]
+
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
@@ -3376,6 +3531,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "clustergram":
             chart, code = clustergram_builder(data_id, **inputs)
+            return chart, None, code
+
+        if chart_type == "pareto":
+            chart, code = pareto_builder(data_id, **inputs)
             return chart, None, code
 
         data, code = build_figure_data(data_id, data=data, **inputs)
@@ -3578,6 +3737,9 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "clustergram":
             return clustergram_builder(data_id, **inputs)
+
+        if chart_type == "pareto":
+            return pareto_builder(data_id, **inputs)
 
         data, _ = build_figure_data(data_id, **inputs)
         if data is None:

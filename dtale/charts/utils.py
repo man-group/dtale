@@ -125,6 +125,10 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
             return False
         return True
 
+    if chart_type == "pareto":
+        pareto_props = ["pareto_x", "pareto_bars", "pareto_line"]
+        return all(inputs.get(p) is not None for p in pareto_props)
+
     if not x:
         return False
 

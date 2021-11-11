@@ -223,6 +223,7 @@ CHARTS = [
 ]
 if has_dashbio():
     CHARTS.append(dict(value="clustergram"))
+CHARTS.append(dict(value="pareto"))
 
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -308,6 +309,17 @@ CHART_INPUT_SETTINGS = {
         funnel_group=dict(display=True),
     ),
     "clustermap": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=False),
+        treemap_group=dict(display=False),
+        funnel_group=dict(display=False),
+        clustergram_group=dict(display=True),
+    ),
+    "pareto": dict(
         x=dict(display=False),
         y=dict(display=False),
         z=dict(display=False),
@@ -664,6 +676,8 @@ def get_group_types(inputs, group_cols=None):
         return _flags("funnel_group")
     elif show_input_handler(chart_type)("clustergram_group"):
         return _flags("clustergram_group")
+    elif show_input_handler(chart_type)("pareto_group"):
+        return _flags("pareto_group")
     return False, False
 
 
@@ -972,6 +986,110 @@ def build_funnel_inputs(inputs, df, group_options):
 
     return build_label_value_inputs(
         "funnel", inputs, df, group_options, additional_inputs=[stacked_toggle]
+    )
+
+
+def build_pareto_options(df, x=None, bars=None, line=None):
+    dtypes = get_dtypes(df)
+    cols = sorted(dtypes.keys())
+    num_cols = []
+    for c in cols:
+        dtype = dtypes[c]
+        classification = classify_type(dtype)
+        if classification in ["F", "I"]:
+            num_cols.append(c)
+
+    x_options = [build_option(c) for c in cols if c not in [bars, line]]
+    bars_options = [build_option(c) for c in num_cols if c not in [x, line]]
+    line_options = [build_option(c) for c in num_cols if c not in [x, bars]]
+    sort_options = [build_option(c) for c in cols]
+    return x_options, bars_options, line_options, sort_options
+
+
+def build_pareto_inputs(inputs, df, group_options):
+    show_inputs = inputs.get("chart_type") == "pareto"
+    x, bars, line, sort, sort_dir, group = (
+        inputs.get("pareto_{}".format(prop))
+        for prop in ["x", "bars", "line", "sort", "dir", "group"]
+    )
+    x_options, bar_options, line_options, sort_options = build_pareto_options(
+        df, x, bars, line
+    )
+
+    return html.Div(
+        [
+            build_input(
+                [
+                    html.Div(text("X")),
+                    html.Small("({})".format(text("Agg By"))),
+                ],
+                dcc.Dropdown(
+                    id="pareto-x-dropdown",
+                    options=x_options,
+                    placeholder="{} (1, 2, ..., N)".format(text("Default Index")),
+                    value=x,
+                    style=dict(width="inherit"),
+                ),
+                label_class="input-group-addon d-block pt-1 pb-0",
+            ),
+            build_input(
+                text("Bars"),
+                dcc.Dropdown(
+                    id="pareto-bars-dropdown",
+                    options=bar_options,
+                    placeholder=text("Select Column"),
+                    style=dict(width="inherit"),
+                    value=bars,
+                ),
+            ),
+            build_input(
+                text("Line"),
+                dcc.Dropdown(
+                    id="pareto-line-dropdown",
+                    options=line_options,
+                    placeholder=text("Select Column"),
+                    style=dict(width="inherit"),
+                    value=line,
+                ),
+            ),
+            build_input(
+                text("Sort"),
+                dcc.Dropdown(
+                    id="pareto-sort-dropdown",
+                    options=sort_options,
+                    placeholder=text("Select Column"),
+                    style=dict(width="inherit"),
+                    value=sort,
+                ),
+            ),
+            build_input(
+                text("Dir"),
+                dcc.Dropdown(
+                    id="pareto-dir-dropdown",
+                    options=[build_option(d, d.capitalize()) for d in ["ASC", "DESC"]],
+                    style=dict(width="inherit"),
+                    value=sort_dir or "DESC",
+                    placeholder=None,
+                    clearable=False,
+                ),
+            ),
+            build_input(
+                text("Group"),
+                dcc.Dropdown(
+                    id="pareto-group-dropdown",
+                    options=group_options,
+                    multi=True,
+                    placeholder=text("Select Group(s)"),
+                    value=group,
+                    style=dict(width="inherit"),
+                ),
+                className="col",
+                id="pareto-group-input",
+            ),
+        ],
+        id="pareto-inputs",
+        style={} if show_inputs else {"display": "none"},
+        className="row p-0 charts-filters",
     )
 
 
@@ -1331,6 +1449,22 @@ def charts_layout(df, settings, **inputs):
         build_label_value_store("treemap", inputs),
         build_label_value_store("funnel", inputs),
         build_label_value_store("clustergram", inputs),
+        dcc.Store(
+            id="pareto-input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k
+                in [
+                    "pareto_x",
+                    "pareto_bars",
+                    "pareto_line",
+                    "pareto_sort",
+                    "pareto_dir",
+                    "pareto_group",
+                ]
+            },
+        ),
         dcc.Store(id="range-data"),
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
@@ -1855,6 +1989,7 @@ def charts_layout(df, settings, **inputs):
                             multi_value=True,
                             all_option=True,
                         ),
+                        build_pareto_inputs(inputs, df, group_options),
                         html.Div(
                             [
                                 html.Div(

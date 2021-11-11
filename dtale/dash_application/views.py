@@ -34,6 +34,7 @@ from dtale.dash_application.layout.layout import (
     build_map_options,
     build_candlestick_options,
     build_mapbox_style_options,
+    build_pareto_options,
     build_proj_hover_children,
     build_slider_counts,
     build_label_value_options,
@@ -205,6 +206,7 @@ def init_callbacks(dash_app):
             Output("treemap-inputs", "style"),
             Output("funnel-inputs", "style"),
             Output("clustergram-inputs", "style"),
+            Output("pareto-inputs", "style"),
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
@@ -314,9 +316,16 @@ def init_callbacks(dash_app):
         funnel_style = {} if show_funnel else {"display": "none"}
         show_clustergram = chart_type == "clustergram"
         clustergram_style = {} if show_clustergram else {"display": "none"}
+        show_pareto = chart_type == "pareto"
+        pareto_style = {} if show_pareto else {"display": "none"}
         standard_style = (
             {"display": "none"}
-            if show_map or show_cs or show_treemap or show_funnel or show_clustergram
+            if show_map
+            or show_cs
+            or show_treemap
+            or show_funnel
+            or show_clustergram
+            or show_pareto
             else {}
         )
         cscale_style = colorscale_input_style(chart_type=chart_type)
@@ -336,6 +345,7 @@ def init_callbacks(dash_app):
             treemap_style,
             funnel_style,
             clustergram_style,
+            pareto_style,
             cscale_style,
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
@@ -594,6 +604,56 @@ def init_callbacks(dash_app):
             label_options,
         )
 
+    @dash_app.callback(
+        [
+            Output("pareto-input-data", "data"),
+            Output("pareto-x-dropdown", "options"),
+            Output("pareto-bars-dropdown", "options"),
+            Output("pareto-line-dropdown", "options"),
+        ],
+        [
+            Input("pareto-x-dropdown", "value"),
+            Input("pareto-bars-dropdown", "value"),
+            Input("pareto-line-dropdown", "value"),
+            Input("pareto-sort-dropdown", "value"),
+            Input("pareto-dir-dropdown", "value"),
+            Input("pareto-group-dropdown", "value"),
+        ],
+        [State("data-tabs", "value")],
+    )
+    def pareto_data_callback(
+        pareto_x,
+        pareto_bars,
+        pareto_line,
+        pareto_sort,
+        pareto_dir,
+        group,
+        data_id,
+    ):
+        pareto_data = dict(
+            pareto_x=pareto_x,
+            pareto_bars=pareto_bars,
+            pareto_line=pareto_line,
+            pareto_sort=pareto_sort,
+            pareto_dir=pareto_dir,
+        )
+        if group is not None:
+            pareto_data["pareto_group"] = group
+        df = global_state.get_data(data_id)
+        (x_options, bars_options, line_options, _sort_options) = build_pareto_options(
+            df,
+            x=pareto_x,
+            bars=pareto_bars,
+            line=pareto_line,
+        )
+
+        return (
+            pareto_data,
+            x_options,
+            bars_options,
+            line_options,
+        )
+
     dash_app.callback(
         [
             Output("treemap-input-data", "data"),
@@ -807,6 +867,7 @@ def init_callbacks(dash_app):
             Input("treemap-input-data", "modified_timestamp"),
             Input("funnel-input-data", "modified_timestamp"),
             Input("clustergram-input-data", "modified_timestamp"),
+            Input("pareto-input-data", "modified_timestamp"),
             Input("extended-aggregations", "modified_timestamp"),
             Input("load-btn", "n_clicks"),
         ],
@@ -819,6 +880,7 @@ def init_callbacks(dash_app):
             State("treemap-input-data", "data"),
             State("funnel-input-data", "data"),
             State("clustergram-input-data", "data"),
+            State("pareto-input-data", "data"),
             State("last-chart-input-data", "data"),
             State("auto-load-toggle", "on"),
             State("load-clicks", "data"),
@@ -835,6 +897,7 @@ def init_callbacks(dash_app):
         _ts7,
         _ts8,
         _ts9,
+        _ts10,
         load_clicks,
         inputs,
         chart_inputs,
@@ -844,6 +907,7 @@ def init_callbacks(dash_app):
         treemap_data,
         funnel_data,
         clustergram_data,
+        pareto_data,
         last_chart_inputs,
         auto_load,
         prev_load_clicks,
@@ -861,6 +925,7 @@ def init_callbacks(dash_app):
             treemap_data,
             funnel_data,
             clustergram_data,
+            pareto_data,
             dict(extended_aggregation=ext_aggs or [])
             if inputs.get("chart_type") not in NON_EXT_AGGREGATION
             else {},
@@ -1071,6 +1136,7 @@ def init_callbacks(dash_app):
             Input("treemap-input-data", "modified_timestamp"),
             Input("funnel-input-data", "modified_timestamp"),
             Input("clustergram-input-data", "modified_timestamp"),
+            Input("pareto-input-data", "modified_timestamp"),
         ],
         [
             State("input-data", "data"),
@@ -1079,6 +1145,7 @@ def init_callbacks(dash_app):
             State("treemap-input-data", "data"),
             State("funnel-input-data", "data"),
             State("clustergram-input-data", "data"),
+            State("pareto-input-data", "data"),
         ],
     )
     def main_input_class(
@@ -1088,12 +1155,14 @@ def init_callbacks(dash_app):
         _ts4,
         _ts5,
         _ts6,
+        _ts7,
         inputs,
         map_inputs,
         cs_inputs,
         treemap_inputs,
         funnel_inputs,
         clustergram_inputs,
+        pareto_inputs,
     ):
         return main_inputs_and_group_val_display(
             dict_merge(
@@ -1103,6 +1172,7 @@ def init_callbacks(dash_app):
                 treemap_inputs,
                 funnel_inputs,
                 clustergram_inputs,
+                pareto_inputs,
             )
         )
 
@@ -1119,6 +1189,7 @@ def init_callbacks(dash_app):
             Input("treemap-group-dropdown", "value"),
             Input("funnel-group-dropdown", "value"),
             Input("clustergram-group-dropdown", "value"),
+            Input("pareto-group-dropdown", "value"),
         ],
         [
             State("input-data", "data"),
@@ -1133,6 +1204,7 @@ def init_callbacks(dash_app):
         treemap_group_cols,
         funnel_group_cols,
         clustergram_group_cols,
+        pareto_group_cols,
         inputs,
         prev_group_vals,
     ):
@@ -1148,6 +1220,8 @@ def init_callbacks(dash_app):
             group_cols = funnel_group_cols
         elif chart_type == "clustergram":
             group_cols = clustergram_group_cols
+        elif chart_type == "pareto":
+            group_cols = pareto_group_cols
         group_cols = make_list(group_cols)
         group_types = get_group_types(inputs, group_cols)
         if "groups" not in group_types:
