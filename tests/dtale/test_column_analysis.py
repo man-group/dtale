@@ -238,6 +238,24 @@ def test_get_column_analysis(unittest, test_data):
 
 
 @pytest.mark.unit
+def test_probability_histogram(unittest, test_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        with ExitStack():
+            build_data_inst({c.port: test_data})
+            build_dtypes({c.port: views.build_dtypes_state(test_data)})
+            build_settings({c.port: {}})
+            response = c.get(
+                "/dtale/column-analysis/{}".format(c.port),
+                query_string=dict(col="foo", density="true"),
+            )
+            response_data = json.loads(response.data)
+            assert response.status_code == 200
+            assert "np.histogram(s['foo'], density=True)" in response_data["code"]
+
+
+@pytest.mark.unit
 def test_get_column_analysis_word_value_count(unittest):
     df = pd.DataFrame(dict(a=["a b c", "d e f", "g h i"], b=[3, 4, 5]))
     with app.test_client() as c:

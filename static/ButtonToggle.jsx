@@ -43,7 +43,7 @@ ButtonToggle.displayName = "ButtonToggle";
 ButtonToggle.propTypes = {
   options: PropTypes.array,
   update: PropTypes.func,
-  defaultValue: PropTypes.string,
+  defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number]),
   allowDeselect: PropTypes.bool,
   disabled: PropTypes.bool,
   className: PropTypes.string,

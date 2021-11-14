@@ -25,7 +25,7 @@ class TextEnterFilter extends React.Component {
   }
 
   render() {
-    const { prop, dtype, buildChart, t } = this.props;
+    const { prop, dtype, buildChart, t, disabled } = this.props;
     const colType = gu.findColType(dtype);
     const updateFilter = e => {
       if (e.key === "Enter") {
@@ -52,6 +52,7 @@ class TextEnterFilter extends React.Component {
             value={this.state[prop] ?? ""}
             onChange={this.updateValue}
             onKeyDown={updateFilter}
+            disabled={disabled}
           />
         </div>
       </React.Fragment>
@@ -66,6 +67,10 @@ TextEnterFilter.propTypes = {
   buildChart: PropTypes.func,
   defaultValue: PropTypes.string,
   t: PropTypes.func,
+  disabled: PropTypes.bool,
+};
+TextEnterFilter.defaultProps = {
+  disabled: false,
 };
 
 export default withTranslation("text_enter")(TextEnterFilter);

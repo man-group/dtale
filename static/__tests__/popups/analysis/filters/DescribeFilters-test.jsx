@@ -8,6 +8,7 @@ import { expect, it } from "@jest/globals";
 import ButtonToggle from "../../../../ButtonToggle";
 import CategoryInputs from "../../../../popups/analysis/filters/CategoryInputs";
 import DescribeFilters from "../../../../popups/analysis/filters/DescribeFilters";
+import GeoFilters from "../../../../popups/analysis/filters/GeoFilters";
 import OrdinalInputs from "../../../../popups/analysis/filters/OrdinalInputs";
 import TextEnterFilter from "../../../../popups/analysis/filters/TextEnterFilter";
 
@@ -43,7 +44,7 @@ describe("DescribeFilters tests", () => {
     expect(buildChart.mock.calls).toHaveLength(2);
   });
 
-  describe(" rendering int column", () => {
+  describe("rendering int column", () => {
     it("rendering boxplot", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(0);
       expect(result.find(CategoryInputs)).toHaveLength(0);
@@ -61,6 +62,9 @@ describe("DescribeFilters tests", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(0);
       expect(result.find(CategoryInputs)).toHaveLength(0);
       expect(result.find(TextEnterFilter)).toHaveLength(1);
+      result.find(ButtonToggle).last().props().update(true);
+      expect(buildChart).toHaveBeenCalled();
+      expect(result.state()).toMatchObject({ density: true });
     });
 
     it("rendering value_counts", () => {
@@ -71,7 +75,7 @@ describe("DescribeFilters tests", () => {
     });
   });
 
-  describe(" rendering float column", () => {
+  describe("rendering float column", () => {
     beforeEach(() => {
       result.setProps({ dtype: "float64", details: { type: "float64" } });
       result.update();
@@ -104,7 +108,7 @@ describe("DescribeFilters tests", () => {
     });
   });
 
-  describe(" rendering datetime column", () => {
+  describe("rendering datetime column", () => {
     beforeEach(() => {
       result.setProps({ dtype: "datetime[ns]", details: { type: "datetime" } });
       result.update();
@@ -127,6 +131,31 @@ describe("DescribeFilters tests", () => {
       expect(result.find(OrdinalInputs)).toHaveLength(1);
       expect(result.find(CategoryInputs)).toHaveLength(0);
       expect(result.find(TextEnterFilter)).toHaveLength(1);
+    });
+  });
+
+  describe("rendering geolocation column", () => {
+    beforeEach(() => {
+      result.setProps({
+        dtype: "float",
+        coord: "lat",
+        details: { type: "float" },
+      });
+      result.update();
+    });
+
+    it("loading options", () => {
+      expect(_.map(result.find(ButtonToggle).prop("options"), "value")).toEqual([
+        "boxplot",
+        "histogram",
+        "categories",
+        "qq",
+      ]);
+    });
+
+    it("rendering geolocation", () => {
+      result.setState({ type: "geolocation" });
+      expect(result.find(GeoFilters)).toHaveLength(1);
     });
   });
 

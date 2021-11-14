@@ -17,6 +17,7 @@ from dtale.utils import (
     find_dtype,
     find_dtype_formatter,
     find_selected_column,
+    get_bool_arg,
     get_int_arg,
     get_str_arg,
     grid_columns,
@@ -147,9 +148,11 @@ class HistogramAnalysis(object):
     def __init__(self, req):
         self.bins = get_int_arg(req, "bins", 20)
         self.target = get_str_arg(req, "target")
+        self.density = get_bool_arg(req, "density")
 
     def build_histogram_data(self, series):
-        hist_data, hist_labels = np.histogram(series, bins=self.bins)
+        hist_kwargs = {"density": True} if self.density else {"bins": self.bins}
+        hist_data, hist_labels = np.histogram(series, **hist_kwargs)
         hist_data = [json_float(h) for h in hist_data]
         return (
             dict(
@@ -225,9 +228,13 @@ class HistogramAnalysis(object):
                 ).format(col=parent.selected_col)
             )
         if self.target is None:
+            hist_kwargs = (
+                "density=True" if self.density else "bins={}".format(self.bins)
+            )
             code.append(
-                "chart, labels = np.histogram(s['{col}'], bins={bins})".format(
-                    col=parent.selected_col, bins=self.bins
+                "chart, labels = np.histogram(s['{col}'], {hist_kwargs})".format(
+                    col=parent.selected_col,
+                    hist_kwargs=hist_kwargs,
                 )
             )
             code += kde_code + desc_code
