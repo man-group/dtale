@@ -85,8 +85,9 @@ function targetColor(idx) {
 function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
   const { data, targets, kde } = fetchedData;
   const xAxes = { x: { title: { display: true, text: "Bin" } } };
+  const yLabel = chartOpts.density ? "Probability" : "Frequency";
   const yAxes = {
-    y: { title: { display: true, text: "Frequency" } },
+    y: { title: { display: true, text: yLabel } },
   };
   let datasets = [];
   if (targets) {
@@ -102,7 +103,7 @@ function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
       backgroundColor: targetColor(idx),
     }));
   } else {
-    datasets.push({ label: "Frequency", type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" });
+    datasets.push({ label: yLabel, type: "bar", data: data, backgroundColor: "rgb(42, 145, 209)", yAxisID: "y" });
     if (kde) {
       yAxes.y.position = "left";
       yAxes["y-2"] = {
@@ -184,7 +185,7 @@ const emptyVal = val => (
 
 const PARAM_PROPS = _.concat(
   ["selectedCol", "bins", "top", "type", "ordinalCol", "ordinalAgg", "categoryCol"],
-  ["categoryAgg", "cleaners", "latCol", "lonCol", "target", "filtered"]
+  ["categoryAgg", "cleaners", "latCol", "lonCol", "target", "filtered", "density"]
 );
 
 const isPlotly = type => _.includes(["geolocation", "qq"], type);
@@ -193,7 +194,7 @@ function dataLoader(props, state, propagateState, chartParams) {
   const { chartData, height, dataId } = props;
   const finalParams = chartParams || state.chartParams;
   const { selectedCol } = chartData;
-  const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top"]));
+  const params = _.assignIn({}, chartData, _.pick(finalParams, ["bins", "top", "density"]));
   params.type = _.get(finalParams, "type");
   params.filtered = props.filtered ?? true;
   if (isPlotly(params.type) || finalParams?.target) {
@@ -215,6 +216,7 @@ function dataLoader(props, state, propagateState, chartParams) {
   } else if (_.includes(["value_counts", "word_value_counts"], params.type)) {
     subProps = ["ordinalCol", "ordinalAgg"];
   } else if (params.type === "histogram") {
+    params.density = finalParams.density ?? false;
     subProps = ["target"];
   } else if (params.type === "qq") {
     subProps = [];

@@ -6,6 +6,7 @@ import React from "react";
 import { expect, it } from "@jest/globals";
 
 import * as fetcher from "../../../fetcher";
+import ChartsBody from "../../../popups/charts/ChartsBody";
 import { BKFilter } from "../../../popups/timeseries/BKFilter";
 import { BaseInputs } from "../../../popups/timeseries/BaseInputs";
 import { CFFilter } from "../../../popups/timeseries/CFFilter";
@@ -33,6 +34,56 @@ describe("TimeseriesAnalysis", () => {
     expect(wrapper.find(BaseInputs)).toHaveLength(1);
     expect(wrapper.find(HPFilter)).toHaveLength(1);
     expect(fetchJsonSpy.mock.calls[0][0].startsWith("/dtale/dtypes/1")).toBe(true);
+  });
+
+  it("mounts successfully", () => {
+    wrapper.instance().componentDidMount();
+    expect(fetchJsonSpy.mock.calls[0][0]).toBe("/dtale/dtypes/1");
+    fetchJsonSpy.mock.calls[0][1]({
+      dtypes: [{ dtype: "datetime", name: "index" }],
+    });
+    expect(wrapper.state().baseCfg).toMatchObject({ index: "index" });
+  });
+
+  it("builds chart configs successfully", () => {
+    wrapper.setState({
+      url: "/dtale/blah/1",
+      baseCfg: { col: "foo", index: "date" },
+    });
+    const { configHandler } = wrapper.find(ChartsBody).props();
+    let cfg = configHandler({
+      data: { datasets: [{}, {}, {}] },
+      options: {
+        scales: {
+          "y-cycle": {},
+          "y-trend": {},
+          "y-foo": { title: {} },
+          x: { title: { display: false } },
+        },
+        plugins: {},
+      },
+    });
+    expect(cfg).toBeDefined();
+    wrapper.setState({ multiChart: true });
+    cfg = configHandler({
+      data: { datasets: [{ label: "foo", data: [] }, {}, {}] },
+      options: {
+        scales: {
+          "y-cycle": {},
+          "y-trend": {},
+          "y-foo": { title: {} },
+          x: { title: { display: false } },
+        },
+        plugins: {},
+      },
+    });
+    expect(Object.keys(cfg.options.scales)).toEqual(["y-foo", "x"]);
+  });
+
+  it("handles mount error", () => {
+    wrapper.instance().componentDidMount();
+    fetchJsonSpy.mock.calls[0][1]({ error: "failure" });
+    expect(wrapper.state().error).toBeDefined();
   });
 
   it("renders report inputs successfully", () => {

@@ -1,3 +1,4 @@
+/* eslint max-lines: "off" */
 import _ from "lodash";
 import PropTypes from "prop-types";
 import React from "react";
@@ -33,6 +34,7 @@ function buildState(props) {
     categoryAgg: _.find(analysisAggs(props.t), { value: "mean" }),
     ...loadCoordVals(props.selectedCol, props.cols),
     target: null,
+    density: false,
   };
 }
 
@@ -51,6 +53,7 @@ class DescribeFilters extends React.Component {
     this.toggleLeft = this.toggleLeft.bind(this);
     this.toggleRight = this.toggleRight.bind(this);
     this.targetSelect = this.targetSelect.bind(this);
+    this.densityToggle = this.densityToggle.bind(this);
   }
 
   shouldComponentUpdate(newProps, newState) {
@@ -140,7 +143,7 @@ class DescribeFilters extends React.Component {
     );
   }
 
-  buildFilter(prop) {
+  buildFilter(prop, disabled = false) {
     const propagateState = state => this.setState(state);
     return (
       <TextEnterFilter
@@ -151,6 +154,7 @@ class DescribeFilters extends React.Component {
           dtype: this.props.dtype,
           propagateState,
           defaultValue: this.state[prop],
+          disabled,
         }}
       />
     );
@@ -223,11 +227,27 @@ class DescribeFilters extends React.Component {
     );
   }
 
+  densityToggle() {
+    return (
+      <ButtonToggle
+        key="density-toggle"
+        options={[
+          { label: "Frequency", value: false },
+          { label: "Probability", value: true },
+        ]}
+        update={density => this.setState({ density }, this.buildChart)}
+        defaultValue={this.state.density}
+        className="pr-0"
+      />
+    );
+  }
+
   render() {
     if (_.isNull(this.props.type)) {
       return null;
     }
     const { code, dtype } = this.props;
+    const { density } = this.state;
     const colType = gu.findColType(dtype);
     let filterMarkup = null;
     if (this.state.type === "boxplot" || this.state.type === "qq") {
@@ -237,7 +257,11 @@ class DescribeFilters extends React.Component {
     } else if ("int" === colType) {
       // int -> Value Counts or Histogram
       if (this.state.type === "histogram") {
-        filterMarkup = wrapFilterMarkup([this.buildFilter("bins"), this.targetSelect()]);
+        filterMarkup = wrapFilterMarkup([
+          this.densityToggle(),
+          density ? null : this.buildFilter("bins"),
+          this.targetSelect(),
+        ]);
       } else {
         filterMarkup = wrapFilterMarkup([
           this.buildFilter("top"),
@@ -247,7 +271,11 @@ class DescribeFilters extends React.Component {
     } else if ("float" === colType) {
       // floats -> Histogram or Categories
       if (this.state.type === "histogram") {
-        filterMarkup = wrapFilterMarkup([this.buildFilter("bins"), this.targetSelect()]);
+        filterMarkup = wrapFilterMarkup([
+          this.densityToggle(),
+          density ? null : this.buildFilter("bins"),
+          this.targetSelect(),
+        ]);
       } else {
         filterMarkup = wrapFilterMarkup([
           this.buildFilter("top"),
@@ -259,6 +287,7 @@ class DescribeFilters extends React.Component {
       filterMarkup = wrapFilterMarkup([
         this.buildFilter("top"),
         <OrdinalInputs key="ordinal" colType={colType} updateOrdinal={this.updateOrdinal} {...this.props} />,
+        this.state.type === "histogram" ? this.densityToggle() : null,
       ]);
     }
     return (
