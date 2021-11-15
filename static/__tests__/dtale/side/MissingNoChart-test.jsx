@@ -43,27 +43,34 @@ describe("MissingNoCharts", () => {
     expect(wrapper.find("img")).toHaveLength(1);
     expect(wrapper.state()).toEqual(
       expect.objectContaining({
-        chartType: "matrix",
+        chartType: "heatmap",
         freq: { value: "BQ", label: "BQ - BQ" },
-        dateCol: null,
+        dateCol: { value: "col4" },
         imageLoading: true,
       })
     );
     expect(wrapper.state().dtypes).toHaveLength(4);
     expect(wrapper.state().dateCols).toHaveLength(1);
-    expect(wrapper.state().imageUrl.startsWith("/dtale/missingno/matrix/1?date_index=&freq=BQ")).toBeTruthy();
-    expect(wrapper.state().fileUrl.startsWith("/dtale/missingno/matrix/1?date_index=&freq=BQ&file=true")).toBeTruthy();
+    expect(wrapper.state().imageUrl.startsWith("/dtale/missingno/heatmap/1?date_index=col4&freq=BQ")).toBeTruthy();
+    expect(
+      wrapper.state().fileUrl.startsWith("/dtale/missingno/heatmap/1?date_index=col4&freq=BQ&file=true")
+    ).toBeTruthy();
   });
 
   it("updates URLs on chart prop changes", () => {
-    wrapper.setState({ chartType: "heatmap" });
-    expect(wrapper.state().imageUrl.startsWith("/dtale/missingno/heatmap/1?date_index=&freq=BQ")).toBeTruthy();
-    expect(wrapper.state().fileUrl.startsWith("/dtale/missingno/heatmap/1?date_index=&freq=BQ&file=true")).toBeTruthy();
+    wrapper.setState({ chartType: "bar" });
+    expect(wrapper.state().imageUrl.startsWith("/dtale/missingno/bar/1?date_index=col4&freq=BQ")).toBeTruthy();
+    expect(wrapper.state().fileUrl.startsWith("/dtale/missingno/bar/1?date_index=col4&freq=BQ&file=true")).toBeTruthy();
   });
 
   it("includes date col & freq in matrix chart", async () => {
+    wrapper.setState({ chartType: "matrix" });
     const currState = wrapper.state();
-    wrapper.find(ColumnSelect).first().props().updateState({ dateCol: currState.dateCols[0] });
+    wrapper
+      .find(ColumnSelect)
+      .first()
+      .props()
+      .updateState({ dateCol: { value: currState.dateCols[0].name } });
     const freqSelect = wrapper.find(FilterSelect).first().props();
     freqSelect.selectProps.onChange(freqSelect.selectProps.options[1]);
     wrapper.update();

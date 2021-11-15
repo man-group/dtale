@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import _ from "lodash";
 
 const URL_KEYS = {
@@ -30,7 +28,7 @@ function buildURLParams(state, props = null, required = null) {
 }
 
 function buildURLString(base, params) {
-  return `${base}${base.endsWith("?") ? "" : "?"}${qs.stringify(params)}`;
+  return `${base}${base.endsWith("?") ? "" : "?"}${new URLSearchParams(params).toString()}`;
 }
 
 function buildURL(base, state, props) {

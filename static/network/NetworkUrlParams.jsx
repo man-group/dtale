@@ -3,7 +3,6 @@ import React from "react";
 
 import * as actions from "../actions/dtale";
 import _ from "lodash";
-import querystring from "querystring";
 
 const DATA_PROPS = ["to", "from", "weight", "group"];
 
@@ -52,7 +51,7 @@ export default class NetworkUrlParams extends React.Component {
     const shouldUpdateUrl = _.find(DATA_PROPS, key => this.props.params?.[key] != urlParams[key]);
 
     if (shouldUpdateUrl) {
-      history.pushState({}, "", `?${querystring.stringify(this.props.params)}`);
+      history.pushState({}, "", `?${new URLSearchParams(this.props.params).toString()}`);
     }
   }
 

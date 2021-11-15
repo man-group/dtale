@@ -1,5 +1,4 @@
 import _ from "lodash";
-import querystring from "querystring";
 
 import serverStateManagement from "../dtale/serverStateManagement";
 
@@ -74,7 +73,7 @@ export function isJSON(str) {
 
 export function getParams() {
   const params = {};
-  const queryParams = querystring.parse(window.location.search.replace(/^.*\?/, ""));
+  const queryParams = Object.fromEntries(new URLSearchParams(window.location.search.replace(/^.*\?/, "")));
   _.forEach(queryParams, (value, key) => {
     if (value) {
       if (_.includes(value, ",") && !isJSON(value)) {

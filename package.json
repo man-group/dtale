@@ -155,7 +155,6 @@
     "popsicle": "12.1.0",
     "postcss-cli": "9.0.1",
     "prop-types": "15.7.2",
-    "querystring": "0.2.1",
     "re-resizable": "6.9.1",
     "react": "17.0.2",
     "react-addons-shallow-compare": "15.6.3",

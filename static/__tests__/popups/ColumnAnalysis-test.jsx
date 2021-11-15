@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -69,7 +67,7 @@ describe("ColumnAnalysis tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/column-analysis")) {
-          const params = qs.parse(url.split("?")[1]);
+          const params = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
           const ordinal = ANALYSIS_DATA.data;
           const count = ANALYSIS_DATA.data;
           if (params.col === "null") {
