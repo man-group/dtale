@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -29,7 +27,7 @@ describe("Charts scatter tests", () => {
     mockD3Cloud();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const urlParams = qs.parse(url.split("?")[1]);
+        const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
         if (urlParams.x === "error" && _.includes(JSON.parse(urlParams.y), "error2")) {
           return { data: {} };
         }

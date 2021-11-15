@@ -1,7 +1,6 @@
 /* eslint max-statements: "off" */
 import _ from "lodash";
 import $ from "jquery";
-import qs from "querystring";
 import React from "react";
 
 import chartUtils from "../../chartUtils";
@@ -225,7 +224,7 @@ function dataLoader(props, state, propagateState, chartParams) {
     params.cleaners = _.join(_.map(finalParams.cleaners, "value"), ",");
   }
   _.forEach(subProps, p => (params[p] = _.get(finalParams, [p, "value"])));
-  const url = `${BASE_ANALYSIS_URL}/${dataId}?${qs.stringify(buildURLParams(params, PARAM_PROPS))}`;
+  const url = `${BASE_ANALYSIS_URL}/${dataId}?${new URLSearchParams(buildURLParams(params, PARAM_PROPS)).toString()}`;
   fetchJson(url, fetchedChartData => {
     const newState = { error: null, chartParams: finalParams };
     if (_.get(fetchedChartData, "error")) {

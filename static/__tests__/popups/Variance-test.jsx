@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -58,7 +56,7 @@ describe("Variance tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/variance")) {
-          const { col } = qs.parse(url.split("?")[1]);
+          const col = new URLSearchParams(url.split("?")[1]).get("col");
           if (col === "error") {
             return { error: "variance error" };
           }

@@ -1,6 +1,4 @@
 /* eslint max-lines: "off" */
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -45,7 +43,7 @@ describe("DataViewer tests", () => {
       mockPopsicle.mock(url => {
         const { urlFetcher } = require("../../redux-test-utils").default;
         if (_.startsWith(url, "/dtale/duplicates")) {
-          const urlParams = qs.parse(url.split("?")[1]);
+          const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
           if (urlParams.action === "test") {
             const cfg = JSON.parse(urlParams.cfg);
             if (urlParams.type === "show") {

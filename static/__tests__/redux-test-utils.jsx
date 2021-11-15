@@ -1,6 +1,4 @@
 /* eslint max-lines: "off" */
-import qs from "querystring";
-
 import _ from "lodash";
 
 import dtaleApp from "../reducers/dtale";
@@ -182,7 +180,7 @@ function getDataId(url) {
 
 // eslint-disable-next-line max-statements, complexity
 function urlFetcher(url) {
-  const urlParams = qs.parse(url.split("?")[1]);
+  const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
   const query = urlParams.query;
   if (_.startsWith(url, "/dtale/data")) {
     if (query === "error") {

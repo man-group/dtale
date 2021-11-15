@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { shallow } from "enzyme";
 import React from "react";
 
@@ -111,7 +109,7 @@ describe("TimeseriesAnalysis", () => {
       const { code, url } = wrapper.state();
       expect(code.bkfilter).toBeDefined();
       expect(url.startsWith("/dtale/timeseries-analysis/1")).toBe(true);
-      const urlParams = qs.parse(url.split("?")[1]);
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
       expect(urlParams.type).toBe("bkfilter");
     });
 
@@ -122,7 +120,7 @@ describe("TimeseriesAnalysis", () => {
         .updateState({ cfg: { lamb: 1600 } });
       const { code, url } = wrapper.state();
       expect(code.hpfilter).toBeDefined();
-      const urlParams = qs.parse(url.split("?")[1]);
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
       expect(urlParams.type).toBe("hpfilter");
     });
 
@@ -134,7 +132,7 @@ describe("TimeseriesAnalysis", () => {
         .updateState({ cfg: { low: 6, high: 32, drift: true } });
       const { code, url } = wrapper.state();
       expect(code.cffilter).toBeDefined();
-      const urlParams = qs.parse(url.split("?")[1]);
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
       expect(urlParams.type).toBe("cffilter");
     });
 
@@ -146,7 +144,7 @@ describe("TimeseriesAnalysis", () => {
         .updateState({ cfg: { model: "additive" } });
       const { code, url } = wrapper.state();
       expect(code.seasonal_decompose).toBeDefined();
-      const urlParams = qs.parse(url.split("?")[1]);
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
       expect(urlParams.type).toBe("seasonal_decompose");
     });
 
@@ -155,7 +153,7 @@ describe("TimeseriesAnalysis", () => {
       wrapper.find(SeasonalDecompose).props().updateState({ cfg: {} });
       const { code, url } = wrapper.state();
       expect(code.stl).toBeDefined();
-      const urlParams = qs.parse(url.split("?")[1]);
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
       expect(urlParams.type).toBe("stl");
     });
   });

@@ -1,6 +1,4 @@
 /* eslint max-statements: "off" */
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -32,7 +30,7 @@ describe("Charts tests", () => {
     mockWordcloud();
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
-        const urlParams = qs.parse(url.split("?")[1]);
+        const urlParams = Object.fromEntries(new URLSearchParams(url.split("?")[1]));
         if (urlParams.x === "error" && _.includes(JSON.parse(urlParams.y), "error2")) {
           return { data: {} };
         }
@@ -86,9 +84,15 @@ describe("Charts tests", () => {
     result.find(Charts).find("button").first().simulate("click");
     await tickUpdate(result);
     expect(result.find(ChartsBody).instance().state.charts.length).toBe(1);
-    expect(_.last(result.find(Charts).instance().state.url.split("?"))).toBe(
-      "x=col4&y=%5B%22col1%22%5D&query=col4%20%3D%3D%20'20181201'&agg=rolling&rollingWin=10&rollingComp=corr"
-    );
+    const params = Object.fromEntries(new URLSearchParams(_.last(result.find(Charts).instance().state.url.split("?"))));
+    expect(params).toEqual({
+      x: "col4",
+      y: '["col1"]',
+      agg: "rolling",
+      query: "col4 == '20181201'",
+      rollingComp: "corr",
+      rollingWin: "10",
+    });
     result.find(ChartsBody).instance().state.charts[0].cfg.options.onClick();
     result.update();
     result.find(ChartsBody).instance().resetZoom();

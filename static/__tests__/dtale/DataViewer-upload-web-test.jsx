@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -45,7 +43,7 @@ describe("DataViewer tests", () => {
         if (_.startsWith(url, "/dtale/datasets")) {
           return {
             success: true,
-            data_id: qs.parse(url.split("?")[1]).dataset,
+            data_id: new URLSearchParams(url.split("?")[1]).get("dataset"),
           };
         }
         return urlFetcher(url);

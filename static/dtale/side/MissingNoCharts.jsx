@@ -17,19 +17,19 @@ import menuFuncs from "../menu/dataViewerMenuUtils";
 require("./MissingNoCharts.css");
 
 const chartOpts = t =>
-  _.map(["matrix", "bar", "heatmap", "dendrogram"], h => ({
+  _.map(["heatmap", "bar", "dendrogram", "matrix"], h => ({
     value: h,
     label: t(`missing:${_.capitalize(h)}`),
   }));
 
 const buildUrls = (dataId, { dateCol, freq, chartType }) => {
   const imageUrl = buildURLString(menuFuncs.fullPath(`/dtale/missingno/${chartType}`, dataId), {
-    date_index: _.get(dateCol, "name"),
+    date_index: _.get(dateCol, "value"),
     freq: _.get(freq, "value"),
     id: new Date().getTime(),
   });
   const fileUrl = buildURLString(menuFuncs.fullPath(`/dtale/missingno/${chartType}`, dataId), {
-    date_index: _.get(dateCol, "name"),
+    date_index: _.get(dateCol, "value"),
     freq: _.get(freq, "value"),
     file: true,
     id: new Date().getTime(),
@@ -48,7 +48,7 @@ class ReactMissingNoCharts extends React.Component {
     super(props);
     const state = {
       dtypes: null,
-      chartType: "matrix",
+      chartType: "heatmap",
       freq: freqOpts(props.t).find(f => f.value === "BQ"),
       dateCol: null,
       dateCols: [],
@@ -69,6 +69,7 @@ class ReactMissingNoCharts extends React.Component {
       }
       newState.dtypes = dtypesData.dtypes;
       newState.dateCols = _.filter(newState.dtypes, col => gu.isDateCol(col.dtype));
+      newState.dateCol = newState.dateCols.length ? { value: newState.dateCols[0].name } : null;
       this.setState(newState);
     });
   }
@@ -158,12 +159,12 @@ class ReactMissingNoCharts extends React.Component {
               onLoad={() => {
                 this.setState({ imageLoading: false });
               }}
-              onError={() =>
+              onError={() => {
                 this.setState({
                   imageLoading: false,
                   error: <RemovableError error="Chart could not be loaded!" />,
-                })
-              }
+                });
+              }}
             />
           </div>
         </div>

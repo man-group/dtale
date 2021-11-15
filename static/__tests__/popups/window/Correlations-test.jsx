@@ -1,5 +1,3 @@
-import qs from "querystring";
-
 import { mount } from "enzyme";
 import _ from "lodash";
 import React from "react";
@@ -38,7 +36,7 @@ describe("Correlations tests", () => {
     const mockBuildLibs = withGlobalJquery(() =>
       mockPopsicle.mock(url => {
         if (_.startsWith(url, "/dtale/correlations/")) {
-          const query = qs.parse(url.split("?")[1]).query;
+          const query = new URLSearchParams(url.split("?")[1]).get("query");
           if (query == "null") {
             return { error: "No data found." };
           }
