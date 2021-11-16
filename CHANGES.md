@@ -1,5 +1,11 @@
 ## Changelog
 
+### 1.61.0 (2021-11-15)
+* replaced querystring package with URLSearchParams
+* [#595](https://github.com/man-group/dtale/issues/595): probability histograms
+* [#589](https://github.com/man-group/dtale/issues/589): pareto chart
+* updates for babel ES2020 support
+
 ### 1.60.2 (2021-11-3)
 * [#594](https://github.com/man-group/dtale/issues/594): fix for editing cells while using redislite
 
