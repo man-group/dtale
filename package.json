@@ -57,7 +57,7 @@
     ],
     "coveragePathIgnorePatterns": [
       "<rootDir>/static/__tests__/",
-      "<rootDir>/state/dash/lib/custom.js"
+      "<rootDir>/static/dash/lib/custom.js"
     ],
     "coverageDirectory": "./JS_coverage",
     "coverageReporters": [
