@@ -1,5 +1,9 @@
 ## Changelog
 
+### 1.61.1 (2021-11-17)
+* [#600](https://github.com/man-group/dtale/issues/600): persist selected chart across columns in describe popup
+* [#597](https://github.com/man-group/dtale/issues/597): fix for aggregate function on "Summarize Data"
+
 ### 1.61.0 (2021-11-15)
 * replaced querystring package with URLSearchParams
 * [#595](https://github.com/man-group/dtale/issues/595): probability histograms
