@@ -23,18 +23,57 @@ function wrapFilterMarkup(filterMarkup) {
   );
 }
 
-function buildState(props) {
+function buildChartOptions({ dtype, cols, selectedCol, t }) {
+  const colType = gu.findColType(dtype);
+  const translatedTitles = titles(t);
+  const options = [{ label: translatedTitles.boxplot, value: "boxplot" }];
+  const isFid = _.includes(["float", "int", "date"], colType);
+  if (isFid) {
+    options.push({ label: translatedTitles.histogram, value: "histogram" });
+  }
+  if (colType === "float") {
+    options.push({ label: translatedTitles.categories, value: "categories" });
+  } else if (colType == "string") {
+    options.push({
+      label: translatedTitles.word_value_counts,
+      value: "word_value_counts",
+    });
+    options.push({
+      label: translatedTitles.value_counts,
+      value: "value_counts",
+    });
+  } else {
+    options.push({
+      label: translatedTitles.value_counts,
+      value: "value_counts",
+    });
+  }
+  if (hasCoords(selectedCol, cols)) {
+    options.push({
+      label: translatedTitles.geolocation,
+      value: "geolocation",
+    });
+  }
+  if (isFid) {
+    options.push({ label: translatedTitles.qq, value: "qq" });
+  }
+  return options;
+}
+
+function buildState(props, prevState = {}) {
+  const chartOpts = buildChartOptions(props);
+  const prevChartExists = chartOpts.find(opt => opt.value === prevState.type) !== undefined;
   return {
-    type: "boxplot",
-    bins: "20",
-    top: (props.top || 100) + "",
+    type: prevChartExists ? prevState.type : "boxplot",
+    bins: prevState.bins ?? "20",
+    top: `${props.top ?? prevState.top ?? 100}`,
     ordinalCol: null,
     ordinalAgg: _.find(analysisAggs(props.t), { value: "sum" }),
     categoryCol: null,
     categoryAgg: _.find(analysisAggs(props.t), { value: "mean" }),
     ...loadCoordVals(props.selectedCol, props.cols),
     target: null,
-    density: false,
+    density: prevState.density ?? false,
   };
 }
 
@@ -48,7 +87,6 @@ class DescribeFilters extends React.Component {
     this.buildGeoFilter = this.buildGeoFilter.bind(this);
     this.updateOrdinal = this.updateOrdinal.bind(this);
     this.updateCategory = this.updateCategory.bind(this);
-    this.buildChartOptions = this.buildChartOptions.bind(this);
     this.updateChartType = this.updateChartType.bind(this);
     this.toggleLeft = this.toggleLeft.bind(this);
     this.toggleRight = this.toggleRight.bind(this);
@@ -66,46 +104,8 @@ class DescribeFilters extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (!_.isEqual(this.props.details, prevProps.details)) {
-      this.setState(buildState(this.props));
+      this.setState(buildState(this.props, this.state), this.buildChart);
     }
-  }
-
-  buildChartOptions() {
-    const { dtype, cols, selectedCol, t } = this.props;
-    const colType = gu.findColType(dtype);
-    const translatedTitles = titles(t);
-    const options = [{ label: translatedTitles.boxplot, value: "boxplot" }];
-    const isFid = _.includes(["float", "int", "date"], colType);
-    if (isFid) {
-      options.push({ label: translatedTitles.histogram, value: "histogram" });
-    }
-    if (colType === "float") {
-      options.push({ label: translatedTitles.categories, value: "categories" });
-    } else if (colType == "string") {
-      options.push({
-        label: translatedTitles.word_value_counts,
-        value: "word_value_counts",
-      });
-      options.push({
-        label: translatedTitles.value_counts,
-        value: "value_counts",
-      });
-    } else {
-      options.push({
-        label: translatedTitles.value_counts,
-        value: "value_counts",
-      });
-    }
-    if (hasCoords(selectedCol, cols)) {
-      options.push({
-        label: translatedTitles.geolocation,
-        value: "geolocation",
-      });
-    }
-    if (isFid) {
-      options.push({ label: translatedTitles.qq, value: "qq" });
-    }
-    return options;
   }
 
   updateChartType(type) {
@@ -114,7 +114,7 @@ class DescribeFilters extends React.Component {
 
   toggleLeft() {
     const { type } = this.state;
-    const options = this.buildChartOptions();
+    const options = buildChartOptions(this.props);
     const selectedIndex = _.findIndex(options, { value: type });
     if (selectedIndex > 0) {
       this.updateChartType(options[selectedIndex - 1].value);
@@ -123,7 +123,7 @@ class DescribeFilters extends React.Component {
 
   toggleRight() {
     const { type } = this.state;
-    const options = this.buildChartOptions();
+    const options = buildChartOptions(this.props);
     const selectedIndex = _.findIndex(options, { value: type });
     if (selectedIndex < _.size(options) - 1) {
       this.updateChartType(options[selectedIndex + 1].value);
@@ -137,7 +137,11 @@ class DescribeFilters extends React.Component {
           keyMap={{ LEFT: "left", RIGHT: "right" }}
           handlers={{ LEFT: this.toggleLeft, RIGHT: this.toggleRight }}
         />
-        <ButtonToggle options={this.buildChartOptions()} update={this.updateChartType} defaultValue={this.state.type} />
+        <ButtonToggle
+          options={buildChartOptions(this.props)}
+          update={this.updateChartType}
+          defaultValue={this.state.type}
+        />
         <small className="d-block pl-4 pt-3">({this.props.t("constants:navigate")})</small>
       </>
     );

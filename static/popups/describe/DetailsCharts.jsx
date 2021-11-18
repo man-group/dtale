@@ -36,7 +36,7 @@ class DetailsCharts extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (!_.isEqual(this.props, prevProps)) {
-      this.setState(this.props, () => this.buildChart({ type: "boxplot" }));
+      this.setState(this.props);
     }
   }
 
