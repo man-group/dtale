@@ -15,12 +15,12 @@ results.tap
 TEST-dtale-tests.xml
 coverage.xml
 htmlcov/
-JS_coverage/
+frontend/JS_coverage/
 
 build/
 dist/
-node_modules/
-npm-debug.log
+frontend/node_modules/
+frontend/npm-debug.log
 .idea
 .tern-port
 .vscode
@@ -40,4 +40,4 @@ custom_loaders/
 
 # django test app
 docs/django_test/dtale_test/db.sqlite3
-package-lock.json
+frontend/package-lock.json

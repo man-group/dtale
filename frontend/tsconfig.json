@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react",
+    "baseUrl": "./",
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2017"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "outDir": "../../dtale/static/dist",
+    "paths": {
+      "ts-jest/preprocessor": ["node_modules/ts-jest/dist"]
+    },
+    "rootDir": ".",
+    "sourceMap": true,
+    "strict": true,
+    "target": "esnext",
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules"]
+}

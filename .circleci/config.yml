@@ -17,29 +17,33 @@ javascript: &javascript
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-{{ checksum "yarn.lock" }}
+            - yarn-packages-{{ checksum "frontend/yarn.lock" }}
       - run:
           name: Install Dependencies
           command: |
+            cd frontend
             yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          key: yarn-packages-{{ checksum "frontend/yarn.lock" }}
           paths:
             - ~/.cache/yarn
       - run:
           name: Lint & Format JS Code
           command: |
+            cd frontend
             yarn run lint
             yarn run format
       - run:
           name: Check for JS Formatting Diffs
           command: |
+            cd frontend
             git diff --name-status
             git diff-files --quiet || (echo 'The files above have not been formatted!' && (exit 1))
       - run:
           name: Run JS Tests & Coverage
           command: |
+            cd frontend
             export TZ=America/New_York
             yarn run test-with-coverage -w 1
             bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
@@ -49,6 +53,7 @@ javascript: &javascript
       - run:
           name: Build JS
           command: |
+            cd frontend
             yarn run build
       - persist_to_workspace:
           root: .

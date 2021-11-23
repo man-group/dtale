@@ -1485,7 +1485,7 @@ $ npm test
 You can run individual test files:
 
 ```
-$ TEST=static/__tests__/dtale/DataViewer-base-test.jsx npm run test-file
+$ npm run test -- static/__tests__/dtale/DataViewer-base-test.jsx
 ```
 
 ### Linting
