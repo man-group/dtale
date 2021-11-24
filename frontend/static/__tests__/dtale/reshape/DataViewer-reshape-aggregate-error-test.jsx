@@ -4,14 +4,12 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../../RemovableError';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   const { location, open, opener } = window;
@@ -35,14 +33,8 @@ describe('DataViewer tests', () => {
     };
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle();
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
     Reshape = require('../../../popups/reshape/Reshape').ReactReshape;
     Aggregate = require('../../../popups/reshape/Aggregate').Aggregate;

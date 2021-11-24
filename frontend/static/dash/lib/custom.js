@@ -1,6 +1,6 @@
 require('./publicDashPath');
 
-import $ from 'jquery';
+import axios from 'axios';
 
 function updateLanguage(e, language) {
   e.preventDefault();
@@ -8,9 +8,12 @@ function updateLanguage(e, language) {
   if (window.resourceBaseUrl) {
     path = `${window.resourceBaseUrl}/${path}`;
   }
-  $.get(path, () => {
-    window.location.reload();
-  });
+  axios
+    .get(path)
+    .then(() => {
+      window.location.reload();
+    })
+    .catch((e) => console.log(e)); // eslint-disable-line no-console
 }
 
 function openCodeSnippet(e) {
@@ -27,7 +30,7 @@ function openCodeSnippet(e) {
 function copy(e) {
   e.preventDefault();
   const textCmp = document.getElementById('copy-text');
-  let chartLink = $(e.target).parent().attr('href');
+  let chartLink = e.target.parentNode.getAttribute('href');
   const webRoot = window.resourceBaseUrl;
   if (webRoot) {
     chartLink = `${webRoot}${chartLink}`;
@@ -36,8 +39,18 @@ function copy(e) {
   textCmp.select();
   document.execCommand('copy');
   e.target.focus();
-  $(e.target).parent().parent().find('div.copy-tt-hide').fadeOut(300).delay(300).fadeIn(450);
-  $(e.target).parent().parent().find('div.copy-tt-bottom').fadeIn(300).delay(300).fadeOut(400);
+  const ttHide = e.target.parentNode.parentNode.querySelector('.copy-tt-hide');
+  const ttHideClasses = ttHide.className.split(' ').filter((className) => className !== 'fade-in');
+  ttHide.className = [...ttHideClasses, 'fade-out'].join(' ');
+  setTimeout(() => {
+    ttHide.className = [...ttHideClasses, 'fade-in'].join(' ');
+  }, 300);
+  const ttBottom = e.target.parentNode.parentNode.querySelector('.copy-tt-bottom');
+  const ttBottomClasses = ttBottom.className.split(' ').filter((className) => className !== 'fade-out');
+  ttBottom.className = [...ttBottomClasses, 'fade-in'].join(' ');
+  setTimeout(() => {
+    ttBottom.className = [...ttBottomClasses, 'fade-out'].join(' ');
+  }, 300);
 }
 
 function exportChart(e, href) {
@@ -46,22 +59,22 @@ function exportChart(e, href) {
 }
 
 window.onload = function () {
-  $('body').click(function (e) {
-    const target = $(e.target);
-    if (target.parent().is('a.code-snippet-btn')) {
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (target.parentNode.classList.contains('code-snippet-btn')) {
       openCodeSnippet(e);
-    } else if (target.parent().is('a.copy-link-btn')) {
+    } else if (target.parentNode.classList.contains('copy-link-btn')) {
       copy(e);
-    } else if (target.is('a.export-chart-btn')) {
-      exportChart(e, target.attr('href'));
-    } else if (target.parent().is('a.export-chart-btn')) {
-      exportChart(e, target.parent().attr('href'));
-    } else if (target.is('a.export-png-btn')) {
-      exportChart(e, target.attr('href') + '&export_type=png');
-    } else if (target.parent().is('a.export-png-btn')) {
-      exportChart(e, target.parent().attr('href') + '&export_type=png');
-    } else if (target.is('a.lang-link')) {
-      updateLanguage(e, target.attr('href'));
+    } else if (target.classList.contains('export-chart-btn')) {
+      exportChart(e, target.getAttribute('href'));
+    } else if (target.parentNode.classList.contains('export-chart-btn')) {
+      exportChart(e, target.parentNode.getAttribute('href'));
+    } else if (target.classList.contains('export-png-btn')) {
+      exportChart(e, target.getAttribute('href') + '&export_type=png');
+    } else if (target.parentNode.classList.contains('export-png-btn')) {
+      exportChart(e, target.parentNode.getAttribute('href') + '&export_type=png');
+    } else if (target.classList.contains('lang-link')) {
+      updateLanguage(e, target.getAttribute('href'));
     }
   });
 };

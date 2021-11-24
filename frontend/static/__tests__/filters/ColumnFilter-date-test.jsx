@@ -3,31 +3,26 @@ import _ from 'lodash';
 import moment from 'moment';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import DateFilter from '../../filters/DateFilter';
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('ColumnFilter date tests', () => {
   let ColumnFilter, DateInput;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col4')) {
-          return {
-            success: true,
-            hasMissing: true,
-            min: '20000101',
-            max: '20000131',
-          };
-        }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col4')) {
+        return {
+          success: true,
+          hasMissing: true,
+          min: '20000101',
+          max: '20000131',
+        };
+      }
+      return undefined;
+    });
+
     ColumnFilter = require('../../filters/ColumnFilter').default;
     DateInput = require('@blueprintjs/datetime').DateInput;
   });

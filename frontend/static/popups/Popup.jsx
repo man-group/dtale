@@ -7,7 +7,6 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import ConditionalRender from '../ConditionalRender';
 import { closeChart } from '../actions/charts';
 import mergeActions from '../actions/merge';
 import { buildRangeState } from '../dtale/rangeSelectUtils';
@@ -74,7 +73,7 @@ class ReactPopup extends React.Component {
           <Modal.Header closeButton>
             <Modal.Title>{title}</Modal.Title>
           </Modal.Header>
-          <ConditionalRender display={visible}>{body}</ConditionalRender>
+          {visible && body}
           <span className="resizable-handle" />
         </Resizable>
       </Modal>

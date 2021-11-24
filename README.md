@@ -1464,9 +1464,10 @@ $ python dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
 
 You can also run dtale from PyDev directly.
 
-You will also want to import javascript dependencies and build the source:
+You will also want to import javascript dependencies and build the source (all javascript code resides in the `frontend` folder):
 
 ``` bash
+$ cd frontend
 $ npm install
 # 1) a persistent server that serves the latest JS:
 $ npm run watch
@@ -1494,7 +1495,7 @@ You can lint all the JS and CSS to confirm there's nothing obviously wrong with
 it:
 
 ``` bash
-$ npm run lint -s
+$ npm run lint
 ```
 
 You can also lint individual JS files:

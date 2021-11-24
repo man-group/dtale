@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import ExportOption from '../../../dtale/menu/ExportOption';
 import FilterOption from '../../../dtale/menu/FilterOption';

@@ -4,11 +4,9 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
-import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate } from '../../test-utils';
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().props().onChange({ value: chartType });
@@ -25,17 +23,13 @@ describe('Charts tests', () => {
     dimensions.beforeAll();
     mockChartJS();
     mockWordcloud();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
-        if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
-          return { data: {} };
-        }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
+      if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
+        return { data: {} };
+      }
+      return undefined;
+    });
   });
 
   afterAll(dimensions.afterAll);
@@ -135,7 +129,7 @@ describe('Charts tests', () => {
       ),
     ).toBe('col1: 1.1235');
     updateChartType(result, ChartsBody, 'wordcloud');
-    const wc = result.find('MockComponent').first();
+    const wc = result.find('CustomMockComponent').first();
     expect(wc.props().callbacks.getWordTooltip({ fullText: 'test', value: 5 })).toBe('test (5)');
     const cb = result.find(ChartsBody).instance();
     expect(cb.shouldComponentUpdate(cb.props, cb.state)).toBe(false);

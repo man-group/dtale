@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
 import { buildURLString, dtypesUrl } from '../../actions/url-utils';
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';
 import ChartsBody from '../charts/ChartsBody';
@@ -210,7 +210,7 @@ class ReactReports extends React.Component {
                   if (this.state.multiChart) {
                     config.data.datasets = config.data.datasets.filter((dataset) => dataset.data);
                     const field = config.data.datasets[0].label;
-                    chartUtils.COLOR_PROPS.forEach((prop) => (config.data.datasets[0][prop] = chartUtils.TS_COLORS[0]));
+                    chartUtils.updateColorProps(config.data.datasets[0], chartUtils.TS_COLORS[0]);
                     Object.keys(config.options.scales).forEach((scale) => {
                       if (scale !== `y-${field}` && scale !== 'x') {
                         delete config.options.scales[scale];

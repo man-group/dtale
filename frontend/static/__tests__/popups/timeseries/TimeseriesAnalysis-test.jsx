@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import * as fetcher from '../../../fetcher';
 import ChartsBody from '../../../popups/charts/ChartsBody';
 import { BKFilter } from '../../../popups/timeseries/BKFilter';

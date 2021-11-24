@@ -1,9 +1,7 @@
-import $ from 'jquery';
 import _ from 'lodash';
 
 import { buildURLString } from '../actions/url-utils';
-import { fetchJson, fetchJsonPromise, logException } from '../fetcher';
-import menuFuncs from './menu/dataViewerMenuUtils';
+import { fetchJson, fetchJsonPromise, fetchPost, logException } from '../fetcher';
 
 function buildCallback(route, dataId, params) {
   return () => fetchJson(buildURLString(`/dtale/${route}/${dataId}?`, params), _.noop);
@@ -109,7 +107,7 @@ function unlockCols(selectedCols, { columns, propagateState, dataId }) {
 
 function persistVisibility(dataId, params, callback) {
   try {
-    $.post(menuFuncs.fullPath('/dtale/update-visibility', dataId), params, callback);
+    fetchPost(`/dtale/update-visibility/${dataId}`, params, callback);
   } catch (e) {
     logException(e, e.stack);
   }
@@ -157,7 +155,7 @@ function updateFormats(dataId, col, format, all, nanDisplay, callback = _.noop) 
 
 function saveRangeHighlights(dataId, ranges, callback) {
   try {
-    $.post(menuFuncs.fullPath('/dtale/save-range-highlights', dataId), { ranges: JSON.stringify(ranges) }, callback);
+    fetchPost(`/dtale/save-range-highlights/${dataId}`, { ranges: JSON.stringify(ranges) }, callback);
   } catch (e) {
     logException(e, e.stack);
   }

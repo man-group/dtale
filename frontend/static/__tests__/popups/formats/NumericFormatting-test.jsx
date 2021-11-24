@@ -2,8 +2,6 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import NumericFormatting from '../../../popups/formats/NumericFormatting';
 
 describe('NumericFormatting tests', () => {

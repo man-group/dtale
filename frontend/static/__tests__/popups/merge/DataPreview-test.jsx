@@ -4,7 +4,7 @@ import React from 'react';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import { clickColMenuSubButton, openColMenu } from '../../iframe/iframe-utils';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, tickUpdate } from '../../test-utils';
 
 describe('DataPreview', () => {
   const dimensions = new DimensionsHelper({
@@ -14,13 +14,7 @@ describe('DataPreview', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   afterAll(dimensions.afterAll);

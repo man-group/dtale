@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import { buildCode as buildBinsCode } from '../../../popups/create/CreateBins';
 import { buildCode as buildDatetimeCode } from '../../../popups/create/CreateDatetime';
 import { buildCode as buildNumericCode } from '../../../popups/create/CreateNumeric';

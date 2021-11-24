@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 describe('dtale tests', () => {
   const { location } = window;
 

@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import corrUtils from '../../../popups/correlations/correlationsUtils';
 
 describe('correlationsUtils', () => {

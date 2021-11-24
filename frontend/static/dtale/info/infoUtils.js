@@ -1,16 +1,14 @@
-import menuUtils from '../../menuUtils';
-import $ from 'jquery';
+import { openMenu } from '../../menuUtils';
 import _ from 'lodash';
 
-export function buildMenuHandler(prop, propagateState) {
-  return menuUtils.openMenu(
-    `${prop}Actions`,
+export function buildMenuHandler(prop, propagateState, toggleRef) {
+  return openMenu(
     () => propagateState({ menuOpen: prop }),
     () => propagateState({ menuOpen: null }),
-    `div.${prop}-menu-toggle`,
+    toggleRef,
     (e) => {
-      const target = $(e.target);
-      return target.hasClass('ignore-click') || target.parent().hasClass('ignore-click');
+      const ignoreClick = (target) => target.className.indexOf('ignore-click') !== -1;
+      return ignoreClick(e.target) || ignoreClick(e.target.parentNode);
     },
   );
 }

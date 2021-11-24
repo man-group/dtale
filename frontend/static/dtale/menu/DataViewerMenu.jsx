@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -55,8 +54,7 @@ class ReactDataViewerMenu extends React.Component {
         columns: _.map(this.props.columns, (c) => _.assignIn({}, c)),
       });
     const closeMenu = () => {
-      $(document).unbind('click.gridActions');
-      this.props.propagateState({ menuOpen: false });
+      document.getElementsByTagName('body')[0].click();
     };
     const hasNoInfo = gu.hasNoInfo(this.props);
     const containerProps = menuPinned

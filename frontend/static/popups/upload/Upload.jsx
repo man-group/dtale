@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -10,8 +9,7 @@ import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
 import { buildURLString } from '../../actions/url-utils';
-import menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
-import { fetchJson } from '../../fetcher';
+import { fetchJson, fetchPost } from '../../fetcher';
 import CSVOptions from './CSVOptions';
 import SheetSelector from './SheetSelector';
 import { jumpToDataset } from './uploadUtils';
@@ -83,15 +81,7 @@ class ReactUpload extends React.Component {
       _.forEach(additionalParameters, (value, key) => {
         fd.append(key, value);
       });
-      $.ajax({
-        type: 'POST',
-        url: menuFuncs.fullPath('/dtale/upload'),
-        data: fd,
-        contentType: false,
-        processData: false,
-        success: this.handleResponse,
-        error: this.handleResponse,
-      });
+      fetchPost('/dtale/upload', fd, this.handleResponse);
     };
     if (hasCSV) {
       this.setState({

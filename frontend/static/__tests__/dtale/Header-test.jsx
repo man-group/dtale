@@ -2,8 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import Draggable from 'react-draggable';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactHeader } from '../../dtale/Header';
 
 describe('Header', () => {

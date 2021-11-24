@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 /**
  * Return an object that behaves the same as popsicle, but overrides
  * `.get`.
@@ -21,30 +19,29 @@ import _ from 'lodash';
  *   }});
  *
  */
-function mock(getReturnValue) {
+export default function mock(getReturnValue) {
   // Return an object with all the same keys as `popsicle`, but a
   // different value for the `get` key.
 
-  const boomshaka = (url) => {
+  const get = (url) => {
     const p = new Promise((fullfill) => {
-      let body;
-      if (_.isFunction(getReturnValue)) {
-        body = getReturnValue(url);
-      } else {
-        body = getReturnValue;
+      const { urlFetcher } = require('./redux-test-utils').default;
+      let body = getReturnValue?.(url);
+      if (body === undefined) {
+        body = urlFetcher(url);
       }
-      fullfill({ json: () => body });
+      fullfill({ data: body });
     });
 
     p.use = () => p;
 
     return p;
   };
-  return {
-    fetch: boomshaka,
-  };
+  jest.mock('axios', () => ({
+    __esModule: true,
+    default: {
+      get,
+      post: jest.fn(),
+    },
+  }));
 }
-
-export default {
-  mock,
-};

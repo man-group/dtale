@@ -6,13 +6,11 @@ import { Provider } from 'react-redux';
 import Select from 'react-select';
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
 
 const TEXT_TESTS = [
   'EX: -123456.789 => -123456.789000',
@@ -36,13 +34,7 @@ describe('DataViewer tests', () => {
     delete window.open;
     window.open = jest.fn();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
 
     const dv = require('../../../dtale/DataViewer');
     DataViewer = dv.DataViewer;

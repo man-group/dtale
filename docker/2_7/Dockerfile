@@ -5,7 +5,7 @@ RUN set -eux \
 
 COPY . /workspace
 
-WORKDIR /workspace
+WORKDIR /workspace/frontend
 RUN set -eux \
   ; yarn install --frozen-lockfile \
   ; yarn list --depth=0 \

@@ -4,13 +4,11 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
-import { MockComponent } from '../MockComponent';
+import { createMockComponent } from '../mocks/createMockComponent';
 import mockPopsicle from '../MockPopsicle';
 import correlationsData from '../data/correlations.json';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 const chartData = {
   visible: true,
@@ -29,7 +27,7 @@ describe('Correlations tests', () => {
 
   beforeAll(() => {
     jest.mock('../../dtale/side/SidePanelButtons', () => ({
-      SidePanelButtons: MockComponent,
+      SidePanelButtons: createMockComponent(),
     }));
     dimensions.beforeAll();
 
@@ -38,36 +36,32 @@ describe('Correlations tests', () => {
     delete window.location;
     window.location = { pathname: '/dtale/popup' };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/correlations/')) {
-          const query = new URLSearchParams(url.split('?')[1]).get('query');
-          if (query == 'null') {
-            return { error: 'No data found.' };
-          }
-          if (query == 'one-date') {
-            return {
-              data: correlationsData.data,
-              dates: [{ name: 'col4', rolling: false }],
-            };
-          }
-          if (query == 'no-date') {
-            return { data: correlationsData.data, dates: [] };
-          }
-          if (query == 'rolling') {
-            const dates = [
-              { name: 'col4', rolling: true },
-              { name: 'col5', rolling: false },
-            ];
-            return { data: correlationsData.data, dates };
-          }
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/correlations/')) {
+        const query = new URLSearchParams(url.split('?')[1]).get('query');
+        if (query == 'null') {
+          return { error: 'No data found.' };
         }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+        if (query == 'one-date') {
+          return {
+            data: correlationsData.data,
+            dates: [{ name: 'col4', rolling: false }],
+          };
+        }
+        if (query == 'no-date') {
+          return { data: correlationsData.data, dates: [] };
+        }
+        if (query == 'rolling') {
+          const dates = [
+            { name: 'col4', rolling: true },
+            { name: 'col5', rolling: false },
+          ];
+          return { data: correlationsData.data, dates };
+        }
+      }
+      return undefined;
+    });
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
     Correlations = require('../../popups/Correlations').default;
     ChartsBody = require('../../popups/charts/ChartsBody').default;

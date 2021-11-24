@@ -16,7 +16,7 @@ function clickColMenuButton(result, name, btnTag = 'button') {
 }
 
 function clickColMenuSubButton(result, label, row = 0) {
-  // need to import this component here because it is using fetcher.js which gets mocked during run-time
+  // need to import this component here because it is using fetcher.ts which gets mocked during run-time
   const ColumnMenu = require('../../dtale/column/ColumnMenu').ReactColumnMenu;
   result
     .find(ColumnMenu)

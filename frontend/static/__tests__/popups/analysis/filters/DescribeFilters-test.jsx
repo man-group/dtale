@@ -3,8 +3,6 @@ import _ from 'lodash';
 import React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 
-import { expect, it } from '@jest/globals';
-
 import ButtonToggle from '../../../../ButtonToggle';
 import CategoryInputs from '../../../../popups/analysis/filters/CategoryInputs';
 import DescribeFilters from '../../../../popups/analysis/filters/DescribeFilters';

@@ -13,7 +13,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 const entries = [
   ['base_styles', './static/base_styles.js'],
   ['polyfills', './static/polyfills.js'],
-  ['dtale', './static/main.jsx'],
+  ['dtale', './static/main.tsx'],
   ['network', './static/network/main.jsx'],
 ];
 
@@ -46,13 +46,6 @@ function createConfig(entry) {
         },
         {
           test: /\.(ts|tsx)$/,
-          loader: require.resolve('tslint-loader'),
-          enforce: 'pre',
-          include: paths.appSrc,
-          exclude: [/node_modules/],
-        },
-        {
-          test: /\.(ts|tsx)$/,
           include: paths.appSrc,
           exclude: [/node_modules/],
           use: [
@@ -64,13 +57,6 @@ function createConfig(entry) {
               },
             },
           ],
-        },
-        {
-          test: require.resolve('jquery'),
-          loader: 'expose-loader',
-          options: {
-            exposes: ['$', 'jQuery'],
-          },
         },
         {
           test: /\.css$/,
@@ -222,10 +208,10 @@ function createDashConfig(entry) {
           ],
         },
         {
-          test: require.resolve('jquery'),
+          test: require.resolve('axios'),
           loader: 'expose-loader',
           options: {
-            exposes: ['$', 'jQuery'],
+            exposes: ['axios'],
           },
         },
       ],

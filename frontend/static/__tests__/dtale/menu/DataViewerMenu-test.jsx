@@ -3,8 +3,6 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import GageRnROption from '../../../dtale/menu/GageRnROption';
 import { LanguageOption } from '../../../dtale/menu/LanguageOption';

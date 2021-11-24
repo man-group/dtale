@@ -3,11 +3,9 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, tickUpdate } from '../../test-utils';
 
 const DATA = {
   avg: '1',
@@ -24,16 +22,12 @@ describe('DetailSequentialDiffs test', () => {
   let result, ReactDetailsSequentialDiffs;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/sorted-sequential-diffs')) {
-          return DATA;
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/sorted-sequential-diffs')) {
+        return DATA;
+      }
+      return undefined;
+    });
   });
 
   beforeEach(async () => {

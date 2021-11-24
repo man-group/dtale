@@ -2,13 +2,11 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, mockT as t, tickUpdate } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   let result, CreateReplacement, Imputer;
@@ -22,13 +20,7 @@ describe('DataViewer tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   beforeEach(async () => {

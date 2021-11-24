@@ -1,7 +1,5 @@
 import { mount } from 'enzyme';
 
-import { expect, it } from '@jest/globals';
-
 import { kurtMsg, skewMsg } from '../../../dtale/column/ColumnMenuHeader';
 
 describe('ColumnMenuHeader tests', () => {

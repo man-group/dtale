@@ -12,7 +12,7 @@ yarn add react-i18next
 
 ### Build the i18 entrypoint
 
-This is from my file [i18n.js](https://github.com/man-group/dtale/blob/master/static/i18n.js)
+This is from my file [i18n.ts](https://github.com/man-group/dtale/blob/master/static/i18n.js)
 
 ```js
 import i18n from "i18next";
@@ -47,7 +47,7 @@ Using the `debug` flag was invaluable to validating my mapping of text so I'd ad
 
 ### Setup our translation files
 
-If you couldn't tell from our `i18n.js` file I created a `translations` folder containing my JSON language mappings. Mine contains the following:
+If you couldn't tell from our `i18n.ts` file I created a `translations` folder containing my JSON language mappings. Mine contains the following:
 * en.json (English)
 * cn.json (Chinese)
 
@@ -119,7 +119,7 @@ export { ReduxNameLabel as NameLabel };
 
 This component just renders a simple bootstrap button group for each available language in your i18n configuration. The i18n object provides some very helpful information & functions:
 * `language` -> the currently selected language
-* `options.resources` -> returns the object containing the languages we loaded into i18n.js earlier
+* `options.resources` -> returns the object containing the languages we loaded into i18n.ts earlier
 * `changeLanguage(language)` -> passing one of the available languages to this function will update the selected language in your application
  
 ```jsx

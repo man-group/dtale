@@ -2,25 +2,25 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
-import menuUtils from '../../menuUtils';
+import { openMenu } from '../../menuUtils';
 import * as gu from '../gridUtils';
 
 class ReactDataViewerMenuHolder extends React.Component {
   constructor(props) {
     super(props);
+    this.menuToggle = React.createRef();
   }
 
   render() {
     const { style, propagateState, menuOpen, menuPinned, rowCount, theme, columns, backgroundMode } = this.props;
     const activeCols = gu.getActiveCols({ columns, backgroundMode });
-    const menuHandler = menuUtils.openMenu(
-      'gridActions',
+    const menuHandler = openMenu(
       () => propagateState({ menuOpen: true }),
       () => propagateState({ menuOpen: false }),
-      'div.menu-toggle',
+      this.menuToggle,
     );
     return (
-      <div style={style} className="menu-toggle">
+      <div ref={this.menuToggle} style={style} className="menu-toggle">
         <div className="crossed">
           {!menuPinned && (
             <div

@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'lodash';
 import numeral from 'numeral';
 import PropTypes from 'prop-types';
@@ -39,8 +38,9 @@ class Instances extends React.Component {
   componentDidMount() {
     this.setState({ loadingProcesses: true });
     fetchJson('/dtale/processes', (processes) =>
-      this.setState({ processes, loadingProcesses: false }, () =>
-        $('input#processes').val(_.get(processes, 'data.length', 1)),
+      this.setState(
+        { processes, loadingProcesses: false },
+        () => (document.getElementById('processes').value = _.get(processes, 'data.length', 1)),
       ),
     );
   }

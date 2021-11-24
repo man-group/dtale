@@ -2,15 +2,13 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../RemovableError';
 import StructuredFilters from '../../popups/filter/StructuredFilters';
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 const toggleFilterMenu = async (result) => {
   clickMainMenuButton(result, 'Custom Filter');
@@ -43,14 +41,8 @@ describe('DataViewer tests', () => {
     delete window.open;
     window.open = jest.fn();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle();
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
     FilterPanel = require('../../popups/filter/FilterPanel').ReactFilterPanel;
     DataViewerInfo = require('../../dtale/info/DataViewerInfo').ReactDataViewerInfo;
@@ -121,7 +113,7 @@ describe('DataViewer tests', () => {
     clickFilterBtn('Apply');
     await tickUpdate(result);
     expect(result.find(RemovableError).find('div.dtale-alert').text()).toBe('No data found');
-    result.find(FilterPanel).find(RemovableError).first().instance().props.onRemove();
+    result.find(FilterPanel).find(RemovableError).first().props().onRemove();
     result.update();
     expect(result.find(FilterPanel).find('div.dtale-alert').length).toBe(0);
     clickFilterBtn('Help');

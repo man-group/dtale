@@ -2,20 +2,20 @@ import { mount } from 'enzyme';
 import React from 'react';
 import Select from 'react-select';
 
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 
 describe('MergeDatasets', () => {
   let result;
 
   beforeEach(() => {
     jest.mock('../../../dtale/DataViewer', () => ({
-      DataViewer: MockComponent,
-      ReactDataViewer: MockComponent,
+      DataViewer: createMockComponent(),
+      ReactDataViewer: createMockComponent(),
     }));
-    jest.mock('../../../popups/merge/ActionConfig', () => MockComponent);
-    jest.mock('../../../popups/merge/MergeOutput', () => MockComponent);
+    jest.mock('../../../popups/merge/ActionConfig', () => createMockComponent());
+    jest.mock('../../../popups/merge/MergeOutput', () => createMockComponent());
     jest.mock('../../../popups/Popup', () => ({
-      Popup: MockComponent,
+      Popup: createMockComponent(),
     }));
     const { ReactMergeDatasets } = require('../../../popups/merge/MergeDatasets');
     const props = {

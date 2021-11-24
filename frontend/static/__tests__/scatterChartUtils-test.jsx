@@ -1,7 +1,5 @@
 import _ from 'lodash';
 
-import { expect, it } from '@jest/globals';
-
 import { basePointFormatter, formatScatterPoints, getScatterMax, getScatterMin } from '../scatterChartUtils';
 
 describe('scatterChartUtils tests', () => {

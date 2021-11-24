@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -18,6 +17,7 @@ import ColumnMenuHeader from './ColumnMenuHeader';
 import ColumnMenuOption from './ColumnMenuOption';
 import HeatMapOption from './HeatMapOption';
 import SortOptions from './SortOptions';
+import { positionMenu } from './columnMenuUtils';
 
 const MOVE_COLS = [
   ['step-backward', serverState.moveToFront, 'Move Column To Front', {}],
@@ -26,68 +26,21 @@ const MOVE_COLS = [
   ['step-forward', serverState.moveToBack, 'Move Column To Back', {}],
 ];
 
-function buildCaretClass(caretPct = 90) {
-  const lastCaretStyle = _.get($('head').find('style:last-child'), '0.innerHTML');
-  if (_.endsWith(lastCaretStyle || '', '.column-toggle__dropdown::after {right: ' + caretPct + '%}')) {
-    return; // don't continually add styling if its already set
-  }
-  const finalCaretPct = _.isUndefined(caretPct) ? 90 : caretPct;
-  let caretStyle = '<style>';
-  caretStyle += '.column-toggle__dropdown::before {right: ' + finalCaretPct + '%}';
-  caretStyle += '.column-toggle__dropdown::after {right: ' + finalCaretPct + '%}';
-  caretStyle += '</style>';
-  $('head').append(caretStyle);
-}
-
-function positionMenu(selectedToggle, menuDiv, isPreview, dropRibbon) {
-  const currLeft = _.get(selectedToggle.offset(), 'left', 0);
-  let currTop = isPreview ? 0 : _.get(selectedToggle.offset(), 'top', 0);
-  currTop += dropRibbon ? -25 : 0;
-  const divWidth = menuDiv.width();
-  const css = {};
-  if (currLeft + divWidth > window.innerWidth) {
-    const finalLeft = currLeft - (currLeft + divWidth + 20 - window.innerWidth);
-    css.left = finalLeft;
-    const overlapPct = (currLeft - (finalLeft - 20)) / divWidth;
-    const caretPct = Math.floor(100 - overlapPct * 100);
-    buildCaretClass(caretPct);
-  } else {
-    css.left = currLeft;
-    buildCaretClass();
-  }
-  css.top = currTop + gu.ROW_HEIGHT - 6;
-  if (isPreview) {
-    css.left -= 40;
-  }
-  menuDiv.css(css);
-}
-
-function ignoreMenuClicks(e) {
-  const colFilter = $('div.column-filter');
-  if (colFilter && (colFilter.is(e.target) || colFilter.has(e.target).length > 0)) {
-    return true; // ignore filter clicks
-  }
-  if (colFilter && $(e.target).hasClass('Select__option')) {
-    return true; // ignore option selection
-  }
-  if ($(e.target).hasClass('ico-info')) {
-    return true; // ignore option selection
-  }
-  if (colFilter && e.target.nodeName === 'svg') {
-    return true; // ignore option selection
-  }
-  return false;
-}
-
 class ReactColumnMenu extends React.Component {
   constructor(props) {
     super(props);
+    this.state = { style: { minWidth: '14em' } };
+    this._div = React.createRef();
   }
 
   componentDidUpdate(prevProps) {
-    if (!_.isNull(this.props.selectedCol)) {
-      const dropRibbon = !this.props.ribbonMenuOpen && prevProps.ribbonMenuOpen;
-      positionMenu($(`div[name="${escape(this.props.selectedCol)}"]`), $(this._div), this.props.isPreview, dropRibbon);
+    const { selectedCol, selectedColRef, ribbonMenuOpen, isPreview } = this.props;
+    if (
+      selectedCol !== null &&
+      (selectedCol !== prevProps.selectedCol || ribbonMenuOpen !== prevProps.ribbonMenuOpen)
+    ) {
+      const dropRibbon = !ribbonMenuOpen && prevProps.ribbonMenuOpen;
+      this.setState({ style: positionMenu(selectedColRef, this._div, isPreview, dropRibbon) });
     }
   }
 
@@ -175,8 +128,8 @@ class ReactColumnMenu extends React.Component {
         id="column-menu-div"
         className="column-toggle__dropdown"
         hidden={!columnMenuOpen}
-        style={{ minWidth: '14em' }}
-        ref={(cm) => (this._div = cm)}
+        style={this.state.style}
+        ref={this._div}
       >
         {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: 'esc' }} handlers={{ CLOSE_MENU: closeMenu }} />}
         <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />
@@ -267,6 +220,7 @@ class ReactColumnMenu extends React.Component {
 ReactColumnMenu.displayName = 'ReactColumnMenu';
 ReactColumnMenu.propTypes = {
   selectedCol: PropTypes.string,
+  selectedColRef: PropTypes.instanceOf(Element),
   columns: PropTypes.array,
   columnMenuOpen: PropTypes.bool,
   sortInfo: PropTypes.array,
@@ -285,7 +239,15 @@ ReactColumnMenu.propTypes = {
 const TranslatedReactColumnMenu = withTranslation(['menu', 'column_menu', 'builders'])(ReactColumnMenu);
 const ReduxColumnMenu = connect(
   (state) => ({
-    ..._.pick(state, ['dataId', 'columnMenuOpen', 'selectedCol', 'isPreview', 'ribbonMenuOpen', 'filteredRanges']),
+    ..._.pick(state, [
+      'dataId',
+      'columnMenuOpen',
+      'selectedCol',
+      'selectedColRef',
+      'isPreview',
+      'ribbonMenuOpen',
+      'filteredRanges',
+    ]),
     ...state.settings,
   }),
   (dispatch) => ({
@@ -295,4 +257,4 @@ const ReduxColumnMenu = connect(
     updateSettings: (settings) => dispatch(updateSettings(settings)),
   }),
 )(TranslatedReactColumnMenu);
-export { ReduxColumnMenu as ColumnMenu, TranslatedReactColumnMenu as ReactColumnMenu, positionMenu, ignoreMenuClicks };
+export { ReduxColumnMenu as ColumnMenu, TranslatedReactColumnMenu as ReactColumnMenu };

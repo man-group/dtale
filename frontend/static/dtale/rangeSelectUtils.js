@@ -1,9 +1,8 @@
 import _ from 'lodash';
-import $ from 'jquery';
 
 import { logException } from '../fetcher';
 import * as gu from './gridUtils';
-import menuFuncs from './menu/dataViewerMenuUtils';
+import { fetchPost } from '../fetcher';
 
 export function buildRanges(cell1, cell2) {
   const [col1, row1] = gu.convertCellIdxToCoords(cell1);
@@ -77,7 +76,7 @@ function buildColumnCopyPost(columns, callback, dataId) {
   const headers = _.map(columns, 'name');
   const postCallback = (text) => callback({ text, headers });
   try {
-    $.post(menuFuncs.fullPath('/dtale/build-column-copy', dataId), { columns: JSON.stringify(headers) }, postCallback);
+    fetchPost(`/dtale/build-column-copy/${dataId}`, { columns: JSON.stringify(headers) }, postCallback);
   } catch (e) {
     logException(e, e.stack);
   }
@@ -101,11 +100,7 @@ export function buildRowCopyText(dataId, columns, params, callback) {
   const headers = _.map(selectedColumns, 'name');
   const postCallback = (text) => callback({ text, headers });
   try {
-    $.post(
-      menuFuncs.fullPath('/dtale/build-row-copy', dataId),
-      { columns: JSON.stringify(headers), ...params },
-      postCallback,
-    );
+    fetchPost(`/dtale/build-row-copy/${dataId}`, { columns: JSON.stringify(headers), ...params }, postCallback);
   } catch (e) {
     logException(e, e.stack);
   }

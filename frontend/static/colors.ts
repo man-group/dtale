@@ -1,4 +1,7 @@
-const COLORS = [
+import { Scale } from 'chroma-js';
+
+/** Array of standard color name & RGB hex string pairs */
+export const COLORS: Array<[string, string]> = [
   ['maroon', '#800000'],
   ['dark red', '#8B0000'],
   ['brown', '#A52A2A'],
@@ -140,8 +143,12 @@ const COLORS = [
   ['white', '#FFFFFF'],
 ];
 
-function buildRGBA(colorScale) {
-  return (val) => 'rgba(' + colorScale(val).rgba().join(',') + ')';
+/**
+ * Creates an RGBA string builder for a specific chroma-js colorscale.
+ *
+ * @param colorScale chroma-js colorscale.
+ * @return rgba string builder.
+ */
+export function buildRGBA(colorScale: Scale): (val: number) => string {
+  return (val: number) => `rgba(${colorScale(val).rgba().join(',')})`;
 }
-
-export { COLORS, buildRGBA };

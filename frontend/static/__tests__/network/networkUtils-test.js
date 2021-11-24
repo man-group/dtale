@@ -1,8 +1,6 @@
 import _ from 'lodash';
 import vis from 'vis-network/dist/vis-network';
 
-import { expect, it } from '@jest/globals';
-
 import * as networkUtils from '../../network/networkUtils';
 
 describe('NetworkDisplay test', () => {

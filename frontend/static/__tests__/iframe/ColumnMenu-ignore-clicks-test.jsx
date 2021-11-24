@@ -1,46 +1,36 @@
-import { mount } from 'enzyme';
-import $ from 'jquery';
-import _ from 'lodash';
-import React from 'react';
-
-import { expect, it } from '@jest/globals';
-
-import DimensionsHelper from '../DimensionsHelper';
-import { buildInnerHTML, withGlobalJquery } from '../test-utils';
+import { ignoreMenuClicks } from '../../dtale/column/columnMenuUtils';
 
 describe('ColumnMenu ignoreClicks tests', () => {
-  const dimensions = new DimensionsHelper({ innerWidth: 100 });
-  beforeAll(() => {
-    dimensions.beforeAll();
-    const mockJquery = withGlobalJquery(() => (selector) => {
-      if (selector === 'div.column-filter') {
-        return {
-          is: (t) => t.id === 'pass',
-          has: (t) => (t.id === 'pass' ? [0] : {}),
-        };
-      }
-      if (_.includes(['pass', 'pass2'], _.get(selector, 'id'))) {
-        return { hasClass: () => true };
-      }
-      if (_.includes(['fail', 'fail2', 'fail3', 'pass3'], _.get(selector, 'id'))) {
-        return { hasClass: () => false };
-      }
-      return $(selector);
-    });
+  let getElementsByClassNameSpy;
 
-    jest.mock('jquery', () => mockJquery);
+  beforeEach(() => {
+    getElementsByClassNameSpy = jest.spyOn(document, 'getElementsByClassName');
   });
 
-  afterAll(dimensions.afterAll);
+  afterEach(jest.restoreAllMocks);
 
-  it("ColumnMenu: make sure clicks in certain areas of the menu won't close it", () => {
-    const { ignoreMenuClicks } = require('../../dtale/column/ColumnMenu');
-    buildInnerHTML({ settings: '' });
-    mount(<span>Hello</span>, { attachTo: document.getElementById('content') });
+  it("ColumnMenu: make sure clicks into column-filter won't close the menu", () => {
+    getElementsByClassNameSpy.mockImplementation(() => [{ contains: () => true }]);
     expect(ignoreMenuClicks({ target: { id: 'pass' } })).toBe(true);
-    expect(ignoreMenuClicks({ target: { id: 'fail' } })).toBe(false);
-    expect(ignoreMenuClicks({ target: { id: 'pass2' } })).toBe(true);
-    expect(ignoreMenuClicks({ target: { id: 'pass3', nodeName: 'svg' } })).toBe(true);
-    expect(ignoreMenuClicks({ target: { id: 'fail3' } })).toBe(false);
+  });
+
+  it("ColumnMenu: make sure clicks into Select__option won't close the menu", () => {
+    getElementsByClassNameSpy.mockImplementation(() => [{ contains: () => false }]);
+    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } })).toBe(true);
+  });
+
+  it("ColumnMenu: make sure clicks into ico-info won't close the menu", () => {
+    getElementsByClassNameSpy.mockImplementation(() => []);
+    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } })).toBe(true);
+  });
+
+  it("ColumnMenu: make sure clicks into svg nodes won't close the menu", () => {
+    getElementsByClassNameSpy.mockImplementation(() => [{ contains: () => false }]);
+    expect(ignoreMenuClicks({ target: { nodeName: 'svg', classList: { contains: () => false } } })).toBe(true);
+  });
+
+  it('ColumnMenu: make sure clicks anywhere else will close the menu', () => {
+    getElementsByClassNameSpy.mockImplementation(() => []);
+    expect(ignoreMenuClicks({ target: { nodeName: 'span', classList: { contains: () => false } } })).toBe(false);
   });
 });

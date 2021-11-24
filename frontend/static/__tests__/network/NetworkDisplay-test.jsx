@@ -3,11 +3,9 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('NetworkDisplay test', () => {
   let result;
@@ -18,21 +16,18 @@ describe('NetworkDisplay test', () => {
     Object.defineProperty(global.self, 'crypto', {
       value: { getRandomValues: (arr) => crypto.randomBytes(arr.length) },
     });
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/network-data/1')) {
-          const networkData = require('./data.json');
-          return networkData;
-        } else if (_.startsWith(url, '/dtale/shortest-path/1')) {
-          return { data: ['b', 'c'] };
-        } else if (_.startsWith(url, '/dtale/network-analysis/1')) {
-          return { data: {} };
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/network-data/1')) {
+        const networkData = require('./data.json');
+        return networkData;
+      } else if (_.startsWith(url, '/dtale/shortest-path/1')) {
+        return { data: ['b', 'c'] };
+      } else if (_.startsWith(url, '/dtale/network-analysis/1')) {
+        return { data: {} };
+      }
+      return undefined;
+    });
+
     jest.mock('vis-network/dist/vis-network', () => ({
       __esModule: true,
       default: {

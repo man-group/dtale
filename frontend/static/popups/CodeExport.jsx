@@ -8,7 +8,7 @@ import { CodePopup } from './CodePopup';
 
 const BASE_CODE_URL = '/dtale/code-export';
 
-class CodeExport extends React.Component {
+export class CodeExport extends React.Component {
   constructor(props) {
     super(props);
     this.state = { error: null, code: null };
@@ -41,5 +41,3 @@ CodeExport.displayName = 'CodeExport';
 CodeExport.propTypes = {
   dataId: PropTypes.string.isRequired,
 };
-
-export { CodeExport };

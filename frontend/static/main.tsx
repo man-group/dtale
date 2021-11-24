@@ -5,19 +5,18 @@ import { Provider } from 'react-redux';
 
 import * as actions from './actions/dtale';
 import mergeActions from './actions/merge';
-import './adapter-for-react-16';
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
+import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
 import { CodePopup } from './popups/CodePopup';
 import Correlations from './popups/Correlations';
-import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
 import { ReactCreateColumn as CreateColumn } from './popups/create/CreateColumn';
 import { Describe } from './popups/describe/Describe';
 import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
 import { ReactFilterPopup as FilterPopup } from './popups/filter/FilterPopup';
 import Instances from './popups/instances/Instances';
-import MergeDatasets from './popups/merge/MergeDatasets';
+import ReduxMergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
 import { ReactCreateReplacement as CreateReplacement } from './popups/replacement/CreateReplacement';
 import { ReactReshape as Reshape } from './popups/reshape/Reshape';
@@ -31,20 +30,24 @@ import { getHiddenValue, toJson } from './reducers/utils';
 require('./publicPath');
 
 let pathname = window.location.pathname;
-if (window.resourceBaseUrl) {
-  pathname = _.replace(pathname, window.resourceBaseUrl, '');
+if ((window as any).resourceBaseUrl) {
+  pathname = _.replace(pathname, (window as any).resourceBaseUrl, '');
 }
-if (_.startsWith(pathname, '/dtale/popup')) {
+if (pathname.indexOf('/dtale/popup') === 0) {
   require('./dtale/DataViewer.css');
 
   let rootNode = null;
-  const settings = toJson(getHiddenValue('settings'));
+  const settings: Record<string, string> = toJson(getHiddenValue('settings'));
   const dataId = getHiddenValue('data_id');
-  const chartData = _.assignIn(actions.getParams(), { visible: true }, settings.query ? { query: settings.query } : {});
+  const chartData: Record<string, any> = {
+    ...actions.getParams(),
+    visible: true,
+    ...(settings.query ? { query: settings.query } : {}),
+  };
   const pathSegs = pathname.split('/');
   const popupType = pathSegs[pathSegs.length - 1] === 'code-popup' ? 'code-popup' : pathSegs[3];
   let store = createStore(app.store);
-  let appActions = actions;
+  let initAction: () => Record<string, any> = actions.init;
   switch (popupType) {
     case 'filter':
       rootNode = <FilterPopup {...{ dataId, chartData }} />;
@@ -54,8 +57,8 @@ if (_.startsWith(pathname, '/dtale/popup')) {
       break;
     case 'merge':
       store = createStore(mergeApp);
-      appActions = mergeActions;
-      rootNode = <MergeDatasets />;
+      initAction = mergeActions.init;
+      rootNode = <ReduxMergeDatasets />;
       break;
     case 'pps':
       rootNode = <PredictivePowerScore {...{ dataId, chartData }} />;
@@ -109,11 +112,12 @@ if (_.startsWith(pathname, '/dtale/popup')) {
       rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
-  store.dispatch(appActions.init());
+  store.dispatch(initAction());
   ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
 } else if (_.startsWith(pathname, '/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
-  let title, body;
+  let title: string;
+  let body: JSX.Element;
   if (window.opener) {
     title = `${window.opener.code_popup.title} Code Export`;
     body = <CodePopup code={window.opener.code_popup.code} />;
@@ -121,7 +125,10 @@ if (_.startsWith(pathname, '/dtale/popup')) {
     title = 'Code Missing';
     body = <h1>No parent window containing code detected!</h1>;
   }
-  document.getElementById('code-title').innerHTML = title;
+  const titleElement: HTMLElement | null = document.getElementById('code-title');
+  if (titleElement) {
+    titleElement.innerHTML = title;
+  }
   ReactDOM.render(body, document.getElementById('popup-content'));
 } else {
   const store = createStore(app.store);

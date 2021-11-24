@@ -1,14 +1,14 @@
-import i18n from 'i18next';
+import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import { getHiddenValue } from './reducers/utils';
-import en from './translations/en.json';
 import cn from './translations/cn.json';
+import en from './translations/en.json';
 import pt from './translations/pt.json';
 
 const language = getHiddenValue('language') || 'en';
 
-i18n.use(initReactI18next).init({
+i18next.use(initReactI18next).init({
   resources: { en, cn, pt },
   lng: language,
   fallbackLng: 'en',
@@ -22,4 +22,4 @@ i18n.use(initReactI18next).init({
   },
 });
 
-export default i18n;
+export default i18next;

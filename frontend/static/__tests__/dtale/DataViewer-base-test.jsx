@@ -4,21 +4,11 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import {
-  buildInnerHTML,
-  clickMainMenuButton,
-  mockChartJS,
-  PREDEFINED_FILTERS,
-  tick,
-  tickUpdate,
-  withGlobalJquery,
-} from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS, tick, tickUpdate } from '../test-utils';
 
 const COL_PROPS = _.map(reduxUtils.DATA.columns, (c, i) => {
   const width = i == 0 ? 70 : 20;
@@ -45,13 +35,7 @@ describe('DataViewer tests', () => {
     delete window.location;
     window.location = { pathname: null };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   afterAll(() => {

@@ -3,13 +3,11 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import PPSDetails from '../../popups/pps/PPSDetails';
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, PredictivePowerScore, CorrelationsGrid;
@@ -27,20 +25,16 @@ describe('DataViewer tests', () => {
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/scatter/0')) {
-          return {
-            error: 'scatter error',
-            traceback: 'scatter error traceback',
-          };
-        }
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/scatter/0')) {
+        return {
+          error: 'scatter error',
+          traceback: 'scatter error traceback',
+        };
+      }
+      return undefined;
+    });
 
-    jest.mock('popsicle', () => mockBuildLibs);
     PredictivePowerScore = require('../../popups/pps/PredictivePowerScore').default;
     CorrelationsGrid = require('../../popups/correlations/CorrelationsGrid').default;
   });

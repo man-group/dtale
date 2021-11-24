@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { chartConfig, HPFilter } from '../../../popups/timeseries/HPFilter';
 
 describe('HPFilter', () => {

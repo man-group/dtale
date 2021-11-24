@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
 import * as actions from '../actions/dtale';
-import '../adapter-for-react-16';
 import '../i18n';
 import app from '../reducers/dtale';
 import { createStore } from '../reducers/store';

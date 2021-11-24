@@ -103,7 +103,6 @@ module.exports = {
     '@typescript-eslint/dot-notation': 'error',
     '@typescript-eslint/explicit-member-accessibility': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/interface-name-prefix': ['error', { prefixWithI: 'never' }],
     '@typescript-eslint/member-ordering': [
       'error',
       {
@@ -127,7 +126,14 @@ module.exports = {
     '@typescript-eslint/naming-convention': [
       'error',
       { selector: 'class', format: ['PascalCase'] },
-      { selector: 'interface', format: ['PascalCase'] },
+      {
+        selector: 'interface',
+        format: ['PascalCase'],
+        custom: {
+          regex: '^I[A-Z]',
+          match: false,
+        },
+      },
       { selector: 'variable', format: ['camelCase', 'PascalCase', 'UPPER_CASE'] },
     ],
     '@typescript-eslint/no-array-constructor': 'error',

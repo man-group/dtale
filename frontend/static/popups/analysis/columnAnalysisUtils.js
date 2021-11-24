@@ -1,9 +1,8 @@
 /* eslint max-statements: "off" */
 import _ from 'lodash';
-import $ from 'jquery';
 import React from 'react';
 
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import { buildURLParams } from '../../actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import { RemovableError } from '../../RemovableError';
@@ -136,20 +135,23 @@ function buildHistogramAxes(baseCfg, fetchedData, chartOpts) {
 
 function createChart(ctx, fetchedData, chartOpts) {
   const { desc, labels } = fetchedData;
-  if (desc) {
-    const descHTML = _.map(DESC_PROPS, (p) => {
-      let markup = `${p === 'kurt' ? 'Kurtosis' : _.capitalize(p)}: <b>${desc[p]}</b>`;
-      if (p === 'skew') {
-        markup += skewMsg(desc[p], true);
-      }
-      if (p === 'kurt') {
-        markup += kurtMsg(desc[p], true);
-      }
-      return markup;
-    }).join(', ');
-    $('#describe').html(`<small>${descHTML}</small>`);
-  } else {
-    $('#describe').empty();
+  const describeDiv = document.getElementById('describe');
+  if (describeDiv) {
+    if (desc) {
+      const descHTML = _.map(DESC_PROPS, (p) => {
+        let markup = `${p === 'kurt' ? 'Kurtosis' : _.capitalize(p)}: <b>${desc[p]}</b>`;
+        if (p === 'skew') {
+          markup += skewMsg(desc[p], true);
+        }
+        if (p === 'kurt') {
+          markup += kurtMsg(desc[p], true);
+        }
+        return markup;
+      }).join(', ');
+      describeDiv.innerHTML = `<small>${descHTML}</small>`;
+    } else {
+      describeDiv.innerHTML = '';
+    }
   }
   const chartCfg = {
     type: 'bar',

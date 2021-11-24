@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'lodash';
 import moment from 'moment';
 import PropTypes from 'prop-types';
@@ -24,7 +23,7 @@ class DateFilter extends React.Component {
 
   updateState(prop, value) {
     const inputRef = this[`${prop}Input`];
-    const inputRefValue = $(inputRef)[0].value;
+    const inputRefValue = inputRef.value;
     if (inputRefValue.length > 0 && inputRefValue.length < 8) {
       return;
     }

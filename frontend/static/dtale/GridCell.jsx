@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { openChart } from '../actions/charts';
 import { GridCellEditor } from './GridCellEditor';
 import { Header } from './Header';
-import bu from './backgroundUtils';
+import * as bu from './backgroundUtils';
 import * as gu from './gridUtils';
 import { isInRange } from './rangeSelectUtils';
 

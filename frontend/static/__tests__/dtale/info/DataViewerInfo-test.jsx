@@ -3,31 +3,31 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../../RemovableError';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import * as fetcher from '../../../fetcher';
+import serverState from '../../../dtale/serverStateManagement';
 
 describe('DataViewerInfo tests', () => {
-  let DataViewerInfo, store, props;
+  let DataViewerInfo, store, props, postSpy, updateSettingsSpy;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   beforeEach(() => {
+    updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
+    updateSettingsSpy.mockImplementation((settings, _dataId, callback) => callback({ settings }));
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
+    postSpy.mockImplementation((_url, _params, callback) => callback());
     store = reduxUtils.createDtaleStore();
     DataViewerInfo = require('../../../dtale/info/DataViewerInfo').DataViewerInfo;
     buildInnerHTML({ settings: '' }, store);
   });
+
+  afterEach(jest.restoreAllMocks);
 
   const buildInfo = (additionalProps, settings) => {
     props = { propagateState: jest.fn(), ...additionalProps };

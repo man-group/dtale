@@ -3,13 +3,11 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../RemovableError';
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, Correlations, CorrelationsGrid, ChartsBody;
@@ -27,20 +25,16 @@ describe('DataViewer tests', () => {
     delete window.location;
     window.location = { reload: jest.fn() };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/scatter/0')) {
-          return {
-            error: 'scatter error',
-            traceback: 'scatter error traceback',
-          };
-        }
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/scatter/0')) {
+        return {
+          error: 'scatter error',
+          traceback: 'scatter error traceback',
+        };
+      }
+      return undefined;
+    });
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
     Correlations = require('../../popups/Correlations').default;
     CorrelationsGrid = require('../../popups/correlations/CorrelationsGrid').default;
@@ -86,7 +80,7 @@ describe('DataViewer tests', () => {
     expect(result.find(ChartsBody).length).toBe(1);
     const tsChart = result.find(ChartsBody).instance().state.charts[0];
     const layoutObj = {
-      chart: tsChart,
+      ...tsChart.cfg,
       scales: {
         'y-corr': {
           getPixelForValue: (px) => px,

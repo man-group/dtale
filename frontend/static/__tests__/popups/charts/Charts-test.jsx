@@ -4,12 +4,10 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../../RemovableError';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
-import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, mockWordcloud, tickUpdate } from '../../test-utils';
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().props().onChange({ value: chartType });
@@ -28,20 +26,16 @@ describe('Charts tests', () => {
     dimensions.beforeAll();
     mockChartJS();
     mockWordcloud();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
-        if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
-          return { data: {} };
-        }
-        if (_.startsWith(url, '/dtale/dtypes/9')) {
-          return { error: 'error test' };
-        }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
+      if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
+        return { data: {} };
+      }
+      if (_.startsWith(url, '/dtale/dtypes/9')) {
+        return { error: 'error test' };
+      }
+      return undefined;
+    });
 
     Charts = require('../../../popups/charts/Charts').ReactCharts;
     ChartsBody = require('../../../popups/charts/ChartsBody').default;
@@ -144,7 +138,7 @@ describe('Charts tests', () => {
       ),
     ).toBe('1.1235');
     updateChartType(result, ChartsBody, 'wordcloud');
-    const wc = result.find('MockComponent').first();
+    const wc = result.find('CustomMockComponent').first();
     expect(wc.props().callbacks.getWordTooltip({ fullText: 'test', value: 5 })).toBe('test (5)');
     const cb = result.find(ChartsBody).instance();
     expect(cb.shouldComponentUpdate(cb.props, cb.state)).toBe(false);

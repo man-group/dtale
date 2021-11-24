@@ -2,7 +2,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import { createChart, isPlotly } from './columnAnalysisUtils';
 
 class ColumnAnalysisChart extends React.Component {

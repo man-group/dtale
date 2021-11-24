@@ -10,8 +10,6 @@ import correlationsData from './data/correlations.json';
 import correlationsTsData from './data/correlations-ts.json';
 import scatterData from './data/scatter.json';
 
-const pjson = require('../../package.json');
-
 const DTYPES = {
   dtypes: [
     {
@@ -241,8 +239,6 @@ function urlFetcher(url) {
       return _.assignIn({ success: true, code: 'describe code test' }, DESCRIBE[urlParams.col]);
     }
     return { error: 'Column not found!' };
-  } else if (_.includes(url, 'pypi.org')) {
-    return { info: { version: pjson.version } };
   } else if (_.startsWith(url, '/dtale/processes')) {
     return { data: PROCESSES, success: true };
   } else if (_.startsWith(url, '/dtale/build-column')) {

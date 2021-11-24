@@ -3,16 +3,14 @@ import React from 'react';
 import Draggable from 'react-draggable';
 import { GlobalHotKeys } from 'react-hotkeys';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactSidePanel } from '../../../dtale/side/SidePanel';
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 
 describe('SidePanel', () => {
   let wrapper, props;
 
   beforeAll(() => {
-    jest.mock('../../../dtale/side/MissingNoCharts', () => MockComponent);
+    jest.mock('../../../dtale/side/MissingNoCharts', () => createMockComponent());
   });
 
   beforeEach(async () => {

@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import * as measureText from '../../dtale/MeasureText';
 import * as gu from '../../dtale/gridUtils';
 

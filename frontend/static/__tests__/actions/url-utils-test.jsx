@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import { buildURLParams } from '../../actions/url-utils';
 
 describe('url-utils tests', () => {

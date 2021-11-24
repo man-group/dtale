@@ -14,8 +14,8 @@ export function openPredefinedFilters() {
   return (dispatch) => dispatch({ type: 'show-side-panel', view: 'predefined_filters' });
 }
 
-export function toggleColumnMenu(colName) {
-  return (dispatch) => dispatch({ type: 'toggle-column-menu', colName });
+export function toggleColumnMenu(colName, headerRef) {
+  return (dispatch) => dispatch({ type: 'toggle-column-menu', colName, headerRef });
 }
 
 export function hideColumnMenu(colName) {

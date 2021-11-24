@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import { buildButton } from '../toggleUtils';
 
 describe('toggleUtils tests', () => {

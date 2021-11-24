@@ -3,12 +3,10 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import AxisEditor from '../../../popups/charts/AxisEditor';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
-import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, mockD3Cloud, tickUpdate } from '../../test-utils';
 
 function updateChartType(result, cmp, chartType) {
   result.find(cmp).find(Select).first().props().onChange({ value: chartType });
@@ -26,17 +24,13 @@ describe('Charts bar tests', () => {
     dimensions.beforeAll();
     mockChartJS();
     mockD3Cloud();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
-        if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
-          return { data: {} };
-        }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
+      if (urlParams.x === 'error' && _.includes(JSON.parse(urlParams.y), 'error2')) {
+        return { data: {} };
+      }
+      return undefined;
+    });
 
     Charts = require('../../../popups/charts/Charts').ReactCharts;
     ChartsBody = require('../../../popups/charts/ChartsBody').default;

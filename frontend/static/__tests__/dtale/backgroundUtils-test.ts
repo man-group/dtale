@@ -1,27 +1,32 @@
-import { expect, it } from '@jest/globals';
+import * as React from 'react';
 
-import bu from '../../dtale/backgroundUtils';
+import * as bu from '../../dtale/backgroundUtils';
+import { ColumnDef, DataRecord, DataViewerState } from '../../dtale/DataViewerState';
+import { buildState } from '../../dtale/gridUtils';
 
 describe('backgroundUtils tests', () => {
-  const state = {};
-  const rec = { view: '' };
-  let colCfg = {};
+  let rec: DataRecord;
+  let colCfg: ColumnDef;
+  let state: DataViewerState;
+
+  beforeEach(() => {
+    rec = { view: '' };
+    colCfg = { name: 'foo', dtype: 'float64' };
+    state = { ...buildState({}), backgroundMode: 'heatmap-col' };
+  });
+
   it('updateBackgroundStyles - heatmap-col', () => {
-    state.backgroundMode = 'heatmap-col';
-    rec.view = '';
     expect(bu.updateBackgroundStyles(state, colCfg, rec)).toEqual({});
-    rec.view = '7';
-    rec.raw = 7;
-    colCfg.min = 5;
-    colCfg.max = 10;
-    const output = bu.updateBackgroundStyles(state, colCfg, rec);
-    expect(Array.from(output.background._rgb)).toEqual([255, 204, 0, 1]);
+    colCfg = { ...colCfg, min: 5, max: 10 };
+    rec = { view: '7', raw: 7 };
+    const output: React.CSSProperties = bu.updateBackgroundStyles(state, colCfg, rec);
+    expect(output.background).toBe('#ffcc00');
   });
 
   it('updateBackgroundStyles - dtypes', () => {
     state.backgroundMode = 'dtypes';
     colCfg.dtype = 'bool';
-    let output = bu.updateBackgroundStyles(state, colCfg, rec);
+    let output: React.CSSProperties = bu.updateBackgroundStyles(state, colCfg, rec);
     expect(output.background).toBe('#FFF59D');
     colCfg.dtype = 'category';
     output = bu.updateBackgroundStyles(state, colCfg, rec);
@@ -36,10 +41,8 @@ describe('backgroundUtils tests', () => {
 
   it('updateBackgroundStyles - missing', () => {
     state.backgroundMode = 'missing';
-    colCfg.dtype = 'string';
-    colCfg.hasMissing = true;
-    rec.view = '';
-    let output = bu.updateBackgroundStyles(state, colCfg, rec);
+    colCfg = { ...colCfg, dtype: 'string', hasMissing: true };
+    let output: React.CSSProperties = bu.updateBackgroundStyles(state, colCfg, rec);
     expect(output.background).toBe('#FFCC80');
     rec.view = ' ';
     output = bu.updateBackgroundStyles(state, colCfg, rec);
@@ -48,16 +51,14 @@ describe('backgroundUtils tests', () => {
 
   it('updateBackgroundStyles - outliers', () => {
     state.backgroundMode = 'outliers';
-    colCfg.dtype = 'int';
-    colCfg.hasOutliers = true;
-    colCfg.outlierRange = { lower: 3, upper: 5 };
+    colCfg = { ...colCfg, dtype: 'int', hasOutliers: true, min: 1, max: 10, outlierRange: { lower: 3, upper: 5 } };
     colCfg = bu.buildOutlierScales(colCfg);
     rec.raw = 2;
-    let output = bu.updateBackgroundStyles(state, colCfg, rec);
-    expect(Array.from(output.background._rgb)).toEqual([255, 255, 255, 1]);
+    let output: React.CSSProperties = bu.updateBackgroundStyles(state, colCfg, rec);
+    expect(output.background).toBe('#8fc8ff');
     rec.raw = 6;
     output = bu.updateBackgroundStyles(state, colCfg, rec);
-    expect(Array.from(output.background._rgb)).toEqual([255, 204, 204, 1]);
+    expect(output.background).toBe('#ffcccc');
     rec.raw = 4;
     output = bu.updateBackgroundStyles(state, colCfg, rec);
     expect(output).toEqual({});

@@ -2,9 +2,8 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 
-import { expect, it } from '@jest/globals';
-
 import * as ColumnMenu from '../../../dtale/column/ColumnMenu';
+import * as columnMenuUtils from '../../../dtale/column/columnMenuUtils';
 import ColumnMenuOption from '../../../dtale/column/ColumnMenuOption';
 import serverState from '../../../dtale/serverStateManagement';
 import DimensionsHelper from '../../DimensionsHelper';
@@ -21,9 +20,9 @@ describe('DescribePanel', () => {
 
   beforeEach(async () => {
     dimensions.beforeAll();
-    positionMenuSpy = jest.spyOn(ColumnMenu, 'positionMenu');
+    positionMenuSpy = jest.spyOn(columnMenuUtils, 'positionMenu');
     positionMenuSpy.mockImplementation(() => undefined);
-    ignoreMenuClicksSpy = jest.spyOn(ColumnMenu, 'ignoreMenuClicks');
+    ignoreMenuClicksSpy = jest.spyOn(columnMenuUtils, 'ignoreMenuClicks');
     ignoreMenuClicksSpy.mockImplementation(() => undefined);
     toggleVisibilitySpy = jest.spyOn(serverState, 'toggleVisibility');
     toggleVisibilitySpy.mockImplementation(() => undefined);

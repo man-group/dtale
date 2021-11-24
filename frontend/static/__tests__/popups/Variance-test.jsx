@@ -3,12 +3,10 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../RemovableError';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 const VARIANCE_DATA = {
   check1: {
@@ -53,29 +51,24 @@ describe('Variance tests', () => {
   let result, ColumnAnalysisChart, TextEnterFilter;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/variance')) {
-          const col = new URLSearchParams(url.split('?')[1]).get('col');
-          if (col === 'error') {
-            return { error: 'variance error' };
-          }
-          if (col === 'lowVariance') {
-            return {
-              ...VARIANCE_DATA,
-              check2: { ...VARIANCE_DATA.check2, result: true },
-            };
-          }
-          return VARIANCE_DATA;
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/variance')) {
+        const col = new URLSearchParams(url.split('?')[1]).get('col');
+        if (col === 'error') {
+          return { error: 'variance error' };
         }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+        if (col === 'lowVariance') {
+          return {
+            ...VARIANCE_DATA,
+            check2: { ...VARIANCE_DATA.check2, result: true },
+          };
+        }
+        return VARIANCE_DATA;
+      }
+      return undefined;
+    });
 
     mockChartJS();
-
-    jest.mock('popsicle', () => mockBuildLibs);
   });
 
   const input = () => result.find('input');

@@ -2,13 +2,11 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
-import { buildInnerHTML, withGlobalJquery } from './test-utils';
+import { buildInnerHTML } from './test-utils';
 
 describe('CopyToClipboard tests', () => {
   const render = () => {
-    const { CopyToClipboard } = withGlobalJquery(() => require('../CopyToClipboard'));
+    const { CopyToClipboard } = require('../CopyToClipboard');
     buildInnerHTML();
     const buttonBuilder = (props) => (
       <div id="clicker" {...props}>

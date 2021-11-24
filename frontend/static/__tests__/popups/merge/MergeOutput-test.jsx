@@ -2,13 +2,13 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 
 describe('ActionConfig', () => {
   let result, jumpToDatasetSpy;
 
   beforeEach(() => {
-    jest.mock('../../../popups/merge/DataPreview', () => MockComponent);
+    jest.mock('../../../popups/merge/DataPreview', () => createMockComponent());
     const uploadUtils = require('../../../popups/upload/uploadUtils');
     jumpToDatasetSpy = jest.spyOn(uploadUtils, 'jumpToDataset');
     jumpToDatasetSpy.mockImplementation(() => undefined);
@@ -61,6 +61,6 @@ describe('ActionConfig', () => {
     expect(jumpToDatasetSpy).toHaveBeenLastCalledWith('1', _.noop, true);
     result.find('button').last().simulate('click');
     expect(result.props().clearMerge).toHaveBeenCalled();
-    expect(result.find(MockComponent).props().dataId).toBe('1');
+    expect(result.find('CustomMockComponent').props().dataId).toBe('1');
   });
 });
