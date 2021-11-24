@@ -3,12 +3,10 @@ import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, tick, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -19,13 +17,7 @@ describe('DataViewer tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   afterAll(dimensions.afterAll);

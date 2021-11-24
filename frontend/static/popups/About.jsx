@@ -22,20 +22,6 @@ class About extends React.Component {
 
   render() {
     const { currentVersion, pypiVersion } = this.state;
-    let outOfDate = null;
-    if (currentVersion !== pypiVersion) {
-      outOfDate = (
-        <div className="row">
-          <div className="col-md-12">
-            <div className="dtale-alert alert alert-danger text-center" role="alert">
-              <span>{this.props.t('Your version is currently out of sync with PyPi.')}</span>
-              <br />
-              <span>{this.props.t('Please upgrade.')}</span>
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
       <div key="body" className="modal-body">
         <div className="row">
@@ -50,7 +36,17 @@ class About extends React.Component {
             <span className="font-weight-bold pl-5">{pypiVersion || ''}</span>
           </div>
         </div>
-        {outOfDate}
+        {currentVersion !== pypiVersion && (
+          <div className="row">
+            <div className="col-md-12">
+              <div className="dtale-alert alert alert-danger text-center" role="alert">
+                <span>{this.props.t('Your version is currently out of sync with PyPi.')}</span>
+                <br />
+                <span>{this.props.t('Please upgrade.')}</span>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="row">
           <div className="col-md-12">
             <a

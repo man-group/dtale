@@ -2,31 +2,24 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../../MockPopsicle';
-import { mockChartJS, mockD3Cloud, withGlobalJquery } from '../../test-utils';
+import { mockChartJS, mockD3Cloud } from '../../test-utils';
 
 describe('WordcloudBody tests', () => {
   let WordcloudBody;
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, 'chart-data-error-test1')) {
-          return { data: {} };
-        }
-        if (_.startsWith(url, 'chart-data-error-test2')) {
-          return { error: 'Error test.' };
-        }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle((url) => {
+      if (_.startsWith(url, 'chart-data-error-test1')) {
+        return { data: {} };
+      }
+      if (_.startsWith(url, 'chart-data-error-test2')) {
+        return { error: 'Error test.' };
+      }
+      return undefined;
+    });
 
     mockChartJS();
     mockD3Cloud();
-
-    jest.mock('popsicle', () => mockBuildLibs);
 
     WordcloudBody = require('../../../popups/charts/WordcloudBody').default;
   });

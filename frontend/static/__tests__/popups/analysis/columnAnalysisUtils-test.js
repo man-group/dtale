@@ -1,21 +1,17 @@
-import $ from 'jquery';
-
-import { withGlobalJquery } from '../../test-utils';
-import chartUtils from '../../../chartUtils';
+import * as chartUtils from '../../../chartUtils';
 import * as fetcher from '../../../fetcher';
 
 describe('columnAnalysisUtils', () => {
-  let createChart, dataLoader, createChartSpy, fetchJsonSpy;
+  let createChart, dataLoader, createChartSpy, fetchJsonSpy, getElementByIdSpy;
 
   beforeEach(() => {
-    const mockJquery = withGlobalJquery(() => (selector) => {
+    getElementByIdSpy = jest.spyOn(document, 'getElementById');
+    getElementByIdSpy.mockImplementation((selector) => {
       if (selector === 'describe') {
-        return { html: () => undefined, empty: () => undefined };
+        return { innerHtml: '' };
       }
-      return $(selector);
+      return document.querySelector(`#${selector}`);
     });
-
-    jest.mock('jquery', () => mockJquery);
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
     createChartSpy.mockImplementation(() => undefined);
     fetchJsonSpy = jest.spyOn(fetcher, 'fetchJson');

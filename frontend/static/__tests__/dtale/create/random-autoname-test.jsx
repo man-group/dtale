@@ -3,14 +3,12 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import CreateRandom from '../../../popups/create/CreateRandom';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../../test-utils';
 
 import { clickBuilder } from './create-test-utils';
 
@@ -26,28 +24,24 @@ describe('DataViewer tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { DTYPES, urlFetcher } = require('../../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/dtypes')) {
-          return {
-            dtypes: _.concat(DTYPES.dtypes, {
-              name: 'random_col1',
-              index: 4,
-              dtype: 'mixed-integer',
-              visible: true,
-              unique_ct: 1,
-            }),
-            success: true,
-          };
-        }
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle((url) => {
+      const { DTYPES } = require('../../redux-test-utils').default;
+      if (_.startsWith(url, '/dtale/dtypes')) {
+        return {
+          dtypes: _.concat(DTYPES.dtypes, {
+            name: 'random_col1',
+            index: 4,
+            dtype: 'mixed-integer',
+            visible: true,
+            unique_ct: 1,
+          }),
+          success: true,
+        };
+      }
+      return undefined;
+    });
 
     mockChartJS();
-
-    jest.mock('popsicle', () => mockBuildLibs);
   });
 
   beforeEach(async () => {

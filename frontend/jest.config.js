@@ -10,7 +10,7 @@ const testPolyfills = require.resolve('./config/testPolyfills');
 const testTsConfig = path.resolve(fs.realpathSync(process.cwd()), 'tsconfig.test.json');
 
 module.exports = {
-  collectCoverageFrom: ['<rootDir>/static/**/*.{js, jsx, ts, tsx}'],
+  collectCoverageFrom: ['<rootDir>/static/**/*.{js,ts}?(x)'],
   coverageDirectory: './JS_coverage',
   coveragePathIgnorePatterns: ['<rootDir>/static/__tests__/', '<rootDir>/static/dash/lib/custom.js'],
   coverageReporters: ['html', 'lcovonly', 'text-summary'],
@@ -24,7 +24,7 @@ module.exports = {
     '\\.(css|scss)$': '<rootDir>/config/styleMock.js',
   },
   setupFiles: [testPolyfills],
-  setupFilesAfterEnv: ['<rootDir>/setupTests.js'],
+  setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],
   testMatch: [
     '<rootDir>/static/**/__tests__/**/*-test.{js,ts}?(x)',
     '<rootDir>/static/**/?(*.)(spec|test).{js, ts}?(x)',

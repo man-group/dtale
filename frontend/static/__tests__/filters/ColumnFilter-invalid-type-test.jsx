@@ -3,28 +3,23 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('ColumnFilter string tests', () => {
   let ColumnFilter, StringFilter;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col3')) {
-          return { success: true, hasMissing: true, uniques: ['a', 'b', 'c'] };
-        }
-        if (_.startsWith(url, '/dtale/toggle-outlier-filter/1?col=col3')) {
-          return { success: true, outlierFilters: {} };
-        }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col3')) {
+        return { success: true, hasMissing: true, uniques: ['a', 'b', 'c'] };
+      }
+      if (_.startsWith(url, '/dtale/toggle-outlier-filter/1?col=col3')) {
+        return { success: true, outlierFilters: {} };
+      }
+      return undefined;
+    });
+
     ColumnFilter = require('../../filters/ColumnFilter').default;
     StringFilter = require('../../filters/StringFilter').default;
   });

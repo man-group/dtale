@@ -1,8 +1,8 @@
 import _ from 'lodash';
 
 import { cleanupEndpoint } from '../../actions/url-utils';
-import menuUtils from '../../menuUtils';
-import bu from '../backgroundUtils';
+import { buildClickHandler } from '../../menuUtils';
+import * as bu from '../backgroundUtils';
 
 function updateSort(selectedCols, dir, { sortInfo, updateSettings }) {
   let updatedSortInfo = _.filter(sortInfo, ([col, _dir]) => !_.includes(selectedCols, col));
@@ -65,7 +65,7 @@ function buildHotkeyHandlers(props) {
   const { backgroundMode, propagateState, openChart, dataId, isVSCode } = props;
   const openMenu = () => {
     propagateState({ menuOpen: true });
-    menuUtils.buildClickHandler('gridActions', () => propagateState({ menuOpen: false }));
+    buildClickHandler(() => propagateState({ menuOpen: false }));
   };
   const openPopup =
     (type, height = 450, width = 500) =>

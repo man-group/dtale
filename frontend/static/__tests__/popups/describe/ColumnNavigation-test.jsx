@@ -2,8 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 
-import { expect, it } from '@jest/globals';
-
 import ColumnNavigation from '../../../popups/describe/ColumnNavigation';
 import reduxUtils from '../../redux-test-utils';
 

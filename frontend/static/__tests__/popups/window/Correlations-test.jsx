@@ -2,13 +2,11 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 import mockPopsicle from '../../MockPopsicle';
 import correlationsData from '../../data/correlations.json';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
 
 const chartData = {
   visible: true,
@@ -29,35 +27,31 @@ describe('Correlations tests', () => {
   beforeAll(() => {
     // Mock for redux purposes
     jest.mock('../../../dtale/side/SidePanelButtons', () => ({
-      SidePanelButtons: MockComponent,
+      SidePanelButtons: createMockComponent(),
     }));
     dimensions.beforeAll();
     mockChartJS();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/correlations/')) {
-          const query = new URLSearchParams(url.split('?')[1]).get('query');
-          if (query == 'null') {
-            return { error: 'No data found.' };
-          }
-          if (query == 'one-date') {
-            return {
-              data: correlationsData.data,
-              dates: [{ name: 'col4', rolling: false }],
-            };
-          }
-          if (query == 'no-date') {
-            return { data: correlationsData.data, dates: [] };
-          }
-          if (query == 'rolling') {
-            return _.assignIn({ rolling: true }, correlationsData);
-          }
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/correlations/')) {
+        const query = new URLSearchParams(url.split('?')[1]).get('query');
+        if (query == 'null') {
+          return { error: 'No data found.' };
         }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+        if (query == 'one-date') {
+          return {
+            data: correlationsData.data,
+            dates: [{ name: 'col4', rolling: false }],
+          };
+        }
+        if (query == 'no-date') {
+          return { data: correlationsData.data, dates: [] };
+        }
+        if (query == 'rolling') {
+          return _.assignIn({ rolling: true }, correlationsData);
+        }
+      }
+      return undefined;
+    });
 
     Correlations = require('../../../popups/Correlations').default;
     CorrelationsGrid = require('../../../popups/correlations/CorrelationsGrid').default;

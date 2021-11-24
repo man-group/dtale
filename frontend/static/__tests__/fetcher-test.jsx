@@ -1,7 +1,5 @@
 import _ from 'lodash';
-import * as popsicle from 'popsicle';
-
-import { expect, it } from '@jest/globals';
+import axios from 'axios';
 
 import { tick } from './test-utils';
 
@@ -11,7 +9,7 @@ describe('fetcher tests', () => {
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(global.console, 'error');
     consoleErrorSpy.mockImplementation(() => undefined);
-    fetchSpy = jest.spyOn(popsicle, 'fetch');
+    fetchSpy = jest.spyOn(axios, 'get');
     fetchSpy.mockImplementation(async () => {
       throw 'Exception Test';
     });

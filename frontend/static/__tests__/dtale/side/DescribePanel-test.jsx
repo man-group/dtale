@@ -1,12 +1,10 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import serverState from '../../../dtale/serverStateManagement';
 import * as fetcher from '../../../fetcher';
 import DtypesGrid from '../../../popups/describe/DtypesGrid';
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 import reduxUtils from '../../redux-test-utils';
 import { tick } from '../../test-utils';
 
@@ -15,7 +13,7 @@ describe('DescribePanel', () => {
 
   beforeAll(() => {
     jest.mock('../../../dtale/side/SidePanelButtons', () => ({
-      SidePanelButtons: MockComponent,
+      SidePanelButtons: createMockComponent(),
     }));
   });
 

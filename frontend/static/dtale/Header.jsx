@@ -6,9 +6,9 @@ import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions/dtale';
-import menuUtils from '../menuUtils';
-import bu from './backgroundUtils';
-import { ignoreMenuClicks } from './column/ColumnMenu';
+import { openMenu } from '../menuUtils';
+import * as bu from './backgroundUtils';
+import { ignoreMenuClicks } from './column/columnMenuUtils';
 import * as gu from './gridUtils';
 import { DataViewerMenuHolder } from './menu/DataViewerMenuHolder';
 
@@ -90,6 +90,7 @@ class ReactHeader extends React.Component {
   constructor(props) {
     super(props);
     this.state = { drag: false, currWidth: null };
+    this.headerRef = React.createRef();
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.resizeStart = this.resizeStart.bind(this);
     this.resizeCol = this.resizeCol.bind(this);
@@ -160,11 +161,10 @@ class ReactHeader extends React.Component {
     }
     const colCfg = gu.getCol(columnIndex, this.props);
     const colName = _.get(colCfg, 'name');
-    const menuHandler = menuUtils.openMenu(
-      `${escape(colName)}Actions`,
-      () => toggleColumnMenu(colName),
+    const menuHandler = openMenu(
+      () => toggleColumnMenu(colName, this.headerRef.current),
       () => hideColumnMenu(colName),
-      `div[name='${escape(colName)}']`,
+      this.headerRef,
       ignoreMenuClicks,
     );
     const copyHandler = buildCopyHandler(menuHandler, this.props);
@@ -193,7 +193,7 @@ class ReactHeader extends React.Component {
         className={`headerCell ${markupProps.className}${rangeClass}${drag ? ' active-resize' : ''}`}
         style={{ ...headerStyle, ...(drag ? { width: colWidth } : {}) }}
         onMouseOver={this.handleMouseOver}
-        name={escape(colName)}
+        ref={this.headerRef}
       >
         <div
           className={_.join(classes, ' ')}
@@ -249,7 +249,7 @@ const TranslateReactHeader = withTranslation('main')(ReactHeader);
 const ReduxHeader = connect(
   ({ dataId, settings }) => ({ dataId, ...settings }),
   (dispatch) => ({
-    toggleColumnMenu: (colName) => dispatch(actions.toggleColumnMenu(colName)),
+    toggleColumnMenu: (colName, headerRef) => dispatch(actions.toggleColumnMenu(colName, headerRef)),
     hideColumnMenu: (colName) => dispatch(actions.hideColumnMenu(colName)),
     updateDragResize: (x) => dispatch({ type: 'drag-resize', x }),
     stopDragResize: () => dispatch({ type: 'stop-resize' }),

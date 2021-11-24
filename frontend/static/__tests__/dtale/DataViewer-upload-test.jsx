@@ -1,11 +1,8 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Dropzone from 'react-dropzone';
 import { Provider } from 'react-redux';
-
-import { expect, it } from '@jest/globals';
 
 import { RemovableError } from '../../RemovableError';
 import CSVOptions from '../../popups/upload/CSVOptions';
@@ -13,7 +10,7 @@ import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const { close, location, open, opener } = window;
@@ -22,7 +19,7 @@ describe('DataViewer tests', () => {
     offsetHeight: 500,
   });
   let result, DataViewer, Upload;
-  let readAsDataURLSpy, btoaSpy, ajaxSpy;
+  let readAsDataURLSpy, btoaSpy, postSpy;
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -39,13 +36,7 @@ describe('DataViewer tests', () => {
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn() } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
     mockChartJS();
 
     DataViewer = require('../../dtale/DataViewer').DataViewer;
@@ -55,8 +46,9 @@ describe('DataViewer tests', () => {
   beforeEach(async () => {
     readAsDataURLSpy = jest.spyOn(FileReader.prototype, 'readAsDataURL');
     btoaSpy = jest.spyOn(window, 'btoa');
-    ajaxSpy = jest.spyOn($, 'ajax');
-    ajaxSpy.mockImplementation(({ success }) => success({ data_id: '2' }));
+    const fetcher = require('../../fetcher');
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
+    postSpy.mockImplementation((_url, _data, success) => success({ data_id: '2' }));
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
     result = mount(
@@ -74,7 +66,7 @@ describe('DataViewer tests', () => {
     result.unmount();
     readAsDataURLSpy.mockRestore();
     btoaSpy.mockRestore();
-    ajaxSpy.mockRestore();
+    postSpy.mockRestore();
   });
 
   afterAll(() => {
@@ -105,19 +97,18 @@ describe('DataViewer tests', () => {
     result.find(CSVOptions).find('button').last().simulate('click');
     await tickUpdate(result);
 
-    expect(ajaxSpy).toHaveBeenCalledTimes(1);
-    const ajaxCalls = ajaxSpy.mock.calls;
-    const firstPostCall = ajaxCalls[0][0];
-    expect(firstPostCall.url).toBe('/dtale/upload');
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const [firstUrl, firstData, firstSuccess] = postSpy.mock.calls[0];
+    expect(firstUrl).toBe('/dtale/upload');
     const read = new FileReader();
-    read.readAsBinaryString(firstPostCall.data.entries().next().value[1]);
+    read.readAsBinaryString(firstData.entries().next().value[1]);
     read.onloadend = function () {
       expect(read.result).toBe('data:application/octet-stream;base64,dGVzdA==');
     };
-    expect(firstPostCall.data.entries().next().value[0]).toBe('test.csv');
+    expect(firstData.entries().next().value[0]).toBe('test.csv');
     expect(window.location.assign).toBeCalledWith('/2');
 
-    firstPostCall.success({ error: 'error test' });
+    firstSuccess({ error: 'error test' });
     result.update();
     expect(result.find(RemovableError)).toHaveLength(1);
     await tick();
@@ -140,12 +131,11 @@ describe('DataViewer tests', () => {
     result.find(CSVOptions).find('button').last().simulate('click');
     await tickUpdate(result);
 
-    expect(ajaxSpy).toHaveBeenCalledTimes(1);
-    const ajaxCalls = ajaxSpy.mock.calls;
-    const firstPostCall = ajaxCalls[0][0];
-    expect(firstPostCall.data.get('header')).toBe('false');
-    expect(firstPostCall.data.get('separatorType')).toBe('custom');
-    expect(firstPostCall.data.get('separator')).toBe('=');
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const firstData = postSpy.mock.calls[0][1];
+    expect(firstData.get('header')).toBe('false');
+    expect(firstData.get('separatorType')).toBe('custom');
+    expect(firstData.get('separator')).toBe('=');
     expect(window.close).toBeCalledTimes(1);
     expect(window.opener.location.assign).toBeCalledWith('/2');
     await tick();
@@ -162,7 +152,7 @@ describe('DataViewer tests', () => {
     result.find(CSVOptions).find('button').at(5).simulate('click');
     await tickUpdate(result);
 
-    expect(ajaxSpy).not.toHaveBeenCalled();
+    expect(postSpy).not.toHaveBeenCalled();
     expect(result.find(CSVOptions).props().show).toBe(false);
     await tick();
   });

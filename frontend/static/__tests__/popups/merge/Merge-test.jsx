@@ -1,22 +1,19 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
-import * as fetcher from '../../../fetcher';
 import mergeApp from '../../../reducers/merge';
 import { createStore } from '../../../reducers/store';
-import { MockComponent } from '../../MockComponent';
+import { createMockComponent } from '../../mocks/createMockComponent';
 import { PROCESSES } from '../../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import * as fetcher from '../../../fetcher';
 
 describe('DataViewer tests', () => {
   jest.mock('../../../dtale/DataViewer', () => ({
-    DataViewer: MockComponent,
-    ReactDataViewer: MockComponent,
+    DataViewer: createMockComponent(),
+    ReactDataViewer: createMockComponent(),
   }));
   let result, store, fetchJsonSpy, postSpy;
 
@@ -40,7 +37,7 @@ describe('DataViewer tests', () => {
       }
       callback(urlFetcher(url));
     });
-    postSpy = jest.spyOn($, 'post');
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
     postSpy.mockImplementation((_url, _params, callback) => callback({ success: true, data_id: '1' }));
     const MergeDatasets = require('../../../popups/merge/MergeDatasets').default;
     const mergeActions = require('../../../actions/merge').default;
@@ -115,7 +112,7 @@ describe('DataViewer tests', () => {
   it('MergeDatasets: stack', async () => {
     let mergeDatasets = result.find('ReactMergeDatasets');
     const actionConfig = mergeDatasets.find('ReactActionConfig');
-    actionConfig.find('ButtonToggle').first().instance().props.update('stack');
+    actionConfig.find('ButtonToggle').first().props().update('stack');
     actionConfig.instance().props.updateActionConfig({
       action: 'stack',
       prop: 'ignoreIndex',

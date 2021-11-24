@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { Bouncer } from '../../../Bouncer';
 import { RemovableError } from '../../../RemovableError';
 import serverState from '../../../dtale/serverStateManagement';

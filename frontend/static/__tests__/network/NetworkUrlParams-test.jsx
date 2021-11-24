@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import * as actions from '../../actions/dtale';
 import NetworkUrlParams from '../../network/NetworkUrlParams';
 

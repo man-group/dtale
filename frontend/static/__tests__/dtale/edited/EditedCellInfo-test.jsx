@@ -2,24 +2,16 @@ import { mount, shallow } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import serverState from '../../../dtale/serverStateManagement';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('DataViewerInfo tests', () => {
   let EditedCellInfo, ReactEditedCellInfo, store, props;
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   beforeEach(() => {

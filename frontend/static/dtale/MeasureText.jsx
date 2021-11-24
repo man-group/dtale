@@ -1,9 +1,9 @@
-import $ from 'jquery';
-import _ from 'lodash';
 import React from 'react';
 
 export function measureText(str) {
-  const o = $('#text-measure').text(str).css({
+  const o = document.getElementById('text-measure');
+  o.textContent = str;
+  const styles = {
     'font-family': `"Istok", "Helvetica", Arial, sans-serif`,
     'font-weight': 'bold',
     'font-size': '0.8125rem',
@@ -11,8 +11,11 @@ export function measureText(str) {
     float: 'left',
     'white-space': 'nowrap',
     visibility: 'hidden',
-  });
-  return _.round(o.width()) + 20; // 5px padding on each side
+  };
+  for (const [key, value] of Object.entries(styles)) {
+    o.style[key] = value;
+  }
+  return Math.round(o.getBoundingClientRect().width) + 20; // 5px padding on each side
 }
 
 export class MeasureText extends React.Component {

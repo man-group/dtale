@@ -1,14 +1,11 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import React from 'react';
 import { Provider } from 'react-redux';
-
-import { it } from '@jest/globals';
 
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 import { clickColMenuButton, openColMenu, validateHeaders } from './iframe-utils';
 
 describe('DataViewer iframe tests', () => {
@@ -21,21 +18,14 @@ describe('DataViewer iframe tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
-
+    mockPopsicle();
     DataViewer = require('../../dtale/DataViewer').DataViewer;
     ReactConfirmation = require('../../popups/Confirmation').ReactConfirmation;
   });
 
   beforeEach(async () => {
-    postSpy = jest.spyOn($, 'post');
+    const fetcher = require('../../fetcher');
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
     postSpy.mockImplementation((_url, _params, callback) => callback());
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', iframe: 'True' }, store);

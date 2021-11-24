@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import { DetailsSequentialDiffs } from './DetailsSequentialDiffs';
 import { buildStat, COUNT_STATS, POSITION_STATS } from './detailUtils';
 

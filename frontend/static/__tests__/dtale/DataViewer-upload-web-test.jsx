@@ -3,13 +3,11 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, DataViewer, Upload;
@@ -34,22 +32,18 @@ describe('DataViewer tests', () => {
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn() } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/web-upload')) {
-          return { success: true, data_id: '2' };
-        }
-        if (_.startsWith(url, '/dtale/datasets')) {
-          return {
-            success: true,
-            data_id: new URLSearchParams(url.split('?')[1]).get('dataset'),
-          };
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/web-upload')) {
+        return { success: true, data_id: '2' };
+      }
+      if (_.startsWith(url, '/dtale/datasets')) {
+        return {
+          success: true,
+          data_id: new URLSearchParams(url.split('?')[1]).get('dataset'),
+        };
+      }
+      return undefined;
+    });
     mockChartJS();
 
     DataViewer = require('../../dtale/DataViewer').DataViewer;

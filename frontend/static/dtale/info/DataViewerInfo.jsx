@@ -17,6 +17,8 @@ class ReactDataViewerInfo extends React.Component {
   constructor(props) {
     super(props);
     this.state = { menuOpen: null };
+    this.sortHandler = React.createRef();
+    this.hideHandler = React.createRef();
     this.renderSort = this.renderSort.bind(this);
     this.renderHidden = this.renderHidden.bind(this);
   }
@@ -53,10 +55,10 @@ class ReactDataViewerInfo extends React.Component {
     if (_.size(sortText) > 60) {
       sortText = `${_.size(sortInfo)} ${t('Sorts')}`;
     }
-    const clickHandler = buildMenuHandler('sort', (state) => this.setState(state));
+    const clickHandler = buildMenuHandler('sort', (state) => this.setState(state), this.sortHandler);
     return [
       label,
-      <div key={1} className="pl-3 d-inline-block sort-menu-toggle" onClick={clickHandler}>
+      <div key={1} ref={this.sortHandler} className="pl-3 d-inline-block sort-menu-toggle" onClick={clickHandler}>
         <span className="pointer">{sortText}</span>
         <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== 'sort'}>
           <ul>
@@ -111,14 +113,14 @@ class ReactDataViewerInfo extends React.Component {
         clearAll,
       ];
     }
-    const clickHandler = buildMenuHandler('hidden', (state) => this.setState(state));
+    const clickHandler = buildMenuHandler('hidden', (state) => this.setState(state), this.hideHandler);
     let hiddenText = _.join(hidden, ', ');
     if (_.size(hiddenText) > 30) {
       hiddenText = `${_.size(hidden)} ${t('Columns')}`;
     }
     return [
       label,
-      <div key={1} className="pl-3 d-inline-block hidden-menu-toggle" onClick={clickHandler}>
+      <div key={1} ref={this.hideHandler} className="pl-3 d-inline-block hidden-menu-toggle" onClick={clickHandler}>
         <span className="pointer">{hiddenText}</span>
         <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== 'hidden'}>
           <ul>

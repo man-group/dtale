@@ -1,8 +1,6 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import * as fetcher from '../../../fetcher';
 import * as uploadUtils from '../../../popups/upload/uploadUtils';
 import { buildInnerHTML } from '../../test-utils';

@@ -2,7 +2,7 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 
 import { buildURL } from '../../actions/url-utils';
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 
 function buildState() {
   return {
@@ -81,7 +81,6 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
   scatterCfg.options.plugins.tooltip.callbacks.title = (tooltipItems) =>
     _.map(additionalProps, (p) => `${p}: ${tooltipItems[0].raw[p]}`);
   delete scatterCfg.options.scales.x.ticks;
-  delete scatterCfg.options.scales.y?.ticks;
   scatterCfg.options.onClick = onClick;
   scatterCfg.options.maintainAspectRatio = false;
   // eslint-disable-next-line new-cap

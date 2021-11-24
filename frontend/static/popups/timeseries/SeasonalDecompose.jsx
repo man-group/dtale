@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import { buildCode as buildBaseCode, validate as validateBase } from './BaseInputs';
 
 export function validate(cfg) {
@@ -37,12 +37,10 @@ export const CHART_COLS = ['trend', 'seasonal', 'resid'];
 
 export function chartConfig(config, chartConfig) {
   const { col } = config;
-  chartUtils.COLOR_PROPS.forEach((prop) => {
-    chartConfig.data.datasets[0][prop] = chartUtils.TS_COLORS[0];
-    chartConfig.data.datasets[1][prop] = chartUtils.TS_COLORS[1];
-    chartConfig.data.datasets[2][prop] = chartUtils.TS_COLORS[2];
-    chartConfig.data.datasets[3][prop] = chartUtils.TS_COLORS[3];
-  });
+  chartUtils.updateColorProps(chartConfig.data.datasets[0], chartUtils.TS_COLORS[0]);
+  chartUtils.updateColorProps(chartConfig.data.datasets[1], chartUtils.TS_COLORS[1]);
+  chartUtils.updateColorProps(chartConfig.data.datasets[2], chartUtils.TS_COLORS[2]);
+  chartUtils.updateColorProps(chartConfig.data.datasets[3], chartUtils.TS_COLORS[3]);
   chartConfig.data.datasets[1].yAxisID = `y-${col}`;
   chartConfig.data.datasets[3].yAxisID = 'y-seasonal';
   chartConfig.options.scales[`y-${col}`].position = 'left';

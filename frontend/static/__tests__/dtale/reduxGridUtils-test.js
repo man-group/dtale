@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import * as reduxUtils from '../../dtale/reduxGridUtils';
 
 describe('reduxGridUtils', () => {

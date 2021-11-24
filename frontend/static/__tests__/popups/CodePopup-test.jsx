@@ -2,11 +2,9 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import * as CopyToClipboard from '../../CopyToClipboard';
 import menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
-import { buildInnerHTML, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML } from '../test-utils';
 
 describe('CodePopup tests', () => {
   beforeAll(() => {
@@ -17,7 +15,7 @@ describe('CodePopup tests', () => {
   });
 
   it('CodePopup render & copy test', () => {
-    const CodePopup = withGlobalJquery(() => require('../../popups/CodePopup')).CodePopup;
+    const { CodePopup } = require('../../popups/CodePopup');
     buildInnerHTML();
     const result = mount(<CodePopup code="test code" />, {
       attachTo: document.getElementById('content'),
@@ -28,7 +26,7 @@ describe('CodePopup tests', () => {
   });
 
   it("returns null when it can't copy", () => {
-    const CodePopup = withGlobalJquery(() => require('../../popups/CodePopup')).CodePopup;
+    const { CodePopup } = require('../../popups/CodePopup');
     buildInnerHTML();
     const canCopySpy = jest.spyOn(CopyToClipboard, 'canCopy');
     canCopySpy.mockImplementation(() => false);
@@ -47,7 +45,7 @@ describe('CodePopup tests', () => {
     });
 
     it('onClick implemntation', () => {
-      const { renderCodePopupAnchor } = withGlobalJquery(() => require('../../popups/CodePopup'));
+      const { renderCodePopupAnchor } = require('../../popups/CodePopup');
       const code = 'test code';
       const title = 'test';
       const popupAnchor = renderCodePopupAnchor(code, title);

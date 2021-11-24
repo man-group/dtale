@@ -1,9 +1,7 @@
 import _ from 'lodash';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from './MockPopsicle';
-import { buildInnerHTML, withGlobalJquery } from './test-utils';
+import { buildInnerHTML } from './test-utils';
 import { createMockComponent } from './mocks/createMockComponent';
 
 jest.mock('../i18n', () => ({}));
@@ -13,14 +11,8 @@ describe('main tests', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('./redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle();
 
-    jest.mock('popsicle', () => mockBuildLibs);
     jest.mock('@blueprintjs/datetime', () => ({ DateInput: createMockComponent('DateInput') }));
   });
 
@@ -44,6 +36,8 @@ describe('main tests', () => {
     window.self = self;
     window.opener = opener;
   });
+
+  afterEach(jest.restoreAllMocks);
 
   const testMain = (mainName, search = '', fname = 'main') => {
     window.location = { pathname: `/dtale/${mainName}/1`, search };

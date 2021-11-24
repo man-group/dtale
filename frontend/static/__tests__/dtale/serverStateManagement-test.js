@@ -1,5 +1,3 @@
-import { expect, it } from '@jest/globals';
-
 import * as fetcher from '../../fetcher';
 
 import serverStateManagement from '../../dtale/serverStateManagement';

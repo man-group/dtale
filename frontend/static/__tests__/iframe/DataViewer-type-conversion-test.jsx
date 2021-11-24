@@ -1,14 +1,11 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import React from 'react';
 import { Provider } from 'react-redux';
-
-import { expect, it } from '@jest/globals';
 
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tick, tickUpdate } from '../test-utils';
 import { clickColMenuButton, openColMenu } from './iframe-utils';
 
 describe('DataViewer iframe tests', () => {
@@ -20,19 +17,14 @@ describe('DataViewer iframe tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
   });
 
   afterAll(dimensions.afterAll);
 
   it('DataViewer: renaming a column', async () => {
-    const postSpy = jest.spyOn($, 'post');
+    const fetcher = require('../../fetcher');
+    const postSpy = jest.spyOn(fetcher, 'fetchPost');
     const { DataViewer } = require('../../dtale/DataViewer');
     const CreateColumn = require('../../popups/create/CreateColumn').ReactCreateColumn;
     const CreateTypeConversion = require('../../popups/create/CreateTypeConversion').default;

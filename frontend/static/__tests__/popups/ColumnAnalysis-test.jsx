@@ -3,11 +3,9 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../RemovableError';
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 const ANALYSIS_DATA = {
   desc: { count: 20 },
@@ -64,76 +62,73 @@ describe('ColumnAnalysis tests', () => {
 
   beforeAll(() => {
     mockChartJS();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/column-analysis')) {
-          const params = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
-          const ordinal = ANALYSIS_DATA.data;
-          const count = ANALYSIS_DATA.data;
-          if (params.col === 'null') {
-            return null;
-          }
-          if (params.col === 'error') {
-            return { error: 'column analysis error' };
-          }
-          if (params.col === 'intCol') {
-            if (params.type === 'value_counts') {
-              return _.assignIn({}, ANALYSIS_DATA, {
-                chart_type: 'value_counts',
-                ordinal,
-              });
-            }
-            return _.assignIn({}, ANALYSIS_DATA, {
-              dtype: 'int64',
-              chart_type: 'histogram',
-            });
-          }
-          if (params.col === 'dateCol') {
-            return _.assignIn({}, ANALYSIS_DATA, {
-              dtype: 'datetime',
-              chart_type: 'value_counts',
-              ordinal,
-            });
-          }
-          if (params.col === 'strCol') {
-            return _.assignIn({}, ANALYSIS_DATA, {
-              dtype: 'string',
-              chart_type: 'value_counts',
-              ordinal,
-            });
-          }
-          if (_.includes(['bar', 'baz'], params.col)) {
-            if (params.type === 'categories') {
-              return _.assignIn({}, ANALYSIS_DATA, {
-                chart_type: 'categories',
-                count,
-              });
-            }
-            if (params.type === 'geolocation') {
-              return {
-                ...ANALYSIS_DATA,
-                chart_type: 'geolocation',
-                lat: [1, 2, 3],
-                lon: [4, 5, 6],
-              };
-            }
-            if (params.type === 'qq') {
-              return {
-                ...ANALYSIS_DATA,
-                chart_type: 'qq',
-                x: [1],
-                y: [1],
-                x2: [1],
-                y2: [1],
-              };
-            }
-            return ANALYSIS_DATA;
-          }
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/column-analysis')) {
+        const params = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
+        const ordinal = ANALYSIS_DATA.data;
+        const count = ANALYSIS_DATA.data;
+        if (params.col === 'null') {
+          return null;
         }
-        return {};
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+        if (params.col === 'error') {
+          return { error: 'column analysis error' };
+        }
+        if (params.col === 'intCol') {
+          if (params.type === 'value_counts') {
+            return _.assignIn({}, ANALYSIS_DATA, {
+              chart_type: 'value_counts',
+              ordinal,
+            });
+          }
+          return _.assignIn({}, ANALYSIS_DATA, {
+            dtype: 'int64',
+            chart_type: 'histogram',
+          });
+        }
+        if (params.col === 'dateCol') {
+          return _.assignIn({}, ANALYSIS_DATA, {
+            dtype: 'datetime',
+            chart_type: 'value_counts',
+            ordinal,
+          });
+        }
+        if (params.col === 'strCol') {
+          return _.assignIn({}, ANALYSIS_DATA, {
+            dtype: 'string',
+            chart_type: 'value_counts',
+            ordinal,
+          });
+        }
+        if (_.includes(['bar', 'baz'], params.col)) {
+          if (params.type === 'categories') {
+            return _.assignIn({}, ANALYSIS_DATA, {
+              chart_type: 'categories',
+              count,
+            });
+          }
+          if (params.type === 'geolocation') {
+            return {
+              ...ANALYSIS_DATA,
+              chart_type: 'geolocation',
+              lat: [1, 2, 3],
+              lon: [4, 5, 6],
+            };
+          }
+          if (params.type === 'qq') {
+            return {
+              ...ANALYSIS_DATA,
+              chart_type: 'qq',
+              x: [1],
+              y: [1],
+              x2: [1],
+              y2: [1],
+            };
+          }
+          return ANALYSIS_DATA;
+        }
+      }
+      return {};
+    });
   });
 
   beforeEach(async () => {

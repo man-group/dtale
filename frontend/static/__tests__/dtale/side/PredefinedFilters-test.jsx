@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import serverState from '../../../dtale/serverStateManagement';
 import FilterInput from '../../../dtale/side/predefined_filters/FilterInput';
 import { ReactPanel as PredefinedFilters } from '../../../dtale/side/predefined_filters/Panel';

@@ -4,21 +4,11 @@ import { Provider } from 'react-redux';
 import Select from 'react-select';
 import ReactSlider from 'react-slider';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
 
-import {
-  buildInnerHTML,
-  clickMainMenuButton,
-  mockChartJS,
-  mockT as t,
-  tick,
-  tickUpdate,
-  withGlobalJquery,
-} from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, mockT as t, tick, tickUpdate } from '../../test-utils';
 
 import { clickBuilder } from './create-test-utils';
 
@@ -38,16 +28,9 @@ describe('DataViewer tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle();
 
     mockChartJS();
-
-    jest.mock('popsicle', () => mockBuildLibs);
   });
 
   beforeEach(async () => {

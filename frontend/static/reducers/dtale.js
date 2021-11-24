@@ -71,6 +71,17 @@ function selectedCol(state = null, action = {}) {
   }
 }
 
+function selectedColRef(state = null, action = {}) {
+  switch (action.type) {
+    case 'toggle-column-menu':
+      return action.headerRef;
+    case 'hide-column-menu':
+      return null;
+    default:
+      return state;
+  }
+}
+
 function xarray(state = false, action = {}) {
   switch (action.type) {
     case 'init-params':
@@ -226,6 +237,7 @@ const dtaleStore = combineReducers({
   username,
   columnMenuOpen,
   selectedCol,
+  selectedColRef,
   xarray,
   xarrayDim,
   filteredRanges,

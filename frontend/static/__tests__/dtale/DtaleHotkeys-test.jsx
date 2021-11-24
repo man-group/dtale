@@ -1,16 +1,14 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import _ from 'lodash';
 import React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { DtaleHotkeys, ReactDtaleHotkeys } from '../../dtale/DtaleHotkeys';
-import menuUtils from '../../menuUtils';
+import * as menuUtils from '../../menuUtils';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML } from '../test-utils';
+import * as fetcher from '../../fetcher';
 
 describe('DtaleHotkeys tests', () => {
   const { open, innerWidth, innerHeight } = window;
@@ -28,7 +26,7 @@ describe('DtaleHotkeys tests', () => {
 
   beforeEach(() => {
     buildClickHandlerSpy = jest.spyOn(menuUtils, 'buildClickHandler');
-    postSpy = jest.spyOn($, 'post');
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
     postSpy.mockImplementation((_url, _params, callback) => callback(text));
     buildInnerHTML({ settings: '' });
     result = mount(<ReactDtaleHotkeys {...{ propagateState, dataId: '1', openChart }} />, {
@@ -63,7 +61,7 @@ describe('DtaleHotkeys tests', () => {
     expect(propagateState.mock.calls).toHaveLength(1);
     expect(propagateState.mock.calls[0][0]).toEqual({ menuOpen: true });
     expect(buildClickHandlerSpy.mock.calls).toHaveLength(1);
-    buildClickHandlerSpy.mock.calls[0][1]();
+    buildClickHandlerSpy.mock.calls[0][0]();
     expect(propagateState.mock.calls).toHaveLength(2);
     expect(propagateState.mock.calls[1][0]).toEqual({ menuOpen: false });
   });

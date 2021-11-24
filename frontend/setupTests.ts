@@ -1,12 +1,9 @@
 import 'regenerator-runtime/runtime';
 
+import ReactSeventeenAdapter from '@wojtekmaj/enzyme-adapter-react-17';
 import { configure } from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 
-configure({ adapter: new Adapter() });
-
-// required for react-data-grid & react-bootstrap-modal in react 16
-require('./static/adapter-for-react-16');
+configure({ adapter: new ReactSeventeenAdapter() });
 
 // this file is compiled in an odd way so we need to mock it (react-syntax-highlighter)
 jest.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({ docco: {} }));
@@ -16,14 +13,14 @@ jest.mock('plotly.js-geo-dist-min', () => ({ newPlot: () => undefined }));
 
 jest.mock('react-i18next', () => ({
   // this mock makes sure any components using the translate HoC receive the t function as a prop
-  withTranslation: () => (Component) => {
-    const _ = require('lodash');
-    const convertKey = (key) => {
-      const keySegs = _.split(key, ':');
+  withTranslation: () => (Component: any) => {
+    const convertKey = (key: string): string => {
+      const keySegs = key.split(':');
       if (keySegs.length > 2) {
-        return _.join(_.tail(keySegs), ':');
-      } else if (keySegs.length == 2) {
-        return _.last(keySegs);
+        keySegs.shift();
+        return keySegs.join(':');
+      } else if (keySegs.length === 2) {
+        return keySegs.pop() ?? '';
       }
       return key;
     };
@@ -43,11 +40,18 @@ jest.mock('react-i18next', () => ({
 jest.mock('chartjs-plugin-zoom', () => ({}));
 jest.mock('@sgratzl/chartjs-chart-boxplot', () => ({ BoxController: {} }));
 jest.mock('chart.js', () => ({
+  /** Mock chart component */
   Chart: class MockChart {
-    destroy() {}
-    static register() {}
+    /** register placeholder */
+    public static register(): void {
+      // do nothing
+    }
+    /** destroy placeholder */
+    public destroy(): void {
+      // do nothing
+    }
   },
 }));
 
 // this is required for webpack dynamic public path setup
-global.__webpack_public_path__ = '';
+(global as any).__webpack_public_path__ = '';

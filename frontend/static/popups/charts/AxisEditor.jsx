@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import menuUtils from '../../menuUtils';
+import { openMenu } from '../../menuUtils';
 
 function buildState({ y, data }) {
   const state = {};
@@ -20,6 +20,7 @@ class AxisEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = _.assignIn({ open: false }, buildState(props));
+    this.menuRef = React.createRef();
     this.closeMenu = this.closeMenu.bind(this);
   }
 
@@ -95,13 +96,13 @@ class AxisEditor extends React.Component {
         </li>
       );
     });
-    const menuHandler = menuUtils.openMenu('axisEditor', () => this.setState({ open: true }), this.closeMenu);
+    const menuHandler = openMenu(() => this.setState({ open: true }), this.closeMenu, this.menuRef);
     return (
       <div className="toolbar__axis">
         <div className="input-group">
           <span className="input-group-addon">{t('Axis Ranges')}</span>
           <div className="input-group column-toggle">
-            <span className="form-control custom-select axis-select" onClick={menuHandler}>
+            <span ref={this.menuRef} className="form-control custom-select axis-select" onClick={menuHandler}>
               {_.truncate(
                 _.join(
                   _.map(y, ({ value }) => `${value} (${min[value]},${max[value]})`),

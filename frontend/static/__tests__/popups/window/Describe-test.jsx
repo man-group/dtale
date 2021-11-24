@@ -2,14 +2,12 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../../RemovableError';
 import * as urlUtils from '../../../actions/url-utils';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
 
 const chartData = {
   visible: true,
@@ -27,19 +25,15 @@ describe('Describe tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (url === '/dtale/dtypes/1') {
-          return { error: 'dtypes error' };
-        }
-        if (url.startsWith('/dtale/describe/2?col=col1')) {
-          return { error: 'describe error' };
-        }
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (url === '/dtale/dtypes/1') {
+        return { error: 'dtypes error' };
+      }
+      if (url.startsWith('/dtale/describe/2?col=col1')) {
+        return { error: 'describe error' };
+      }
+      return undefined;
+    });
   });
 
   const setup = async (dataId, settings = '') => {

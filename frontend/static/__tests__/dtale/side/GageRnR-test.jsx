@@ -1,8 +1,6 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactGageRnR } from '../../../dtale/side/GageRnR';
 import * as fetcher from '../../../fetcher';
 import ColumnSelect from '../../../popups/create/ColumnSelect';

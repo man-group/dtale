@@ -7,7 +7,7 @@ import { BouncerWrapper } from '../BouncerWrapper';
 import { RemovableError } from '../RemovableError';
 import * as actions from '../actions/dtale';
 import { buildURL } from '../actions/url-utils';
-import chartUtils from '../chartUtils';
+import * as chartUtils from '../chartUtils';
 import { fetchJson } from '../fetcher';
 import { saveFilter } from './filter/filterUtils';
 import { toggleBouncer } from '../toggleUtils';

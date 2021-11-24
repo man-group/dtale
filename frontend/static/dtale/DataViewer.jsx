@@ -16,7 +16,7 @@ import { DtaleHotkeys } from './DtaleHotkeys';
 import { GridCell } from './GridCell';
 import { GridEventHandler } from './GridEventHandler';
 import { ColumnMenu } from './column/ColumnMenu';
-import bu from './backgroundUtils';
+import * as bu from './backgroundUtils';
 import * as gu from './gridUtils';
 import { DataViewerInfo } from './info/DataViewerInfo';
 import { DataViewerMenu } from './menu/DataViewerMenu';

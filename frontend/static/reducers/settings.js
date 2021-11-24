@@ -1,5 +1,4 @@
 import { getHiddenValue, toBool, toFloat } from './utils';
-import $ from 'jquery';
 import _ from 'lodash';
 
 export function hideShutdown(state = false, action = {}) {
@@ -59,10 +58,12 @@ export function theme(state = 'light', action = {}) {
   switch (action.type) {
     case 'init-params':
       return getHiddenValue('theme');
-    case 'set-theme':
-      $('body').removeClass(`${state}-mode`);
-      $('body').addClass(`${action.theme}-mode`);
+    case 'set-theme': {
+      const body = document.getElementsByTagName('body')[0];
+      body.classList.remove(`${state}-mode`);
+      body.classList.add(`${action.theme}-mode`);
       return action.theme;
+    }
     default:
       return state;
   }

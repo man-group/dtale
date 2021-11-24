@@ -3,10 +3,8 @@ import _ from 'lodash';
 import React from 'react';
 import AsyncSelect from 'react-select/async';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('ColumnFilter string tests', () => {
   let ColumnFilter, StringFilter;
@@ -14,27 +12,25 @@ describe('ColumnFilter string tests', () => {
   const ASYNC_OPTIONS = [{ value: 'f' }, { value: 'g' }, { value: 'h' }];
 
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher, DATA, DTYPES } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col3')) {
-          return { success: true, hasMissing: true, uniques: INITIAL_UNIQUES };
-        }
-        if (_.startsWith(url, '/dtale/data')) {
-          const col3 = _.find(DTYPES, { name: 'col3' });
-          const col3Dtype = { ...col3, unique_ct: 1000 };
-          return {
-            ...DATA,
-            columns: _.map(DATA.columns, (c) => (c.name === 'col3' ? col3Dtype : c)),
-          };
-        }
-        if (_.startsWith(url, '/dtale/async-column-filter-data/1?col=col3')) {
-          return ASYNC_OPTIONS;
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const { DATA, DTYPES } = require('../redux-test-utils').default;
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col3')) {
+        return { success: true, hasMissing: true, uniques: INITIAL_UNIQUES };
+      }
+      if (_.startsWith(url, '/dtale/data')) {
+        const col3 = _.find(DTYPES, { name: 'col3' });
+        const col3Dtype = { ...col3, unique_ct: 1000 };
+        return {
+          ...DATA,
+          columns: _.map(DATA.columns, (c) => (c.name === 'col3' ? col3Dtype : c)),
+        };
+      }
+      if (_.startsWith(url, '/dtale/async-column-filter-data/1?col=col3')) {
+        return ASYNC_OPTIONS;
+      }
+      return undefined;
+    });
+
     ColumnFilter = require('../../filters/ColumnFilter').default;
     StringFilter = require('../../filters/StringFilter').default;
   });

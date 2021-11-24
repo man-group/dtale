@@ -3,33 +3,28 @@ import _ from 'lodash';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('ColumnFilter numeric tests', () => {
   let ColumnFilter, NumericFilter;
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col1')) {
-          return {
-            success: true,
-            hasMissing: true,
-            uniques: [1, 2, 3],
-            min: 1,
-            max: 3,
-          };
-        }
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col2')) {
-          return { success: true, hasMissing: true, min: 1.0, max: 3.0 };
-        }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col1')) {
+        return {
+          success: true,
+          hasMissing: true,
+          uniques: [1, 2, 3],
+          min: 1,
+          max: 3,
+        };
+      }
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col2')) {
+        return { success: true, hasMissing: true, min: 1.0, max: 3.0 };
+      }
+      return undefined;
+    });
+
     ColumnFilter = require('../../filters/ColumnFilter').default;
     NumericFilter = require('../../filters/NumericFilter').NumericFilter;
   });

@@ -7,10 +7,9 @@ import { withTranslation } from 'react-i18next';
 import Select, { createFilter } from 'react-select';
 
 import { Bouncer } from '../../Bouncer';
-import ConditionalRender from '../../ConditionalRender';
 import { JSAnchor } from '../../JSAnchor';
 import { RemovableError } from '../../RemovableError';
-import chartUtils from '../../chartUtils';
+import * as chartUtils from '../../chartUtils';
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';
 import { toggleBouncer } from '../../toggleUtils';
@@ -298,15 +297,18 @@ class ChartsBody extends React.Component {
     const { t } = this.props;
     const { data, error, zoomed } = this.state;
     return (
-      <ConditionalRender display={!_.isEmpty(data) && _.isEmpty(error)}>
-        <ChartLabel {..._.assign({}, this.props, this.state)} />
-        <ConditionalRender display={!_.isEmpty(zoomed)}>
-          <div className="coverage-desc">
-            <span className="pr-3" style={{ marginLeft: '3em' }}>{`${t('Zoomed')}: ${zoomed}`}</span>
-            <JSAnchor onClick={this.resetZoom}>{t('X')}</JSAnchor>
-          </div>
-        </ConditionalRender>
-      </ConditionalRender>
+      !_.isEmpty(data) &&
+      _.isEmpty(error) && (
+        <React.Fragment>
+          <ChartLabel {..._.assign({}, this.props, this.state)} />
+          {!_.isEmpty(zoomed) && (
+            <div className="coverage-desc">
+              <span className="pr-3" style={{ marginLeft: '3em' }}>{`${t('Zoomed')}: ${zoomed}`}</span>
+              <JSAnchor onClick={this.resetZoom}>{t('X')}</JSAnchor>
+            </div>
+          )}
+        </React.Fragment>
+      )
     );
   }
 
@@ -352,7 +354,7 @@ class ChartsBody extends React.Component {
               />
             </div>
           </div>
-          <ConditionalRender display={_.size(this.props.group || []) > 0}>
+          {_.size(this.props.group || []) > 0 && (
             <div className="col-auto">
               <div className="input-group mr-3">
                 <span className="input-group-addon">{t('Chart per Group')}</span>
@@ -368,8 +370,8 @@ class ChartsBody extends React.Component {
                 />
               </div>
             </div>
-          </ConditionalRender>
-          <ConditionalRender display={showBarSort}>
+          )}
+          {showBarSort && (
             <div className="col-auto">
               <div className="input-group mr-3">
                 <span className="input-group-addon">{t('Sort')}</span>
@@ -385,7 +387,7 @@ class ChartsBody extends React.Component {
                 />
               </div>
             </div>
-          </ConditionalRender>
+          )}
           <AxisEditor {..._.assignIn({}, this.state, this.props)} data={this.state.data} updateAxis={this.updateAxis} />
         </div>,
         <div key={1} className="row pb-3">

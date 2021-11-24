@@ -5,13 +5,11 @@ import Modal from 'react-bootstrap/Modal';
 import { Provider } from 'react-redux';
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   let result, DataViewer, Formatting, NumericFormatting;
@@ -24,23 +22,20 @@ describe('DataViewer tests', () => {
     dimensions.beforeAll();
     mockChartJS();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher, DATA, DTYPES } = require('../../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/data')) {
-          const newData = _.clone(DATA);
-          _.forEach(newData.results, (r) => (r.col5 = r.col1));
-          newData.columns.push(_.assignIn({}, DTYPES.dtypes[0], { name: 'col5' }));
-          return newData;
-        } else if (_.startsWith(url, '/dtale/dtypes')) {
-          const newDtypes = _.clone(DTYPES);
-          newDtypes.dtypes.push(_.assignIn({}, DTYPES.dtypes[0], { name: 'col5' }));
-          return newDtypes;
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const { DATA, DTYPES } = require('../../redux-test-utils').default;
+      if (_.startsWith(url, '/dtale/data')) {
+        const newData = _.clone(DATA);
+        _.forEach(newData.results, (r) => (r.col5 = r.col1));
+        newData.columns.push(_.assignIn({}, DTYPES.dtypes[0], { name: 'col5' }));
+        return newData;
+      } else if (_.startsWith(url, '/dtale/dtypes')) {
+        const newDtypes = _.clone(DTYPES);
+        newDtypes.dtypes.push(_.assignIn({}, DTYPES.dtypes[0], { name: 'col5' }));
+        return newDtypes;
+      }
+      return undefined;
+    });
 
     DataViewer = require('../../../dtale/DataViewer').DataViewer;
     Formatting = require('../../../popups/formats/Formatting').ReactFormatting;

@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import ButtonToggle from '../../../../ButtonToggle';
 import FilterInput from '../../../../dtale/side/predefined_filters/FilterInput';
 import * as fetcher from '../../../../fetcher';

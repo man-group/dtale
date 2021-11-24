@@ -3,12 +3,10 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick } from '../test-utils';
 import { createMockComponent } from '../mocks/createMockComponent';
 
 describe('DataViewer within iframe tests', () => {
@@ -31,13 +29,8 @@ describe('DataViewer within iframe tests', () => {
     window.top = { location: { href: 'http://test.com' } };
     window.self = { location: { href: 'http://test/dtale/iframe' } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
+
     jest.mock('@blueprintjs/datetime', () => ({ DateInput: createMockComponent('DateInput') }));
   });
 

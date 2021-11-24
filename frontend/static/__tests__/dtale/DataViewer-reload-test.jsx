@@ -3,13 +3,11 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import { RemovableError } from '../../RemovableError';
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, DataViewer, ReactDataViewer;
@@ -22,16 +20,12 @@ describe('DataViewer tests', () => {
     dimensions.beforeAll();
     mockChartJS();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        if (url === '/dtale/data/1?ids=%5B%22100-101%22%5D') {
-          return { error: 'No data found' };
-        }
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (url === '/dtale/data/1?ids=%5B%22100-101%22%5D') {
+        return { error: 'No data found' };
+      }
+      return undefined;
+    });
 
     const dv = require('../../dtale/DataViewer');
     DataViewer = dv.DataViewer;

@@ -2,8 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import { BaseInputs } from '../../../popups/timeseries/BaseInputs';
 
 describe('BaseInputs', () => {

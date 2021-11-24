@@ -1,8 +1,6 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import GeoFilters from '../../../../popups/analysis/filters/GeoFilters';
 
 describe('GeoFilters tests', () => {

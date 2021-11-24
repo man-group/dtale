@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactGridEventHandler } from '../../dtale/GridEventHandler';
 
 jest.useFakeTimers();

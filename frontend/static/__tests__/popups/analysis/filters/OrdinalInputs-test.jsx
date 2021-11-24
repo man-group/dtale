@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import FilterSelect from '../../../../popups/analysis/filters/FilterSelect';
 import OrdinalInputs from '../../../../popups/analysis/filters/OrdinalInputs';
 

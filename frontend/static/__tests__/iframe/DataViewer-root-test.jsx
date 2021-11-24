@@ -4,20 +4,11 @@ import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import {
-  buildInnerHTML,
-  clickMainMenuButton,
-  findMainMenuButton,
-  mockChartJS,
-  tickUpdate,
-  withGlobalJquery,
-} from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, mockChartJS, tickUpdate } from '../test-utils';
 
 import { clickColMenuButton, openColMenu } from './iframe-utils';
 import { createMockComponent } from '../mocks/createMockComponent';
@@ -46,13 +37,8 @@ describe('DataViewer iframe tests', () => {
     window.top = { location: { href: 'http://test.com' } };
     window.self = { location: { href: 'http://test/dtale/iframe' } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle();
+
     jest.mock('@blueprintjs/datetime', () => ({ DateInput: createMockComponent('DateInput') }));
     DataViewer = require('../../dtale/DataViewer').DataViewer;
   });

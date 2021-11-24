@@ -1,17 +1,10 @@
 import _ from 'lodash';
 
-function withGlobalJquery(callback) {
-  global.jQuery = jest.requireActual('jquery');
-  const results = callback();
-  delete global.jQuery;
-  return results;
-}
-
-function replaceNBSP(text) {
+export function replaceNBSP(text) {
   return text.replace(/\s/g, ' ');
 }
 
-function logException(e) {
+export function logException(e) {
   console.error(`${e.name}: ${e.message} (${e.fileName}:${e.lineNumber})`);
   console.error(e.stack);
 }
@@ -44,7 +37,7 @@ const BASE_HTML = `
 `;
 
 // eslint-disable-next-line complexity
-function buildInnerHTML(props = {}, store = null) {
+export function buildInnerHTML(props = {}, store = null) {
   const actions = require('../actions/dtale');
   const pjson = require('../../package.json');
   const body = document.getElementsByTagName('body')[0];
@@ -79,7 +72,7 @@ function buildInnerHTML(props = {}, store = null) {
   }
 }
 
-function findMainMenuButton(result, name, btnTag = 'button') {
+export function findMainMenuButton(result, name, btnTag = 'button') {
   const DataViewerMenu = require('../dtale/menu/DataViewerMenu').DataViewerMenu;
   return result
     .find(DataViewerMenu)
@@ -88,22 +81,22 @@ function findMainMenuButton(result, name, btnTag = 'button') {
     .first();
 }
 
-function clickMainMenuButton(result, name, btnTag = 'button') {
+export function clickMainMenuButton(result, name, btnTag = 'button') {
   return findMainMenuButton(result, name, btnTag).simulate('click');
 }
 
-function tick(timeout = 0) {
+export function tick(timeout = 0) {
   return new Promise((resolve) => {
     setTimeout(resolve, timeout);
   });
 }
 
-async function tickUpdate(result, timeout = 0) {
+export async function tickUpdate(result, timeout = 0) {
   await tick(timeout);
   result.update();
 }
 
-function mockChartJS() {
+export function mockChartJS() {
   jest.mock('chart.js', () => {
     class MockChart {
       constructor(ctx, cfg) {
@@ -132,8 +125,8 @@ function mockChartJS() {
   });
 }
 
-function mockD3Cloud() {
-  const mocker = withGlobalJquery(() => () => {
+export function mockD3Cloud() {
+  const mocker = () => {
     const cloudCfg = {};
     const propUpdate = (prop) => (val) => {
       cloudCfg[prop] = val;
@@ -153,18 +146,18 @@ function mockD3Cloud() {
       on: () => ({ start: _.noop }),
     });
     return cloudCfg;
-  });
+  };
   jest.mock('d3-cloud', () => mocker);
 }
 
-function mockWordcloud() {
+export function mockWordcloud() {
   jest.mock('react-wordcloud', () => {
-    const MockComponent = require('./MockComponent').MockComponent;
-    return MockComponent;
+    const { createMockComponent } = require('./mocks/createMockComponent');
+    return createMockComponent();
   });
 }
 
-const mockT = (key) => {
+export const mockT = (key) => {
   const keySegs = key.split(':');
   if (keySegs.length > 2) {
     return _.join(_.tail(keySegs), ':');
@@ -172,19 +165,4 @@ const mockT = (key) => {
     return _.last(keySegs);
   }
   return key;
-};
-
-export {
-  withGlobalJquery,
-  replaceNBSP,
-  logException,
-  buildInnerHTML,
-  findMainMenuButton,
-  clickMainMenuButton,
-  tick,
-  tickUpdate,
-  mockChartJS,
-  mockD3Cloud,
-  mockWordcloud,
-  mockT,
 };

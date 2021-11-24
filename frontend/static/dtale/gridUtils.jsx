@@ -215,7 +215,7 @@ const loadBackgroundMode = (props) => {
   if (_.size(_.get(props, 'settings.rangeHighlight'))) {
     return 'range';
   }
-  return null;
+  return undefined;
 };
 
 export const buildState = (props) => ({

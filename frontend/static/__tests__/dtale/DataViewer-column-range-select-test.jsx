@@ -1,15 +1,12 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -21,16 +18,9 @@ describe('DataViewer tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
+    mockPopsicle();
     mockChartJS();
     Object.defineProperty(global.document, 'execCommand', { value: _.noop });
-
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
   });
 
   afterAll(dimensions.afterAll);
@@ -38,7 +28,8 @@ describe('DataViewer tests', () => {
   it('DataViewer: column range selection', async () => {
     const CopyRangeToClipboard = require('../../popups/CopyRangeToClipboard').ReactCopyRangeToClipboard;
     const text = 'COPIED_TEXT';
-    const postSpy = jest.spyOn($, 'post');
+    const fetcher = require('../../fetcher');
+    const postSpy = jest.spyOn(fetcher, 'fetchPost');
     postSpy.mockImplementation((_url, _params, callback) => callback(text));
     const { DataViewer, ReactDataViewer } = require('../../dtale/DataViewer');
     const { ReactHeader } = require('../../dtale/Header');

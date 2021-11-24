@@ -2,8 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import * as fetcher from '../../fetcher';
 import { NE } from '../../filters/NumericFilter';
 import StringFilter from '../../filters/StringFilter';

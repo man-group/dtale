@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import bu from '../backgroundUtils';
+import * as bu from '../backgroundUtils';
 
 function calcInfo(msg, calc, asText = false) {
   if (asText) {

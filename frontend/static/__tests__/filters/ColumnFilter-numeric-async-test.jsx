@@ -3,43 +3,39 @@ import _ from 'lodash';
 import React from 'react';
 import AsyncSelect from 'react-select/async';
 
-import { expect, it } from '@jest/globals';
-
 import mockPopsicle from '../MockPopsicle';
-import { buildInnerHTML, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('ColumnFilter numeric tests', () => {
   let ColumnFilter, NumericFilter;
   const INITIAL_UNIQUES = [1, 2, 3, 4, 5];
   const ASYNC_OPTIONS = [{ value: 6 }, { value: 7 }, { value: 8 }];
   beforeAll(() => {
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher, DATA, DTYPES } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/column-filter-data/1?col=col1')) {
-          return {
-            success: true,
-            hasMissing: true,
-            uniques: INITIAL_UNIQUES,
-            min: 1,
-            max: 10,
-          };
-        }
-        if (_.startsWith(url, '/dtale/data')) {
-          const col1 = _.find(DTYPES, { name: 'col1' });
-          const col1Dtype = { ...col1, unique_ct: 1000 };
-          return {
-            ...DATA,
-            columns: _.map(DATA.columns, (c) => (c.name === 'col1' ? col1Dtype : c)),
-          };
-        }
-        if (_.startsWith(url, '/dtale/async-column-filter-data/1?col=col1')) {
-          return ASYNC_OPTIONS;
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      const { DATA, DTYPES } = require('../redux-test-utils').default;
+      if (_.startsWith(url, '/dtale/column-filter-data/1?col=col1')) {
+        return {
+          success: true,
+          hasMissing: true,
+          uniques: INITIAL_UNIQUES,
+          min: 1,
+          max: 10,
+        };
+      }
+      if (_.startsWith(url, '/dtale/data')) {
+        const col1 = _.find(DTYPES, { name: 'col1' });
+        const col1Dtype = { ...col1, unique_ct: 1000 };
+        return {
+          ...DATA,
+          columns: _.map(DATA.columns, (c) => (c.name === 'col1' ? col1Dtype : c)),
+        };
+      }
+      if (_.startsWith(url, '/dtale/async-column-filter-data/1?col=col1')) {
+        return ASYNC_OPTIONS;
+      }
+      return undefined;
+    });
+
     ColumnFilter = require('../../filters/ColumnFilter').default;
     NumericFilter = require('../../filters/NumericFilter').NumericFilter;
   });

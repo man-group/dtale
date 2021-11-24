@@ -1,8 +1,6 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactRibbonMenu } from '../../../dtale/ribbon/RibbonMenu';
 
 describe('RibbonMenu', () => {

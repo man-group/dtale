@@ -1,11 +1,9 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { expect, it } from '@jest/globals';
-
 import { ReactFilterDisplay } from '../../../dtale/info/FilterDisplay';
 import serverState from '../../../dtale/serverStateManagement';
-import menuUtils from '../../../menuUtils';
+import * as menuUtils from '../../../menuUtils';
 
 describe('FilterDisplay', () => {
   let wrapper, props, updateSettingsSpy, openMenuSpy, dropFilteredRowsSpy, moveFiltersToCustomSpy;
@@ -87,11 +85,11 @@ describe('FilterDisplay', () => {
   it('Displays menu', () => {
     wrapper.find('div.filter-menu-toggle').first().simulate('click');
     expect(openMenuSpy).toHaveBeenCalled();
-    openMenuSpy.mock.calls[0][1]();
+    openMenuSpy.mock.calls[0][0]();
     expect(props.propagateState).toHaveBeenLastCalledWith({
       menuOpen: 'filter',
     });
-    openMenuSpy.mock.calls[0][2]();
+    openMenuSpy.mock.calls[0][1]();
     expect(props.propagateState).toHaveBeenLastCalledWith({ menuOpen: null });
   });
 

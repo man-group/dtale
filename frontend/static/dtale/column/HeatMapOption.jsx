@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import bu from '../backgroundUtils';
+import * as bu from '../backgroundUtils';
 
 class HeatMapOption extends React.Component {
   constructor(props) {

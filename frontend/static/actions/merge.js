@@ -1,8 +1,6 @@
 import _ from 'lodash';
-import $ from 'jquery';
 
-import { fetchJson } from '../fetcher';
-import menuFuncs from '../dtale/menu/dataViewerMenuUtils';
+import { fetchJson, fetchPost } from '../fetcher';
 import { buildURLString } from './url-utils';
 
 const loadProcesses = (dispatch) =>
@@ -53,8 +51,8 @@ function buildMerge(name) {
       dispatch({ type: 'load-merge-error', error: data });
     };
     const config = action === 'merge' ? mergeConfig : stackConfig;
-    $.post(
-      menuFuncs.fullPath('/dtale/merge'),
+    fetchPost(
+      '/dtale/merge',
       { action, config: JSON.stringify(config), datasets: extractDatasetParams(datasets), name },
       handleResponse,
     );

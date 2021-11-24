@@ -1,14 +1,11 @@
 import { mount } from 'enzyme';
-import $ from 'jquery';
 import React from 'react';
 import { Provider } from 'react-redux';
-
-import { expect, it } from '@jest/globals';
 
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, DtypesGrid, Details, Describe, DescribeFilters, DetailsCharts, ColumnAnalysisChart, CategoryInputs;
@@ -29,14 +26,8 @@ describe('DataViewer tests', () => {
     window.opener = { location: { reload: jest.fn() } };
     window.close = jest.fn();
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        return urlFetcher(url);
-      }),
-    );
+    mockPopsicle();
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
     DtypesGrid = require('../../popups/describe/DtypesGrid').default;
     Details = require('../../popups/describe/Details').Details;
@@ -48,7 +39,8 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    postSpy = jest.spyOn($, 'post');
+    const fetcher = require('../../fetcher');
+    postSpy = jest.spyOn(fetcher, 'fetchPost');
     postSpy.mockImplementation((_url, _params, callback) => callback());
     const props = { dataId: '1', chartData: { visible: true } };
     const store = reduxUtils.createDtaleStore();
@@ -64,7 +56,7 @@ describe('DataViewer tests', () => {
     await tickUpdate(result);
   });
 
-  afterEach(() => postSpy.mockRestore());
+  afterEach(jest.restoreAllMocks);
 
   afterAll(() => {
     dimensions.afterAll();

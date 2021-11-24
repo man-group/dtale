@@ -2,8 +2,6 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import reduxUtils from '../redux-test-utils';
 
 describe('reducer tests', () => {
@@ -22,6 +20,7 @@ describe('reducer tests', () => {
       iframe: false,
       columnMenuOpen: false,
       selectedCol: null,
+      selectedColRef: null,
       dataId: null,
       editedCell: null,
       xarray: false,

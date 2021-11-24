@@ -1,32 +1,21 @@
-/* eslint max-lines: "off" */
 import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 import Select from 'react-select';
 
-import { expect, it } from '@jest/globals';
-
 import { BouncerWrapper } from '../../../BouncerWrapper';
 import { RemovableError } from '../../../RemovableError';
-import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../../test-utils';
+import { mockChartJS, tick, tickUpdate } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   const { location, open, opener } = window;
-  const dimensions = new DimensionsHelper({
-    offsetWidth: 800,
-    offsetHeight: 500,
-    innerWidth: 1205,
-    innerHeight: 775,
-  });
   let result, Duplicates, Columns, ColumnNames, Rows, ShowDuplicates;
 
   beforeAll(() => {
-    dimensions.beforeAll();
     delete window.location;
     delete window.open;
     delete window.opener;
@@ -39,49 +28,45 @@ describe('DataViewer tests', () => {
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/duplicates')) {
-          const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
-          if (urlParams.action === 'test') {
-            const cfg = JSON.parse(urlParams.cfg);
-            if (urlParams.type === 'show') {
-              if (_.head(cfg.group) === 'foo') {
-                return { results: {} };
-              } else if (_.size(cfg.group) === 0) {
-                return { error: 'Failure' };
-              }
-              return {
-                results: {
-                  'a, b': { count: 3, filter: ['a', 'b'] },
-                },
-              };
-            }
-            if (cfg.keep === 'first') {
-              if (urlParams.type === 'rows') {
-                return { results: 3 };
-              }
-              return { results: { Foo: ['foo'] } };
-            } else if (cfg.keep == 'last') {
-              if (urlParams.type === 'rows') {
-                return { results: 0 };
-              }
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/duplicates')) {
+        const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
+        if (urlParams.action === 'test') {
+          const cfg = JSON.parse(urlParams.cfg);
+          if (urlParams.type === 'show') {
+            if (_.head(cfg.group) === 'foo') {
               return { results: {} };
-            } else {
+            } else if (_.size(cfg.group) === 0) {
               return { error: 'Failure' };
             }
-          } else {
-            return { data_id: 1 };
+            return {
+              results: {
+                'a, b': { count: 3, filter: ['a', 'b'] },
+              },
+            };
           }
+          if (cfg.keep === 'first') {
+            if (urlParams.type === 'rows') {
+              return { results: 3 };
+            }
+            return { results: { Foo: ['foo'] } };
+          } else if (cfg.keep == 'last') {
+            if (urlParams.type === 'rows') {
+              return { results: 0 };
+            }
+            return { results: {} };
+          } else {
+            return { error: 'Failure' };
+          }
+        } else {
+          return { data_id: 1 };
         }
-        return urlFetcher(url);
-      }),
-    );
+      }
+      return undefined;
+    });
     mockChartJS();
-    jest.mock('popsicle', () => mockBuildLibs);
 
-    Duplicates = require('../../../popups/duplicates/Duplicates').ReactDuplicates;
+    Duplicates = require('../../../popups/duplicates/Duplicates').Duplicates;
     Columns = require('../../../popups/duplicates/Columns').Columns;
     ColumnNames = require('../../../popups/duplicates/ColumnNames').ColumnNames;
     Rows = require('../../../popups/duplicates/Rows').Rows;
@@ -89,22 +74,18 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const { DataViewer } = require('../../../dtale/DataViewer');
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    store.getState().dataId = '1';
+    store.getState().chartData = { selectedCol: 'foo', propagateState: jest.fn() };
     result = mount(
       <Provider store={store}>
-        <DataViewer />
+        <Duplicates onClose={jest.fn()} />
       </Provider>,
-      { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Duplicates');
-    await tickUpdate(result);
   });
 
   afterAll(() => {
-    dimensions.afterAll();
     window.location = location;
     window.open = open;
     window.opener = opener;

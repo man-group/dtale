@@ -4,13 +4,11 @@ import React from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { Provider } from 'react-redux';
 
-import { expect, it } from '@jest/globals';
-
 import DimensionsHelper from '../DimensionsHelper';
 import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate, withGlobalJquery } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result, DataViewer, Upload;
@@ -35,22 +33,18 @@ describe('DataViewer tests', () => {
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn() } };
 
-    const mockBuildLibs = withGlobalJquery(() =>
-      mockPopsicle.mock((url) => {
-        const { urlFetcher } = require('../redux-test-utils').default;
-        if (_.startsWith(url, '/dtale/web-upload')) {
-          return {
-            success: true,
-            sheets: [
-              { name: 'Sheet 1', dataId: 1 },
-              { name: 'Sheet 2', dataId: 2 },
-            ],
-          };
-        }
-        return urlFetcher(url);
-      }),
-    );
-    jest.mock('popsicle', () => mockBuildLibs);
+    mockPopsicle((url) => {
+      if (_.startsWith(url, '/dtale/web-upload')) {
+        return {
+          success: true,
+          sheets: [
+            { name: 'Sheet 1', dataId: 1 },
+            { name: 'Sheet 2', dataId: 2 },
+          ],
+        };
+      }
+      return undefined;
+    });
     mockChartJS();
 
     DataViewer = require('../../dtale/DataViewer').DataViewer;
