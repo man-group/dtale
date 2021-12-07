@@ -5,7 +5,7 @@ import { withTranslation } from 'react-i18next';
 
 import { MenuItem } from './MenuItem';
 
-class ExportOption extends React.Component {
+export class ExportOption extends React.Component {
   constructor(props) {
     super(props);
   }

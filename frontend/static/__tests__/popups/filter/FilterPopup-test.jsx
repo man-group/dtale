@@ -3,10 +3,11 @@ import React from 'react';
 
 import { Bouncer } from '../../../Bouncer';
 import { RemovableError } from '../../../RemovableError';
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import { ReactFilterPopup } from '../../../popups/filter/FilterPopup';
 import StructuredFilters from '../../../popups/filter/StructuredFilters';
 import * as filterUtils from '../../../popups/filter/filterUtils';
+import { tick } from '../../test-utils';
 
 describe('FilterPopup', () => {
   let wrapper, props, loadInfoSpy, saveFilterSpy, updateSettingsSpy, updateQueryEngineSpy;
@@ -27,13 +28,9 @@ describe('FilterPopup', () => {
       callback({});
     });
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
-    updateSettingsSpy.mockImplementation((_settings, _dataId, callback) => {
-      callback();
-    });
+    updateSettingsSpy.mockResolvedValue(Promise.resolve({ success: true }));
     updateQueryEngineSpy = jest.spyOn(serverState, 'updateQueryEngine');
-    updateQueryEngineSpy.mockImplementation((_engine, callback) => {
-      callback();
-    });
+    updateQueryEngineSpy.mockResolvedValue(Promise.resolve({ success: true }));
     props = {
       dataId: '1',
       chartData: {
@@ -47,9 +44,7 @@ describe('FilterPopup', () => {
     wrapper = shallow(<ReactFilterPopup {...props} />);
   });
 
-  afterEach(jest.resetAllMocks);
-
-  afterAll(jest.restoreAllMocks);
+  afterEach(jest.restoreAllMocks);
 
   it('renders successfully', () => {
     expect(wrapper.html()).not.toBeNull();
@@ -60,8 +55,8 @@ describe('FilterPopup', () => {
     expect(wrapper.find(Bouncer)).toHaveLength(1);
   });
 
-  it('drops filter', () => {
-    wrapper.find(StructuredFilters).first().props().dropFilter('columnFilters', '0');
+  it('drops filter', async () => {
+    await wrapper.find(StructuredFilters).first().props().dropFilter('columnFilters', '0');
     expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
     expect(props.updateSettings).toHaveBeenCalledTimes(1);
     props.updateSettings.mock.calls[0][1]();
@@ -100,12 +95,13 @@ describe('FilterPopup', () => {
     expect(wrapper.state().error).toBeNull();
   });
 
-  it('clears filter', () => {
-    wrapper
+  it('clears filter', async () => {
+    await wrapper
       .find('button')
-      .findWhere((btn) => btn.text() == 'Clear')
+      .findWhere((btn) => btn.text() === 'Clear')
       .first()
       .simulate('click');
+    await tick();
     expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
     expect(updateSettingsSpy.mock.calls[0][0]).toEqual({ query: '' });
     expect(props.updateSettings).toHaveBeenCalledTimes(1);
@@ -116,12 +112,13 @@ describe('FilterPopup', () => {
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('updates query engine', () => {
-    wrapper
+  it('updates query engine', async () => {
+    await wrapper
       .find('button')
       .findWhere((btn) => btn.text() == 'numexpr')
       .first()
       .simulate('click');
+    await tick();
     expect(updateQueryEngineSpy).toHaveBeenCalledTimes(1);
     expect(updateQueryEngineSpy.mock.calls[0][0]).toBe('numexpr');
     expect(props.setEngine).toHaveBeenCalledWith('numexpr');
@@ -143,14 +140,16 @@ describe('FilterPopup', () => {
       };
     });
 
+    afterEach(jest.resetAllMocks);
+
     afterAll(() => {
       window.location = location;
       window.close = close;
       window.opener = opener;
     });
 
-    it('drops filter', () => {
-      wrapper.find(StructuredFilters).first().props().dropFilter('columnFilters', '0');
+    it('drops filter', async () => {
+      await wrapper.find(StructuredFilters).first().props().dropFilter('columnFilters', '0');
       expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
     });
@@ -166,12 +165,13 @@ describe('FilterPopup', () => {
       expect(window.close).toHaveBeenCalledTimes(1);
     });
 
-    it('clears filter', () => {
-      wrapper
+    it('clears filter', async () => {
+      await wrapper
         .find('button')
         .findWhere((btn) => btn.text() == 'Clear')
         .first()
         .simulate('click');
+      await tick();
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
     });

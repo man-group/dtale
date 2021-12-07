@@ -34,7 +34,7 @@ export function fetchJsonPromise(url: string): Promise<Record<string, any>> {
  * @param url the GET endpoint
  * @param callback the code to execute after a response is received.
  */
-export function fetchJson(url: string, callback: (data: Record<string, any>) => void): void {
+export function fetchJson(url: string, callback?: (data: Record<string, any>) => void): void {
   const callStack = new Error().stack;
   fetchJsonPromise(url)
     .then(callback)

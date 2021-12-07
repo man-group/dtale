@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLParams, buildURLString } from '../../actions/url-utils';
 import { fetchJson, fetchPost } from '../../fetcher';
 import CSVOptions from './CSVOptions';
 import SheetSelector from './SheetSelector';
@@ -95,7 +95,10 @@ class ReactUpload extends React.Component {
   loadFromWeb() {
     const { urlDataType, url, proxy } = this.state;
     this.setState({ loadingURL: true });
-    fetchJson(buildURLString('/dtale/web-upload', { type: urlDataType, url, proxy }), this.handleResponse);
+    fetchJson(
+      buildURLString('/dtale/web-upload', buildURLParams({ type: urlDataType, url, proxy })),
+      this.handleResponse,
+    );
   }
 
   loadDataset(dataset) {

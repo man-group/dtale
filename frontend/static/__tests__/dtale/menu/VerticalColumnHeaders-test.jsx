@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { describe, expect, it } from '@jest/globals';
 
 import { VerticalColumnHeaders } from '../../../dtale/menu/VerticalColumnHeaders';
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -44,18 +44,16 @@ describe('VerticalColumnHeaders tests', () => {
     expect(result.find('i.ico-check-box')).toHaveLength(1);
   });
 
-  it('handles changes to checkbox', () => {
-    result.find('i.ico-check-box-outline-blank').simulate('click');
+  it('handles changes to checkbox', async () => {
+    await result.find('i.ico-check-box-outline-blank').simulate('click');
     expect(updateSettingsSpy).toBeCalledTimes(1);
-    updateSettingsSpy.mock.calls[0][2]();
     expect(store.getState().settings).toEqual(expect.objectContaining({ verticalHeaders: true }));
     result.update();
-    result.find('i.ico-check-box').simulate('click');
+    await result.find('i.ico-check-box').simulate('click');
     expect(updateSettingsSpy).toBeCalledTimes(2);
     expect(updateSettingsSpy.mock.calls[1][0]).toEqual({
       verticalHeaders: false,
     });
-    updateSettingsSpy.mock.calls[1][2]();
     expect(store.getState().settings).toEqual(expect.objectContaining({ verticalHeaders: false }));
   });
 });

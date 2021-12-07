@@ -14,7 +14,7 @@ class NetworkOption extends React.Component {
       <MenuItem description={this.props.t('menu_description:network')} onClick={this.props.open}>
         <span className="toggler-action">
           <button className="btn btn-plain">
-            <i className="fas fa-project-diagram ml-2 mr-4" />
+            <i className="fas fa-project-diagram ml-2 mr-2" />
             <span className="font-weight-bold">{this.props.t('Network Viewer', { ns: 'menu' })}</span>
           </button>
         </span>

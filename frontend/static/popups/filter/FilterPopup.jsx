@@ -9,7 +9,7 @@ import { RemovableError } from '../../RemovableError';
 import { closeChart } from '../../actions/charts';
 import { setQueryEngine } from '../../actions/dtale';
 import { updateSettings } from '../../actions/settings';
-import serverState from '../../dtale/serverStateManagement';
+import * as serverState from '../../dtale/serverStateManagement';
 import ContextVariables from './ContextVariables';
 import PandasQueryHelp from './PandasQueryHelp';
 import QueryExamples from './QueryExamples';
@@ -46,30 +46,28 @@ class ReactFilterPopup extends React.Component {
     saveFilter(this.props.dataId, this.state.query, callback);
   }
 
-  dropFilter(prop, col) {
+  async dropFilter(prop, col) {
     const { dataId } = this.props;
     const filters = this.state[prop];
     const updatedSettings = {
       [prop]: _.pickBy(filters, (_, k) => k !== col),
     };
-    serverState.updateSettings(updatedSettings, dataId, () => {
-      if (_.startsWith(window.location.pathname, '/dtale/popup/filter')) {
-        window.opener.location.reload();
-      } else {
-        this.props.updateSettings(updatedSettings, () => this.setState(updatedSettings));
-      }
-    });
+    await serverState.updateSettings(updatedSettings, dataId);
+    if (_.startsWith(window.location.pathname, '/dtale/popup/filter')) {
+      window.opener.location.reload();
+    } else {
+      this.props.updateSettings(updatedSettings, () => this.setState(updatedSettings));
+    }
   }
 
-  clear() {
-    serverState.updateSettings({ query: '' }, this.props.dataId, () => {
-      if (_.startsWith(window.location.pathname, '/dtale/popup/filter')) {
-        window.opener.location.reload();
-        window.close();
-      } else {
-        this.props.updateSettings({ query: '' }, this.props.onClose);
-      }
-    });
+  async clear() {
+    await serverState.updateSettings({ query: '' }, this.props.dataId);
+    if (_.startsWith(window.location.pathname, '/dtale/popup/filter')) {
+      window.opener.location.reload();
+      window.close();
+    } else {
+      this.props.updateSettings({ query: '' }, this.props.onClose);
+    }
   }
 
   renderBody() {
@@ -77,7 +75,10 @@ class ReactFilterPopup extends React.Component {
       return <Bouncer />;
     }
     const { t, queryEngine, setEngine } = this.props;
-    const updateEngine = (engine) => () => serverState.updateQueryEngine(engine, () => setEngine(engine));
+    const updateEngine = (engine) => async () => {
+      await serverState.updateQueryEngine(engine);
+      setEngine(engine);
+    };
     return (
       <React.Fragment>
         <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />

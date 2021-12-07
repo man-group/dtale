@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import * as actions from '../../actions/dtale';
 import { SingleTrack, StyledSlider, Thumb } from '../../sliderUtils';
-import serverStateManagement from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { MenuItem } from './MenuItem';
 
 class ReactMaxDimensionOption extends React.Component {
@@ -23,18 +23,18 @@ class ReactMaxDimensionOption extends React.Component {
   }
 
   updateMax(value) {
-    const callback = () => this.props.updateMaxDimension(value);
-    this.setState({ currMaxDimension: value }, () => serverStateManagement.updateMaxColumnWidth(value, callback));
+    this.setState({ currMaxDimension: value }, async () => await this.props.updateMaxDimension(value));
   }
 
   render() {
     const { icon, label, description, maxDimension, t } = this.props;
     const checkBoxClass = `ico-check-box${maxDimension === null ? '-outline-blank' : ''}`;
-    const checkBoxClick = () => {
+    const checkBoxClick = async () => {
       if (this.props.maxDimension === null) {
         this.updateMax(this.state.currMaxDimension);
       } else {
-        serverStateManagement.updateMaxColumnWidth('', this.props.clearMaxDimension);
+        await serverState.updateMaxColumnWidth('');
+        this.props.clearMaxDimension();
       }
     };
     return (
@@ -106,7 +106,10 @@ const ReduxMaxWidthOption = connect(
     maxDimension: maxColumnWidth,
   }),
   (dispatch) => ({
-    updateMaxDimension: (width) => dispatch(actions.updateMaxWidth(width)),
+    updateMaxDimension: async (width) => {
+      dispatch(actions.updateMaxWidth(width));
+      await serverState.updateMaxColumnWidth(width);
+    },
     clearMaxDimension: () => dispatch(actions.clearMaxWidth()),
   }),
 )(TranslatedMaxDimensionOption);
@@ -119,7 +122,10 @@ const ReduxMaxHeightOption = connect(
     maxDimension: maxRowHeight,
   }),
   (dispatch) => ({
-    updateMaxDimension: (height) => dispatch(actions.updateMaxHeight(height)),
+    updateMaxDimension: async (height) => {
+      dispatch(actions.updateMaxHeight(height));
+      await serverState.updateMaxRowHeight(height);
+    },
     clearMaxDimension: () => dispatch(actions.clearMaxHeight()),
   }),
 )(TranslatedMaxDimensionOption);

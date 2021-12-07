@@ -9,7 +9,7 @@ const pjson: Record<string, any> = require('../../../package.json');
 
 describe('About', () => {
   let result: ReactWrapper;
-  let fetchJsonSpy: jest.SpyInstance<void, [url: string, callback: (data: Record<string, any>) => void]>;
+  let fetchJsonSpy: jest.SpyInstance<void, [url: string, callback?: (data: Record<string, any>) => void]>;
 
   beforeEach(async () => {
     fetchJsonSpy = jest.spyOn(fetcher, 'fetchJson');
@@ -22,7 +22,7 @@ describe('About', () => {
 
   it('renders correctly', async () => {
     expect(fetchJsonSpy).toHaveBeenCalled();
-    fetchJsonSpy.mock.calls[0][1]({ info: { version: pjson.version } });
+    fetchJsonSpy.mock.calls[0][1]!({ info: { version: pjson.version } });
     result.update();
     expect(result.find('div.modal-body div.row').first().text()).toBe(`Your Version:${pjson.version}`);
     expect(result.find('div.modal-body div.row').at(1).text()).toBe(`PyPi Version:${pjson.version}`);
@@ -31,7 +31,7 @@ describe('About', () => {
 
   it('handles expired version', async () => {
     expect(fetchJsonSpy).toHaveBeenCalled();
-    fetchJsonSpy.mock.calls[0][1]({ info: { version: '999.0.0' } });
+    fetchJsonSpy.mock.calls[0][1]!({ info: { version: '999.0.0' } });
     result.update();
     expect(result.find('div.modal-body div.row').first().text()).toBe(`Your Version:${pjson.version}`);
     expect(result.find('div.modal-body div.row').at(1).text()).toBe('PyPi Version:999.0.0');

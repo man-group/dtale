@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { RemovableError } from '../../RemovableError';
 import { updateSettings } from '../../actions/settings';
 import * as gu from '../gridUtils';
-import serverState from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { FilterDisplay } from './FilterDisplay';
 import { buildMenuHandler } from './infoUtils';
 
@@ -93,13 +93,14 @@ class ReactDataViewerInfo extends React.Component {
       </div>
     );
     const hidden = _.map(_.filter(columns, { visible: false }), 'name');
-    const clearHidden = () => {
+    const clearHidden = async () => {
       const visibility = _.reduce(columns, (ret, { name }) => _.assignIn(ret, { [name]: true }), {});
       const updatedState = {
         columns: _.map(columns, (c) => _.assignIn({}, c, { visible: true })),
         triggerResize: true,
       };
-      serverState.updateVisibility(dataId, visibility, () => propagateState(updatedState));
+      await serverState.updateVisibility(dataId, visibility);
+      propagateState(updatedState);
     };
     const clearAll = (
       <i key={2} className="ico-cancel pl-3 pointer" style={{ marginTop: '-0.1em' }} onClick={clearHidden} />
@@ -125,11 +126,12 @@ class ReactDataViewerInfo extends React.Component {
         <div className="column-toggle__dropdown" hidden={this.state.menuOpen !== 'hidden'}>
           <ul>
             {_.map(hidden, (col, i) => {
-              const unhideCol = () => {
+              const unhideCol = async () => {
                 const updatedColumns = _.map(columns, (c) =>
                   _.assignIn({}, c, c.name === col ? { visible: true } : {}),
                 );
-                serverState.toggleVisibility(dataId, col, () => propagateState({ columns: updatedColumns }));
+                await serverState.toggleVisibility(dataId, col);
+                propagateState({ columns: updatedColumns });
               };
               return (
                 <li key={i}>

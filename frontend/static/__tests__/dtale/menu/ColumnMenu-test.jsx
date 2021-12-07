@@ -5,9 +5,10 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import * as ColumnMenu from '../../../dtale/column/ColumnMenu';
 import * as columnMenuUtils from '../../../dtale/column/columnMenuUtils';
 import ColumnMenuOption from '../../../dtale/column/ColumnMenuOption';
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
+import { tick } from '../../test-utils';
 
 describe('DescribePanel', () => {
   let wrapper, props, positionMenuSpy, ignoreMenuClicksSpy, toggleVisibilitySpy;
@@ -57,17 +58,17 @@ describe('DescribePanel', () => {
     expect(props.hideColumnMenu).toHaveBeenCalledWith('col1');
   });
 
-  it('opens side panel on describe', () => {
+  it('opens side panel on describe', async () => {
     wrapper
       .find(ColumnMenuOption)
       .findWhere((option) => option.props().iconClass === 'ico-visibility-off')
       .props()
       .open();
+    await tick();
     expect(toggleVisibilitySpy).toHaveBeenCalledTimes(1);
     const toggleParams = toggleVisibilitySpy.mock.calls[0];
     expect(toggleParams[0]).toBe(props.dataId);
     expect(toggleParams[1]).toBe(props.selectedCol);
-    toggleParams[2]();
     expect(props.propagateState).toHaveBeenCalledWith({
       columns: reduxUtils.DTYPES.dtypes.map((col) =>
         col.name === props.selectedCol ? { ...col, visible: false } : col,

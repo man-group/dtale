@@ -1,11 +1,12 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import FilterInput from '../../../dtale/side/predefined_filters/FilterInput';
 import { ReactPanel as PredefinedFilters } from '../../../dtale/side/predefined_filters/Panel';
 import * as fetcher from '../../../fetcher';
 import reduxUtils from '../../redux-test-utils';
+import { tick } from '../../test-utils';
 
 describe('PredefinedFilters panel', () => {
   let wrapper, props, fetchJsonSpy, updateSettingsSpy;
@@ -16,9 +17,7 @@ describe('PredefinedFilters panel', () => {
       callback({ ...reduxUtils.DTYPES, success: true });
     });
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
-    updateSettingsSpy.mockImplementation((_settings, _dataId, callback) => {
-      callback();
-    });
+    updateSettingsSpy.mockResolvedValue(Promise.resolve(undefined));
     props = {
       dataId: '1',
       filters: [
@@ -52,17 +51,14 @@ describe('PredefinedFilters panel', () => {
     wrapper = shallow(<PredefinedFilters {...props} />);
   });
 
-  afterEach(jest.resetAllMocks);
-
-  afterAll(jest.restoreAllMocks);
+  afterEach(jest.restoreAllMocks);
 
   it('renders successfully', () => {
     expect(wrapper.find(FilterInput)).toHaveLength(3);
   });
 
-  it('saves correctly', () => {
-    wrapper.find(FilterInput).first().props().save('custom_foo1', 2, true);
-    updateSettingsSpy.mock.calls[0][2]();
+  it('saves correctly', async () => {
+    await wrapper.find(FilterInput).first().props().save('custom_foo1', 2, true);
     expect(props.updateSettings).toHaveBeenCalledWith({
       predefinedFilters: {
         custom_foo1: { value: 2, active: true },
@@ -72,9 +68,8 @@ describe('PredefinedFilters panel', () => {
     });
   });
 
-  it('removes correctly', () => {
-    wrapper.find(FilterInput).first().props().save('custom_foo1', undefined, false);
-    updateSettingsSpy.mock.calls[0][2]();
+  it('removes correctly', async () => {
+    await wrapper.find(FilterInput).first().props().save('custom_foo1', undefined, false);
     expect(props.updateSettings).toHaveBeenCalledWith({
       predefinedFilters: {
         custom_foo1: { active: false },
@@ -84,9 +79,9 @@ describe('PredefinedFilters panel', () => {
     });
   });
 
-  it('clears all correctly', () => {
-    wrapper.find('button').last().simulate('click');
-    updateSettingsSpy.mock.calls[0][2]();
+  it('clears all correctly', async () => {
+    await wrapper.find('button').last().simulate('click');
+    await tick();
     expect(props.updateSettings).toHaveBeenCalledWith({
       predefinedFilters: {
         custom_foo1: { value: 1, active: false },

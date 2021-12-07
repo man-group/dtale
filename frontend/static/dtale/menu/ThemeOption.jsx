@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import * as actions from '../../actions/dtale';
 import * as gu from '../gridUtils';
-import serverStateManagement from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { MenuItem } from './MenuItem';
 
 class ReactThemeOption extends React.Component {
@@ -16,7 +16,10 @@ class ReactThemeOption extends React.Component {
 
   render() {
     const { setTheme, theme, ribbonWrapper, t } = this.props;
-    const updateTheme = (newTheme) => () => serverStateManagement.updateTheme(newTheme, () => setTheme(newTheme));
+    const updateTheme = (newTheme) => async () => {
+      await serverState.updateTheme(newTheme);
+      setTheme(newTheme);
+    };
     return (
       <MenuItem style={{ color: '#565b68' }} description={t('menu_description:theme')}>
         <span className="toggler-action">

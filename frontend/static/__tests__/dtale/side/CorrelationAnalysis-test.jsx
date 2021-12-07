@@ -3,7 +3,7 @@ import _ from 'lodash';
 import React from 'react';
 import Table from 'react-virtualized/dist/commonjs/Table/Table';
 
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import { ReactCorrelationAnalysis } from '../../../dtale/side/CorrelationAnalysis';
 import * as fetcher from '../../../fetcher';
 import { StyledSlider } from '../../../sliderUtils';
@@ -24,7 +24,7 @@ const ANALYSIS = {
 };
 
 describe('CorrelationAnalysis', () => {
-  let wrapper, props, fetchJsonSpy, serverStateSpy, deleteColumnsSpy;
+  let wrapper, props, fetchJsonSpy, serverStateSpy;
   const dimensions = new DimensionsHelper({
     offsetWidth: 1205,
     offsetHeight: 775,
@@ -38,8 +38,7 @@ describe('CorrelationAnalysis', () => {
       callback({ ...ANALYSIS, success: true });
     });
     serverStateSpy = jest.spyOn(serverState, 'deleteColumns');
-    deleteColumnsSpy = jest.fn(() => undefined);
-    serverStateSpy.mockImplementation(() => deleteColumnsSpy);
+    serverStateSpy.mockResolvedValue(Promise.resolve({ success: true }));
     props = {
       dataId: '1',
       hideSidePanel: jest.fn(),
@@ -79,9 +78,8 @@ describe('CorrelationAnalysis', () => {
     expect(wrapper.find('button.btn-primary')).toHaveLength(1);
     wrapper.find('button.btn-primary').first().simulate('click');
     expect(props.openChart).toHaveBeenCalled();
-    props.openChart.mock.calls[0][0].yesAction();
+    await props.openChart.mock.calls[0][0].yesAction();
     expect(serverStateSpy).toHaveBeenCalledWith(props.dataId, ['foo']);
-    expect(deleteColumnsSpy).toHaveBeenCalled();
     expect(props.dropColumns).toHaveBeenCalledWith(['foo']);
     expect(props.hideSidePanel).toHaveBeenCalled();
   });

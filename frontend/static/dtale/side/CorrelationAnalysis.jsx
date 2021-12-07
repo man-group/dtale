@@ -17,7 +17,7 @@ import { fetchJson } from '../../fetcher';
 import { sortData, updateSort } from '../../popups/correlations/CorrelationsGrid';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
 import * as gu from '../gridUtils';
-import serverStateManagement from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 
 function buildData({ corrs, ranks }, { threshold, selections }) {
   const data = _.map(ranks, (row) => ({
@@ -194,8 +194,8 @@ class ReactCorrelationAnalysis extends React.Component {
       const colsToDrop = _.keys(_.pickBy(this.state.selections, (selected) => !selected));
       const title = `${t('Drop Columns', { ns: 'corr_analysis' })}?`;
       const msg = `Are you sure you would like to drop the following columns? ${colsToDrop.join(', ')}`;
-      const yesAction = () => {
-        serverStateManagement.deleteColumns(dataId, colsToDrop)();
+      const yesAction = async () => {
+        await serverState.deleteColumns(dataId, colsToDrop);
         this.props.dropColumns(colsToDrop);
         hideSidePanel();
       };

@@ -2,17 +2,12 @@ import { mount, shallow } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import serverState from '../../../dtale/serverStateManagement';
-import mockPopsicle from '../../MockPopsicle';
+import * as serverState from '../../../dtale/serverStateManagement';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML } from '../../test-utils';
+import { buildInnerHTML, tick } from '../../test-utils';
 
 describe('DataViewerInfo tests', () => {
   let EditedCellInfo, ReactEditedCellInfo, store, props;
-
-  beforeAll(() => {
-    mockPopsicle();
-  });
 
   beforeEach(() => {
     store = reduxUtils.createDtaleStore();
@@ -20,7 +15,10 @@ describe('DataViewerInfo tests', () => {
     EditedCellInfo = components.EditedCellInfo;
     ReactEditedCellInfo = components.ReactEditedCellInfo;
     buildInnerHTML({ settings: '' }, store);
+    document.getElementsByTagName('body')[0].innerHTML += `<span id="text-measure" />`;
   });
+
+  afterEach(jest.restoreAllMocks);
 
   const buildInfo = (additionalProps, editedCell) => {
     const columns = [{ name: 'a', dtype: 'string', index: 1, visible: true }];
@@ -51,7 +49,7 @@ describe('DataViewerInfo tests', () => {
     expect(result.find('textarea').props().value).toBe('Hello World');
   });
 
-  it('EditedCellInfo handles updates', () => {
+  it('EditedCellInfo handles updates', async () => {
     const shallowProps = {
       ...props,
       openChart: jest.fn(),
@@ -60,35 +58,33 @@ describe('DataViewerInfo tests', () => {
     };
     jest.spyOn(React, 'createRef').mockReturnValueOnce({ current: document.createElement('textarea') });
     const editCellSpy = jest.spyOn(serverState, 'editCell');
-    editCellSpy.mockImplementation(() => undefined);
+    editCellSpy.mockResolvedValue(Promise.resolve({ success: true }));
     const wrapper = shallow(<ReactEditedCellInfo {...shallowProps} />);
     wrapper.setProps({ editedCell: '0|1' });
     expect(wrapper.find('textarea').props().value).toBe('Hello World');
     expect(shallowProps.updateHeight).toHaveBeenCalled();
 
-    wrapper.instance().onKeyDown({ key: 'Enter' });
+    await wrapper.instance().onKeyDown({ key: 'Enter' });
     expect(shallowProps.clearEdit).toHaveBeenCalledTimes(1);
     wrapper.setState({ value: 'Hello World2' });
-    wrapper.instance().onKeyDown({ key: 'Enter' });
+    await wrapper.instance().onKeyDown({ key: 'Enter' });
     expect(editCellSpy).toHaveBeenCalledTimes(1);
-    jest.restoreAllMocks();
   });
 
-  it('handles save errors', () => {
+  it('handles save errors', async () => {
     const editCellSpy = jest.spyOn(serverState, 'editCell');
-    editCellSpy.mockImplementation(() => undefined);
+    editCellSpy.mockResolvedValue(Promise.resolve({ error: 'bad value' }));
     const result = buildInfo({}, '0|1');
     expect(result.find('textarea').props().value).toBe('Hello World');
 
     result.find('textarea').simulate('change', { target: { value: 'Hello World2' } });
     expect(result.find(ReactEditedCellInfo).state().value).toBe('Hello World2');
-    result.find('textarea').simulate('keyDown', { key: 'Enter' });
-    editCellSpy.mock.calls[0][4]({ error: 'bad value' });
+    await result.find('textarea').simulate('keyDown', { key: 'Enter' });
+    await tick();
     expect(store.getState().chartData).toEqual({
       visible: true,
       error: 'bad value',
       type: 'error',
     });
-    jest.restoreAllMocks();
   });
 });

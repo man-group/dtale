@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import { RemovableError } from '../RemovableError';
 import { closeChart } from '../actions/charts';
-import serverState from '../dtale/serverStateManagement';
+import * as serverState from '../dtale/serverStateManagement';
 
 require('./Confirmation.css');
 
@@ -35,23 +35,21 @@ class ReactRename extends React.Component {
     const { dataId, propagateState, onClose, t } = this.props;
     const { selectedCol, columns } = this.props.chartData;
     const rename = this.state.name;
-    const renameAction = () => {
-      const callback = (data) => {
-        if (data.error) {
-          this.setState({ error: <RemovableError {...data} /> });
-          return;
-        }
-        const updatedColumns = _.map(columns, (c) => _.assignIn({}, c, c.name === selectedCol ? { name: rename } : {}));
-        const renameUpdate = (data) =>
-          _.mapValues(data, (d) => {
-            const newRecord = _.assignIn(d, { [rename]: d[selectedCol] });
-            delete newRecord[selectedCol];
-            return newRecord;
-          });
-        propagateState({ columns: updatedColumns, renameUpdate });
-        onClose();
-      };
-      serverState.renameColumn(dataId, selectedCol, rename, callback);
+    const renameAction = async () => {
+      const data = await serverState.renameColumn(dataId, selectedCol, rename);
+      if (data.error) {
+        this.setState({ error: <RemovableError {...data} /> });
+        return;
+      }
+      const updatedColumns = _.map(columns, (c) => _.assignIn({}, c, c.name === selectedCol ? { name: rename } : {}));
+      const renameUpdate = (data) =>
+        _.mapValues(data, (d) => {
+          const newRecord = _.assignIn(d, { [rename]: d[selectedCol] });
+          delete newRecord[selectedCol];
+          return newRecord;
+        });
+      propagateState({ columns: updatedColumns, renameUpdate });
+      onClose();
     };
     return [
       <div key="body" className="modal-body">

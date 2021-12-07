@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import Select, { createFilter } from 'react-select';
 
 import * as gu from '../../dtale/gridUtils';
-import serverState from '../../dtale/serverStateManagement';
+import * as serverState from '../../dtale/serverStateManagement';
 import DraggableModalDialog from '../DraggableModalDialog';
 import DateFormatting from './DateFormatting';
 import NumericFormatting from './NumericFormatting';
@@ -49,7 +49,7 @@ class ReactFormatting extends React.Component {
     }
   }
 
-  save() {
+  async save() {
     const { fmt, style, applyToAll, nanDisplay } = this.state;
     const { dataId, data, columns, columnFormats, selectedCol, propagateState, settings, maxColumnWidth } = this.props;
     let selectedCols = [selectedCol];
@@ -98,11 +98,10 @@ class ReactFormatting extends React.Component {
       triggerResize: true,
       formattingUpdate: true,
     });
-    let callback = _.noop;
+    await serverState.updateFormats(dataId, selectedCol, { fmt, style }, applyToAll, nanDisplay.value);
     if (this.props.nanDisplay !== this.state.nanDisplay.value) {
-      callback = () => propagateState({ refresh: true });
+      propagateState({ refresh: true });
     }
-    serverState.updateFormats(dataId, selectedCol, { fmt, style }, applyToAll, nanDisplay.value, callback);
   }
 
   renderBody() {

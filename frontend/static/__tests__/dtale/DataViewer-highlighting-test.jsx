@@ -24,9 +24,9 @@ describe('DataViewer highlighting tests', () => {
     DataViewer = dv.DataViewer;
     ReactDataViewer = dv.ReactDataViewer;
     RangeHighlight = require('../../popups/RangeHighlight').RangeHighlight;
-    const serverState = require('../../dtale/serverStateManagement').default;
+    const serverState = require('../../dtale/serverStateManagement');
     saveRangeHighlightsSpy = jest.spyOn(serverState, 'saveRangeHighlights');
-    saveRangeHighlightsSpy.mockImplementation(() => undefined);
+    saveRangeHighlightsSpy.mockResolvedValue(Promise.resolve({ success: true }));
   });
 
   beforeEach(async () => {
@@ -46,10 +46,6 @@ describe('DataViewer highlighting tests', () => {
   const heatMapBtn = () => findMainMenuButton(result, 'By Col', 'div.btn-group');
   const dataViewer = () => result.find(ReactDataViewer);
   const allRange = () => result.find(RangeHighlight).find('div.form-group').last();
-  const updateRange = () => {
-    saveRangeHighlightsSpy.mock.calls[saveRangeHighlightsSpy.mock.calls.length - 1][2]();
-    result.update();
-  };
 
   it('DataViewer: heatmap', async () => {
     heatMapBtn().find('button').first().simulate('click');
@@ -123,10 +119,9 @@ describe('DataViewer highlighting tests', () => {
           input.find('input').simulate('change', { target: { value: '3' } });
         }
       });
-    result.find(RangeHighlight).find('div.form-group').at(4).find('button').simulate('click');
+    await result.find(RangeHighlight).find('div.form-group').at(4).find('button').simulate('click');
     await tickUpdate(result);
     expect(saveRangeHighlightsSpy).toHaveBeenCalledTimes(1);
-    updateRange();
     expect(dataViewer().instance().state.backgroundMode).toBe('range');
     expect(dataViewer().instance().state.rangeHighlight).toStrictEqual(saveRangeHighlightsSpy.mock.calls[0][1]);
     result.find(RangeHighlightOption).find('i').simulate('click');
@@ -135,14 +130,14 @@ describe('DataViewer highlighting tests', () => {
     expect(dataViewer().instance().state.rangeHighlight).toStrictEqual(saveRangeHighlightsSpy.mock.calls[0][1]);
     clickMainMenuButton(result, 'Highlight Range');
     result.update();
-    allRange().find('i.ico-check-box-outline-blank').simulate('click');
-    updateRange();
+    await allRange().find('i.ico-check-box-outline-blank').simulate('click');
+    await tickUpdate(result);
     expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(true);
-    allRange().find('i.ico-check-box').simulate('click');
-    updateRange();
+    await allRange().find('i.ico-check-box').simulate('click');
+    await tickUpdate(result);
     expect(dataViewer().instance().state.rangeHighlight.all.active).toBe(false);
-    allRange().find('i.ico-remove-circle').simulate('click');
-    updateRange();
+    await allRange().find('i.ico-remove-circle').simulate('click');
+    await tickUpdate(result);
     expect(_.size(dataViewer().instance().state.rangeHighlight)).toBe(0);
   });
 
