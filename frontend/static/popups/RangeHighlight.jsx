@@ -7,7 +7,7 @@ import reactCSS from 'reactcss';
 import { SketchPicker } from 'react-color';
 
 import ColumnSelect from './create/ColumnSelect';
-import serverState from '../dtale/serverStateManagement';
+import * as serverState from '../dtale/serverStateManagement';
 
 export const BASE_COLOR = {
   r: '255',
@@ -131,42 +131,34 @@ class ReactRangeHighlight extends React.Component {
     if (_.get(this.props, 'chartData.backgroundMode') === 'range' && !_.has(backgroundMode, 'backgroundMode')) {
       backgroundMode.backgroundMode = null;
     }
-    this.setState(
-      { ranges: rangeHighlight },
-      serverState.saveRangeHighlights(this.props.dataId, rangeHighlight, () =>
-        this.props.propagateState({ ...backgroundMode, rangeHighlight }),
-      ),
-    );
+    this.setState({ ranges: rangeHighlight }, async () => {
+      await serverState.saveRangeHighlights(this.props.dataId, rangeHighlight);
+      this.props.propagateState({ ...backgroundMode, rangeHighlight });
+    });
   }
 
   removeRange(col) {
     const { dataId, propagateState } = this.props;
     const ranges = { ...this.state.ranges };
     delete ranges[col];
-    const props = {
-      backgroundMode: _.size(ranges) ? 'range' : null,
-      triggerBgResize: true,
-      rangeHighlight: ranges,
-    };
-    this.setState(
-      { ranges },
-      serverState.saveRangeHighlights(dataId, ranges, () => propagateState(props)),
-    );
+    this.setState({ ranges }, async () => {
+      await serverState.saveRangeHighlights(dataId, ranges);
+      propagateState({
+        backgroundMode: _.size(ranges) ? 'range' : null,
+        triggerBgResize: true,
+        rangeHighlight: ranges,
+      });
+    });
   }
 
   toggleRange(col) {
     const { dataId, propagateState } = this.props;
     const ranges = { ...this.state.ranges };
     ranges[col].active = !ranges[col].active;
-    const props = {
-      backgroundMode: 'range',
-      triggerBgResize: true,
-      rangeHighlight: ranges,
-    };
-    this.setState(
-      { ranges },
-      serverState.saveRangeHighlights(dataId, ranges, () => propagateState(props)),
-    );
+    this.setState({ ranges }, async () => {
+      await serverState.saveRangeHighlights(dataId, ranges);
+      propagateState({ backgroundMode: 'range', triggerBgResize: true, rangeHighlight: ranges });
+    });
   }
 
   render() {

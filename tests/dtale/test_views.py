@@ -760,19 +760,30 @@ def test_update_visibility(unittest):
         build_dtypes(dtypes)
         c.post(
             "/dtale/update-visibility/{}".format(c.port),
-            data=dict(visibility=json.dumps({"a": True, "b": True, "c": False})),
+            data=json.dumps(
+                dict(visibility=json.dumps({"a": True, "b": True, "c": False}))
+            ),
+            content_type="application/json",
         )
         unittest.assertEqual(
             [True, True, False],
             [col["visible"] for col in global_state.get_dtypes(c.port)],
         )
-        c.post("/dtale/update-visibility/{}".format(c.port), data=dict(toggle="c"))
+        c.post(
+            "/dtale/update-visibility/{}".format(c.port),
+            data=json.dumps(dict(toggle="c")),
+            content_type="application/json",
+        )
         unittest.assertEqual(
             [True, True, True],
             [col["visible"] for col in global_state.get_dtypes(c.port)],
         )
 
-        resp = c.post("/dtale/update-visibility/-1", data=dict(toggle="foo"))
+        resp = c.post(
+            "/dtale/update-visibility/-1",
+            data=json.dumps(dict(toggle="foo")),
+            content_type="application/json",
+        )
         assert "error" in json.loads(resp.data)
 
 
@@ -2814,7 +2825,8 @@ def test_build_column_text():
 
         resp = c.post(
             "/dtale/build-column-copy/{}".format(c.port),
-            data={"columns": json.dumps(["a"])},
+            data=json.dumps({"columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"1\n2\n3\n"
 
@@ -2829,12 +2841,14 @@ def test_build_row_text():
 
         resp = c.post(
             "/dtale/build-row-copy/{}".format(c.port),
-            data={"start": 1, "end": 2, "columns": json.dumps(["a"])},
+            data=json.dumps({"start": 1, "end": 2, "columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"1\n2\n"
         resp = c.post(
             "/dtale/build-row-copy/{}".format(c.port),
-            data={"rows": json.dumps([1]), "columns": json.dumps(["a"])},
+            data=json.dumps({"rows": json.dumps([1]), "columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"2\n"
 
@@ -2906,6 +2920,7 @@ def test_save_range_highlights():
         }
         c.post(
             "/dtale/save-range-highlights/{}".format(c.port),
-            data=dict(ranges=json.dumps(range_highlights)),
+            data=json.dumps(dict(ranges=json.dumps(range_highlights))),
+            content_type="application/json",
         )
         assert global_state.get_settings(c.port)["rangeHighlight"] is not None

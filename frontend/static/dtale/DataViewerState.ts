@@ -20,6 +20,7 @@ export interface ColumnDef extends Bounds {
   hasOutliers?: boolean;
   outlierRange?: OutlierRange;
   lowVariance?: boolean;
+  locked: boolean;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
@@ -57,7 +58,7 @@ export interface RangeHighlightModes {
 }
 
 /** Range highlighting for individual columns or "all" columns */
-interface RangeHighlight extends Record<string, RangeHighlightModes & HasActivation> {
+export interface RangeHighlight extends Record<string, RangeHighlightModes & HasActivation> {
   all: RangeHighlightModes & HasActivation;
 }
 
@@ -74,11 +75,58 @@ export interface Bounds {
 }
 
 /** Properties for specifying filtered ranges */
-interface FilteredRanges {
+export interface FilteredRanges {
   query?: string;
   dtypes?: ColumnDef[];
   ranges?: Record<string, Bounds>;
   overall?: Bounds;
+}
+
+/** Actions available to column filters */
+type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
+
+/** Operands available to column filters */
+type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
+
+/** Column filter properties */
+export interface ColumnFilter extends Bounds {
+  type: string;
+  query?: string;
+  missing?: boolean;
+  action?: ColumnFilterAction;
+  value?: string | number;
+  raw?: string | number;
+  caseSensitive?: boolean;
+  operand?: ColumnFilterOperand;
+  start?: string;
+  end?: string;
+}
+
+/** Predefined filter properties */
+interface PredefinedFilter extends HasActivation {
+  value: string | number;
+}
+
+/** Type definition for a column format configuration object */
+export type ColumnFormat = Record<string, any>;
+
+/** Settings available to each instance (piece of data) of D-Tale */
+export interface InstanceSettings {
+  locked?: string[];
+  allow_cell_edits?: boolean;
+  precision: number;
+  columnFormats?: Record<string, ColumnFormat>;
+  backgroundMode?: string;
+  rangeHighlight: RangeHighlight;
+  verticalHeaders: boolean;
+  predefinedFilters: Record<string, PredefinedFilter>;
+  sortInfo?: string[][];
+  nanDisplay?: string;
+  startup_code?: string;
+  query?: string;
+  outlierFilters?: Record<string, string>;
+  filteredRanges?: FilteredRanges;
+  columnFilters?: Record<string, ColumnFilter>;
 }
 
 /** State properties of DataViewer */

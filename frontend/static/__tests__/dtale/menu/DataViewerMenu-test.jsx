@@ -12,9 +12,12 @@ import { PPSOption } from '../../../dtale/menu/PPSOption';
 import { PredefinedFiltersOption } from '../../../dtale/menu/PredefinedFiltersOption';
 import ShowHideColumnsOption from '../../../dtale/menu/ShowHideColumnsOption';
 import TimeseriesAnalysisOption from '../../../dtale/menu/TimeseriesAnalysisOption';
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, PREDEFINED_FILTERS, tickUpdate } from '../../test-utils';
+import DescribeOption from '../../../dtale/menu/DescribeOption';
+import ChartsOption from '../../../dtale/menu/ChartsOption';
+import InstancesOption from '../../../dtale/menu/InstancesOption';
 
 describe('DataViewerMenu tests', () => {
   const { open } = window;
@@ -27,9 +30,13 @@ describe('DataViewerMenu tests', () => {
 
   beforeEach(() => {
     updateLanguageSpy = jest.spyOn(serverState, 'updateLanguage');
-    updateLanguageSpy.mockImplementation((_language, callback) => callback());
+    updateLanguageSpy.mockResolvedValue(Promise.resolve({ success: true }));
     DataViewerMenu = require('../../../dtale/menu/DataViewerMenu').DataViewerMenu;
     store = reduxUtils.createDtaleStore();
+  });
+
+  afterEach(() => {
+    window.open.mockReset();
   });
 
   afterAll(() => {
@@ -111,11 +118,44 @@ describe('DataViewerMenu tests', () => {
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
   });
 
-  it('udpates languages', async () => {
+  it('updates languages', async () => {
     const result = buildMenu({});
-    result.find(LanguageOption).find('button').last().simulate('click');
+    await result.find(LanguageOption).find('button').last().simulate('click');
     await tickUpdate(result);
     expect(updateLanguageSpy.mock.calls[0][0]).toBe('cn');
     expect(store.getState().language).toBe('cn');
+  });
+
+  describe('iframe handling', () => {
+    const { resourceBaseUrl, self, top } = window;
+    let iframeWrapper;
+
+    beforeAll(() => {
+      delete window.top;
+      delete window.self;
+      delete window.resourceBaseUrl;
+      window.top = { location: { href: 'http://test.com' } };
+      window.self = { location: { href: 'http://test/dtale/iframe' } };
+    });
+
+    beforeEach(() => {
+      iframeWrapper = buildMenu({ iframe: true });
+    });
+
+    afterAll(() => {
+      window.top = top;
+      window.self = self;
+      window.resourceBaseUrl = resourceBaseUrl;
+    });
+
+    it('correctly opens new windows', () => {
+      window.resourceBaseUrl = '/test-route/';
+      iframeWrapper.find(DescribeOption).simulate('click');
+      expect(window.open.mock.calls[0][0]).toBe('/test-route/dtale/popup/describe/1');
+      iframeWrapper.find(ChartsOption).simulate('click');
+      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/test-route/dtale/charts/1');
+      iframeWrapper.find(InstancesOption).simulate('click');
+      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/test-route/dtale/popup/instances/1');
+    });
   });
 });

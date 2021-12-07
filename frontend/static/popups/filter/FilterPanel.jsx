@@ -8,7 +8,7 @@ import { Bouncer } from '../../Bouncer';
 import { RemovableError } from '../../RemovableError';
 import { setQueryEngine } from '../../actions/dtale';
 import { updateSettings } from '../../actions/settings';
-import serverState from '../../dtale/serverStateManagement';
+import * as serverState from '../../dtale/serverStateManagement';
 import { SidePanelButtons } from '../../dtale/side/SidePanelButtons';
 import ContextVariables from './ContextVariables';
 import PandasQueryHelp from './PandasQueryHelp';
@@ -40,21 +40,19 @@ class ReactFilterPanel extends React.Component {
     saveFilter(this.props.dataId, this.state.query, callback);
   }
 
-  dropFilter(prop, col) {
+  async dropFilter(prop, col) {
     const { dataId } = this.props;
     const filters = this.state[prop];
     const updatedSettings = {
       [prop]: _.pickBy(filters, (_, k) => k !== col),
     };
-    serverState.updateSettings(updatedSettings, dataId, () => {
-      this.props.updateSettings(updatedSettings, () => this.setState(updatedSettings));
-    });
+    await serverState.updateSettings(updatedSettings, dataId);
+    this.props.updateSettings(updatedSettings, () => this.setState(updatedSettings));
   }
 
-  clear() {
-    serverState.updateSettings({ query: '' }, this.props.dataId, () => {
-      this.props.updateSettings({ query: '' }, this.props.hideSidePanel);
-    });
+  async clear() {
+    await serverState.updateSettings({ query: '' }, this.props.dataId);
+    this.props.updateSettings({ query: '' }, this.props.hideSidePanel);
   }
 
   render() {
@@ -62,7 +60,10 @@ class ReactFilterPanel extends React.Component {
       return <Bouncer />;
     }
     const { t, queryEngine, setEngine } = this.props;
-    const updateEngine = (engine) => () => serverState.updateQueryEngine(engine, () => setEngine(engine));
+    const updateEngine = (engine) => async () => {
+      await serverState.updateQueryEngine(engine);
+      setEngine(engine);
+    };
     return (
       <React.Fragment>
         <RemovableError {...this.state} onRemove={() => this.setState({ error: null, traceback: null })} />

@@ -3,7 +3,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import serverStateManagement from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { MenuItem } from './MenuItem';
 
 class ReactPinMenuOption extends React.Component {
@@ -13,7 +13,10 @@ class ReactPinMenuOption extends React.Component {
 
   render() {
     const { toggleMenuPinned, menuPinned, t } = this.props;
-    const togglePinned = () => serverStateManagement.updatePinMenu(!menuPinned, toggleMenuPinned);
+    const togglePinned = async () => {
+      await serverState.updatePinMenu(!menuPinned);
+      toggleMenuPinned();
+    };
     return (
       <MenuItem description={t('menu_description:pin_menu')} onClick={togglePinned}>
         <span className="toggler-action">

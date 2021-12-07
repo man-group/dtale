@@ -51,11 +51,14 @@ def test_merge(unittest):
         config = dict(how="inner", sort=False, indicator=False)
         resp = c.post(
             "/dtale/merge",
-            data=dict(
-                action="merge",
-                config=json.dumps(config),
-                datasets=json.dumps(datasets),
+            data=json.dumps(
+                dict(
+                    action="merge",
+                    config=json.dumps(config),
+                    datasets=json.dumps(datasets),
+                )
             ),
+            content_type="application/json",
         )
         assert resp.status_code == 200
         final_df = global_state.get_data(resp.json["data_id"])
@@ -70,11 +73,14 @@ def test_merge(unittest):
         config["indicator"] = True
         resp = c.post(
             "/dtale/merge",
-            data=dict(
-                action="merge",
-                config=json.dumps(config),
-                datasets=json.dumps(datasets),
+            data=json.dumps(
+                dict(
+                    action="merge",
+                    config=json.dumps(config),
+                    datasets=json.dumps(datasets),
+                )
             ),
+            content_type="application/json",
         )
         assert resp.status_code == 200
         final_df = global_state.get_data(resp.json["data_id"])
@@ -89,11 +95,14 @@ def test_merge(unittest):
         datasets.append(dict(dataId="3", index=["key1", "key2"], suffix="3"))
         resp = c.post(
             "/dtale/merge",
-            data=dict(
-                action="merge",
-                config=json.dumps(config),
-                datasets=json.dumps(datasets),
+            data=json.dumps(
+                dict(
+                    action="merge",
+                    config=json.dumps(config),
+                    datasets=json.dumps(datasets),
+                )
             ),
+            content_type="application/json",
         )
         assert resp.status_code == 200
         final_df = global_state.get_data(resp.json["data_id"])
@@ -141,11 +150,14 @@ def test_stack(unittest):
         config = dict(ignore_index=False)
         resp = c.post(
             "/dtale/merge",
-            data=dict(
-                action="stack",
-                config=json.dumps(config),
-                datasets=json.dumps(datasets),
+            data=json.dumps(
+                dict(
+                    action="stack",
+                    config=json.dumps(config),
+                    datasets=json.dumps(datasets),
+                )
             ),
+            content_type="application/json",
         )
         assert resp.status_code == 200
         final_df = global_state.get_data(resp.json["data_id"])
@@ -155,11 +167,14 @@ def test_stack(unittest):
         config["ignoreIndex"] = True
         resp = c.post(
             "/dtale/merge",
-            data=dict(
-                action="stack",
-                config=json.dumps(config),
-                datasets=json.dumps(datasets),
+            data=json.dumps(
+                dict(
+                    action="stack",
+                    config=json.dumps(config),
+                    datasets=json.dumps(datasets),
+                )
             ),
+            content_type="application/json",
         )
         assert resp.status_code == 200
         final_df = global_state.get_data(resp.json["data_id"])

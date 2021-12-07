@@ -12,7 +12,7 @@ import { fetchJson } from '../../fetcher';
 import ColumnNavigation from '../../popups/describe/ColumnNavigation';
 import { Details } from '../../popups/describe/Details';
 import DtypesGrid from '../../popups/describe/DtypesGrid';
-import serverState from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { SidePanelButtons } from './SidePanelButtons';
 
 class ReactDescribePanel extends React.Component {
@@ -66,10 +66,11 @@ class ReactDescribePanel extends React.Component {
     }
     const { dataId, toggleVisible } = this.props;
     const propagateState = (state) => this.setState(state);
-    const save = () => {
+    const save = async () => {
       const currDtypes = this.grid.current.state.dtypes;
       const visibility = _.reduce(currDtypes, (ret, d) => _.assignIn(ret, { [d.name]: d.visible }), {});
-      serverState.updateVisibility(this.props.dataId, visibility, () => toggleVisible(visibility));
+      await serverState.updateVisibility(this.props.dataId, visibility);
+      toggleVisible(visibility);
     };
     return (
       <BouncerWrapper showBouncer={this.state.loadingDtypes}>

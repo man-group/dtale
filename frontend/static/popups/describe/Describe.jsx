@@ -8,7 +8,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
 import { updateSettings } from '../../actions/settings';
 import { dtypesUrl } from '../../actions/url-utils';
-import serverState from '../../dtale/serverStateManagement';
+import * as serverState from '../../dtale/serverStateManagement';
 import { fetchJson } from '../../fetcher';
 import ColumnNavigation from './ColumnNavigation';
 import { Details } from './Details';
@@ -58,13 +58,11 @@ class Describe extends React.Component {
         </div>
       );
     }
-    const save = () => {
+    const save = async () => {
       const visibility = _.reduce(this._grid.state.dtypes, (ret, d) => _.assignIn(ret, { [d.name]: d.visible }), {});
-      const callback = () => {
-        window.opener.location.reload();
-        window.close();
-      };
-      serverState.updateVisibility(this.props.dataId, visibility, callback);
+      await serverState.updateVisibility(this.props.dataId, visibility);
+      window.opener.location.reload();
+      window.close();
     };
     const propagateState = (state) => this.setState(state);
     return [

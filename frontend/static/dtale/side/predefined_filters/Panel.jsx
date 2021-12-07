@@ -8,7 +8,7 @@ import { RemovableError } from '../../../RemovableError';
 import { updateSettings } from '../../../actions/settings';
 import { dtypesUrl } from '../../../actions/url-utils';
 import { fetchJson } from '../../../fetcher';
-import serverStateManagement from '../../serverStateManagement';
+import * as serverState from '../../serverStateManagement';
 import FilterInput from './FilterInput';
 
 require('./Panel.css');
@@ -40,7 +40,7 @@ class ReactPanel extends React.Component {
     });
   }
 
-  save(name, value, active) {
+  async save(name, value, active) {
     const { dataId, updateSettings } = this.props;
     const filterValues = { ...this.props.filterValues };
     if (value) {
@@ -49,10 +49,11 @@ class ReactPanel extends React.Component {
       filterValues[name] = { active };
     }
     const settings = { predefinedFilters: filterValues };
-    serverStateManagement.updateSettings(settings, dataId, () => updateSettings(settings));
+    await serverState.updateSettings(settings, dataId);
+    updateSettings(settings);
   }
 
-  clearAll() {
+  async clearAll() {
     const { dataId, updateSettings, filterValues } = this.props;
     const settings = {
       predefinedFilters: _.mapValues(filterValues, (value) => ({
@@ -60,7 +61,8 @@ class ReactPanel extends React.Component {
         active: false,
       })),
     };
-    serverStateManagement.updateSettings(settings, dataId, () => updateSettings(settings));
+    await serverState.updateSettings(settings, dataId);
+    updateSettings(settings);
   }
 
   render() {

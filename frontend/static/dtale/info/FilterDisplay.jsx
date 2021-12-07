@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import { updateSettings } from '../../actions/settings';
 import * as gu from '../gridUtils';
-import serverState from '../serverStateManagement';
+import * as serverState from '../serverStateManagement';
 import { buildMenuHandler, predefinedFilterStr } from './infoUtils';
 
 const removeBackticks = (query) => query.replace(/`/g, '');
@@ -14,11 +14,12 @@ const removeBackticks = (query) => query.replace(/`/g, '');
 function displayQueries(props, prop) {
   const queries = props[prop];
   return _.map(queries, (cfg, col) => {
-    const dropColFilter = () => {
+    const dropColFilter = async () => {
       const updatedSettings = {
         [prop]: _.pickBy(queries, (_, k) => k !== col),
       };
-      serverState.updateSettings(updatedSettings, props.dataId, () => props.updateSettings(updatedSettings));
+      await serverState.updateSettings(updatedSettings, props.dataId);
+      props.updateSettings(updatedSettings);
     };
     return (
       <li key={`${prop}-${col}`}>
@@ -42,14 +43,15 @@ class ReactFilterDisplay extends React.Component {
   displayPredefined() {
     const { predefinedFilters, predefinedFilterConfigs, dataId, updateSettings } = this.props;
     return _.map(gu.filterPredefined(predefinedFilters), (value, name) => {
-      const dropFilter = () => {
+      const dropFilter = async () => {
         const updatedSettings = {
           predefinedFilters: {
             ...predefinedFilters,
             [name]: { value: predefinedFilters[name].value, active: false },
           },
         };
-        serverState.updateSettings(updatedSettings, dataId, () => updateSettings(updatedSettings));
+        await serverState.updateSettings(updatedSettings, dataId);
+        updateSettings(updatedSettings);
       };
       const displayValue = predefinedFilterStr(predefinedFilterConfigs, name, value.value);
       return (
@@ -85,7 +87,7 @@ class ReactFilterDisplay extends React.Component {
     }
     const clearFilter =
       (drop = false) =>
-      () => {
+      async () => {
         const settingsUpdates = {
           query: '',
           columnFilters: {},
@@ -96,21 +98,22 @@ class ReactFilterDisplay extends React.Component {
           })),
           invertFilter: false,
         };
-        const callback = () => updateSettings(settingsUpdates);
         if (drop) {
-          serverState.dropFilteredRows(dataId, callback);
+          await serverState.dropFilteredRows(dataId);
         } else {
-          serverState.updateSettings(settingsUpdates, dataId, callback);
+          await serverState.updateSettings(settingsUpdates, dataId);
         }
+        updateSettings(settingsUpdates);
       };
-    const toggleInvert = () => {
+    const toggleInvert = async () => {
       const settingsUpdates = { invertFilter: !this.props.invertFilter };
-      serverState.updateSettings(settingsUpdates, dataId, () => updateSettings(settingsUpdates));
+      await serverState.updateSettings(settingsUpdates, dataId);
+      updateSettings(settingsUpdates);
     };
-    const moveToCustom = () =>
-      serverState.moveFiltersToCustom(dataId, ({ settings }) => {
-        updateSettings(settings, () => this.props.showSidePanel('filter'));
-      });
+    const moveToCustom = async () => {
+      const { settings } = await serverState.moveFiltersToCustom(dataId);
+      updateSettings(settings, () => this.props.showSidePanel('filter'));
+    };
     const allButtons = (
       <>
         <i
@@ -176,9 +179,10 @@ class ReactFilterDisplay extends React.Component {
                   <span className="toggler-action">
                     <button
                       className="btn btn-plain ignore-clicks"
-                      onClick={() =>
-                        serverState.updateSettings({ query: '' }, dataId, () => updateSettings({ query: '' }))
-                      }
+                      onClick={async () => {
+                        await serverState.updateSettings({ query: '' }, dataId);
+                        updateSettings({ query: '' });
+                      }}
                     >
                       <i className="ico-cancel mr-4" />
                     </button>

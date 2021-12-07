@@ -1,7 +1,7 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import * as fetcher from '../../../fetcher';
 import DtypesGrid from '../../../popups/describe/DtypesGrid';
 import { createMockComponent } from '../../mocks/createMockComponent';
@@ -97,8 +97,9 @@ describe('DescribePanel', () => {
       expect(reactWrapper.find(DtypesGrid)).toHaveLength(1);
     });
 
-    it('updates visibility correctly', () => {
+    it('updates visibility correctly', async () => {
       reactWrapper.find('button').first().simulate('click');
+      await tick();
       expect(serverStateSpy.mock.calls[0][0]).toBe('1');
       expect(serverStateSpy.mock.calls[0][1]).toEqual({
         col1: true,
@@ -106,7 +107,6 @@ describe('DescribePanel', () => {
         col3: true,
         col4: true,
       });
-      serverStateSpy.mock.calls[0][2]();
       expect(props.toggleVisible).toHaveBeenCalledWith({
         col1: true,
         col2: true,

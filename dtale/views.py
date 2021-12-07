@@ -1440,7 +1440,7 @@ def update_formats(data_id):
 @dtale.route("/save-range-highlights/<data_id>", methods=["POST"])
 @exception_decorator
 def save_range_highlights(data_id):
-    ranges = json.loads(request.form.get("ranges", "{}"))
+    ranges = json.loads(request.json.get("ranges", "{}"))
     curr_settings = global_state.get_settings(data_id) or {}
     updated_settings = dict_merge(curr_settings, dict(rangeHighlight=ranges))
     global_state.set_settings(data_id, updated_settings)
@@ -1547,14 +1547,14 @@ def update_visibility(data_id):
     :return: JSON {success: True/False}
     """
     curr_dtypes = global_state.get_dtypes(data_id)
-    if request.form.get("visibility"):
-        visibility = json.loads(request.form.get("visibility", "{}"))
+    if request.json.get("visibility"):
+        visibility = json.loads(request.json.get("visibility", "{}"))
         global_state.set_dtypes(
             data_id,
             [dict_merge(d, dict(visible=visibility[d["name"]])) for d in curr_dtypes],
         )
-    elif request.form.get("toggle"):
-        toggle_col = request.form.get("toggle")
+    elif request.json.get("toggle"):
+        toggle_col = request.json.get("toggle")
         toggle_idx = next(
             (idx for idx, d in enumerate(curr_dtypes) if d["name"] == toggle_col), None
         )
@@ -3337,7 +3337,7 @@ def dataset_upload():
 @dtale.route("/build-column-copy/<data_id>", methods=["POST"])
 @exception_decorator
 def build_column_text(data_id):
-    columns = request.form.get("columns")
+    columns = request.json.get("columns")
     columns = json.loads(columns)
 
     curr_settings = global_state.get_settings(data_id) or {}
@@ -3354,7 +3354,7 @@ def build_column_text(data_id):
 @exception_decorator
 def build_row_text(data_id):
     start, end, rows, columns = (
-        request.form.get(p) for p in ["start", "end", "rows", "columns"]
+        request.json.get(p) for p in ["start", "end", "rows", "columns"]
     )
     columns = json.loads(columns)
     curr_settings = global_state.get_settings(data_id) or {}
@@ -3498,7 +3498,7 @@ def get_sorted_sequential_diffs(data_id):
 @dtale.route("/merge", methods=["POST"])
 @exception_decorator
 def build_merge():
-    cfg = request.form
+    cfg = request.json
     name = cfg.get("name")
     builder = CombineData(cfg)
     data = builder.build_data()

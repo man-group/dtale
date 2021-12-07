@@ -2,25 +2,20 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import { ReactFilterDisplay } from '../../../dtale/info/FilterDisplay';
-import serverState from '../../../dtale/serverStateManagement';
+import * as serverState from '../../../dtale/serverStateManagement';
 import * as menuUtils from '../../../menuUtils';
+import { tick } from '../../test-utils';
 
 describe('FilterDisplay', () => {
   let wrapper, props, updateSettingsSpy, openMenuSpy, dropFilteredRowsSpy, moveFiltersToCustomSpy;
 
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
-    updateSettingsSpy.mockImplementation((_settings, _dataId, callback) => {
-      callback();
-    });
+    updateSettingsSpy.mockResolvedValue(Promise.resolve({ success: true }));
     dropFilteredRowsSpy = jest.spyOn(serverState, 'dropFilteredRows');
-    dropFilteredRowsSpy.mockImplementation((_dataId, callback) => {
-      callback();
-    });
+    dropFilteredRowsSpy.mockResolvedValue(Promise.resolve({ success: true }));
     moveFiltersToCustomSpy = jest.spyOn(serverState, 'moveFiltersToCustom');
-    moveFiltersToCustomSpy.mockImplementation((_dataId, callback) => {
-      callback({ settings: {} });
-    });
+    moveFiltersToCustomSpy.mockResolvedValue(Promise.resolve({ settings: {} }));
     openMenuSpy = jest.spyOn(menuUtils, 'openMenu');
     openMenuSpy.mockImplementation(() => undefined);
     props = {
@@ -46,17 +41,16 @@ describe('FilterDisplay', () => {
     wrapper = shallow(<ReactFilterDisplay {...props} />);
   });
 
-  afterEach(jest.resetAllMocks);
-
-  afterAll(jest.restoreAllMocks);
+  afterEach(jest.restoreAllMocks);
 
   it('Displays all queries', () => {
     const filterLink = wrapper.find('div.filter-menu-toggle').first().find('span.pointer');
     expect(filterLink.text()).toBe('foo == 1 and foo == 1 and f...');
   });
 
-  it('Clears all filters on clear-all', () => {
-    wrapper.find('i.ico-cancel').last().simulate('click');
+  it('Clears all filters on clear-all', async () => {
+    await wrapper.find('i.ico-cancel').last().simulate('click');
+    await tick();
     expect(updateSettingsSpy).toHaveBeenCalled();
     expect(props.updateSettings).toHaveBeenLastCalledWith({
       query: '',
@@ -67,12 +61,13 @@ describe('FilterDisplay', () => {
     });
   });
 
-  it('Clears all filters on clear-all', () => {
-    wrapper
+  it('Clears all filters on clear-all', async () => {
+    await wrapper
       .find('div.filter-menu-toggle')
       .first()
       .find('button')
       .forEach((clear) => clear.simulate('click'));
+    await tick();
     expect(updateSettingsSpy).toHaveBeenCalledTimes(4);
     expect(props.updateSettings).toHaveBeenCalledWith({ query: '' });
     expect(props.updateSettings).toHaveBeenCalledWith({ columnFilters: {} });
@@ -93,8 +88,9 @@ describe('FilterDisplay', () => {
     expect(props.propagateState).toHaveBeenLastCalledWith({ menuOpen: null });
   });
 
-  it('correctly calls drop-filtered-rows', () => {
-    wrapper.find('i.fas.fa-eraser').simulate('click');
+  it('correctly calls drop-filtered-rows', async () => {
+    await wrapper.find('i.fas.fa-eraser').simulate('click');
+    await tick();
     expect(dropFilteredRowsSpy).toHaveBeenCalledTimes(1);
     expect(props.updateSettings).toHaveBeenCalledWith({
       query: '',
@@ -110,16 +106,18 @@ describe('FilterDisplay', () => {
     expect(wrapper.find('i.fas.fa-eraser')).toHaveLength(0);
   });
 
-  it('correctly calls move filters to custom', () => {
-    wrapper.find('i.fa.fa-filter').simulate('click');
+  it('correctly calls move filters to custom', async () => {
+    await wrapper.find('i.fa.fa-filter').simulate('click');
+    await tick();
     expect(moveFiltersToCustomSpy).toHaveBeenCalledTimes(1);
     expect(props.updateSettings).toHaveBeenCalled();
     props.updateSettings.mock.calls[0][1]();
     expect(props.showSidePanel).toHaveBeenCalledWith('filter');
   });
 
-  it('inverts filter', () => {
-    wrapper.find('i.fas.fa-retweet').simulate('click');
+  it('inverts filter', async () => {
+    await wrapper.find('i.fas.fa-retweet').simulate('click');
+    await tick();
     expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
     expect(props.updateSettings).toHaveBeenCalledWith({ invertFilter: true });
   });

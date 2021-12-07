@@ -39,9 +39,9 @@ class ReactEditedCellInfo extends React.Component {
     }
   }
 
-  onKeyDown(e) {
+  async onKeyDown(e) {
     const { colCfg, rowIndex, value, origValue } = this.state;
-    onKeyDown(e, colCfg, rowIndex, value, origValue, this.props);
+    await onKeyDown(e, colCfg, rowIndex, value, origValue, this.props);
   }
 
   render() {

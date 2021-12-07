@@ -3,16 +3,20 @@
 const fs = require('fs');
 const path = require('path');
 
-// polyfills meust be resolved relative to this project's directory structure
+// polyfills must be resolved relative to this project's directory structure
 const testPolyfills = require.resolve('./config/testPolyfills');
 
 // the path of `tsconfig.test.json` must be resolved relative to the project consuming this library
 const testTsConfig = path.resolve(fs.realpathSync(process.cwd()), 'tsconfig.test.json');
 
 module.exports = {
-  collectCoverageFrom: ['<rootDir>/static/**/*.{js,ts}?(x)'],
+  collectCoverageFrom: [
+    'static/**/*.{js,jsx,ts,tsx}',
+    '!static/__tests__/',
+    '!static/dash/lib/custom.js',
+    '!static/**/*test.{js,jsx,ts,tsx}',
+  ],
   coverageDirectory: './JS_coverage',
-  coveragePathIgnorePatterns: ['<rootDir>/static/__tests__/', '<rootDir>/static/dash/lib/custom.js'],
   coverageReporters: ['html', 'lcovonly', 'text-summary'],
   globals: {
     'ts-jest': {
@@ -25,10 +29,7 @@ module.exports = {
   },
   setupFiles: [testPolyfills],
   setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],
-  testMatch: [
-    '<rootDir>/static/**/__tests__/**/*-test.{js,ts}?(x)',
-    '<rootDir>/static/**/?(*.)(spec|test).{js, ts}?(x)',
-  ],
+  testMatch: ['<rootDir>/static/**/*test.{js,ts}?(x)'],
   testPathIgnorePatterns: ['/node_modules/'],
   testEnvironment: 'jsdom',
   testURL: 'http://localhost',
