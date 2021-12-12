@@ -7,7 +7,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 import ButtonToggle from '../../ButtonToggle';
-import actions from '../../actions/merge';
+import { updateActionType, updateActionConfig } from '../../redux/actions/merge';
 import ExampleCode from './code.json';
 
 const actionOpts = (t) => [
@@ -194,8 +194,8 @@ const ReduxActionConfig = connect(
     stackConfig,
   }),
   (dispatch) => ({
-    updateActionType: (action) => dispatch(actions.updateActionType(action)),
-    updateActionConfig: (actionUpdate) => dispatch(actions.updateActionConfig(actionUpdate)),
+    updateActionType: (action) => dispatch(updateActionType(action)),
+    updateActionConfig: (actionUpdate) => dispatch(updateActionConfig(actionUpdate)),
   }),
 )(TranslateReactActionConfig);
 export { ReduxActionConfig as default, TranslateReactActionConfig as ReactActionConfig };

@@ -3,13 +3,13 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import app from '../../reducers/dtale';
-import { createStore } from '../../reducers/store';
+import app from '../../redux/reducers/app';
+import { createAppStore } from '../../redux/store';
 
 export default class DataPreview extends React.Component {
   constructor(props) {
     super(props);
-    this.store = createStore(app.store);
+    this.store = createAppStore(app);
     this.store.dispatch({ type: 'load-preview', dataId: props.dataId });
   }
 

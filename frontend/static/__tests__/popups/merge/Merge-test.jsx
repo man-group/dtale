@@ -1,14 +1,13 @@
 import { mount } from 'enzyme';
-import _ from 'lodash';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import mergeApp from '../../../reducers/merge';
-import { createStore } from '../../../reducers/store';
+import mergeApp from '../../../redux/reducers/merge';
+import { createAppStore } from '../../../redux/store';
 import { createMockComponent } from '../../mocks/createMockComponent';
 import { PROCESSES } from '../../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../../test-utils';
-import * as fetcher from '../../../fetcher';
+import * as GenericRepository from '../../../repository/GenericRepository';
 
 describe('DataViewer tests', () => {
   jest.mock('../../../dtale/DataViewer', () => ({
@@ -18,32 +17,27 @@ describe('DataViewer tests', () => {
   let result, store, fetchJsonSpy, postSpy;
 
   beforeEach(async () => {
-    fetchJsonSpy = jest.spyOn(fetcher, 'fetchJson');
-    fetchJsonSpy.mockImplementation((url, callback) => {
-      const { urlFetcher } = require('../../redux-test-utils').default;
-      if (_.startsWith(url, '/dtale/processes')) {
-        const data = _.map(PROCESSES, (p) => ({
+    fetchJsonSpy = jest.spyOn(GenericRepository, 'getDataFromService');
+    fetchJsonSpy.mockImplementation((url) => {
+      if (url.startsWith('/dtale/processes')) {
+        const data = PROCESSES.map((p) => ({
           ...p,
-          names: _.map(p.names.split(','), (c) => ({
+          names: p.names.split(',').map((c) => ({
             name: c,
             dtype: 'int',
           })),
         }));
-        callback({ data, success: true });
-        return;
-      } else if (_.startsWith(url, '/dtale/cleanup')) {
-        callback({ success: true });
-        return;
+        return { data, success: true };
       }
-      callback(urlFetcher(url));
+      return { success: true };
     });
-    postSpy = jest.spyOn(fetcher, 'fetchPost');
-    postSpy.mockImplementation((_url, _params, callback) => callback({ success: true, data_id: '1' }));
+    postSpy = jest.spyOn(GenericRepository, 'postDataToService');
+    postSpy.mockResolvedValue(Promise.resolve({ success: true, data_id: '1' }));
     const MergeDatasets = require('../../../popups/merge/MergeDatasets').default;
-    const mergeActions = require('../../../actions/merge').default;
-    store = createStore(mergeApp);
+    const mergeActions = require('../../../redux/actions/merge');
+    store = createAppStore(mergeApp);
     buildInnerHTML({ settings: '' });
-    store.dispatch(mergeActions.init());
+    await mergeActions.init(store.dispatch);
     result = mount(
       <Provider store={store}>
         <MergeDatasets />
@@ -97,7 +91,7 @@ describe('DataViewer tests', () => {
     datasetBtn.simulate('click');
     mergeDatasets = result.find('ReactMergeDatasets');
     expect(mergeDatasets.instance().props.datasets).toHaveLength(2);
-    postSpy.mockImplementation((_url, _params, callback) => callback({ success: false, error: 'Bad Merge' }));
+    postSpy.mockResolvedValue(Promise.resolve({ success: false, error: 'Bad Merge' }));
     mergeDatasets.find('ReactMergeOutput').find('button').simulate('click');
     await tickUpdate(result);
     result.update();
@@ -161,8 +155,8 @@ describe('DataViewer tests', () => {
     expect(store.getState().datasets).toEqual([
       {
         dataId: '8081',
-        index: null,
-        columns: null,
+        index: [],
+        columns: [],
         suffix: null,
         isOpen: false,
         isDataOpen: true,

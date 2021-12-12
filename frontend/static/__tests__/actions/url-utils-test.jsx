@@ -1,4 +1,4 @@
-import { buildURLParams } from '../../actions/url-utils';
+import { buildURLParams } from '../../redux/actions/url-utils';
 
 describe('url-utils tests', () => {
   it('url-utils: testing URL_KEYS', () => {

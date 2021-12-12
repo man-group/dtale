@@ -3,7 +3,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 
 import { RemovableError } from '../../../RemovableError';
-import * as urlUtils from '../../../actions/url-utils';
+import * as urlUtils from '../../../redux/actions/url-utils';
 import DimensionsHelper from '../../DimensionsHelper';
 import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';

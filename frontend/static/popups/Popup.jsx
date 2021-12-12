@@ -7,8 +7,8 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { closeChart } from '../actions/charts';
-import mergeActions from '../actions/merge';
+import { closeChart } from '../redux/actions/charts';
+import { loadDatasets } from '../redux/actions/merge';
 import { buildRangeState } from '../dtale/rangeSelectUtils';
 import DraggableModalDialog from './DraggableModalDialog';
 import * as popupUtils from './popupUtils';
@@ -102,7 +102,7 @@ const ReduxPopup = connect(
   (state) => _.pick(state, ['dataId', 'iframe', 'chartData']),
   (dispatch) => ({
     onClose: (chartData) => dispatch(closeChart(chartData || {})),
-    mergeRefresher: () => dispatch(mergeActions.loadDatasets()),
+    mergeRefresher: async () => await loadDatasets(dispatch),
   }),
 )(TranslateReactPopup);
 

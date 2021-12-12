@@ -19,7 +19,7 @@
  *   }});
  *
  */
-export default function mock(getReturnValue) {
+export default function mockPopsicle(getReturnValue) {
   // Return an object with all the same keys as `popsicle`, but a
   // different value for the `get` key.
 

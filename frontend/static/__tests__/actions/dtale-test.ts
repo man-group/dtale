@@ -2,9 +2,9 @@ describe('dtale tests', () => {
   const { location } = window;
 
   beforeAll(() => {
-    delete window.location;
-    window.location = {
-      search: `col=foo&vals=a,b,c&baz=${JSON.stringify({ bizz: [1, 2] })}`,
+    delete (window as any).location;
+    (window as any).location = {
+      search: `?col=foo&vals=a,b,c&baz=${JSON.stringify({ bizz: [1, 2] })}`,
     };
   });
 
@@ -13,7 +13,7 @@ describe('dtale tests', () => {
   });
 
   it('dtale: testing getParams', () => {
-    const actions = require('../../actions/dtale');
+    const actions = require('../../redux/actions/dtale');
     const urlParams = actions.getParams();
     expect({
       col: 'foo',

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import ButtonToggle from '../../ButtonToggle';
 import { RemovableError } from '../../RemovableError';
-import { buildURLString, sequentialDiffsUrl } from '../../actions/url-utils';
+import { buildURLString, sequentialDiffsUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import { buildStat } from './detailUtils';
 

@@ -38,7 +38,7 @@ const BASE_HTML = `
 
 // eslint-disable-next-line complexity
 export function buildInnerHTML(props = {}, store = null) {
-  const actions = require('../actions/dtale');
+  const actions = require('../redux/actions/dtale');
   const pjson = require('../../package.json');
   const body = document.getElementsByTagName('body')[0];
   body.innerHTML = [

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import { buildURLString, columnFilterDataUrl } from '../../../actions/url-utils';
+import { buildURLString, columnFilterDataUrl } from '../../../redux/actions/url-utils';
 import * as gu from '../../gridUtils';
 import { fetchJson } from '../../../fetcher';
 import AsyncValueSelect from '../../../filters/AsyncValueSelect';

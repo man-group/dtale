@@ -1,10 +1,9 @@
 import _ from 'lodash';
-import React from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import { Store } from 'redux';
 
-import * as actions from './actions/dtale';
-import mergeActions from './actions/merge';
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
 import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
@@ -22,10 +21,14 @@ import { ReactCreateReplacement as CreateReplacement } from './popups/replacemen
 import { ReactReshape as Reshape } from './popups/reshape/Reshape';
 import { ReactUpload as Upload } from './popups/upload/Upload';
 import { Variance } from './popups/variance/Variance';
-import app from './reducers/dtale';
-import mergeApp from './reducers/merge';
-import { createStore } from './reducers/store';
-import { getHiddenValue, toJson } from './reducers/utils';
+import * as actions from './redux/actions/dtale';
+import * as mergeActions from './redux/actions/merge';
+import appReducers from './redux/reducers/app';
+import mergeReducers from './redux/reducers/merge';
+import { getHiddenValue, toJson } from './redux/reducers/utils';
+import { AppState, InstanceSettings } from './redux/state/AppState';
+import { MergeState } from './redux/state/MergeState';
+import { createAppStore } from './redux/store';
 
 require('./publicPath');
 
@@ -33,11 +36,16 @@ let pathname = window.location.pathname;
 if ((window as any).resourceBaseUrl) {
   pathname = _.replace(pathname, (window as any).resourceBaseUrl, '');
 }
+let storeBuilder: () => Store = () => {
+  const store = createAppStore<AppState>(appReducers);
+  store.dispatch(actions.init());
+  return store;
+};
 if (pathname.indexOf('/dtale/popup') === 0) {
   require('./dtale/DataViewer.css');
 
   let rootNode = null;
-  const settings: Record<string, string> = toJson(getHiddenValue('settings'));
+  const settings = toJson<InstanceSettings>(getHiddenValue('settings'));
   const dataId = getHiddenValue('data_id');
   const chartData: Record<string, any> = {
     ...actions.getParams(),
@@ -46,8 +54,6 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   };
   const pathSegs = pathname.split('/');
   const popupType = pathSegs[pathSegs.length - 1] === 'code-popup' ? 'code-popup' : pathSegs[3];
-  let store = createStore(app.store);
-  let initAction: () => Record<string, any> = actions.init;
   switch (popupType) {
     case 'filter':
       rootNode = <FilterPopup {...{ dataId, chartData }} />;
@@ -56,8 +62,11 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <Correlations {...{ dataId, chartData }} />;
       break;
     case 'merge':
-      store = createStore(mergeApp);
-      initAction = mergeActions.init;
+      storeBuilder = () => {
+        const store = createAppStore<MergeState>(mergeReducers);
+        mergeActions.init(store.dispatch);
+        return store;
+      };
       rootNode = <ReduxMergeDatasets />;
       break;
     case 'pps':
@@ -112,8 +121,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
-  store.dispatch(initAction());
-  ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
+  ReactDOM.render(<Provider store={storeBuilder()}>{rootNode}</Provider>, document.getElementById('popup-content'));
 } else if (_.startsWith(pathname, '/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
   let title: string;
@@ -131,7 +139,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   }
   ReactDOM.render(body, document.getElementById('popup-content'));
 } else {
-  const store = createStore(app.store);
+  const store = storeBuilder();
   store.dispatch(actions.init());
   if (store.getState().openPredefinedFiltersOnStartup) {
     store.dispatch(actions.openPredefinedFilters());

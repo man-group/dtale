@@ -4,7 +4,7 @@ import React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { connect } from 'react-redux';
 
-import { openChart } from '../actions/charts';
+import { openChart } from '../redux/actions/charts';
 import menuFuncs from './menu/dataViewerMenuUtils';
 import { buildCtrlColumnCopyText, buildRowCopyText } from './rangeSelectUtils';
 

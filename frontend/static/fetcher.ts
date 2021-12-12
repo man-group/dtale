@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 
-import { cleanupEndpoint } from './actions/url-utils';
+import { cleanupEndpoint } from './redux/actions/url-utils';
 
 /**
  * Formatter for logging exceptions.

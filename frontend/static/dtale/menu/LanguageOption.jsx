@@ -4,7 +4,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import * as actions from '../../actions/dtale';
+import * as actions from '../../redux/actions/dtale';
 import * as serverState from '../serverStateManagement';
 import { MenuItem } from './MenuItem';
 

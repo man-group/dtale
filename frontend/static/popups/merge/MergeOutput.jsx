@@ -7,7 +7,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import actions from '../../actions/merge';
+import { buildMerge, clearMerge } from '../../redux/actions/merge';
 import { jumpToDataset } from '../upload/uploadUtils';
 import DataPreview from './DataPreview';
 
@@ -95,7 +95,10 @@ class ReactMergeOutput extends React.Component {
               </div>
             )}
             <div className="col-auto">
-              <button className="btn-sm btn-primary pointer" onClick={() => this.props.buildMerge(this.state.name)}>
+              <button
+                className="btn-sm btn-primary pointer"
+                onClick={async () => await this.props.buildMerge(this.state.name)}
+              >
                 <i className="ico-remove-circle pr-3" />
                 <span>{`${t('Build')} ${t(_.capitalize(this.props.action))}`}</span>
               </button>
@@ -174,8 +177,8 @@ const ReduxMergeOutput = connect(
     showCode,
   }),
   (dispatch) => ({
-    buildMerge: (name) => dispatch(actions.buildMerge(name)),
-    clearMerge: () => dispatch(actions.clearMerge()),
+    buildMerge: (name) => dispatch(buildMerge(name)),
+    clearMerge: () => dispatch(clearMerge()),
     toggleShowCode: () => dispatch({ type: 'toggle-show-code' }),
   }),
 )(TranslateReactMergeOutput);

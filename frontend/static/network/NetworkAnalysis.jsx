@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 
 import Collapsible from '../Collapsible';
 import { fetchJson } from '../fetcher';
-import { buildURLString } from '../actions/url-utils';
+import { buildURLString } from '../redux/actions/url-utils';
 import { RemovableError } from '../RemovableError';
 import { BouncerWrapper } from '../BouncerWrapper';
 import _ from 'lodash';

@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { buildURLParams, buildURLString } from '../../actions/url-utils';
+import { buildURLParams, buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson, fetchPost } from '../../fetcher';
 import CSVOptions from './CSVOptions';
 import SheetSelector from './SheetSelector';

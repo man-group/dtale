@@ -5,7 +5,7 @@ import { withTranslation } from 'react-i18next';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import ColumnSelect from '../create/ColumnSelect';
 import Keep from './Keep';

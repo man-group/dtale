@@ -1,8 +1,9 @@
 import chroma from 'chroma-js';
 import * as React from 'react';
-import { RGBColor } from 'react-color';
 import { Dispatch } from 'react-redux';
 import { MultiGridProps } from 'react-virtualized';
+
+import { FilteredRanges, PredefinedFilter, RangeHighlight } from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -38,30 +39,6 @@ export interface DataViewerUpdate extends Record<string, any> {
 /** Data storage in DataViewer */
 export type DataViewerData = Record<number, Record<string, DataRecord>>;
 
-/** Object which can be turned on/off */
-interface HasActivation {
-  active: boolean;
-}
-
-/** Range highlight configuration properties */
-interface RangeHighlightModeCfg {
-  active: boolean;
-  value: number;
-  color: RGBColor;
-}
-
-/** Different types of range highlighting */
-export interface RangeHighlightModes {
-  equals: RangeHighlightModeCfg;
-  greaterThan: RangeHighlightModeCfg;
-  lessThan: RangeHighlightModeCfg;
-}
-
-/** Range highlighting for individual columns or "all" columns */
-export interface RangeHighlight extends Record<string, RangeHighlightModes & HasActivation> {
-  all: RangeHighlightModes & HasActivation;
-}
-
 /** Properties for selecting ranges of rows, columns, etc... */
 interface RangeSelection {
   start: number;
@@ -72,14 +49,6 @@ interface RangeSelection {
 export interface Bounds {
   min?: number;
   max?: number;
-}
-
-/** Properties for specifying filtered ranges */
-export interface FilteredRanges {
-  query?: string;
-  dtypes?: ColumnDef[];
-  ranges?: Record<string, Bounds>;
-  overall?: Bounds;
 }
 
 /** Actions available to column filters */
@@ -102,22 +71,17 @@ export interface ColumnFilter extends Bounds {
   end?: string;
 }
 
-/** Predefined filter properties */
-interface PredefinedFilter extends HasActivation {
-  value: string | number;
-}
-
 /** Type definition for a column format configuration object */
 export type ColumnFormat = Record<string, any>;
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
   locked?: string[];
-  allow_cell_edits?: boolean;
+  allow_cell_edits: boolean;
   precision: number;
   columnFormats?: Record<string, ColumnFormat>;
   backgroundMode?: string;
-  rangeHighlight: RangeHighlight;
+  rangeHighlight?: RangeHighlight;
   verticalHeaders: boolean;
   predefinedFilters: Record<string, PredefinedFilter>;
   sortInfo?: string[][];

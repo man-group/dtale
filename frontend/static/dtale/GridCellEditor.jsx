@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { openChart } from '../actions/charts';
+import { openChart } from '../redux/actions/charts';
 import { onKeyDown } from './edited/editUtils';
 
 class ReactGridCellEditor extends React.Component {

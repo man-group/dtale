@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { varianceUrl } from '../../actions/url-utils';
+import { varianceUrl } from '../../redux/actions/url-utils';
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';
 import { renderCodePopupAnchor } from '../CodePopup';

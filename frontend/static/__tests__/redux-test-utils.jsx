@@ -1,8 +1,8 @@
 /* eslint max-lines: "off" */
 import _ from 'lodash';
 
-import dtaleApp from '../reducers/dtale';
-import { createStore } from '../reducers/store';
+import dtaleApp from '../redux/reducers/app';
+import { createAppStore } from '../redux/store';
 import chartsData from './data/charts.json';
 import groupedChartsData from './data/charts-grouped.json';
 import columnAnalysisData from './data/column-analysis.json';
@@ -291,7 +291,7 @@ function urlFetcher(url) {
 
 export default {
   urlFetcher,
-  createDtaleStore: () => createStore(dtaleApp.store),
+  createDtaleStore: () => createAppStore(dtaleApp),
   DATA,
   DTYPES,
 };

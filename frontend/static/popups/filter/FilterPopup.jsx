@@ -6,9 +6,9 @@ import { connect } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { RemovableError } from '../../RemovableError';
-import { closeChart } from '../../actions/charts';
-import { setQueryEngine } from '../../actions/dtale';
-import { updateSettings } from '../../actions/settings';
+import { closeChart } from '../../redux/actions/charts';
+import { setQueryEngine } from '../../redux/actions/dtale';
+import { updateSettings } from '../../redux/actions/settings';
 import * as serverState from '../../dtale/serverStateManagement';
 import ContextVariables from './ContextVariables';
 import PandasQueryHelp from './PandasQueryHelp';

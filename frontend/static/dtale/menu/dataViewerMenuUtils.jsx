@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { cleanupEndpoint } from '../../actions/url-utils';
+import { cleanupEndpoint } from '../../redux/actions/url-utils';
 import { buildClickHandler } from '../../menuUtils';
 import * as bu from '../backgroundUtils';
 

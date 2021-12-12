@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { closeChart } from '../actions/charts';
+import { closeChart } from '../redux/actions/charts';
 
 require('./Confirmation.css');
 

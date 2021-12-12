@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { getHiddenValue } from './reducers/utils';
+import { getHiddenValue } from './redux/reducers/utils';
 import cn from './translations/cn.json';
 import en from './translations/en.json';
 import pt from './translations/pt.json';

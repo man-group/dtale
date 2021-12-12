@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import * as actions from '../actions/dtale';
+import * as actions from '../redux/actions/dtale';
 import _ from 'lodash';
 
 const DATA_PROPS = ['to', 'from', 'weight', 'group'];

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import AsyncSelect from 'react-select/async';
 
-import { buildURLString, columnFilterDataUrl } from '../actions/url-utils';
+import { buildURLString, columnFilterDataUrl } from '../redux/actions/url-utils';
 import { fetchJsonPromise } from '../fetcher';
 
 class AsyncValueSelect extends React.Component {

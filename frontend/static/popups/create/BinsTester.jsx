@@ -4,7 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import ColumnAnalysisChart from '../analysis/ColumnAnalysisChart';
 

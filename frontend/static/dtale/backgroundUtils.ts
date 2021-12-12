@@ -2,8 +2,9 @@ import chroma from 'chroma-js';
 import * as React from 'react';
 
 import { BASE_COLOR, MODES } from '../popups/RangeHighlight';
+import { RangeHighlightModes } from '../redux/state/AppState';
 
-import { Bounds, ColumnDef, DataRecord, DataViewerState, OutlierRange, RangeHighlightModes } from './DataViewerState';
+import { Bounds, ColumnDef, DataRecord, DataViewerState, OutlierRange } from './DataViewerState';
 import * as gu from './gridUtils';
 
 export const missingIcon = String.fromCodePoint(10071); // "!" emoji

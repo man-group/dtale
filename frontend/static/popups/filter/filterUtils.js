@@ -1,5 +1,5 @@
 import { fetchJson } from '../../fetcher';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLString } from '../../redux/actions/url-utils';
 import _ from 'lodash';
 
 export function saveFilter(dataId, query, callback) {
