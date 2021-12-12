@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Select, { createFilter } from 'react-select';
 
 import { RemovableError } from '../../RemovableError';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import Aggregations from './Aggregations';
 import ChartsBody from './ChartsBody';

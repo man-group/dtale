@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { RemovableError } from '../../RemovableError';
-import { buildURLString, dtypesUrl } from '../../actions/url-utils';
+import { buildURLString, dtypesUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import FilterSelect from '../../popups/analysis/filters/FilterSelect';
 import ColumnSelect from '../../popups/create/ColumnSelect';

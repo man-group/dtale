@@ -7,7 +7,7 @@ import vis from 'vis-network/dist/vis-network';
 
 import { BouncerWrapper } from '../BouncerWrapper';
 import { RemovableError } from '../RemovableError';
-import { buildURLString, dtypesUrl } from '../actions/url-utils';
+import { buildURLString, dtypesUrl } from '../redux/actions/url-utils';
 import { fetchJson } from '../fetcher';
 import ColumnSelect from '../popups/create/ColumnSelect';
 import NetworkDescription from './NetworkDescription';

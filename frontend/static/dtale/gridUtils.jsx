@@ -6,8 +6,8 @@ import numeral from 'numeral';
 import { measureText } from './MeasureText';
 import menuFuncs from './menu/dataViewerMenuUtils';
 import { buildRangeState } from './rangeSelectUtils';
-import * as actions from '../actions/dtale';
-import { openChart } from '../actions/charts';
+import * as actions from '../redux/actions/dtale';
+import { openChart } from '../redux/actions/charts';
 
 export const IDX = 'dtale_index';
 const DEFAULT_COL_WIDTH = 70;

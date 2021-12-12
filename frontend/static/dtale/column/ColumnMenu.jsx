@@ -5,10 +5,10 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { openChart } from '../../actions/charts';
-import * as actions from '../../actions/dtale';
-import { updateSettings } from '../../actions/settings';
-import { buildURLString } from '../../actions/url-utils';
+import { openChart } from '../../redux/actions/charts';
+import * as actions from '../../redux/actions/dtale';
+import { updateSettings } from '../../redux/actions/settings';
+import { buildURLString } from '../../redux/actions/url-utils';
 import ColumnFilter from '../../filters/ColumnFilter';
 import * as gu from '../gridUtils';
 import menuFuncs from '../menu/dataViewerMenuUtils';

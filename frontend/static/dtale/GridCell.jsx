@@ -4,7 +4,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { openChart } from '../actions/charts';
+import { openChart } from '../redux/actions/charts';
 import { GridCellEditor } from './GridCellEditor';
 import { Header } from './Header';
 import * as bu from './backgroundUtils';

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import { RemovableError } from '../RemovableError';
-import { buildURL } from '../actions/url-utils';
+import { buildURL } from '../redux/actions/url-utils';
 import { fetchJson } from '../fetcher';
 import { CodePopup } from './CodePopup';
 

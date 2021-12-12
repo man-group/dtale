@@ -1,24 +1,11 @@
-import { buildURLString } from '../actions/url-utils';
+import { buildURLString } from '../redux/actions/url-utils';
+import { BaseResponse, FilteredRanges, InstanceSettings, RangeHighlight } from '../redux/state/AppState';
 import * as GenericRepository from '../repository/GenericRepository';
 
-import {
-  ColumnDef,
-  ColumnFormat,
-  DataViewerState,
-  FilteredRanges,
-  InstanceSettings,
-  RangeHighlight,
-} from './DataViewerState';
+import { ColumnDef, ColumnFormat, DataViewerState } from './DataViewerState';
 
 /** Type-defintion for any callback function */
 type Callback = (response?: Record<string, any>) => void;
-
-/** Object returned from post requests */
-interface BaseResponse {
-  success: boolean;
-  error?: string;
-  traceback?: string;
-}
 
 /** Type-definition for functions returning standard success responses */
 export type BaseReturn<T = BaseResponse> = Promise<T | undefined>;

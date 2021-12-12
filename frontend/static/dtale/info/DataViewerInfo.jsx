@@ -5,7 +5,7 @@ import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import { RemovableError } from '../../RemovableError';
-import { updateSettings } from '../../actions/settings';
+import { updateSettings } from '../../redux/actions/settings';
 import * as gu from '../gridUtils';
 import * as serverState from '../serverStateManagement';
 import { FilterDisplay } from './FilterDisplay';

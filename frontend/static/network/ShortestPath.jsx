@@ -4,7 +4,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { fetchJson } from '../fetcher';
-import { buildURLString } from '../actions/url-utils';
+import { buildURLString } from '../redux/actions/url-utils';
 import { RemovableError } from '../RemovableError';
 
 class ReactShortestPath extends React.Component {

@@ -1,7 +1,7 @@
 import chroma from 'chroma-js';
 import _ from 'lodash';
 
-import { buildURL } from '../../actions/url-utils';
+import { buildURL } from '../../redux/actions/url-utils';
 import * as chartUtils from '../../chartUtils';
 
 function buildState() {

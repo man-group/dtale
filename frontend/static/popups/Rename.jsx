@@ -5,7 +5,7 @@ import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import { RemovableError } from '../RemovableError';
-import { closeChart } from '../actions/charts';
+import { closeChart } from '../redux/actions/charts';
 import * as serverState from '../dtale/serverStateManagement';
 
 require('./Confirmation.css');

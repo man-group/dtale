@@ -3,7 +3,7 @@ import _ from 'lodash';
 import React from 'react';
 
 import * as chartUtils from '../../chartUtils';
-import { buildURLParams } from '../../actions/url-utils';
+import { buildURLParams } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import { RemovableError } from '../../RemovableError';
 import ColumnAnalysisChart from './ColumnAnalysisChart';

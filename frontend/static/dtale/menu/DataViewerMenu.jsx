@@ -5,7 +5,7 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { openChart } from '../../actions/charts';
+import { openChart } from '../../redux/actions/charts';
 import * as gu from '../gridUtils';
 import AboutOption from './AboutOption';
 import BuildColumnOption from './BuildColumnOption';

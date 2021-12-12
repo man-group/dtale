@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { buildURLString, dtypesUrl } from '../../actions/url-utils';
+import { buildURLString, dtypesUrl } from '../../redux/actions/url-utils';
 import * as chartUtils from '../../chartUtils';
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';

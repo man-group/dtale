@@ -1,7 +1,7 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import * as actions from '../../actions/dtale';
+import * as actions from '../../redux/actions/dtale';
 import NetworkUrlParams from '../../network/NetworkUrlParams';
 
 describe('NetworkUrlParams', () => {

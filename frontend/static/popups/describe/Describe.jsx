@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { updateSettings } from '../../actions/settings';
-import { dtypesUrl } from '../../actions/url-utils';
+import { updateSettings } from '../../redux/actions/settings';
+import { dtypesUrl } from '../../redux/actions/url-utils';
 import * as serverState from '../../dtale/serverStateManagement';
 import { fetchJson } from '../../fetcher';
 import ColumnNavigation from './ColumnNavigation';

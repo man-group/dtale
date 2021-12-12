@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import { getHiddenValue } from '../../reducers/utils';
+import { getHiddenValue } from '../../redux/reducers/utils';
 import { MenuItem } from './MenuItem';
 
 class InstancesOption extends React.Component {

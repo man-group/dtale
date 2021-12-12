@@ -4,7 +4,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 
 import { RemovableError } from '../../RemovableError';
-import { buildURL } from '../../actions/url-utils';
+import { buildURL } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import CorrelationsGrid from '../correlations/CorrelationsGrid';
 import corrUtils from '../correlations/correlationsUtils';

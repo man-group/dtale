@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-import { cleanupEndpoint } from '../actions/url-utils';
 import { logException } from '../fetcher';
+import { cleanupEndpoint } from '../redux/actions/url-utils';
 
 const formatEndpoint = (apiEndpoint: string): string => {
   const webRoot = (window as any).resourceBaseUrl;
@@ -20,8 +20,13 @@ const formatEndpoint = (apiEndpoint: string): string => {
  * @return The response body from the service if successful. Failure will result in a thrown Error.
  */
 export async function getDataFromService<T>(apiEndpoint: string): Promise<T | undefined> {
-  const response = await axios.get<T>(formatEndpoint(apiEndpoint));
-  return response.data;
+  try {
+    const response = await axios.get<T>(formatEndpoint(apiEndpoint));
+    return response.data;
+  } catch (e) {
+    logException(e as Error, (e as Error).stack);
+  }
+  return undefined;
 }
 
 /**

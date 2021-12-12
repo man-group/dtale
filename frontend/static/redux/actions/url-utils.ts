@@ -1,4 +1,4 @@
-import { ColumnFilter } from '../dtale/DataViewerState';
+import { ColumnFilter } from '../../dtale/DataViewerState';
 
 /** Type definition for URL parameters */
 type UrlParameter = Record<string, string | null>;

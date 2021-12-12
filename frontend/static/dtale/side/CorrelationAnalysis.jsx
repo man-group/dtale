@@ -10,8 +10,8 @@ import Table from 'react-virtualized/dist/commonjs/Table/Table';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { openChart } from '../../actions/charts';
-import { corrAnalysisUrl } from '../../actions/url-utils';
+import { openChart } from '../../redux/actions/charts';
+import { corrAnalysisUrl } from '../../redux/actions/url-utils';
 import { SORT_CHARS } from '../Header';
 import { fetchJson } from '../../fetcher';
 import { sortData, updateSort } from '../../popups/correlations/CorrelationsGrid';

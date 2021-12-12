@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Select, { createFilter } from 'react-select';
 
 import { RemovableError } from '../RemovableError';
-import * as actions from '../actions/dtale';
+import * as actions from '../redux/actions/dtale';
 import { fetchJson } from '../fetcher';
 
 class ReactXArrayIndexes extends React.Component {

@@ -6,7 +6,7 @@ import Modal from 'react-bootstrap/Modal';
 import { withTranslation } from 'react-i18next';
 
 import { RemovableError } from '../../RemovableError';
-import { buildURLString } from '../../actions/url-utils';
+import { buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import DraggableModalDialog from '../DraggableModalDialog';
 import { jumpToDataset } from './uploadUtils';

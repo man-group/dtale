@@ -8,7 +8,7 @@ import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import InfiniteLoader from 'react-virtualized/dist/commonjs/InfiniteLoader';
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
-import { buildURLParams, buildURLString } from '../actions/url-utils';
+import { buildURLParams, buildURLString } from '../redux/actions/url-utils';
 import { fetchJsonPromise, logException } from '../fetcher';
 import { Popup } from '../popups/Popup';
 import { Formatting } from '../popups/formats/Formatting';

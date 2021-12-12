@@ -5,7 +5,7 @@ import Draggable from 'react-draggable';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import * as actions from '../actions/dtale';
+import * as actions from '../redux/actions/dtale';
 import { openMenu } from '../menuUtils';
 import * as bu from './backgroundUtils';
 import { ignoreMenuClicks } from './column/columnMenuUtils';

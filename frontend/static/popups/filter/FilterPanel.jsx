@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { RemovableError } from '../../RemovableError';
-import { setQueryEngine } from '../../actions/dtale';
-import { updateSettings } from '../../actions/settings';
+import { setQueryEngine } from '../../redux/actions/dtale';
+import { updateSettings } from '../../redux/actions/settings';
 import * as serverState from '../../dtale/serverStateManagement';
 import { SidePanelButtons } from '../../dtale/side/SidePanelButtons';
 import ContextVariables from './ContextVariables';

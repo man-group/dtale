@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { closeChart } from '../../actions/charts';
-import { buildURLString, dtypesUrl } from '../../actions/url-utils';
+import { closeChart } from '../../redux/actions/charts';
+import { buildURLString, dtypesUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import CodeSnippet from '../create/CodeSnippet';
 import { Aggregate, validateAggregateCfg } from './Aggregate';

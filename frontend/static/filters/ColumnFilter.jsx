@@ -4,7 +4,12 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { components } from 'react-select';
 
-import { buildURLString, columnFilterDataUrl, saveColFilterUrl, toggleOutlierFilterUrl } from '../actions/url-utils';
+import {
+  buildURLString,
+  columnFilterDataUrl,
+  saveColFilterUrl,
+  toggleOutlierFilterUrl,
+} from '../redux/actions/url-utils';
 
 import * as gu from '../dtale/gridUtils';
 import menuFuncs from '../dtale/menu/dataViewerMenuUtils';

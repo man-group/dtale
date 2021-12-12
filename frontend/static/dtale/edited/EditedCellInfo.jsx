@@ -3,7 +3,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { openChart } from '../../actions/charts';
+import { openChart } from '../../redux/actions/charts';
 import { getCell } from '../gridUtils';
 import { onKeyDown } from './editUtils';
 

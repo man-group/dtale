@@ -2,15 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import * as actions from '../actions/dtale';
+import * as actions from '../redux/actions/dtale';
 import '../i18n';
-import app from '../reducers/dtale';
-import { createStore } from '../reducers/store';
+import app from '../redux/reducers/app';
+import { createAppStore } from '../redux/store';
 import { NetworkDisplay } from './NetworkDisplay';
 
 require('../publicPath');
 
-const store = createStore(app.store);
+const store = createAppStore(app);
 store.dispatch(actions.init());
 ReactDOM.render(
   <Provider store={store}>

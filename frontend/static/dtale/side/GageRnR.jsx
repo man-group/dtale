@@ -9,7 +9,7 @@ import Table from 'react-virtualized/dist/commonjs/Table/Table';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
-import { dtypesUrl, gageUrl } from '../../actions/url-utils';
+import { dtypesUrl, gageUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
 import { FilterableToggle } from '../../popups/FilterableToggle';
 import ColumnSelect from '../../popups/create/ColumnSelect';

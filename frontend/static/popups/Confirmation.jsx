@@ -4,7 +4,7 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
-import { closeChart } from '../actions/charts';
+import { closeChart } from '../redux/actions/charts';
 
 require('./Confirmation.css');
 
