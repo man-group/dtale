@@ -1,6 +1,7 @@
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { ErrorState } from '../../repository/GenericRepository';
 
-import { ChartData, ErrorState } from './AppState';
+import { ChartData } from './AppState';
 
 /** Properties for a merge instance */
 export interface MergeInstance {

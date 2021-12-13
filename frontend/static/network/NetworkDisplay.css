@@ -23,3 +23,7 @@ button.load-network {
 .accordion-content .network-analysis ul {
   padding: 0;
 }
+
+.border1 {
+  border: 1px solid black;
+}

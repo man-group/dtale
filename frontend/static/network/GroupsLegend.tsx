@@ -1,23 +1,21 @@
-import _ from 'lodash';
-import PropTypes from 'prop-types';
-import React from 'react';
-import { withTranslation } from 'react-i18next';
+import * as React from 'react';
+import { TFunction, withTranslation } from 'react-i18next';
 
-class GroupsLegend extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+import { GroupColor } from './NetworkState';
 
-  render() {
-    const { groups, t } = this.props;
-    if (!_.size(groups)) {
-      return null;
-    }
-    return (
+/** Component properties for GroupsLegend */
+interface GroupsLegendProps {
+  groups?: GroupColor[];
+  t: TFunction;
+}
+
+const GroupsLegend: React.FC<GroupsLegendProps> = ({ groups, t }) => (
+  <React.Fragment>
+    {!!groups?.length && (
       <div className="groups-legend">
         <div className="row">
           <div className="font-weight-bold col-md-12">{t('Groups')}</div>
-          {_.map(groups, ([group, color], i) => (
+          {groups.map(([group, color], i) => (
             <div key={i} className="col-md-12">
               <div
                 style={{
@@ -31,9 +29,7 @@ class GroupsLegend extends React.Component {
           ))}
         </div>
       </div>
-    );
-  }
-}
-GroupsLegend.displayName = 'GroupsLegend';
-GroupsLegend.propTypes = { groups: PropTypes.array, t: PropTypes.func };
+    )}
+  </React.Fragment>
+);
 export default withTranslation('network')(GroupsLegend);

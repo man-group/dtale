@@ -1,6 +1,6 @@
 import { buildURLString } from '../redux/actions/url-utils';
-import { BaseResponse, FilteredRanges, InstanceSettings, RangeHighlight } from '../redux/state/AppState';
-import * as GenericRepository from '../repository/GenericRepository';
+import { FilteredRanges, InstanceSettings, RangeHighlight } from '../redux/state/AppState';
+import { BaseResponse, getDataFromService, postDataToService } from '../repository/GenericRepository';
 
 import { ColumnDef, ColumnFormat, DataViewerState } from './DataViewerState';
 
@@ -11,10 +11,10 @@ type Callback = (response?: Record<string, any>) => void;
 export type BaseReturn<T = BaseResponse> = Promise<T | undefined>;
 
 const baseGetter = async <T = BaseResponse>(apiEndpoint: string): BaseReturn<T> =>
-  await GenericRepository.getDataFromService<T>(`/dtale/${apiEndpoint}`);
+  await getDataFromService<T>(`/dtale/${apiEndpoint}`);
 
 export const executeAction = async (route: string, dataId: string, params: Record<string, string>): BaseReturn =>
-  await GenericRepository.getDataFromService<BaseResponse>(buildURLString(`/dtale/${route}/${dataId}?`, params));
+  await getDataFromService<BaseResponse>(buildURLString(`/dtale/${route}/${dataId}?`, params));
 
 /** Parameters required for any column operation (locking or moving) */
 interface ColumnOperationProps {
@@ -142,16 +142,12 @@ export function unlockCols(selectedCols: string[], props: ColumnOperationProps):
 }
 
 const persistVisibility = async (dataId: string, params: Record<string, string>): BaseReturn =>
-  await GenericRepository.postDataToService<Record<string, string>, BaseResponse>(
-    `/dtale/update-visibility/${dataId}`,
-    params,
-  );
+  await postDataToService<Record<string, string>, BaseResponse>(`/dtale/update-visibility/${dataId}`, params);
 
 export const saveRangeHighlights = async (dataId: string, ranges: RangeHighlight): BaseReturn =>
-  await GenericRepository.postDataToService<Record<string, string>, BaseResponse>(
-    `/dtale/save-range-highlights/${dataId}`,
-    { ranges: JSON.stringify(ranges) },
-  );
+  await postDataToService<Record<string, string>, BaseResponse>(`/dtale/save-range-highlights/${dataId}`, {
+    ranges: JSON.stringify(ranges),
+  });
 
 export const updateSettings = async (settings: Partial<InstanceSettings>, dataId: string): BaseReturn =>
   await baseGetter(buildURLString(`update-settings/${dataId}?`, { settings: JSON.stringify(settings) }));

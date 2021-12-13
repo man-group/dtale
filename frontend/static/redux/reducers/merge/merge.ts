@@ -1,8 +1,8 @@
 import { AnyAction, combineReducers } from 'redux';
-import { ColumnDef } from 'static/dtale/DataViewerState';
 
+import { ColumnDef } from '../../../dtale/DataViewerState';
+import { ErrorState } from '../../../repository/GenericRepository';
 import { ConfigUpdateAction, MergeActionType, MergeAppActionTypes } from '../../actions/MergeActions';
-import { ErrorState } from '../../state/AppState';
 import {
   Dataset,
   initialDataset,

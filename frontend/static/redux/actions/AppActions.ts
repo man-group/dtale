@@ -93,7 +93,7 @@ export type ToggleMenuPinnedAction = Action<typeof ActionType.TOGGLE_MENU_PINNED
 
 /** Action fired when D-Tale is loaded in "preview" mode */
 export interface LoadPreviewAction extends Action<typeof ActionType.LOAD_PREVIEW> {
-  dataId?: string;
+  dataId: string;
 }
 
 /** Action fired when a user edits a cell */

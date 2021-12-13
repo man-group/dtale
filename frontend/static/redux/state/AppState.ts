@@ -12,17 +12,6 @@ export interface HasVisibility {
   visible: boolean;
 }
 
-/** Properties associated with error display */
-export interface ErrorState {
-  error?: string;
-  traceback?: string;
-}
-
-/** Object returned from post requests */
-export interface BaseResponse extends ErrorState {
-  success: boolean;
-}
-
 export const initialVisibility = { visible: false };
 
 /** Properties of a main menu tooltip */
@@ -155,7 +144,7 @@ export interface RangeHighlight extends Record<string, RangeHighlightModes & Has
 /** Properties of application state */
 export interface AppState extends AppSettings {
   chartData: ChartData;
-  dataId: string | null;
+  dataId: string;
   editedCell: string | null;
   editedTextAreaHeight: number;
   iframe: boolean;

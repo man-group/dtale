@@ -6,7 +6,7 @@ require('./Collapsible.scss');
 interface CollapsibleProps {
   title: React.ReactNode;
   content: React.ReactNode;
-  onExpand: () => void;
+  onExpand?: () => void;
 }
 
 const Collapsible: React.FC<CollapsibleProps> = ({ title, content, onExpand }) => {

@@ -3,6 +3,17 @@ import axios from 'axios';
 import { logException } from '../fetcher';
 import { cleanupEndpoint } from '../redux/actions/url-utils';
 
+/** Properties associated with error display */
+export interface ErrorState {
+  error?: string;
+  traceback?: string;
+}
+
+/** Object returned from post requests */
+export interface BaseResponse extends ErrorState {
+  success: boolean;
+}
+
 const formatEndpoint = (apiEndpoint: string): string => {
   const webRoot = (window as any).resourceBaseUrl;
   if (webRoot) {
