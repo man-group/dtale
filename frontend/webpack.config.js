@@ -14,7 +14,7 @@ const entries = [
   ['base_styles', './static/base_styles.js'],
   ['polyfills', './static/polyfills.js'],
   ['dtale', './static/main.tsx'],
-  ['network', './static/network/main.jsx'],
+  ['network', './static/network/main.tsx'],
 ];
 
 function createConfig(entry) {

@@ -909,7 +909,9 @@
     "Group": "Group",
     "Weight": "Weight",
     "Load": "Load",
-    "Shortest path between nodes": "Shortest path between nodes"
+    "Shortest path between nodes": "Shortest path between nodes",
+    "Color": "Color",
+    "Arrows": "Arrows"
   },
   "main": {
     "Sort": "Sort",

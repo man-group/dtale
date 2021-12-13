@@ -1,29 +1,36 @@
-import { shallow } from 'enzyme';
-import React from 'react';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 
+import { NetworkUrlParams, NetworkUrlParamsProps } from '../../network/NetworkUrlParams';
 import * as actions from '../../redux/actions/dtale';
-import NetworkUrlParams from '../../network/NetworkUrlParams';
+import { tickUpdate } from '../test-utils';
 
 describe('NetworkUrlParams', () => {
   const { onpopstate } = window;
   const { history } = global;
-  let result, propagateState, getParamsSpy;
+  let result: ReactWrapper<NetworkUrlParamsProps>;
+  let props: NetworkUrlParamsProps;
+  let getParamsSpy: jest.SpyInstance<Record<string, string | string[]>, []>;
   const params = { to: 'to', from: 'from', group: 'group', weight: 'weight' };
 
   beforeAll(() => {
-    delete window.onpopstate;
+    delete (window as any).onpopstate;
     window.onpopstate = jest.fn();
   });
 
-  beforeEach(() => {
-    propagateState = jest.fn();
+  beforeEach(async () => {
+    props = {
+      propagateState: jest.fn(),
+      params: {},
+    };
     getParamsSpy = jest.spyOn(actions, 'getParams');
-    result = shallow(<NetworkUrlParams params={undefined} propagateState={propagateState} />);
+    result = mount(<NetworkUrlParams {...props} />);
+
+    await act(async () => await tickUpdate(result));
   });
 
-  afterEach(() => {
-    getParamsSpy.mockRestore();
-  });
+  afterEach(jest.restoreAllMocks);
 
   afterAll(() => {
     window.onpopstate = onpopstate;
@@ -42,12 +49,12 @@ describe('NetworkUrlParams', () => {
     getParamsSpy.mockReturnValue({});
     result.setProps({ params });
     expect(pushState).toHaveBeenLastCalledWith({}, '', '?to=to&from=from&group=group&weight=weight');
-    window.onpopstate();
-    expect(propagateState).toHaveBeenLastCalledWith({
-      to: null,
-      from: null,
-      group: null,
-      weight: null,
+    (window as any).onpopstate();
+    expect(props.propagateState).toHaveBeenLastCalledWith({
+      to: undefined,
+      from: undefined,
+      group: undefined,
+      weight: undefined,
     });
     pushState.mockClear();
     result.setProps({ params });

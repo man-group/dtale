@@ -1,7 +1,7 @@
 import { Action, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
-import { ErrorState } from '../state/AppState';
+import { ErrorState } from '../../repository/GenericRepository';
 import { Dataset, MergeConfigType, MergeInstance, MergeState } from '../state/MergeState';
 
 import { CloseChartAction, OpenChartAction } from './AppActions';

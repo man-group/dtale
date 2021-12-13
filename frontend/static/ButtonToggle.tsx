@@ -1,10 +1,10 @@
 import * as React from 'react';
 
 /** Type definition for ButtonToggle option value */
-type ButtonToggleOptionValue = string | number | boolean | null;
+export type ButtonToggleOptionValue = string | number | boolean;
 
 /** Option for ButtonToggle */
-interface ButtonToggleOption {
+export interface ButtonToggleOption {
   label?: string;
   value: ButtonToggleOptionValue;
 }
@@ -12,8 +12,8 @@ interface ButtonToggleOption {
 /** Component properties for ButtonToggle */
 interface ButtonToggleProps {
   options: ButtonToggleOption[];
-  update: (value: ButtonToggleOptionValue) => void;
-  defaultValue?: ButtonToggleOptionValue;
+  update: (value?: ButtonToggleOptionValue) => void;
+  defaultValue?: string | number | boolean;
   allowDeselect?: boolean;
   disabled?: boolean;
   className?: string;
@@ -37,7 +37,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   }, [defaultValue]);
 
   React.useEffect(() => {
-    update(active ?? null);
+    update(active);
   }, [active]);
 
   return (
@@ -48,7 +48,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
         if (value === active) {
           buttonClass += ' active';
           if (allowDeselect ?? false) {
-            onClick = () => setActive(null);
+            onClick = () => setActive(undefined);
           }
         } else {
           buttonClass += ' inactive';

@@ -1,11 +1,12 @@
-import React from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import * as actions from '../redux/actions/dtale';
 import '../i18n';
+import * as actions from '../redux/actions/dtale';
 import app from '../redux/reducers/app';
 import { createAppStore } from '../redux/store';
+
 import { NetworkDisplay } from './NetworkDisplay';
 
 require('../publicPath');

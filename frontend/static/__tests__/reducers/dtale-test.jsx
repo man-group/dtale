@@ -21,7 +21,7 @@ describe('reducer tests', () => {
       columnMenuOpen: false,
       selectedCol: null,
       selectedColRef: null,
-      dataId: null,
+      dataId: '',
       editedCell: null,
       xarray: false,
       xarrayDim: {},

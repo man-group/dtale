@@ -907,7 +907,9 @@
     "Group": "Grupo",
     "Weight": "Peso",
     "Load": "Carregar",
-    "Shortest path between nodes": "Caminho mais curto entre nós"
+    "Shortest path between nodes": "Caminho mais curto entre nós",
+    "Color": "Color",
+    "Arrows": "Arrows"
   },
   "main": {
     "Sort": "Ordenar",

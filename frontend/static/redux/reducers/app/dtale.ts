@@ -18,12 +18,12 @@ import { getHiddenValue, toBool, toJson } from '../utils';
  * @param action application event.
  * @return the updated dataId.
  */
-export function dataId(state: string | null = null, action: AppActionTypes): string | null {
+export function dataId(state = '', action: AppActionTypes): string {
   switch (action.type) {
     case ActionType.INIT_PARAMS:
-      return getHiddenValue('data_id') ?? null;
+      return getHiddenValue('data_id') ?? '';
     case ActionType.LOAD_PREVIEW:
-      return action.dataId ?? null;
+      return action.dataId;
     default:
       return state;
   }
