@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 require('./CopyToClipboard.css');
 
@@ -22,16 +22,15 @@ interface CopyToClipboardProps {
   text?: string;
   buttonBuilder: (props: ButtonBuilderProps) => React.Component<HTMLButtonElement>;
   tooltipPosition?: string;
-  t: TFunction;
 }
 
 /** Component for creating a button which when clicked will copy the contents of a string to the clipboard. */
-class CopyToClipboard extends React.Component<CopyToClipboardProps> {
+class CopyToClipboard extends React.Component<CopyToClipboardProps & WithTranslation> {
   private readonly textArea: React.RefObject<HTMLTextAreaElement>;
   private readonly tooltip: React.RefObject<HTMLDivElement>;
 
   /** @override */
-  constructor(props: CopyToClipboardProps) {
+  constructor(props: CopyToClipboardProps & WithTranslation) {
     super(props);
     this.textArea = React.createRef<HTMLTextAreaElement>();
     this.tooltip = React.createRef<HTMLDivElement>();

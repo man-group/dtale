@@ -51,7 +51,7 @@ describe('DataViewer tests', () => {
     // select column
     result.find('.main-grid div.headerCell').last().find('.text-nowrap').simulate('click');
     result.update();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     result.update();
     expect(result.find(DateFormatting).length).toBe(1);
 

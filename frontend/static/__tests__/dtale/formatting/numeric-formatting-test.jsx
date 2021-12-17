@@ -66,14 +66,14 @@ describe('DataViewer tests', () => {
     // select column
     result.find('.main-grid div.headerCell').at(1).find('.text-nowrap').simulate('click');
     result.update();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     result.update();
     expect(result.find(NumericFormatting).length).toBe(1);
     result.find(Formatting).find(Modal.Header).first().find('button').simulate('click');
     result.update();
     expect(result.find(Formatting).instance().props.visible).toBe(false);
     result.update();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     result.update();
 
     result.find(NumericFormatting).find('i.ico-info-outline').first().simulate('click');

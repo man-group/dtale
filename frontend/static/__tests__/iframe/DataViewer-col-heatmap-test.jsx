@@ -42,12 +42,12 @@ describe('DataViewer iframe tests', () => {
 
   it('DataViewer: toggling heatmap column', async () => {
     await openColMenu(result, 1);
-    clickColMenuButton(result, 'Heat Map');
+    await clickColMenuButton(result, 'Heat Map');
     await tickUpdate(result);
     validateHeaders(result, ['col1', 'col2', 'col3', 'col4']);
     expect(result.find('ReactDataViewer').instance().state.backgroundMode).toBe('heatmap-col-col2');
     await openColMenu(result, 1);
-    clickColMenuButton(result, 'Heat Map');
+    await clickColMenuButton(result, 'Heat Map');
     await tickUpdate(result);
     expect(result.find('ReactDataViewer').instance().state.backgroundMode).toBeNull();
     await openColMenu(result, 3);

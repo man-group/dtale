@@ -49,7 +49,7 @@ describe('DataViewer tests', () => {
     // select column
     result.find('.main-grid div.headerCell').at(2).find('.text-nowrap').simulate('click');
     result.update();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     result.update();
     expect(result.find(StringFormatting).length).toBe(1);
     const linkToggle = result.find(StringFormatting).find('div.form-group').at(0).find('i');

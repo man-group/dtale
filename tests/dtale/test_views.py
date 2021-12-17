@@ -2441,7 +2441,7 @@ def test_get_async_column_filter_data(unittest, custom_data):
             query_string=dict(col="str_val", input=df.str_val.values[0]),
         )
         response_data = json.loads(response.data)
-        unittest.assertEqual(response_data, [dict(value=str_val)])
+        unittest.assertEqual(response_data, [dict(value=str_val, label=str_val)])
 
         int_val = df.int_val.values[0]
         response = c.get(
@@ -2449,7 +2449,9 @@ def test_get_async_column_filter_data(unittest, custom_data):
             query_string=dict(col="int_val", input=str(df.int_val.values[0])),
         )
         response_data = json.loads(response.data)
-        unittest.assertEqual(response_data, [dict(value=int_val)])
+        unittest.assertEqual(
+            response_data, [dict(value=int_val, label="{}".format(int_val))]
+        )
 
 
 @pytest.mark.unit

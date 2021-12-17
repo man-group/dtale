@@ -11,7 +11,7 @@ describe('backgroundUtils tests', () => {
 
   beforeEach(() => {
     rec = { view: '' };
-    colCfg = { name: 'foo', dtype: 'float64', locked: false };
+    colCfg = { name: 'foo', dtype: 'float64', locked: false, unique_ct: 10 };
     state = { ...buildState({}), backgroundMode: 'heatmap-col' };
   });
 

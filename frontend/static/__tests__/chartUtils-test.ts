@@ -147,8 +147,8 @@ describe('chartUtils tests', () => {
       y: ['y'],
     };
     const columns = [
-      { name: 'x', dtype: 'datetime64[ns]', locked: false },
-      { name: 'y', dtype: 'float64', locked: false },
+      { name: 'x', dtype: 'datetime64[ns]', locked: false, unique_ct: 10 },
+      { name: 'y', dtype: 'float64', locked: false, unique_ct: 10 },
     ];
     const cfg = chartUtils.createLineCfg(data, {
       columns,

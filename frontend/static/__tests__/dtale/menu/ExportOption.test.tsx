@@ -1,17 +1,16 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
-import { TFunction } from 'react-i18next';
+import { WithTranslation } from 'react-i18next';
 
 import { ExportOption } from '../../../dtale/menu/ExportOption';
 
 /** Component properties for ExportOption */
 export interface ExportOptionProps {
   open: (fileType: string) => void;
-  t: TFunction;
 }
 
 describe('ExportOption', () => {
-  let wrapper: ShallowWrapper<ExportOptionProps>;
+  let wrapper: ShallowWrapper<ExportOptionProps & WithTranslation>;
   let openCsvMock: jest.Mock<() => void>;
   let openTsvMock: jest.Mock<() => void>;
   let openParquetMock: jest.Mock<() => void>;
@@ -32,7 +31,7 @@ describe('ExportOption', () => {
           return openParquetMock;
       }
     };
-    props = { open, t: (key: string) => key };
+    props = { open };
     wrapper = shallow(<ExportOption {...props} />);
   });
 

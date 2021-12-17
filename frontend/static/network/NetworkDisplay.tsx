@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 import { DataSet } from 'vis-data/standalone/umd/vis-data.min';
 import { Edge, Network, Node, Options } from 'vis-network/standalone/umd/vis-network.min';
@@ -31,13 +31,8 @@ import ShortestPath from './ShortestPath';
 require('./NetworkDisplay.css');
 require('vis-network/styles/vis-network.min.css');
 
-/** Translation properties for NetworkDisplay */
-interface TranslationProps {
-  t: TFunction;
-}
-
 /** All properties for NetworkDisplay */
-type AllProps = NetworkDisplayComponentProps & TranslationProps & NetworkDisplayReduxProps;
+type AllProps = NetworkDisplayComponentProps & WithTranslation & NetworkDisplayReduxProps;
 
 /** Component for displaying network data in a directed or undirected graph. */
 class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState> {

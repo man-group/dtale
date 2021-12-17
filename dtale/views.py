@@ -2373,7 +2373,11 @@ def get_async_column_filter_data(data_id):
     dtype = find_dtype(s)
     fmt = find_dtype_formatter(dtype)
     vals = s[s.astype("str").str.startswith(input)]
-    vals = [dict(value=fmt(v)) for v in sorted(vals.unique())[:5]]
+
+    def option(v):
+        return dict(value=v, label="{}".format(v))
+
+    vals = [option(fmt(v)) for v in sorted(vals.unique())[:5]]
     return jsonify(vals)
 
 
