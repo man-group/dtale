@@ -46,7 +46,7 @@ describe('DataViewer iframe tests', () => {
 
   it('DataViewer: deleting a column', async () => {
     await openColMenu(result, 3);
-    clickColMenuButton(result, 'Delete');
+    await clickColMenuButton(result, 'Delete');
     result.find(ReactConfirmation).find('div.modal-footer').find('button').first().simulate('click');
     await tickUpdate(result);
     validateHeaders(result, ['col1', 'col2', 'col3']);

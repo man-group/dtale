@@ -42,7 +42,7 @@ describe('DataViewer tests', () => {
     result.find('.main-grid div.headerCell').at(2).find('.text-nowrap').simulate('click');
     result.update();
 
-    clickColMenuButton(result, 'Replacements');
+    await clickColMenuButton(result, 'Replacements');
     await tickUpdate(result);
   });
 

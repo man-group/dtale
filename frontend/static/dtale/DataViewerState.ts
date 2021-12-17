@@ -22,6 +22,8 @@ export interface ColumnDef extends Bounds {
   outlierRange?: OutlierRange;
   lowVariance?: boolean;
   locked: boolean;
+  unique_ct: number;
+  visible?: boolean;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
@@ -52,10 +54,10 @@ export interface Bounds {
 }
 
 /** Actions available to column filters */
-type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
+export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
 
 /** Operands available to column filters */
-type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
+export type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
 
 /** Column filter properties */
 export interface ColumnFilter extends Bounds {
@@ -63,7 +65,7 @@ export interface ColumnFilter extends Bounds {
   query?: string;
   missing?: boolean;
   action?: ColumnFilterAction;
-  value?: string | number;
+  value?: string | string[] | number | number[];
   raw?: string | number;
   caseSensitive?: boolean;
   operand?: ColumnFilterOperand;
@@ -73,6 +75,11 @@ export interface ColumnFilter extends Bounds {
 
 /** Type definition for a column format configuration object */
 export type ColumnFormat = Record<string, any>;
+
+/** Properties for outlier filters */
+export interface OutlierFilter {
+  query: string;
+}
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
@@ -88,7 +95,7 @@ export interface InstanceSettings {
   nanDisplay?: string;
   startup_code?: string;
   query?: string;
-  outlierFilters?: Record<string, string>;
+  outlierFilters?: Record<string, OutlierFilter>;
   filteredRanges?: FilteredRanges;
   columnFilters?: Record<string, ColumnFilter>;
 }

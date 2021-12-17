@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { ArrowState } from './NetworkState';
 
@@ -8,10 +8,9 @@ interface ArrowToggleProps {
   updateArrows: (arrowState: Partial<ArrowState>) => void;
   to: boolean;
   from: boolean;
-  t: TFunction;
 }
 
-export const ArrowToggle: React.FC<ArrowToggleProps> = ({ updateArrows, to, from, t }) => (
+export const ArrowToggle: React.FC<ArrowToggleProps & WithTranslation> = ({ updateArrows, to, from, t }) => (
   <div className="col-auto pl-0">
     <b>{t('Arrows')}</b>
     <div className="btn-group compact col-auto">

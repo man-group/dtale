@@ -1,15 +1,14 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle, { ButtonToggleOption, ButtonToggleOptionValue } from '../ButtonToggle';
 
 /** Component properties for HierarchyToggle */
 interface HierarchyToggleProps {
   updateHierarchy: (heirarchy?: string) => void;
-  t: TFunction;
 }
 
-const HierarchyToggle: React.FC<HierarchyToggleProps> = ({ updateHierarchy, t }) => {
+const HierarchyToggle: React.FC<HierarchyToggleProps & WithTranslation> = ({ updateHierarchy, t }) => {
   const [hierarchy, setHierarchy] = React.useState<ButtonToggleOptionValue>();
 
   React.useEffect(() => updateHierarchy(hierarchy as string), [hierarchy]);

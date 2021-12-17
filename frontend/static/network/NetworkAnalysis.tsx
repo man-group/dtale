@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../BouncerWrapper';
@@ -15,7 +15,6 @@ interface NetworkAnalysisProps {
   to?: ValueHolder<string>;
   from?: ValueHolder<string>;
   weight?: ValueHolder<string>;
-  t: TFunction;
 }
 
 /** Parameters for NetworkX analysis */
@@ -65,7 +64,7 @@ const buildParams = (
   weight: weight?.value ?? '',
 });
 
-const NetworkAnalysis: React.FC<NetworkAnalysisProps> = ({ to, from, weight, t }) => {
+const NetworkAnalysis: React.FC<NetworkAnalysisProps & WithTranslation> = ({ to, from, weight, t }) => {
   const dataId = useSelector((state: AppState) => state.dataId);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [analysis, setAnalysis] = React.useState<FullAnalysis>();

@@ -43,7 +43,7 @@ describe('DataViewer iframe tests', () => {
 
     await tickUpdate(result);
     await openColMenu(result, 3);
-    clickColMenuButton(result, 'Rename');
+    await clickColMenuButton(result, 'Rename');
     result
       .find(ReactRename)
       .find('div.modal-body')

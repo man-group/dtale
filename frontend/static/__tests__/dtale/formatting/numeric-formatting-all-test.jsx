@@ -61,7 +61,7 @@ describe('DataViewer tests', () => {
   it('DataViewer: apply numeric formatting to all', async () => {
     result.find('.main-grid div.headerCell').at(0).find('.text-nowrap').simulate('click');
     result.update();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     result.update();
     result.find(NumericFormatting).find('div.form-group').first().find('button').last().simulate('click');
     result.find(Formatting).find('i.ico-check-box-outline-blank').simulate('click');

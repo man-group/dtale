@@ -37,6 +37,7 @@ function displayQueries(props, prop) {
 class ReactFilterDisplay extends React.Component {
   constructor(props) {
     super(props);
+    this.filterRef = React.createRef();
     this.displayPredefined = this.displayPredefined.bind(this);
   }
 
@@ -159,7 +160,7 @@ class ReactFilterDisplay extends React.Component {
         </>
       );
     }
-    const clickHandler = buildMenuHandler('filter', this.props.propagateState);
+    const clickHandler = buildMenuHandler('filter', this.props.propagateState, this.filterRef);
     let filterText = _.join(filterSegs, ' and ');
     if (_.size(filterText) > 30) {
       filterText = _.truncate(removeBackticks(filterText), { length: 30 });
@@ -167,7 +168,7 @@ class ReactFilterDisplay extends React.Component {
     return (
       <>
         {label}
-        <div className="pl-3 d-inline-block filter-menu-toggle" onClick={clickHandler}>
+        <div className="pl-3 d-inline-block filter-menu-toggle" onClick={clickHandler} ref={this.filterRef}>
           <span className="pointer">{filterText}</span>
           <div className="column-toggle__dropdown" hidden={menuOpen !== 'filter'}>
             <ul>

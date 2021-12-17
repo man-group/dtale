@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { AppState } from '../redux/state/AppState';
@@ -16,10 +16,17 @@ interface ShortestPathProps {
   allNodes?: Record<string, NetworkNode>;
   highlightPath: (path: string[]) => void;
   clearPath: () => void;
-  t: TFunction;
 }
 
-const ShortestPath: React.FC<ShortestPathProps> = ({ to, from, nodes, allNodes, highlightPath, clearPath, t }) => {
+const ShortestPath: React.FC<ShortestPathProps & WithTranslation> = ({
+  to,
+  from,
+  nodes,
+  allNodes,
+  highlightPath,
+  clearPath,
+  t,
+}) => {
   const dataId = useSelector((state: AppState) => state.dataId);
   const [shortestPath, setShortestPath] = React.useState<string[]>();
   const [error, setError] = React.useState<JSX.Element>();

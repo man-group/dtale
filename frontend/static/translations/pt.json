@@ -925,7 +925,8 @@
     "Filter": "Filtro",
     "Clear Filters": "Remover Filtros",
     "Drop Filtered Rows": "Eliminar Linhas Filtradas",
-    "Invert Filter": "Inverter Filtro"
+    "Invert Filter": "Inverter Filtro",
+    "Move Filters To Custom": "Move Filters To Custom"
   },
   "side": {
     "Close": "Fechar",

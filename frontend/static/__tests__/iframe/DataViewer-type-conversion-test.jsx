@@ -42,7 +42,7 @@ describe('DataViewer iframe tests', () => {
 
     await tickUpdate(result);
     await openColMenu(result, 2);
-    clickColMenuButton(result, 'Type Conversion');
+    await clickColMenuButton(result, 'Type Conversion');
     await tickUpdate(result);
     result.find(CreateTypeConversion).find('div.form-group').first().find('button').at(2).simulate('click');
     result.update();

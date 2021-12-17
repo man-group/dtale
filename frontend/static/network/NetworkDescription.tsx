@@ -1,14 +1,9 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import Collapsible from '../Collapsible';
 
-/** Component properties for NetworkDescription */
-interface NetworkDescriptionProps {
-  t: TFunction;
-}
-
-const NetworkDescription: React.FC<NetworkDescriptionProps> = ({ t }) => {
+const NetworkDescription: React.FC<WithTranslation> = ({ t }) => {
   const renderDescription = (
     <div className="row pt-3 pb-3">
       <div className="col-auto">

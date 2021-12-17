@@ -154,7 +154,7 @@ describe('DataViewer iframe tests', () => {
     validateHeaders(result, ['▲col4', 'col1', 'col2', 'col3']);
     await openColMenu(result, 0);
     // lock
-    clickColMenuButton(result, 'Lock');
+    await clickColMenuButton(result, 'Lock');
     expect(
       result
         .find('div.TopRightGrid_ScrollWrapper')
@@ -164,7 +164,7 @@ describe('DataViewer iframe tests', () => {
     ).toEqual(['col1', 'col2', 'col3']);
     //unlock
     await openColMenu(result, 0);
-    clickColMenuButton(result, 'Unlock');
+    await clickColMenuButton(result, 'Unlock');
     result.update();
     expect(
       result
@@ -184,7 +184,7 @@ describe('DataViewer iframe tests', () => {
 
   it('DataViewer: validate menu functions', async () => {
     await openColMenu(result, 2);
-    clickColMenuButton(result, 'Describe(Column Analysis)');
+    await clickColMenuButton(result, 'Describe(Column Analysis)');
     expect(window.open.mock.calls[0][0]).toBe('/dtale/popup/describe/1?selectedCol=col3');
     clickMainMenuButton(result, 'Describe');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/popup/describe/1');
@@ -211,7 +211,7 @@ describe('DataViewer iframe tests', () => {
     expect(window.location.reload).toHaveBeenCalled();
     clickMainMenuButton(result, 'Shutdown');
     expect(window.location.pathname).not.toBeNull();
-    clickColMenuButton(result, 'Formats');
+    await clickColMenuButton(result, 'Formats');
     expect(result.find(Formatting).length).toBe(1);
   });
 });

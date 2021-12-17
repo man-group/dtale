@@ -1,15 +1,14 @@
 import * as React from 'react';
-import { TFunction, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { GroupColor } from './NetworkState';
 
 /** Component properties for GroupsLegend */
 interface GroupsLegendProps {
   groups?: GroupColor[];
-  t: TFunction;
 }
 
-const GroupsLegend: React.FC<GroupsLegendProps> = ({ groups, t }) => (
+const GroupsLegend: React.FC<GroupsLegendProps & WithTranslation> = ({ groups, t }) => (
   <React.Fragment>
     {!!groups?.length && (
       <div className="groups-legend">
