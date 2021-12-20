@@ -55,11 +55,11 @@ describe('DataViewer tests', () => {
     );
 
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tick();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: build numeric cfg validation', () => {
     const { validateNumericCfg } = require('../../../popups/create/CreateNumeric');
@@ -82,7 +82,7 @@ describe('DataViewer tests', () => {
     expect(result.find(CreateColumn).length).toBe(1);
     result.find(Modal.Header).first().find('button').simulate('click');
     expect(result.find(CreateColumn).length).toBe(0);
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
     expect(result.find(CreateNumeric).length).toBe(1);
     result

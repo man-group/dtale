@@ -82,8 +82,8 @@ describe('DataViewer tests', () => {
       ),
     );
     await tick();
-    clickMainMenuButton(result, 'Refresh Widths');
-    clickMainMenuButton(result, 'Shutdown');
+    await clickMainMenuButton(result, 'Refresh Widths');
+    await clickMainMenuButton(result, 'Shutdown');
     expect(window.location.pathname).not.toBeNull();
   });
 });

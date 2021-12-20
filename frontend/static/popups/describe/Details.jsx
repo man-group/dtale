@@ -12,7 +12,7 @@ import { buildURLString, describeUrl, outliersUrl, toggleOutlierFilterUrl } from
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';
 import { buildButton } from '../../toggleUtils';
-import { FilterableToggle } from '../FilterableToggle';
+import FilterableToggle from '../FilterableToggle';
 import DetailsCharts from './DetailsCharts';
 import Uniques from './Uniques';
 

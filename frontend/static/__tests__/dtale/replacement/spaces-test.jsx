@@ -49,7 +49,7 @@ describe('DataViewer tests', () => {
     result.unmount();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: spaces replacement w/ new col', async () => {
     result.find(CreateReplacement).find('div.form-group').first().find('button').last().simulate('click');

@@ -9,7 +9,7 @@ import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 import { clickColMenuButton, openColMenu, validateHeaders } from './iframe-utils';
 
 describe('DataViewer iframe tests', () => {
-  let result, DataViewer, ReactConfirmation, postSpy;
+  let result, DataViewer, Confirmation, postSpy;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -20,7 +20,7 @@ describe('DataViewer iframe tests', () => {
     mockChartJS();
     mockPopsicle();
     DataViewer = require('../../dtale/DataViewer').DataViewer;
-    ReactConfirmation = require('../../popups/Confirmation').ReactConfirmation;
+    Confirmation = require('../../popups/Confirmation').default;
   });
 
   beforeEach(async () => {
@@ -42,12 +42,12 @@ describe('DataViewer iframe tests', () => {
 
   afterEach(() => postSpy.mockRestore());
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: deleting a column', async () => {
     await openColMenu(result, 3);
     await clickColMenuButton(result, 'Delete');
-    result.find(ReactConfirmation).find('div.modal-footer').find('button').first().simulate('click');
+    result.find(Confirmation).find('div.modal-footer').find('button').first().simulate('click');
     await tickUpdate(result);
     validateHeaders(result, ['col1', 'col2', 'col3']);
   });

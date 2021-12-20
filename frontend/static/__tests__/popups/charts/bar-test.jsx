@@ -44,7 +44,7 @@ describe('Charts bar tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   const axisEditor = () => result.find(AxisEditor).first();
 

@@ -17,7 +17,7 @@ describe('DataPreview', () => {
     mockPopsicle();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('loads properly', async () => {
     const DataPreview = require('../../../popups/merge/DataPreview').default;

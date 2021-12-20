@@ -6,6 +6,7 @@ import {
   DataViewerUpdateProps,
   FilteredRanges,
   InstanceSettings,
+  Popups,
   QueryEngine,
   ThemeType,
 } from '../state/AppState';
@@ -189,7 +190,7 @@ export interface UpdateShowAllHeatmapColumnsAction extends Action<typeof ActionT
 
 /** Action fired when opening a chart popup */
 export interface OpenChartAction extends Action<typeof ActionType.OPEN_CHART> {
-  chartData: Record<string, any>;
+  chartData: Popups;
 }
 
 /** Type definition encompassing all application actions */

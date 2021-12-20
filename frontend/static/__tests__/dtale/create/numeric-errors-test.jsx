@@ -54,11 +54,11 @@ describe('DataViewer tests', () => {
     );
 
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tick();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: build column errors', async () => {
     expect(result.find(CreateColumn).length).toBe(1);

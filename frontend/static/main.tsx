@@ -8,7 +8,7 @@ import { DataViewer } from './dtale/DataViewer';
 import './i18n';
 import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
-import { CodePopup } from './popups/CodePopup';
+import CodePopup from './popups/CodePopup';
 import Correlations from './popups/Correlations';
 import { ReactCreateColumn as CreateColumn } from './popups/create/CreateColumn';
 import { Describe } from './popups/describe/Describe';
@@ -114,14 +114,16 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <Instances dataId={dataId} iframe={true} />;
       break;
     case 'code-export':
-      rootNode = <CodeExport dataId={dataId} />;
+      rootNode = <CodeExport />;
       break;
     case 'upload':
     default:
       rootNode = <Upload chartData={{ visible: true }} />;
       break;
   }
-  ReactDOM.render(<Provider store={storeBuilder()}>{rootNode}</Provider>, document.getElementById('popup-content'));
+  const store = storeBuilder();
+  store.getState().chartData = chartData;
+  ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
 } else if (_.startsWith(pathname, '/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
   let title: string;

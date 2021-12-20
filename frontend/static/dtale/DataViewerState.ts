@@ -1,9 +1,10 @@
 import chroma from 'chroma-js';
 import * as React from 'react';
-import { Dispatch } from 'react-redux';
 import { MultiGridProps } from 'react-virtualized';
+import { Dispatch } from 'redux';
 
-import { FilteredRanges, PredefinedFilter, RangeHighlight } from '../redux/state/AppState';
+import { AppActions } from '../redux/actions/AppActions';
+import { AppState, FilteredRanges, PredefinedFilter, RangeHighlightConfig } from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -39,7 +40,9 @@ export interface DataViewerUpdate extends Record<string, any> {
 }
 
 /** Data storage in DataViewer */
-export type DataViewerData = Record<number, Record<string, DataRecord>>;
+export interface DataViewerData {
+  [key: number]: Record<string, DataRecord>;
+}
 
 /** Properties for selecting ranges of rows, columns, etc... */
 interface RangeSelection {
@@ -88,7 +91,7 @@ export interface InstanceSettings {
   precision: number;
   columnFormats?: Record<string, ColumnFormat>;
   backgroundMode?: string;
-  rangeHighlight?: RangeHighlight;
+  rangeHighlight?: RangeHighlightConfig;
   verticalHeaders: boolean;
   predefinedFilters: Record<string, PredefinedFilter>;
   sortInfo?: string[][];
@@ -114,16 +117,17 @@ export interface DataViewerState extends MultiGridProps, Bounds {
   formattingOpen: boolean;
   triggerResize: boolean;
   backgroundMode?: string;
-  rangeHighlight: RangeHighlight;
+  rangeHighlight: RangeHighlightConfig;
   rowRange?: RangeSelection;
-  columnRange: RangeSelection;
-  rangeSelect: RangeSelection;
-  ctrlRows: RangeSelection;
-  ctrlCols: RangeSelection;
-  selectedRow: RangeSelection;
+  columnRange?: RangeSelection;
+  rangeSelect?: RangeSelection;
+  ctrlRows?: RangeSelection;
+  ctrlCols?: RangeSelection;
+  selectedRow?: RangeSelection;
   filteredRanges: FilteredRanges;
   error?: string;
   traceback?: string;
+  renameUpdate?: (data: DataViewerData) => DataViewerData;
 }
 
 /** Component properties of DataViewer */
@@ -134,9 +138,7 @@ export interface DataViewerProps {
   closeColumnMenu: () => void;
   openChart: (chartData: Record<string, any>) => Dispatch<{ type: 'open-chart'; chartData: Record<string, any> }>;
   theme: string;
-  updateFilteredRanges: (
-    query: string,
-  ) => (dispatch: Dispatch<Record<string, any>>, getState: () => Record<string, any>) => void;
+  updateFilteredRanges: (query: string) => (dispatch: AppActions<Promise<void>>, getState: () => AppState) => void;
   menuPinned: boolean;
   ribbonMenuOpen: boolean;
   dataViewerUpdate?: DataViewerUpdate;
@@ -145,3 +147,6 @@ export interface DataViewerProps {
   editedTextAreaHeight?: number;
   verticalHeaders: boolean;
 }
+
+/** Type definition for propagating state back to DataViewer */
+export type DataViewerPropagateState = (state: Partial<DataViewerState>, callback?: () => void) => void;

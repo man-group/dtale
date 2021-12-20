@@ -122,7 +122,7 @@ const rangeHighlighting = (state: DataViewerState, column: ColumnDef, record: Da
   let range: RangeHighlightModes;
   if (rangeHighlight[name]?.active) {
     range = rangeHighlight[name];
-  } else if (rangeHighlight.all.active) {
+  } else if (rangeHighlight.all?.active) {
     range = rangeHighlight.all;
   } else {
     return {};

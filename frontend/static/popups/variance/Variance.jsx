@@ -10,7 +10,7 @@ import { varianceUrl } from '../../redux/actions/url-utils';
 import * as gu from '../../dtale/gridUtils';
 import { fetchJson } from '../../fetcher';
 import { renderCodePopupAnchor } from '../CodePopup';
-import { FilterableToggle } from '../FilterableToggle';
+import FilterableToggle from '../FilterableToggle';
 import VarianceChart from './VarianceChart';
 
 class Variance extends React.Component {

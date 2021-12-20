@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 
+import { PopupType } from '../../redux/state/AppState';
 import reduxUtils from '../redux-test-utils';
 
 describe('reducer tests', () => {
@@ -14,7 +15,7 @@ describe('reducer tests', () => {
       attachTo: document.getElementById('content'),
     });
     const state = {
-      chartData: { visible: false },
+      chartData: { visible: false, type: PopupType.HIDDEN },
       hideShutdown: false,
       hideDropRows: false,
       iframe: false,

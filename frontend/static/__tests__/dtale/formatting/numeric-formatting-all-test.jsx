@@ -56,7 +56,7 @@ describe('DataViewer tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: apply numeric formatting to all', async () => {
     result.find('.main-grid div.headerCell').at(0).find('.text-nowrap').simulate('click');

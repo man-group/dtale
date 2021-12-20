@@ -55,7 +55,7 @@ describe('DataViewer tests', () => {
     );
 
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
     clickBuilder(result, 'Concatenate');
   });
@@ -64,7 +64,7 @@ describe('DataViewer tests', () => {
     result.unmount();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: build concatenate column', async () => {
     const CreateConcatenate = require('../../../popups/create/CreateConcatenate').default;

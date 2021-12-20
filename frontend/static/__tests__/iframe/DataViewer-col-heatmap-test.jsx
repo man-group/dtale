@@ -38,7 +38,7 @@ describe('DataViewer iframe tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: toggling heatmap column', async () => {
     await openColMenu(result, 1);

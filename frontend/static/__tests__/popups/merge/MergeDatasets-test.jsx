@@ -15,7 +15,8 @@ describe('MergeDatasets', () => {
     jest.mock('../../../popups/merge/ActionConfig', () => createMockComponent());
     jest.mock('../../../popups/merge/MergeOutput', () => createMockComponent());
     jest.mock('../../../popups/Popup', () => ({
-      Popup: createMockComponent(),
+      __esModule: true,
+      default: createMockComponent(),
     }));
     const { ReactMergeDatasets } = require('../../../popups/merge/MergeDatasets');
     const props = {

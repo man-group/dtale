@@ -235,7 +235,7 @@ ReactGridEventHandler.propTypes = {
   hideTooltip: PropTypes.func,
   t: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
 };
-const TranslateReactGridEventHandler = withTranslation('main')(ReactGridEventHandler);
+const TranslatedReactGridEventHandler = withTranslation('main')(ReactGridEventHandler);
 const ReduxGridEventHandler = connect(
   (state) => ({
     allowCellEdits: state.allowCellEdits,
@@ -256,6 +256,6 @@ const ReduxGridEventHandler = connect(
     showTooltip: (element, content) => dispatch({ type: 'show-menu-tooltip', element, content }),
     hideTooltip: () => dispatch({ type: 'hide-menu-tooltip' }),
   }),
-)(TranslateReactGridEventHandler);
+)(TranslatedReactGridEventHandler);
 
-export { ReduxGridEventHandler as GridEventHandler, TranslateReactGridEventHandler as ReactGridEventHandler };
+export { ReduxGridEventHandler as GridEventHandler, TranslatedReactGridEventHandler as ReactGridEventHandler };

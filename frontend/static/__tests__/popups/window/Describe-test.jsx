@@ -52,7 +52,7 @@ describe('Describe tests', () => {
     await tickUpdate(result);
   };
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('Describe: dtypes error', async () => {
     await setup('1');

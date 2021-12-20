@@ -59,7 +59,7 @@ describe('Correlations tests', () => {
     CorrelationsTsOptions = require('../../../popups/correlations/CorrelationsTsOptions').default;
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   const buildResult = async (props = chartData) => {
     buildInnerHTML({ settings: '' });
