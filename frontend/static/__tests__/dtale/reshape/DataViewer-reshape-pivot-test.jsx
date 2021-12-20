@@ -51,7 +51,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Summarize Data');
+    await clickMainMenuButton(result, 'Summarize Data');
     await tickUpdate(result);
   });
 
@@ -76,7 +76,7 @@ describe('DataViewer tests', () => {
     expect(result.find(Reshape).length).toBe(1);
     result.find(Modal.Header).first().find('button').first().simulate('click');
     expect(result.find(Reshape).length).toBe(0);
-    clickMainMenuButton(result, 'Summarize Data');
+    await clickMainMenuButton(result, 'Summarize Data');
     await tickUpdate(result);
     expect(result.find(Pivot).length).toBe(1);
     const pivotComp = result.find(Pivot).first();

@@ -49,7 +49,7 @@ describe('DataViewer tests', () => {
     result.unmount();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   const findImputerInputRow = (idx = 0) => result.find(Imputer).find('div.form-group').at(idx);
 

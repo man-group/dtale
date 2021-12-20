@@ -20,7 +20,7 @@ describe('DataViewer tests', () => {
     mockPopsicle();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: instances', async () => {
     const { DataViewer } = require('../../dtale/DataViewer');
@@ -34,7 +34,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Instances');
+    await clickMainMenuButton(result, 'Instances');
     await tickUpdate(result);
     expect(result.find(Instances).length).toBe(1);
     result.find(Modal.Header).first().find('button').simulate('click');

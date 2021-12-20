@@ -58,7 +58,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Load Data');
+    await clickMainMenuButton(result, 'Load Data');
     await tickUpdate(result);
   });
 

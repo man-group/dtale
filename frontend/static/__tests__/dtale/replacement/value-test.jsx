@@ -47,7 +47,7 @@ describe('DataViewer tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   const findValueInputRow = (idx = 0) => result.find(Value).find('div.form-group').at(idx);
 

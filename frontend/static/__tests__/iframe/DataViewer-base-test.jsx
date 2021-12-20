@@ -186,18 +186,18 @@ describe('DataViewer iframe tests', () => {
     await openColMenu(result, 2);
     await clickColMenuButton(result, 'Describe(Column Analysis)');
     expect(window.open.mock.calls[0][0]).toBe('/dtale/popup/describe/1?selectedCol=col3');
-    clickMainMenuButton(result, 'Describe');
+    await clickMainMenuButton(result, 'Describe');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/popup/describe/1');
-    clickMainMenuButton(result, 'Correlations');
+    await clickMainMenuButton(result, 'Correlations');
     expect(store.getState().sidePanel).toEqual({
       visible: true,
       view: 'correlations',
     });
-    clickMainMenuButton(result, 'Charts');
+    await clickMainMenuButton(result, 'Charts');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/charts/1');
-    clickMainMenuButton(result, 'Network Viewer');
+    await clickMainMenuButton(result, 'Network Viewer');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/network/1');
-    clickMainMenuButton(result, 'Instances 1');
+    await clickMainMenuButton(result, 'Instances 1');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/popup/instances/1');
     const exports = findMainMenuButton(result, 'CSV', 'div.btn-group');
     exports.find('button').first().simulate('click');
@@ -206,10 +206,10 @@ describe('DataViewer iframe tests', () => {
     exports.find('button').at(1).simulate('click');
     exportURL = window.open.mock.calls[window.open.mock.calls.length - 1][0];
     expect(_.startsWith(exportURL, '/dtale/data-export/1') && _.includes(exportURL, 'type=tsv')).toBe(true);
-    clickMainMenuButton(result, 'Refresh Widths');
-    clickMainMenuButton(result, 'Reload Data');
+    await clickMainMenuButton(result, 'Refresh Widths');
+    await clickMainMenuButton(result, 'Reload Data');
     expect(window.location.reload).toHaveBeenCalled();
-    clickMainMenuButton(result, 'Shutdown');
+    await clickMainMenuButton(result, 'Shutdown');
     expect(window.location.pathname).not.toBeNull();
     await clickColMenuButton(result, 'Formats');
     expect(result.find(Formatting).length).toBe(1);

@@ -46,7 +46,7 @@ describe('DataViewer tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   const dataViewer = () => result.find(ReactDataViewer).instance();
 

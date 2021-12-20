@@ -71,7 +71,7 @@ describe('DataViewer within iframe tests', () => {
         ['Reload Data', 'Pin menu', 'Language', 'Shutdown'],
       ),
     );
-    clickMainMenuButton(result, 'Open In New Tab');
+    await clickMainMenuButton(result, 'Open In New Tab');
     expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/dtale/main/1');
   });
 });

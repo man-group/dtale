@@ -43,7 +43,7 @@ describe('Charts scatter tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('Charts: rendering', async () => {
     const filters = result.find(Charts).find(Select);

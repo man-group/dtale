@@ -10,7 +10,7 @@ import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
 import { buildURLParams, buildURLString } from '../redux/actions/url-utils';
 import { fetchJsonPromise, logException } from '../fetcher';
-import { Popup } from '../popups/Popup';
+import Popup from '../popups/Popup';
 import { Formatting } from '../popups/formats/Formatting';
 import { DtaleHotkeys } from './DtaleHotkeys';
 import { GridCell } from './GridCell';

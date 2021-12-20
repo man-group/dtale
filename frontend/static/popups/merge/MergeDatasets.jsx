@@ -9,7 +9,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
 import { openChart } from '../../redux/actions/charts';
 import menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
-import { Popup } from '../Popup';
+import Popup from '../Popup';
 import { buildStat } from '../describe/detailUtils';
 import ActionConfig from './ActionConfig';
 import DataPreview from './DataPreview';

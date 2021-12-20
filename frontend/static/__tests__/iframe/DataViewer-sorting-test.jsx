@@ -20,7 +20,7 @@ describe('DataViewer column tests', () => {
     mockPopsicle();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: sorting operations', async () => {
     const { DataViewer } = require('../../dtale/DataViewer');

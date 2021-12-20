@@ -15,7 +15,7 @@ describe('CodePopup tests', () => {
   });
 
   it('CodePopup render & copy test', () => {
-    const { CodePopup } = require('../../popups/CodePopup');
+    const CodePopup = require('../../popups/CodePopup').default;
     buildInnerHTML();
     const result = mount(<CodePopup code="test code" />, {
       attachTo: document.getElementById('content'),
@@ -26,7 +26,7 @@ describe('CodePopup tests', () => {
   });
 
   it("returns null when it can't copy", () => {
-    const { CodePopup } = require('../../popups/CodePopup');
+    const CodePopup = require('../../popups/CodePopup').default;
     buildInnerHTML();
     const canCopySpy = jest.spyOn(CopyToClipboard, 'canCopy');
     canCopySpy.mockImplementation(() => false);

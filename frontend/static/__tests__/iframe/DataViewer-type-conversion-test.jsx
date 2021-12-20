@@ -20,7 +20,7 @@ describe('DataViewer iframe tests', () => {
     mockPopsicle();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: renaming a column', async () => {
     const fetcher = require('../../fetcher');

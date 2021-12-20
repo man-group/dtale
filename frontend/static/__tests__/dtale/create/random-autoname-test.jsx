@@ -57,12 +57,12 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
     clickBuilder(result, 'Random');
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: creating auto-name', async () => {
     expect(result.find(CreateRandom).length).toBe(1);

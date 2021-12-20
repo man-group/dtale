@@ -52,7 +52,7 @@ describe('Charts tests', () => {
     await tickUpdate(result);
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('Charts: rendering', async () => {
     let filters = result.find(Charts).find(Select);

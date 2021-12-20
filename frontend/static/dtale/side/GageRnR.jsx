@@ -11,7 +11,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import { RemovableError } from '../../RemovableError';
 import { dtypesUrl, gageUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
-import { FilterableToggle } from '../../popups/FilterableToggle';
+import FilterableToggle from '../../popups/FilterableToggle';
 import ColumnSelect from '../../popups/create/ColumnSelect';
 import * as gu from '../gridUtils';
 

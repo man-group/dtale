@@ -1,7 +1,7 @@
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ErrorState } from '../../repository/GenericRepository';
 
-import { ChartData } from './AppState';
+import { Popups } from './AppState';
 
 /** Properties for a merge instance */
 export interface MergeInstance {
@@ -61,7 +61,7 @@ export const initialDataset: Dataset = {
 
 /** State properties of the merge popup */
 export interface MergeState {
-  chartData: ChartData;
+  chartData: Popups;
   instances: MergeInstance[];
   loading: boolean;
   loadingDatasets: boolean;

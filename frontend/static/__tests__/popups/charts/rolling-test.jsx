@@ -26,7 +26,7 @@ describe('Charts rolling tests', () => {
     });
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('Charts: rendering', async () => {
     const Aggregations = require('../../../popups/charts/Aggregations').default;

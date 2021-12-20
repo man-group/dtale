@@ -2,11 +2,11 @@ import { mount } from 'enzyme';
 import _ from 'lodash';
 import React from 'react';
 
+import CopyToClipboard from '../CopyToClipboard';
 import { buildInnerHTML } from './test-utils';
 
 describe('CopyToClipboard tests', () => {
   const render = () => {
-    const { CopyToClipboard } = require('../CopyToClipboard');
     buildInnerHTML();
     const buttonBuilder = (props) => (
       <div id="clicker" {...props}>

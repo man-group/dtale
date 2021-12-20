@@ -1,8 +1,8 @@
 import { buildURLString } from '../redux/actions/url-utils';
-import { FilteredRanges, InstanceSettings, RangeHighlight } from '../redux/state/AppState';
+import { FilteredRanges, InstanceSettings, RangeHighlightConfig } from '../redux/state/AppState';
 import { BaseResponse, getDataFromService, postDataToService } from '../repository/GenericRepository';
 
-import { ColumnDef, ColumnFormat, DataViewerState } from './DataViewerState';
+import { ColumnDef, ColumnFormat, DataViewerPropagateState } from './DataViewerState';
 
 /** Type-defintion for any callback function */
 type Callback = (response?: Record<string, any>) => void;
@@ -19,7 +19,7 @@ export const executeAction = async (route: string, dataId: string, params: Recor
 /** Parameters required for any column operation (locking or moving) */
 interface ColumnOperationProps {
   columns: ColumnDef[];
-  propagateState: (state: Partial<DataViewerState>, callback?: () => void) => void;
+  propagateState: DataViewerPropagateState;
   dataId: string;
 }
 
@@ -144,7 +144,7 @@ export function unlockCols(selectedCols: string[], props: ColumnOperationProps):
 const persistVisibility = async (dataId: string, params: Record<string, string>): BaseReturn =>
   await postDataToService<Record<string, string>, BaseResponse>(`/dtale/update-visibility/${dataId}`, params);
 
-export const saveRangeHighlights = async (dataId: string, ranges: RangeHighlight): BaseReturn =>
+export const saveRangeHighlights = async (dataId: string, ranges: RangeHighlightConfig): BaseReturn =>
   await postDataToService<Record<string, string>, BaseResponse>(`/dtale/save-range-highlights/${dataId}`, {
     ranges: JSON.stringify(ranges),
   });

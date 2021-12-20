@@ -45,7 +45,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
     clickBuilder(result, 'Split By Character');
   });
@@ -54,7 +54,7 @@ describe('DataViewer tests', () => {
     result.unmount();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: build split column', async () => {
     expect(result.find(CreateStringSplitting).length).toBe(1);

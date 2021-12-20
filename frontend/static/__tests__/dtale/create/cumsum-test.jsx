@@ -44,7 +44,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Dataframe Functions');
+    await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
     clickBuilder(result, 'Cumulative Sum');
   });
@@ -53,7 +53,7 @@ describe('DataViewer tests', () => {
     result.unmount();
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => dimensions.afterAll());
 
   it('DataViewer: build cumulative sum column', async () => {
     expect(result.find(CreateCumsum).length).toBe(1);

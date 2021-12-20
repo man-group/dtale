@@ -11,7 +11,7 @@ import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
 
 const toggleFilterMenu = async (result) => {
-  clickMainMenuButton(result, 'Custom Filter');
+  await clickMainMenuButton(result, 'Custom Filter');
   await tickUpdate(result);
 };
 

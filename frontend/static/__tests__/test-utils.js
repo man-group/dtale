@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { act } from 'react-dom/test-utils';
 
 export function replaceNBSP(text) {
   return text.replace(/\s/g, ' ');
@@ -81,8 +82,12 @@ export function findMainMenuButton(result, name, btnTag = 'button') {
     .first();
 }
 
-export function clickMainMenuButton(result, name, btnTag = 'button') {
-  return findMainMenuButton(result, name, btnTag).simulate('click');
+export async function clickMainMenuButton(result, name, btnTag = 'button') {
+  await act(async () => {
+    findMainMenuButton(result, name, btnTag).simulate('click');
+  });
+  result = result.update();
+  return result;
 }
 
 export function tick(timeout = 0) {

@@ -4,19 +4,18 @@ import { logException } from '../fetcher';
 import * as gu from './gridUtils';
 import { fetchPost } from '../fetcher';
 
+const SORT_DESC = (a, b) => a - b;
+
 export function buildRanges(cell1, cell2) {
   const [col1, row1] = gu.convertCellIdxToCoords(cell1);
   const [col2, row2] = gu.convertCellIdxToCoords(cell2);
-  const colRange = [col1, col2];
-  colRange.sort();
-  const rowRange = [row1, row2];
-  rowRange.sort();
+  const colRange = [col1, col2].sort(SORT_DESC);
+  const rowRange = [row1, row2].sort(SORT_DESC);
   return { colRange, rowRange };
 }
 
 function baseIsInRowColRange(currCol, range) {
-  const finalRange = [range.start, range.end];
-  finalRange.sort();
+  const finalRange = [range.start, range.end].sort(SORT_DESC);
   return currCol >= finalRange[0] && currCol <= finalRange[1];
 }
 
@@ -83,15 +82,13 @@ function buildColumnCopyPost(columns, callback, dataId) {
 }
 
 export function buildColumnCopyText(dataId, columns, start, end, callback) {
-  const range = [start - 1, end - 1];
-  range.sort();
+  const range = [start - 1, end - 1].sort(SORT_DESC);
   const selectedColumns = _.filter(columns, (c) => c.index >= range[0] && c.index <= range[1] && c.visible);
   buildColumnCopyPost(selectedColumns, callback, dataId);
 }
 
 export function buildCtrlColumnCopyText(dataId, columns, columnIndexes, callback) {
-  columnIndexes.sort();
-  const selectedColumns = _.map(columnIndexes, (idx) => columns[idx]);
+  const selectedColumns = _.map(columnIndexes.sort(SORT_DESC), (idx) => columns[idx]);
   buildColumnCopyPost(selectedColumns, callback, dataId);
 }
 

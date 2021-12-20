@@ -52,7 +52,7 @@ describe('DataViewer tests', () => {
       { attachTo: document.getElementById('content') },
     );
     await tick();
-    clickMainMenuButton(result, 'Summarize Data');
+    await clickMainMenuButton(result, 'Summarize Data');
     await tickUpdate(result);
   });
 

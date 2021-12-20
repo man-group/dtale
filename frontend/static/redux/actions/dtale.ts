@@ -1,7 +1,7 @@
 import * as serverState from '../../dtale/serverStateManagement';
 import { QueryEngine, ThemeType } from '../state/AppState';
 
-import { ActionType, AppActions, InitAction, SidePanelAction } from './AppActions';
+import { ActionType, AppActions, InitAction, SidePanelAction, UpdateXarrayDimAction } from './AppActions';
 
 export const init = (): InitAction => ({ type: ActionType.INIT_PARAMS });
 
@@ -30,10 +30,15 @@ export const hideColumnMenu =
 export const closeColumnMenu = (): AppActions<void> => (dispatch, getState) =>
   dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: getState().selectedCol });
 
+export const updateXArrayDimAction = (xarrayDim: Record<string, boolean>): UpdateXarrayDimAction => ({
+  type: ActionType.UPDATE_XARRAY_DIM,
+  xarrayDim,
+});
+
 export const updateXArrayDim =
   (xarrayDim: Record<string, boolean>, callback: () => void): AppActions<void> =>
   (dispatch) => {
-    dispatch({ type: ActionType.UPDATE_XARRAY_DIM, xarrayDim });
+    dispatch(updateXArrayDimAction(xarrayDim));
     callback();
   };
 

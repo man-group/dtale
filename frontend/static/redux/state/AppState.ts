@@ -12,7 +12,7 @@ export interface HasVisibility {
   visible: boolean;
 }
 
-export const initialVisibility = { visible: false };
+export const initialVisibility: HasVisibility = { visible: false };
 
 /** Properties of a main menu tooltip */
 export interface MenuTooltipProps extends HasVisibility {
@@ -49,8 +49,101 @@ export interface DataViewerUpdateProps {
   columns?: string[];
 }
 
-/** Type definition for any data for a chart popup */
-export type ChartData = HasVisibility & Record<string, any>;
+/** Popup type names */
+export enum PopupType {
+  HIDDEN = 'hidden',
+  FILTER = 'filter',
+  COLUMN_ANALYSIS = 'column-analysis',
+  CORRELATIONS = 'correlations',
+  PPS = 'pps',
+  BUILD = 'build',
+  TYPE_CONVERSION = 'type-conversion',
+  CLEANERS = 'cleaners',
+  RESHAPE = 'reshape',
+  ABOUT = 'about',
+  CONFIRM = 'confirm',
+  COPY_RANGE = 'copy-range',
+  COPY_COLUMN_RANGE = 'copy-column-range',
+  COPY_ROW_RANGE = 'copy-row-range',
+  RANGE = 'range',
+  XARRAY_DIMENSIONS = 'xarray-dimensions',
+  XARRAY_INDEXES = 'xarray-indexes',
+  RENAME = 'rename',
+  REPLACEMENT = 'replacement',
+  ERROR = 'error',
+  INSTANCES = 'instances',
+  CODE = 'code',
+  VARIANCE = 'variance',
+  UPLOAD = 'upload',
+  DUPLICATES = 'duplicates',
+}
+
+/** Configuration for any data for a popup */
+export interface PopupData<T extends PopupType> extends HasVisibility {
+  type: T;
+  title?: string;
+  size?: 'sm' | 'lg' | 'xl';
+  backdrop?: true | false | 'static';
+}
+
+/** Popup configuration for About popup */
+export type HiddenPopupData = PopupData<typeof PopupType.HIDDEN>;
+
+export const initialPopup: HiddenPopupData = { ...initialVisibility, type: PopupType.HIDDEN };
+
+/** Popup configuration for About popup */
+export type AboutPopupData = PopupData<typeof PopupType.ABOUT>;
+
+/** Popup configuration for Confirmation popup */
+export interface ConfirmationPopupData extends PopupData<typeof PopupType.CONFIRM> {
+  msg: string;
+  yesAction?: () => void;
+}
+
+/** Popup configuration for CopyRangeToClipbard popup */
+export interface CopyRangeToClipboardPopupData extends PopupData<typeof PopupType.COPY_RANGE> {
+  text: string;
+  headers: string[];
+}
+
+/** Popup configuration for Error popup */
+export interface ErrorPopupData extends PopupData<typeof PopupType.ERROR> {
+  error: string;
+  traceback: string;
+}
+
+/** Popup configuration for Error popup */
+export interface RenamePopupData extends PopupData<typeof PopupType.RENAME> {
+  selectedCol: string;
+  columns: ColumnDef[];
+}
+
+/** Popup configuration for RangeHighlight popup */
+export interface RangeHighlightPopupData extends PopupData<typeof PopupType.RANGE> {
+  rangeHighlight?: RangeHighlightConfig;
+  backgroundMode?: string;
+  columns: ColumnDef[];
+}
+
+/** Popup configuration for XArrayDimensions popup */
+export type XArrayDimensionsPopupData = PopupData<typeof PopupType.XARRAY_DIMENSIONS>;
+
+/** Popup configuration for XArrayIndexes popup */
+export interface XArrayIndexesPopupData extends PopupData<typeof PopupType.XARRAY_INDEXES> {
+  columns: ColumnDef[];
+}
+
+/** Popup configurations */
+export type Popups =
+  | HiddenPopupData
+  | AboutPopupData
+  | ConfirmationPopupData
+  | CopyRangeToClipboardPopupData
+  | ErrorPopupData
+  | RenamePopupData
+  | RangeHighlightPopupData
+  | XArrayDimensionsPopupData
+  | XArrayIndexesPopupData;
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
@@ -59,7 +152,7 @@ export interface InstanceSettings {
   precision?: number;
   columnFormats?: Record<string, ColumnFormat>;
   backgroundMode?: string;
-  rangeHighlight?: RangeHighlight;
+  rangeHighlight?: RangeHighlightConfig;
   verticalHeaders?: boolean;
   predefinedFilters?: Record<string, PredefinedFilter>;
   sortInfo?: string[][];
@@ -123,9 +216,8 @@ export interface PredefinedFilter extends HasActivation {
 }
 
 /** Range highlight configuration properties */
-interface RangeHighlightModeCfg {
-  active: boolean;
-  value: number;
+export interface RangeHighlightModeCfg extends HasActivation {
+  value?: number;
   color: RGBColor;
 }
 
@@ -137,13 +229,13 @@ export interface RangeHighlightModes {
 }
 
 /** Range highlighting for individual columns or "all" columns */
-export interface RangeHighlight extends Record<string, RangeHighlightModes & HasActivation> {
-  all: RangeHighlightModes & HasActivation;
+export interface RangeHighlightConfig {
+  [key: string | 'all']: RangeHighlightModes & HasActivation;
 }
 
 /** Properties of application state */
 export interface AppState extends AppSettings {
-  chartData: ChartData;
+  chartData: Popups;
   dataId: string;
   editedCell: string | null;
   editedTextAreaHeight: number;
@@ -152,7 +244,7 @@ export interface AppState extends AppSettings {
   selectedCol: string | null;
   selectedColRef: HTMLDivElement | null;
   xarray: boolean;
-  xarrayDim: Record<string, boolean>;
+  xarrayDim: Record<string, any>;
   filteredRanges: FilteredRanges;
   settings: InstanceSettings;
   isPreview: boolean;

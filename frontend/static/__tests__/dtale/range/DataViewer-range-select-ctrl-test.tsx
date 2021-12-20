@@ -1,10 +1,11 @@
+import axios from 'axios';
 import { mount } from 'enzyme';
-import _ from 'lodash';
-import React from 'react';
+import * as React from 'react';
 import { Provider } from 'react-redux';
 
+import { DataViewer, ReactDataViewer } from '../../../dtale/DataViewer';
+import { ReactGridEventHandler } from '../../../dtale/GridEventHandler';
 import DimensionsHelper from '../../DimensionsHelper';
-import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
 
@@ -16,31 +17,38 @@ describe('DataViewer tests', () => {
     innerHeight: 775,
   });
 
+  const execCommandMock = jest.fn();
+
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-    Object.defineProperty(global.document, 'execCommand', { value: _.noop });
-
-    mockPopsicle();
+    Object.defineProperty(global.document, 'execCommand', { value: execCommandMock });
   });
 
-  afterAll(dimensions.afterAll);
+  afterAll(() => {
+    dimensions.afterAll();
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    execCommandMock.mockReset();
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+  });
 
   it('DataViewer: row ctrl selection', async () => {
-    const { DataViewer, ReactDataViewer } = require('../../../dtale/DataViewer');
-    const { ReactGridEventHandler } = require('../../../dtale/GridEventHandler');
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    buildInnerHTML({ settings: '' }, store as any);
     const result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
       {
-        attachTo: document.getElementById('content'),
+        attachTo: document.getElementById('content') ?? undefined,
       },
     );
     await tickUpdate(result);
-    const instance = result.find(ReactGridEventHandler).instance();
+    const instance = result.find(ReactGridEventHandler).instance() as typeof ReactGridEventHandler.prototype;
     instance.handleClicks({
       target: { attributes: { cell_idx: { nodeValue: '0|1' } } },
       ctrlKey: true,
