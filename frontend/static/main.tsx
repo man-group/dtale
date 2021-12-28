@@ -6,7 +6,7 @@ import { Store } from 'redux';
 
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
-import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
+import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
 import CodePopup from './popups/CodePopup';
 import Correlations from './popups/Correlations';

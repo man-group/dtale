@@ -8,6 +8,7 @@ import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import * as serverState from '../dtale/serverStateManagement';
 import {
   AppState,
+  BaseOption,
   HasActivation,
   RangeHighlightConfig,
   RangeHighlightModeCfg,
@@ -25,10 +26,8 @@ const BASE_RANGE: RangeHighlightModes = {
 };
 
 /** Column Dropdown Option properties */
-interface ColOption {
+interface ColOption extends BaseOption<string> {
   name: string;
-  value: string;
-  label: string;
   dtype: string;
 }
 

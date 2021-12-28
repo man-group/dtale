@@ -36,7 +36,7 @@ class VarianceChart extends React.Component {
 
   createChart() {
     const propagateState = (state) => this.setState(state);
-    dataLoader(this.props, this.state, propagateState, {
+    dataLoader(this.props, this.state, propagateState, undefined, () => undefined, {
       type: 'histogram',
       bins: this.state.bins,
     });

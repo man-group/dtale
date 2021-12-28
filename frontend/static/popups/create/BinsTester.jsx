@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { buildURLString } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
-import ColumnAnalysisChart from '../analysis/ColumnAnalysisChart';
+import { ColumnAnalysisChart } from '../analysis/ColumnAnalysisChart';
 
 class ReactBinsTester extends React.Component {
   constructor(props) {

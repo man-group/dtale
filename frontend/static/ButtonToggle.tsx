@@ -36,10 +36,6 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
     }
   }, [defaultValue]);
 
-  React.useEffect(() => {
-    update(active);
-  }, [active]);
-
   return (
     <div className={`btn-group compact col-auto ${className ?? ''}`}>
       {options.map(({ label, value }, idx) => {
@@ -48,11 +44,17 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
         if (value === active) {
           buttonClass += ' active';
           if (allowDeselect ?? false) {
-            onClick = () => setActive(undefined);
+            onClick = () => {
+              setActive(undefined);
+              update(undefined);
+            };
           }
         } else {
           buttonClass += ' inactive';
-          onClick = () => setActive(value);
+          onClick = () => {
+            setActive(value);
+            update(value);
+          };
         }
         return (
           <button key={idx} className={buttonClass} onClick={onClick} disabled={disabled ?? false}>
