@@ -2,6 +2,12 @@ import { RGBColor } from 'react-color';
 
 import { Bounds, ColumnDef, ColumnFilter, ColumnFormat } from '../../dtale/DataViewerState';
 
+/** Base properties for react-select dropdown options */
+export interface BaseOption<T> {
+  value: T;
+  label?: string;
+}
+
 /** Object which can be turned on/off */
 export interface HasActivation {
   active: boolean;
@@ -133,6 +139,12 @@ export interface XArrayIndexesPopupData extends PopupData<typeof PopupType.XARRA
   columns: ColumnDef[];
 }
 
+/** Popup configuration for ColumnAnalysis popup */
+export interface ColumnAnalysisPopupData extends PopupData<typeof PopupType.COLUMN_ANALYSIS> {
+  selectedCol: string;
+  query?: string;
+}
+
 /** Popup configurations */
 export type Popups =
   | HiddenPopupData
@@ -143,7 +155,8 @@ export type Popups =
   | RenamePopupData
   | RangeHighlightPopupData
   | XArrayDimensionsPopupData
-  | XArrayIndexesPopupData;
+  | XArrayIndexesPopupData
+  | ColumnAnalysisPopupData;
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {

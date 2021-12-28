@@ -34,6 +34,7 @@ import Plotly from 'plotly.js-geo-dist-min';
 import { buildRGBA } from './colors';
 import { ColumnDef } from './dtale/DataViewerState';
 import * as gu from './dtale/gridUtils';
+import { GeolocationChartData, QQChartData } from './popups/analysis/ColumnAnalysisState';
 import { formatScatterPoints } from './scatterChartUtils';
 
 Chart.register(
@@ -53,7 +54,7 @@ Chart.register(
 );
 
 /** Type definition for chart.js chart instance */
-type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
+export type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
 
 /**
  * Builds a new chart.js chart instance.
@@ -94,18 +95,18 @@ export function fitToContainer(canvas: HTMLCanvasElement): void {
  */
 export function chartWrapper(
   ctxId: string,
-  prevChart?: ChartObj | null,
-  builder?: (chartCtx: HTMLElement) => ChartObj,
-): ChartObj | null {
+  prevChart?: ChartObj | undefined,
+  builder?: (chartCtx: HTMLElement) => ChartObj | undefined,
+): ChartObj | undefined {
   const ctx: HTMLElement | null = document.getElementById(ctxId);
   if (ctx) {
     if (prevChart) {
       prevChart.destroy();
     }
     fitToContainer(ctx as HTMLCanvasElement);
-    return builder?.(ctx) ?? null;
+    return builder?.(ctx) ?? undefined;
   }
-  return null;
+  return undefined;
 }
 
 export const TS_COLORS = [
@@ -609,7 +610,7 @@ export function createScatterCfg(
  * @param ctxId the ID of the div component housing the chart.
  * @param fetchedData the data coming from the server.
  */
-export async function createGeolocation(ctxId: string, fetchedData: { lat: number[]; lon: number[] }): Promise<void> {
+export async function createGeolocation(ctxId: string, fetchedData: GeolocationChartData): Promise<void> {
   const layout: Partial<Plotly.Layout> = {
     autosize: true,
     legend: { orientation: 'h' },
@@ -634,7 +635,7 @@ export async function createGeolocation(ctxId: string, fetchedData: { lat: numbe
  * @param ctxId the ID of the div component housing the chart.
  * @param fetchedData the data coming from the server.
  */
-export async function createQQ(ctxId: string, fetchedData: Record<string, number[]>): Promise<void> {
+export async function createQQ(ctxId: string, fetchedData: QQChartData): Promise<void> {
   const layout: Partial<Plotly.Layout> = {
     autosize: true,
     legend: { orientation: 'h' },

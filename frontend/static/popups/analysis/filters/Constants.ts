@@ -1,6 +1,8 @@
-import _ from 'lodash';
+import { TFunction } from 'i18next';
 
-export const aggregationOpts = (t) => [
+import { BaseOption } from '../../../redux/state/AppState';
+
+export const aggregationOpts = (t: TFunction): Array<BaseOption<string>> => [
   { value: 'count', label: t('constants:Count') },
   { value: 'nunique', label: t('Unique Count', { ns: 'constants' }) },
   { value: 'sum', label: t('constants:Sum') },
@@ -17,9 +19,10 @@ export const aggregationOpts = (t) => [
   { value: 'prod', label: t('Product of All Items', { ns: 'constants' }) },
 ];
 
-export const pivotAggs = (t) => _.reject(aggregationOpts(t), { value: 'rolling' });
+export const pivotAggs = (t: TFunction): Array<BaseOption<string>> =>
+  aggregationOpts(t).filter((option) => option.value !== 'rolling');
 
-export const rollingComps = (t) => [
+export const rollingComps = (t: TFunction): Array<BaseOption<string>> => [
   { value: 'corr', label: t('constants:Correlation') },
   { value: 'count', label: t('constants:Count') },
   { value: 'cov', label: t('constants:Covariance') },
@@ -34,12 +37,17 @@ export const rollingComps = (t) => [
   { value: 'var', label: t('constants:Variance') },
 ];
 
-export const analysisAggs = (t) =>
-  _.concat(pivotAggs(t), [{ value: 'pctsum', label: t('Percentage Sum', { ns: 'constants' }) }]);
+export const analysisAggs = (t: TFunction): Array<BaseOption<string>> => [
+  ...pivotAggs(t),
+  { value: 'pctsum', label: t('Percentage Sum', { ns: 'constants' }) },
+];
 
-export const resampleAggs = (t) => _.concat(pivotAggs(t), [{ value: 'ohlc', label: t('OHLC', { ns: 'constants' }) }]);
+export const resampleAggs = (t: TFunction): Array<BaseOption<string>> => [
+  ...pivotAggs(t),
+  { value: 'ohlc', label: t('OHLC', { ns: 'constants' }) },
+];
 
-export const titles = (t) => ({
+export const titles = (t: TFunction): Record<string, string> => ({
   histogram: t('Histogram', { ns: 'constants' }),
   value_counts: t('Value Counts', { ns: 'constants' }),
   boxplot: t('Describe', { ns: 'constants' }),
@@ -48,3 +56,13 @@ export const titles = (t) => ({
   geolocation: t('Geolocation', { ns: 'constants' }),
   qq: t('Q-Q Plot', { ns: 'constants' }),
 });
+
+export const sortOptions = (a: BaseOption<string>, b: BaseOption<string>): number => {
+  if (a.value.toLowerCase() < b.value.toLowerCase()) {
+    return -1;
+  }
+  if (a.value.toLowerCase() > b.value.toLowerCase()) {
+    return 1;
+  }
+  return 0;
+};

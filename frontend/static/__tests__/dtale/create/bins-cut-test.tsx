@@ -1,18 +1,24 @@
-import { mount } from 'enzyme';
-import React from 'react';
+import axios from 'axios';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import Select from 'react-select';
+import { default as Select } from 'react-select';
 
+import { DataViewer } from '../../../dtale/DataViewer';
+import { ColumnAnalysisChart } from '../../../popups/analysis/ColumnAnalysisChart';
+import { ReactBinsTester as BinsTester } from '../../../popups/create/BinsTester';
+import { default as CreateBins, validateBinsCfg } from '../../../popups/create/CreateBins';
+import { ReactCreateColumn as CreateColumn } from '../../../popups/create/CreateColumn';
 import DimensionsHelper from '../../DimensionsHelper';
-import mockPopsicle from '../../MockPopsicle';
 import reduxUtils from '../../redux-test-utils';
-
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, mockT as t, tick, tickUpdate } from '../../test-utils';
 
 import { clickBuilder } from './create-test-utils';
 
 describe('DataViewer tests', () => {
-  let result, CreateColumn, CreateBins, validateBinsCfg, BinsTester, ColumnAnalysisChart;
+  let result: ReactWrapper;
+
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -22,31 +28,28 @@ describe('DataViewer tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    mockPopsicle();
     mockChartJS();
   });
 
   beforeEach(async () => {
-    const { DataViewer } = require('../../../dtale/DataViewer');
-    CreateColumn = require('../../../popups/create/CreateColumn').ReactCreateColumn;
-    CreateBins = require('../../../popups/create/CreateBins').default;
-    validateBinsCfg = require('../../../popups/create/CreateBins').validateBinsCfg;
-    ColumnAnalysisChart = require('../../../popups//analysis/ColumnAnalysisChart').default;
-    BinsTester = require('../../../popups/create/BinsTester').ReactBinsTester;
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    buildInnerHTML({ settings: '' }, store as any);
     result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
-      { attachTo: document.getElementById('content') },
+      { attachTo: document.getElementById('content') ?? undefined },
     );
 
     await tick();
     await clickMainMenuButton(result, 'Dataframe Functions');
     await tickUpdate(result);
   });
+
+  afterEach(jest.restoreAllMocks);
 
   afterAll(() => dimensions.afterAll());
 
@@ -66,7 +69,8 @@ describe('DataViewer tests', () => {
       .at(3)
       .find('input')
       .simulate('change', { target: { value: 'foo,bar,bin,baz' } });
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    result = result.update();
     expect(result.find(CreateColumn).instance().state.cfg).toEqual({
       col: 'col2',
       bins: '4',
@@ -77,7 +81,7 @@ describe('DataViewer tests', () => {
     result.find('div.modal-footer').first().find('button').first().simulate('click');
     await tickUpdate(result);
 
-    const cfg = { col: null };
+    const cfg = { col: null } as any;
     expect(validateBinsCfg(t, cfg)).toBe('Missing a column selection!');
     cfg.col = 'x';
     cfg.bins = '';

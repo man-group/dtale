@@ -101,33 +101,31 @@ export async function tickUpdate(result, timeout = 0) {
   result.update();
 }
 
+export class MockChart {
+  static register = () => undefined;
+
+  constructor(ctx, cfg) {
+    this.ctx = ctx;
+    this.cfg = cfg;
+    this.config = { _config: cfg };
+    this.data = cfg.data;
+    this.destroyed = false;
+    this.options = { scales: { x: {}, y: {} } };
+  }
+  destroy() {
+    this.destroyed = true;
+  }
+  getElementsAtEventForMode(_evt) {
+    return [{ datasetIndex: 0, index: 0, _chart: { config: { _config: this.cfg }, data: this.cfg.data } }];
+  }
+  getDatasetMeta(_idx) {
+    return { controller: { _config: { selectedPoint: 0 } } };
+  }
+  update() {}
+}
+
 export function mockChartJS() {
-  jest.mock('chart.js', () => {
-    class MockChart {
-      constructor(ctx, cfg) {
-        this.ctx = ctx;
-        this.cfg = cfg;
-        this.config = { _config: cfg };
-        this.data = cfg.data;
-        this.destroyed = false;
-        this.options = { scales: { x: {}, y: {} } };
-      }
-      destroy() {
-        this.destroyed = true;
-      }
-      getElementsAtEventForMode(_evt) {
-        return [{ datasetIndex: 0, index: 0, _chart: { config: { _config: this.cfg }, data: this.cfg.data } }];
-      }
-      getDatasetMeta(_idx) {
-        return { controller: { _config: { selectedPoint: 0 } } };
-      }
-      update() {}
-    }
-    MockChart.register = () => undefined;
-    return {
-      Chart: MockChart,
-    };
-  });
+  jest.mock('chart.js', () => ({ Chart: MockChart }));
 }
 
 export function mockD3Cloud() {

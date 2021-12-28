@@ -17,6 +17,7 @@ class DetailsCharts extends React.Component {
       ...props,
     };
     this.buildChart = this.buildChart.bind(this);
+    this.chartRef = React.createRef();
   }
 
   componentDidMount() {
@@ -69,7 +70,8 @@ class DetailsCharts extends React.Component {
         dataId: this.props.dataId,
         filtered: this.props.filtered,
       };
-      dataLoader(props, this.state, propagateState, finalParams);
+      const chartUpdater = (chart) => (this.chartRef.current = chart);
+      dataLoader(props, this.state, propagateState, this.chartRef, chartUpdater, finalParams);
     }
   }
 

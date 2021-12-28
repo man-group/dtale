@@ -5,7 +5,7 @@ import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import { Popups } from '../redux/state/AppState';
 
 import About from './About';
-import { ColumnAnalysis } from './analysis/ColumnAnalysis';
+import ColumnAnalysis from './analysis/ColumnAnalysis';
 import { CodeExport } from './CodeExport';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
