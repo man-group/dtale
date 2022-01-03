@@ -36,7 +36,7 @@ describe('DataViewer iframe tests', () => {
 
   it('DataViewer: renaming a column', async () => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', iframe: 'True' }, store as any);
+    buildInnerHTML({ settings: '', iframe: 'True' }, store);
     let result = mount(
       <Provider store={store}>
         <DataViewer />

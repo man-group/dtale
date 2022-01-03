@@ -96,7 +96,7 @@ describe('NetworkDisplay test', () => {
     });
     const { NetworkDisplay } = require('../../network/NetworkDisplay');
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     result = mount(
       <Provider store={store}>
         <NetworkDisplay {...params} />

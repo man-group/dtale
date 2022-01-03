@@ -325,13 +325,21 @@ export function buildTicks(prop: string, dataSpec: Partial<DataSpec>, pad = fals
 const formatNumber = (val: number, digits: number): string => `${parseFloat(val.toFixed(digits))}`;
 
 /** Type definition for input data for chart.js charts */
-type InputData = Record<string, Record<string, Array<string | number>>>;
+export type InputData = Record<string, Record<string, Array<string | number>>>;
+
+/** Type definition for axis ranges for chart.js charts */
+export interface AxisSpec {
+  min: Record<string, number>;
+  max: Record<string, number>;
+}
 
 /** Type definition for data specifications input for chart.js charts */
-type DataSpec = { data: InputData; min: Record<string, number>; max: Record<string, number> };
+export interface DataSpec extends AxisSpec {
+  data?: InputData;
+}
 
 /** Type definition for property specifications input for chart.js charts */
-type PropSpec = {
+export type PropSpec = {
   x: string;
   y: string[];
   columns?: ColumnDef[];
@@ -368,7 +376,8 @@ function createBaseCfg(
     yProp: string,
   ) => ChartDataset = buildSeries,
 ): Partial<ChartConfiguration> {
-  const { data, min, max } = dataSpec;
+  const { min, max } = dataSpec;
+  const data = dataSpec.data ?? {};
   const { x, y, additionalOptions } = propSpec;
   const cfg: Partial<ChartConfiguration> = {
     data: {
@@ -500,7 +509,7 @@ export function createStackedCfg(dataSpec: DataSpec, propSpec: PropSpec): Partia
  */
 export function createPieCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<ChartConfiguration> {
   const { data } = dataSpec;
-  const seriesCt = Object.values(data)[0]?.x.length;
+  const seriesCt = Object.values(data ?? {})[0]?.x.length;
   const colors = COLOR_SCALE.domain([0, seriesCt]);
   const seriesFormatter = (
     k: string,
@@ -556,10 +565,9 @@ export function createScatterCfg(
   propSpec: PropSpec,
   dataBuilder: ScatterBuilderDef = scatterBuilder,
 ): ChartConfiguration<'scatter'> {
-  const { data } = dataSpec;
   const { x, y } = propSpec;
   const yProp = y[0];
-  const chartData = dataBuilder(data, yProp);
+  const chartData = dataBuilder(dataSpec.data ?? {}, yProp);
   const scatterData = formatScatterPoints(chartData);
   const cfg: Partial<ChartConfiguration> = {
     options: {

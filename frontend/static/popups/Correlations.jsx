@@ -10,7 +10,6 @@ import { buildURL } from '../redux/actions/url-utils';
 import * as chartUtils from '../chartUtils';
 import { fetchJson } from '../fetcher';
 import { saveFilter } from './filter/filterUtils';
-import { toggleBouncer } from '../toggleUtils';
 import ChartsBody from './charts/ChartsBody';
 import CorrelationScatterStats from './correlations/CorrelationScatterStats';
 import CorrelationsGrid from './correlations/CorrelationsGrid';
@@ -21,12 +20,13 @@ import corrUtils from './correlations/correlationsUtils';
 export default class Correlations extends React.Component {
   constructor(props) {
     super(props);
+    this.scatterBouncer = React.createRef();
+    this.scatterCanvas = React.createRef();
     this.state = corrUtils.buildState();
     _.forEach(
       ['buildTs', 'buildScatter', 'viewScatter', 'viewScatterRow', 'loadGrid'],
       (f) => (this[f] = this[f].bind(this)),
     );
-    this._ts_chart = React.createRef();
   }
 
   shouldComponentUpdate(newProps, newState) {
@@ -132,10 +132,10 @@ export default class Correlations extends React.Component {
     this.setState(updatedState);
   }
 
-  viewScatterRow(evt) {
-    const point = this.state.chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+  viewScatterRow(evt, _elements, chart) {
+    const point = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
     if (point && point[0].datasetIndex !== undefined) {
-      const data = _.get(this.state, ['chart', 'config', '_config', 'data', 'datasets', point[0].datasetIndex, 'data']);
+      const data = chart.config._config.data.datasets[point[0].datasetIndex].data;
       if (data) {
         const index = data[point[0].index]._corr_index;
         let updatedQuery = this.props.chartData.query;
@@ -160,9 +160,11 @@ export default class Correlations extends React.Component {
     if (this.state.scatterUrl === scatterUrl) {
       return;
     }
-    toggleBouncer(['scatter-bouncer', 'rawScatterChart']);
+    this.scatterBouncer.current?.style.setProperty('display', 'block');
+    this.scatterCanvas.current?.style.setProperty('display', 'none');
     fetchJson(scatterUrl, (fetchedChartData) => {
-      toggleBouncer(['scatter-bouncer', 'rawScatterChart']);
+      this.scatterBouncer.current?.style.setProperty('display', 'none');
+      this.scatterCanvas.current?.style.setProperty('display', 'block');
       const newState = {
         selectedCols,
         stats: fetchedChartData.stats,
@@ -191,16 +193,13 @@ export default class Correlations extends React.Component {
     });
   }
 
-  viewScatter(evt) {
-    const chart = _.get(this, '_ts_chart.current.state.charts.0');
-    if (chart) {
-      const selectedPoints = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
-      const selectedPoint = _.head(selectedPoints);
-      if (selectedPoint) {
-        chart.config._config.data.datasets[selectedPoint.datasetIndex].selectedPoint = selectedPoint.index;
-        const { selectedCols } = this.state;
-        this.buildScatter(selectedCols, selectedPoint.index);
-      }
+  viewScatter(evt, _elements, chart) {
+    const selectedPoints = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
+    const selectedPoint = _.head(selectedPoints);
+    if (selectedPoint) {
+      chart.config._config.data.datasets[selectedPoint.datasetIndex].selectedPoint = selectedPoint.index;
+      const { selectedCols } = this.state;
+      this.buildScatter(selectedCols, selectedPoint.index);
     }
   }
 
@@ -223,7 +222,6 @@ export default class Correlations extends React.Component {
                 <PPSCollapsible ppsInfo={this.state.tsPps} />
                 <CorrelationsTsOptions {...this.state} buildTs={this.buildTs} />
                 <ChartsBody
-                  ref={this._ts_chart}
                   visible={true}
                   url={tsUrl}
                   columns={[
@@ -273,10 +271,10 @@ export default class Correlations extends React.Component {
               {this.state.scatterError}
               {_.isEmpty(this.state.scatterError) && (
                 <div className="chart-wrapper" style={{ height: 400 }}>
-                  <div id="scatter-bouncer" style={{ display: 'none' }}>
+                  <div id="scatter-bouncer" style={{ display: 'none' }} ref={this.scatterBouncer}>
                     <Bouncer />
                   </div>
-                  <canvas id="rawScatterChart" />
+                  <canvas id="rawScatterChart" ref={this.scatterCanvas} />
                 </div>
               )}
             </figure>

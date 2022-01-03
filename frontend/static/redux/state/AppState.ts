@@ -82,6 +82,7 @@ export enum PopupType {
   VARIANCE = 'variance',
   UPLOAD = 'upload',
   DUPLICATES = 'duplicates',
+  CHARTS = 'charts',
 }
 
 /** Configuration for any data for a popup */
@@ -145,6 +146,17 @@ export interface ColumnAnalysisPopupData extends PopupData<typeof PopupType.COLU
   query?: string;
 }
 
+/** Popup configuration for Charts popup */
+export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
+  query?: string;
+  x?: string;
+  y?: string[];
+  group?: string[];
+  aggregation?: string;
+  chartType?: string;
+  chartPerGroup?: boolean;
+}
+
 /** Popup configurations */
 export type Popups =
   | HiddenPopupData
@@ -156,7 +168,8 @@ export type Popups =
   | RangeHighlightPopupData
   | XArrayDimensionsPopupData
   | XArrayIndexesPopupData
-  | ColumnAnalysisPopupData;
+  | ColumnAnalysisPopupData
+  | ChartsPopupData;
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {

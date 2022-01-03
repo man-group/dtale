@@ -38,7 +38,7 @@ describe('DataViewer tests', () => {
 
   it('DataViewer: row ctrl selection', async () => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

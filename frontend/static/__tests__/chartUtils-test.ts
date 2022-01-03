@@ -5,7 +5,7 @@ import correlationsUtils from '../popups/correlations/correlationsUtils';
 
 import { mockChartJS } from './test-utils';
 
-const CTX: Partial<CanvasRenderingContext2D> = {
+export const CTX: Partial<CanvasRenderingContext2D> = {
   createLinearGradient: (_px1: number, _px2: number, _px3: number, _px4: number): CanvasGradient => ({
     addColorStop: (_px5: number, _color: string): void => undefined,
   }),
@@ -19,7 +19,7 @@ const CTX: Partial<CanvasRenderingContext2D> = {
   restore: () => undefined,
 };
 
-const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
+export const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
 
 const LINE_POINT: chartUtils.LinePoint = {
   element: { x: 0 } as any as Element,

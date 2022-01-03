@@ -36,7 +36,7 @@ describe('DataViewer tests', () => {
     axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />

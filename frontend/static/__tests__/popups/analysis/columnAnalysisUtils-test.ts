@@ -1,5 +1,5 @@
-import { ChartConfiguration, ChartType, DefaultDataPoint } from 'chart.js';
 import * as React from 'react';
+import { CreateChartSpy } from 'static/__tests__/test-utils';
 
 import * as chartUtils from '../../../chartUtils';
 import {
@@ -13,10 +13,7 @@ import { PopupType } from '../../../redux/state/AppState';
 import * as GenericRepository from '../../../repository/GenericRepository';
 
 describe('columnAnalysisUtils', () => {
-  let createChartSpy: jest.SpyInstance<
-    chartUtils.ChartObj,
-    [ctx: HTMLElement | null, cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>]
-  >;
+  let createChartSpy: CreateChartSpy;
   let fetchJsonSpy: jest.SpyInstance<Promise<unknown>, [string]>;
   let getElementByIdSpy: jest.SpyInstance<HTMLElement | null, [elementId: string]>;
 

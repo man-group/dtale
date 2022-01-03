@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ChartConfiguration, ChartType, DefaultDataPoint } from 'chart.js';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -12,7 +11,7 @@ import ColumnAnalysis from '../../popups/analysis/ColumnAnalysis';
 import ColumnAnalysisFilters from '../../popups/analysis/filters/ColumnAnalysisFilters';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, tickUpdate } from '../test-utils';
 
 import { ANALYSIS_DATA } from './ColumnAnalysis.test.support';
 
@@ -33,10 +32,7 @@ describe('ColumnAnalysis tests', () => {
     unknown,
     [selector: (state: unknown) => unknown, equalityFn?: ((left: unknown, right: unknown) => boolean) | undefined]
   >;
-  let createChartSpy: jest.SpyInstance<
-    chartUtils.ChartObj,
-    [ctx: HTMLElement | null, cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>]
-  >;
+  let createChartSpy: CreateChartSpy;
   let loadAnalysisSpy: jest.SpyInstance<
     Promise<ColumnAnalysisRepository.ColumnAnalysisResponse | undefined>,
     [dataId: string, params: Record<string, any>]
@@ -154,18 +150,16 @@ describe('ColumnAnalysis tests', () => {
   afterEach(jest.restoreAllMocks);
 
   const input = (): ReactWrapper => result.find('input');
-  const chart = (): ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown> =>
-    createChartSpy.mock.calls[createChartSpy.mock.calls.length - 1][1];
   const filters = (): ReactWrapper => result.find(ColumnAnalysisFilters);
 
   it('ColumnAnalysis rendering float data', async () => {
     await updateProps();
     expect(result.find(ButtonToggle).props().options[2].label).toBe('Geolocation');
     expect(input().prop('value')).toBe('20');
-    expect(chart().type).toBe('bar');
-    expect(chart().data.datasets[0].data).toEqual(ANALYSIS_DATA.data);
-    expect(chart().data.labels).toEqual(ANALYSIS_DATA.labels);
-    expect(chart().options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
+    expect(getLastChart(createChartSpy).type).toBe('bar');
+    expect(getLastChart(createChartSpy).data.datasets[0].data).toEqual(ANALYSIS_DATA.data);
+    expect(getLastChart(createChartSpy).data.labels).toEqual(ANALYSIS_DATA.labels);
+    expect(getLastChart(createChartSpy).options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
     await act(async () => {
       input().simulate('change', { target: { value: '' } });
       input().simulate('keyDown', { key: 'Shift' });

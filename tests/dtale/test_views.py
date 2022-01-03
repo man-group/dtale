@@ -227,7 +227,7 @@ def test_startup(unittest):
 
     test_data = np.ndarray(shape=(2, 2), dtype=float, order="F")
     instance = views.startup(URL, data_loader=lambda: test_data)
-    unittest.assertEqual(instance.data.values.tolist(), test_data.tolist())
+    np.testing.assert_almost_equal(instance.data.values, test_data)
 
     test_data = [1, 2, 3]
     instance = views.startup(URL, data_loader=lambda: test_data, ignore_duplicate=True)

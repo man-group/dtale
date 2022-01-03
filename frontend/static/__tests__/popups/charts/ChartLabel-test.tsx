@@ -1,37 +1,27 @@
-import { shallow } from 'enzyme';
-import React from 'react';
+import { shallow, ShallowWrapper } from 'enzyme';
+import * as React from 'react';
 
-import ChartLabel from '../../../popups/charts/ChartLabel';
+import { default as ChartLabel, ChartLabelProps } from '../../../popups/charts/ChartLabel';
 
 describe('ChartLabel tests', () => {
-  let result, setStateSpy;
+  let result: ShallowWrapper;
 
   beforeEach(() => {
-    setStateSpy = jest.spyOn(ChartLabel.prototype, 'setState');
-    const props = {
+    const props: ChartLabelProps = {
       x: { value: 'foo' },
       y: [{ value: 'bar' }],
       aggregation: 'count',
+      rollingWindow: '4',
     };
     result = shallow(<ChartLabel {...props} />);
-  });
-
-  afterEach(() => {
-    setStateSpy.mockRestore();
   });
 
   it('ChartLabel rendering', () => {
     expect(result.text()).toBe('Count of bar by foo');
   });
 
-  it('updates when url changes', () => {
-    result.setProps({ url: 'http://test.com' });
-    expect(setStateSpy).toBeCalledWith({ label: 'Count of bar by foo' });
-  });
-
   it('includes rolling computation in label', () => {
     result.setProps({
-      url: 'http://test.com',
       aggregation: 'rolling',
       rollingComputation: 'corr',
       rollingWindow: 10,
@@ -40,7 +30,7 @@ describe('ChartLabel tests', () => {
   });
 
   it('includes group in label', () => {
-    result.setProps({ url: 'http://test.com', group: [{ value: 'z' }] });
+    result.setProps({ group: [{ value: 'z' }] });
     expect(result.text()).toBe('Count of bar by foo grouped by z');
   });
 });
