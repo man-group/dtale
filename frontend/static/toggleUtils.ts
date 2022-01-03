@@ -29,7 +29,8 @@ export function toggleBouncer(ids: string[]): void {
   ids.forEach((id) => {
     const bouncer = document.getElementById(id);
     if (bouncer) {
-      bouncer.style.display = bouncer.style.display === 'none' ? 'block' : 'none';
+      const updatedDisplay = bouncer.style.display === 'none' ? 'block' : 'none';
+      bouncer.style.display = updatedDisplay;
     }
   });
 }

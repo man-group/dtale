@@ -32,7 +32,7 @@ describe('DataViewer highlighting tests', () => {
     saveRangeHighlightsSpy = jest.spyOn(serverState, 'saveRangeHighlights');
     saveRangeHighlightsSpy.mockResolvedValue(Promise.resolve({ success: true }));
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', hideShutdown: 'True', processes: 2 }, store as any);
+    buildInnerHTML({ settings: '', hideShutdown: 'True', processes: '2' }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />

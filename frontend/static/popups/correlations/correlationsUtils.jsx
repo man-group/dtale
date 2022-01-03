@@ -83,7 +83,6 @@ function createScatter(ctx, data, xProp, yProp, onClick) {
   delete scatterCfg.options.scales.x.ticks;
   scatterCfg.options.onClick = onClick;
   scatterCfg.options.maintainAspectRatio = false;
-  // eslint-disable-next-line new-cap
   const chart = chartUtils.createChart(ctx, scatterCfg);
   return chart;
 }

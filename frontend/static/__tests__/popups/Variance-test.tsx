@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ChartConfiguration, ChartType, DefaultDataPoint } from 'chart.js';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -10,7 +9,7 @@ import TextEnterFilter from '../../popups/analysis/filters/TextEnterFilter';
 import { Variance } from '../../popups/variance/Variance';
 import { RemovableError } from '../../RemovableError';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, tickUpdate } from '../test-utils';
 
 import { ANALYSIS_DATA } from './ColumnAnalysis.test.support';
 
@@ -55,16 +54,13 @@ const props = {
 
 describe('Variance tests', () => {
   let result: ReactWrapper;
-  let createChartSpy: jest.SpyInstance<
-    chartUtils.ChartObj,
-    [ctx: HTMLElement | null, cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>]
-  >;
+  let createChartSpy: CreateChartSpy;
 
   beforeAll(mockChartJS);
 
   const updateProps = async (newProps: any): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     store.getState().dataId = props.dataId;
     result = mount(
       <Provider store={store}>
@@ -111,8 +107,6 @@ describe('Variance tests', () => {
   afterEach(jest.restoreAllMocks);
 
   const input = (): ReactWrapper => result.find('input');
-  const chart = (): ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown> =>
-    createChartSpy.mock.calls[createChartSpy.mock.calls.length - 1][1];
 
   it('Variance rendering variance report', async () => {
     await updateProps(props);
@@ -128,8 +122,8 @@ describe('Variance tests', () => {
     await act(async () => await tickUpdate(result));
     result = result.update();
     expect(input().prop('value')).toBe('20');
-    expect(chart().type).toBe('bar');
-    expect(chart().options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
+    expect(getLastChart(createChartSpy).type).toBe('bar');
+    expect(getLastChart(createChartSpy).options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
     input().simulate('change', { target: { value: '' } });
     input().simulate('keyDown', { key: 'Shift' });
     input().simulate('keyDown', { key: 'Enter' });

@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import axios from 'axios';
 
 import { tick } from './test-utils';
@@ -22,7 +21,7 @@ describe('fetcher tests', () => {
 
   it('fetcher: testing exceptions', async () => {
     const { fetchJson } = require('../fetcher');
-    fetchJson('url', _.noop);
+    fetchJson('url', () => undefined);
     await tick();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
   });

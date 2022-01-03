@@ -53,7 +53,7 @@ describe('DataViewer tests', () => {
 
     store = reduxUtils.createDtaleStore();
     const xarrayDim = '{&quot;foo&quot;:&quot;foo1&quot;}';
-    buildInnerHTML({ settings: '', xarray: 'True', xarrayDim }, store as any);
+    buildInnerHTML({ settings: '', xarray: 'True', xarrayDim }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />

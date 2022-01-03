@@ -47,7 +47,7 @@ describe('DataViewer tests', () => {
     postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
     const props = { dataId: '1', chartData: { visible: true } };
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     result = mount(
       <Provider store={store}>
         <Describe {...props} />

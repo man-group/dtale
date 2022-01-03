@@ -43,7 +43,7 @@ describe('DataViewer tests', () => {
 
   const build = async (): Promise<ReactWrapper> => {
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store as any);
+    buildInnerHTML({ settings: '' }, store);
     const result = mount(
       <Provider store={store}>
         <DataViewer />

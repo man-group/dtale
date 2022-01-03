@@ -187,23 +187,48 @@ function createDashConfig(entry) {
       'plotly.js': 'Plotly',
       'prop-types': 'PropTypes',
     },
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss'],
+      symlinks: false,
+    },
     module: {
       rules: [
         {
-          test: /\.jsx?$/,
-          exclude: /node_modules/,
-          use: {
-            loader: 'babel-loader',
+          test: /\.(js|jsx)$/,
+          loader: 'babel-loader',
+          exclude: [/node_modules/],
+          options: {
+            cacheDirectory: true,
+            presets: [['@babel/env', { targets: ['last 2 versions'] }], '@babel/react', '@babel/flow'],
+            plugins: ['lodash'],
           },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          include: paths.appSrc,
+          exclude: [/node_modules/],
+          use: [
+            {
+              loader: require.resolve('ts-loader'),
+              options: {
+                transpileOnly: true,
+                configFile: paths.appTsConfig,
+              },
+            },
+          ],
         },
         {
           test: /\.css$/,
           use: [
+            'style-loader',
+            { loader: 'css-loader', options: { importLoaders: 1 } },
             {
-              loader: 'style-loader',
-            },
-            {
-              loader: 'css-loader',
+              loader: 'postcss-loader',
+              options: {
+                postcssOptions: {
+                  plugins: [postcssNested, autoprefixer],
+                },
+              },
             },
           ],
         },
