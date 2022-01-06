@@ -3,19 +3,24 @@ import { Chart, ChartEvent } from 'chart.js';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
+import * as redux from 'react-redux';
 import { default as Select } from 'react-select';
+import { MultiGrid } from 'react-virtualized';
+
+import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
+jest.mock('../../dtale/side/SidePanelButtons', () => ({
+  SidePanelButtons: createMockComponent(),
+}));
 
 import * as chartUtils from '../../chartUtils';
-import { DataViewerPropagateState } from '../../dtale/DataViewerState';
 import ChartsBody from '../../popups/charts/ChartsBody';
-import Correlations from '../../popups/Correlations';
+import { Correlations } from '../../popups/correlations/Correlations';
 import CorrelationScatterStats from '../../popups/correlations/CorrelationScatterStats';
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
 import CorrelationsTsOptions from '../../popups/correlations/CorrelationsTsOptions';
+import { percent } from '../../popups/correlations/correlationsUtils';
 import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
-import { createMockComponent } from '../mocks/createMockComponent';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS, tickUpdate } from '../test-utils';
 
@@ -26,34 +31,6 @@ const chartData = {
   query: 'col == 3',
 };
 
-/** Component properties for Correlations */
-export interface CorrelationsProps {
-  dataId: string;
-  chartData: Record<string, any>;
-  propagateState: DataViewerPropagateState;
-}
-
-/** State properties for Correlations */
-export interface CorrelationsState {
-  chart?: chartUtils.ChartObj;
-  error?: JSX.Element;
-  scatterError?: JSX.Element;
-  correlations?: Record<string, any>;
-  selectedCols: string[];
-  tsUrl?: string;
-  selectedDate?: string;
-  tsType: string;
-  scatterUrl?: string;
-  rolling: boolean;
-  useRolling: boolean;
-  window: number;
-  minPeriods: number;
-  loadingCorrelations: boolean;
-  encodeStrings: boolean;
-  strings: string[];
-  dummyColMappings: Record<string, any>;
-}
-
 describe('Correlations tests', () => {
   const { location, opener } = window;
   const dimensions = new DimensionsHelper({
@@ -61,55 +38,32 @@ describe('Correlations tests', () => {
     offsetHeight: 500,
   });
 
+  let result: ReactWrapper;
   let createChartSpy: CreateChartSpy;
+  let axiosGetSpy: jest.SpyInstance;
 
   beforeAll(() => {
-    jest.mock('../../dtale/side/SidePanelButtons', () => ({
-      SidePanelButtons: createMockComponent(),
-    }));
     dimensions.beforeAll();
-
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
     delete (window as any).location;
     (window as any).location = { pathname: '/dtale/popup' };
-
     mockChartJS();
   });
 
   beforeEach(async () => {
+    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
+    useSelectorSpy.mockReturnValue({ dataId: '1', chartData });
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
-    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy = jest.spyOn(axios, 'get');
     axiosGetSpy.mockImplementation((url: string) => {
-      if (url.startsWith('/dtale/correlations/')) {
-        const query = new URLSearchParams(url.split('?')[1]).get('query');
-        if (query === 'null') {
-          return Promise.resolve({ data: { error: 'No data found.' } });
-        }
-        if (query === 'one-date') {
-          return Promise.resolve({
-            data: {
-              data: correlationsData.data,
-              dates: [{ name: 'col4', rolling: false }],
-            },
-          });
-        }
-        if (query === 'no-date') {
-          return Promise.resolve({ data: { data: correlationsData.data, dates: [] } });
-        }
-        if (query === 'rolling') {
-          const dates = [
-            { name: 'col4', rolling: true },
-            { name: 'col5', rolling: false },
-          ];
-          return Promise.resolve({ data: { data: correlationsData.data, dates } });
-        }
-      }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
 
     buildInnerHTML({ settings: '' });
   });
+
+  afterEach(() => axiosGetSpy.mockRestore());
 
   afterAll(() => {
     jest.restoreAllMocks();
@@ -118,23 +72,14 @@ describe('Correlations tests', () => {
     window.location = location;
   });
 
-  const buildResult = async (props = { chartData }): Promise<ReactWrapper<CorrelationsProps, CorrelationsState>> => {
-    const store = reduxUtils.createDtaleStore();
-    let result = mount(
-      <Provider store={store}>
-        <Correlations {...props} dataId="1" />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
+  const buildResult = async (props = { chartData }): Promise<void> => {
+    result = mount(<Correlations />, { attachTo: document.getElementById('content') ?? undefined });
     await act(async () => await tickUpdate(result));
     result = result.update();
-    return result.find(Correlations);
   };
 
   it('Correlations rendering data', async () => {
-    let result = await buildResult();
+    await buildResult();
     const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
       corrGrid.find('div.cell').at(1).simulate('click');
@@ -155,41 +100,54 @@ describe('Correlations tests', () => {
         .simulate('change', { target: { value: 'col5' } });
     });
     result = result.update();
-    expect(result.find(Correlations).state().selectedDate).toBe('col5');
+    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col5');
   });
 
   it('Correlations rendering data and filtering it', async () => {
-    const result = await buildResult();
-    let corrGrid = result.find(CorrelationsGrid).first();
-    const filters = corrGrid.find(Select);
-    filters.first().props().onChange({ value: 'col1' });
-    result.update();
-    corrGrid = result.find(CorrelationsGrid).first();
-    expect([correlationsData.data[0]]).toEqual(corrGrid.instance().state.correlations);
-    filters.last().props().onChange({ value: 'col3' });
-    result.update();
-    expect([{ column: 'col1', col3: -0.098802 }]).toEqual(corrGrid.instance().state.correlations);
+    await buildResult();
+    await act(async () => {
+      result.find(CorrelationsGrid).find(Select).first().props().onChange({ value: 'col1' });
+    });
+    result = result.update();
+    expect(result.find(MultiGrid).props().rowCount).toBe(2);
+    await act(async () => {
+      result.find(CorrelationsGrid).find(Select).last().props().onChange({ value: 'col3' });
+    });
+    result = result.update();
+    expect(result.find(MultiGrid).props().columnCount).toBe(2);
   });
 
   it('Correlations rendering data w/ one date column', async () => {
-    const result = await buildResult({
-      chartData: { ...chartData, query: 'one-date' },
+    axiosGetSpy.mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/correlations/')) {
+        return Promise.resolve({
+          data: {
+            data: correlationsData.data,
+            dates: [{ name: 'col4', rolling: false }],
+          },
+        });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
+    await buildResult();
     const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
-    corrGrid.find('div.cell').at(1).simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      corrGrid.find('div.cell').at(1).simulate('click');
+    });
+    result = result.update();
     expect(result.find(ChartsBody).length).toBe(1);
     expect(result.find('select.custom-select').length).toBe(0);
-    expect(result.state().selectedDate).toBe('col4');
+    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col4');
   });
 
   it('Correlations rendering data w/ no date columns', async () => {
-    const props = {
-      chartData: { ...chartData, query: 'no-date' },
-      onClose: () => undefined,
-      propagateState: () => undefined,
-    };
-    let result = await buildResult(props);
+    axiosGetSpy.mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/correlations/')) {
+        return Promise.resolve({ data: { data: correlationsData.data, dates: [] } });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
+    await buildResult();
     const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
       corrGrid.find('div.cell').at(1).simulate('click');
@@ -212,18 +170,27 @@ describe('Correlations tests', () => {
       );
     });
     result = result.update();
-    const corr = result.find(Correlations).instance();
-    expect(corr?.shouldComponentUpdate?.({ ...corr.props, dataId: '2' }, {} as CorrelationsState, {})).toBe(true);
-    expect(corr?.shouldComponentUpdate?.(corr.props, { ...corr.state, chart: undefined }, {})).toBe(false);
-    expect(corr?.shouldComponentUpdate?.(corr.props, corr.state, {})).toBe(false);
   });
 
+  const minPeriods = (): ReactWrapper =>
+    result
+      .find(CorrelationsTsOptions)
+      .find('input')
+      .findWhere((i) => i.prop('type') === 'text')
+      .last();
+
   it('Correlations rendering rolling data', async () => {
-    let result = await buildResult({
-      chartData: { ...chartData, query: 'rolling' },
+    axiosGetSpy.mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/correlations/')) {
+        const dates = [
+          { name: 'col4', rolling: true },
+          { name: 'col5', rolling: false },
+        ];
+        return Promise.resolve({ data: { data: correlationsData.data, dates } });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    await buildResult();
     const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
     corrGrid.find('div.cell').at(1).simulate('click');
     await act(async () => await tickUpdate(result));
@@ -238,9 +205,7 @@ describe('Correlations tests', () => {
       );
     });
     result = result.update();
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    expect(result.find(Correlations).instance().state.chart).toBeDefined();
+    expect(getLastChart(createChartSpy).type).toBe('scatter');
     expect(result.find(CorrelationScatterStats).text()).toMatch(/col1 vs. col2 for 2018-12-16 thru 2018-12-19/);
     expect(
       (getLastChart(createChartSpy).options?.plugins?.tooltip?.callbacks as any)?.title?.([
@@ -254,7 +219,7 @@ describe('Correlations tests', () => {
         .find('option')
         .map((o) => o.text()),
     ).toEqual(['col4', 'col5']);
-    expect(result.find(Correlations).state().selectedDate).toBe('col4');
+    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col4');
     await act(async () => {
       result
         .find(CorrelationsTsOptions)
@@ -264,27 +229,29 @@ describe('Correlations tests', () => {
         .simulate('change', { target: { value: '5' } });
     });
     result = result.update();
-    const minPeriods = result
-      .find(CorrelationsTsOptions)
-      .find('input')
-      .findWhere((i) => i.prop('type') === 'text')
-      .first();
     await act(async () => {
-      minPeriods.simulate('change', { target: { value: '5' } });
-      minPeriods.simulate('keyPress', { key: 'Enter' });
+      minPeriods().simulate('change', { target: { value: '5' } });
     });
     result = result.update();
+    await act(async () => {
+      minPeriods().simulate('keydown', { key: 'Enter' });
+    });
+    result = result.update();
+    expect(result.find(CorrelationsTsOptions).props().minPeriods).toBe(5);
   });
 
   it('Correlations missing data', async () => {
-    const result = await buildResult({
-      chartData: { ...chartData, query: 'null' },
+    axiosGetSpy.mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/correlations/')) {
+        return Promise.resolve({ data: { error: 'No data found.' } });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
+    await buildResult();
     expect(result.find('div.ReactVirtualized__Grid__innerScrollContainer').length).toBe(0);
   });
 
   it('Correlations - percent formatting', () => {
-    const { percent } = require('../../popups/correlations/correlationsUtils').default;
     expect(percent('N/A')).toBe('N/A');
   });
 });

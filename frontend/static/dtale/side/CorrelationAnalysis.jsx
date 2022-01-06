@@ -14,7 +14,7 @@ import { openChart } from '../../redux/actions/charts';
 import { corrAnalysisUrl } from '../../redux/actions/url-utils';
 import { SORT_CHARS } from '../Header';
 import { fetchJson } from '../../fetcher';
-import { sortData, updateSort } from '../../popups/correlations/CorrelationsGrid';
+import { sortData, buildSort } from '../../popups/correlations/CorrelationsGrid';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
 import * as gu from '../gridUtils';
 import * as serverState from '../serverStateManagement';
@@ -72,7 +72,7 @@ class ReactCorrelationAnalysis extends React.Component {
     }
     const onClick = () => {
       const data = buildData(this.state, this.state);
-      const updatedSort = updateSort(currSort, dataKey);
+      const updatedSort = buildSort(dataKey, currSort);
       const sortedData = sortData(data, updatedSort);
       this.setState({ currSort: updatedSort, data: sortedData });
     };

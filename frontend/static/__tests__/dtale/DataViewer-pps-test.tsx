@@ -1,17 +1,16 @@
-import { mount } from 'enzyme';
-import _ from 'lodash';
-import React from 'react';
+import axios from 'axios';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
 import { Provider } from 'react-redux';
 
+import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
 import PPSDetails from '../../popups/pps/PPSDetails';
+import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import DimensionsHelper from '../DimensionsHelper';
-import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
-  let result, PredictivePowerScore, CorrelationsGrid;
-  let testIdx = 0;
   const { opener } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -20,35 +19,28 @@ describe('DataViewer tests', () => {
     innerHeight: 1340,
   });
 
+  let result: ReactWrapper;
+
   beforeAll(() => {
     dimensions.beforeAll();
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
-
-    mockPopsicle((url) => {
-      if (_.startsWith(url, '/dtale/scatter/0')) {
-        return {
-          error: 'scatter error',
-          traceback: 'scatter error traceback',
-        };
-      }
-      return undefined;
-    });
-
-    PredictivePowerScore = require('../../popups/pps/PredictivePowerScore').default;
-    CorrelationsGrid = require('../../popups/correlations/CorrelationsGrid').default;
   });
 
   beforeEach(async () => {
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation((url: string) => {
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    const props = { dataId: '' + testIdx++, chartData: { visible: true } };
+    const props = { dataId: '1', chartData: { visible: true } };
     result = mount(
       <Provider store={store}>
         <PredictivePowerScore {...props} />
       </Provider>,
       {
-        attachTo: document.getElementById('content'),
+        attachTo: document.getElementById('content') ?? undefined,
       },
     );
     await tickUpdate(result);
@@ -58,6 +50,7 @@ describe('DataViewer tests', () => {
   });
 
   afterAll(() => {
+    jest.restoreAllMocks();
     dimensions.afterAll();
     window.opener = opener;
   });

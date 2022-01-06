@@ -5,7 +5,7 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { connect } from 'react-redux';
 import Draggable from 'react-draggable';
 
-import Correlations from '../../popups/Correlations';
+import { Correlations } from '../../popups/correlations/Correlations';
 import { FilterPanel } from '../../popups/filter/FilterPanel';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import { Reports } from '../../popups/timeseries/Reports';

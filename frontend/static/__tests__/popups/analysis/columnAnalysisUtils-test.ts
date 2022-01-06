@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { CreateChartSpy } from 'static/__tests__/test-utils';
 
 import * as chartUtils from '../../../chartUtils';
 import {
@@ -11,6 +10,7 @@ import {
 import * as columnAnalysisUtils from '../../../popups/analysis/columnAnalysisUtils';
 import { PopupType } from '../../../redux/state/AppState';
 import * as GenericRepository from '../../../repository/GenericRepository';
+import { CreateChartSpy } from '../../test-utils';
 
 describe('columnAnalysisUtils', () => {
   let createChartSpy: CreateChartSpy;

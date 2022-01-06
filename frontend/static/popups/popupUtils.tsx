@@ -9,7 +9,7 @@ import ColumnAnalysis from './analysis/ColumnAnalysis';
 import { CodeExport } from './CodeExport';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
-import Correlations from './Correlations';
+import { Correlations } from './correlations/Correlations';
 import { CreateColumn } from './create/CreateColumn';
 import { Duplicates } from './duplicates/Duplicates';
 import { Error } from './ErrorPopup';
@@ -71,7 +71,7 @@ const buildCorrelations = (props: BuilderInput): BuilderOutput => {
       <strong>{props.chartData.title}</strong>
     </React.Fragment>
   );
-  const body = <Correlations propagateState={props.propagateState} />;
+  const body = <Correlations />;
   return { title, body };
 };
 

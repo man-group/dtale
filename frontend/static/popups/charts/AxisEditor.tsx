@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { AxisSpec, DataSpec } from 'static/chartUtils';
-import { BaseOption } from 'static/redux/state/AppState';
 
+import { AxisSpec, DataSpec } from '../../chartUtils';
 import { openMenu } from '../../menuUtils';
+import { BaseOption } from '../../redux/state/AppState';
 
 const buildState = (y: Array<BaseOption<string>>, data: DataSpec): Record<string, string> => {
   return y.reduce(

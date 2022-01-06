@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { BaseOption } from 'static/redux/state/AppState';
 
+import { BaseOption } from '../../redux/state/AppState';
 import { aggregationOpts, rollingComps } from '../analysis/filters/Constants';
 
 /** Component properties for ChartLabel */
@@ -10,7 +10,7 @@ export interface ChartLabelProps {
   y?: Array<BaseOption<string>>;
   group?: Array<BaseOption<string>>;
   aggregation?: string;
-  rollingWindow: string;
+  rollingWindow?: string;
   rollingComputation?: string;
 }
 

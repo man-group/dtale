@@ -3,22 +3,26 @@ import { Chart, ChartEvent, Scale } from 'chart.js';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
+import * as redux from 'react-redux';
+
+import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
+jest.mock('../../dtale/side/SidePanelButtons', () => ({
+  SidePanelButtons: createMockComponent(),
+}));
 
 import * as chartUtils from '../../chartUtils';
 import ChartsBody from '../../popups/charts/ChartsBody';
-import Correlations from '../../popups/Correlations';
+import { Correlations } from '../../popups/correlations/Correlations';
+import { CorrelationsCell } from '../../popups/correlations/CorrelationsCell';
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
 import { RemovableError } from '../../RemovableError';
 import { CTX, SCALE } from '../chartUtils-test';
 import DimensionsHelper from '../DimensionsHelper';
-import { CorrelationsProps } from '../popups/Correlations-test';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   let result: ReactWrapper;
-  let props: CorrelationsProps;
   let createChartSpy: CreateChartSpy;
 
   const { location } = window;
@@ -58,18 +62,11 @@ describe('DataViewer tests', () => {
     window.location = location;
   });
 
-  const buildResult = async (overrides?: Partial<CorrelationsProps>): Promise<void> => {
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    props = { dataId: '0', chartData: { visible: true }, propagateState: jest.fn(), ...overrides };
-    result = mount(
-      <Provider store={store}>
-        <Correlations {...props} />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
+  const buildResult = async (overrides?: any): Promise<void> => {
+    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
+    useSelectorSpy.mockReturnValue({ dataId: '0', chartData: { visible: true }, ...overrides });
+    buildInnerHTML({ settings: '' });
+    result = mount(<Correlations />, { attachTo: document.getElementById('content') ?? undefined });
     await act(async () => await tickUpdate(result));
     result = result.update();
     const corrGrid = result.find(Correlations).first().find('div.ReactVirtualized__Grid__innerScrollContainer');
@@ -113,8 +110,8 @@ describe('DataViewer tests', () => {
     result = result.update();
     const ticks = { ticks: [0, 0] } as any as Scale;
     tsChart.options?.scales?.['y-corr']?.afterTickToLabelConversion?.(ticks);
-    expect(ticks.ticks).toEqual([{ label: null }, { label: null }]);
-    expect(result.find(Correlations).instance().state.chart).toBeDefined();
+    expect(ticks.ticks).toEqual([{ label: '' }, { label: '' }]);
+    expect(getLastChart(createChartSpy).type).toBe('scatter');
     const scatterChart = getLastChart(createChartSpy);
     await act(async () => {
       scatterChart.options?.onClick?.(
@@ -129,15 +126,29 @@ describe('DataViewer tests', () => {
 
   it('sorts correlations correctly', async () => {
     await buildResult({ dataId: '1' });
-    const grid = result.find(CorrelationsGrid);
-    grid.find('div.headerCell.pointer').first().simulate('click');
-    expect(grid.state().currSort).toEqual(['col1', 'ASC']);
-    grid.find('div.headerCell.pointer').first().simulate('click');
-    expect(grid.state().currSort).toEqual(['col1', 'DESC']);
-    grid.find('div.headerCell.pointer').first().simulate('click');
-    expect(grid.state().currSort).toBeNull();
-    grid.find('div.headerCell.pointer').first().simulate('click');
-    grid.find('div.headerCell.pointer').last().simulate('click');
-    expect(grid.state().currSort).toEqual(['col4', 'ASC']);
+    await act(async () => {
+      result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
+    });
+    result = result.update();
+    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col1', 'ASC']);
+    await act(async () => {
+      result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
+    });
+    result = result.update();
+    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col1', 'DESC']);
+    await act(async () => {
+      result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
+    });
+    result = result.update();
+    expect(result.find(CorrelationsCell).first().props().currSort).toBeUndefined();
+    await act(async () => {
+      result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
+    });
+    result = result.update();
+    await act(async () => {
+      result.find(CorrelationsGrid).find('div.headerCell.pointer').last().simulate('click');
+    });
+    result = result.update();
+    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col4', 'ASC']);
   });
 });

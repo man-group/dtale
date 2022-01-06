@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ColumnDef } from 'static/dtale/DataViewerState';
-import { BaseOption } from 'static/redux/state/AppState';
+
+import { ColumnDef } from '../../../dtale/DataViewerState';
+import { BaseOption } from '../../../redux/state/AppState';
 
 import FilterSelect from './FilterSelect';
 

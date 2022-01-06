@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { createFilter, default as Select } from 'react-select';
-import { ColumnDef } from 'static/dtale/DataViewerState';
 
+import { ColumnDef } from '../../dtale/DataViewerState';
 import * as gu from '../../dtale/gridUtils';
 import { BaseOption } from '../../redux/state/AppState';
 import { aggregationOpts, rollingComps } from '../analysis/filters/Constants';
