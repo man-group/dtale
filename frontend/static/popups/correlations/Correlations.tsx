@@ -40,7 +40,7 @@ export interface CorrelationsState {
 }
 
 /** Correlations grid state properties */
-interface CorrelationsGridState {
+export interface CorrelationsGridState {
   correlations: CorrelationsRepository.CorrelationGridRow[];
   columns: string[];
   dates: CorrelationsRepository.CorrelationDateOption[];
@@ -85,7 +85,6 @@ export const Correlations: React.FC = () => {
   const [minPeriods, setMinPeriods] = React.useState<number>(1);
   const [loadingCorrelations, setLoadingCorrelations] = React.useState<boolean>(true);
   const [encodeStrings, setEncodeStrings] = React.useState<boolean>(false);
-  const firstUpdate = React.useRef(true);
 
   const loadGrid = async (updatedEncodeStrings?: boolean): Promise<void> => {
     const response = await CorrelationsRepository.loadCorrelations(
@@ -173,7 +172,7 @@ export const Correlations: React.FC = () => {
     }
   };
 
-  const buildScatter = async (cols: string[], dateIndex?: number, updatedTsCode?: string): Promise<void> => {
+  const buildScatter = (cols: string[], dateIndex?: number, updatedTsCode?: string): void => {
     const updatedScatterUrl = CorrelationsRepository.buildScatterUrl(
       dataId,
       selectedCols,
@@ -214,10 +213,6 @@ export const Correlations: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (firstUpdate.current) {
-      firstUpdate.current = false;
-      return;
-    }
     const { col1, col2 } = corrUtils.findCols(chartData, correlations?.columns ?? []);
     if (col1 && col2) {
       if (correlations?.hasDate) {
@@ -244,109 +239,111 @@ export const Correlations: React.FC = () => {
   return (
     <div key="body" className="modal-body scatter-body">
       {error}
-      {correlations && (
-        <BouncerWrapper showBouncer={loadingCorrelations}>
-          <CorrelationsGrid
-            buildTs={(updatedSelectedCols: string[]): void => buildTs({ selectedCols: updatedSelectedCols })}
-            {...{
-              ...chartData,
-              ...correlations,
-              selectedDate,
-              selectedCols,
-              buildScatter,
-              rolling,
-              useRolling,
-              window,
-              minPeriods,
-              encodeStrings,
-            }}
-            toggleStrings={async () => {
-              setEncodeStrings(!encodeStrings);
-              await loadGrid(!encodeStrings);
-            }}
-          />
-          {!!selectedCols?.length && correlations.hasDate && (
-            <React.Fragment>
-              <PPSCollapsible ppsInfo={tsPps} />
-              <CorrelationsTsOptions
-                {...{
-                  ...correlations,
-                  rolling,
-                  useRolling,
-                  selectedCols,
-                  selectedDate,
-                  window,
-                  minPeriods,
-                  buildTs,
-                  tsCode,
-                }}
-              />
-              <ChartsBody
-                visible={true}
-                url={tsUrl}
-                columns={[
-                  { name: 'x', dtype: 'datetime[ns]' },
-                  { name: 'corr', dtype: 'float64' },
-                ]}
-                x={{ value: 'x' }}
-                y={[{ value: 'corr' }]}
-                configHandler={(config: Partial<ChartConfiguration>): Partial<ChartConfiguration> => {
-                  config.options = { ...config.options };
-                  config.options.scales = {
-                    ...config.options?.scales,
-                    ['y-corr']: {
-                      min: -1.1,
-                      max: 1.1,
-                      ticks: { stepSize: 0.2 },
-                      afterTickToLabelConversion: (data) => {
-                        data.ticks[0] = { ...data.ticks[0], label: '' };
-                        data.ticks[data.ticks.length - 1] = { ...data.ticks[data.ticks.length - 1], label: '' };
+      <BouncerWrapper showBouncer={loadingCorrelations}>
+        {correlations && (
+          <React.Fragment>
+            <CorrelationsGrid
+              buildTs={(updatedSelectedCols: string[]): void => buildTs({ selectedCols: updatedSelectedCols })}
+              {...{
+                ...chartData,
+                ...correlations,
+                selectedDate,
+                selectedCols,
+                buildScatter,
+                rolling,
+                useRolling,
+                window,
+                minPeriods,
+                encodeStrings,
+              }}
+              toggleStrings={async () => {
+                setEncodeStrings(!encodeStrings);
+                await loadGrid(!encodeStrings);
+              }}
+            />
+            {!!selectedCols?.length && correlations.hasDate && (
+              <React.Fragment>
+                <PPSCollapsible ppsInfo={tsPps} />
+                <CorrelationsTsOptions
+                  {...{
+                    ...correlations,
+                    rolling,
+                    useRolling,
+                    selectedCols,
+                    selectedDate,
+                    window,
+                    minPeriods,
+                    buildTs,
+                    tsCode,
+                  }}
+                />
+                <ChartsBody
+                  visible={true}
+                  url={tsUrl}
+                  columns={[
+                    { name: 'x', dtype: 'datetime[ns]' },
+                    { name: 'corr', dtype: 'float64' },
+                  ]}
+                  x={{ value: 'x' }}
+                  y={[{ value: 'corr' }]}
+                  configHandler={(config: Partial<ChartConfiguration>): Partial<ChartConfiguration> => {
+                    config.options = { ...config.options };
+                    config.options.scales = {
+                      ...config.options?.scales,
+                      ['y-corr']: {
+                        min: -1.1,
+                        max: 1.1,
+                        ticks: { stepSize: 0.2 },
+                        afterTickToLabelConversion: (data) => {
+                          data.ticks[0] = { ...data.ticks[0], label: '' };
+                          data.ticks[data.ticks.length - 1] = { ...data.ticks[data.ticks.length - 1], label: '' };
+                        },
                       },
-                    },
-                  };
-                  const lineConfig = config as Partial<ChartConfiguration<'line'>>;
-                  if (lineConfig.options?.scales?.x) {
-                    lineConfig.options.scales.x = { ...lineConfig.options.scales.x, title: { display: false } };
-                  }
-                  config.options.onClick = viewScatter;
-                  config.options.plugins = { ...config.options.plugins, legend: { display: false } };
-                  config.plugins = [
-                    chartUtils.gradientLinePlugin(corrUtils.colorScale, 'y-corr', -1, 1),
-                    chartUtils.lineHoverPlugin(corrUtils.colorScale),
-                  ];
-                  if (config.data?.datasets?.[0]) {
-                    (config.data.datasets[0] as any).selectedPoint = 0;
-                  }
-                  return config;
-                }}
-                height={300}
-                showControls={false}
-                dataLoadCallback={(data: chartUtils.DataSpec): void => {
-                  const tsData = data as CorrelationsRepository.TimeseriesResponse;
-                  setTsPps(tsData.pps);
-                  if (tsData?.data?.all?.x?.[0]) {
-                    buildScatter(selectedCols, 0, tsData.code);
-                  } else {
-                    setTsCode(tsData.code);
-                  }
-                }}
-              />
-            </React.Fragment>
-          )}
-          {scatterData !== undefined && <CorrelationScatterStats {...{ selectedCols, ...scatterData }} />}
-          <figure>
-            {scatterError}
-            {!scatterError && (
-              <div className="chart-wrapper" style={{ height: 400 }}>
-                <div id="scatter-bouncer" style={{ display: 'none' }} ref={scatterBouncer}>
-                  <Bouncer />
-                </div>
-                <canvas id="rawScatterChart" ref={scatterCanvas} />
-              </div>
+                    };
+                    const lineConfig = config as Partial<ChartConfiguration<'line'>>;
+                    if (lineConfig.options?.scales?.x) {
+                      lineConfig.options.scales.x = { ...lineConfig.options.scales.x, title: { display: false } };
+                    }
+                    config.options.onClick = viewScatter;
+                    config.options.plugins = { ...config.options.plugins, legend: { display: false } };
+                    config.plugins = [
+                      chartUtils.gradientLinePlugin(corrUtils.colorScale, 'y-corr', -1, 1),
+                      chartUtils.lineHoverPlugin(corrUtils.colorScale),
+                    ];
+                    if (config.data?.datasets?.[0]) {
+                      (config.data.datasets[0] as any).selectedPoint = 0;
+                    }
+                    return config;
+                  }}
+                  height={300}
+                  showControls={false}
+                  dataLoadCallback={(data: chartUtils.DataSpec): void => {
+                    const tsData = data as CorrelationsRepository.TimeseriesResponse;
+                    setTsPps(tsData.pps);
+                    if (tsData?.data?.all?.x?.[0]) {
+                      buildScatter(selectedCols, 0, tsData.code);
+                    } else {
+                      setTsCode(tsData.code);
+                    }
+                  }}
+                />
+              </React.Fragment>
             )}
-          </figure>
-        </BouncerWrapper>
-      )}
+            {scatterData !== undefined && <CorrelationScatterStats {...{ selectedCols, ...scatterData }} />}
+            <figure>
+              {scatterError}
+              {!scatterError && (
+                <div className="chart-wrapper" style={{ height: 400 }}>
+                  <div id="scatter-bouncer" style={{ display: 'none' }} ref={scatterBouncer}>
+                    <Bouncer />
+                  </div>
+                  <canvas id="rawScatterChart" ref={scatterCanvas} />
+                </div>
+              )}
+            </figure>
+          </React.Fragment>
+        )}
+      </BouncerWrapper>
     </div>
   );
 };

@@ -1,11 +1,18 @@
 import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { Provider } from 'react-redux';
+import { act } from 'react-dom/test-utils';
+import * as redux from 'react-redux';
+
+import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
+jest.mock('../../dtale/side/SidePanelButtons', () => ({
+  SidePanelButtons: createMockComponent(),
+}));
 
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
 import PPSDetails from '../../popups/pps/PPSDetails';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
+import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../test-utils';
@@ -32,21 +39,18 @@ describe('DataViewer tests', () => {
     axiosGetSpy.mockImplementation((url: string) => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    const props = { dataId: '1', chartData: { visible: true } };
-    result = mount(
-      <Provider store={store}>
-        <PredictivePowerScore {...props} />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
-    await tickUpdate(result);
+    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
+    useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true } });
+    
+    buildInnerHTML({ settings: '' });
+    result = mount(<PredictivePowerScore/>, { attachTo: document.getElementById('content') ?? undefined });
+    await act(async () => await tickUpdate(result));
+    result = result.update();
     const ppsGrid = result.find(PredictivePowerScore).first().find('div.ReactVirtualized__Grid__innerScrollContainer');
-    ppsGrid.find('div.cell').at(1).simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      ppsGrid.find('div.cell').at(1).simulate('click');
+    });
+    result = result.update();
   });
 
   afterAll(() => {
@@ -61,9 +65,12 @@ describe('DataViewer tests', () => {
   });
 
   it('handles encode strings', async () => {
-    result.find(PredictivePowerScore).setState({ strings: ['foo'] });
-    result.find(CorrelationsGrid).props().toggleStrings();
-    await tickUpdate(result);
-    expect(result.find(PredictivePowerScore).state().encodeStrings).toBe(true);
+    const loadCorrelationsSpy = jest.spyOn(CorrelationsRepository, 'loadCorrelations');
+    await act(async () => {
+      result.find(CorrelationsGrid).props().toggleStrings();
+    });
+    result = result.update();
+    expect(result.find(CorrelationsGrid).props().encodeStrings).toBe(true);
+    expect(loadCorrelationsSpy).toHaveBeenCalledWith('1', true, true);
   });
 });

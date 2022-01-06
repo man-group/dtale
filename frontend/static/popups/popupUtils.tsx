@@ -82,7 +82,7 @@ const buildPps = (props: BuilderInput): BuilderOutput => {
       <strong>{props.t('Predictive Power Score', { ns: 'menu' })}</strong>
     </React.Fragment>
   );
-  const body = <PredictivePowerScore propagateState={props.propagateState} />;
+  const body = <PredictivePowerScore />;
   return { title, body };
 };
 

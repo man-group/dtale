@@ -4,6 +4,22 @@ import { buildURL, buildURLString } from '../redux/actions/url-utils';
 
 import * as GenericRepository from './GenericRepository';
 
+/** Predictive power score information */
+export interface PPSInfo {
+  x: string;
+  y: string;
+  ppscore: number;
+  case: string;
+  is_valid_score: boolean;
+  metric?: string;
+  baseline_score: number;
+  model_score: number;
+  model?: string;
+}
+
+/** Rows used in the display of the Predictive Power Score matrix */
+export type PPSGridRow = PPSInfo & { x: string; y: string };
+
 /** Row within correlation matrix */
 export type CorrelationGridRow = { column: string } & { [key: string]: number };
 
@@ -20,6 +36,7 @@ export interface CorrelationsResponse extends GenericRepository.BaseResponse {
   strings?: string[];
   code: string;
   dummyColMappings?: Record<string, string[]>;
+  pps?: PPSGridRow[];
 }
 
 /**
@@ -38,19 +55,6 @@ export async function loadCorrelations(
   return await GenericRepository.getDataFromService<CorrelationsResponse>(
     buildURLString(`/dtale/correlations/${dataId}`, { encodeStrings: `${encodeStrings}`, pps: `${pps}` }),
   );
-}
-
-/** Predictive power score information */
-export interface PPSInfo {
-  x: string;
-  y: string;
-  ppscore: number;
-  case: string;
-  is_valid_score: boolean;
-  metric?: string;
-  baseline_score: number;
-  model_score: number;
-  model?: string;
 }
 
 /** Axios response for timeseries correlations */
