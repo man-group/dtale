@@ -2,7 +2,7 @@ import { ActiveElement, Chart, ChartEvent, ScatterDataPoint, TooltipItem } from 
 import chroma from 'chroma-js';
 
 import * as chartUtils from '../../chartUtils';
-import { CorrelationsPopupData } from '../../redux/state/AppState';
+import { BaseCorrelationsPopupData } from '../../redux/state/AppState';
 
 import { CorrelationsState } from './Correlations';
 
@@ -76,7 +76,7 @@ export interface SelectedColsDef {
   col2?: string;
 }
 
-export const findCols = (chartData: CorrelationsPopupData, columns: string[]): SelectedColsDef => {
+export const findCols = (chartData: BaseCorrelationsPopupData, columns: string[]): SelectedColsDef => {
   let { col1, col2 } = chartData || {};
   if (col1 === undefined) {
     if (col2 === undefined) {

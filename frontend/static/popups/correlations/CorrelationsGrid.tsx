@@ -82,12 +82,12 @@ interface CorrelationsGridProps {
   hasDate: boolean;
   selectedDate?: string;
   selectedCols: string[];
-  buildTs: (selectedCols: string[]) => void;
-  buildScatter: (selectedCols: string[]) => Promise<void>;
-  rolling: boolean;
-  useRolling: boolean;
-  window: number;
-  minPeriods: number;
+  buildTs?: (selectedCols: string[]) => void;
+  buildScatter: (selectedCols: string[]) => void;
+  rolling?: boolean;
+  useRolling?: boolean;
+  window?: number;
+  minPeriods?: number;
   gridCode?: string;
   colorScale?: chroma.Scale<chroma.Color>;
   close?: JSX.Element;

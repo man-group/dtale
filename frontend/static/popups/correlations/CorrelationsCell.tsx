@@ -14,8 +14,8 @@ interface CorrelationsCellProps {
   correlations: CorrelationGridRow[];
   columns: Array<BaseOption<string>>;
   hasDate: boolean;
-  buildTs: (selectedCols: string[]) => void;
-  buildScatter: (selectedCols: string[]) => Promise<void>;
+  buildTs?: (selectedCols: string[]) => void;
+  buildScatter: (selectedCols: string[]) => void;
   col2?: BaseOption<string>;
   selectedCols: string[];
   colorScale: chroma.Scale<chroma.Color>;
@@ -71,7 +71,7 @@ export const CorrelationsCell: React.FC<CorrelationsCellProps & GridCellProps> =
   const props: React.HTMLAttributes<HTMLDivElement> = {};
   if (!corrOnItself) {
     if (hasDate) {
-      props.onClick = () => buildTs([row.column, prop]);
+      props.onClick = () => buildTs?.([row.column, prop]);
     } else {
       props.onClick = () => buildScatter([row.column, prop]);
     }

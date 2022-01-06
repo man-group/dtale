@@ -146,12 +146,19 @@ export interface ColumnAnalysisPopupData extends PopupData<typeof PopupType.COLU
   query?: string;
 }
 
-/** Popup configuration for Correlations popup */
-export interface CorrelationsPopupData extends PopupData<typeof PopupType.CORRELATIONS> {
+/** Base properties for Correlation popups */
+export interface BaseCorrelationsPopupData {
   col1?: string;
   col2?: string;
+}
+
+/** Popup configuration for Correlations popup */
+export interface CorrelationsPopupData extends PopupData<typeof PopupType.CORRELATIONS>, BaseCorrelationsPopupData {
   query?: string;
 }
+
+/** Popup configuration for Predictive Power Score popup */
+export type PPSPopupData = PopupData<typeof PopupType.PPS> & BaseCorrelationsPopupData;
 
 /** Popup configuration for Charts popup */
 export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
@@ -177,7 +184,8 @@ export type Popups =
   | XArrayIndexesPopupData
   | ColumnAnalysisPopupData
   | ChartsPopupData
-  | CorrelationsPopupData;
+  | CorrelationsPopupData
+  | PPSPopupData;
 
 /** Type definition for column being sorted and it's direction. */
 export type SortDef = [string, 'ASC' | 'DESC'];
