@@ -22,8 +22,8 @@ export interface ColumnDef extends Bounds {
   hasOutliers?: boolean;
   outlierRange?: OutlierRange;
   lowVariance?: boolean;
-  locked: boolean;
-  unique_ct: number;
+  locked?: boolean;
+  unique_ct?: number;
   visible?: boolean;
   coord?: 'lat' | 'lon';
 }

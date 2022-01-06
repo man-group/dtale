@@ -1,7 +1,7 @@
 import { Chart, ChartDataset, ChartMeta, DatasetController, Element, Scale, TooltipItem } from 'chart.js';
 
 import * as chartUtils from '../chartUtils';
-import correlationsUtils from '../popups/correlations/correlationsUtils';
+import * as correlationsUtils from '../popups/correlations/correlationsUtils';
 
 import { mockChartJS } from './test-utils';
 

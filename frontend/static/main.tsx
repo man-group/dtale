@@ -9,7 +9,7 @@ import './i18n';
 import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
 import CodePopup from './popups/CodePopup';
-import Correlations from './popups/Correlations';
+import { Correlations } from './popups/correlations/Correlations';
 import { ReactCreateColumn as CreateColumn } from './popups/create/CreateColumn';
 import { Describe } from './popups/describe/Describe';
 import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
@@ -59,7 +59,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <FilterPopup {...{ dataId, chartData }} />;
       break;
     case 'correlations':
-      rootNode = <Correlations {...{ dataId, chartData }} />;
+      rootNode = <Correlations />;
       break;
     case 'merge':
       storeBuilder = () => {

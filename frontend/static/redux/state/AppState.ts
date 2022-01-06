@@ -146,6 +146,13 @@ export interface ColumnAnalysisPopupData extends PopupData<typeof PopupType.COLU
   query?: string;
 }
 
+/** Popup configuration for Correlations popup */
+export interface CorrelationsPopupData extends PopupData<typeof PopupType.CORRELATIONS> {
+  col1?: string;
+  col2?: string;
+  query?: string;
+}
+
 /** Popup configuration for Charts popup */
 export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
   query?: string;
@@ -169,7 +176,11 @@ export type Popups =
   | XArrayDimensionsPopupData
   | XArrayIndexesPopupData
   | ColumnAnalysisPopupData
-  | ChartsPopupData;
+  | ChartsPopupData
+  | CorrelationsPopupData;
+
+/** Type definition for column being sorted and it's direction. */
+export type SortDef = [string, 'ASC' | 'DESC'];
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
@@ -181,7 +192,7 @@ export interface InstanceSettings {
   rangeHighlight?: RangeHighlightConfig;
   verticalHeaders?: boolean;
   predefinedFilters?: Record<string, PredefinedFilter>;
-  sortInfo?: string[][];
+  sortInfo?: SortDef[];
   nanDisplay?: string;
   startup_code?: string;
   query?: string;

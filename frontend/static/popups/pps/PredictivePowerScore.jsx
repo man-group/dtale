@@ -4,10 +4,9 @@ import React from 'react';
 import { withTranslation } from 'react-i18next';
 
 import { RemovableError } from '../../RemovableError';
-import { buildURL } from '../../redux/actions/url-utils';
-import { fetchJson } from '../../fetcher';
 import CorrelationsGrid from '../correlations/CorrelationsGrid';
-import corrUtils from '../correlations/correlationsUtils';
+import * as corrUtils from '../correlations/correlationsUtils';
+import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { default as PPSDetails, displayScore } from './PPSDetails';
 
@@ -35,20 +34,14 @@ class PredictivePowerScore extends React.Component {
     return false;
   }
 
-  loadGrid() {
-    this.setState({ loadingPps: true });
-    const params = { ...this.props.chartData, pps: true, encodeStrings: this.state.encodeStrings };
-    const url = buildURL(`${corrUtils.BASE_CORRELATIONS_URL}/${this.props.dataId}`, params, [
-      'query',
-      'pps',
-      'encodeStrings',
-    ]);
-    fetchJson(url, (gridData) => {
-      if (gridData.error) {
-        this.setState({ loadingPps: false, error: <RemovableError {...gridData} /> });
-        return;
-      }
-      const { data, pps, strings } = gridData;
+  async loadGrid() {
+    const response = await CorrelationsRepository.loadCorrelations(this.props.dataId, this.state.encodeStrings, true);
+    if (response?.error) {
+      this.setState({ loadingPps: false, error: <RemovableError {...response} /> });
+      return;
+    }
+    if (response) {
+      const { data, pps, strings } = response;
       const columns = _.map(data, 'column');
       const state = {
         correlations: data,
@@ -61,7 +54,7 @@ class PredictivePowerScore extends React.Component {
         const { col1, col2 } = corrUtils.findCols(this.props.chartData, columns);
         this.setState({ selectedCols: [col1, col2] });
       });
-    });
+    }
   }
 
   componentDidMount() {

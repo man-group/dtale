@@ -245,13 +245,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
   };
 
   React.useEffect(() => {
-    if (props.visible) {
-      loadChartData();
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (props.visible) {
+    if (props.visible && props.url) {
       loadChartData();
     }
   }, [props.url]);

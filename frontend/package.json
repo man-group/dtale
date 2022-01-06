@@ -43,6 +43,7 @@
     "@types/enzyme": "3.1.6",
     "@types/jest": "27.0.3",
     "@types/lodash": "4.14.177",
+    "@types/numeral": "2.0.2",
     "@types/plotly.js": "1.54.17",
     "@types/prop-types": "15.7.4",
     "@types/raf": "3.4.0",

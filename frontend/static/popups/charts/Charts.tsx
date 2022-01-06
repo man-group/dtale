@@ -20,10 +20,10 @@ require('./Charts.css');
 export interface ChartsState {
   x?: BaseOption<string>;
   y: Array<BaseOption<string>>;
-  group: Array<BaseOption<string>>;
+  group?: Array<BaseOption<string>>;
   aggregation?: string;
   rollingComputation?: string;
-  rollingWindow: string;
+  rollingWindow?: string;
 }
 
 const Charts: React.FC<WithTranslation> = ({ t }) => {
@@ -50,7 +50,7 @@ const Charts: React.FC<WithTranslation> = ({ t }) => {
       return;
     }
     const params: Record<string, string> = { x: x.value, y: JSON.stringify(_.map(y, 'value')), query: query ?? '' };
-    if (group.length) {
+    if (!!group?.length) {
       params.group = JSON.stringify(group.map(({ value }) => value));
     }
     if (aggregation) {

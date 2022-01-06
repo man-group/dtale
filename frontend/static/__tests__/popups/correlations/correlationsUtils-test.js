@@ -1,4 +1,4 @@
-import corrUtils from '../../../popups/correlations/correlationsUtils';
+import * as corrUtils from '../../../popups/correlations/correlationsUtils';
 
 describe('correlationsUtils', () => {
   describe('findDummyCols', () => {
