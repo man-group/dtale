@@ -26,6 +26,7 @@ export interface ColumnDef extends Bounds {
   unique_ct?: number;
   visible?: boolean;
   coord?: 'lat' | 'lon';
+  label?: string;
 }
 
 /** Type definition for each cell displayed in the DataViewer */

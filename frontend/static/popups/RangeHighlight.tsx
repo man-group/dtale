@@ -197,9 +197,9 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
         label="Col"
         prop="col"
         parent={{ col }}
-        updateState={(state: { col: ColOption }): void => {
-          setCol(state.col);
-          setCurrRange(retrieveRange(state.col, ranges));
+        updateState={(state: { col?: ColOption }): void => {
+          setCol(state.col!);
+          setCurrRange(retrieveRange(state.col!, ranges));
         }}
         columns={cols}
         dtypes={['int', 'float']}

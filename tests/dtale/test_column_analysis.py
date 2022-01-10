@@ -72,6 +72,7 @@ def test_get_column_analysis(unittest, test_data):
                 chart_type="histogram",
                 dtype="int64",
                 query="",
+                timestamp=response_data["timestamp"],
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k not in ["code", "cols"]},
@@ -106,6 +107,7 @@ def test_get_column_analysis(unittest, test_data):
                 chart_type="histogram",
                 dtype="int64",
                 query="",
+                timestamp=response_data["timestamp"],
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k not in ["code", "cols"]},
@@ -147,6 +149,7 @@ def test_get_column_analysis(unittest, test_data):
                 chart_type="histogram",
                 dtype="int64",
                 query="security_id > 10",
+                timestamp=response_data["timestamp"],
             )
             unittest.assertEqual(
                 {k: v for k, v in response_data.items() if k not in ["code", "cols"]},

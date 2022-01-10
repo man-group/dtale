@@ -2,7 +2,7 @@ import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
-import ButtonToggle, { ButtonToggleOptionValue } from '../../../ButtonToggle';
+import ButtonToggle from '../../../ButtonToggle';
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import * as gu from '../../../dtale/gridUtils';
 import { BaseOption } from '../../../redux/state/AppState';
@@ -163,11 +163,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     return (
       <React.Fragment>
         <GlobalHotKeys keyMap={{ LEFT: 'left', RIGHT: 'right' }} handlers={{ LEFT: toggleLeft, RIGHT: toggleRight }} />
-        <ButtonToggle
-          options={chartOpts}
-          update={(value?: ButtonToggleOptionValue) => setType(value as AnalysisType)}
-          defaultValue={type}
-        />
+        <ButtonToggle options={chartOpts} update={(value?: AnalysisType) => setType(value!)} defaultValue={type} />
         <small className="d-block pl-4 pt-3">({t('constants:navigate')})</small>
       </React.Fragment>
     );
@@ -218,7 +214,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         { label: 'Frequency', value: false },
         { label: 'Probability', value: true },
       ]}
-      update={(value?: ButtonToggleOptionValue) => setDensity(value! as boolean)}
+      update={(value?: boolean) => setDensity(value!)}
       defaultValue={density}
       className="pr-0"
     />

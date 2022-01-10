@@ -97,6 +97,7 @@ describe('Variance tests', () => {
             ...ANALYSIS_DATA,
             dtype: 'int64',
             chart_type: 'histogram',
+            timestamp: new Date().getTime(),
           },
         });
       }

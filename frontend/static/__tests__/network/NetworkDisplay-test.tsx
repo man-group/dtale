@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -7,7 +8,6 @@ import { Edge, Node, Options } from 'vis-network/standalone/umd/vis-network.min'
 
 import { NetworkClickParameters } from '../../network/NetworkState';
 import ColumnSelect from '../../popups/create/ColumnSelect';
-import * as GenericRepository from '../../repository/GenericRepository';
 import { MockDataSet } from '../mocks/MockDataSet';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../test-utils';
@@ -82,17 +82,17 @@ describe('NetworkDisplay test', () => {
   const getLatestNetwork = (): any => networkSpy.mock.calls[networkSpy.mock.calls.length - 1][0];
 
   const buildDisplay = async (params = {}): Promise<void> => {
-    const getDataFromServiceSpy = jest.spyOn(GenericRepository, 'getDataFromService');
-    getDataFromServiceSpy.mockImplementation((url) => {
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/network-data/1')) {
         const networkData = require('./data.json');
-        return networkData;
+        return Promise.resolve({ data: networkData });
       } else if (url.startsWith('/dtale/shortest-path/1')) {
-        return { data: ['b', 'c'] };
+        return Promise.resolve({ data: { data: ['b', 'c'] } });
       } else if (url.startsWith('/dtale/network-analysis/1')) {
-        return { data: {} };
+        return Promise.resolve({ data: { data: {} } });
       }
-      return undefined;
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     const { NetworkDisplay } = require('../../network/NetworkDisplay');
     const store = reduxUtils.createDtaleStore();
@@ -108,18 +108,43 @@ describe('NetworkDisplay test', () => {
     await act(async () => await tickUpdate(result));
   };
 
+  const findNetworkDisplay = (): ReactWrapper => result.find('ReactNetworkDisplay');
+
   const buildNetwork = async (): Promise<void> => {
-    const comp = result.find('ReactNetworkDisplay');
-    const selects = comp.find(ColumnSelect);
     await act(async () => {
-      selects.first().prop('updateState')({ to: { value: 'to' } });
-      selects.at(2).prop('updateState')({ from: { value: 'from' } });
-      selects.at(3).prop('updateState')({ group: { value: 'weight' } });
-      selects.last().prop('updateState')({ weight: { value: 'weight' } });
+      findNetworkDisplay()
+        .find(ColumnSelect)
+        .first()
+        .props()
+        .updateState({ to: { value: 'to' } });
     });
     result = result.update();
     await act(async () => {
-      comp.find('button').first().simulate('click');
+      findNetworkDisplay()
+        .find(ColumnSelect)
+        .at(2)
+        .props()
+        .updateState({ from: { value: 'from' } });
+    });
+    result = result.update();
+    await act(async () => {
+      findNetworkDisplay()
+        .find(ColumnSelect)
+        .at(3)
+        .props()
+        .updateState({ group: { value: 'weight' } });
+    });
+    result = result.update();
+    await act(async () => {
+      findNetworkDisplay()
+        .find(ColumnSelect)
+        .last()
+        .props()
+        .updateState({ weight: { value: 'weight' } });
+    });
+    result = result.update();
+    await act(async () => {
+      findNetworkDisplay().find('button').first().simulate('click');
     });
     result = result.update();
   };

@@ -20,6 +20,7 @@ export interface FetchedChartData<T extends AnalysisType> {
   dtype: string;
   chart_type: T;
   top?: number;
+  timestamp?: number;
 }
 
 /** Base properties for column analysis charts */
@@ -30,7 +31,7 @@ export interface BaseChartData {
 
 /** Properties for fetched Histogram data */
 export interface HistogramChartData extends FetchedChartData<AnalysisType.HISTOGRAM>, BaseChartData {
-  desc: Record<string, any>;
+  desc?: Record<string, any>;
   kde?: number[];
   targets?: any[];
 }

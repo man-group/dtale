@@ -4,7 +4,7 @@ import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import * as gu from '../../../dtale/gridUtils';
 import { BaseOption } from '../../../redux/state/AppState';
-import { cleaners as cleanerOptionBuilder } from '../../create/CreateCleaning';
+import { buildCleanerOptions } from '../../create/CreateCleaning';
 import { AnalysisType } from '../ColumnAnalysisState';
 
 import { analysisAggs, sortOptions } from './Constants';
@@ -15,7 +15,7 @@ const cleanerOpts = (t: TFunction): Array<BaseOption<string>> => [
     value: 'underscore_to_space',
     label: t('Replace underscores w/ space', { ns: 'analysis' }),
   },
-  ...cleanerOptionBuilder(t).filter((option) => option.word_count),
+  ...buildCleanerOptions(t).filter((option) => option.word_count),
 ];
 
 /** Component properties for OrdinalInputs */

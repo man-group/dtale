@@ -7,6 +7,7 @@ import * as chartUtils from '../../chartUtils';
 import { kurtMsg, skewMsg } from '../../dtale/column/ColumnMenuHeader';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
+import { capitalize } from '../../stringUtils';
 
 import { ColumnAnalysisChart } from './ColumnAnalysisChart';
 import {
@@ -211,14 +212,12 @@ export function createChart(
   if (describeDiv) {
     if (fetchedData.chart_type === AnalysisType.HISTOGRAM && fetchedData.desc) {
       const descHTML = DESC_PROPS.map((p) => {
-        let markup = `${p === 'kurt' ? 'Kurtosis' : `${p[0].toUpperCase()}${p.slice(1).toLowerCase()}`}: <b>${
-          fetchedData.desc[p]
-        }</b>`;
+        let markup = `${p === 'kurt' ? 'Kurtosis' : capitalize(p)}: <b>${fetchedData.desc?.[p]}</b>`;
         if (p === 'skew') {
-          markup += skewMsg(fetchedData.desc[p], true);
+          markup += skewMsg(fetchedData.desc?.[p], true);
         }
         if (p === 'kurt') {
-          markup += kurtMsg(fetchedData.desc[p], true);
+          markup += kurtMsg(fetchedData.desc?.[p], true);
         }
         return markup;
       }).join(', ');

@@ -23,6 +23,7 @@ import {
   NetworkDisplayComponentProps,
   NetworkDisplayReduxProps,
   NetworkDisplayState,
+  ValueHolder,
 } from './NetworkState';
 import { NetworkUrlParams } from './NetworkUrlParams';
 import * as networkUtils from './networkUtils';
@@ -85,16 +86,16 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
                 label={t('To')}
                 prop="to"
                 parent={this.state}
-                updateState={(state: NetworkDisplayState) => this.setState(state)}
-                columns={dtypes}
+                updateState={(state: { to?: ValueHolder<string> }) => this.setState(state)}
+                columns={dtypes ?? []}
                 otherProps={['from']}
               />
               <ColumnSelect
                 label={t('From')}
                 prop="from"
                 parent={this.state}
-                updateState={(state: NetworkDisplayState) => this.setState(state)}
-                columns={dtypes}
+                updateState={(state: { from?: ValueHolder<string> }) => this.setState(state)}
+                columns={dtypes ?? []}
                 otherProps={['to']}
               />
             </div>
@@ -105,8 +106,8 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
                     label={t('Group')}
                     prop="group"
                     parent={this.state}
-                    updateState={(state: NetworkDisplayState) => this.setState(state)}
-                    columns={dtypes}
+                    updateState={(state: { group?: ValueHolder<string> }) => this.setState(state)}
+                    columns={dtypes ?? []}
                     otherProps={['to', 'from']}
                   />
                 </div>
@@ -115,8 +116,8 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
                     label={t('Weight')}
                     prop="weight"
                     parent={this.state}
-                    updateState={(state: NetworkDisplayState) => this.setState(state)}
-                    columns={dtypes}
+                    updateState={(state: { weight?: ValueHolder<string> }) => this.setState(state)}
+                    columns={dtypes ?? []}
                     otherProps={['to', 'from']}
                   />
                 </div>
@@ -125,8 +126,8 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
                     label={t('Color')}
                     prop="color"
                     parent={this.state}
-                    updateState={(state: NetworkDisplayState) => this.setState(state)}
-                    columns={dtypes}
+                    updateState={(state: { color?: ValueHolder<string> }) => this.setState(state)}
+                    columns={dtypes ?? []}
                     otherProps={['to', 'from']}
                   />
                 </div>

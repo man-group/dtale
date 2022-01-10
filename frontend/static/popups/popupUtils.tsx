@@ -2,7 +2,7 @@ import { TFunction } from 'i18next';
 import * as React from 'react';
 
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
-import { Popups } from '../redux/state/AppState';
+import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups } from '../redux/state/AppState';
 
 import About from './About';
 import ColumnAnalysis from './analysis/ColumnAnalysis';
@@ -10,7 +10,8 @@ import { CodeExport } from './CodeExport';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
 import { Correlations } from './correlations/Correlations';
-import { CreateColumn } from './create/CreateColumn';
+import CreateColumn from './create/CreateColumn';
+import { CleaningConfig, CreateColumnType, SaveAs, TypeConversionConfig } from './create/CreateColumnState';
 import { Duplicates } from './duplicates/Duplicates';
 import { Error } from './ErrorPopup';
 import { FilterPopup } from './filter/FilterPopup';
@@ -56,7 +57,7 @@ const buildColumnAnalysis = (props: BuilderInput): BuilderOutput => {
     <React.Fragment>
       <i className="ico-equalizer" />
       {props.t(' Column Analysis for ', { ns: 'popup' })}
-      <strong>{(props.chartData as any).selectedCol}</strong>
+      <strong>{(props.chartData as ColumnAnalysisPopupData).selectedCol}</strong>
       <div id="describe" />
     </React.Fragment>
   );
@@ -102,15 +103,15 @@ const buildTypeConversion = (props: BuilderInput): BuilderOutput => {
     <React.Fragment>
       <i className="ico-build" />
       {props.t(' Type Conversion of ', { ns: 'popup' })}
-      <strong>{(props.chartData as any).selectedCol}</strong>
+      <strong>{(props.chartData as CreateColumnPopupData).selectedCol}</strong>
     </React.Fragment>
   );
   const body = (
     <CreateColumn
       prePopulated={{
-        type: 'type_conversion',
-        saveAs: 'inplace',
-        cfg: { col: (props.chartData as any).selectedCol },
+        type: CreateColumnType.TYPE_CONVERSION,
+        saveAs: SaveAs.INPLACE,
+        cfg: { col: (props.chartData as CreateColumnPopupData).selectedCol } as TypeConversionConfig,
       }}
     />
   );
@@ -122,14 +123,14 @@ const buildCleaners = (props: BuilderInput): BuilderOutput => {
     <React.Fragment>
       <i className="ico-build" />
       {props.t(' Clean ', { ns: 'popup' })}
-      <strong>{(props.chartData as any).selectedCol}</strong>
+      <strong>{(props.chartData as CreateColumnPopupData).selectedCol}</strong>
     </React.Fragment>
   );
   const body = (
     <CreateColumn
       prePopulated={{
-        type: 'cleaning',
-        cfg: { col: (props.chartData as any).selectedCol },
+        type: CreateColumnType.CLEANING,
+        cfg: { col: (props.chartData as CreateColumnPopupData).selectedCol, cleaners: [] } as CleaningConfig,
       }}
     />
   );
@@ -231,7 +232,7 @@ const buildReplacement = (props: BuilderInput): BuilderOutput => {
     <React.Fragment>
       <i className="fas fa-backspace" />
       {props.t(' Replacements for ', { ns: 'popup' })}
-      <strong>{(props.chartData as any).selectedCol}</strong>
+      <strong>{(props.chartData as CreateColumnPopupData).selectedCol}</strong>
     </React.Fragment>
   );
   const body = <CreateReplacement {...props} />;

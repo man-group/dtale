@@ -41,9 +41,9 @@ describe('DataViewer tests', () => {
     });
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
     useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true } });
-    
+
     buildInnerHTML({ settings: '' });
-    result = mount(<PredictivePowerScore/>, { attachTo: document.getElementById('content') ?? undefined });
+    result = mount(<PredictivePowerScore />, { attachTo: document.getElementById('content') ?? undefined });
     await act(async () => await tickUpdate(result));
     result = result.update();
     const ppsGrid = result.find(PredictivePowerScore).first().find('div.ReactVirtualized__Grid__innerScrollContainer');

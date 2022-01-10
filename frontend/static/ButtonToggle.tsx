@@ -1,22 +1,21 @@
 import * as React from 'react';
 
-/** Type definition for ButtonToggle option value */
-export type ButtonToggleOptionValue = string | number | boolean;
-
 /** Option for ButtonToggle */
 export interface ButtonToggleOption {
   label?: string;
-  value: ButtonToggleOptionValue;
+  value: any;
+  buttonOptions?: Partial<React.HTMLAttributes<HTMLButtonElement>>;
 }
 
 /** Component properties for ButtonToggle */
 interface ButtonToggleProps {
   options: ButtonToggleOption[];
-  update: (value?: ButtonToggleOptionValue) => void;
-  defaultValue?: string | number | boolean;
+  update: (value?: any) => void;
+  defaultValue?: any;
   allowDeselect?: boolean;
   disabled?: boolean;
   className?: string;
+  compact?: boolean;
 }
 
 /** Class for defining a Bootstrap-style button toggle */
@@ -27,8 +26,9 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   allowDeselect,
   disabled,
   className,
+  compact,
 }) => {
-  const [active, setActive] = React.useState<ButtonToggleOptionValue | undefined>(defaultValue);
+  const [active, setActive] = React.useState<any | undefined>(defaultValue);
 
   React.useEffect(() => {
     if (defaultValue !== active) {
@@ -37,7 +37,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   }, [defaultValue]);
 
   return (
-    <div className={`btn-group compact col-auto ${className ?? ''}`}>
+    <div className={`btn-group${(compact ?? true) === true ? ' compact' : ''} col-auto ${className ?? ''}`}>
       {options.map(({ label, value }, idx) => {
         let buttonClass = 'btn btn-primary';
         let onClick;

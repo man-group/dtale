@@ -75,6 +75,7 @@ describe('ColumnAnalysis tests', () => {
                 ...ANALYSIS_DATA,
                 chart_type: 'value_counts',
                 ordinal,
+                timestamp: new Date().getTime(),
               },
             });
           }
@@ -83,6 +84,7 @@ describe('ColumnAnalysis tests', () => {
               ...ANALYSIS_DATA,
               dtype: 'int64',
               chart_type: 'histogram',
+              timestamp: new Date().getTime(),
             },
           });
         }
@@ -93,6 +95,7 @@ describe('ColumnAnalysis tests', () => {
               dtype: 'datetime',
               chart_type: 'value_counts',
               ordinal,
+              timestamp: new Date().getTime(),
             },
           });
         }
@@ -103,6 +106,7 @@ describe('ColumnAnalysis tests', () => {
               dtype: 'string',
               chart_type: 'value_counts',
               ordinal,
+              timestamp: new Date().getTime(),
             },
           });
         }
@@ -113,6 +117,7 @@ describe('ColumnAnalysis tests', () => {
                 ...ANALYSIS_DATA,
                 chart_type: 'categories',
                 count,
+                timestamp: new Date().getTime(),
               },
             });
           }
@@ -123,6 +128,7 @@ describe('ColumnAnalysis tests', () => {
                 chart_type: 'geolocation',
                 lat: [1, 2, 3],
                 lon: [4, 5, 6],
+                timestamp: new Date().getTime(),
               },
             });
           }
@@ -135,10 +141,11 @@ describe('ColumnAnalysis tests', () => {
                 y: [1],
                 x2: [1],
                 y2: [1],
+                timestamp: new Date().getTime(),
               },
             });
           }
-          return Promise.resolve({ data: { ...ANALYSIS_DATA } });
+          return Promise.resolve({ data: { ...ANALYSIS_DATA, timestamp: new Date().getTime() } });
         }
       }
       return Promise.resolve({ data: {} });

@@ -352,7 +352,8 @@
     "Split By Character": "Split By Character",
     "Delimiter": "Delimiter",
     "Concatenate": "Concatenate",
-    "Replace": "Replace"
+    "Replace": "Replace",
+    "Algorithm": "Algorithm"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
