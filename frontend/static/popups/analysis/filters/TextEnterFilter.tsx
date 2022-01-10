@@ -2,6 +2,7 @@ import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import * as gu from '../../../dtale/gridUtils';
+import { capitalize } from '../../../stringUtils';
 import { AnalysisParams } from '../ColumnAnalysisState';
 
 /** Component properties for TextEnterFilter */
@@ -49,7 +50,7 @@ const TextEnterFilter: React.FC<TextEnterFilterProps & WithTranslation> = ({
     <React.Fragment>
       <div className={`col-auto text-center pr-4 ${gu.findColType(dtype) === 'int' ? 'pl-0' : ''}`}>
         <div>
-          <b>{t(`${prop[0].toUpperCase()}${prop.slice(1).toLowerCase()}`)}</b>
+          <b>{t(capitalize(prop))}</b>
         </div>
         <div style={{ marginTop: '-.5em' }}>
           <small>{`(${t('Please edit')})`}</small>

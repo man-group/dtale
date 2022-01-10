@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
-import ButtonToggle, { ButtonToggleOptionValue } from '../../../ButtonToggle';
+import ButtonToggle from '../../../ButtonToggle';
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import * as gu from '../../../dtale/gridUtils';
 import { BaseOption } from '../../../redux/state/AppState';
@@ -103,8 +103,8 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
     if (colType !== 'string') {
       options.push({ label: translatedTitles.qq, value: AnalysisType.QQ });
     }
-    const update = (value?: ButtonToggleOptionValue): (() => Promise<void>) => {
-      setType(value as AnalysisType);
+    const update = (value?: AnalysisType): (() => Promise<void>) => {
+      setType(value!);
       setTop('');
       return () => buildChart();
     };

@@ -1,6 +1,6 @@
 import { RGBColor } from 'react-color';
 
-import { Bounds, ColumnDef, ColumnFilter, ColumnFormat } from '../../dtale/DataViewerState';
+import { Bounds, ColumnDef, ColumnFilter, ColumnFormat, DataViewerPropagateState } from '../../dtale/DataViewerState';
 
 /** Base properties for react-select dropdown options */
 export interface BaseOption<T> {
@@ -160,6 +160,12 @@ export interface CorrelationsPopupData extends PopupData<typeof PopupType.CORREL
 /** Popup configuration for Predictive Power Score popup */
 export type PPSPopupData = PopupData<typeof PopupType.PPS> & BaseCorrelationsPopupData;
 
+/** Popup configuration for Create Column popup */
+export interface CreateColumnPopupData extends PopupData<typeof PopupType.BUILD> {
+  propagateState: DataViewerPropagateState;
+  selectedCol?: string;
+}
+
 /** Popup configuration for Charts popup */
 export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
   query?: string;
@@ -185,7 +191,8 @@ export type Popups =
   | ColumnAnalysisPopupData
   | ChartsPopupData
   | CorrelationsPopupData
-  | PPSPopupData;
+  | PPSPopupData
+  | CreateColumnPopupData;
 
 /** Type definition for column being sorted and it's direction. */
 export type SortDef = [string, 'ASC' | 'DESC'];

@@ -10,7 +10,8 @@ import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
 import CodePopup from './popups/CodePopup';
 import { Correlations } from './popups/correlations/Correlations';
-import { ReactCreateColumn as CreateColumn } from './popups/create/CreateColumn';
+import CreateColumn from './popups/create/CreateColumn';
+import { CreateColumnType, PrepopulateCreateColumn, SaveAs } from './popups/create/CreateColumnState';
 import { Describe } from './popups/describe/Describe';
 import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
 import { ReactFilterPopup as FilterPopup } from './popups/filter/FilterPopup';
@@ -70,7 +71,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <ReduxMergeDatasets />;
       break;
     case 'pps':
-      rootNode = <PredictivePowerScore {...{ dataId, chartData }} />;
+      rootNode = <PredictivePowerScore />;
       break;
     case 'describe':
       rootNode = <Describe {...{ dataId, chartData }} />;
@@ -79,26 +80,26 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <Variance {...{ dataId, chartData }} />;
       break;
     case 'build':
-      rootNode = <CreateColumn {...{ dataId, chartData }} />;
+      rootNode = <CreateColumn />;
       break;
     case 'duplicates':
       rootNode = <Duplicates {...{ dataId, chartData }} />;
       break;
     case 'type-conversion': {
-      const prePopulated = {
-        type: 'type_conversion',
-        saveAs: 'inplace',
-        cfg: { col: chartData.selectedCol },
+      const prePopulated: PrepopulateCreateColumn = {
+        type: CreateColumnType.TYPE_CONVERSION,
+        saveAs: SaveAs.INPLACE,
+        cfg: { col: chartData.selectedCol, applyAllType: false },
       };
-      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      rootNode = <CreateColumn prePopulated={prePopulated} />;
       break;
     }
     case 'cleaners': {
-      const prePopulated = {
-        type: 'cleaning',
-        cfg: { col: chartData.selectedCol },
+      const prePopulated: PrepopulateCreateColumn = {
+        type: CreateColumnType.CLEANING,
+        cfg: { col: chartData.selectedCol, cleaners: [] },
       };
-      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      rootNode = <CreateColumn prePopulated={prePopulated} />;
       break;
     }
     case 'replacement':

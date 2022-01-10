@@ -12,13 +12,15 @@ import { fetchJson } from '../../fetcher';
 import CodeSnippet from '../create/CodeSnippet';
 import { Aggregate, validateAggregateCfg } from './Aggregate';
 import { Pivot, validatePivotCfg } from './Pivot';
-import { Resample, validateResampleCfg } from './Resample';
+import { default as Resample, validateResampleCfg } from './Resample';
 import { Transpose, validateTransposeCfg } from './Transpose';
 
 require('./Reshape.css');
 
 function buildForwardURL(href, dataId) {
-  return `${_.join(_.initial((href || '').split('/')), '/')}/${dataId}`;
+  const hrefSegs = (href || '').split('/');
+  hrefSegs.pop();
+  return `${hrefSegs.join('/')}/${dataId}`;
 }
 
 const OPERATIONS = [
@@ -75,7 +77,7 @@ class ReactReshape extends React.Component {
         error = validatePivotCfg(cfg);
         break;
     }
-    if (!_.isNull(error)) {
+    if (error) {
       this.setState({ error: <RemovableError error={this.props.t(error)} /> });
       return;
     }

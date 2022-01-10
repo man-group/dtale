@@ -17,6 +17,8 @@ async function clickColMenuButton(result, name, btnTag = 'button') {
     findColMenuButton(result, name, btnTag).first().simulate('click');
   });
   result = result.update();
+  //await act(async () => await tickUpdate(result));
+  //result = result.update();
 }
 
 function clickColMenuSubButton(result, label, row = 0) {

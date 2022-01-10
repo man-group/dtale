@@ -28,8 +28,10 @@ export const ColumnAnalysisChart: React.FC<ColumnAnalysisChartProps> = ({
 }) => {
   const id = `chart${new Date().getTime()}`;
   const [chart, setChart] = React.useState<chartUtils.ChartObj>();
+  const dataTime = React.useRef<number>();
 
   const createAnalysisChart = (): void => {
+    dataTime.current = fetchedChartData.timestamp;
     const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined => {
       if (finalParams.type === AnalysisType.GEOLOCATION) {
         chartUtils.createGeolocation(id, fetchedChartData as GeolocationChartData);
@@ -54,7 +56,9 @@ export const ColumnAnalysisChart: React.FC<ColumnAnalysisChartProps> = ({
   }, []);
 
   React.useEffect(() => {
-    createAnalysisChart();
+    if (dataTime.current !== fetchedChartData.timestamp) {
+      createAnalysisChart();
+    }
   }, [fetchedChartData, finalParams]);
 
   const plotly = isPlotly(finalParams?.type);

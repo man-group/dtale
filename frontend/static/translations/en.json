@@ -357,7 +357,8 @@
     "Replacement": "Replacement",
     "Case Sensitive": "Case Sensitive",
     "Regex": "Regex",
-    "Search For": "Search For"
+    "Search For": "Search For",
+    "Algorithm": "Algorithm"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",

@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 import pprint
 import scipy.stats as sts
+import time
 
 import dtale.global_state as global_state
 
@@ -140,6 +141,7 @@ class ColumnAnalysis(object):
             cols=global_state.get_dtypes(self.data_id),
             dtype=self.dtype,
             chart_type=self.analysis_type,
+            timestamp=round(time.time() * 1000),
             **return_data
         )
 

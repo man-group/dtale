@@ -9,7 +9,7 @@ import { AppState, BaseOption, ChartsPopupData } from '../../redux/state/AppStat
 import { RemovableError } from '../../RemovableError';
 import * as ChartsRepository from '../../repository/ChartsRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
-import { sortOptions } from '../analysis/filters/Constants';
+import { constructColumnOptionsFilteredByOtherValues } from '../create/ColumnSelect';
 
 import Aggregations from './Aggregations';
 import ChartsBody from './ChartsBody';
@@ -97,17 +97,7 @@ const Charts: React.FC<WithTranslation> = ({ t }) => {
     otherProps: Array<BaseOption<string> | Array<BaseOption<string>> | undefined> = [],
     isMulti = false,
   ): JSX.Element => {
-    const otherValues = otherProps
-      .reduce(
-        (res: Array<BaseOption<string>>, otherProp?: BaseOption<string> | Array<BaseOption<string>>) =>
-          res.concat(otherProp ?? []),
-        [],
-      )
-      .map((otherProp) => otherProp.value);
-    const finalOptions = columns
-      ?.filter(({ name }) => !otherValues.includes(name))
-      .map(({ name }) => ({ value: name }))
-      .sort(sortOptions);
+    const finalOptions = constructColumnOptionsFilteredByOtherValues(columns ?? [], otherProps);
     return (
       <div className="input-group mr-3">
         <span className="input-group-addon">{t(label)}</span>
