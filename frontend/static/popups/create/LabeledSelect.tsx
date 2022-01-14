@@ -3,49 +3,52 @@ import { createFilter, MultiValue, default as Select, SingleValue } from 'react-
 
 import { BaseOption } from '../../redux/state/AppState';
 
-/** Component properties for LabeledSelect */
-interface LabeledSelectProps {
-  label: string;
+/** Component properties for DtaleSelect */
+interface DtaleSelectProps {
   options: Array<BaseOption<any>>;
   isMulti?: boolean;
   isClearable?: boolean;
   value?: BaseOption<any> | Array<BaseOption<any>>;
-  onChange: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
-  subLabel?: string;
+  onChange?: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
   noOptionsMessage?: string;
+}
+
+export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
+  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable }, ref) => (
+    <Select
+      ref={ref as any}
+      className="Select is-clearable is-searchable Select--single"
+      classNamePrefix="Select"
+      options={options}
+      getOptionLabel={(option) => option?.label ?? option.value}
+      getOptionValue={(option) => option.value}
+      {...(onChange
+        ? {
+            value,
+            onChange: (selected: MultiValue<BaseOption<any>> | SingleValue<BaseOption<any>>) =>
+              onChange?.(isMulti ? (selected as Array<BaseOption<any>>) : (selected as BaseOption<any>) ?? undefined),
+          }
+        : {})}
+      noOptionsMessage={() => noOptionsMessage ?? 'No options found'}
+      filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+      isMulti={isMulti}
+      isClearable={isClearable}
+    />
+  ),
+);
+
+/** Component properties for LabeledSelect */
+interface LabeledSelectProps extends DtaleSelectProps {
+  label: string;
+  subLabel?: string;
   selectSize?: string;
 }
 
-export const LabeledSelect: React.FC<LabeledSelectProps> = ({
-  label,
-  options,
-  isMulti,
-  isClearable,
-  onChange,
-  value,
-  subLabel,
-  children,
-  noOptionsMessage,
-  selectSize,
-}) => (
+export const LabeledSelect: React.FC<LabeledSelectProps> = ({ label, subLabel, children, selectSize, ...props }) => (
   <div className="form-group row">
     <label className="col-md-3 col-form-label text-right">{label}</label>
     <div className={`col-md-${selectSize ?? '8'}`}>
-      <Select
-        className="Select is-clearable is-searchable Select--single"
-        classNamePrefix="Select"
-        options={options}
-        getOptionLabel={(option) => option?.label ?? option.value}
-        getOptionValue={(option) => option.value}
-        value={value ?? null}
-        onChange={(selected: MultiValue<BaseOption<any>> | SingleValue<BaseOption<any>>) =>
-          onChange(isMulti ? (selected as Array<BaseOption<any>>) : (selected as BaseOption<any>) ?? undefined)
-        }
-        noOptionsMessage={() => noOptionsMessage ?? 'No options found'}
-        filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-        isMulti={isMulti}
-        isClearable={isClearable}
-      />
+      <DtaleSelect {...props} />
       {subLabel && <small>{subLabel}</small>}
     </div>
     {children}

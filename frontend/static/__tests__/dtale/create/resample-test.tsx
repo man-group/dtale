@@ -2,7 +2,7 @@ import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { default as Select } from 'react-select';
 
-import { CreateColumnType, SaveAs } from '../../../popups/create/CreateColumnState';
+import { CreateColumnType, OutputType, SaveAs } from '../../../popups/create/CreateColumnState';
 import { default as Resample } from '../../../popups/reshape/Resample';
 
 import * as TestSupport from './CreateColumn.test.support';
@@ -66,7 +66,7 @@ describe('CreateResample', () => {
         },
         saveAs: SaveAs.NONE,
         type: CreateColumnType.RESAMPLE,
-        output: 'new',
+        output: OutputType.NEW,
         name: undefined,
       },
       '1',

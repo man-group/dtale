@@ -2,9 +2,10 @@ import * as React from 'react';
 
 /** Option for ButtonToggle */
 export interface ButtonToggleOption {
-  label?: string;
+  label?: React.ReactNode;
   value: any;
   buttonOptions?: Partial<React.HTMLAttributes<HTMLButtonElement>>;
+  className?: string;
 }
 
 /** Component properties for ButtonToggle */
@@ -38,10 +39,10 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
 
   return (
     <div className={`btn-group${(compact ?? true) === true ? ' compact' : ''} col-auto ${className ?? ''}`}>
-      {options.map(({ label, value }, idx) => {
+      {options.map((option, idx) => {
         let buttonClass = 'btn btn-primary';
         let onClick;
-        if (value === active) {
+        if (option.value === active) {
           buttonClass += ' active';
           if (allowDeselect ?? false) {
             onClick = () => {
@@ -52,13 +53,20 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
         } else {
           buttonClass += ' inactive';
           onClick = () => {
-            setActive(value);
-            update(value);
+            setActive(option.value);
+            update(option.value);
           };
         }
+        buttonClass += option.className ? ` ${option.className}` : '';
         return (
-          <button key={idx} className={buttonClass} onClick={onClick} disabled={disabled ?? false}>
-            {label ?? value}
+          <button
+            key={idx}
+            className={buttonClass}
+            onClick={onClick}
+            disabled={disabled ?? false}
+            {...option.buttonOptions}
+          >
+            {option.label ?? option.value}
           </button>
         );
       })}

@@ -166,6 +166,9 @@ export interface CreateColumnPopupData extends PopupData<typeof PopupType.BUILD>
   selectedCol?: string;
 }
 
+/** Popup configuration for Create Column popup */
+export type ReshapePopupData = PopupData<typeof PopupType.RESHAPE>;
+
 /** Popup configuration for Charts popup */
 export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
   query?: string;
@@ -192,7 +195,8 @@ export type Popups =
   | ChartsPopupData
   | CorrelationsPopupData
   | PPSPopupData
-  | CreateColumnPopupData;
+  | CreateColumnPopupData
+  | ReshapePopupData;
 
 /** Type definition for column being sorted and it's direction. */
 export type SortDef = [string, 'ASC' | 'DESC'];

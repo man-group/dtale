@@ -19,7 +19,7 @@ import Instances from './popups/instances/Instances';
 import ReduxMergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
 import { ReactCreateReplacement as CreateReplacement } from './popups/replacement/CreateReplacement';
-import { ReactReshape as Reshape } from './popups/reshape/Reshape';
+import Reshape from './popups/reshape/Reshape';
 import { ReactUpload as Upload } from './popups/upload/Upload';
 import { Variance } from './popups/variance/Variance';
 import * as actions from './redux/actions/dtale';
@@ -106,7 +106,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <CreateReplacement {...{ dataId, chartData }} />;
       break;
     case 'reshape':
-      rootNode = <Reshape {...{ dataId, chartData }} />;
+      rootNode = <Reshape />;
       break;
     case 'column-analysis':
       rootNode = <ColumnAnalysis {...{ dataId, chartData }} height={250} />;

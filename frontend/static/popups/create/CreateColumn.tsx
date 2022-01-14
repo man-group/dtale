@@ -20,6 +20,7 @@ import {
   CreateColumnType,
   CreateColumnTypeGroup,
   CreateColumnUpdateState,
+  OutputType,
   PrepopulateCreateColumn,
   RandomType,
   SaveAs,
@@ -92,7 +93,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     setLoadingColumn(true);
     let route = 'build-column';
     if (type === CreateColumnType.RESAMPLE) {
-      createParams.output = 'new';
+      createParams.output = OutputType.NEW;
       route = 'reshape';
     }
     CreateColumnRepository.save(dataId, createParams, route).then((response) => {

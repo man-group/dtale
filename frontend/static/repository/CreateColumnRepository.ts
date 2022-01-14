@@ -26,7 +26,7 @@ export interface SaveResponse extends GenericRepository.BaseResponse {
 }
 
 /**
- * Creaet & save a column created from a column creation configuration.
+ * Create & save a column created from a column creation configuration.
  *
  * @param dataId the identifier of the data instance you would like the data types for.
  * @param params the configuration of the column being created.
