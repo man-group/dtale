@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { createFilter, default as Select } from 'react-select';
+import { ColumnDef } from 'static/dtale/DataViewerState';
 
 import { BaseOption } from '../../redux/state/AppState';
 import { resampleAggs as buildResampleAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
 import ColumnSelect from '../create/ColumnSelect';
-import { BaseCreateComponentProps, ResampleConfig, SaveAs } from '../create/CreateColumnState';
+import { ResampleConfig, SaveAs } from '../create/CreateColumnState';
+import { LabeledSelect } from '../create/LabeledSelect';
 
 const OFFSET_URL = 'https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases';
 
@@ -41,12 +42,14 @@ export const buildCode = (cfg: ResampleConfig): CreateColumnCodeSnippet => {
   return code;
 };
 
-const Resample: React.FC<BaseCreateComponentProps & WithTranslation> = ({
-  namePopulated,
-  updateState,
-  t,
-  ...props
-}) => {
+/** Component properties for Resample */
+interface ResampleProps {
+  updateState: (state: { cfg: ResampleConfig; code: CreateColumnCodeSnippet; saveAs?: SaveAs }) => void;
+  columns: ColumnDef[];
+  namePopulated?: boolean;
+}
+
+const Resample: React.FC<ResampleProps & WithTranslation> = ({ namePopulated, updateState, t, ...props }) => {
   const resampleAggs = React.useMemo(() => buildResampleAggs(t), [t]);
   const [index, setIndex] = React.useState<BaseOption<string>>();
   const [columns, setColumns] = React.useState<Array<BaseOption<string>>>();
@@ -94,24 +97,12 @@ const Resample: React.FC<BaseCreateComponentProps & WithTranslation> = ({
           </small>
         </div>
       </div>
-      <div className="form-group row">
-        <label className="col-md-3 col-form-label text-right">{t('reshape:Aggregation')}</label>
-        <div className="col-md-8">
-          <div className="input-group">
-            <Select
-              className="Select is-clearable is-searchable Select--single"
-              classNamePrefix="Select"
-              options={resampleAggs}
-              getOptionLabel={(o) => o.label ?? o.value}
-              getOptionValue={(o) => o.value}
-              value={agg}
-              onChange={(value) => setAgg(value ?? undefined)}
-              isClearable={false}
-              filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-            />
-          </div>
-        </div>
-      </div>
+      <LabeledSelect
+        label={t('reshape:Aggregation')}
+        options={resampleAggs}
+        value={agg}
+        onChange={(value) => setAgg(value as BaseOption<string>)}
+      />
     </React.Fragment>
   );
 };

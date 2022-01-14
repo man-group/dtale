@@ -575,8 +575,14 @@ export interface SaveAsProps {
   name?: string;
 }
 
+/** Different types of output for reshaped data */
+export enum OutputType {
+  NEW = 'new',
+  OVERRIDE = 'override',
+}
+
 /** Parameters for saving a created column */
-export type CreateColumnSaveParams = CreateColumnConfigs & SaveAsProps & { output?: string };
+export type CreateColumnSaveParams = CreateColumnConfigs & SaveAsProps & { output?: OutputType };
 
 /** Base component properties for creating column configurations */
 export interface BaseCreateComponentProps {

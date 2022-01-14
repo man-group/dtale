@@ -63,6 +63,7 @@ const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
   parent,
   prop,
   updateState,
+  children,
   t,
 }) => {
   const [dtypesStr, columnOptions] = React.useMemo(() => {
@@ -94,6 +95,7 @@ const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
             noOptionsMessage={() => `${t('No columns available')}${dtypesStr}!`}
           />
         </div>
+        {children}
       </div>
     </div>
   );
