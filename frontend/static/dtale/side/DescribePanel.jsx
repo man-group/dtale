@@ -9,8 +9,8 @@ import { RemovableError } from '../../RemovableError';
 import { updateSettings } from '../../redux/actions/settings';
 import { dtypesUrl } from '../../redux/actions/url-utils';
 import { fetchJson } from '../../fetcher';
-import ColumnNavigation from '../../popups/describe/ColumnNavigation';
-import { Details } from '../../popups/describe/Details';
+import { ColumnNavigation } from '../../popups/describe/ColumnNavigation';
+import Details from '../../popups/describe/Details';
 import DtypesGrid from '../../popups/describe/DtypesGrid';
 import * as serverState from '../serverStateManagement';
 import { SidePanelButtons } from './SidePanelButtons';
@@ -18,8 +18,7 @@ import { SidePanelButtons } from './SidePanelButtons';
 class ReactDescribePanel extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { loadingDtypes: true, dtypeLoad: null };
-    this.grid = React.createRef();
+    this.state = { loadingDtypes: true, dtypeLoad: null, visibility: {} };
   }
 
   componentDidUpdate(prevProps) {
@@ -49,6 +48,7 @@ class ReactDescribePanel extends React.Component {
           newState.selected = _.find(dtypesData.dtypes, {
             name: this.props.column,
           });
+          newState.visibility = newState.dtypes.reduce((ret, d) => ({ ...ret, [d.name]: d.visible }), {});
         }
         this.setState(newState);
       });
@@ -67,10 +67,8 @@ class ReactDescribePanel extends React.Component {
     const { dataId, toggleVisible } = this.props;
     const propagateState = (state) => this.setState(state);
     const save = async () => {
-      const currDtypes = this.grid.current.state.dtypes;
-      const visibility = _.reduce(currDtypes, (ret, d) => _.assignIn(ret, { [d.name]: d.visible }), {});
-      await serverState.updateVisibility(this.props.dataId, visibility);
-      toggleVisible(visibility);
+      await serverState.updateVisibility(this.props.dataId, this.state.visibility);
+      toggleVisible(this.state.visibility);
     };
     return (
       <BouncerWrapper showBouncer={this.state.loadingDtypes}>
@@ -101,7 +99,7 @@ class ReactDescribePanel extends React.Component {
               <SidePanelButtons />
             </div>
             <div style={{ height: 'calc(100vh - 100px)' }}>
-              <DtypesGrid ref={this.grid} dtypes={this.state.dtypes} propagateState={_.noop} />
+              <DtypesGrid dtypes={this.state.dtypes} propagateState={propagateState} />
             </div>
           </>
         )}

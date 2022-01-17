@@ -10,7 +10,7 @@ import { RemovableError } from '../../RemovableError';
 import { openChart } from '../../redux/actions/charts';
 import menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
 import Popup from '../Popup';
-import { buildStat } from '../describe/detailUtils';
+import { Stat } from '../describe/Stat';
 import ActionConfig from './ActionConfig';
 import DataPreview from './DataPreview';
 import MergeOutput from './MergeOutput';
@@ -193,17 +193,15 @@ class ReactMergeDatasets extends React.Component {
                             {datasetName(instance)}
                             <div className="hoverable__content pt-4 pl-0">
                               <ul>
-                                <li>{buildStat(t, 'Rows', instance.rows)}</li>
-                                <li>{buildStat(t, 'Columns', instance.columns)}</li>
-                                <li>
-                                  {buildStat(
-                                    t,
-                                    'Column Names',
-                                    `${_.join(_.map(_.take(instance.names, 10), colName), ', ')}${
-                                      _.size(instance.names) > 10 ? '...' : ''
-                                    }`,
-                                  )}
-                                </li>
+                                <Stat t={t} field="Rows" value={instance.rows} />
+                                <Stat t={t} field="Columns" value={instance.columns} />
+                                <Stat
+                                  t={t}
+                                  field="Column Names"
+                                  value={`${_.join(_.map(_.take(instance.names, 10), colName), ', ')}${
+                                    _.size(instance.names) > 10 ? '...' : ''
+                                  }`}
+                                />
                               </ul>
                             </div>
                           </button>

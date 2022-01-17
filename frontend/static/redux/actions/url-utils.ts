@@ -54,19 +54,11 @@ export const saveColFilterUrl = (dataId: string, col: string, cfg: ColumnFilter)
 
 export const toggleOutlierFilterUrl = (dataId: string): string => `/dtale/toggle-outlier-filter/${dataId}`;
 
-export const describeUrl = (dataId: string, col: string, filtered: boolean): string =>
-  buildURLString(`/dtale/describe/${dataId}`, { col, filtered: `${filtered}` });
-
-export const outliersUrl = (dataId: string, col: string, filtered: boolean): string =>
-  buildURLString(`/dtale/outliers/${dataId}`, { col, filtered: `${filtered}` });
-
 export const columnFilterDataUrl = (dataId: string, async = false): string =>
   `/dtale/${async ? 'async-' : ''}column-filter-data/${dataId}`;
 
 export const varianceUrl = (dataId: string, col: string, filtered: boolean): string =>
   buildURLString(`/dtale/variance/${dataId}`, { col, filtered: `${filtered}` });
-
-export const sequentialDiffsUrl = (dataId: string): string => `/dtale/sorted-sequential-diffs/${dataId}`;
 
 export const cleanupEndpoint = (endpoint: string): string => {
   while (endpoint.indexOf('//') > -1) {

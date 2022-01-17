@@ -66,6 +66,7 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
     setMinHeight(elementRef.offsetHeight);
     setMinWidth(elementRef.offsetWidth);
   };
+
   return (
     <Modal
       {...{

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { ColumnDef } from 'static/dtale/DataViewerState';
 
+import { ColumnDef } from '../../dtale/DataViewerState';
 import { BaseOption } from '../../redux/state/AppState';
 import { resampleAggs as buildResampleAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';

@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import { default as CategoryInputs, CategoryInputsProps } from '../../../../popups/analysis/filters/CategoryInputs';
 import FilterSelect from '../../../../popups/analysis/filters/FilterSelect';
+import { mockColumnDef } from '../../../mocks/MockColumnDef';
 
 describe('CategoryInputs tests', () => {
   let result: ShallowWrapper<CategoryInputsProps>;
@@ -11,10 +12,7 @@ describe('CategoryInputs tests', () => {
   beforeEach(() => {
     props = {
       selectedCol: 'foo',
-      cols: [
-        { name: 'foo', dtype: 'str', locked: false, unique_ct: 10 },
-        { name: 'bar', dtype: 'str', locked: false, unique_ct: 10 },
-      ],
+      cols: [mockColumnDef({ name: 'foo', dtype: 'str' }), mockColumnDef({ name: 'bar', dtype: 'str' })],
       setCategoryCol: jest.fn(),
       setCategoryAgg: jest.fn(),
     };

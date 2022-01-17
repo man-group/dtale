@@ -12,7 +12,7 @@ import CodePopup from './popups/CodePopup';
 import { Correlations } from './popups/correlations/Correlations';
 import CreateColumn from './popups/create/CreateColumn';
 import { CreateColumnType, PrepopulateCreateColumn, SaveAs } from './popups/create/CreateColumnState';
-import { Describe } from './popups/describe/Describe';
+import Describe from './popups/describe/Describe';
 import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
 import { ReactFilterPopup as FilterPopup } from './popups/filter/FilterPopup';
 import Instances from './popups/instances/Instances';
@@ -74,7 +74,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <PredictivePowerScore />;
       break;
     case 'describe':
-      rootNode = <Describe {...{ dataId, chartData }} />;
+      rootNode = <Describe />;
       break;
     case 'variance':
       rootNode = <Variance {...{ dataId, chartData }} />;

@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as bu from '../../dtale/backgroundUtils';
 import { ColumnDef, DataRecord, DataViewerState } from '../../dtale/DataViewerState';
 import { buildState } from '../../dtale/gridUtils';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 
 describe('backgroundUtils tests', () => {
   let rec: DataRecord;
@@ -11,7 +12,7 @@ describe('backgroundUtils tests', () => {
 
   beforeEach(() => {
     rec = { view: '' };
-    colCfg = { name: 'foo', dtype: 'float64', locked: false, unique_ct: 10 };
+    colCfg = mockColumnDef({ name: 'foo', dtype: 'float64' });
     state = { ...buildState({}), backgroundMode: 'heatmap-col' };
   });
 

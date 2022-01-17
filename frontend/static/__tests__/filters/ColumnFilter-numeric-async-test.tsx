@@ -11,6 +11,7 @@ import { default as ColumnFilter, ColumnFilterProps } from '../../filters/Column
 import NumericFilter from '../../filters/NumericFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxTestUtils from '../redux-test-utils';
 import { tickUpdate } from '../test-utils';
 
@@ -67,7 +68,7 @@ describe('ColumnFilter numeric tests', () => {
   it('ColumnFilter int rendering', async () => {
     await buildResult({
       selectedCol: 'col1',
-      columns: [{ name: 'col1', dtype: 'int64', visible: true, unique_ct: 1000, locked: false }],
+      columns: [mockColumnDef({ name: 'col1', dtype: 'int64', unique_ct: 1000 })],
       updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);

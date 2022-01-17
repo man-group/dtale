@@ -1,3 +1,4 @@
+import { VisibilityState } from '../popups/describe/DescribeState';
 import { buildURLString } from '../redux/actions/url-utils';
 import { FilteredRanges, InstanceSettings, RangeHighlightConfig } from '../redux/state/AppState';
 import { BaseResponse, getDataFromService, postDataToService } from '../repository/GenericRepository';
@@ -222,7 +223,7 @@ export const moveRight = (selectedCol: string, props: ColumnOperationProps): (()
   moveOnePosition(selectedCol, props, 'right');
 export const moveLeft = (selectedCol: string, props: ColumnOperationProps): (() => void) =>
   moveOnePosition(selectedCol, props, 'left');
-export const updateVisibility = async (dataId: string, visibility: Record<string, boolean>): BaseReturn =>
+export const updateVisibility = async (dataId: string, visibility: VisibilityState): BaseReturn =>
   await persistVisibility(dataId, { visibility: JSON.stringify(visibility) });
 export const toggleVisibility = async (dataId: string, toggle: string): BaseReturn =>
   await persistVisibility(dataId, { toggle });

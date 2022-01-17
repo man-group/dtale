@@ -281,8 +281,8 @@ export const Correlations: React.FC = () => {
                   visible={true}
                   url={tsUrl}
                   columns={[
-                    { name: 'x', dtype: 'datetime[ns]' },
-                    { name: 'corr', dtype: 'float64' },
+                    { name: 'x', dtype: 'datetime[ns]', index: 0 },
+                    { name: 'corr', dtype: 'float64', index: 1 },
                   ]}
                   x={{ value: 'x' }}
                   y={[{ value: 'corr' }]}

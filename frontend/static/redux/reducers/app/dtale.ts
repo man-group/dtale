@@ -1,5 +1,6 @@
 import { ActionType, AppActionTypes } from '../../actions/AppActions';
 import {
+  BASE_INSTANCE_SETTINGS,
   DataViewerUpdateProps,
   FilteredRanges,
   initialVisibility,
@@ -200,7 +201,10 @@ export function filteredRanges(state: FilteredRanges = {}, action: AppActionType
  * @param action application event.
  * @return the updated instance settings.
  */
-export function settings(state: InstanceSettings = {}, action: AppActionTypes): InstanceSettings {
+export function settings(
+  state: InstanceSettings = { ...BASE_INSTANCE_SETTINGS },
+  action: AppActionTypes,
+): InstanceSettings {
   switch (action.type) {
     case ActionType.INIT_PARAMS:
       return toJson<InstanceSettings>(getHiddenValue('settings'));

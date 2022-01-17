@@ -121,7 +121,7 @@ describe('Pivot', () => {
     expect(validatePivotCfg(cfg)).toBe('Missing a columns selection!');
     cfg.columns = ['y'];
     expect(validatePivotCfg(cfg)).toBe('Missing a value(s) selection!');
-    cfg.columns = ['z'];
+    cfg.values = ['z'];
     expect(validatePivotCfg(cfg)).toBeUndefined();
   });
 });

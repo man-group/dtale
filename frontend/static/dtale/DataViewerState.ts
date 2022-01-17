@@ -4,7 +4,7 @@ import { MultiGridProps } from 'react-virtualized';
 import { Dispatch } from 'redux';
 
 import { AppActions } from '../redux/actions/AppActions';
-import { AppState, FilteredRanges, PredefinedFilter, RangeHighlightConfig } from '../redux/state/AppState';
+import { AppState, FilteredRanges, RangeHighlightConfig } from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -27,6 +27,7 @@ export interface ColumnDef extends Bounds {
   visible?: boolean;
   coord?: 'lat' | 'lon';
   label?: string;
+  index: number;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
@@ -84,25 +85,6 @@ export type ColumnFormat = Record<string, any>;
 /** Properties for outlier filters */
 export interface OutlierFilter {
   query: string;
-}
-
-/** Settings available to each instance (piece of data) of D-Tale */
-export interface InstanceSettings {
-  locked?: string[];
-  allow_cell_edits: boolean;
-  precision: number;
-  columnFormats?: Record<string, ColumnFormat>;
-  backgroundMode?: string;
-  rangeHighlight?: RangeHighlightConfig;
-  verticalHeaders: boolean;
-  predefinedFilters: Record<string, PredefinedFilter>;
-  sortInfo?: string[][];
-  nanDisplay?: string;
-  startup_code?: string;
-  query?: string;
-  outlierFilters?: Record<string, OutlierFilter>;
-  filteredRanges?: FilteredRanges;
-  columnFilters?: Record<string, ColumnFilter>;
 }
 
 /** State properties of DataViewer */

@@ -30,7 +30,12 @@ describe('reducer tests', () => {
       theme: 'light',
       language: 'en',
       filteredRanges: {},
-      settings: {},
+      settings: {
+        allow_cell_edits: true,
+        precision: 2,
+        predefinedFilters: {},
+        verticalHeaders: false,
+      },
       pythonVersion: null,
       isPreview: false,
       menuPinned: false,

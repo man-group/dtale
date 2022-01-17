@@ -2024,7 +2024,7 @@ def describe(data_id):
     if classification == "S":
         str_col = data[column]
         sm_metrics, sm_code = build_string_metrics(
-            str_col[~str_col.isnull()].str, column
+            str_col[~str_col.isnull()].astype("str").str, column
         )
         return_data["string_metrics"] = sm_metrics
         code += sm_code
@@ -2154,7 +2154,7 @@ def outliers(data_id):
 
     df = load_filterable_data(data_id, request)
     s = df[column]
-    outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
+    outliers = sorted(s[(s < iqr_lower) | (s > iqr_upper)].unique())
     if not len(outliers):
         return jsonify(outliers=[])
 

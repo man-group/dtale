@@ -5,6 +5,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import ButtonToggle from '../../../ButtonToggle';
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import * as gu from '../../../dtale/gridUtils';
+import { DetailData } from '../../../popups/describe/DescribeState';
 import { BaseOption } from '../../../redux/state/AppState';
 import { renderCodePopupAnchor } from '../../CodePopup';
 import { AnalysisParams, AnalysisType } from '../ColumnAnalysisState';
@@ -31,7 +32,7 @@ export interface DescribeFiltersProps {
   type?: AnalysisType;
   top?: number;
   buildChart: (currentParams?: AnalysisParams) => Promise<void>;
-  details: Record<string, any>;
+  details: DetailData;
 }
 
 const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
@@ -139,7 +140,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     }
 
     buildChart();
-  }, [selectedCol]);
+  }, [selectedCol, details]);
 
   React.useEffect(() => {
     buildChart();

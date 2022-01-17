@@ -9,6 +9,7 @@ import * as menuUtils from '../../menuUtils';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML } from '../test-utils';
 import * as fetcher from '../../fetcher';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 
 describe('DtaleHotkeys tests', () => {
   const { open, innerWidth, innerHeight } = window;
@@ -130,7 +131,7 @@ describe('DtaleHotkeys tests', () => {
   it('calls openChart for copy handler when ctrlRows exists', () => {
     result.setProps({
       ctrlRows: [1],
-      columns: [{ name: 'foo', visible: true }],
+      columns: [mockColumnDef({ name: 'foo' })],
     });
     const hotkeys = result.find(GlobalHotKeys);
     const copyHandler = hotkeys.prop('handlers').COPY;

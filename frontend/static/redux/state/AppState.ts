@@ -1,6 +1,13 @@
 import { RGBColor } from 'react-color';
 
-import { Bounds, ColumnDef, ColumnFilter, ColumnFormat, DataViewerPropagateState } from '../../dtale/DataViewerState';
+import {
+  Bounds,
+  ColumnDef,
+  ColumnFilter,
+  ColumnFormat,
+  DataViewerPropagateState,
+  OutlierFilter,
+} from '../../dtale/DataViewerState';
 
 /** Base properties for react-select dropdown options */
 export interface BaseOption<T> {
@@ -83,6 +90,7 @@ export enum PopupType {
   UPLOAD = 'upload',
   DUPLICATES = 'duplicates',
   CHARTS = 'charts',
+  DESCRIBE = 'describe',
 }
 
 /** Configuration for any data for a popup */
@@ -180,6 +188,11 @@ export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
   chartPerGroup?: boolean;
 }
 
+/** Popup configuration for Create Column popup */
+export interface DescribePopupData extends PopupData<typeof PopupType.DESCRIBE> {
+  selectedCol?: string;
+}
+
 /** Popup configurations */
 export type Popups =
   | HiddenPopupData
@@ -196,29 +209,44 @@ export type Popups =
   | CorrelationsPopupData
   | PPSPopupData
   | CreateColumnPopupData
-  | ReshapePopupData;
+  | ReshapePopupData
+  | ChartsPopupData
+  | DescribePopupData;
+
+/** Sort directions */
+export enum SortDir {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
 
 /** Type definition for column being sorted and it's direction. */
-export type SortDef = [string, 'ASC' | 'DESC'];
+export type SortDef = [string, SortDir];
 
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
   locked?: string[];
-  allow_cell_edits?: boolean;
-  precision?: number;
+  allow_cell_edits: boolean;
+  precision: number;
   columnFormats?: Record<string, ColumnFormat>;
   backgroundMode?: string;
   rangeHighlight?: RangeHighlightConfig;
-  verticalHeaders?: boolean;
-  predefinedFilters?: Record<string, PredefinedFilter>;
+  verticalHeaders: boolean;
+  predefinedFilters: Record<string, PredefinedFilter>;
   sortInfo?: SortDef[];
   nanDisplay?: string;
   startup_code?: string;
   query?: string;
-  outlierFilters?: Record<string, string>;
+  outlierFilters?: Record<string, OutlierFilter>;
   filteredRanges?: FilteredRanges;
   columnFilters?: Record<string, ColumnFilter>;
 }
+
+export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
+  allow_cell_edits: true,
+  precision: 2,
+  verticalHeaders: false,
+  predefinedFilters: {},
+});
 
 /** Type definition for semantic versioning of python */
 export type Version = [number, number, number];

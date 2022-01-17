@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import FilterSelect from '../../../../popups/analysis/filters/FilterSelect';
 import { default as GeoFilters, GeoFiltersProps } from '../../../../popups/analysis/filters/GeoFilters';
+import { mockColumnDef } from '../../../mocks/MockColumnDef';
 
 describe('GeoFilters tests', () => {
   let result: ShallowWrapper;
@@ -12,11 +13,11 @@ describe('GeoFilters tests', () => {
     props = {
       col: 'lat',
       columns: [
-        { name: 'lat', coord: 'lat', dtype: 'float', locked: false, unique_ct: 10 },
-        { name: 'lon', coord: 'lon', dtype: 'float', locked: false, unique_ct: 10 },
-        { name: 'lat2', coord: 'lat', dtype: 'float', locked: false, unique_ct: 10 },
-        { name: 'lat3', coord: 'lat', dtype: 'float', locked: false, unique_ct: 10 },
-        { name: 'lon2', coord: 'lon', dtype: 'float', locked: false, unique_ct: 10 },
+        mockColumnDef({ name: 'lat', coord: 'lat', dtype: 'float' }),
+        mockColumnDef({ name: 'lon', coord: 'lon', dtype: 'float' }),
+        mockColumnDef({ name: 'lat2', coord: 'lat', dtype: 'float' }),
+        mockColumnDef({ name: 'lat3', coord: 'lat', dtype: 'float' }),
+        mockColumnDef({ name: 'lon2', coord: 'lon', dtype: 'float' }),
       ],
       setLatCol: jest.fn(),
       setLonCol: jest.fn(),

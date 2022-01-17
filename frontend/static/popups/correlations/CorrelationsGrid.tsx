@@ -11,7 +11,7 @@ import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
 import { SidePanelButtons } from '../../dtale/side/SidePanelButtons';
-import { AppState, BaseOption, SortDef } from '../../redux/state/AppState';
+import { AppState, BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
 import { CorrelationGridRow } from '../../repository/CorrelationsRepository';
 import { sortOptions } from '../analysis/filters/Constants';
 import { renderCodePopupAnchor } from '../CodePopup';
@@ -23,9 +23,9 @@ require('./CorrelationsGrid.css');
 
 export const buildSort = (col: string, currSort?: SortDef): SortDef | undefined => {
   if (currSort && currSort[0] === col) {
-    return currSort[1] === 'DESC' ? undefined : [col, 'DESC'];
+    return currSort[1] === SortDir.DESC ? undefined : [col, SortDir.DESC];
   }
-  return [col, 'ASC'];
+  return [col, SortDir.ASC];
 };
 
 export const sortData = (data: CorrelationGridRow[], sort?: SortDef): CorrelationGridRow[] => {
@@ -33,7 +33,7 @@ export const sortData = (data: CorrelationGridRow[], sort?: SortDef): Correlatio
     const sorter = (rowA: CorrelationGridRow, rowB: CorrelationGridRow): number => {
       const a = rowA[sort[0]];
       const b = rowB[sort[0]];
-      if (sort[1] === 'ASC') {
+      if (sort[1] === SortDir.ASC) {
         if (a < b) {
           return -1;
         }

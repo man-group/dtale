@@ -9,6 +9,7 @@ import { default as ColumnFilter, ColumnFilterProps } from '../../filters/Column
 import StringFilter from '../../filters/StringFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 import { tickUpdate } from '../test-utils';
 
 describe('ColumnFilter string tests', () => {
@@ -44,7 +45,7 @@ describe('ColumnFilter string tests', () => {
 
     props = {
       selectedCol: 'col3',
-      columns: [{ name: 'col3', dtype: 'error', visible: true, hasOutliers: true, unique_ct: 10, locked: false }],
+      columns: [mockColumnDef({ name: 'col3', dtype: 'error', hasOutliers: true })],
       columnFilters: { col3: { type: 'string', value: ['b'] } },
       outlierFilters: { col3: { query: 'blah' } },
       updateSettings: jest.fn(),

@@ -4,6 +4,7 @@ import * as React from 'react';
 import { AnalysisType } from '../../../../popups/analysis/ColumnAnalysisState';
 import FilterSelect from '../../../../popups/analysis/filters/FilterSelect';
 import { default as OrdinalInputs, OrdinalInputsProps } from '../../../../popups/analysis/filters/OrdinalInputs';
+import { mockColumnDef } from '../../../mocks/MockColumnDef';
 
 describe('OrdinalInputs tests', () => {
   let result: ShallowWrapper<OrdinalInputsProps>;
@@ -12,10 +13,7 @@ describe('OrdinalInputs tests', () => {
   beforeEach(() => {
     props = {
       selectedCol: 'foo',
-      cols: [
-        { name: 'foo', dtype: 'str', locked: false, unique_ct: 10 },
-        { name: 'bar', dtype: 'str', locked: false, unique_ct: 10 },
-      ],
+      cols: [mockColumnDef({ name: 'foo', dtype: 'str' }), mockColumnDef({ name: 'bar', dtype: 'str' })],
       type: AnalysisType.WORD_VALUE_COUNTS,
       colType: 'string',
       setOrdinalCol: jest.fn(),

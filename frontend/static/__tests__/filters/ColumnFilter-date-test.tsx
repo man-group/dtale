@@ -10,6 +10,7 @@ import { default as ColumnFilter, ColumnFilterProps } from '../../filters/Column
 import DateFilter from '../../filters/DateFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 import { tickUpdate } from '../test-utils';
 
 describe('ColumnFilter date tests', () => {
@@ -41,7 +42,7 @@ describe('ColumnFilter date tests', () => {
 
     const props = {
       selectedCol: 'col4',
-      columns: [{ name: 'col4', dtype: 'datetime64[ns]', visible: true, unique_ct: 10, locked: false }],
+      columns: [mockColumnDef({ name: 'col4', dtype: 'datetime64[ns]' })],
       updateSettings: jest.fn(),
     };
     result = mount(<ColumnFilter {...props} />);

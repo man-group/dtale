@@ -15,6 +15,7 @@ import ChartsBody from '../../popups/charts/ChartsBody';
 import { Correlations } from '../../popups/correlations/Correlations';
 import { CorrelationsCell } from '../../popups/correlations/CorrelationsCell';
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
+import { SortDir } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import { CTX, SCALE } from '../chartUtils-test';
 import DimensionsHelper from '../DimensionsHelper';
@@ -135,7 +136,7 @@ describe('DataViewer tests', () => {
       result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
     });
     result = result.update();
-    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col1', 'DESC']);
+    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col1', SortDir.DESC]);
     await act(async () => {
       result.find(CorrelationsGrid).find('div.headerCell.pointer').first().simulate('click');
     });
@@ -149,6 +150,6 @@ describe('DataViewer tests', () => {
       result.find(CorrelationsGrid).find('div.headerCell.pointer').last().simulate('click');
     });
     result = result.update();
-    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col4', 'ASC']);
+    expect(result.find(CorrelationsCell).first().props().currSort).toEqual(['col4', SortDir.ASC]);
   });
 });

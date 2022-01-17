@@ -8,7 +8,7 @@ import * as gu from '../../gridUtils';
 import { fetchJson } from '../../../fetcher';
 import AsyncValueSelect from '../../../filters/AsyncValueSelect';
 import ValueSelect from '../../../filters/ValueSelect';
-import { buildStat } from '../../../popups/describe/detailUtils';
+import { Stat } from '../../../popups/describe/Stat';
 import { predefinedFilterStr } from '../../info/infoUtils';
 import ButtonToggle from '../../../ButtonToggle';
 
@@ -195,8 +195,8 @@ class FilterInput extends React.Component {
         </div>
         <div className="col-md-6">
           <ul>
-            <li>{buildStat(t, 'predefined:Column', column)}</li>
-            <li>{buildStat(t, 'predefined:Description', description)}</li>
+            <Stat t={t} field="predefined:Column" value={column} />
+            <Stat t={t} field="predefined:Description" value={description} />
           </ul>
         </div>
         <div className="col-md-6">
