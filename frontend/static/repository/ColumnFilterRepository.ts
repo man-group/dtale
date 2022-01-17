@@ -1,4 +1,4 @@
-import { ColumnFilter } from '../dtale/DataViewerState';
+import { ColumnFilter, OutlierFilter } from '../dtale/DataViewerState';
 import { buildURLString } from '../redux/actions/url-utils';
 
 import * as GenericRepository from './GenericRepository';
@@ -68,7 +68,7 @@ export async function save(dataId: string, col: string, cfg?: ColumnFilter): Pro
 
 /** Axios response object for toggling an outlier filter */
 export interface ToggleOutlierFilterResponse extends GenericRepository.BaseResponse {
-  outlierFilters: Record<string, string>;
+  outlierFilters: Record<string, OutlierFilter>;
 }
 
 /**

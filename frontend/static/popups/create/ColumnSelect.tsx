@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
@@ -52,7 +52,13 @@ interface ColumnSelectProps {
   parent: Record<string, any>;
   updateState: (state: Record<string, BaseOption<string> | Array<BaseOption<string>> | undefined>) => void;
   dtypes?: string[];
+  includeAllOption?: boolean;
 }
+
+export const buildAllOption = (t: TFunction): BaseOption<string> => ({
+  value: 'all',
+  label: t('Apply To All Columns', { ns: 'range_highlight' }),
+});
 
 const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
   columns,
@@ -64,17 +70,19 @@ const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
   prop,
   updateState,
   children,
+  includeAllOption,
   t,
 }) => {
   const [dtypesStr, columnOptions] = React.useMemo(() => {
     const otherValues = otherProps?.map(
       (otherProp) => parent[otherProp] as BaseOption<string> | Array<BaseOption<string>> | undefined,
     );
-    return [
-      dtypes ? ` ${t('for the following dtypes')}: ${dtypes.join(', ')}` : '',
-      constructColumnOptionsFilteredByDtypeAndOtherValues(columns, dtypes, otherValues),
-    ];
-  }, [dtypes, columns, parent, otherProps]);
+    const options = constructColumnOptionsFilteredByDtypeAndOtherValues(columns, dtypes, otherValues);
+    if (includeAllOption) {
+      options.push(buildAllOption(t));
+    }
+    return [dtypes ? ` ${t('for the following dtypes')}: ${dtypes.join(', ')}` : '', options];
+  }, [dtypes, columns, parent, otherProps, includeAllOption]);
 
   return (
     <div key={prop} className="form-group row">

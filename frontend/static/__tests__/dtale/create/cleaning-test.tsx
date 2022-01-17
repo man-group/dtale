@@ -4,6 +4,7 @@ import { default as Select } from 'react-select';
 
 import { default as CreateCleaning, validateCleaningCfg } from '../../../popups/create/CreateCleaning';
 import { CaseType, CleanerType, CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
 import { mockT as t } from '../../test-utils';
 
@@ -21,13 +22,11 @@ describe('CreateCleaning', () => {
           data: {
             dtypes: [
               ...reduxUtils.DTYPES.dtypes,
-              {
+              mockColumnDef({
                 name: 'col5',
                 index: 4,
                 dtype: 'mixed-integer',
-                visible: true,
-                unique_ct: 1,
-              },
+              }),
             ],
             success: true,
           },

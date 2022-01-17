@@ -1,5 +1,6 @@
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { BaseOption, ColumnAnalysisPopupData } from '../../redux/state/AppState';
+import { UniqueRecord } from '../describe/DescribeState';
 
 /** Different types of column analysis */
 export enum AnalysisType {
@@ -106,7 +107,7 @@ export interface AnalysisState extends AnalysisParams {
   chartParams?: AnalysisParams;
   dtype?: string;
   cols?: ColumnDef[];
-  wordValues?: Array<{ value: string; count: number }>;
+  wordValues?: UniqueRecord[];
 }
 
 /** Properties for building analysis */

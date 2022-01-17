@@ -57,7 +57,7 @@ const DATA = {
     { dtale_index: 3, col1: 4, col2: 5.5, col3: 'foo' },
     { dtale_index: 4, col1: 'nan', col2: 5.5, col3: 'foo' },
   ],
-  columns: _.concat([{ name: 'dtale_index', dtype: 'int64', visible: true }], DTYPES.dtypes),
+  columns: [{ dtype: 'int64', index: -1, name: 'dtale_index', visible: true }, ...DTYPES.dtypes],
   total: 5,
   success: true,
 };

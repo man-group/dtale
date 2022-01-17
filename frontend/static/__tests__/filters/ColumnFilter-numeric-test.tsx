@@ -9,6 +9,7 @@ import { default as ColumnFilter, ColumnFilterProps } from '../../filters/Column
 import NumericFilter from '../../filters/NumericFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 import { tickUpdate } from '../test-utils';
 
 describe('ColumnFilter numeric tests', () => {
@@ -53,7 +54,7 @@ describe('ColumnFilter numeric tests', () => {
   it('ColumnFilter int rendering', async () => {
     await buildResult({
       selectedCol: 'col1',
-      columns: [{ name: 'col1', dtype: 'int64', visible: true, unique_ct: 10, locked: false }],
+      columns: [mockColumnDef({ name: 'col1', dtype: 'int64' })],
       updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
@@ -108,7 +109,7 @@ describe('ColumnFilter numeric tests', () => {
   it('ColumnFilter float rendering', async () => {
     await buildResult({
       selectedCol: 'col2',
-      columns: [{ name: 'col2', dtype: 'float64', min: 2.5, max: 5.5, visible: true, unique_ct: 10, locked: false }],
+      columns: [mockColumnDef({ name: 'col2', dtype: 'float64', min: 2.5, max: 5.5 })],
       updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);

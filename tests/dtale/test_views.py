@@ -689,7 +689,7 @@ def test_outliers(unittest):
         build_dtypes(dtypes)
         resp = c.get("/dtale/outliers/{}".format(c.port), query_string=dict(col="a"))
         resp = json.loads(resp.data)
-        unittest.assertEqual(resp["outliers"], [1000, 10000, 2000])
+        unittest.assertEqual(resp["outliers"], [1000, 2000, 10000])
         c.get(
             "/dtale/save-column-filter/{}".format(c.port),
             query_string=dict(

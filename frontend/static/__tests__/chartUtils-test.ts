@@ -3,6 +3,7 @@ import { Chart, ChartDataset, ChartMeta, DatasetController, Element, Scale, Tool
 import * as chartUtils from '../chartUtils';
 import * as correlationsUtils from '../popups/correlations/correlationsUtils';
 
+import { mockColumnDef } from './mocks/MockColumnDef';
 import { mockChartJS } from './test-utils';
 
 export const CTX: Partial<CanvasRenderingContext2D> = {
@@ -147,8 +148,8 @@ describe('chartUtils tests', () => {
       y: ['y'],
     };
     const columns = [
-      { name: 'x', dtype: 'datetime64[ns]', locked: false, unique_ct: 10 },
-      { name: 'y', dtype: 'float64', locked: false, unique_ct: 10 },
+      mockColumnDef({ name: 'x', dtype: 'datetime64[ns]' }),
+      mockColumnDef({ name: 'y', dtype: 'float64' }),
     ];
     const cfg = chartUtils.createLineCfg(data, {
       columns,

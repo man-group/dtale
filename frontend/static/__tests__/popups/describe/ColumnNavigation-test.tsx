@@ -1,23 +1,27 @@
-import { shallow } from 'enzyme';
-import React from 'react';
+import { shallow, ShallowWrapper } from 'enzyme';
+import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
+import { ColumnDef } from 'static/dtale/DataViewerState';
 
-import ColumnNavigation from '../../../popups/describe/ColumnNavigation';
+import { ColumnNavigation, ColumnNavigationProps } from '../../../popups/describe/ColumnNavigation';
 import reduxUtils from '../../redux-test-utils';
 
 describe('ColumnNavigation', () => {
-  let wrapper, props;
+  let wrapper: ShallowWrapper;
+  let props: ColumnNavigationProps;
 
   beforeEach(() => {
     props = {
-      ...reduxUtils.DTYPES,
-      selected: reduxUtils.DTYPES.dtypes[1],
+      dtypes: reduxUtils.DTYPES.dtypes as ColumnDef[],
+      selected: reduxUtils.DTYPES.dtypes[1] as ColumnDef,
       propagateState: jest.fn(),
     };
     wrapper = shallow(<ColumnNavigation {...props} />);
   });
 
-  const move = (prop) => wrapper.find(GlobalHotKeys).props().handlers[prop]();
+  afterEach(jest.restoreAllMocks);
+
+  const move = (prop: string): void => wrapper.find(GlobalHotKeys).props().handlers[prop]();
 
   it('moves selected index up on UP', () => {
     move('COL_UP');

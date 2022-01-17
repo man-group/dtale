@@ -9,6 +9,7 @@ import { default as ColumnFilter, ColumnFilterProps } from '../../filters/Column
 import StringFilter from '../../filters/StringFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { mockColumnDef } from '../mocks/MockColumnDef';
 import { tickUpdate } from '../test-utils';
 
 describe('ColumnFilter string tests', () => {
@@ -33,7 +34,7 @@ describe('ColumnFilter string tests', () => {
     saveSpy.mockResolvedValue(Promise.resolve({ success: true, currFilters: {} }));
     const props = {
       selectedCol: 'col3',
-      columns: [{ name: 'col3', dtype: 'object', visible: true, unique_ct: 10, locked: false }],
+      columns: [mockColumnDef({ name: 'col3' })],
       columnFilters: { col3: { type: 'string', value: ['b'] } },
       updateSettings: jest.fn(),
     };

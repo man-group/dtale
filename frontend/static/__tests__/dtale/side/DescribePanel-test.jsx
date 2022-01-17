@@ -35,7 +35,7 @@ describe('DescribePanel', () => {
 
   it('renders successfully', () => {
     expect(wrapper.html()).toBe(null);
-    expect(wrapper.state()).toEqual({ loadingDtypes: true, dtypeLoad: null });
+    expect(wrapper.state()).toEqual({ loadingDtypes: true, dtypeLoad: null, visibility: {} });
   });
 
   describe(' loading details', () => {

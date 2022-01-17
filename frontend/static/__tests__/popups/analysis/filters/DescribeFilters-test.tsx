@@ -11,6 +11,7 @@ import GeoFilters from '../../../../popups/analysis/filters/GeoFilters';
 import OrdinalInputs from '../../../../popups/analysis/filters/OrdinalInputs';
 import TextEnterFilter from '../../../../popups/analysis/filters/TextEnterFilter';
 import { BaseOption } from '../../../../redux/state/AppState';
+import { mockColumnDef } from '../../../mocks/MockColumnDef';
 import { tickUpdate } from '../../../test-utils';
 
 describe('DescribeFilters tests', () => {
@@ -20,16 +21,19 @@ describe('DescribeFilters tests', () => {
   beforeEach(async () => {
     props = {
       selectedCol: 'foo',
-      cols: [
-        { name: 'foo', dtype: 'str', locked: false, unique_ct: 10 },
-        { name: 'bar', dtype: 'str', locked: false, unique_ct: 10 },
-      ],
+      cols: [mockColumnDef({ name: 'foo', dtype: 'str' }), mockColumnDef({ name: 'bar', dtype: 'str', index: 1 })],
       dtype: 'int64',
       code: 'test code',
       type: AnalysisType.BOXPLOT,
       top: 100,
       buildChart: jest.fn(),
-      details: {},
+      details: {
+        describe: {},
+        uniques: { data: [] },
+        dtype_counts: [],
+        sequential_diffs: { diffs: { data: [] }, min: '', max: '', avg: '' },
+        string_metrics: {},
+      },
     };
     result = mount(<DescribeFilters {...props} />);
     await act(async () => await tickUpdate(result));

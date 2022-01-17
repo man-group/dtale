@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { RGBColor, SketchPicker } from 'react-color';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import reactCSS from 'reactcss';
 
@@ -16,7 +16,7 @@ import {
   RangeHighlightPopupData,
 } from '../redux/state/AppState';
 
-import ColumnSelect from './create/ColumnSelect';
+import { buildAllOption, default as ColumnSelect } from './create/ColumnSelect';
 
 export const BASE_COLOR: RGBColor = { r: 255, g: 245, b: 157, a: 1 };
 const BASE_RANGE: RangeHighlightModes = {
@@ -24,19 +24,6 @@ const BASE_RANGE: RangeHighlightModes = {
   greaterThan: { active: false, color: { ...BASE_COLOR } },
   lessThan: { active: false, color: { ...BASE_COLOR } },
 };
-
-/** Column Dropdown Option properties */
-interface ColOption extends BaseOption<string> {
-  name: string;
-  dtype: string;
-}
-
-const allOption = (t: TFunction): ColOption => ({
-  name: 'all',
-  value: 'all',
-  label: t('Apply To All Columns', { ns: 'range_highlight' }),
-  dtype: 'int',
-});
 
 /** Type-defintion for range data filter */
 type RangeFilter = (val: number, equals: number) => boolean;
@@ -54,8 +41,8 @@ export const MODES: Array<[string, keyof RangeHighlightModes, RangeFilter]> = [
  * @param ranges the pre-existing range highlights.
  * @return pre-existing range highlight modes if existing, default otherwise.
  */
-function retrieveRange(col: ColOption, ranges: RangeHighlightConfig): RangeHighlightModes {
-  const range = ranges[col?.value];
+function retrieveRange(col: BaseOption<string>, ranges: RangeHighlightConfig): RangeHighlightModes {
+  const range = ranges[col.value];
   if (range) {
     MODES.forEach(([_label, key, _filter]) => {
       if (range[key].value === undefined || range[key].value === null) {
@@ -143,8 +130,9 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
     dataId: state.dataId,
   }));
 
+  const allOption = React.useMemo(() => buildAllOption(t), [t]);
   const [ranges, setRanges] = React.useState<RangeHighlightConfig>({ ...chartData.rangeHighlight });
-  const [col, setCol] = React.useState<ColOption>(allOption(t));
+  const [col, setCol] = React.useState<BaseOption<string>>(allOption);
   const [editColor, setEditColor] = React.useState<keyof RangeHighlightModes>();
   const [currRange, setCurrRange] = React.useState<RangeHighlightModes>(retrieveRange(col, ranges));
 
@@ -190,19 +178,19 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
     propagateState({ backgroundMode: 'range', triggerBgResize: true, rangeHighlight: updatedRanges });
   };
 
-  const cols = [allOption(t), ...(chartData?.columns ?? [])];
   return (
     <div key="body" className="modal-body">
       <ColumnSelect
         label="Col"
         prop="col"
         parent={{ col }}
-        updateState={(state: { col?: ColOption }): void => {
-          setCol(state.col!);
-          setCurrRange(retrieveRange(state.col!, ranges));
+        updateState={(state): void => {
+          setCol(state.col as BaseOption<string>);
+          setCurrRange(retrieveRange(state.col as BaseOption<string>, ranges));
         }}
-        columns={cols}
+        columns={chartData?.columns ?? []}
         dtypes={['int', 'float']}
+        includeAllOption={true}
       />
       {MODES.map(([label, key, _filter], i) => {
         const { active, value, color } = currRange[key];
@@ -258,7 +246,7 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
             />
           </div>
           <div className="col-md-9">
-            <b>{colName === 'all' ? allOption(t).label : colName}</b>
+            <b>{colName === 'all' ? allOption.label : colName}</b>
             {`: `}
             {rangeAsStr(ranges[colName])}
           </div>
