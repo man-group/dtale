@@ -6,7 +6,12 @@ import { pivotAggs } from '../analysis/filters/Constants';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, ExpandingConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  ExpandingConfig,
+} from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 import { LabeledSelect } from './LabeledSelect';
 
@@ -40,7 +45,10 @@ const CreateExpanding: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: ExpandingConfig = { col: col?.value, periods, agg: agg?.value };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.EXPANDING, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_expansion`;
     }

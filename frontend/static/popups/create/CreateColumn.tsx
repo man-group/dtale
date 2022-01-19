@@ -15,14 +15,14 @@ import { buildForwardURL } from '../reshape/Reshape';
 
 import CodeSnippet from './CodeSnippet';
 import {
-  CreateColumnConfigTypes,
+  CreateColumnConfigs,
   CreateColumnSaveParams,
   CreateColumnType,
   CreateColumnTypeGroup,
   CreateColumnUpdateState,
+  OperandDataType,
   OutputType,
   PrepopulateCreateColumn,
-  RandomType,
   SaveAs,
   SaveAsProps,
 } from './CreateColumnState';
@@ -51,7 +51,14 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
   const [saveAs, setSaveAs] = React.useState<SaveAs>(prePopulated?.saveAs ?? SaveAs.NEW);
   const [name, setName] = React.useState<string>();
   const [namePopulated, setNamePopulated] = React.useState(false);
-  const [cfg, setCfg] = React.useState<CreateColumnConfigTypes>(prePopulated?.cfg ?? {});
+  const [cfg, setCfg] = React.useState<CreateColumnConfigs>(
+    prePopulated
+      ? { ...prePopulated }
+      : {
+          type: CreateColumnType.NUMERIC,
+          cfg: { left: { type: OperandDataType.COL }, right: { type: OperandDataType.COL } },
+        },
+  );
   const [code, setCode] = React.useState<Record<CreateColumnType, string>>({} as Record<CreateColumnType, string>);
   const [loadingColumns, setLoadingColumns] = React.useState(true);
   const [loadingColumn, setLoadingColumn] = React.useState(false);
@@ -73,7 +80,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
   }, [type]);
 
   const save = (): void => {
-    const createParams: CreateColumnSaveParams = { saveAs, cfg: cfg as any, type };
+    const createParams: CreateColumnSaveParams = { saveAs, ...cfg };
     if (saveAs === SaveAs.NEW) {
       if (!name) {
         setError(<RemovableError error="Name is required!" />);
@@ -85,7 +92,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
       }
       createParams.name = name;
     }
-    const validationError = createUtils.validateCfg(t, { type, cfg } as any);
+    const validationError = createUtils.validateCfg(t, cfg);
     if (validationError) {
       setError(<RemovableError error={validationError} />);
       return;
@@ -127,7 +134,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
   };
 
   const renderBody = (): JSX.Element => {
-    const nameInput = createUtils.renderNameInput({ type, cfg } as any);
+    const nameInput = createUtils.renderNameInput(cfg);
     const body = createUtils.getBody(type, columns, namePopulated, prePopulated, updateState);
     return (
       <div key="body" className="modal-body">
@@ -167,18 +174,13 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
                     } else {
                       buttonProps.className += ' btn-light inactive pointer';
                       buttonProps.style = { ...buttonProps.style, border: 'solid 1px #a7b3b7' };
-                      let updatedCfg = { ...cfg };
                       let updatedSaveAs = saveAs;
-                      if (value === CreateColumnType.RANDOM) {
-                        updatedCfg = { type: RandomType.FLOAT };
-                      }
                       if (value !== CreateColumnType.TYPE_CONVERSION) {
                         updatedSaveAs = SaveAs.NEW;
                       }
                       buttonProps.onClick = () => {
                         setType(value as CreateColumnType);
                         setTypeGroup(label as CreateColumnTypeGroup);
-                        setCfg(updatedCfg as CreateColumnConfigTypes);
                         setSaveAs(updatedSaveAs);
                       };
                     }

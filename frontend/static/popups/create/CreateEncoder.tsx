@@ -5,7 +5,13 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, EncoderAlgoType, EncoderConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  EncoderAlgoType,
+  EncoderConfig,
+} from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 import { LabeledSelect } from './LabeledSelect';
 
@@ -73,7 +79,10 @@ const CreateEncoder: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       algo: algo.value,
       n: algo.value === EncoderAlgoType.FEATURE_HASHER ? n : undefined,
     };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.ENCODER, cfg },
+      code: buildCode(cfg),
+    };
     if (!validateEncoderCfg(t, cfg) && !namePopulated) {
       updatedState.name = `${cfg.col}_${cfg.algo}`;
     }

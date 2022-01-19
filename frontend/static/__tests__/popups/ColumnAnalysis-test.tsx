@@ -11,7 +11,7 @@ import ColumnAnalysis from '../../popups/analysis/ColumnAnalysis';
 import ColumnAnalysisFilters from '../../popups/analysis/filters/ColumnAnalysisFilters';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
-import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, parseUrlParams, tickUpdate } from '../test-utils';
 
 import { ANALYSIS_DATA } from './ColumnAnalysis.test.support';
 
@@ -57,9 +57,7 @@ describe('ColumnAnalysis tests', () => {
     const axiosGetSpy = jest.spyOn(axios, 'get');
     axiosGetSpy.mockImplementation((url: string) => {
       if (url.startsWith('/dtale/column-analysis')) {
-        const params = JSON.parse(
-          '{"' + decodeURI(url.split('?')[1]).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}',
-        );
+        const params = parseUrlParams(url);
         const ordinal = ANALYSIS_DATA.data;
         const count = ANALYSIS_DATA.data;
         if (params.col === 'null') {

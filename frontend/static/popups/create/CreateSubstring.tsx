@@ -5,7 +5,12 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, SubstringConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  SubstringConfig,
+} from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 
 const parseRange = (cfg: SubstringConfig): { start: number; end: number } => ({
@@ -50,7 +55,10 @@ const CreateSubstring: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: SubstringConfig = { col: col?.value, start, end };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.SUBSTRING, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_substring`;
     }

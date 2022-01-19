@@ -5,6 +5,7 @@ import { CreateColumnCodeSnippet } from './CodeSnippet';
 import {
   BaseCreateComponentProps,
   ConcatenationConfig,
+  CreateColumnType,
   NumericOperationType,
   OperandDataType,
 } from './CreateColumnState';
@@ -62,7 +63,7 @@ export const CreateConcatenate: React.FC<BaseCreateComponentProps> = ({ updateSt
         val: right.type === OperandDataType.VAL ? right.val : undefined,
       },
     };
-    updateState({ cfg, code: buildCode(left, right) });
+    updateState({ cfg: { type: CreateColumnType.CONCATENATE, cfg }, code: buildCode(left, right) });
   }, [left, right]);
 
   return (

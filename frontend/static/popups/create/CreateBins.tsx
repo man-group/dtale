@@ -7,7 +7,13 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { BinsTester } from './BinsTester';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, BinsConfig, BinsOperation, CreateColumnUpdateState } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  BinsConfig,
+  BinsOperation,
+  CreateColumnType,
+  CreateColumnUpdateState,
+} from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 
 export const validateBinsCfg = (t: TFunction, cfg: BinsConfig): string | undefined => {
@@ -79,7 +85,7 @@ const CreateBins: React.FC<CreateBinsProps & WithTranslation> = ({ namePopulated
   React.useEffect(() => {
     const cfg: BinsConfig = buildCfg(state);
     const code = buildCode(state);
-    const updatedState: CreateColumnUpdateState = { cfg, code };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.BINS, cfg }, code };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_bins`;
     }

@@ -10,8 +10,8 @@ import { buildURL } from '../../redux/actions/url-utils';
 import { AppState, CorrelationsPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
+import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
 import ChartsBody from '../charts/ChartsBody';
-import { saveFilter } from '../filter/filterUtils';
 
 import CorrelationScatterStats from './CorrelationScatterStats';
 import CorrelationsGrid from './CorrelationsGrid';
@@ -161,7 +161,7 @@ export const Correlations: React.FC = () => {
           updatedQuery.push(chartData.query);
         }
         updatedQuery.push(`index == ${index}`);
-        saveFilter(dataId, updatedQuery.join(' and '), () => {
+        CustomFilterRepository.save(dataId, updatedQuery.join(' and ')).then(() => {
           if (actions.isPopup()) {
             (global.window as any).opener.location.reload();
             return;

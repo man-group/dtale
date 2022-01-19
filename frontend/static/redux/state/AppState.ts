@@ -188,10 +188,18 @@ export interface ChartsPopupData extends PopupData<typeof PopupType.CHARTS> {
   chartPerGroup?: boolean;
 }
 
-/** Popup configuration for Create Column popup */
+/** Popup configuration for Describe popup */
 export interface DescribePopupData extends PopupData<typeof PopupType.DESCRIBE> {
   selectedCol?: string;
 }
+
+/** Popup configuration for Duplicates popup */
+export interface DuplicatesPopupData extends PopupData<typeof PopupType.DUPLICATES> {
+  selectedCol?: string;
+}
+
+/** Popup configuration for Filter popup */
+export type CustomFilterPopupData = PopupData<typeof PopupType.FILTER>;
 
 /** Popup configurations */
 export type Popups =
@@ -211,7 +219,9 @@ export type Popups =
   | CreateColumnPopupData
   | ReshapePopupData
   | ChartsPopupData
-  | DescribePopupData;
+  | DescribePopupData
+  | DuplicatesPopupData
+  | CustomFilterPopupData;
 
 /** Sort directions */
 export enum SortDir {

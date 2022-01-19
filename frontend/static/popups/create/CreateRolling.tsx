@@ -10,6 +10,7 @@ import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
+  CreateColumnType,
   CreateColumnUpdateState,
   RollingClosedType,
   RollingConfig,
@@ -81,7 +82,10 @@ const CreateRolling: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       on: on?.value,
       closed,
     };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.ROLLING, cfg },
+      code: buildCode(cfg),
+    };
     if (!validateRollingCfg(t, cfg) && !namePopulated) {
       updatedState.name = `${cfg.col}_rolling_${cfg.comp}`;
     }

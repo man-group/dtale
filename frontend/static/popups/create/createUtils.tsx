@@ -5,6 +5,7 @@ import { ColumnDef } from '../../dtale/DataViewerState';
 import { capitalize } from '../../stringUtils';
 import { default as Resample, validateResampleCfg } from '../reshape/Resample';
 
+import { CreateColumnCodeSnippet } from './CodeSnippet';
 import { default as CreateBins, validateBinsCfg } from './CreateBins';
 import { default as CreateCleaning, validateCleaningCfg } from './CreateCleaning';
 import {
@@ -13,7 +14,10 @@ import {
   CreateColumnType,
   CreateColumnTypeGroup,
   CreateColumnUpdateState,
+  EncoderAlgoType,
   PrepopulateCreateColumn,
+  ResampleConfig,
+  SaveAs,
   TypeConversionConfig,
 } from './CreateColumnState';
 import { CreateConcatenate, validateConcatenateCfg } from './CreateConcatenate';
@@ -218,7 +222,15 @@ export const getBody = (
     case CreateColumnType.EXPANDING:
       return <CreateExpanding {...{ columns, namePopulated }} updateState={updateState} />;
     case CreateColumnType.RESAMPLE:
-      return <Resample columns={columns} namePopulated={false} updateState={updateState} />;
+      return (
+        <Resample
+          columns={columns}
+          namePopulated={false}
+          updateState={(state: { cfg: ResampleConfig; code: CreateColumnCodeSnippet; saveAs?: SaveAs }) =>
+            updateState({ ...state, cfg: { type: CreateColumnType.RESAMPLE, cfg: state.cfg } })
+          }
+        />
+      );
     default:
       return null;
   }
@@ -229,7 +241,7 @@ export const renderNameInput = (cfg: CreateColumnConfigs): string => {
     return 'name_inplace';
   } else if (cfg.type === CreateColumnType.ENCODER) {
     const algo = cfg.cfg.algo;
-    if (algo === 'feature_hasher' || algo === 'one_hot') {
+    if (algo === EncoderAlgoType.FEATURE_HASHER || algo === EncoderAlgoType.ONE_HOT) {
       return 'none';
     } else {
       return 'name_inplace';

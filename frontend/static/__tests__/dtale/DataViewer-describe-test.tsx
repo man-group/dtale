@@ -4,7 +4,6 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Table } from 'react-virtualized';
-import { DescribePopupData } from 'static/redux/state/AppState';
 
 import { ColumnAnalysisChart } from '../../popups/analysis/ColumnAnalysisChart';
 import CategoryInputs from '../../popups/analysis/filters/CategoryInputs';
@@ -13,6 +12,7 @@ import Describe from '../../popups/describe/Describe';
 import Details from '../../popups/describe/Details';
 import { DetailsCharts } from '../../popups/describe/DetailsCharts';
 import DtypesGrid from '../../popups/describe/DtypesGrid';
+import { DescribePopupData } from '../../redux/state/AppState';
 import * as GenericRepository from '../../repository/GenericRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';

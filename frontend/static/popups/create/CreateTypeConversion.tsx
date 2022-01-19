@@ -8,7 +8,12 @@ import { BaseOption } from '../../redux/state/AppState';
 import { capitalize } from '../../stringUtils';
 
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, TypeConversionConfig, TypeConversionUnit } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  TypeConversionConfig,
+  TypeConversionUnit,
+} from './CreateColumnState';
 import { Checkbox } from './LabeledCheckbox';
 import { LabeledInput } from './LabeledInput';
 import { LabeledSelect } from './LabeledSelect';
@@ -95,7 +100,7 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
       unit: unit?.value,
       applyAllType,
     };
-    updateState({ cfg, code: buildCode(cfg) });
+    updateState({ cfg: { type: CreateColumnType.TYPE_CONVERSION, cfg }, code: buildCode(cfg) });
   }, [col, conversion, fmt, unit, applyAllType]);
 
   const renderConversions = (): React.ReactNode => {

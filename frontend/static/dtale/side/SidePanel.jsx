@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Draggable from 'react-draggable';
 
 import { Correlations } from '../../popups/correlations/Correlations';
-import { FilterPanel } from '../../popups/filter/FilterPanel';
+import FilterPanel from '../../popups/filter/FilterPanel';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import { Reports } from '../../popups/timeseries/Reports';
 import { DescribePanel } from './DescribePanel';
@@ -85,9 +85,7 @@ class ReactSidePanel extends React.Component {
           <Correlations dataId={dataId} chartData={{ visible: true, query: '' }} />
         )}
         {visible && view === 'pps' && <PredictivePowerScore dataId={dataId} chartData={{ visible: true, query: '' }} />}
-        {visible && view === 'filter' && (
-          <FilterPanel dataId={dataId} chartData={{ visible: true, propagateState: _.noop }} onClose={hideSidePanel} />
-        )}
+        {visible && view === 'filter' && <FilterPanel />}
         {visible && view == 'predefined_filters' && <PredefinedFilters />}
         {visible && view == 'gage_rnr' && <GageRnR />}
         {visible && view == 'timeseries_analysis' && <Reports />}

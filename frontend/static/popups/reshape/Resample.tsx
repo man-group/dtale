@@ -63,7 +63,7 @@ const Resample: React.FC<ResampleProps & WithTranslation> = ({ namePopulated, up
       freq,
       agg: agg?.value,
     };
-    updateState({ cfg, code: buildCode(cfg), saveAs: SaveAs.NONE });
+    updateState({ cfg: cfg, code: buildCode(cfg), saveAs: SaveAs.NONE });
   }, [index, columns, freq, agg]);
 
   return (

@@ -5,7 +5,12 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, ReplaceConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  ReplaceConfig,
+} from './CreateColumnState';
 import { LabeledCheckbox } from './LabeledCheckbox';
 import { LabeledInput } from './LabeledInput';
 
@@ -50,7 +55,10 @@ const CreateReplace: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: ReplaceConfig = { col: col?.value, search, replacement, caseSensitive, regex };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.REPLACE, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_replace`;
     }

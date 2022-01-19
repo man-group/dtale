@@ -6,8 +6,8 @@ import { Provider } from 'react-redux';
 import { RemovableError } from '../../../RemovableError';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, tickUpdate } from '../../test-utils';
-import * as fetcher from '../../../fetcher';
 import * as serverState from '../../../dtale/serverStateManagement';
+import * as GenericRepository from '../../../repository/GenericRepository';
 
 describe('DataViewerInfo tests', () => {
   let DataViewerInfo, store, props, postSpy, updateSettingsSpy;
@@ -15,8 +15,8 @@ describe('DataViewerInfo tests', () => {
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
     updateSettingsSpy.mockResolvedValue(Promise.resolve({ settings: {} }));
-    postSpy = jest.spyOn(fetcher, 'fetchPost');
-    postSpy.mockImplementation((_url, _params, callback) => callback());
+    postSpy = jest.spyOn(GenericRepository, 'postDataToService');
+    postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
     store = reduxUtils.createDtaleStore();
     DataViewerInfo = require('../../../dtale/info/DataViewerInfo').DataViewerInfo;
     buildInnerHTML({ settings: '' }, store);

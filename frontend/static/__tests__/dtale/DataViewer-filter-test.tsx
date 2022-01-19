@@ -1,23 +1,27 @@
-import { mount } from 'enzyme';
-import React from 'react';
+import axios from 'axios';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
+import { Store } from 'redux';
 
-import { RemovableError } from '../../RemovableError';
+import { DataViewer } from '../../dtale/DataViewer';
+import { ReactDataViewerInfo as DataViewerInfo } from '../../dtale/info/DataViewerInfo';
+import FilterPanel from '../../popups/filter/FilterPanel';
 import StructuredFilters from '../../popups/filter/StructuredFilters';
+import { RemovableError } from '../../RemovableError';
 import DimensionsHelper from '../DimensionsHelper';
-import mockPopsicle from '../MockPopsicle';
 import reduxUtils from '../redux-test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../test-utils';
 
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tick, tickUpdate } from '../test-utils';
-
-const toggleFilterMenu = async (result) => {
-  await clickMainMenuButton(result, 'Custom Filter');
-  await tickUpdate(result);
+const toggleFilterMenu = async (result: ReactWrapper): Promise<ReactWrapper> => {
+  result = await clickMainMenuButton(result, 'Custom Filter');
+  return result.update();
 };
 
-describe('DataViewer tests', () => {
-  let result, FilterPanel, DataViewerInfo, store;
-  let dataId = 0;
+describe('FilterPanel', () => {
+  let result: ReactWrapper;
+  let store: Store;
   const { open } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -25,60 +29,67 @@ describe('DataViewer tests', () => {
     innerWidth: 1205,
     innerHeight: 775,
   });
-
-  const clickFilterBtn = (text) =>
-    result
-      .find(FilterPanel)
-      .first()
-      .find('button')
-      .findWhere((btn) => btn.text() === text)
-      .first()
-      .simulate('click');
+  const openFn = jest.fn();
 
   beforeAll(() => {
     dimensions.beforeAll();
 
-    delete window.open;
-    window.open = jest.fn();
+    delete (window as any).open;
+    window.open = openFn;
 
-    mockPopsicle();
     mockChartJS();
-
-    FilterPanel = require('../../popups/filter/FilterPanel').ReactFilterPanel;
-    DataViewerInfo = require('../../dtale/info/DataViewerInfo').ReactDataViewerInfo;
   });
 
   beforeEach(async () => {
-    const { DataViewer } = require('../../dtale/DataViewer');
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+  });
+
+  afterEach(jest.resetAllMocks);
+
+  afterAll(() => {
+    dimensions.afterAll();
+    window.open = open;
+    jest.restoreAllMocks();
+  });
+
+  const buildResult = async (dataId = '1'): Promise<void> => {
     store = reduxUtils.createDtaleStore();
-    const finalDataId = dataId === 2 ? 'error' : dataId + '';
-    buildInnerHTML({ settings: '', dataId: finalDataId }, store);
-    dataId++;
+    buildInnerHTML({ settings: '', dataId }, store);
     result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
       {
-        attachTo: document.getElementById('content'),
+        attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tick();
-    await toggleFilterMenu(result);
-  });
+    await act(async () => await tickUpdate(result));
+    result = result.update();
+    result = await toggleFilterMenu(result);
+  };
 
-  afterAll(() => {
-    dimensions.afterAll();
-    window.open = open;
-  });
+  const clickFilterBtn = async (text: string): Promise<ReactWrapper> => {
+    await act(async () => {
+      result
+        .find(FilterPanel)
+        .first()
+        .find('button')
+        .findWhere((btn) => btn.text() === text)
+        .first()
+        .simulate('click');
+    });
+    return result.update();
+  };
 
   it('DataViewer: filtering', async () => {
+    await buildResult();
     expect(result.find(FilterPanel).length).toBe(1);
-    clickFilterBtn('Close');
+    result = await clickFilterBtn('Close');
     result.update();
     expect(result.find(FilterPanel).length).toBe(0);
     await toggleFilterMenu(result);
-    clickFilterBtn('Clear');
-    await tickUpdate(result);
+    result = await clickFilterBtn('Clear');
     expect(result.find(FilterPanel).length).toBe(0);
     await toggleFilterMenu(result);
     result
@@ -104,6 +115,7 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: filtering with errors & documentation', async () => {
+    await buildResult();
     result
       .find(FilterPanel)
       .first()
@@ -118,20 +130,26 @@ describe('DataViewer tests', () => {
     expect(result.find(FilterPanel).find('div.dtale-alert').length).toBe(0);
     clickFilterBtn('Help');
     const pandasURL = 'https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query';
-    expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe(pandasURL);
+    expect(openFn.mock.calls[openFn.mock.calls.length - 1][0]).toBe(pandasURL);
   });
 
-  it('DataViewer: filtering, context variables error', () => {
+  it('DataViewer: filtering, context variables error', async () => {
+    await buildResult('error');
     expect(result.find(FilterPanel).find(RemovableError).find('div.dtale-alert').text()).toBe(
       'Error loading context variables',
     );
   });
 
   it('DataViewer: column filters', async () => {
-    const columnFilters = result.find(FilterPanel).find(StructuredFilters).first();
-    expect(columnFilters.text()).toBe('Active Column Filters:foo == 1 and');
-    columnFilters.find('i.ico-cancel').first().simulate('click');
-    await tickUpdate(result);
-    expect(result.find(FilterPanel).find(StructuredFilters).first().text()).toBe('');
+    await buildResult();
+    const columnFilters = (): ReactWrapper => result.find(FilterPanel).find(StructuredFilters).first();
+    expect(columnFilters().text()).toBe('Active Column Filters:foo == 1 and');
+    await act(async () => {
+      columnFilters().find('i.ico-cancel').first().simulate('click');
+    });
+    result = result.update();
+    await act(async () => await tickUpdate(result));
+    result = result.update();
+    expect(columnFilters()).toHaveLength(0);
   });
 });

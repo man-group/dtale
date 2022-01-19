@@ -7,6 +7,7 @@ import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
+  CreateColumnType,
   CreateColumnUpdateState,
   StandardizedAlgoType,
   StandardizedConfig,
@@ -67,7 +68,10 @@ const CreateStandardized: React.FC<BaseCreateComponentProps & WithTranslation> =
 
   React.useEffect(() => {
     const cfg: StandardizedConfig = { col: col?.value, algo: algo.value };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.STANDARDIZE, cfg },
+      code: buildCode(cfg),
+    };
     if (!validateStandardizedCfg(t, cfg) && !namePopulated) {
       updatedState.name = `${cfg.col}_${cfg.algo}`;
     }

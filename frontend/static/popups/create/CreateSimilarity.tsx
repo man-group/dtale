@@ -7,6 +7,7 @@ import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
+  CreateColumnType,
   CreateColumnUpdateState,
   SimilarityAlgoType,
   SimilarityConfig,
@@ -100,7 +101,10 @@ const CreateSimilarity: React.FC<BaseCreateComponentProps & WithTranslation> = (
       k: algo.value === SimilarityAlgoType.JACCARD ? k : undefined,
       normalized: algo.value !== SimilarityAlgoType.JARO_WINKLER ? normalized : undefined,
     };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.SIMILARITY, cfg },
+      code: buildCode(cfg),
+    };
     if (!validateSimilarityCfg(t, cfg) && !namePopulated) {
       updatedState.name = `${cfg.left}_${cfg.right}_distance`;
     }

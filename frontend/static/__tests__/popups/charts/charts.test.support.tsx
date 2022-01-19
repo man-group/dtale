@@ -11,10 +11,7 @@ import Charts from '../../../popups/charts/Charts';
 import ChartsBody from '../../../popups/charts/ChartsBody';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, mockChartJS, mockD3Cloud, tickUpdate } from '../../test-utils';
-
-export const parseUrlParams = (url: string): Record<string, string> =>
-  JSON.parse('{"' + decodeURI(url.split('?')[1]).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+import { buildInnerHTML, CreateChartSpy, mockChartJS, mockD3Cloud, parseUrlParams, tickUpdate } from '../../test-utils';
 
 /** Bundles alot of jest setup for Charts component tests */
 export class Spies {

@@ -9,6 +9,7 @@ mockWordcloud();
 import { JSAnchor } from '../../../JSAnchor';
 import Aggregations from '../../../popups/charts/Aggregations';
 import ChartsBody from '../../../popups/charts/ChartsBody';
+import { parseUrlParams } from '../../test-utils';
 
 import * as TestSupport from './charts.test.support';
 
@@ -66,7 +67,7 @@ describe('Charts tests', () => {
     });
     result = result.update();
     expect(result.find(ChartsBody).find('canvas')).toHaveLength(1);
-    const params = TestSupport.parseUrlParams(result.find(ChartsBody).props().url);
+    const params = parseUrlParams(result.find(ChartsBody).props().url);
     expect({ ...params, y: decodeURIComponent(params.y), query: decodeURIComponent(params.query) }).toEqual({
       x: 'col4',
       y: '["col1","col2"]',

@@ -6,7 +6,12 @@ import { pivotAggs } from '../analysis/filters/Constants';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, TransformConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  TransformConfig,
+} from './CreateColumnState';
 import { LabeledSelect } from './LabeledSelect';
 
 export const validateTransformCfg = (t: TFunction, cfg: TransformConfig): string | undefined => {
@@ -43,7 +48,10 @@ const CreateTransform: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: TransformConfig = { group: group?.map(({ value }) => value), col: col?.value, agg: agg?.value };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.TRANSFORM, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_transform`;
     }

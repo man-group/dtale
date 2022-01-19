@@ -9,6 +9,7 @@ import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
+  CreateColumnType,
   DatetimeConfig,
   DatetimeConversionType,
   DatetimeOperation,
@@ -73,7 +74,7 @@ const CreateDatetime: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       property: operation === DatetimeOperation.PROPERTY ? property : undefined,
       conversion: operation === DatetimeOperation.CONVERSION ? conversion : undefined,
     };
-    updateState({ cfg, code: buildCode(cfg) });
+    updateState({ cfg: { type: CreateColumnType.DATETIME, cfg }, code: buildCode(cfg) });
   }, [col, operation, property, conversion]);
 
   return (

@@ -74,7 +74,7 @@ const Operand: React.FC<OperandProps & WithTranslation> = ({
         </div>
       );
     }
-  }, [cfg.type]);
+  }, [cfg.type, columns]);
 
   return (
     <div className="form-group row">
