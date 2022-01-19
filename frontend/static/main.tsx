@@ -13,8 +13,8 @@ import { Correlations } from './popups/correlations/Correlations';
 import CreateColumn from './popups/create/CreateColumn';
 import { CreateColumnType, PrepopulateCreateColumn, SaveAs } from './popups/create/CreateColumnState';
 import Describe from './popups/describe/Describe';
-import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
-import { ReactFilterPopup as FilterPopup } from './popups/filter/FilterPopup';
+import Duplicates from './popups/duplicates/Duplicates';
+import FilterPopup from './popups/filter/FilterPopup';
 import Instances from './popups/instances/Instances';
 import ReduxMergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
@@ -57,7 +57,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   const popupType = pathSegs[pathSegs.length - 1] === 'code-popup' ? 'code-popup' : pathSegs[3];
   switch (popupType) {
     case 'filter':
-      rootNode = <FilterPopup {...{ dataId, chartData }} />;
+      rootNode = <FilterPopup />;
       break;
     case 'correlations':
       rootNode = <Correlations />;
@@ -83,7 +83,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <CreateColumn />;
       break;
     case 'duplicates':
-      rootNode = <Duplicates {...{ dataId, chartData }} />;
+      rootNode = <Duplicates />;
       break;
     case 'type-conversion': {
       const prePopulated: PrepopulateCreateColumn = {

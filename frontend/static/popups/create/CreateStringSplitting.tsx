@@ -5,7 +5,12 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, StringSplittingConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  StringSplittingConfig,
+} from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 
 export const validateStringSplittingCfg = (t: TFunction, cfg: StringSplittingConfig): string | undefined => {
@@ -33,7 +38,7 @@ const CreateStringSplitting: React.FC<BaseCreateComponentProps & WithTranslation
 
   React.useEffect(() => {
     const cfg: StringSplittingConfig = { col: col?.value, delimiter };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.SPLIT, cfg }, code: buildCode(cfg) };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_split`;
     }

@@ -5,7 +5,13 @@ import ButtonToggle from '../../ButtonToggle';
 import { capitalize } from '../../stringUtils';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
-import { BaseCreateComponentProps, NumericConfig, NumericOperationType, OperandDataType } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  NumericConfig,
+  NumericOperationType,
+  OperandDataType,
+} from './CreateColumnState';
 import { default as Operand, OperandState } from './Operand';
 
 export const validateNumericCfg = (t: TFunction, cfg: NumericConfig): string | undefined => {
@@ -84,7 +90,7 @@ const CreateNumeric: React.FC<BaseCreateComponentProps & WithTranslation> = ({ c
       },
       operation,
     };
-    updateState({ cfg, code: buildCode(cfg) });
+    updateState({ cfg: { type: CreateColumnType.NUMERIC, cfg }, code: buildCode(cfg) });
   }, [left, right, operation]);
 
   return (

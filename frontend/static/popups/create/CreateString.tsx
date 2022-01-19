@@ -5,7 +5,7 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, StringConfig } from './CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, StringConfig } from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 
 export const validateStringCfg = (t: TFunction, cfg: StringConfig): string | undefined => {
@@ -34,7 +34,7 @@ const CreateString: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: StringConfig = { cols: cols?.map((col) => col.value), joinChar };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.STRING, cfg }, code: buildCode(cfg) };
     if (!validateStringCfg(t, cfg) && !namePopulated) {
       updatedState.name = `${cfg.cols?.join('_')}_concat`;
     }

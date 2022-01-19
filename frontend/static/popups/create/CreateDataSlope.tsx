@@ -5,7 +5,12 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, DataSlopeConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  DataSlopeConfig,
+} from './CreateColumnState';
 
 export const validateDataSlopeCfg = (t: TFunction, cfg: DataSlopeConfig): string | undefined => {
   if (!cfg.col) {
@@ -36,7 +41,10 @@ const CreateDataSlope: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: DataSlopeConfig = { col: col?.value };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.DATA_SLOPE, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_data_slope`;
     }

@@ -10,7 +10,7 @@ import {
 import * as columnAnalysisUtils from '../../../popups/analysis/columnAnalysisUtils';
 import { PopupType } from '../../../redux/state/AppState';
 import * as GenericRepository from '../../../repository/GenericRepository';
-import { CreateChartSpy } from '../../test-utils';
+import { CreateChartSpy, parseUrlParams } from '../../test-utils';
 
 describe('columnAnalysisUtils', () => {
   let createChartSpy: CreateChartSpy;
@@ -66,10 +66,8 @@ describe('columnAnalysisUtils', () => {
       density: true,
     });
     expect(fetchJsonSpy).toHaveBeenCalled();
-    const search = fetchJsonSpy.mock.calls[0][0].split('?')[1];
-    const params = JSON.parse(
-      '{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}',
-    );
+    const url = fetchJsonSpy.mock.calls[0][0];
+    const params = parseUrlParams(url);
     expect(params).toMatchObject({ density: 'true' });
   });
 });

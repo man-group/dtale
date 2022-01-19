@@ -6,7 +6,12 @@ import { StyledSlider, Thumb, Track } from '../../sliderUtils';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, ExponentialSmoothingConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  ExponentialSmoothingConfig,
+} from './CreateColumnState';
 
 export const validateExponentialSmoothingCfg = (t: TFunction, cfg: ExponentialSmoothingConfig): string | undefined => {
   if (!cfg.col) {
@@ -45,7 +50,10 @@ const CreateExponentialSmoothing: React.FC<BaseCreateComponentProps & WithTransl
 
   React.useEffect(() => {
     const cfg: ExponentialSmoothingConfig = { col: col?.value, alpha };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.EXPONENTIAL_SMOOTHING, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_exp_smooth`;
     }

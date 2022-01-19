@@ -6,7 +6,12 @@ import { StyledSlider, Thumb, Track } from '../../sliderUtils';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, WinsorizeConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  WinsorizeConfig,
+} from './CreateColumnState';
 import { Checkbox } from './LabeledCheckbox';
 
 require('./CreateWinsorize.css');
@@ -57,7 +62,10 @@ const CreateWinsorize: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       limits: [Number((limits[0] / 100.0).toFixed(2)), Number((1.0 - limits[1] / 100.0).toFixed(2))],
       inclusive: [includeLower, includeUpper],
     };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.WINSORIZE, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_winsorize`;
     }

@@ -6,7 +6,7 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, ShiftConfig } from './CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, ShiftConfig } from './CreateColumnState';
 import { getDtype } from './CreateTypeConversion';
 import { LabeledInput } from './LabeledInput';
 
@@ -40,7 +40,7 @@ const CreateShift: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: ShiftConfig = { col: col?.value, periods, fillValue, dtype: getDtype(col, columns) };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.SHIFT, cfg }, code: buildCode(cfg) };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_shift`;
     }

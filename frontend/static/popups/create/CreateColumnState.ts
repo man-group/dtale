@@ -561,7 +561,7 @@ export type CreateColumnConfigs =
 /** Column creation updatable properties */
 export interface CreateColumnUpdateState {
   name?: string;
-  cfg: CreateColumnConfigTypes;
+  cfg: CreateColumnConfigs;
   code: CreateColumnCodeSnippet;
   saveAs?: SaveAs;
 }

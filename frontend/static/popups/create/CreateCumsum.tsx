@@ -5,7 +5,7 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, CumsumConfig } from './CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, CumsumConfig } from './CreateColumnState';
 
 export const validateCumsumCfg = (t: TFunction, cfg: CumsumConfig): string | undefined => {
   if (!cfg.col) {
@@ -40,7 +40,7 @@ const CreateCumsum: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       group: group?.map((option) => option.value),
       col: col?.value,
     };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.CUMSUM, cfg }, code: buildCode(cfg) };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_cumsum`;
     }

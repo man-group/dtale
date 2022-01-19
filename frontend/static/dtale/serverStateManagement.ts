@@ -1,6 +1,6 @@
 import { VisibilityState } from '../popups/describe/DescribeState';
 import { buildURLString } from '../redux/actions/url-utils';
-import { FilteredRanges, InstanceSettings, RangeHighlightConfig } from '../redux/state/AppState';
+import { FilteredRanges, InstanceSettings, QueryEngine, RangeHighlightConfig } from '../redux/state/AppState';
 import { BaseResponse, getDataFromService, postDataToService } from '../repository/GenericRepository';
 
 import { ColumnDef, ColumnFormat, DataViewerPropagateState } from './DataViewerState';
@@ -189,7 +189,7 @@ export const editCell = async (dataId: string, col: string, rowIndex: number, up
 export const updateTheme = async (theme: string): BaseReturn =>
   await baseGetter(buildURLString('update-theme', { theme }));
 
-export const updateQueryEngine = async (engine: string): BaseReturn =>
+export const updateQueryEngine = async (engine: QueryEngine): BaseReturn =>
   await baseGetter(buildURLString('update-query-engine', { engine }));
 
 export const updatePinMenu = async (pinned: boolean): BaseReturn =>

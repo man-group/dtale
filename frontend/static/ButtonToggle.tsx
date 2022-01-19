@@ -38,7 +38,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   }, [defaultValue]);
 
   return (
-    <div className={`btn-group${(compact ?? true) === true ? ' compact' : ''} col-auto ${className ?? ''}`}>
+    <div className={`btn-group${(compact ?? true) === true ? ' compact' : ''} ${className ?? 'col-auto'}`}>
       {options.map((option, idx) => {
         let buttonClass = 'btn btn-primary';
         let onClick;

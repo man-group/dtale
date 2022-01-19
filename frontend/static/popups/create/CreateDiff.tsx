@@ -5,7 +5,7 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, DiffConfig } from './CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, DiffConfig } from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
 
 export const validateDiffCfg = (t: TFunction, cfg: DiffConfig): string | undefined => {
@@ -40,7 +40,7 @@ const CreateDiff: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   React.useEffect(() => {
     const cfg: DiffConfig = { col: col?.value, periods };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.DIFF, cfg }, code: buildCode(cfg) };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_diff`;
     }

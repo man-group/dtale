@@ -11,6 +11,7 @@ import {
   CaseType,
   CleanerType,
   CleaningConfig,
+  CreateColumnType,
   CreateColumnUpdateState,
 } from './CreateColumnState';
 import { LabeledInput } from './LabeledInput';
@@ -157,7 +158,10 @@ const CreateCleaning: React.FC<CreateCleaningProps & WithTranslation> = ({
     if (state.cleaners.includes(CleanerType.NLTK_STOPWORDS)) {
       cfg.language = state.language.value;
     }
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.CLEANING, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_cleaned`;
     }

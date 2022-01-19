@@ -1,8 +1,8 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
-import { ColumnDef } from 'static/dtale/DataViewerState';
 
+import { ColumnDef } from '../../../dtale/DataViewerState';
 import { ColumnNavigation, ColumnNavigationProps } from '../../../popups/describe/ColumnNavigation';
 import reduxUtils from '../../redux-test-utils';
 

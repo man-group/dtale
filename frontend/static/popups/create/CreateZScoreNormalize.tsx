@@ -5,7 +5,12 @@ import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
-import { BaseCreateComponentProps, CreateColumnUpdateState, ZScoreNormalizeConfig } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  ZScoreNormalizeConfig,
+} from './CreateColumnState';
 
 export const validateZScoreNormalizeCfg = (t: TFunction, cfg: ZScoreNormalizeConfig): string | undefined => {
   if (!cfg.col) {
@@ -32,7 +37,10 @@ const CreateZScoreNormalize: React.FC<BaseCreateComponentProps & WithTranslation
 
   React.useEffect(() => {
     const cfg: ZScoreNormalizeConfig = { col: col?.value };
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = {
+      cfg: { type: CreateColumnType.ZSCORE_NORMALIZE, cfg },
+      code: buildCode(cfg),
+    };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_normalize`;
     }

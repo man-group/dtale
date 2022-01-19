@@ -7,7 +7,13 @@ import ButtonToggle from '../../ButtonToggle';
 import { capitalize } from '../../stringUtils';
 
 import { buildRandomCode as buildCode } from './codeSnippets';
-import { BaseCreateComponentProps, CreateColumnUpdateState, RandomConfigs, RandomType } from './CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  CreateColumnUpdateState,
+  RandomConfigs,
+  RandomType,
+} from './CreateColumnState';
 import { LabeledCheckbox } from './LabeledCheckbox';
 import { LabeledInput } from './LabeledInput';
 
@@ -79,7 +85,7 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         cfg = { type, low, high };
         break;
     }
-    const updatedState: CreateColumnUpdateState = { cfg, code: buildCode(cfg) };
+    const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.RANDOM, cfg }, code: buildCode(cfg) };
     if (!namePopulated) {
       let nameIdx = 1;
       let name = `random_col${nameIdx}`;
