@@ -63,7 +63,7 @@ describe('DataViewer tests', () => {
     window.location = location;
   });
 
-  const buildResult = async (overrides?: AppState): Promise<void> => {
+  const buildResult = async (overrides?: Partial<AppState>): Promise<void> => {
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
     useSelectorSpy.mockReturnValue({ dataId: '0', chartData: { visible: true }, ...overrides });
     buildInnerHTML({ settings: '' });
