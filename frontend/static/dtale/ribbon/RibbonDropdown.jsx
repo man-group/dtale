@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 import { openChart } from '../../redux/actions/charts';
 import { fetchJsonPromise, logException } from '../../fetcher';
-import { executeCleanup } from '../../popups/instances/Instances';
+import * as InstanceRepository from '../../repository/InstanceRepository';
 import * as gu from '../gridUtils';
 import AboutOption from '../menu/AboutOption';
 import BuildColumnOption from '../menu/BuildColumnOption';
@@ -104,12 +104,11 @@ class ReactRibbonDropdown extends React.Component {
     e.preventDefault();
   }
 
-  cleanup(id) {
-    executeCleanup(id, () => {
-      const currProcesses = _.get(this.state, 'processes') || [];
-      const processes = _.reject(currProcesses, { id });
-      this.setState({ processes });
-    });
+  async cleanup(id) {
+    const response = await InstanceRepository.cleanupInstance(id);
+    if (response?.success) {
+      this.setState({ processes: (this.state.processes ?? []).filter((process) => process.id !== id) });
+    }
   }
 
   cleanupThis() {

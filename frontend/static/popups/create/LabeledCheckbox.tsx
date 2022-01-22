@@ -14,12 +14,21 @@ export const Checkbox: React.FC<CheckboxProps> = ({ value, setter }) => (
 interface LabeledCheckboxProps extends CheckboxProps {
   label: string;
   rowClass?: string;
+  labelWidth?: number;
+  inputWidth?: number;
 }
 
-export const LabeledCheckbox: React.FC<LabeledCheckboxProps> = ({ label, value, setter, rowClass }) => (
+export const LabeledCheckbox: React.FC<LabeledCheckboxProps> = ({
+  label,
+  labelWidth,
+  inputWidth,
+  value,
+  setter,
+  rowClass,
+}) => (
   <div className={`form-group row ${rowClass ? `${rowClass} ` : ''}`}>
-    <label className="col-md-3 col-form-label text-right">{label}</label>
-    <div className="col-md-8 mt-auto mb-auto">
+    <label className={`col-md-${labelWidth ?? 3} col-form-label text-right`}>{label}</label>
+    <div className={`col-md-${inputWidth ?? 8} mt-auto mb-auto`}>
       <Checkbox value={value} setter={setter} />
     </div>
   </div>

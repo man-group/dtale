@@ -41,13 +41,21 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
 interface LabeledSelectProps extends DtaleSelectProps {
   label: string;
   subLabel?: string;
-  selectSize?: string;
+  inputWidth?: number;
+  labelWidth?: number;
 }
 
-export const LabeledSelect: React.FC<LabeledSelectProps> = ({ label, subLabel, children, selectSize, ...props }) => (
+export const LabeledSelect: React.FC<LabeledSelectProps> = ({
+  label,
+  subLabel,
+  children,
+  inputWidth,
+  labelWidth,
+  ...props
+}) => (
   <div className="form-group row">
-    <label className="col-md-3 col-form-label text-right">{label}</label>
-    <div className={`col-md-${selectSize ?? '8'}`}>
+    <label className={`col-md-${labelWidth ?? 3} col-form-label text-right`}>{label}</label>
+    <div className={`col-md-${inputWidth ?? 8}`}>
       <DtaleSelect {...props} />
       {subLabel && <small>{subLabel}</small>}
     </div>

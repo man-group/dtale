@@ -142,7 +142,7 @@ const CreateRolling: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         value={winType}
         onChange={(selected) => setWinType(selected as BaseOption<RollingWindowType>)}
         subLabel={`* ${t('builders:Required')}`}
-        selectSize="3"
+        inputWidth={3}
       >
         <label className="col-auto col-form-label text-right ml-5">{t('builders:Closed')}</label>
         <div className="col-auto">

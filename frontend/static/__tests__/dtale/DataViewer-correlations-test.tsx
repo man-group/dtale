@@ -15,7 +15,7 @@ import ChartsBody from '../../popups/charts/ChartsBody';
 import { Correlations } from '../../popups/correlations/Correlations';
 import { CorrelationsCell } from '../../popups/correlations/CorrelationsCell';
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
-import { SortDir } from '../../redux/state/AppState';
+import { AppState, SortDir } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import { CTX, SCALE } from '../chartUtils-test';
 import DimensionsHelper from '../DimensionsHelper';
@@ -63,7 +63,7 @@ describe('DataViewer tests', () => {
     window.location = location;
   });
 
-  const buildResult = async (overrides?: any): Promise<void> => {
+  const buildResult = async (overrides?: AppState): Promise<void> => {
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
     useSelectorSpy.mockReturnValue({ dataId: '0', chartData: { visible: true }, ...overrides });
     buildInnerHTML({ settings: '' });

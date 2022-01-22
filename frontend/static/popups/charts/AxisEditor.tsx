@@ -4,6 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { AxisSpec, DataSpec } from '../../chartUtils';
 import { openMenu } from '../../menuUtils';
 import { BaseOption } from '../../redux/state/AppState';
+import { truncate } from '../../stringUtils';
 
 const buildState = (y: Array<BaseOption<string>>, data: DataSpec): Record<string, string> => {
   return y.reduce(
@@ -98,7 +99,7 @@ const AxisEditor: React.FC<AxisEditorProps & WithTranslation> = ({ data, y, upda
         <span className="input-group-addon">{t('Axis Ranges')}</span>
         <div className="input-group column-toggle">
           <span ref={menuRef} className="form-control custom-select axis-select" onClick={menuHandler}>
-            {axisStr.length > 30 ? `${axisStr.slice(0, 30)}...` : axisStr}
+            {truncate(axisStr)}
           </span>
           <div className="axis-toggle__dropdown" hidden={!open}>
             <ul>{axisMarkup}</ul>

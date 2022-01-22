@@ -112,7 +112,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <ColumnAnalysis {...{ dataId, chartData }} height={250} />;
       break;
     case 'instances':
-      rootNode = <Instances dataId={dataId} iframe={true} />;
+      rootNode = <Instances />;
       break;
     case 'code-export':
       rootNode = <CodeExport />;

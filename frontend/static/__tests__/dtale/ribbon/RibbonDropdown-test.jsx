@@ -14,7 +14,7 @@ import menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
 import { DataMenuItem } from '../../../dtale/ribbon/DataMenuItem';
 import { ReactRibbonDropdown } from '../../../dtale/ribbon/RibbonDropdown';
 import * as fetcher from '../../../fetcher';
-import * as Instances from '../../../popups/instances/Instances';
+import * as InstanceRepository from '../../../repository/InstanceRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import { tick, tickUpdate } from '../../test-utils';
 
@@ -44,8 +44,8 @@ describe('RibbonDropdown', () => {
     delete window.open;
     window.open = jest.fn();
     window.location = { reload: jest.fn() };
-    cleanupSpy = jest.spyOn(Instances, 'executeCleanup');
-    cleanupSpy.mockImplementation(() => undefined);
+    cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
+    cleanupSpy.mockResolvedValue({ success: true });
     fetchJsonPromiseSpy = jest.spyOn(fetcher, 'fetchJsonPromise');
     fetchJsonPromiseSpy.mockImplementation(() => Promise.resolve({ data: processes }));
     props = {
@@ -105,15 +105,15 @@ describe('RibbonDropdown', () => {
   it('can clear current data', async () => {
     await setupElementAndDropdown('main');
     wrapper.find(MenuItem).first().props().onClick();
-    expect(cleanupSpy.mock.calls[0][0]).toBe('1');
+    expect(cleanupSpy).toBeCalledWith('1');
     expect(window.location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('can clear other data', async () => {
     await setupElementAndDropdown('main');
-    wrapper.find(DataMenuItem).first().props().cleanup('2');
-    expect(cleanupSpy.mock.calls[0][0]).toBe('2');
-    cleanupSpy.mock.calls[0][1]();
+    await wrapper.find(DataMenuItem).first().props().cleanup('2');
+    await tickUpdate(wrapper);
+    expect(cleanupSpy).toBeCalledWith('2');
     expect(wrapper.state().processes).toEqual([{ id: '3' }]);
   });
 

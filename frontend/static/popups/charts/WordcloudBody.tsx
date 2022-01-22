@@ -3,6 +3,7 @@ import ReactWordcloud from 'react-wordcloud';
 
 import { DataSpec } from '../../chartUtils';
 import { BaseOption } from '../../redux/state/AppState';
+import { truncate } from '../../stringUtils';
 
 /** Component properties for WordcloudBody */
 interface WordcloudBodyProps {
@@ -56,7 +57,7 @@ const WordcloudBody: React.FC<WordcloudBodyProps> = ({ data, y, group, chartType
                       .map((l, i) => {
                         const labelText = `${l}`;
                         return {
-                          text: labelText.length > 24 ? `${labelText.slice(0, 24)}...` : labelText,
+                          text: truncate(labelText, 24),
                           fullText: labelText,
                           value: Number(series?.[yProp][i]),
                         };

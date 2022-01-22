@@ -257,7 +257,7 @@ const buildInstances = (props: BuilderInput): BuilderOutput => {
       <strong>{props.t('Active D-Tale Instances', { ns: 'popup' })}</strong>
     </React.Fragment>
   );
-  const body = <Instances {...props} />;
+  const body = <Instances />;
   return { title, body };
 };
 

@@ -28,6 +28,10 @@ export interface ColumnDef extends Bounds {
   coord?: 'lat' | 'lon';
   label?: string;
   index: number;
+  resized?: boolean;
+  width?: number;
+  headerWidth?: number;
+  dataWidth?: number;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
@@ -79,8 +83,24 @@ export interface ColumnFilter extends Bounds {
   end?: string;
 }
 
+/** The definition for formatting properties for string columns */
+export interface StringColumnFormat {
+  link: boolean;
+  html: boolean;
+  truncate?: number;
+}
+
 /** Type definition for a column format configuration object */
-export type ColumnFormat = Record<string, any>;
+export interface ColumnFormat {
+  fmt: string | StringColumnFormat;
+  style?: {
+    redNegs?: boolean;
+    currency?: string;
+  };
+  link?: boolean;
+  html?: boolean;
+  truncate?: number;
+}
 
 /** Properties for outlier filters */
 export interface OutlierFilter {
