@@ -6,6 +6,7 @@ import { GridCellProps } from 'react-virtualized';
 import { SORT_CHARS } from '../../dtale/Header';
 import { BaseOption, SortDef } from '../../redux/state/AppState';
 import { CorrelationGridRow } from '../../repository/CorrelationsRepository';
+import { truncate } from '../../stringUtils';
 
 const MAX_LABEL_LEN = 18;
 
@@ -48,7 +49,7 @@ export const CorrelationsCell: React.FC<CorrelationsCellProps & GridCellProps> =
       <div className={className} style={{ ...style, fontSize: '10px' }} {...props}>
         <div>
           {sortable && currSort && currSort[0] === title && SORT_CHARS[currSort[1]]}
-          {title.length > MAX_LABEL_LEN ? `${title.slice(0, MAX_LABEL_LEN)}...` : title}
+          {truncate(title, MAX_LABEL_LEN)}
         </div>
       </div>
     );

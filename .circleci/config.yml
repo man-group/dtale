@@ -152,6 +152,23 @@ python: &python
               pip install black==20.8b1
               black --check setup.py dtale tests
             fi
+      - run:
+          name: Setup tests
+          command: |
+            set -e
+            . ci/bin/activate
+            pip install -e ".[arctic]"
+            pip install -e ".[dash-bio]"
+            pip install -e ".[redis]"
+            pip install -e ".[r]"
+            pip install -e ".[tests]"
+            pip install pyarrow
+      - run:
+          name: Print environment
+          command: |
+            set -e
+            . ci/bin/activate
+            pip freeze
       # Test
       - run:
          name: Run all tests
@@ -160,12 +177,6 @@ python: &python
            . ci/bin/activate
            export TZ=America/New_York
            export MPLBACKEND=Agg
-           pip install -e ".[arctic]"
-           pip install -e ".[dash-bio]"
-           pip install -e ".[redis]"
-           pip install -e ".[r]"
-           pip install -e ".[tests]"
-           pip install pyarrow
            python setup.py test
            bash <(curl -s https://codecov.io/bash) -c -F python
            cp -r ./htmlcov /tmp/circleci-test-results

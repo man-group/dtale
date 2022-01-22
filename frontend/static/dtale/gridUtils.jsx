@@ -139,10 +139,9 @@ const calcDataWidth = (name, dtype, data) => {
   }
 };
 
-export const calcColWidth = (
-  { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth },
-  { data, rowCount, sortInfo, backgroundMode, maxColumnWidth },
-) => {
+export const calcColWidth = (col, dataProps) => {
+  const { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth } = col;
+  const { data, rowCount, sortInfo, backgroundMode, maxColumnWidth } = dataProps;
   if (resized === true) {
     return { width, headerWidth, dataWidth };
   }

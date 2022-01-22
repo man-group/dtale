@@ -8,12 +8,23 @@ interface LabeledInputProps {
   setter: (value: string) => void;
   subLabel?: string;
   inputOptions?: Partial<React.HTMLAttributes<HTMLInputElement>>;
+  labelWidth?: number;
+  inputWidth?: number;
 }
 
-export const LabeledInput: React.FC<LabeledInputProps> = ({ type, label, value, setter, subLabel, inputOptions }) => (
+export const LabeledInput: React.FC<LabeledInputProps> = ({
+  type,
+  label,
+  value,
+  setter,
+  subLabel,
+  inputOptions,
+  labelWidth,
+  inputWidth,
+}) => (
   <div className="form-group row">
-    <label className="col-md-3 col-form-label text-right">{label}</label>
-    <div className="col-md-8">
+    <label className={`col-md-${labelWidth ?? 3} col-form-label text-right`}>{label}</label>
+    <div className={`col-md-${inputWidth ?? 8}`}>
       <input
         type={type ?? 'text'}
         className="form-control"

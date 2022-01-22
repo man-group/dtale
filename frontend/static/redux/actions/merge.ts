@@ -1,5 +1,6 @@
 import { Dispatch } from 'redux';
 
+import * as InstanceRepository from '../../repository/InstanceRepository';
 import * as MergeRepository from '../../repository/MergeRepository';
 import { MergeConfigType, MergeState } from '../state/MergeState';
 
@@ -57,6 +58,6 @@ export const clearMerge =
   (): MergeAppActions<Promise<void>> =>
   async (dispatch: Dispatch<MergeAppActionTypes>, getState: () => MergeState): Promise<void> => {
     const { mergeDataId } = getState();
-    await MergeRepository.cleanupDatasets(mergeDataId ?? '');
+    await InstanceRepository.cleanupInstance(mergeDataId ?? '');
     dispatch({ type: MergeActionType.CLEAR_MERGE_DATA });
   };

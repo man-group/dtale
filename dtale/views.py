@@ -1021,7 +1021,7 @@ def startup(
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
-            columnFormats=column_formats,
+            columnFormats=column_formats or {},
             backgroundMode=background_mode,
             rangeHighlight=range_highlights,
             verticalHeaders=vertical_headers,

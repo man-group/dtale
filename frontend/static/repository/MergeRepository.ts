@@ -1,5 +1,4 @@
 import { InstancesState } from '../redux/actions/MergeActions';
-import { buildURLString } from '../redux/actions/url-utils';
 import { Dataset, MergeConfig, MergeConfigType, StackConfig } from '../redux/state/MergeState';
 
 import * as GenericRepository from './GenericRepository';
@@ -50,14 +49,4 @@ export async function saveMerge(
     datasets: extractDatasetParams(datasets),
     name,
   });
-}
-
-/**
- * Cleanup an old datasets created from an abandoned merge.
- *
- * @param dataId the identifier of the data to cleanup.
- * @return a promise that executes the cleanup.
- */
-export async function cleanupDatasets(dataId: string): Promise<void> {
-  await GenericRepository.getDataFromService<void>(buildURLString('/dtale/cleanup-datasets', { dataIds: dataId }));
 }
