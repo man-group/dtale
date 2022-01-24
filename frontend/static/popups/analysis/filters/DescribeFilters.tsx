@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../../ButtonToggle';
@@ -146,24 +145,31 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     buildChart();
   }, [type, top, bins, ordinalCol, ordinalAgg, categoryCol, categoryAgg, latCol, lonCol, density, target]);
 
-  const toggleLeft = (): void => {
-    const selectedIndex = chartOpts.findIndex((option) => option.value === type);
-    if (selectedIndex > 0) {
-      setType(chartOpts[selectedIndex - 1].value);
-    }
-  };
-
-  const toggleRight = (): void => {
-    const selectedIndex = chartOpts.findIndex((option) => option.value === type);
-    if (selectedIndex < chartOpts.length - 1) {
-      setType(chartOpts[selectedIndex + 1].value);
-    }
-  };
+  React.useEffect(() => {
+    const keyPress = (e: KeyboardEvent): void => {
+      if (e.key === 'ArrowLeft') {
+        const selectedIndex = chartOpts.findIndex((option) => option.value === type);
+        if (selectedIndex > 0) {
+          setType(chartOpts[selectedIndex - 1].value);
+          e?.stopPropagation();
+          return;
+        }
+      } else if (e.key === 'ArrowRight') {
+        const selectedIndex = chartOpts.findIndex((option) => option.value === type);
+        if (selectedIndex < chartOpts.length - 1) {
+          setType(chartOpts[selectedIndex + 1].value);
+          e?.stopPropagation();
+          return;
+        }
+      }
+    };
+    document.addEventListener('keydown', keyPress);
+    return () => document.removeEventListener('keydown', keyPress);
+  }, [chartOpts, type]);
 
   const buildChartTypeToggle = (): JSX.Element => {
     return (
       <React.Fragment>
-        <GlobalHotKeys keyMap={{ LEFT: 'left', RIGHT: 'right' }} handlers={{ LEFT: toggleLeft, RIGHT: toggleRight }} />
         <ButtonToggle options={chartOpts} update={(value?: AnalysisType) => setType(value!)} defaultValue={type} />
         <small className="d-block pl-4 pt-3">({t('constants:navigate')})</small>
       </React.Fragment>

@@ -1,31 +1,34 @@
 import * as React from 'react';
-import { GlobalHotKeys } from 'react-hotkeys';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
 
 /** Component properties for ColumnNavigation */
 export interface ColumnNavigationProps {
   dtypes: ColumnDef[];
-  selected?: ColumnDef;
-  propagateState: (state: { selected?: ColumnDef }) => void;
+  selectedIndex: number;
+  setSelected: (selected?: ColumnDef) => void;
 }
 
-export const ColumnNavigation: React.FC<ColumnNavigationProps> = ({ dtypes, selected, propagateState }) => {
-  const up = (): void => {
-    if (selected && selected?.index! < dtypes.length - 1) {
-      propagateState({
-        selected: dtypes.find((col) => col.index === selected.index! + 1),
-      });
-    }
-  };
+export const ColumnNavigation: React.FC<ColumnNavigationProps> = ({ dtypes, selectedIndex, setSelected }) => {
+  React.useEffect(() => {
+    const keyPress = (e: KeyboardEvent): void => {
+      if (e.key === 'ArrowUp') {
+        if (selectedIndex > 0) {
+          setSelected(dtypes.find((col) => col.index === selectedIndex - 1));
+          e?.stopPropagation();
+          return;
+        }
+      } else if (e.key === 'ArrowDown') {
+        if (selectedIndex < dtypes.length - 1) {
+          setSelected(dtypes.find((col) => col.index === selectedIndex + 1));
+          e?.stopPropagation();
+          return;
+        }
+      }
+    };
+    document.addEventListener('keydown', keyPress);
+    return () => document.removeEventListener('keydown', keyPress);
+  }, [selectedIndex, dtypes]);
 
-  const down = (): void => {
-    if (selected && selected?.index! > 0) {
-      propagateState({
-        selected: dtypes.find((col) => col.index === selected.index! - 1),
-      });
-    }
-  };
-
-  return <GlobalHotKeys keyMap={{ COL_UP: 'up', COL_DOWN: 'down' }} handlers={{ COL_UP: up, COL_DOWN: down }} />;
+  return null;
 };

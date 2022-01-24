@@ -68,6 +68,7 @@ const buildSort = (sort: SortDef, info: SortInfo): SortDef => {
 /** Component properties for DtypesGrid */
 interface DtypesGridProps {
   dtypes: ColumnDef[];
+  selected?: ColumnDef;
   setSelected: (selected?: ColumnDef) => void;
   setVisibility: (visibility: VisibilityState) => void;
 }
@@ -77,13 +78,23 @@ interface DtypesGridRow extends ColumnDef {
   selected: boolean;
 }
 
-const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({ dtypes, t, setSelected, setVisibility }) => {
+const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
+  dtypes,
+  t,
+  selected,
+  setSelected,
+  setVisibility,
+}) => {
   const [sort, setSort] = React.useState<SortDef>(['index', SortDir.ASC]);
   const [data, setData] = React.useState<DtypesGridRow[]>(
-    dtypes.map((col, index) => ({ ...col, selected: index === 0 })),
+    dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })),
   );
   const [dtypesFilter, setDtypesFilter] = React.useState<string>();
   const [allVisible, setAllVisible] = React.useState(gu.noHidden(dtypes));
+
+  React.useEffect(() => {
+    setData(data.map((row) => ({ ...row, selected: selected ? selected.index === row.index : row.selected })));
+  }, [selected]);
 
   const headerRenderer = (props: TableHeaderProps): JSX.Element => {
     const { dataKey, label } = props;

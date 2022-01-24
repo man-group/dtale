@@ -62,16 +62,19 @@ const Describe: React.FC<WithTranslation> = ({ t }) => {
   return (
     <React.Fragment>
       <div className="modal-body describe-body">
-        <ColumnNavigation
-          selected={selected}
-          dtypes={dtypes ?? []}
-          propagateState={(state) => setSelected(state.selected)}
-        />
+        {dtypes && selected && (
+          <ColumnNavigation selectedIndex={selected.index} dtypes={dtypes} setSelected={setSelected} />
+        )}
         <div className="row">
           <div className="col-md-5 describe-dtypes-grid-col">
             <BouncerWrapper showBouncer={loadingDtypes}>
               {!!dtypes?.length && (
-                <DtypesGrid dtypes={dtypes} setSelected={setSelected} setVisibility={setVisibility} />
+                <DtypesGrid
+                  dtypes={dtypes}
+                  selected={selected}
+                  setSelected={setSelected}
+                  setVisibility={setVisibility}
+                />
               )}
             </BouncerWrapper>
           </div>
