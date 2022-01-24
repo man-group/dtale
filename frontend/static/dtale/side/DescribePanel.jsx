@@ -74,7 +74,7 @@ class ReactDescribePanel extends React.Component {
       <BouncerWrapper showBouncer={this.state.loadingDtypes}>
         {view === 'describe' && (
           <>
-            <ColumnNavigation {...{ ...this.state, propagateState }} />
+            <ColumnNavigation {...{ ...this.state, setSelected: (selected) => this.setState({ selected }) }} />
             <Details
               selected={this.state.selected}
               dataId={dataId}

@@ -1,7 +1,6 @@
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import { GlobalHotKeys } from 'react-hotkeys';
 
 import ButtonToggle from '../../../../ButtonToggle';
 import { AnalysisType } from '../../../../popups/analysis/ColumnAnalysisState';
@@ -41,6 +40,8 @@ describe('DescribeFilters tests', () => {
   });
 
   afterEach(jest.resetAllMocks);
+
+  afterAll(jest.restoreAllMocks);
 
   it('calls buildChart', async () => {
     await act(async () => {
@@ -181,9 +182,18 @@ describe('DescribeFilters tests', () => {
   });
 
   describe('chart navigation', () => {
+    let addEventListenerSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      addEventListenerSpy = jest.spyOn(document, 'addEventListener');
+    });
+
     const move = async (prop: string): Promise<void> => {
       await act(async () => {
-        result.find(GlobalHotKeys).props().handlers[prop]();
+        addEventListenerSpy.mock.calls[addEventListenerSpy.mock.calls.length - 1][1]({
+          key: prop,
+          stopPropagation: jest.fn(),
+        });
       });
       result = result.update();
     };
@@ -193,12 +203,12 @@ describe('DescribeFilters tests', () => {
         result.find(ButtonToggle).first().props().update(AnalysisType.HISTOGRAM);
       });
       result = result.update();
-      await move('LEFT');
+      await move('ArrowLeft');
       expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.BOXPLOT);
     });
 
     it('moves selected chart on RIGHT', async () => {
-      await move('RIGHT');
+      await move('ArrowRight');
       expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.HISTOGRAM);
     });
 
@@ -207,7 +217,7 @@ describe('DescribeFilters tests', () => {
         result.find(ButtonToggle).first().props().update(AnalysisType.QQ);
       });
       result = result.update();
-      await move('RIGHT');
+      await move('ArrowRight');
       expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.QQ);
     });
 
@@ -216,7 +226,7 @@ describe('DescribeFilters tests', () => {
         result.find(ButtonToggle).first().props().update(AnalysisType.BOXPLOT);
       });
       result = result.update();
-      await move('LEFT');
+      await move('ArrowLeft');
       expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.BOXPLOT);
     });
   });
