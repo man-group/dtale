@@ -2,16 +2,9 @@ import { Dispatch } from 'redux';
 
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import * as MergeRepository from '../../repository/MergeRepository';
-import { MergeConfigType, MergeState } from '../state/MergeState';
+import { MergeState } from '../state/MergeState';
 
-import {
-  ConfigUpdateAction,
-  ConfigUpdateProps,
-  MergeActionType,
-  MergeAppActions,
-  MergeAppActionTypes,
-  UpdateMergeActionTypeAction,
-} from './MergeActions';
+import { MergeActionType, MergeAppActions, MergeAppActionTypes } from './MergeActions';
 
 const loadInstances = async (dispatch: Dispatch<MergeAppActionTypes>): Promise<void> => {
   const instances = await MergeRepository.loadInstances();
@@ -29,16 +22,6 @@ export const loadDatasets = async (dispatch: Dispatch<MergeAppActionTypes>): Pro
   dispatch({ type: MergeActionType.LOADING_DATASETS });
   await loadInstances(dispatch);
 };
-
-export const updateActionType = (action: MergeConfigType): UpdateMergeActionTypeAction => ({
-  type: MergeActionType.UPDATE_ACTION_TYPE,
-  action,
-});
-
-export const updateActionConfig = (actionUpdates: ConfigUpdateProps): ConfigUpdateAction => ({
-  type: MergeActionType.UPDATE_ACTION_CONFIG,
-  ...actionUpdates,
-});
 
 export const buildMerge =
   (name: string): MergeAppActions<Promise<void>> =>

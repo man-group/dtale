@@ -10,6 +10,7 @@ interface LabeledInputProps {
   inputOptions?: Partial<React.HTMLAttributes<HTMLInputElement>>;
   labelWidth?: number;
   inputWidth?: number;
+  rowClass?: string;
 }
 
 export const LabeledInput: React.FC<LabeledInputProps> = ({
@@ -21,8 +22,9 @@ export const LabeledInput: React.FC<LabeledInputProps> = ({
   inputOptions,
   labelWidth,
   inputWidth,
+  rowClass,
 }) => (
-  <div className="form-group row">
+  <div className={`form-group row${rowClass ? '' : ` ${rowClass}`}`}>
     <label className={`col-md-${labelWidth ?? 3} col-form-label text-right`}>{label}</label>
     <div className={`col-md-${inputWidth ?? 8}`}>
       <input

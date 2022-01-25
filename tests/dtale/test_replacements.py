@@ -101,26 +101,24 @@ def test_value(unittest):
     data_id, replacement_type = "1", "value"
     build_data_inst({data_id: df})
 
-    cfg = {"value": [dict(value="nan", type="raw", replace="for test")]}
+    cfg = [dict(value="nan", type="raw", replace="for test")]
     builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
     verify_builder(
         builder,
         lambda col: unittest.assertEqual(list(col.values), ["a", "for test", "b"]),
     )
 
-    cfg = {
-        "value": [
-            dict(value="nan", type="raw", replace="for test"),
-            dict(value="a", type="raw", replace="d"),
-        ]
-    }
+    cfg = [
+        dict(value="nan", type="raw", replace="for test"),
+        dict(value="a", type="raw", replace="d"),
+    ]
     builder = ColumnReplacement(data_id, "e", replacement_type, cfg)
     verify_builder(
         builder,
         lambda col: unittest.assertEqual(list(col.values), ["d", "for test", "b"]),
     )
 
-    cfg = {"value": [dict(value="nan", type="agg", replace="median")]}
+    cfg = [dict(value="nan", type="agg", replace="median")]
     builder = ColumnReplacement(data_id, "d", replacement_type, cfg)
     verify_builder(
         builder, lambda col: unittest.assertEqual(list(col.values), [1.1, 2.05, 3])
@@ -149,7 +147,7 @@ def test_number_value(unittest):
     data_id, replacement_type = "1", "value"
     build_data_inst({data_id: df})
 
-    cfg = {"value": [dict(value=0, type="raw", replace="nan")]}
+    cfg = [dict(value=0, type="raw", replace="nan")]
     builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
     verify_builder(
         builder,
@@ -231,9 +229,7 @@ def test_view(unittest):
             type="value",
             col="e",
             name="a",
-            cfg=json.dumps(
-                {"value": [dict(value="nan", type="raw", replace="for test")]}
-            ),
+            cfg=json.dumps([dict(value="nan", type="raw", replace="for test")]),
         )
         resp = c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
         response_data = resp.json
@@ -243,9 +239,7 @@ def test_view(unittest):
             type="value",
             col="e",
             name="e2",
-            cfg=json.dumps(
-                {"value": [dict(value="nan", type="raw", replace="for test")]}
-            ),
+            cfg=json.dumps([dict(value="nan", type="raw", replace="for test")]),
         )
         c.get("/dtale/build-replacement/{}".format(c.port), query_string=params)
         unittest.assertEqual(list(data[c.port]["e2"].values), ["a", "for test", "b"])

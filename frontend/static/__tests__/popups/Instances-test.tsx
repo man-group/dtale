@@ -5,7 +5,7 @@ import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
 import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../popups/merge/DataPreview', () => createMockComponent());
+jest.mock('../../popups/merge/DataPreview', () => ({ DataPreview: createMockComponent() }));
 
 import Instances from '../../popups/instances/Instances';
 import { AppState } from '../../redux/state/AppState';

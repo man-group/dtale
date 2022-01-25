@@ -6,6 +6,7 @@ import { useDebounce } from '../../customHooks';
 import { BaseOption } from '../../redux/state/AppState';
 
 import { BinsTester } from './BinsTester';
+import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
@@ -31,7 +32,7 @@ export const validateBinsCfg = (t: TFunction, cfg: BinsConfig): string | undefin
   return undefined;
 };
 
-export const buildCode = (state: CreateBinsState): string | undefined => {
+export const buildCode = (state: CreateBinsState): CreateColumnCodeSnippet => {
   const col = state.col?.value;
   if (!col) {
     return undefined;

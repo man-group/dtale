@@ -6,7 +6,7 @@ import { Popups } from './AppState';
 /** Properties for a merge instance */
 export interface MergeInstance {
   data_id: string;
-  name: string;
+  name?: string;
   rows: number;
   columns: string;
   names: ColumnDef[];
@@ -18,15 +18,23 @@ export enum MergeConfigType {
   STACK = 'stack',
 }
 
+/** Different merge styles */
+export enum HowToMerge {
+  LEFT = 'left',
+  RIGHT = 'right',
+  INNER = 'inner',
+  OUTER = 'outer',
+}
+
 /** Properties of a merge configuration */
 export interface MergeConfig {
-  how: string;
+  how: HowToMerge;
   sort: boolean;
   indicator: boolean;
 }
 
 export const initialMergeConfig: MergeConfig = {
-  how: 'inner',
+  how: HowToMerge.INNER,
   sort: false,
   indicator: false,
 };

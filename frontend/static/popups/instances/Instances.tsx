@@ -10,7 +10,7 @@ import { AppState } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import { truncate } from '../../stringUtils';
-import DataPreview from '../merge/DataPreview';
+import { DataPreview } from '../merge/DataPreview';
 
 import { InstanceLabel } from './InstanceLabel';
 

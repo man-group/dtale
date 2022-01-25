@@ -19,7 +19,7 @@ import Instances from './instances/Instances';
 import PredictivePowerScore from './pps/PredictivePowerScore';
 import RangeHighlight from './RangeHighlight';
 import Rename from './Rename';
-import { CreateReplacement } from './replacement/CreateReplacement';
+import CreateReplacement from './replacement/CreateReplacement';
 import Reshape from './reshape/Reshape';
 import { Upload } from './upload/Upload';
 import { Variance } from './variance/Variance';
@@ -235,7 +235,7 @@ const buildReplacement = (props: BuilderInput): BuilderOutput => {
       <strong>{(props.chartData as CreateColumnPopupData).selectedCol}</strong>
     </React.Fragment>
   );
-  const body = <CreateReplacement {...props} />;
+  const body = <CreateReplacement />;
   return { title, body };
 };
 

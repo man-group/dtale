@@ -57,12 +57,5 @@ export const titles = (t: TFunction): Record<string, string> => ({
   qq: t('Q-Q Plot', { ns: 'constants' }),
 });
 
-export const sortOptions = (a: BaseOption<string>, b: BaseOption<string>): number => {
-  if (a.value.toLowerCase() < b.value.toLowerCase()) {
-    return -1;
-  }
-  if (a.value.toLowerCase() > b.value.toLowerCase()) {
-    return 1;
-  }
-  return 0;
-};
+export const sortOptions = (a: BaseOption<string>, b: BaseOption<string>): number =>
+  a.value.toLowerCase().localeCompare(b.value.toLowerCase());
