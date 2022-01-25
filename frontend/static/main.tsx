@@ -16,9 +16,9 @@ import Describe from './popups/describe/Describe';
 import Duplicates from './popups/duplicates/Duplicates';
 import FilterPopup from './popups/filter/FilterPopup';
 import Instances from './popups/instances/Instances';
-import ReduxMergeDatasets from './popups/merge/MergeDatasets';
+import MergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
-import { ReactCreateReplacement as CreateReplacement } from './popups/replacement/CreateReplacement';
+import CreateReplacement from './popups/replacement/CreateReplacement';
 import Reshape from './popups/reshape/Reshape';
 import { ReactUpload as Upload } from './popups/upload/Upload';
 import { Variance } from './popups/variance/Variance';
@@ -48,13 +48,12 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   let rootNode = null;
   const settings = toJson<InstanceSettings>(getHiddenValue('settings'));
   const dataId = getHiddenValue('data_id');
-  const chartData: Record<string, any> = {
-    ...actions.getParams(),
-    visible: true,
-    ...(settings.query ? { query: settings.query } : {}),
-  };
   const pathSegs = pathname.split('/');
   const popupType = pathSegs[pathSegs.length - 1] === 'code-popup' ? 'code-popup' : pathSegs[3];
+  const chartData: Record<string, any> = {
+    ...actions.getParams(),
+    ...(settings.query ? { query: settings.query } : {}),
+  };
   switch (popupType) {
     case 'filter':
       rootNode = <FilterPopup />;
@@ -68,7 +67,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
         mergeActions.init(store.dispatch);
         return store;
       };
-      rootNode = <ReduxMergeDatasets />;
+      rootNode = <MergeDatasets />;
       break;
     case 'pps':
       rootNode = <PredictivePowerScore />;
@@ -103,7 +102,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       break;
     }
     case 'replacement':
-      rootNode = <CreateReplacement {...{ dataId, chartData }} />;
+      rootNode = <CreateReplacement />;
       break;
     case 'reshape':
       rootNode = <Reshape />;

@@ -42,34 +42,31 @@ export const constructColumnOptionsFilteredByDtypeAndOtherValues = (
   return constructColumnOptionsFilteredByOtherValues(filteredColumnOptions, otherValues);
 };
 
-/** Component properties for ColumnSelect */
-interface ColumnSelectProps {
+export const buildAllOption = (t: TFunction): BaseOption<string> => ({
+  value: 'all',
+  label: t('Apply To All Columns', { ns: 'range_highlight' }),
+});
+
+/** Component properties for ColumnSelectInput */
+interface ColumnSelectInputProps {
   columns: ColumnDef[];
   isMulti?: boolean;
   otherProps?: string[];
   prop: string;
-  label: React.ReactNode;
   parent: Record<string, any>;
   updateState: (state: Record<string, BaseOption<string> | Array<BaseOption<string>> | undefined>) => void;
   dtypes?: string[];
   includeAllOption?: boolean;
 }
 
-export const buildAllOption = (t: TFunction): BaseOption<string> => ({
-  value: 'all',
-  label: t('Apply To All Columns', { ns: 'range_highlight' }),
-});
-
-const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
+export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTranslation> = ({
   columns,
   dtypes,
   isMulti,
-  label,
   otherProps,
   parent,
   prop,
   updateState,
-  children,
   includeAllOption,
   t,
 }) => {
@@ -85,28 +82,39 @@ const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({
   }, [dtypes, columns, parent, otherProps, includeAllOption]);
 
   return (
-    <div key={prop} className="form-group row">
-      <label className="col-md-3 col-form-label text-right">{label || prop}</label>
-      <div className="col-md-8">
-        <div className="input-group">
-          <Select
-            isMulti={isMulti ?? false}
-            className="Select is-clearable is-searchable Select--single"
-            classNamePrefix="Select"
-            options={columnOptions}
-            getOptionLabel={(o) => o.label ?? o.value}
-            getOptionValue={(o) => o.value}
-            value={parent[prop] ?? null}
-            onChange={(selected?: BaseOption<string> | Array<BaseOption<string>>) => updateState({ [prop]: selected })}
-            isClearable={true}
-            filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-            noOptionsMessage={() => `${t('No columns available')}${dtypesStr}!`}
-          />
-        </div>
-        {children}
-      </div>
-    </div>
+    <Select
+      isMulti={isMulti ?? false}
+      className="Select is-clearable is-searchable Select--single"
+      classNamePrefix="Select"
+      options={columnOptions}
+      getOptionLabel={(o) => o.label ?? o.value}
+      getOptionValue={(o) => o.value}
+      value={parent[prop] ?? null}
+      onChange={(selected?: BaseOption<string> | Array<BaseOption<string>>) => updateState({ [prop]: selected })}
+      isClearable={true}
+      filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+      noOptionsMessage={() => `${t('No columns available')}${dtypesStr}!`}
+    />
   );
 };
 
-export default withTranslation('builders')(ColumnSelect);
+export const ColumnSelectInput = withTranslation(['builders', 'range_highlight'])(BaseColumnSelectInput);
+
+/** Component properties for ColumnSelect */
+interface ColumnSelectProps extends ColumnSelectInputProps {
+  label: React.ReactNode;
+}
+
+const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({ label, children, t, ...inputProps }) => (
+  <div className="form-group row">
+    <label className="col-md-3 col-form-label text-right">{label || inputProps.prop}</label>
+    <div className="col-md-8">
+      <div className="input-group">
+        <ColumnSelectInput {...inputProps} />
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+export default withTranslation(['builders', 'range_highlight'])(ColumnSelect);

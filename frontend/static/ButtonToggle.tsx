@@ -17,6 +17,7 @@ interface ButtonToggleProps {
   disabled?: boolean;
   className?: string;
   compact?: boolean;
+  style?: Partial<React.CSSProperties>;
 }
 
 /** Class for defining a Bootstrap-style button toggle */
@@ -28,6 +29,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   disabled,
   className,
   compact,
+  style,
 }) => {
   const [active, setActive] = React.useState<any | undefined>(defaultValue);
 
@@ -38,7 +40,10 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   }, [defaultValue]);
 
   return (
-    <div className={`btn-group${(compact ?? true) === true ? ' compact' : ''} ${className ?? 'col-auto'}`}>
+    <div
+      className={`btn-group${(compact ?? true) === true ? ' compact' : ''} ${className ?? 'col-auto'}`}
+      style={style}
+    >
       {options.map((option, idx) => {
         let buttonClass = 'btn btn-primary';
         let onClick;

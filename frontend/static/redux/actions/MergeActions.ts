@@ -2,7 +2,7 @@ import { Action, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
 import { ErrorState } from '../../repository/GenericRepository';
-import { Dataset, MergeConfigType, MergeInstance, MergeState } from '../state/MergeState';
+import { Dataset, MergeConfig, MergeConfigType, MergeInstance, MergeState, StackConfig } from '../state/MergeState';
 
 import { CloseChartAction, OpenChartAction } from './AppActions';
 
@@ -64,15 +64,14 @@ export interface UpdateMergeActionTypeAction extends Action<typeof MergeActionTy
 }
 
 /** Action fired when merge/stack config is updated */
-export interface ConfigUpdateProps<T extends string = '', U = any> {
+export interface ConfigUpdateProps<T> {
   action: MergeConfigType;
-  prop: T;
-  value: U;
+  prop: keyof (MergeConfig | StackConfig | Dataset);
+  value: T;
 }
 
 /** Flexible object for updating properties on an merge/stack config */
-export type ConfigUpdateAction<T extends string = '', U = any> = Action<MergeActionType.UPDATE_ACTION_CONFIG> &
-  ConfigUpdateProps<T, U>;
+export type ConfigUpdateAction<T = any> = Action<MergeActionType.UPDATE_ACTION_CONFIG> & ConfigUpdateProps<T>;
 
 /** Properties for identifying the index of a dataset */
 interface DatasetIndex {
@@ -80,16 +79,19 @@ interface DatasetIndex {
 }
 
 /** Action fired when adding a dataset to a merge config */
-export type AddDatasetAction = Action<typeof MergeActionType.ADD_DATASET> & DatasetIndex & Dataset;
+export type AddDatasetAction = Action<typeof MergeActionType.ADD_DATASET> & { dataId: string };
 
 /** Action fired when removing a dataset from a merge config */
-export type RemoveDatasetAction = Action<typeof MergeActionType.REMOVE_DATASET> & DatasetIndex & Dataset;
+export type RemoveDatasetAction = Action<typeof MergeActionType.REMOVE_DATASET> & DatasetIndex;
 
 /** Action fired when toggling the display of a merge config dataset */
-export type ToggleDatasetAction = Action<typeof MergeActionType.TOGGLE_DATASET> & DatasetIndex & Dataset;
+export type ToggleDatasetAction = Action<typeof MergeActionType.TOGGLE_DATASET> & DatasetIndex;
 
 /** Action fired when updating a dataset in a merge config */
-export type UpdateDatasetAction = Action<typeof MergeActionType.UPDATE_DATASET> & DatasetIndex & Dataset;
+export interface UpdateDatasetAction<T = any> extends Action<typeof MergeActionType.UPDATE_DATASET>, DatasetIndex {
+  prop: keyof Dataset;
+  value: T;
+}
 
 /** Action fired when merge data has been loaded */
 export interface LoadMergeDataAction extends Action<typeof MergeActionType.LOAD_MERGE_DATA> {

@@ -11,10 +11,11 @@ interface DtaleSelectProps {
   value?: BaseOption<any> | Array<BaseOption<any>>;
   onChange?: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
   noOptionsMessage?: string;
+  placeholder?: string;
 }
 
 export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
-  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable }, ref) => (
+  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable, placeholder }, ref) => (
     <Select
       ref={ref as any}
       className="Select is-clearable is-searchable Select--single"
@@ -33,6 +34,7 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
       filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
       isMulti={isMulti}
       isClearable={isClearable}
+      placeholder={placeholder}
     />
   ),
 );

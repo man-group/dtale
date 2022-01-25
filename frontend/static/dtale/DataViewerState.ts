@@ -3,7 +3,7 @@ import * as React from 'react';
 import { MultiGridProps } from 'react-virtualized';
 import { Dispatch } from 'redux';
 
-import { AppActions } from '../redux/actions/AppActions';
+import { ActionType, AppActions } from '../redux/actions/AppActions';
 import { AppState, FilteredRanges, RangeHighlightConfig } from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
@@ -140,7 +140,9 @@ export interface DataViewerProps {
   dataId: string;
   iframe: boolean;
   closeColumnMenu: () => void;
-  openChart: (chartData: Record<string, any>) => Dispatch<{ type: 'open-chart'; chartData: Record<string, any> }>;
+  openChart: (
+    chartData: Record<string, any>,
+  ) => Dispatch<{ type: ActionType.OPEN_CHART; chartData: Record<string, any> }>;
   theme: string;
   updateFilteredRanges: (query: string) => (dispatch: AppActions<Promise<void>>, getState: () => AppState) => void;
   menuPinned: boolean;

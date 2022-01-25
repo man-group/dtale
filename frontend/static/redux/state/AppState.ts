@@ -201,6 +201,15 @@ export interface DuplicatesPopupData extends PopupData<typeof PopupType.DUPLICAT
 /** Popup configuration for Filter popup */
 export type CustomFilterPopupData = PopupData<typeof PopupType.FILTER>;
 
+/** Popup configuration for Upload popup */
+export type UploadPopupData = PopupData<typeof PopupType.UPLOAD>;
+
+/** Popup configuration for Replacement popup */
+export interface ReplacementPopupData extends PopupData<typeof PopupType.REPLACEMENT> {
+  propagateState: DataViewerPropagateState;
+  selectedCol: string;
+}
+
 /** Popup configurations */
 export type Popups =
   | HiddenPopupData
@@ -221,7 +230,9 @@ export type Popups =
   | ChartsPopupData
   | DescribePopupData
   | DuplicatesPopupData
-  | CustomFilterPopupData;
+  | CustomFilterPopupData
+  | UploadPopupData
+  | ReplacementPopupData;
 
 /** Sort directions */
 export enum SortDir {

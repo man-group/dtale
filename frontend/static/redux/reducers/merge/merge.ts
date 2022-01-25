@@ -5,6 +5,7 @@ import { ErrorState } from '../../../repository/GenericRepository';
 import { ConfigUpdateAction, MergeActionType, MergeAppActionTypes } from '../../actions/MergeActions';
 import {
   Dataset,
+  HowToMerge,
   initialDataset,
   initialMergeConfig,
   initialStackConfig,
@@ -138,19 +139,17 @@ export function action(state = MergeConfigType.MERGE, mergeAction: MergeAppActio
 }
 
 const mergeReducers = combineReducers<MergeConfig>({
-  how: (state = initialMergeConfig.how, mergeAction: ConfigUpdateAction<'how', string>): string =>
+  how: (state = initialMergeConfig.how, mergeAction: ConfigUpdateAction<HowToMerge>): HowToMerge =>
     mergeAction.prop === 'how' ? mergeAction.value : state,
-  sort: (state = initialMergeConfig.sort, mergeAction: ConfigUpdateAction<'sort', boolean>): boolean =>
+  sort: (state = initialMergeConfig.sort, mergeAction: ConfigUpdateAction<boolean>): boolean =>
     mergeAction.prop === 'sort' ? mergeAction.value : state,
-  indicator: (state = initialMergeConfig.indicator, mergeAction: ConfigUpdateAction<'indicator', boolean>): boolean =>
+  indicator: (state = initialMergeConfig.indicator, mergeAction: ConfigUpdateAction<boolean>): boolean =>
     mergeAction.prop === 'indicator' ? mergeAction.value : state,
 });
 
 const stackReducers = combineReducers<StackConfig>({
-  ignoreIndex: (
-    state = initialStackConfig.ignoreIndex,
-    mergeAction: ConfigUpdateAction<'ignoreIndex', boolean>,
-  ): boolean => (mergeAction.prop === 'ignoreIndex' ? mergeAction.value : state),
+  ignoreIndex: (state = initialStackConfig.ignoreIndex, mergeAction: ConfigUpdateAction<boolean>): boolean =>
+    mergeAction.prop === 'ignoreIndex' ? mergeAction.value : state,
 });
 
 /**
@@ -188,17 +187,17 @@ export function stackConfig(state: StackConfig = initialStackConfig, mergeAction
 }
 
 const datasetReducers = combineReducers<Dataset>({
-  dataId: (state: string | null = null, mergeAction: ConfigUpdateAction<'dataId', string>): string | null =>
+  dataId: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
     mergeAction.prop === 'dataId' ? mergeAction.value : state,
-  index: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<'index', ColumnDef[]>): ColumnDef[] =>
+  index: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
     mergeAction.prop === 'index' ? mergeAction.value : state,
-  columns: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<'columns', ColumnDef[]>): ColumnDef[] =>
+  columns: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
     mergeAction.prop === 'columns' ? mergeAction.value : state,
-  suffix: (state: string | null = null, mergeAction: ConfigUpdateAction<'suffix', string>): string | null =>
+  suffix: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
     mergeAction.prop === 'suffix' ? mergeAction.value : state,
-  isOpen: (state = initialDataset.isOpen, mergeAction: ConfigUpdateAction<'isOpen', boolean>): boolean =>
+  isOpen: (state = initialDataset.isOpen, mergeAction: ConfigUpdateAction<boolean>): boolean =>
     mergeAction.prop === 'isOpen' ? mergeAction.value : state,
-  isDataOpen: (state = initialDataset.isDataOpen, mergeAction: ConfigUpdateAction<'isDataOpen', boolean>): boolean =>
+  isDataOpen: (state = initialDataset.isDataOpen, mergeAction: ConfigUpdateAction<boolean>): boolean =>
     mergeAction.prop === 'isDataOpen' ? mergeAction.value : state,
 });
 
