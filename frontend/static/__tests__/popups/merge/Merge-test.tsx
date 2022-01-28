@@ -15,7 +15,7 @@ import ButtonToggle from '../../../ButtonToggle';
 import ActionConfig from '../../../popups/merge/ActionConfig';
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
 import MergeOutput from '../../../popups/merge/MergeOutput';
-import { ReactUpload } from '../../../popups/upload/Upload';
+import Upload from '../../../popups/upload/Upload';
 import * as mergeActions from '../../../redux/actions/merge';
 import mergeApp from '../../../redux/reducers/merge';
 import { MergeConfigType } from '../../../redux/state/MergeState';
@@ -175,9 +175,9 @@ describe('MergeDatasets', () => {
       mergeDatasets().find('ul').at(2).find('button').first().simulate('click');
     });
     result = result.update();
-    expect(result.find(ReactUpload)).toHaveLength(1);
+    expect(result.find(Upload)).toHaveLength(1);
     await act(async () => {
-      result.find(ReactUpload).props().mergeRefresher();
+      result.find(Upload).props().mergeRefresher();
     });
     result = result.update();
     expect(axiosGetSpy).toHaveBeenLastCalledWith('/dtale/processes?dtypes=true');

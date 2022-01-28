@@ -59,7 +59,6 @@ export class Spies {
    * @return the enzyme wrapper for testing.
    */
   public async setupWrapper(): Promise<ReactWrapper> {
-    // buildInnerHTML({ settings: '' });
     const result = mount(<CreateReplacement />);
     await act(async () => await tickUpdate(result));
     return result.update();

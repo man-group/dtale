@@ -4,10 +4,14 @@ import * as React from 'react';
 interface CheckboxProps {
   value: boolean;
   setter: (value: boolean) => void;
+  className?: string;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({ value, setter }) => (
-  <i className={`ico-check-box${value ? '' : '-outline-blank'} pointer`} onClick={() => setter(!value)} />
+export const Checkbox: React.FC<CheckboxProps> = ({ value, setter, className }) => (
+  <i
+    className={`ico-check-box${value ? '' : '-outline-blank'} pointer${className ? ` ${className}` : ''}`}
+    onClick={() => setter(!value)}
+  />
 );
 
 /** Component properties for LabeledCheckbox */
@@ -16,20 +20,27 @@ interface LabeledCheckboxProps extends CheckboxProps {
   rowClass?: string;
   labelWidth?: number;
   inputWidth?: number;
+  tooltip?: string;
 }
 
 export const LabeledCheckbox: React.FC<LabeledCheckboxProps> = ({
   label,
-  labelWidth,
-  inputWidth,
-  value,
-  setter,
+  labelWidth = 3,
+  inputWidth = 8,
   rowClass,
+  tooltip,
+  ...checkboxProps
 }) => (
   <div className={`form-group row ${rowClass ? `${rowClass} ` : ''}`}>
-    <label className={`col-md-${labelWidth ?? 3} col-form-label text-right`}>{label}</label>
-    <div className={`col-md-${inputWidth ?? 8} mt-auto mb-auto`}>
-      <Checkbox value={value} setter={setter} />
+    <label className={`col-md-${labelWidth} col-form-label text-right`}>{label}</label>
+    <div className={`col-md-${inputWidth} mt-auto mb-auto`}>
+      {tooltip && (
+        <div className="hoverable">
+          <Checkbox {...checkboxProps} />
+          <div className="hoverable__content">{tooltip}</div>
+        </div>
+      )}
+      {!tooltip && <Checkbox {...checkboxProps} />}
     </div>
   </div>
 );

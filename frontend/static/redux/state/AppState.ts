@@ -15,6 +15,12 @@ export interface BaseOption<T> {
   label?: string;
 }
 
+/** Base properties for ButtonToggle options */
+export interface ButtonOption<T> {
+  value: T;
+  label?: string | React.ReactNode;
+}
+
 /** Object which can be turned on/off */
 export interface HasActivation {
   active: boolean;
@@ -101,6 +107,11 @@ export interface PopupData<T extends PopupType> extends HasVisibility {
   backdrop?: true | false | 'static';
 }
 
+/** Object which has a selected column */
+interface HasColumnSelection {
+  selectedCol: string;
+}
+
 /** Popup configuration for About popup */
 export type HiddenPopupData = PopupData<typeof PopupType.HIDDEN>;
 
@@ -128,8 +139,7 @@ export interface ErrorPopupData extends PopupData<typeof PopupType.ERROR> {
 }
 
 /** Popup configuration for Error popup */
-export interface RenamePopupData extends PopupData<typeof PopupType.RENAME> {
-  selectedCol: string;
+export interface RenamePopupData extends PopupData<typeof PopupType.RENAME>, HasColumnSelection {
   columns: ColumnDef[];
 }
 
@@ -148,11 +158,13 @@ export interface XArrayIndexesPopupData extends PopupData<typeof PopupType.XARRA
   columns: ColumnDef[];
 }
 
-/** Popup configuration for ColumnAnalysis popup */
-export interface ColumnAnalysisPopupData extends PopupData<typeof PopupType.COLUMN_ANALYSIS> {
-  selectedCol: string;
+/** Base properties for any column analysis popup */
+export interface BaseColumnAnalysisPopupData extends HasColumnSelection {
   query?: string;
 }
+
+/** Popup configuration for ColumnAnalysis popup */
+export type ColumnAnalysisPopupData = PopupData<typeof PopupType.COLUMN_ANALYSIS> & BaseColumnAnalysisPopupData;
 
 /** Base properties for Correlation popups */
 export interface BaseCorrelationsPopupData {
@@ -205,10 +217,12 @@ export type CustomFilterPopupData = PopupData<typeof PopupType.FILTER>;
 export type UploadPopupData = PopupData<typeof PopupType.UPLOAD>;
 
 /** Popup configuration for Replacement popup */
-export interface ReplacementPopupData extends PopupData<typeof PopupType.REPLACEMENT> {
+export interface ReplacementPopupData extends PopupData<typeof PopupType.REPLACEMENT>, HasColumnSelection {
   propagateState: DataViewerPropagateState;
-  selectedCol: string;
 }
+
+/** Popup configuration for Variance popup */
+export type VariancePopupData = PopupData<typeof PopupType.VARIANCE> & BaseColumnAnalysisPopupData;
 
 /** Popup configurations */
 export type Popups =
@@ -232,7 +246,8 @@ export type Popups =
   | DuplicatesPopupData
   | CustomFilterPopupData
   | UploadPopupData
-  | ReplacementPopupData;
+  | ReplacementPopupData
+  | VariancePopupData;
 
 /** Sort directions */
 export enum SortDir {

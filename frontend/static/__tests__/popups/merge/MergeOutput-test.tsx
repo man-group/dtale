@@ -78,14 +78,14 @@ describe('MergeOutput', () => {
     const clearMergeSpy = jest.spyOn(mergeActions, 'clearMerge');
     clearMergeSpy.mockImplementation(jest.fn());
     const jumpToDatasetSpy = jest.spyOn(uploadUtils, 'jumpToDataset');
-    jumpToDatasetSpy.mockImplementation(() => undefined);
+    jumpToDatasetSpy.mockImplementation(() => Promise.resolve(undefined));
     useSelectorSpy.mockReturnValue({ ...state, mergeDataId: '1' });
     await buildResult();
     await act(async () => {
       result.find('button').at(1).simulate('click');
     });
     result = result.update();
-    expect(jumpToDatasetSpy).toHaveBeenLastCalledWith('1', expect.any(Function), true);
+    expect(jumpToDatasetSpy).toHaveBeenLastCalledWith('1', undefined, true);
     await act(async () => {
       result.find('button').last().simulate('click');
     });

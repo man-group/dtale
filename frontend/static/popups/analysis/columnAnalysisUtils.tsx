@@ -274,8 +274,8 @@ export async function dataLoader(
   props: AnalysisProps,
   state: AnalysisState,
   propagateState: (state: Partial<AnalysisState>) => void,
-  chartRef: React.RefObject<chartUtils.ChartObj | undefined>,
-  chartUpdater: (chart?: chartUtils.ChartObj) => void,
+  chartRef?: React.RefObject<chartUtils.ChartObj | undefined>,
+  chartUpdater?: (chart?: chartUtils.ChartObj) => void,
   chartParams?: AnalysisParams,
 ): Promise<void> {
   const { chartData, height, dataId } = props;

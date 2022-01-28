@@ -8,7 +8,7 @@ import Draggable from 'react-draggable';
 import { Correlations } from '../../popups/correlations/Correlations';
 import FilterPanel from '../../popups/filter/FilterPanel';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
-import { Reports } from '../../popups/timeseries/Reports';
+import Reports from '../../popups/timeseries/Reports';
 import { DescribePanel } from './DescribePanel';
 import { MissingNoCharts } from './MissingNoCharts';
 import { Panel as PredefinedFilters } from './predefined_filters/Panel';

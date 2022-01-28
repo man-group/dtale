@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 
 import { ChartObj } from '../../chartUtils';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppState, PopupType } from '../../redux/state/AppState';
-import { AnalysisParams, AnalysisProps, AnalysisState, AnalysisType } from '../analysis/ColumnAnalysisState';
+import { AppState } from '../../redux/state/AppState';
+import { AnalysisParams, AnalysisState, AnalysisType } from '../analysis/ColumnAnalysisState';
 import { dataLoader } from '../analysis/columnAnalysisUtils';
 import DescribeFilters from '../analysis/filters/DescribeFilters';
 
@@ -61,14 +61,8 @@ export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCod
         }
         props.propagateState(proppedState);
       };
-      const chartProps: AnalysisProps = {
-        chartData: { type: PopupType.COLUMN_ANALYSIS, selectedCol: col, visible: true },
-        height: 400,
-        dataId,
-        filtered,
-      };
       await dataLoader(
-        chartProps,
+        { chartData: { selectedCol: col }, height: 400, dataId, filtered },
         { chartParams: { type, ...chartParams }, type },
         propagateState,
         chartRef,

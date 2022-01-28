@@ -27,8 +27,8 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   defaultValue,
   allowDeselect,
   disabled,
-  className,
-  compact,
+  className = 'col-auto',
+  compact = true,
   style,
 }) => {
   const [active, setActive] = React.useState<any | undefined>(defaultValue);
@@ -40,10 +40,7 @@ const ButtonToggle: React.FC<ButtonToggleProps> = ({
   }, [defaultValue]);
 
   return (
-    <div
-      className={`btn-group${(compact ?? true) === true ? ' compact' : ''} ${className ?? 'col-auto'}`}
-      style={style}
-    >
+    <div className={`btn-group${compact === true ? ' compact' : ''} ${className}`} style={style}>
       {options.map((option, idx) => {
         let buttonClass = 'btn btn-primary';
         let onClick;
