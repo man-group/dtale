@@ -133,10 +133,7 @@ const MergeOutput: React.FC<WithTranslation> = ({ t }) => {
             <div className="row p-4 ml-0 mr-0">
               <div className="col" />
               <div className="col-auto">
-                <button
-                  className="btn btn-primary pointer"
-                  onClick={() => jumpToDataset(mergeDataId, () => ({}), true)}
-                >
+                <button className="btn btn-primary pointer" onClick={() => jumpToDataset(mergeDataId, undefined, true)}>
                   <span>{t('Keep Data & Jump To Grid')}</span>
                 </button>
               </div>

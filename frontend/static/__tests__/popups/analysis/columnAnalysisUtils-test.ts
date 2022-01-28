@@ -8,7 +8,6 @@ import {
   HistogramChartData,
 } from '../../../popups/analysis/ColumnAnalysisState';
 import * as columnAnalysisUtils from '../../../popups/analysis/columnAnalysisUtils';
-import { PopupType } from '../../../redux/state/AppState';
 import * as GenericRepository from '../../../repository/GenericRepository';
 import { CreateChartSpy, parseUrlParams } from '../../test-utils';
 
@@ -57,7 +56,7 @@ describe('columnAnalysisUtils', () => {
   it('correctly handles probability histogram load', () => {
     const propagateState = jest.fn();
     const props: AnalysisProps = {
-      chartData: { type: PopupType.COLUMN_ANALYSIS, visible: true, selectedCol: 'foo' },
+      chartData: { selectedCol: 'foo' },
       height: 400,
       dataId: '1',
     };

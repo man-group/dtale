@@ -1,5 +1,5 @@
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { BaseOption, ColumnAnalysisPopupData } from '../../redux/state/AppState';
+import { BaseColumnAnalysisPopupData, BaseOption } from '../../redux/state/AppState';
 import { UniqueRecord } from '../describe/DescribeState';
 
 /** Different types of column analysis */
@@ -114,6 +114,6 @@ export interface AnalysisState extends AnalysisParams {
 export interface AnalysisProps {
   dataId: string;
   height?: number;
-  chartData: ColumnAnalysisPopupData;
+  chartData: BaseColumnAnalysisPopupData;
   filtered?: boolean;
 }

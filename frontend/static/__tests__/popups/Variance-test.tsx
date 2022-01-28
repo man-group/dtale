@@ -6,7 +6,8 @@ import { Provider } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
 import TextEnterFilter from '../../popups/analysis/filters/TextEnterFilter';
-import { Variance } from '../../popups/variance/Variance';
+import Variance from '../../popups/variance/Variance';
+import { VariancePopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, tickUpdate } from '../test-utils';
@@ -49,19 +50,18 @@ const props = {
     visible: true,
     type: 'variance',
     selectedCol: 'bar',
-  },
+  } as VariancePopupData,
 };
 
 describe('Variance tests', () => {
   let result: ReactWrapper;
   let createChartSpy: CreateChartSpy;
 
-  beforeAll(mockChartJS);
-
   const updateProps = async (newProps: any): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.getState().dataId = props.dataId;
+    store.getState().dataId = newProps.dataId ?? props.dataId;
+    store.getState().chartData = newProps.chartData ?? props.chartData;
     result = mount(
       <Provider store={store}>
         <Variance {...newProps} />
@@ -70,8 +70,10 @@ describe('Variance tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
   };
+
+  beforeAll(() => mockChartJS());
 
   beforeEach(async () => {
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
@@ -101,7 +103,7 @@ describe('Variance tests', () => {
           },
         });
       }
-      return Promise.resolve({ data: undefined });
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
   });
 
@@ -120,19 +122,37 @@ describe('Variance tests', () => {
 
   it('Variance rendering histogram', async () => {
     await updateProps(props);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
     expect(input().prop('value')).toBe('20');
     expect(getLastChart(createChartSpy).type).toBe('bar');
     expect(getLastChart(createChartSpy).options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
-    input().simulate('change', { target: { value: '' } });
-    input().simulate('keyDown', { key: 'Shift' });
-    input().simulate('keyDown', { key: 'Enter' });
-    input().simulate('change', { target: { value: 'a' } });
-    input().simulate('keyDown', { key: 'Enter' });
-    input().simulate('change', { target: { value: '50' } });
-    input().simulate('keyDown', { key: 'Enter' });
-    await tickUpdate(result);
+    await act(async () => {
+      input().simulate('change', { target: { value: '' } });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('keyDown', { key: 'Shift' });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('keyDown', { key: 'Enter' });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('change', { target: { value: 'a' } });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('keyDown', { key: 'Enter' });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('change', { target: { value: '50' } });
+    });
+    result = result.update();
+    await act(async () => {
+      input().simulate('keyDown', { key: 'Enter' });
+    });
+    result = result.update();
     expect(result.find(TextEnterFilter).find('input').props().value).toBe('50');
   });
 

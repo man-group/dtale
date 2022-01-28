@@ -20,8 +20,8 @@ import MergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
 import CreateReplacement from './popups/replacement/CreateReplacement';
 import Reshape from './popups/reshape/Reshape';
-import { ReactUpload as Upload } from './popups/upload/Upload';
-import { Variance } from './popups/variance/Variance';
+import Upload from './popups/upload/Upload';
+import Variance from './popups/variance/Variance';
 import * as actions from './redux/actions/dtale';
 import * as mergeActions from './redux/actions/merge';
 import appReducers from './redux/reducers/app';
@@ -76,7 +76,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       rootNode = <Describe />;
       break;
     case 'variance':
-      rootNode = <Variance {...{ dataId, chartData }} />;
+      rootNode = <Variance />;
       break;
     case 'build':
       rootNode = <CreateColumn />;
@@ -118,7 +118,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       break;
     case 'upload':
     default:
-      rootNode = <Upload chartData={{ visible: true }} />;
+      rootNode = <Upload />;
       break;
   }
   const store = storeBuilder();

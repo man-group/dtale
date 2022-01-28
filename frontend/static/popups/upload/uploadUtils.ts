@@ -1,18 +1,20 @@
-import _ from 'lodash';
-
 import { buildForwardURL } from '../reshape/Reshape';
 
-export function jumpToDataset(dataId, mergeRefresher, isMerge = false) {
-  if (_.startsWith(window.location.pathname, '/dtale/popup/merge')) {
+export const jumpToDataset = async (
+  dataId: string,
+  mergeRefresher?: () => Promise<void>,
+  isMerge = false,
+): Promise<void> => {
+  if (window.location.pathname.startsWith('/dtale/popup/merge')) {
     if (isMerge) {
       window.location.assign(buildForwardURL(window.opener.location.href, dataId));
     } else {
-      mergeRefresher();
+      await mergeRefresher?.();
     }
     return;
-  } else if (_.startsWith(window.location.pathname, '/dtale/popup/upload')) {
+  } else if (window.location.pathname.startsWith('/dtale/popup/upload')) {
     if (window.opener) {
-      if (_.startsWith(window.opener.location.pathname, '/dtale/popup/merge')) {
+      if (window.opener.location.pathname.startsWith('/dtale/popup/merge')) {
         window.opener.location.assign('/dtale/popup/merge');
       } else {
         window.opener.location.assign(buildForwardURL(window.opener.location.href, dataId));
@@ -24,7 +26,5 @@ export function jumpToDataset(dataId, mergeRefresher, isMerge = false) {
     }
     return;
   }
-
-  const newLoc = buildForwardURL(window.location.href, dataId);
-  window.location.assign(newLoc);
-}
+  window.location.assign(buildForwardURL(window.location.href, dataId));
+};

@@ -57,9 +57,6 @@ export const toggleOutlierFilterUrl = (dataId: string): string => `/dtale/toggle
 export const columnFilterDataUrl = (dataId: string, async = false): string =>
   `/dtale/${async ? 'async-' : ''}column-filter-data/${dataId}`;
 
-export const varianceUrl = (dataId: string, col: string, filtered: boolean): string =>
-  buildURLString(`/dtale/variance/${dataId}`, { col, filtered: `${filtered}` });
-
 export const cleanupEndpoint = (endpoint: string): string => {
   while (endpoint.indexOf('//') > -1) {
     endpoint = endpoint.replace('//', '/');

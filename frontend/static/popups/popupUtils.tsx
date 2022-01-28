@@ -21,8 +21,8 @@ import RangeHighlight from './RangeHighlight';
 import Rename from './Rename';
 import CreateReplacement from './replacement/CreateReplacement';
 import Reshape from './reshape/Reshape';
-import { Upload } from './upload/Upload';
-import { Variance } from './variance/Variance';
+import Upload from './upload/Upload';
+import Variance from './variance/Variance';
 import XArrayDimensions from './XArrayDimensions';
 import XArrayIndexes from './XArrayIndexes';
 
@@ -281,7 +281,7 @@ const buildVariance = (props: BuilderInput): BuilderOutput => {
       {`"`}
     </React.Fragment>
   );
-  const body = <Variance {...props} />;
+  const body = <Variance />;
   return { title, body };
 };
 
