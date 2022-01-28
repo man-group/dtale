@@ -1459,7 +1459,7 @@ $ git clone ssh://git@github.com:manahl/dtale.git
 # install the dependencies
 $ python setup.py develop
 # start the server
-$ python dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
+$ dtale --csv-path /home/jdoe/my_csv.csv --csv-parse_dates date
 ```
 
 You can also run dtale from PyDev directly.
