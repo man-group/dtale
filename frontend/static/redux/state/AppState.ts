@@ -91,7 +91,6 @@ export enum PopupType {
   REPLACEMENT = 'replacement',
   ERROR = 'error',
   INSTANCES = 'instances',
-  CODE = 'code',
   VARIANCE = 'variance',
   UPLOAD = 'upload',
   DUPLICATES = 'duplicates',
@@ -126,16 +125,27 @@ export interface ConfirmationPopupData extends PopupData<typeof PopupType.CONFIR
   yesAction?: () => void;
 }
 
-/** Popup configuration for CopyRangeToClipbard popup */
-export interface CopyRangeToClipboardPopupData extends PopupData<typeof PopupType.COPY_RANGE> {
+/** Base popup configuration for copying ranges */
+interface BaseCopyRangeToClipboardData {
   text: string;
   headers: string[];
 }
 
+/** Popup configuration for CopyRangeToClipbard popup */
+export type CopyRangeToClipboardPopupData = PopupData<typeof PopupType.COPY_RANGE> & BaseCopyRangeToClipboardData;
+
+/** Popup configuration for CopyRangeToClipbard popup */
+export type CopyColumnRangeToClipboardPopupData = PopupData<typeof PopupType.COPY_COLUMN_RANGE> &
+  BaseCopyRangeToClipboardData;
+
+/** Popup configuration for CopyRangeToClipbard popup */
+export type CopyRowRangeToClipboardPopupData = PopupData<typeof PopupType.COPY_ROW_RANGE> &
+  BaseCopyRangeToClipboardData;
+
 /** Popup configuration for Error popup */
 export interface ErrorPopupData extends PopupData<typeof PopupType.ERROR> {
   error: string;
-  traceback: string;
+  traceback?: string;
 }
 
 /** Popup configuration for Error popup */
@@ -180,11 +190,20 @@ export interface CorrelationsPopupData extends PopupData<typeof PopupType.CORREL
 /** Popup configuration for Predictive Power Score popup */
 export type PPSPopupData = PopupData<typeof PopupType.PPS> & BaseCorrelationsPopupData;
 
-/** Popup configuration for Create Column popup */
-export interface CreateColumnPopupData extends PopupData<typeof PopupType.BUILD> {
+/** Base popup configuration for column creation */
+interface BaseCreateColumnPopupData {
   propagateState: DataViewerPropagateState;
   selectedCol?: string;
 }
+
+/** Popup configuration for Create Column popup */
+export type CreateColumnPopupData = PopupData<typeof PopupType.BUILD> & BaseCreateColumnPopupData;
+
+/** Popup configuration for Create Column - Type Conversion popup */
+export type CreateTypeConversionPopupData = PopupData<typeof PopupType.TYPE_CONVERSION> & BaseCreateColumnPopupData;
+
+/** Popup configuration for Create Column - Cleaners popup */
+export type CreateCleanersPopupData = PopupData<typeof PopupType.CLEANERS> & BaseCreateColumnPopupData;
 
 /** Popup configuration for Create Column popup */
 export type ReshapePopupData = PopupData<typeof PopupType.RESHAPE>;
@@ -224,12 +243,17 @@ export interface ReplacementPopupData extends PopupData<typeof PopupType.REPLACE
 /** Popup configuration for Variance popup */
 export type VariancePopupData = PopupData<typeof PopupType.VARIANCE> & BaseColumnAnalysisPopupData;
 
+/** Popup configuration for Instances popup */
+export type InstancesPopupData = PopupData<typeof PopupType.INSTANCES>;
+
 /** Popup configurations */
 export type Popups =
   | HiddenPopupData
   | AboutPopupData
   | ConfirmationPopupData
   | CopyRangeToClipboardPopupData
+  | CopyColumnRangeToClipboardPopupData
+  | CopyRowRangeToClipboardPopupData
   | ErrorPopupData
   | RenamePopupData
   | RangeHighlightPopupData
@@ -247,7 +271,10 @@ export type Popups =
   | CustomFilterPopupData
   | UploadPopupData
   | ReplacementPopupData
-  | VariancePopupData;
+  | VariancePopupData
+  | CreateTypeConversionPopupData
+  | CreateCleanersPopupData
+  | InstancesPopupData;
 
 /** Sort directions */
 export enum SortDir {
@@ -258,6 +285,11 @@ export enum SortDir {
 /** Type definition for column being sorted and it's direction. */
 export type SortDef = [string, SortDir];
 
+/** Value holder for predefined filters */
+export interface PredefinedFilterValue extends HasActivation {
+  value?: string | string[];
+}
+
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
   locked?: string[];
@@ -267,7 +299,7 @@ export interface InstanceSettings {
   backgroundMode?: string;
   rangeHighlight?: RangeHighlightConfig;
   verticalHeaders: boolean;
-  predefinedFilters: Record<string, PredefinedFilter>;
+  predefinedFilters: Record<string, PredefinedFilterValue>;
   sortInfo?: SortDef[];
   nanDisplay?: string;
   startup_code?: string;
@@ -275,6 +307,7 @@ export interface InstanceSettings {
   outlierFilters?: Record<string, OutlierFilter>;
   filteredRanges?: FilteredRanges;
   columnFilters?: Record<string, ColumnFilter>;
+  invertFilter?: boolean;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
@@ -321,7 +354,7 @@ export interface AppSettings {
 /** Properties for specifying filtered ranges */
 export interface FilteredRanges {
   query?: string;
-  dtypes?: ColumnDef[];
+  dtypes?: Record<string, ColumnDef>;
   ranges?: Record<string, Bounds>;
   overall?: Bounds;
 }

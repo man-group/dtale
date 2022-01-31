@@ -1,10 +1,16 @@
 import chroma from 'chroma-js';
 import * as React from 'react';
 import { MultiGridProps } from 'react-virtualized';
-import { Dispatch } from 'redux';
 
-import { ActionType, AppActions } from '../redux/actions/AppActions';
-import { AppState, FilteredRanges, RangeHighlightConfig } from '../redux/state/AppState';
+import { AppActions, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
+import {
+  FilteredRanges,
+  InstanceSettings,
+  Popups,
+  RangeHighlightConfig,
+  SortDef,
+  ThemeType,
+} from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -18,8 +24,8 @@ export interface OutlierRange {
 export interface ColumnDef extends Bounds {
   name: string;
   dtype: string;
-  hasMissing?: boolean;
-  hasOutliers?: boolean;
+  hasMissing?: number;
+  hasOutliers?: number;
   outlierRange?: OutlierRange;
   lowVariance?: boolean;
   locked?: boolean;
@@ -32,12 +38,14 @@ export interface ColumnDef extends Bounds {
   width?: number;
   headerWidth?: number;
   dataWidth?: number;
+  skew?: number;
+  kurt?: number;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
 export interface DataRecord {
   view: string;
-  raw?: string | number | null;
+  raw?: string | number;
   style?: React.CSSProperties;
 }
 
@@ -109,7 +117,7 @@ export interface OutlierFilter {
 
 /** State properties of DataViewer */
 export interface DataViewerState extends MultiGridProps, Bounds {
-  columnFormats: Record<string, Record<string, any>>;
+  columnFormats: Record<string, ColumnFormat>;
   nanDisplay?: string;
   data: DataViewerData;
   loading: boolean;
@@ -117,6 +125,7 @@ export interface DataViewerState extends MultiGridProps, Bounds {
   loadQueue: number[][];
   columns: ColumnDef[];
   selectedCols: string[];
+  sortInfo: SortDef[];
   menuOpen: boolean;
   formattingOpen: boolean;
   triggerResize: boolean;
@@ -136,20 +145,19 @@ export interface DataViewerState extends MultiGridProps, Bounds {
 
 /** Component properties of DataViewer */
 export interface DataViewerProps {
-  settings: Record<string, any>;
+  settings: InstanceSettings;
   dataId: string;
   iframe: boolean;
   closeColumnMenu: () => void;
-  openChart: (
-    chartData: Record<string, any>,
-  ) => Dispatch<{ type: ActionType.OPEN_CHART; chartData: Record<string, any> }>;
-  theme: string;
-  updateFilteredRanges: (query: string) => (dispatch: AppActions<Promise<void>>, getState: () => AppState) => void;
+  openChart: (chartData: Popups) => AppActions<void>;
+  theme: ThemeType;
+  updateFilteredRanges: (query: string) => AppActions<void>;
   menuPinned: boolean;
   ribbonMenuOpen: boolean;
   dataViewerUpdate?: DataViewerUpdate;
-  clearDataViewerUpdate: () => Dispatch<{ type: 'clear-data-viewer-update' }>;
+  clearDataViewerUpdate: () => ClearDataViewerUpdateAction;
   maxColumnWidth?: number;
+  maxRowHeight?: number;
   editedTextAreaHeight?: number;
   verticalHeaders: boolean;
 }

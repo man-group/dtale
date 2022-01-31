@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import * as gu from '../../dtale/gridUtils';
+import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import { AppActions } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import { AppState, BaseOption, ReplacementPopupData } from '../../redux/state/AppState';
@@ -29,13 +29,13 @@ import { validateValueCfg, default as Value } from './Value';
 
 require('../create/CreateColumn.css');
 
-const buildTypeFilter = (type: ReplacementType): ((colType: string) => boolean) => {
+const buildTypeFilter = (type: ReplacementType): ((colType: ColumnType) => boolean) => {
   switch (type) {
     case ReplacementType.SPACES:
     case ReplacementType.STRINGS:
-      return (colType) => colType === 'string';
+      return (colType) => colType === ColumnType.STRING;
     case ReplacementType.IMPUTER:
-      return (colType) => ['float', 'int'].includes(colType);
+      return (colType) => [ColumnType.FLOAT, ColumnType.INT].includes(colType);
     case ReplacementType.VALUE:
     default:
       return () => true;
@@ -80,8 +80,8 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
       }
       if (response) {
         setColumns(response.dtypes);
-        const lowerDtype = (gu.getDtype(chartData.selectedCol, response.dtypes) || '').toLowerCase();
-        const currColType = gu.findColType(lowerDtype);
+        const lowerDtype = (getDtype(chartData.selectedCol, response.dtypes) || '').toLowerCase();
+        const currColType = findColType(lowerDtype);
         setColType(currColType);
         const currTypeOpts = baseTypeOpts.filter(({ value }) => buildTypeFilter(value)(currColType));
         setTypeOpts(currTypeOpts);

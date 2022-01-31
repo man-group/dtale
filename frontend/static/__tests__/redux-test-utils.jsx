@@ -263,7 +263,7 @@ function urlFetcher(url) {
   } else if (_.startsWith(url, '/dtale/cleanup-datasets')) {
     return { success: true };
   } else if (_.startsWith(url, '/dtale/column-filter-data')) {
-    return { success: true, hasMissing: false, uniques: [1, 2, 3] };
+    return { success: true, hasMissing: 0, uniques: [1, 2, 3] };
   } else if (_.startsWith(url, '/dtale/save-column-filter')) {
     return {
       success: true,

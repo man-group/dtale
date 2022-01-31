@@ -21,7 +21,7 @@ const cleanerOpts = (t: TFunction): Array<BaseOption<string>> => [
 /** Component properties for OrdinalInputs */
 export interface OrdinalInputsProps {
   type?: AnalysisType;
-  colType: string;
+  colType: gu.ColumnType;
   cols: ColumnDef[];
   selectedCol: string;
   setOrdinalCol: (value?: BaseOption<string>) => void;
@@ -40,7 +40,7 @@ const OrdinalInputs: React.FC<OrdinalInputsProps & WithTranslation> = ({
   const colOptions: Array<BaseOption<string>> = React.useMemo(
     () =>
       cols
-        .filter((c) => c.name !== selectedCol && ['float', 'int'].includes(gu.findColType(c.dtype)))
+        .filter((c) => c.name !== selectedCol && [gu.ColumnType.FLOAT, gu.ColumnType.INT].includes(colType))
         .map((c) => ({ value: c.name }))
         .sort(sortOptions),
     [cols, selectedCol],
@@ -62,7 +62,11 @@ const OrdinalInputs: React.FC<OrdinalInputsProps & WithTranslation> = ({
   );
 
   const renderCleaners = (): React.ReactNode => {
-    if (type && [AnalysisType.WORD_VALUE_COUNTS, AnalysisType.VALUE_COUNTS].includes(type) && colType === 'string') {
+    if (
+      type &&
+      [AnalysisType.WORD_VALUE_COUNTS, AnalysisType.VALUE_COUNTS].includes(type) &&
+      colType === gu.ColumnType.STRING
+    ) {
       return (
         <div className="row pt-3" data-tip={t('Clean column of extraneous values')}>
           <div className="col-auto text-center pr-4 ml-auto mt-auto mb-auto">

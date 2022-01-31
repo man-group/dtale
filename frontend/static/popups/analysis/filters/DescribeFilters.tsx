@@ -49,13 +49,13 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     const colType = gu.findColType(dtype);
     const translatedTitles = titles(t);
     const options = [{ label: translatedTitles.boxplot, value: AnalysisType.BOXPLOT }];
-    const isFid = ['float', 'int', 'date'].includes(colType);
+    const isFid = [gu.ColumnType.FLOAT, gu.ColumnType.INT, gu.ColumnType.DATE].includes(colType);
     if (isFid) {
       options.push({ label: translatedTitles.histogram, value: AnalysisType.HISTOGRAM });
     }
-    if (colType === 'float') {
+    if (colType === gu.ColumnType.FLOAT) {
       options.push({ label: translatedTitles.categories, value: AnalysisType.CATEGORIES });
-    } else if (colType === 'string') {
+    } else if (colType === gu.ColumnType.STRING) {
       options.push({
         label: translatedTitles.word_value_counts,
         value: AnalysisType.WORD_VALUE_COUNTS,
@@ -235,7 +235,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
       return wrapFilterMarkup(
         <GeoFilters col={selectedCol} columns={cols ?? []} {...{ latCol, lonCol, setLatCol, setLonCol }} />,
       );
-    } else if ('int' === colType) {
+    } else if (colType === gu.ColumnType.INT) {
       // int -> Value Counts or Histogram
       if (type === AnalysisType.HISTOGRAM) {
         return wrapFilterMarkup(
@@ -255,7 +255,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
           </React.Fragment>,
         );
       }
-    } else if ('float' === colType) {
+    } else if (colType === gu.ColumnType.FLOAT) {
       // floats -> Histogram or Categories
       if (type === AnalysisType.HISTOGRAM) {
         return wrapFilterMarkup(

@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { components, GetStyles, GroupBase, LoadingIndicatorProps } from 'react-select';
 
 import { ColumnDef, ColumnFilter as ColumnFilterObj, OutlierFilter } from '../dtale/DataViewerState';
 import * as gu from '../dtale/gridUtils';
 import menuFuncs from '../dtale/menu/dataViewerMenuUtils';
+import { AppActions } from '../redux/actions/AppActions';
+import * as settingsActions from '../redux/actions/settings';
 import { AppState, InstanceSettings } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
 
@@ -36,7 +38,6 @@ export interface ColumnFilterProps {
   columns: ColumnDef[];
   columnFilters?: Record<string, ColumnFilterObj>;
   selectedCol: string;
-  updateSettings: (settings: Partial<InstanceSettings>) => void;
   outlierFilters?: Record<string, OutlierFilter>;
 }
 
@@ -44,16 +45,19 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   columns,
   columnFilters,
   selectedCol,
-  updateSettings,
   outlierFilters,
   t,
   ...props
 }) => {
   const dataId = useSelector((state: AppState) => state.dataId);
+  const dispatch = useDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
+
   const colCfg: ColumnDef | undefined = columns.find((column) => column.name === selectedCol);
   const dtype = colCfg?.dtype ?? '';
   const uniqueCt = colCfg?.unique_ct ?? 0;
-  const colType: string = gu.findColType(dtype);
+  const colType: gu.ColumnType = gu.findColType(dtype);
   const hasOutliers = colCfg?.hasOutliers ?? 0 > 0;
 
   const [lastCol, setLastCol] = React.useState<string>(selectedCol);
@@ -160,8 +164,8 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   }
   let markup = null;
   switch (colType) {
-    case 'string':
-    case 'unknown': {
+    case gu.ColumnType.STRING:
+    case gu.ColumnType.UNKNOWN: {
       if (!dtype.startsWith('timedelta')) {
         markup = (
           <StringFilter
@@ -176,7 +180,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
       }
       break;
     }
-    case 'date':
+    case gu.ColumnType.DATE:
       markup = (
         <DateFilter
           selectedCol={selectedCol}
@@ -188,8 +192,8 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
         />
       );
       break;
-    case 'int':
-    case 'float':
+    case gu.ColumnType.INT:
+    case gu.ColumnType.FLOAT:
       markup = (
         <NumericFilter
           selectedCol={selectedCol}

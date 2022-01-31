@@ -1,28 +1,20 @@
 import { DateInput } from '@blueprintjs/datetime';
-import { mount, ReactWrapper } from 'enzyme';
+import { ReactWrapper } from 'enzyme';
 import moment from 'moment';
-import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
 
-import { ColumnFilter as ColumnFilterObj } from '../../dtale/DataViewerState';
-import { default as ColumnFilter, ColumnFilterProps } from '../../filters/ColumnFilter';
+import { ColumnFilterProps } from '../../filters/ColumnFilter';
 import DateFilter from '../../filters/DateFilter';
-import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
-import * as GenericRepository from '../../repository/GenericRepository';
-import { mockColumnDef } from '../mocks/MockColumnDef';
-import { tickUpdate } from '../test-utils';
+
+import * as TestSupport from './ColumnFilter.test.support';
 
 describe('ColumnFilter date tests', () => {
+  const spies = new TestSupport.Spies();
   let result: ReactWrapper<ColumnFilterProps>;
-  let saveSpy: jest.SpyInstance<
-    Promise<ColumnFilterRepository.SaveFilterResponse | undefined>,
-    [string, string, ColumnFilterObj?]
-  >;
 
   beforeEach(async () => {
-    const fetchJsonSpy = jest.spyOn(GenericRepository, 'getDataFromService');
-    fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
+    spies.setupMockImplementations();
+    spies.fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
       if (url.startsWith('/dtale/column-filter-data/1?col=col4')) {
         return Promise.resolve({
           success: true,
@@ -34,23 +26,12 @@ describe('ColumnFilter date tests', () => {
       return Promise.resolve(undefined);
     });
 
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
-
-    saveSpy = jest.spyOn(ColumnFilterRepository, 'save');
-    saveSpy.mockResolvedValue(Promise.resolve({ success: true, currFilters: {} }));
-
-    const props = {
-      selectedCol: 'col4',
-      columns: [mockColumnDef({ name: 'col4', dtype: 'datetime64[ns]' })],
-      updateSettings: jest.fn(),
-    };
-    result = mount(<ColumnFilter {...props} />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    result = await spies.setupWrapper();
   });
 
-  afterEach(jest.restoreAllMocks);
+  afterEach(() => spies.afterEach());
+
+  afterAll(() => spies.afterAll());
 
   it('ColumnFilter date rendering', async () => {
     expect(result.find(DateFilter).length).toBeGreaterThan(0);
@@ -75,13 +56,13 @@ describe('ColumnFilter date tests', () => {
       dateStart.props.onChange(moment('20000102').toDate());
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000131' });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000131' });
     const dateEnd = result.find(DateInput).last().instance();
     (dateEnd as any).inputElement.value = '20000103';
     await act(async () => {
       dateEnd.props.onChange(moment('20000103').toDate());
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000103' });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000103' });
   });
 });

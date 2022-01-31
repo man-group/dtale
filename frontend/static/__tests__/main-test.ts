@@ -1,6 +1,38 @@
-import mockPopsicle from './MockPopsicle';
+import axios from 'axios';
+
 import { createMockComponent } from './mocks/createMockComponent';
+import reduxUtils from './redux-test-utils';
 import { buildInnerHTML } from './test-utils';
+
+jest.mock('../dtale/DataViewer', () => ({ DataViewer: createMockComponent('DataViewer') }));
+jest.mock('../popups/analysis/ColumnAnalysis', () => ({
+  __esModule: true,
+  default: createMockComponent('ColumnAnalysis'),
+}));
+jest.mock('../popups/CodeExport', () => ({ CodeExport: createMockComponent('CodeExport') }));
+jest.mock('../popups/CodePopup', () => ({ __esModule: true, default: createMockComponent('CodePopup') }));
+jest.mock('../popups/correlations/Correlations', () => ({ Correlations: createMockComponent('Correlations') }));
+jest.mock('../popups/create/CreateColumn', () => ({ __esModule: true, default: createMockComponent('CreateColumn') }));
+jest.mock('../popups/describe/Describe', () => ({ __esModule: true, default: createMockComponent('Describe') }));
+jest.mock('../popups/duplicates/Duplicates', () => ({ __esModule: true, default: createMockComponent('Duplicates') }));
+jest.mock('../popups/filter/FilterPopup', () => ({ __esModule: true, default: createMockComponent('FilterPopup') }));
+jest.mock('../popups/instances/Instances', () => ({ __esModule: true, default: createMockComponent('Instances') }));
+jest.mock('../popups/merge/MergeDatasets', () => ({ __esModule: true, default: createMockComponent('MergeDatasets') }));
+jest.mock('../popups/pps/PredictivePowerScore', () => ({
+  __esModule: true,
+  default: createMockComponent('PredictivePowerScore'),
+}));
+jest.mock('../popups/replacement/CreateReplacement', () => ({
+  __esModule: true,
+  default: createMockComponent('CreateReplacement'),
+}));
+jest.mock('../popups/reshape/Reshape', () => ({ __esModule: true, default: createMockComponent('Reshape') }));
+jest.mock('../popups/upload/Upload', () => ({ __esModule: true, default: createMockComponent('Upload') }));
+jest.mock('../popups/variance/Variance', () => ({ __esModule: true, default: createMockComponent('Variance') }));
+jest.mock('../popups/replacement/CreateReplacement', () => ({
+  __esModule: true,
+  default: createMockComponent('CreateReplacement'),
+}));
 
 require('react');
 
@@ -11,7 +43,8 @@ describe('main tests', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    mockPopsicle();
+    const axiosGetSpy = jest.spyOn(axios, 'get');
+    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     jest.mock('@blueprintjs/datetime', () => ({ DateInput: createMockComponent('DateInput') }));
   });
@@ -72,15 +105,18 @@ describe('main tests', () => {
   });
 
   const popupCodes = [
-    'correlations',
-    'charts',
-    'describe',
-    'column-analysis',
-    'instances',
-    'code-export',
-    'filter',
-    'type-conversion',
-  ].concat(['cleaners', 'upload', 'merge', 'pps', 'variance', 'build', 'duplicates', 'replacement', 'reshape']);
+    ...[
+      'correlations',
+      'charts',
+      'describe',
+      'column-analysis',
+      'instances',
+      'code-export',
+      'filter',
+      'type-conversion',
+    ],
+    ...['cleaners', 'upload', 'merge', 'pps', 'variance', 'build', 'duplicates', 'replacement', 'reshape'],
+  ];
 
   popupCodes.forEach((popup) => {
     it(`${popup} popup rendering`, () => {

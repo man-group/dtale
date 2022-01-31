@@ -3,7 +3,7 @@ import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import * as gu from '../../dtale/gridUtils';
+import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import { BaseOption } from '../../redux/state/AppState';
 import { capitalize } from '../../stringUtils';
 
@@ -28,14 +28,10 @@ const TYPE_MAP: Record<string, string[]> = {
   category: ['int', 'bool', 'str'],
 };
 
-export const getDtype = (col: BaseOption<string> | undefined, columns: ColumnDef[]): string | undefined => {
-  return gu.getDtype(col?.value, columns);
-};
-
 const getColType = (col: BaseOption<string> | undefined, columns: ColumnDef[]): string | undefined => {
-  const dtype = getDtype(col, columns);
-  const colType = gu.findColType(dtype);
-  if (colType === 'unknown') {
+  const dtype = getDtype(col?.value, columns);
+  const colType = findColType(dtype);
+  if (colType === ColumnType.UNKNOWN) {
     return dtype;
   }
   return colType;
@@ -43,7 +39,7 @@ const getColType = (col: BaseOption<string> | undefined, columns: ColumnDef[]): 
 const getConversions = (col: BaseOption<string> | undefined, columns: ColumnDef[]): [string[], string | undefined] => {
   const colType = getColType(col, columns);
   if (isMixed(colType)) {
-    return [TYPE_MAP.string.filter((typeMapping) => typeMapping !== 'int'), colType];
+    return [TYPE_MAP.string.filter((typeMapping) => typeMapping !== ColumnType.INT), colType];
   }
   return [TYPE_MAP[colType ?? ''] ?? [], colType];
 };
@@ -56,12 +52,12 @@ export const validateTypeConversionCfg = (t: TFunction, cfg: TypeConversionConfi
   if (!to) {
     return t('Missing a conversion selection!');
   }
-  const colType = gu.findColType(from);
-  if ((colType === 'int' && to === 'date') || (colType === 'date' && to === 'int')) {
+  const colType = findColType(from);
+  if ((colType === ColumnType.INT && to === 'date') || (colType === ColumnType.DATE && to === 'int')) {
     if (!unit) {
       return t('Missing a unit selection!');
     }
-    if (colType === 'date' && to === 'int' && ['D', 's', 'us', 'ns'].includes(unit)) {
+    if (colType === ColumnType.DATE && to === 'int' && ['D', 's', 'us', 'ns'].includes(unit)) {
       return t("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'");
     }
   }
@@ -95,7 +91,7 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
     const cfg: TypeConversionConfig = {
       col: col?.value,
       to: conversion,
-      from: getDtype(col, columns),
+      from: getDtype(col?.value, columns),
       fmt,
       unit: unit?.value,
       applyAllType,
@@ -135,12 +131,18 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
       return null;
     }
     const colType = getColType(col, columns);
-    if ((colType === 'string' && conversion === 'date') || (colType === 'date' && conversion === 'date')) {
+    if (
+      (colType === ColumnType.STRING && conversion === 'date') ||
+      (colType === ColumnType.DATE && conversion === 'date')
+    ) {
       return <LabeledInput label={t('Date Format')} value={fmt ?? '%Y%m%d'} setter={setFmt} />;
     }
-    if ((colType === 'int' && conversion === 'date') || (colType === 'date' && conversion === 'int')) {
+    if (
+      (colType === ColumnType.INT && conversion === 'date') ||
+      (colType === ColumnType.DATE && conversion === 'int')
+    ) {
       const units =
-        colType === 'int'
+        colType === ColumnType.INT
           ? Object.values(TypeConversionUnit)
           : [TypeConversionUnit.DATE, TypeConversionUnit.MILLISECOND];
       return (
@@ -156,7 +158,7 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
     return null;
   };
 
-  const colType = getDtype(col, columns);
+  const colType = getDtype(col?.value, columns);
   const prePopulatedCol = prePopulated?.col;
   return (
     <React.Fragment>

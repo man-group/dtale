@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import * as gu from './gridUtils';
 
-const toggleColumns = ({ columns }, columnsToToggle) => ({
+const toggleColumns = (columns, columnsToToggle) => ({
   columns: columns.map((col) => ({
     ...col,
     visible: columnsToToggle[col.name] ?? col.visible,
@@ -19,7 +19,7 @@ export function handleReduxState(state, props, propagateState) {
   if (dataViewerUpdate) {
     switch (dataViewerUpdate.type) {
       case 'toggle-columns':
-        propagateState(toggleColumns(state, dataViewerUpdate.columns), clearDataViewerUpdate);
+        propagateState(toggleColumns(state.columns, dataViewerUpdate.columns), clearDataViewerUpdate);
         break;
       case 'drop-columns':
         propagateState(dropColumns(state, dataViewerUpdate.columns), clearDataViewerUpdate);

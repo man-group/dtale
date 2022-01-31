@@ -1,6 +1,7 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
 
+import { ColumnType } from '../../../../dtale/gridUtils';
 import { AnalysisType } from '../../../../popups/analysis/ColumnAnalysisState';
 import FilterSelect from '../../../../popups/analysis/filters/FilterSelect';
 import { default as OrdinalInputs, OrdinalInputsProps } from '../../../../popups/analysis/filters/OrdinalInputs';
@@ -15,7 +16,7 @@ describe('OrdinalInputs tests', () => {
       selectedCol: 'foo',
       cols: [mockColumnDef({ name: 'foo', dtype: 'str' }), mockColumnDef({ name: 'bar', dtype: 'str' })],
       type: AnalysisType.WORD_VALUE_COUNTS,
-      colType: 'string',
+      colType: ColumnType.STRING,
       setOrdinalCol: jest.fn(),
       setOrdinalAgg: jest.fn(),
       setCleaners: jest.fn(),
@@ -41,7 +42,7 @@ describe('OrdinalInputs tests', () => {
   });
 
   it('does not render cleaners for int column', () => {
-    result.setProps({ colType: 'int' });
+    result.setProps({ colType: ColumnType.INT });
     expect(result.find('div.row')).toHaveLength(1);
   });
 });

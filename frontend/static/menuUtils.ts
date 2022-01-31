@@ -38,7 +38,7 @@ export function openMenu(
   open: (e: React.MouseEvent) => void,
   close: () => void,
   toggleRef?: React.RefObject<HTMLElement>,
-  clickFilters?: () => boolean,
+  clickFilters?: (e: MouseEvent) => boolean,
 ): (e: React.MouseEvent) => void {
   return (e: React.MouseEvent): void => {
     // add handler to close menu

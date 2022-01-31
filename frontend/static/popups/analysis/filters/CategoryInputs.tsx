@@ -20,7 +20,7 @@ const CategoryInputs: React.FC<CategoryInputsProps & WithTranslation> = ({ selec
   const colOpts: Array<BaseOption<string>> = React.useMemo(
     () =>
       cols
-        .filter((c) => c.name !== selectedCol && gu.findColType(c.dtype) !== 'float')
+        .filter((c) => c.name !== selectedCol && gu.findColType(c.dtype) !== gu.ColumnType.FLOAT)
         .map((c) => ({ value: c.name }))
         .sort(sortOptions),
     [cols, selectedCol],

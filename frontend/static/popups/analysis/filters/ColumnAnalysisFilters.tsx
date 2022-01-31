@@ -78,7 +78,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
     const colType = gu.findColType(dtype);
     const translatedTitles = titles(t);
     let options = [{ label: translatedTitles.histogram, value: AnalysisType.HISTOGRAM }];
-    if (colType === 'string') {
+    if (colType === gu.ColumnType.STRING) {
       options = [
         { label: translatedTitles.value_counts, value: AnalysisType.VALUE_COUNTS },
         {
@@ -86,7 +86,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
           value: AnalysisType.WORD_VALUE_COUNTS,
         },
       ];
-    } else if (colType === 'float') {
+    } else if (colType === gu.ColumnType.FLOAT) {
       options.push({ label: translatedTitles.categories, value: AnalysisType.CATEGORIES });
     } else {
       options.push({
@@ -100,7 +100,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
         value: AnalysisType.GEOLOCATION,
       });
     }
-    if (colType !== 'string') {
+    if (colType !== gu.ColumnType.STRING) {
       options.push({ label: translatedTitles.qq, value: AnalysisType.QQ });
     }
     const update = (value?: AnalysisType): (() => Promise<void>) => {
@@ -131,7 +131,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
       return <GeoFilters col={selectedCol} columns={cols ?? []} {...{ latCol, lonCol, setLatCol, setLonCol }} />;
     } else if (type === AnalysisType.QQ) {
       return null;
-    } else if ('int' === colType) {
+    } else if (colType === gu.ColumnType.INT) {
       // int -> Value Counts or Histogram
       if (type === AnalysisType.HISTOGRAM) {
         return buildFilter(setBins, bins);
@@ -145,7 +145,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
           </React.Fragment>
         );
       }
-    } else if ('float' === colType) {
+    } else if (colType === gu.ColumnType.FLOAT) {
       // floats -> Histogram or Categories
       if (type === AnalysisType.HISTOGRAM) {
         return buildFilter(setBins, bins);

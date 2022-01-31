@@ -22,7 +22,7 @@ export class Spies {
       open: (e: React.MouseEvent) => void,
       close: () => void,
       toggleRef?: React.RefObject<HTMLElement>,
-      clickFilters?: () => boolean,
+      clickFilters?: (e: MouseEvent) => boolean,
     ]
   >;
   public axiosGetSpy: jest.SpyInstance;

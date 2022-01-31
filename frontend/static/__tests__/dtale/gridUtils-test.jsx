@@ -3,13 +3,9 @@ import * as gu from '../../dtale/gridUtils';
 
 describe('gridUtils tests', () => {
   it('gridUtils: testing buildDataProps', () => {
-    let dataProps = gu.buildDataProps({ name: 'foo', dtype: 'foo' }, 'bar', {
-      columnFormats: {},
-    });
+    let dataProps = gu.buildDataProps({ name: 'foo', dtype: 'foo' }, 'bar', {});
     expect({ raw: 'bar', view: 'bar', style: {} }).toEqual(dataProps);
-    dataProps = gu.buildDataProps({ name: 'foo', dtype: 'foo' }, undefined, {
-      columnFormats: {},
-    });
+    dataProps = gu.buildDataProps({ name: 'foo', dtype: 'foo' }, undefined, {});
     expect(dataProps.view).toBe('');
   });
 

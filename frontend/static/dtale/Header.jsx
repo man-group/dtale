@@ -26,18 +26,18 @@ function buildMarkup(t, colCfg, colName, backgroundMode) {
   if (backgroundMode === 'dtypes') {
     const dtypeStyle = bu.dtypeHighlighting(colCfg);
     headerStyle = _.assignIn(dtypeStyle, headerStyle);
-    colNameMarkup = <div title={`DType: ${colCfg.dtype}`}>{colName}</div>;
+    colNameMarkup = <div title={`DType: ${colCfg?.dtype}`}>{colName}</div>;
     className = _.size(dtypeStyle) ? ' background' : '';
   }
-  if (backgroundMode === 'missing' && colCfg.hasMissing) {
+  if (backgroundMode === 'missing' && colCfg?.hasMissing) {
     colNameMarkup = <div title={`${t('Missing Values')}: ${colCfg.hasMissing}`}>{`${bu.missingIcon}${colName}`}</div>;
     className = ' background';
   }
-  if (backgroundMode === 'outliers' && colCfg.hasOutliers) {
+  if (backgroundMode === 'outliers' && colCfg?.hasOutliers) {
     colNameMarkup = <div title={`${t('Outliers')}: ${colCfg.hasOutliers}`}>{`${bu.outlierIcon} ${colName}`}</div>;
     className = ' background';
   }
-  if (backgroundMode === 'lowVariance' && colCfg.lowVariance) {
+  if (backgroundMode === 'lowVariance' && colCfg?.lowVariance) {
     colNameMarkup = <div title={`${t('Low Variance')}: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
     className = ' background';
   }
@@ -160,7 +160,7 @@ class ReactHeader extends React.Component {
       );
     }
     const colCfg = gu.getCol(columnIndex, this.props);
-    const colName = _.get(colCfg, 'name');
+    const colName = colCfg?.name;
     const menuHandler = openMenu(
       () => toggleColumnMenu(colName, this.headerRef.current),
       () => hideColumnMenu(colName),
@@ -177,7 +177,7 @@ class ReactHeader extends React.Component {
     const { colWidth, drag } = this.state;
     const classes = ['text-nowrap'];
     const textStyle = { cursor: 'default' };
-    if (!drag && colCfg.resized) {
+    if (!drag && colCfg?.resized) {
       classes.push('resized');
     }
     if (verticalHeaders) {

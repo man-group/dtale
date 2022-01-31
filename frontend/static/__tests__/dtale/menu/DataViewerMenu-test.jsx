@@ -55,6 +55,7 @@ describe('DataViewerMenu tests', () => {
       columns: [],
       iframe: false,
       dataId: '1',
+      settings: {},
       ...props,
     };
     return mount(

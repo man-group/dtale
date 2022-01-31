@@ -1,33 +1,26 @@
-import { mount, ReactWrapper } from 'enzyme';
-import * as React from 'react';
+import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
 import { ActionMeta, GroupBase } from 'react-select';
 import { AsyncProps, default as AsyncSelect } from 'react-select/async';
 
-import { ColumnFilter as ColumnFilterObj } from '../../dtale/DataViewerState';
 import { AsyncOption } from '../../filters/AsyncValueSelect';
-import { default as ColumnFilter, ColumnFilterProps } from '../../filters/ColumnFilter';
+import { ColumnFilterProps } from '../../filters/ColumnFilter';
 import StringFilter from '../../filters/StringFilter';
-import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
-import * as GenericRepository from '../../repository/GenericRepository';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxTestUtils from '../redux-test-utils';
-import { tickUpdate } from '../test-utils';
+
+import * as TestSupport from './ColumnFilter.test.support';
 
 const INITIAL_UNIQUES = ['a', 'b', 'c', 'd', 'e'];
 const ASYNC_OPTIONS = [{ value: 'f' }, { value: 'g' }, { value: 'h' }];
 
 describe('ColumnFilter string tests', () => {
+  const spies = new TestSupport.Spies();
   let result: ReactWrapper<ColumnFilterProps>;
-  let saveSpy: jest.SpyInstance<
-    Promise<ColumnFilterRepository.SaveFilterResponse | undefined>,
-    [string, string, ColumnFilterObj?]
-  >;
 
   beforeEach(async () => {
-    const fetchJsonSpy = jest.spyOn(GenericRepository, 'getDataFromService');
-    fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
+    spies.setupMockImplementations();
+    spies.fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
       if (url.startsWith('/dtale/column-filter-data/1?col=col3')) {
         return Promise.resolve({ success: true, hasMissing: true, uniques: INITIAL_UNIQUES });
       }
@@ -44,20 +37,11 @@ describe('ColumnFilter string tests', () => {
       }
       return Promise.resolve(undefined);
     });
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
-
-    saveSpy = jest.spyOn(ColumnFilterRepository, 'save');
-    saveSpy.mockResolvedValue(Promise.resolve({ success: true, currFilters: {} }));
-    const props = {
+    result = await spies.setupWrapper({
       selectedCol: 'col3',
       columns: [mockColumnDef({ name: 'col3', unique_ct: 1000 })],
       columnFilters: { col3: { type: 'string', value: ['b'] } },
-      updateSettings: jest.fn(),
-    };
-    result = mount(<ColumnFilter {...props} />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    });
   });
 
   afterEach(jest.restoreAllMocks);
@@ -91,7 +75,7 @@ describe('ColumnFilter string tests', () => {
         } as ActionMeta<AsyncOption<string>>);
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith(
+    expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',
       expect.objectContaining({
@@ -104,7 +88,7 @@ describe('ColumnFilter string tests', () => {
       result.find(StringFilter).find('button').first().simulate('click');
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith(
+    expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',
       expect.objectContaining({

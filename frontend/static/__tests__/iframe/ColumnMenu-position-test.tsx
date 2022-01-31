@@ -15,12 +15,12 @@ describe('ColumnMenu position tests', () => {
   });
 
   it('ColumnMenu: calculations for menus on edge of browser window...', () => {
-    const menuDiv = { current: { getBoundingClientRect: () => ({ width: 20 }) } };
-    let css = positionMenu({ getBoundingClientRect: () => ({ left: 90 }) }, menuDiv);
+    const menuDiv = { current: { getBoundingClientRect: () => ({ width: 20 }) } } as React.RefObject<HTMLDivElement>;
+    let css = positionMenu({ getBoundingClientRect: () => ({ left: 90 }) } as HTMLElement, menuDiv);
     expect(css.left).toBe(60);
-    css = positionMenu({ getBoundingClientRect: () => ({ left: 10 }) }, menuDiv);
+    css = positionMenu({ getBoundingClientRect: () => ({ left: 10 }) } as HTMLElement, menuDiv);
     expect(css.left).toBe(10);
-    css = positionMenu({ getBoundingClientRect: () => ({ left: 15 }) }, menuDiv);
+    css = positionMenu({ getBoundingClientRect: () => ({ left: 15 }) } as HTMLElement, menuDiv);
     expect(css.left).toBe(15);
   });
 });

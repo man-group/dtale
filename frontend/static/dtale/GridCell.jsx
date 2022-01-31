@@ -77,13 +77,16 @@ class ReactGridCell extends React.Component {
     let valueStyle = style.width > 350 && gu.isStringCol(colCfg.dtype) ? { textAlign: 'left' } : {};
     const divProps = {};
     let className = buildCellClassName(this.props);
-    if (colCfg.name) {
+    if (colCfg?.name) {
       const rec = _.get(gridState, ['data', rowIndex - 1, colCfg.name], {});
       value = rec.view;
       const styleProps = buildStyle(rec, valueStyle, { ...gridState, filteredRanges }, colCfg);
       className = `${className}${styleProps.backgroundClass}`;
       valueStyle = styleProps.style;
-      if (_.includes(['string', 'date'], gu.findColType(colCfg.dtype)) && rec.raw !== rec.view) {
+      if (
+        _.includes([gu.ColumnType.STRING, gu.ColumnType.DATE], gu.findColType(colCfg.dtype)) &&
+        rec.raw !== rec.view
+      ) {
         divProps.title = rec.raw;
       }
       divProps.cell_idx = cellIdx;
@@ -99,7 +102,7 @@ class ReactGridCell extends React.Component {
     }
     return (
       <div key={key} className={className} style={{ ...style, ...valueStyle }} {...divProps}>
-        {gu.getCol(columnIndex, gridState).resized ? <div className="resized">{value}</div> : value}
+        {colCfg?.resized ? <div className="resized">{value}</div> : value}
       </div>
     );
   }

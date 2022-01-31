@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import { ReactDataViewerInfo as DataViewerInfo } from '../../dtale/info/DataViewerInfo';
+import DataViewerInfo from '../../dtale/info/DataViewerInfo';
 import FilterPanel from '../../popups/filter/FilterPanel';
 import StructuredFilters from '../../popups/filter/StructuredFilters';
 import { RemovableError } from '../../RemovableError';

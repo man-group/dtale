@@ -18,7 +18,7 @@ export const executeAction = async (route: string, dataId: string, params: Recor
   await getDataFromService<BaseResponse>(buildURLString(`/dtale/${route}/${dataId}?`, params));
 
 /** Parameters required for any column operation (locking or moving) */
-interface ColumnOperationProps {
+export interface ColumnOperationProps {
   columns: ColumnDef[];
   propagateState: DataViewerPropagateState;
   dataId: string;
