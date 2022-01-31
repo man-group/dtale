@@ -50,7 +50,7 @@ describe('DataViewer tests', () => {
     });
     result = result.update();
     expect(result.find(StringFormatting).find('div.row').last().text()).toBe(
-      'Raw:I am a long piece of text, please truncate me.Truncated:I ...',
+      'Raw:I am a long piece of text, please truncate me.Truncated:...',
     );
     result = await spies.validateCfg(
       result,

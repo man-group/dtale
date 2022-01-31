@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
-import * as gu from '../../../dtale/gridUtils';
+import { isIntCol } from '../../../dtale/gridUtils';
 import { capitalize } from '../../../stringUtils';
 import { AnalysisParams } from '../ColumnAnalysisState';
 
@@ -48,7 +48,7 @@ const TextEnterFilter: React.FC<TextEnterFilterProps & WithTranslation> = ({
 
   return (
     <React.Fragment>
-      <div className={`col-auto text-center pr-4 ${gu.findColType(dtype) === 'int' ? 'pl-0' : ''}`}>
+      <div className={`col-auto text-center pr-4 ${isIntCol(dtype) ? 'pl-0' : ''}`}>
         <div>
           <b>{t(capitalize(prop))}</b>
         </div>

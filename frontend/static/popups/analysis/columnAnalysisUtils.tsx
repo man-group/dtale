@@ -4,7 +4,7 @@ import { RGBColor } from 'react-color';
 
 import { Bouncer } from '../../Bouncer';
 import * as chartUtils from '../../chartUtils';
-import { kurtMsg, skewMsg } from '../../dtale/column/ColumnMenuHeader';
+import { calcInfoMsg, kurtMsgText, skewMsgText } from '../../dtale/column/ColumnMenuHeader';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
 import { capitalize } from '../../stringUtils';
@@ -214,10 +214,10 @@ export function createChart(
       const descHTML = DESC_PROPS.map((p) => {
         let markup = `${p === 'kurt' ? 'Kurtosis' : capitalize(p)}: <b>${fetchedData.desc?.[p]}</b>`;
         if (p === 'skew') {
-          markup += skewMsg(fetchedData.desc?.[p], true);
+          markup += calcInfoMsg('skew', skewMsgText(fetchedData.desc?.[p]));
         }
         if (p === 'kurt') {
-          markup += kurtMsg(fetchedData.desc?.[p], true);
+          markup += calcInfoMsg('kurt', kurtMsgText(fetchedData.desc?.[p]));
         }
         return markup;
       }).join(', ');

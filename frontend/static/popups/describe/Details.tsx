@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Bouncer } from '../../Bouncer';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import * as gu from '../../dtale/gridUtils';
+import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
 import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
@@ -51,7 +51,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
 
   const preExistingFilters = React.useMemo(() => {
     const { query, columnFilters, outlierFilters, predefinedFilters } = settings;
-    return !gu.noFilters({ query, columnFilters, outlierFilters, predefinedFilters });
+    return !noFilters({ query, columnFilters, outlierFilters, predefinedFilters });
   }, [settings]);
   const [error, setError] = React.useState<JSX.Element>();
   const [details, setDetails] = React.useState<DetailData>();
@@ -102,8 +102,8 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
   };
 
   const renderDeepDataToggle = (): React.ReactNode => {
-    const colType = gu.findColType(selected.dtype);
-    if (['float', 'int'].includes(colType)) {
+    const colType = findColType(selected.dtype);
+    if ([ColumnType.FLOAT, ColumnType.INT].includes(colType)) {
       return (
         <div className="row pb-5">
           <div className="col-auto pl-0">

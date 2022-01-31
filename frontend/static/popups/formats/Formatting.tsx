@@ -6,7 +6,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { ColumnDef, ColumnFormat, DataViewerData, DataViewerPropagateState } from '../../dtale/DataViewerState';
-import * as gu from '../../dtale/gridUtils';
+import { buildDataProps, calcColWidth, ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import * as serverState from '../../dtale/serverStateManagement';
 import { AppState, BaseOption } from '../../redux/state/AppState';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
@@ -45,8 +45,8 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({
   }));
 
   const [colDtype, colType] = React.useMemo(() => {
-    const dtype = gu.getDtype(selectedCol, columns);
-    return [dtype, gu.findColType(dtype)];
+    const dtype = getDtype(selectedCol, columns);
+    return [dtype, findColType(dtype)];
   }, [selectedCol, columns]);
 
   const [nanDisplay, setNanDisplay] = React.useState<BaseOption<string>>({ value: props.nanDisplay ?? 'nan' });
@@ -73,10 +73,7 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({
       const d = data[parseInt(rowIdx, 10)];
       const updates = selectedCols.reduce((ret, colCfg) => {
         const raw = d[colCfg.name]?.raw;
-        const updatedProp = gu.buildDataProps(colCfg, raw, {
-          columnFormats: { [colCfg.name]: { ...fmt } },
-          settings,
-        });
+        const updatedProp = buildDataProps(colCfg, raw, { [colCfg.name]: { ...fmt } }, settings);
         return { ...ret, [colCfg.name]: updatedProp };
       }, {});
       return { ...res, [rowIdx]: { ...d, ...updates } };
@@ -85,7 +82,7 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({
       if (selectedCols.find(({ name }) => name === c.name)) {
         return {
           ...c,
-          ...gu.calcColWidth(c, {
+          ...calcColWidth(c, {
             data: updatedData,
             ...settings,
             maxColumnWidth,
@@ -133,13 +130,13 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({
           <React.Fragment>
             {visible && (
               <React.Fragment>
-                {['float', 'int'].includes(colType) && (
+                {[ColumnType.FLOAT, ColumnType.INT].includes(colType) && (
                   <NumericFormatting columnFormats={columnFormats} selectedCol={selectedCol} updateState={setFmt} />
                 )}
-                {'date' === colType && (
+                {ColumnType.DATE === colType && (
                   <DateFormatting columnFormats={columnFormats} selectedCol={selectedCol} updateState={setFmt} />
                 )}
-                {['string', 'unknown'].includes(colType) && (
+                {[ColumnType.STRING, ColumnType.UNKNOWN].includes(colType) && (
                   <StringFormatting columnFormats={columnFormats} selectedCol={selectedCol} updateState={setFmt} />
                 )}
               </React.Fragment>

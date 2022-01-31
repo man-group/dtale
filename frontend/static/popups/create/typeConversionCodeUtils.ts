@@ -1,4 +1,4 @@
-import * as gu from '../../dtale/gridUtils';
+import { ColumnType, findColType } from '../../dtale/gridUtils';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import { TypeConversionConfig } from './CreateColumnState';
@@ -74,12 +74,12 @@ export const buildCode = (cfg: TypeConversionConfig): CreateColumnCodeSnippet =>
   if (!cfg.col || !cfg.to) {
     return undefined;
   }
-  const classifier = gu.findColType(cfg.from!);
-  if (classifier === 'string') {
+  const classifier = findColType(cfg.from!);
+  if (classifier === ColumnType.STRING) {
     return buildStringCode(cfg.col, cfg.to, cfg.fmt);
-  } else if (classifier === 'int') {
+  } else if (classifier === ColumnType.INT) {
     return buildIntCode(cfg.col, cfg.to, cfg.unit);
-  } else if (classifier === 'date') {
+  } else if (classifier === ColumnType.DATE) {
     return buildDateCode(cfg.col, cfg.to, cfg.fmt, cfg.unit);
   } else if (['float', 'bool'].includes(classifier)) {
     if (cfg.to === 'hex') {

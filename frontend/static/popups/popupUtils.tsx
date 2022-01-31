@@ -2,11 +2,10 @@ import { TFunction } from 'i18next';
 import * as React from 'react';
 
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
-import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups } from '../redux/state/AppState';
+import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups, PopupType } from '../redux/state/AppState';
 
 import About from './About';
 import ColumnAnalysis from './analysis/ColumnAnalysis';
-import { CodeExport } from './CodeExport';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
 import { Correlations } from './correlations/Correlations';
@@ -261,17 +260,6 @@ const buildInstances = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
-const buildCode = (props: BuilderInput): BuilderOutput => {
-  const title = (
-    <React.Fragment>
-      <i className="ico-code" />
-      <strong>{props.t('Code Export', { ns: 'menu' })}</strong>
-    </React.Fragment>
-  );
-  const body = <CodeExport />;
-  return { title, body };
-};
-
 const buildVariance = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
@@ -307,31 +295,33 @@ const buildDuplicates = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
-const POPUP_MAP = {
-  filter: buildFilter,
-  'column-analysis': buildColumnAnalysis,
-  correlations: buildCorrelations,
-  pps: buildPps,
-  build: buildCreateColumn,
-  'type-conversion': buildTypeConversion,
-  cleaners: buildCleaners,
-  reshape: buildReshape,
-  about: buildAbout,
-  confirm: buildConfirm,
-  'copy-range': buildCopyRange,
-  'copy-column-range': buildCopyRange,
-  'copy-row-range': buildCopyRange,
-  range: buildRange,
-  'xarray-dimensions': xarrayDimensions,
-  'xarray-indexes': xarrayIndexes,
-  rename: buildRename,
-  replacement: buildReplacement,
-  error: buildError,
-  instances: buildInstances,
-  code: buildCode,
-  variance: buildVariance,
-  upload: buildUpload,
-  duplicates: buildDuplicates,
+const POPUP_MAP: Record<PopupType, (props: BuilderInput) => BuilderOutput> = {
+  [PopupType.FILTER]: buildFilter,
+  [PopupType.COLUMN_ANALYSIS]: buildColumnAnalysis,
+  [PopupType.CORRELATIONS]: buildCorrelations,
+  [PopupType.PPS]: buildPps,
+  [PopupType.BUILD]: buildCreateColumn,
+  [PopupType.TYPE_CONVERSION]: buildTypeConversion,
+  [PopupType.CLEANERS]: buildCleaners,
+  [PopupType.RESHAPE]: buildReshape,
+  [PopupType.ABOUT]: buildAbout,
+  [PopupType.CONFIRM]: buildConfirm,
+  [PopupType.COPY_RANGE]: buildCopyRange,
+  [PopupType.COPY_COLUMN_RANGE]: buildCopyRange,
+  [PopupType.COPY_ROW_RANGE]: buildCopyRange,
+  [PopupType.RANGE]: buildRange,
+  [PopupType.XARRAY_DIMENSIONS]: xarrayDimensions,
+  [PopupType.XARRAY_INDEXES]: xarrayIndexes,
+  [PopupType.RENAME]: buildRename,
+  [PopupType.REPLACEMENT]: buildReplacement,
+  [PopupType.ERROR]: buildError,
+  [PopupType.INSTANCES]: buildInstances,
+  [PopupType.VARIANCE]: buildVariance,
+  [PopupType.UPLOAD]: buildUpload,
+  [PopupType.DUPLICATES]: buildDuplicates,
+  [PopupType.HIDDEN]: () => ({}),
+  [PopupType.DESCRIBE]: () => ({}),
+  [PopupType.CHARTS]: () => ({}),
 };
 
 export const buildBodyAndTitle = (props: BuilderInput): BuilderOutput =>

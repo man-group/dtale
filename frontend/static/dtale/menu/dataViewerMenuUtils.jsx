@@ -36,7 +36,7 @@ function buildStyling(val, colType, styleProps) {
   return style;
 }
 
-function fullPath(path, dataId = null) {
+function fullPath(path, dataId) {
   const finalPath = dataId ? `${path}/${dataId}` : path;
   if (window.resourceBaseUrl && !_.startsWith(finalPath, window.resourceBaseUrl)) {
     return cleanupEndpoint(`${window.resourceBaseUrl}/${finalPath}`);

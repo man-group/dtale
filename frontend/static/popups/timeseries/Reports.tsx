@@ -7,7 +7,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import * as chartUtils from '../../chartUtils';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import * as gu from '../../dtale/gridUtils';
+import { isDateCol } from '../../dtale/gridUtils';
 import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
 import { AppState, ButtonOption } from '../../redux/state/AppState';
@@ -73,7 +73,7 @@ const Reports: React.FC<WithTranslation> = ({ t }) => {
       }
       if (response) {
         setColumns(response.dtypes);
-        const dateCols = (response.dtypes ?? []).filter((c) => gu.findColType(c.dtype) === 'date');
+        const dateCols = (response.dtypes ?? []).filter((c) => isDateCol(c.dtype));
         if (dateCols.length === 1) {
           setBaseCfg({ ...baseCfg, index: dateCols[0].name });
         }

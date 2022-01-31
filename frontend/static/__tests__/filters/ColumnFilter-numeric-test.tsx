@@ -1,27 +1,20 @@
-import { mount, ReactWrapper } from 'enzyme';
-import * as React from 'react';
+import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
 import { default as Select } from 'react-select';
 
-import { ColumnFilter as ColumnFilterObj } from '../../dtale/DataViewerState';
-import { default as ColumnFilter, ColumnFilterProps } from '../../filters/ColumnFilter';
+import { ColumnFilterProps } from '../../filters/ColumnFilter';
 import NumericFilter from '../../filters/NumericFilter';
-import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
-import * as GenericRepository from '../../repository/GenericRepository';
 import { mockColumnDef } from '../mocks/MockColumnDef';
-import { tickUpdate } from '../test-utils';
+
+import * as TestSupport from './ColumnFilter.test.support';
 
 describe('ColumnFilter numeric tests', () => {
+  const spies = new TestSupport.Spies();
   let result: ReactWrapper<ColumnFilterProps>;
-  let saveSpy: jest.SpyInstance<
-    Promise<ColumnFilterRepository.SaveFilterResponse | undefined>,
-    [string, string, ColumnFilterObj?]
-  >;
 
   beforeEach(() => {
-    const fetchJsonSpy = jest.spyOn(GenericRepository, 'getDataFromService');
-    fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
+    spies.setupMockImplementations();
+    spies.fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
       if (url.startsWith('/dtale/column-filter-data/1?col=col1')) {
         return Promise.resolve({
           success: true,
@@ -36,33 +29,23 @@ describe('ColumnFilter numeric tests', () => {
       }
       return Promise.resolve(undefined);
     });
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
-
-    saveSpy = jest.spyOn(ColumnFilterRepository, 'save');
-    saveSpy.mockResolvedValue(Promise.resolve({ success: true, currFilters: {} }));
   });
 
-  afterEach(jest.restoreAllMocks);
+  afterEach(() => spies.afterEach());
 
-  const buildResult = async (props: ColumnFilterProps): Promise<void> => {
-    result = mount(<ColumnFilter {...props} />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-  };
+  afterAll(() => spies.afterAll());
 
   it('ColumnFilter int rendering', async () => {
-    await buildResult({
+    result = await spies.setupWrapper({
       selectedCol: 'col1',
       columns: [mockColumnDef({ name: 'col1', dtype: 'int64' })],
-      updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
     await act(async () => {
       result.find('i.ico-check-box-outline-blank').simulate('click');
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: true });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: true });
     expect(result.find('.Select__control--is-disabled').length).toBeGreaterThan(0);
     await act(async () => {
       result.find('i.ico-check-box').simulate('click');
@@ -77,12 +60,12 @@ describe('ColumnFilter numeric tests', () => {
         .onChange([{ value: 1 }]);
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '=', value: [1] });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '=', value: [1] });
     await act(async () => {
       result.find(NumericFilter).find('div.row').first().find('button').at(1).simulate('click');
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: 'ne', value: [1] });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: 'ne', value: [1] });
     await act(async () => {
       result.find(NumericFilter).find('div.row').first().find('button').at(3).simulate('click');
     });
@@ -103,14 +86,13 @@ describe('ColumnFilter numeric tests', () => {
         .simulate('change', { target: { value: '0' } });
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '>', value: 0 });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '>', value: 0 });
   });
 
   it('ColumnFilter float rendering', async () => {
-    await buildResult({
+    result = await spies.setupWrapper({
       selectedCol: 'col2',
       columns: [mockColumnDef({ name: 'col2', dtype: 'float64', min: 2.5, max: 5.5 })],
-      updateSettings: jest.fn(),
     });
     expect(result.find(NumericFilter).length).toBe(1);
     await act(async () => {
@@ -131,7 +113,7 @@ describe('ColumnFilter numeric tests', () => {
         .simulate('change', { target: { value: '1.1' } });
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '=', value: 1.1 });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '=', value: 1.1 });
     await act(async () => {
       result.find(NumericFilter).find('div.row').first().find('button').last().simulate('click');
     });
@@ -144,7 +126,7 @@ describe('ColumnFilter numeric tests', () => {
         .simulate('change', { target: { value: '1.2' } });
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '()', min: 1.2, max: 3 });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '()', min: 1.2, max: 3 });
     await act(async () => {
       result
         .find(NumericFilter)
@@ -158,6 +140,6 @@ describe('ColumnFilter numeric tests', () => {
         .simulate('change', { target: { value: 'b' } });
     });
     result = result.update();
-    expect(saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float' });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float' });
   });
 });

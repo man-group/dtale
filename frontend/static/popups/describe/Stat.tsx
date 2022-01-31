@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TFunction } from 'react-i18next';
 
-import { kurtMsg, skewMsg } from '../../dtale/column/ColumnMenuHeader';
+import { KurtMsg, SkewMsg } from '../../dtale/column/ColumnMenuHeader';
 
 export const COUNT_STATS = ['count', 'missing_ct', 'missing_pct'];
 export const POSITION_STATS = ['first', 'last', 'top'];
@@ -31,8 +31,8 @@ export const Stat: React.FC<StatProps> = ({ t, field, value, children }) => (
         <h4 className="d-inline pr-5">{`${t(LABELS[field] ?? field)}:`}</h4>
         <span className="d-inline">
           {value}
-          {field === 'skew' && skewMsg(value)}
-          {field === 'kurt' && kurtMsg(value)}
+          {field === 'skew' && SkewMsg(value)}
+          {field === 'kurt' && KurtMsg(value)}
         </span>
       </div>
     )}

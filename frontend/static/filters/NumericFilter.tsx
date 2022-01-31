@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { MultiValue, SingleValue } from 'react-select';
 
 import { ColumnFilter, ColumnFilterOperand } from '../dtale/DataViewerState';
+import { ColumnType } from '../dtale/gridUtils';
 import { AppState } from '../redux/state/AppState';
 
 import AsyncValueSelect from './AsyncValueSelect';
@@ -32,7 +33,7 @@ const OPERANDS: NumericOperandOption[] = [
 
 /** Component properties for StringFilter */
 interface NumericFilterProps extends BaseColumnFilterProps, UniquesProps {
-  colType: string;
+  colType: ColumnType;
   min: number;
   max: number;
 }
@@ -59,7 +60,8 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   const [value, setValue] = React.useState<string>(`${columnFilter?.value ?? ''}`);
   const [triggerSave, setTriggerSave] = React.useState<boolean>(false);
 
-  const parseFunc: (val: string) => number = colType === 'int' ? (val: string) => parseInt(val, 10) : parseFloat;
+  const parseFunc: (val: string) => number =
+    colType === ColumnType.INT ? (val: string) => parseInt(val, 10) : parseFloat;
 
   const updateCfgForVal = (cfg: ColumnFilter): ColumnFilter => {
     const numVal = parseFunc(value);
@@ -74,7 +76,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
     switch (operand) {
       case '=':
       case 'ne': {
-        if (colType === 'int') {
+        if (colType === ColumnType.INT) {
           cfg = { ...cfg, value: selected ?? [], operand };
         } else {
           cfg = updateCfgForVal(cfg);
@@ -157,7 +159,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
       case 'ne':
       default:
         {
-          if (colType === 'float') {
+          if (colType === ColumnType.FLOAT) {
             return createValueInput(setValue, 'Value', value);
           }
           const requiresAsync = uniqueCt > 500;

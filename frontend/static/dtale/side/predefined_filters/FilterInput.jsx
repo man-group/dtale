@@ -91,14 +91,14 @@ class FilterInput extends React.Component {
     const errors = [];
     let finalValues = [];
     _.concat([], value).forEach((val) => {
-      if (colType == 'int' && val) {
+      if (colType == gu.ColumnType.INT && val) {
         const parsedVal = parseInt(val);
         if (_.isNaN(parsedVal)) {
           errors.push(`Invalid integer, ${val}!`);
         } else {
           finalValues.push(parsedVal);
         }
-      } else if (colType == 'float' && val) {
+      } else if (colType == gu.ColumnType.FLOAT && val) {
         const parsedVal = parseFloat(val);
         if (_.isNaN(parsedVal)) {
           errors.push(`Invalid float, ${val}!`);

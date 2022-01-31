@@ -15,15 +15,15 @@ import Formatting from '../popups/formats/Formatting';
 import { DtaleHotkeys } from './DtaleHotkeys';
 import { GridCell } from './GridCell';
 import { GridEventHandler } from './GridEventHandler';
-import { ColumnMenu } from './column/ColumnMenu';
+import ColumnMenu from './column/ColumnMenu';
 import * as bu from './backgroundUtils';
 import * as gu from './gridUtils';
-import { DataViewerInfo } from './info/DataViewerInfo';
+import DataViewerInfo from './info/DataViewerInfo';
 import { DataViewerMenu } from './menu/DataViewerMenu';
 import * as reduxUtils from './reduxGridUtils';
 import { RibbonDropdown } from './ribbon/RibbonDropdown';
 import { RibbonMenu } from './ribbon/RibbonMenu';
-import { EditedCellInfo } from './edited/EditedCellInfo';
+import EditedCellInfo from './edited/EditedCellInfo';
 
 require('./DataViewer.css');
 const URL_PROPS = ['ids', 'sortInfo'];
@@ -145,10 +145,7 @@ class ReactDataViewer extends React.Component {
         const { settings, maxColumnWidth } = this.props;
         const formattedData = _.mapValues(data.results, (d) =>
           _.mapValues(d, (val, col) =>
-            gu.buildDataProps(_.find(data.columns, { name: col }), val, {
-              columnFormats,
-              settings,
-            }),
+            gu.buildDataProps(_.find(data.columns, { name: col }), val, columnFormats, settings),
           ),
         );
         if (data.error) {
@@ -181,7 +178,7 @@ class ReactDataViewer extends React.Component {
           }
           newState = { ...newState, ...gu.getTotalRange(newState.columns) };
         } else {
-          newState = gu.refreshColumns(data, columns, newState, settings, maxColumnWidth);
+          newState = gu.refreshColumns(data.columns, columns, newState, settings, maxColumnWidth);
         }
         let callback = _.noop;
         if (refresh) {
@@ -226,7 +223,7 @@ class ReactDataViewer extends React.Component {
     return (
       <GridEventHandler propagateState={this.propagateState} gridState={this.state}>
         <DtaleHotkeys propagateState={this.propagateState} {...this.state} />
-        <DataViewerMenu {...this.state} propagateState={this.propagateState} />
+        <DataViewerMenu {...this.state} propagateState={this.propagateState} settings={this.props.settings} />
         <InfiniteLoader
           isRowLoaded={({ index }) => _.has(this.state, ['data', index])}
           loadMoreRows={_.noop}

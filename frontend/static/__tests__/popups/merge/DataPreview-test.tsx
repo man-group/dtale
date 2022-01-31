@@ -36,8 +36,8 @@ describe('DataPreview', () => {
     });
     await act(async () => await tickUpdate(result));
     result = result.update();
-    await openColMenu(result, 3);
-    clickColMenuSubButton(result, 'Asc');
+    result = await openColMenu(result, 3);
+    result = await clickColMenuSubButton(result, 'Asc');
     expect(result.find(Provider).props().store.getState().settings.sortInfo).toEqual([['col4', 'ASC']]);
   });
 });

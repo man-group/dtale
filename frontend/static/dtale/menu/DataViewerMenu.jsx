@@ -56,7 +56,7 @@ class ReactDataViewerMenu extends React.Component {
     const closeMenu = () => {
       document.getElementsByTagName('body')[0].click();
     };
-    const hasNoInfo = gu.hasNoInfo(this.props);
+    const hasNoInfo = gu.hasNoInfo(this.props.settings, this.props.columns);
     const containerProps = menuPinned
       ? { className: 'pinned-data-viewer-menu' }
       : {
@@ -161,6 +161,8 @@ ReactDataViewerMenu.propTypes = {
   mainTitleFont: PropTypes.string,
   t: PropTypes.func,
   isVSCode: PropTypes.bool,
+  settings: PropTypes.object,
+  sortInfo: PropTypes.array,
 };
 
 const TranslatedReactDataViewMenu = withTranslation(['menu', 'menu_description', 'code_export'])(ReactDataViewerMenu);

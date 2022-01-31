@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
 
-import { findColType } from '../../dtale/gridUtils';
+import { getDtype, isStringCol } from '../../dtale/gridUtils';
 import { BaseOption } from '../../redux/state/AppState';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
 import ColumnSelect from './ColumnSelect';
 import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, ShiftConfig } from './CreateColumnState';
-import { getDtype } from './CreateTypeConversion';
 import { LabeledInput } from './LabeledInput';
 
 export const validateShiftCfg = (t: TFunction, cfg: ShiftConfig): string | undefined => {
@@ -23,7 +22,7 @@ export const buildCode = (cfg: ShiftConfig): CreateColumnCodeSnippet => {
   }
   let kwargs = '';
   if (cfg.fillValue !== undefined) {
-    kwargs = findColType(cfg.dtype) === 'string' ? `, fill_value='${cfg.fillValue}'` : `, fill_value=${cfg.fillValue}`;
+    kwargs = isStringCol(cfg.dtype) ? `, fill_value='${cfg.fillValue}'` : `, fill_value=${cfg.fillValue}`;
   }
   return `df['${cfg.col}'].shift(${cfg.periods || 1}${kwargs})`;
 };
@@ -39,7 +38,7 @@ const CreateShift: React.FC<BaseCreateComponentProps & WithTranslation> = ({
   const [fillValue, setFillValue] = React.useState<string>();
 
   React.useEffect(() => {
-    const cfg: ShiftConfig = { col: col?.value, periods, fillValue, dtype: getDtype(col, columns) };
+    const cfg: ShiftConfig = { col: col?.value, periods, fillValue, dtype: getDtype(col?.value, columns) };
     const updatedState: CreateColumnUpdateState = { cfg: { type: CreateColumnType.SHIFT, cfg }, code: buildCode(cfg) };
     if (cfg.col && !namePopulated) {
       updatedState.name = `${cfg.col}_shift`;
