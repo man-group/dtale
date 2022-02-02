@@ -131,7 +131,7 @@ export interface UpdateSettingsAction extends Action<typeof ActionType.UPDATE_SE
 /** Action fired when showing a main menu tooltip */
 export interface ShowMenuTooltipAction extends Action<typeof ActionType.SHOW_MENU_TOOLTIP> {
   element: HTMLLIElement;
-  content: string;
+  content: React.ReactNode;
 }
 
 /** Action fired when opening a ribbon dropdown */

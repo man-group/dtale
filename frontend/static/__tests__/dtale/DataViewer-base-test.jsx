@@ -45,7 +45,7 @@ describe('DataViewer tests', () => {
 
   it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
     const { DataViewer } = require('../../dtale/DataViewer');
-    const { DataViewerMenu } = require('../../dtale/menu/DataViewerMenu');
+    const DataViewerMenu = require('../../dtale/menu/DataViewerMenu').default;
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
     const result = mount(

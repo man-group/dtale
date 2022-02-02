@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { InstanceSettings, SortDef, SortDir } from '../../redux/state/AppState';
-import menuFuncs from '../menu/dataViewerMenuUtils';
+import * as menuFuncs from '../menu/dataViewerMenuUtils';
 
 /** Component properties of SortOptions */
 interface SortOptionsProps {
@@ -24,7 +24,7 @@ const SortOptions: React.FC<SortOptionsProps & WithTranslation> = ({ sortInfo, s
       <button
         style={active ? {} : { color: '#565b68' }}
         className={`btn btn-primary ${active ? 'active' : ''} font-weight-bold`}
-        onClick={active ? () => ({}) : () => menuFuncs.updateSort([selectedCol], dir, { sortInfo, updateSettings })}
+        onClick={active ? () => ({}) : () => menuFuncs.updateSort([selectedCol], dir, sortInfo ?? [], updateSettings)}
         disabled={active}
       >
         {t(label, { ns: 'column_menu' })}

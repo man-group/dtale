@@ -5,10 +5,11 @@ import { components, GetStyles, GroupBase, LoadingIndicatorProps } from 'react-s
 
 import { ColumnDef, ColumnFilter as ColumnFilterObj, OutlierFilter } from '../dtale/DataViewerState';
 import * as gu from '../dtale/gridUtils';
-import menuFuncs from '../dtale/menu/dataViewerMenuUtils';
+import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
 import { AppActions } from '../redux/actions/AppActions';
+import * as chartActions from '../redux/actions/charts';
 import * as settingsActions from '../redux/actions/settings';
-import { AppState, InstanceSettings } from '../redux/state/AppState';
+import { AppState, InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
 
 import DateFilter from './DateFilter';
@@ -53,6 +54,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
     dispatch(settingsActions.updateSettings(updatedSettings));
+  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
 
   const colCfg: ColumnDef | undefined = columns.find((column) => column.name === selectedCol);
   const dtype = colCfg?.dtype ?? '';
@@ -96,10 +98,16 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   };
 
   const renderIcon = (showIcon = true): JSX.Element => {
-    const buttonHandlers = menuFuncs.buildHotkeyHandlers(props);
+    const openFilter = menuFuncs.openPopup(
+      { type: PopupType.FILTER, title: 'Filter', visible: true },
+      dataId,
+      openChart,
+      530,
+      1100,
+    );
     return (
       <span className="toggler-action">
-        {showIcon && <i className="fa fa-filter align-bottom pointer" onClick={buttonHandlers.FILTER} />}
+        {showIcon && <i className="fa fa-filter align-bottom pointer" onClick={openFilter} />}
       </span>
     );
   };

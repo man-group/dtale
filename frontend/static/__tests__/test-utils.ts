@@ -8,7 +8,7 @@ import {
   DefaultDataPoint,
   InteractionItem,
 } from 'chart.js';
-import { ReactWrapper } from 'enzyme';
+import { ReactWrapper, ShallowWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { Store } from 'redux';
 
@@ -39,7 +39,8 @@ export const PREDEFINED_FILTERS = [
   '}]',
 ].join('');
 
-const buildHidden = (id: string, value: string): string => `<input type="hidden" id="${id}" value="${value}" />`;
+const buildHidden = (id: string, value: string | number): string =>
+  `<input type="hidden" id="${id}" value="${value}" />`;
 
 const BASE_HTML = `
 <div id="content" style="height: 1000px;width: 1000px;" />
@@ -47,7 +48,7 @@ const BASE_HTML = `
 <span id="code-title" />
 `;
 
-export const buildInnerHTML = (props: Record<string, string> = {}, store?: Store): void => {
+export const buildInnerHTML = (props: Record<string, string | undefined> = {}, store?: Store): void => {
   const actions = require('../redux/actions/dtale');
   const pjson = require('../../package.json');
   const body = document.getElementsByTagName('body')[0];
@@ -85,7 +86,7 @@ export const findMainMenuButton = (
   name: string,
   btnTag = 'button',
 ): ReactWrapper<any, any> => {
-  const DataViewerMenu = require('../dtale/menu/DataViewerMenu').DataViewerMenu;
+  const DataViewerMenu = require('../dtale/menu/DataViewerMenu').default;
   return result
     .find(DataViewerMenu)
     .find(`ul li ${btnTag}`)
@@ -110,7 +111,10 @@ export const tick = (timeout = 0): Promise<void> => {
   });
 };
 
-export const tickUpdate = async (result: ReactWrapper<any, any>, timeout = 0): Promise<void> => {
+export const tickUpdate = async (
+  result: ReactWrapper<any, any> | ShallowWrapper<any, any>,
+  timeout = 0,
+): Promise<void> => {
   await tick(timeout);
   result.update();
 };

@@ -10,7 +10,7 @@ import { DataViewer } from '../../../dtale/DataViewer';
 import XArrayDimensions from '../../../popups/XArrayDimensions';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -60,12 +60,8 @@ describe('DataViewer tests', () => {
       </Provider>,
       { attachTo: document.getElementById('content') ?? undefined },
     );
-    await tickUpdate(result);
+    // await tickUpdate(result);
     result = await clickMainMenuButton(result, 'XArray Dimensions');
-    await act(async () => {
-      await tickUpdate(result);
-    });
-    result = result.update();
   });
 
   afterEach(jest.restoreAllMocks);

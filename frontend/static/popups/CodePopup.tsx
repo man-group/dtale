@@ -4,7 +4,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 import { ButtonBuilderProps, canCopy, default as CopyToClipboard } from '../CopyToClipboard';
-import menuFuncs from '../dtale/menu/dataViewerMenuUtils';
+import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
 import { JSAnchor } from '../JSAnchor';
 
 require('./CodePopup.css');
@@ -12,7 +12,7 @@ require('./CodePopup.css');
 export const renderCodePopupAnchor = (code: string, title: string): JSX.Element => {
   const onClick = (): void => {
     (window as any).code_popup = { code, title };
-    menuFuncs.open('/dtale/code-popup', null, 450, 700);
+    menuFuncs.open('/dtale/code-popup', undefined, 450, 700);
   };
   return (
     <JSAnchor onClick={onClick}>

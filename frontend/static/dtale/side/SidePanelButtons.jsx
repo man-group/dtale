@@ -4,7 +4,7 @@ import { withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
 
 import { buildURLString } from '../../redux/actions/url-utils';
-import menuFuncs from '../menu/dataViewerMenuUtils';
+import * as menuFuncs from '../menu/dataViewerMenuUtils';
 
 const TAB_MAP = { show_hide: 'describe' };
 

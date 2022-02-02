@@ -12,7 +12,7 @@ import { buildURLString } from '../../redux/actions/url-utils';
 import { AppState, Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
-import menuFuncs from '../menu/dataViewerMenuUtils';
+import * as menuFuncs from '../menu/dataViewerMenuUtils';
 import * as serverState from '../serverStateManagement';
 
 import { ColumnMenuHeader } from './ColumnMenuHeader';
@@ -76,7 +76,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           buildURLString(menuFuncs.fullPath(`/dtale/popup/${popup.type}`, dataId), {
             selectedCol,
           }),
-          null,
+          undefined,
           height,
           width,
         );
