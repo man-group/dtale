@@ -5,7 +5,7 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { connect } from 'react-redux';
 
 import { openChart } from '../redux/actions/charts';
-import menuFuncs from './menu/dataViewerMenuUtils';
+import * as menuFuncs from './menu/dataViewerMenuUtils';
 import { buildCtrlColumnCopyText, buildRowCopyText } from './rangeSelectUtils';
 
 class ReactDtaleHotkeys extends React.Component {

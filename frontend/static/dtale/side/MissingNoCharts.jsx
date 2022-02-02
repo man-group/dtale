@@ -12,7 +12,7 @@ import { fetchJson } from '../../fetcher';
 import FilterSelect from '../../popups/analysis/filters/FilterSelect';
 import ColumnSelect from '../../popups/create/ColumnSelect';
 import * as gu from '../gridUtils';
-import menuFuncs from '../menu/dataViewerMenuUtils';
+import * as menuFuncs from '../menu/dataViewerMenuUtils';
 
 require('./MissingNoCharts.css');
 

@@ -20,7 +20,7 @@ import {
   StringColumnFormat,
 } from './DataViewerState';
 import { measureText } from './MeasureText';
-import menuFuncs from './menu/dataViewerMenuUtils';
+import * as menuFuncs from './menu/dataViewerMenuUtils';
 import { buildRangeState } from './rangeSelectUtils';
 
 export const IDX = 'dtale_index';
@@ -209,9 +209,8 @@ export const calcColWidth = (colCfg: ColumnDef, dataProps: Partial<DataViewerSta
   return w;
 };
 
-export const THEMES = Object.values(ThemeType);
-
-export const isLight = (theme: ThemeType): boolean => ThemeType.LIGHT === theme || !THEMES.includes(theme);
+export const isLight = (theme: ThemeType): boolean =>
+  ThemeType.LIGHT === theme || !Object.values(ThemeType).includes(theme);
 
 export const buildGridStyles = (theme = ThemeType.LIGHT, headerHeight = HEADER_HEIGHT): Partial<MultiGridProps> => ({
   style: { border: '1px solid #ddd' },

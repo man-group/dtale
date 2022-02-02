@@ -136,6 +136,11 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
   const [editColor, setEditColor] = React.useState<keyof RangeHighlightModes>();
   const [currRange, setCurrRange] = React.useState<RangeHighlightModes>(retrieveRange(col, ranges));
 
+  React.useEffect(() => {
+    setRanges({ ...chartData.rangeHighlight });
+    setCurrRange(retrieveRange(col, chartData.rangeHighlight ?? {}));
+  }, [chartData.rangeHighlight]);
+
   const updateHighlights = (key: keyof RangeHighlightModes, rangeState: Partial<RangeHighlightModeCfg>): void => {
     setCurrRange({ ...currRange, [key]: { ...currRange[key], ...rangeState } });
   };

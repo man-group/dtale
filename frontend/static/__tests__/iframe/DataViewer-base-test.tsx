@@ -9,7 +9,7 @@ import ColumnMenu from '../../dtale/column/ColumnMenu';
 import { DataViewer } from '../../dtale/DataViewer';
 import { ReactHeader as Header } from '../../dtale/Header';
 import DataViewerInfo from '../../dtale/info/DataViewerInfo';
-import { DataViewerMenu } from '../../dtale/menu/DataViewerMenu';
+import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
 import Formatting from '../../popups/formats/Formatting';
 import DimensionsHelper from '../DimensionsHelper';
 import { createMockComponent } from '../mocks/createMockComponent';

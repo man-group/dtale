@@ -98,13 +98,16 @@ export interface StringColumnFormat {
   truncate?: number;
 }
 
+/** Formatting properties that can't be stored in a format string */
+export interface ColumnFormatStyle {
+  redNegs?: boolean;
+  currency?: string;
+}
+
 /** Type definition for a column format configuration object */
 export interface ColumnFormat {
   fmt: string | StringColumnFormat;
-  style?: {
-    redNegs?: boolean;
-    currency?: string;
-  };
+  style?: ColumnFormatStyle;
   link?: boolean;
   html?: boolean;
   truncate?: number;

@@ -1,26 +1,20 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
-import { WithTranslation } from 'react-i18next';
 
-import { ExportOption } from '../../../dtale/menu/ExportOption';
-
-/** Component properties for ExportOption */
-export interface ExportOptionProps {
-  open: (fileType: string) => void;
-}
+import { VoidFunc } from '../../../dtale/menu/dataViewerMenuUtils';
+import ExportOption from '../../../dtale/menu/ExportOption';
 
 describe('ExportOption', () => {
-  let wrapper: ShallowWrapper<ExportOptionProps & WithTranslation>;
+  let wrapper: ShallowWrapper;
   let openCsvMock: jest.Mock<() => void>;
   let openTsvMock: jest.Mock<() => void>;
   let openParquetMock: jest.Mock<() => void>;
-  let props: ExportOptionProps;
 
   beforeEach(() => {
     openCsvMock = jest.fn();
     openTsvMock = jest.fn();
     openParquetMock = jest.fn();
-    const open = (exportType: string): (() => void) => {
+    const open = (exportType: string): VoidFunc => {
       switch (exportType) {
         case 'csv':
           return openCsvMock;
@@ -31,8 +25,7 @@ describe('ExportOption', () => {
           return openParquetMock;
       }
     };
-    props = { open };
-    wrapper = shallow(<ExportOption {...props} />);
+    wrapper = shallow(<ExportOption open={open} />);
   });
 
   it('fires CSV export action', () => {

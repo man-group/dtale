@@ -7,7 +7,8 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFormat } from '../../dtale/DataViewerState';
-import menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
+import { ColumnType } from '../../dtale/gridUtils';
+import * as menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
 import { BaseOption } from '../../redux/state/AppState';
 import { LabeledSelect } from '../create/LabeledSelect';
 
@@ -185,7 +186,12 @@ const NumericFormatting: React.FC<BaseFormattingComponentProps & WithTranslation
       <div className="row text-center">
         <small className="col-md-10">
           {`${t('EX')}: ${EXAMPLE_NUM} => `}
-          <span style={menuFuncs.buildStyling(EXAMPLE_NUM, 'float', state)}>
+          <span
+            style={menuFuncs.buildStyling(EXAMPLE_NUM, ColumnType.FLOAT, {
+              redNegs: state.redNegs,
+              currency: state.currency?.value,
+            })}
+          >
             {fmt ? numeral(EXAMPLE_NUM).format(fmt.fmt as string) : EXAMPLE_NUM}
           </span>
         </small>

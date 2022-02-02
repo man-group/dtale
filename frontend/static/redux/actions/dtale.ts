@@ -1,5 +1,5 @@
 import * as serverState from '../../dtale/serverStateManagement';
-import { QueryEngine, ThemeType } from '../state/AppState';
+import { QueryEngine } from '../state/AppState';
 
 import { ActionType, AppActions, InitAction, SidePanelAction, UpdateXarrayDimAction } from './AppActions';
 
@@ -48,16 +48,6 @@ export const convertToXArray =
     dispatch({ type: ActionType.CONVERT_TO_XARRAY });
     callback();
   };
-
-export const setTheme =
-  (theme: ThemeType): AppActions<void> =>
-  (dispatch) =>
-    dispatch({ type: ActionType.SET_THEME, theme });
-
-export const setLanguage =
-  (language: string): AppActions<void> =>
-  (dispatch) =>
-    dispatch({ type: ActionType.SET_LANGUAGE, language });
 
 export const setQueryEngine =
   (engine: QueryEngine): AppActions<void> =>

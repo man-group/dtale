@@ -36,7 +36,7 @@ export const initialVisibility: HasVisibility = { visible: false };
 /** Properties of a main menu tooltip */
 export interface MenuTooltipProps extends HasVisibility {
   element?: HTMLLIElement;
-  content?: string;
+  content?: React.ReactNode;
 }
 
 /** Properties of a ribbon menu dropdown */

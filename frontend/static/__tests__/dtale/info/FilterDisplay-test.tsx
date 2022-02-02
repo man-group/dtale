@@ -1,7 +1,6 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
 import * as redux from 'react-redux';
-import { AppState } from 'static/redux/state/AppState';
 
 import { default as FilterDisplay, FilterDisplayProps, Queries } from '../../../dtale/info/FilterDisplay';
 import { InfoMenuType } from '../../../dtale/info/infoUtils';
@@ -9,6 +8,7 @@ import * as serverState from '../../../dtale/serverStateManagement';
 import * as menuUtils from '../../../menuUtils';
 import { ActionType } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
+import { AppState } from '../../../redux/state/AppState';
 import { tick } from '../../test-utils';
 
 describe('FilterDisplay', () => {

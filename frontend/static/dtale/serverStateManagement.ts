@@ -198,8 +198,8 @@ export const updatePinMenu = async (pinned: boolean): BaseReturn =>
 export const updateLanguage = async (language: string): BaseReturn =>
   await baseGetter(buildURLString('update-language', { language }));
 
-export const updateMaxColumnWidth = async (width: number): BaseReturn =>
-  await baseGetter(buildURLString('update-maximum-column-width', { width: `${width}` }));
+export const updateMaxColumnWidth = async (width?: number): BaseReturn =>
+  await baseGetter(buildURLString('update-maximum-column-width', { width: width ? `${width}` : '' }));
 
 export const updateMaxRowHeight = async (height: number): BaseReturn =>
   await baseGetter(buildURLString('update-maximum-row-height', { height: `${height}` }));

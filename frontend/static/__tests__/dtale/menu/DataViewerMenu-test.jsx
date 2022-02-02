@@ -5,11 +5,11 @@ import { Provider } from 'react-redux';
 
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import GageRnROption from '../../../dtale/menu/GageRnROption';
-import { LanguageOption } from '../../../dtale/menu/LanguageOption';
+import LanguageOption from '../../../dtale/menu/LanguageOption';
 import MergeOption from '../../../dtale/menu/MergeOption';
 import MissingOption from '../../../dtale/menu/MissingOption';
-import { PPSOption } from '../../../dtale/menu/PPSOption';
-import { PredefinedFiltersOption } from '../../../dtale/menu/PredefinedFiltersOption';
+import PPSOption from '../../../dtale/menu/PPSOption';
+import PredefinedFiltersOption from '../../../dtale/menu/PredefinedFiltersOption';
 import ShowHideColumnsOption from '../../../dtale/menu/ShowHideColumnsOption';
 import TimeseriesAnalysisOption from '../../../dtale/menu/TimeseriesAnalysisOption';
 import * as serverState from '../../../dtale/serverStateManagement';
@@ -31,7 +31,7 @@ describe('DataViewerMenu tests', () => {
   beforeEach(() => {
     updateLanguageSpy = jest.spyOn(serverState, 'updateLanguage');
     updateLanguageSpy.mockResolvedValue(Promise.resolve({ success: true }));
-    DataViewerMenu = require('../../../dtale/menu/DataViewerMenu').DataViewerMenu;
+    DataViewerMenu = require('../../../dtale/menu/DataViewerMenu').default;
     store = reduxUtils.createDtaleStore();
   });
 
