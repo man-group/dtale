@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { AppState, Popups, PopupType, RangeHighlightConfig, SortDef } from '../../redux/state/AppState';
+import { AppState, Popups, PopupType, RangeHighlightConfig, SidePanelType, SortDef } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
@@ -47,7 +47,7 @@ import UploadOption from './UploadOption';
 import XArrayOption from './XArrayOption';
 
 /** Component properties for DataViewerMenu */
-interface DataViewerMenuProps {
+export interface DataViewerMenuProps {
   columns: ColumnDef[];
   menuOpen: boolean;
   propagateState: DataViewerPropagateState;
@@ -60,7 +60,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
   const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
-  const showSidePanel = (view: string): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
+  const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ ...props, dataId, openChart, isVSCode });
   const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
@@ -99,19 +99,19 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
           <NewTabOption />
           <XArrayOption columns={props.columns.filter(({ name }) => name !== gu.IDX)} />
           <DescribeOption open={buttonHandlers.DESCRIBE} />
-          <FilterOption open={() => showSidePanel('filter')} />
-          <PredefinedFiltersOption open={() => showSidePanel('predefined_filters')} />
-          <ShowHideColumnsOption open={() => showSidePanel('show_hide')} />
+          <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />
+          <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />
+          <ShowHideColumnsOption open={() => showSidePanel(SidePanelType.SHOW_HIDE)} />
           <BuildColumnOption open={buttonHandlers.BUILD} />
           <CleanColumn open={buttonHandlers.CLEAN} />
           <MergeOption open={() => window.open(menuFuncs.fullPath('/dtale/popup/merge'), '_blank')} />
           <SummarizeOption open={openPopup({ type: PopupType.RESHAPE, title: 'Reshape', visible: true }, 400, 770)} />
-          <TimeseriesAnalysisOption open={() => showSidePanel('timeseries_analysis')} />
+          <TimeseriesAnalysisOption open={() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS)} />
           <DuplicatesOption open={buttonHandlers.DUPLICATES} />
-          <MissingOption open={() => showSidePanel('missingno')} />
-          <CorrelationAnalysisOption open={() => showSidePanel('corr_analysis')} />
-          <CorrelationsOption open={() => showSidePanel('correlations')} />
-          <PPSOption open={() => showSidePanel('pps')} />
+          <MissingOption open={() => showSidePanel(SidePanelType.MISSINGNO)} />
+          <CorrelationAnalysisOption open={() => showSidePanel(SidePanelType.CORR_ANALYSIS)} />
+          <CorrelationsOption open={() => showSidePanel(SidePanelType.CORRELATIONS)} />
+          <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />
           <ChartsOption open={buttonHandlers.CHARTS} />
           <NetworkOption open={buttonHandlers.NETWORK} />
           <HeatMapOption backgroundMode={props.backgroundMode} toggleBackground={toggleBackground} />
@@ -138,7 +138,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
             toggleLowVarianceBackground={toggleBackground('lowVariance')}
             backgroundMode={props.backgroundMode}
           />
-          <GageRnROption open={() => showSidePanel('gage_rnr')} />
+          <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />
           <InstancesOption
             open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
           />

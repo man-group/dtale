@@ -129,3 +129,28 @@ export interface ScatterResponse extends DataSpec, GenericRepository.BaseRespons
 export async function loadScatter(url: string): Promise<ScatterResponse | undefined> {
   return await GenericRepository.getDataFromService<ScatterResponse>(url);
 }
+
+/** Ranking of correlation */
+export interface Rank {
+  column: string;
+  missing: number;
+  score: number | null;
+}
+
+/** Axios response for correlation analysis */
+export interface CorrelationAnalysisResponse extends GenericRepository.BaseResponse {
+  corrs: Record<string, Record<string, number | null>>;
+  ranks: Rank[];
+  column_name: string;
+  max_score: string | number;
+}
+
+/**
+ * Load correlation analysis for a dateset.
+ *
+ * @param dataId the identifier of the data instance you would like the data types for.
+ * @return correlation analysis results.
+ */
+export async function loadAnalysis(dataId: string): Promise<CorrelationAnalysisResponse | undefined> {
+  return await GenericRepository.getDataFromService<CorrelationAnalysisResponse>(`/dtale/corr-analysis/${dataId}`);
+}

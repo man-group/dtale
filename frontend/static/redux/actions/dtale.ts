@@ -1,15 +1,18 @@
 import * as serverState from '../../dtale/serverStateManagement';
-import { QueryEngine } from '../state/AppState';
+import { QueryEngine, SidePanelType } from '../state/AppState';
 
 import { ActionType, AppActions, InitAction, SidePanelAction, UpdateXarrayDimAction } from './AppActions';
 
 export const init = (): InitAction => ({ type: ActionType.INIT_PARAMS });
 
-export const openCustomFilter = (): SidePanelAction => ({ type: ActionType.SHOW_SIDE_PANEL, view: 'filter' });
+export const openCustomFilter = (): SidePanelAction => ({
+  type: ActionType.SHOW_SIDE_PANEL,
+  view: SidePanelType.FILTER,
+});
 
 export const openPredefinedFilters = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
-  view: 'predefined_filters',
+  view: SidePanelType.PREDEFINED_FILTERS,
 });
 
 export const toggleColumnMenu =

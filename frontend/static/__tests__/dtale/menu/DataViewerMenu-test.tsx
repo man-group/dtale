@@ -1,10 +1,14 @@
-import { mount } from 'enzyme';
-import _ from 'lodash';
-import React from 'react';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
 import { Provider } from 'react-redux';
+import { Store } from 'redux';
 
+import ChartsOption from '../../../dtale/menu/ChartsOption';
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
+import { default as DataViewerMenu, DataViewerMenuProps } from '../../../dtale/menu/DataViewerMenu';
+import DescribeOption from '../../../dtale/menu/DescribeOption';
 import GageRnROption from '../../../dtale/menu/GageRnROption';
+import InstancesOption from '../../../dtale/menu/InstancesOption';
 import LanguageOption from '../../../dtale/menu/LanguageOption';
 import MergeOption from '../../../dtale/menu/MergeOption';
 import MissingOption from '../../../dtale/menu/MissingOption';
@@ -15,28 +19,26 @@ import TimeseriesAnalysisOption from '../../../dtale/menu/TimeseriesAnalysisOpti
 import * as serverState from '../../../dtale/serverStateManagement';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, PREDEFINED_FILTERS, tickUpdate } from '../../test-utils';
-import DescribeOption from '../../../dtale/menu/DescribeOption';
-import ChartsOption from '../../../dtale/menu/ChartsOption';
-import InstancesOption from '../../../dtale/menu/InstancesOption';
 
 describe('DataViewerMenu tests', () => {
   const { open } = window;
-  let DataViewerMenu, store, updateLanguageSpy;
+  let store: Store;
+  let updateLanguageSpy: jest.SpyInstance;
+  const openSpy = jest.fn();
 
   beforeAll(() => {
-    delete window.open;
-    window.open = jest.fn();
+    delete (window as any).open;
+    window.open = openSpy;
   });
 
   beforeEach(() => {
     updateLanguageSpy = jest.spyOn(serverState, 'updateLanguage');
     updateLanguageSpy.mockResolvedValue(Promise.resolve({ success: true }));
-    DataViewerMenu = require('../../../dtale/menu/DataViewerMenu').default;
     store = reduxUtils.createDtaleStore();
   });
 
   afterEach(() => {
-    window.open.mockReset();
+    openSpy.mockReset();
   });
 
   afterAll(() => {
@@ -44,11 +46,11 @@ describe('DataViewerMenu tests', () => {
     jest.restoreAllMocks();
   });
 
-  const buildMenu = (hiddenProps, props) => {
+  const buildMenu = (hiddenProps?: Record<string, string>, props?: Partial<DataViewerMenuProps>): ReactWrapper => {
     buildInnerHTML({ settings: '', ...hiddenProps }, store);
     const finalProps = {
-      openChart: _.noop,
-      propagateState: _.noop,
+      openChart: () => ({}),
+      propagateState: () => ({}),
       menuOpen: true,
       selectedCols: [],
       sortInfo: [],
@@ -63,13 +65,13 @@ describe('DataViewerMenu tests', () => {
         <DataViewerMenu {...finalProps} />
       </Provider>,
       {
-        attachTo: document.getElementById('content'),
+        attachTo: document.getElementById('content') ?? undefined,
       },
     );
   };
 
   it('DataViewerMenu: render', () => {
-    const result = buildMenu({}, {});
+    const result = buildMenu();
     expect(result.find('ul li span.toggler-action').last().text()).toBe('Shutdown');
   });
 
@@ -78,25 +80,25 @@ describe('DataViewerMenu tests', () => {
     expect(
       result
         .find('ul li span.toggler-action')
-        .findWhere((b) => _.includes(b.text(), 'Instances'))
+        .findWhere((b) => b.text().includes('Instances'))
         .first()
         .text(),
     ).toBe('Instances 1');
   });
 
   it('DataViewerMenu: processes == 2', () => {
-    const result = buildMenu({ hideShutdown: 'True', processes: 2 });
+    const result = buildMenu({ hideShutdown: 'True', processes: '2' });
     expect(
       result
         .find('ul li span.toggler-action')
-        .findWhere((b) => _.includes(b.text(), 'Instances'))
+        .findWhere((b) => b.text().includes('Instances'))
         .first()
         .text(),
     ).toBe('Instances 2');
   });
 
   it('opens side panel', () => {
-    const result = buildMenu({}, { predefinedFilters: PREDEFINED_FILTERS });
+    const result = buildMenu({ predefinedFilters: PREDEFINED_FILTERS });
     result.find(MissingOption).props().open();
     expect(store.getState().sidePanel.view).toBe('missingno');
     result.find(GageRnROption).props().open();
@@ -114,13 +116,13 @@ describe('DataViewerMenu tests', () => {
   });
 
   it('calls window.open', () => {
-    const result = buildMenu({});
+    const result = buildMenu();
     result.find(MergeOption).props().open();
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
   });
 
   it('updates languages', async () => {
-    const result = buildMenu({});
+    const result = buildMenu();
     await result.find(LanguageOption).find('button').last().simulate('click');
     await tickUpdate(result);
     expect(updateLanguageSpy.mock.calls[0][0]).toBe('cn');
@@ -128,35 +130,40 @@ describe('DataViewerMenu tests', () => {
   });
 
   describe('iframe handling', () => {
-    const { resourceBaseUrl, self, top } = window;
-    let iframeWrapper;
+    const { self, top } = window;
+    const resourceBaseUrl = (window as any).resourceBaseUrl;
+    let iframeWrapper: ReactWrapper;
 
     beforeAll(() => {
-      delete window.top;
-      delete window.self;
-      delete window.resourceBaseUrl;
-      window.top = { location: { href: 'http://test.com' } };
-      window.self = { location: { href: 'http://test/dtale/iframe' } };
+      delete (window as any).top;
+      delete (window as any).self;
+      delete (window as any).resourceBaseUrl;
+      (window as any).top = { location: { href: 'http://test.com' } };
+      (window as any).self = { location: { href: 'http://test/dtale/iframe' } };
     });
 
     beforeEach(() => {
-      iframeWrapper = buildMenu({ iframe: true });
+      iframeWrapper = buildMenu({ iframe: 'True' });
     });
 
     afterAll(() => {
       window.top = top;
       window.self = self;
-      window.resourceBaseUrl = resourceBaseUrl;
+      (window as any).resourceBaseUrl = resourceBaseUrl;
     });
 
     it('correctly opens new windows', () => {
-      window.resourceBaseUrl = '/test-route/';
+      (window as any).resourceBaseUrl = '/test-route/';
       iframeWrapper.find(DescribeOption).simulate('click');
-      expect(window.open.mock.calls[0][0]).toBe('/test-route/dtale/popup/describe/1');
+      expect(openSpy).toHaveBeenLastCalledWith('/test-route/dtale/popup/describe/1', '_blank');
       iframeWrapper.find(ChartsOption).simulate('click');
-      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/test-route/dtale/charts/1');
+      expect(openSpy).toHaveBeenLastCalledWith('/test-route/dtale/charts/1', '_blank');
       iframeWrapper.find(InstancesOption).simulate('click');
-      expect(window.open.mock.calls[window.open.mock.calls.length - 1][0]).toBe('/test-route/dtale/popup/instances/1');
+      expect(openSpy).toHaveBeenLastCalledWith(
+        '/test-route/dtale/popup/instances/1',
+        '_blank',
+        'titlebar=1,location=1,status=1,width=750,height=450',
+      );
     });
   });
 });

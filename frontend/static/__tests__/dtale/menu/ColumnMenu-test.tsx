@@ -10,7 +10,7 @@ import * as columnMenuUtils from '../../../dtale/column/columnMenuUtils';
 import * as serverState from '../../../dtale/serverStateManagement';
 import { ActionType } from '../../../redux/actions/AppActions';
 import * as actions from '../../../redux/actions/dtale';
-import { AppState } from '../../../redux/state/AppState';
+import { AppState, SidePanelType } from '../../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../../repository/ColumnFilterRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
@@ -107,7 +107,7 @@ describe('DescribePanel', () => {
     wrapper = wrapper.update();
     expect(dispatchSpy).toHaveBeenCalledWith({
       type: ActionType.SHOW_SIDE_PANEL,
-      view: 'describe',
+      view: SidePanelType.DESCRIBE,
       column: props.selectedCol,
     });
   });

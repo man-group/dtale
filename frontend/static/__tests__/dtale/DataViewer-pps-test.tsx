@@ -6,7 +6,8 @@ import * as redux from 'react-redux';
 
 import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
 jest.mock('../../dtale/side/SidePanelButtons', () => ({
-  SidePanelButtons: createMockComponent(),
+  __esModule: true,
+  default: createMockComponent(),
 }));
 
 import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';

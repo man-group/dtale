@@ -1,31 +1,34 @@
-import { shallow, ShallowWrapper } from 'enzyme';
+import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
+import * as redux from 'react-redux';
 
 import { VoidFunc } from '../../../dtale/menu/dataViewerMenuUtils';
-import ExportOption from '../../../dtale/menu/ExportOption';
+import ExportOption, { ExportType } from '../../../dtale/menu/ExportOption';
 
 describe('ExportOption', () => {
-  let wrapper: ShallowWrapper;
+  let wrapper: ReactWrapper;
   let openCsvMock: jest.Mock<() => void>;
   let openTsvMock: jest.Mock<() => void>;
   let openParquetMock: jest.Mock<() => void>;
 
   beforeEach(() => {
+    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
+    useDispatchSpy.mockReturnValue(jest.fn());
     openCsvMock = jest.fn();
     openTsvMock = jest.fn();
     openParquetMock = jest.fn();
-    const open = (exportType: string): VoidFunc => {
+    const open = (exportType: ExportType): VoidFunc => {
       switch (exportType) {
-        case 'csv':
+        case ExportType.CSV:
           return openCsvMock;
-        case 'tsv':
+        case ExportType.TSV:
           return openTsvMock;
-        case 'parquet':
+        case ExportType.PARQUET:
         default:
           return openParquetMock;
       }
     };
-    wrapper = shallow(<ExportOption open={open} />);
+    wrapper = mount(<ExportOption open={open} />);
   });
 
   it('fires CSV export action', () => {

@@ -49,3 +49,23 @@ export async function cleanupInstances(dataIds: string[]): Promise<GenericReposi
 export async function cleanupInstance(dataId: string): Promise<GenericRepository.BaseResponse | undefined> {
   return await cleanupInstances([dataId]);
 }
+
+/** Data instance information */
+export interface ProcessKey {
+  id: string;
+  name?: string;
+}
+
+/** Axios response for process keys */
+interface ProcessKeysResponse extends GenericRepository.BaseResponse {
+  data: ProcessKey[];
+}
+
+/**
+ * Load identifiers for all the instances that are currently loaded into D-Tale.
+ *
+ * @return process keys.
+ */
+export async function loadProcessKeys(): Promise<ProcessKeysResponse | undefined> {
+  return await GenericRepository.getDataFromService<ProcessKeysResponse>('/dtale/process-keys');
+}

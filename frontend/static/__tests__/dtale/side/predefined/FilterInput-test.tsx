@@ -1,39 +1,47 @@
-import { shallow } from 'enzyme';
-import React from 'react';
+import { shallow, ShallowWrapper } from 'enzyme';
+import * as React from 'react';
 
 import ButtonToggle from '../../../../ButtonToggle';
-import FilterInput from '../../../../dtale/side/predefined_filters/FilterInput';
-import * as fetcher from '../../../../fetcher';
+import { default as FilterInput, FilterInputProps } from '../../../../dtale/side/predefined_filters/FilterInput';
 import ValueSelect from '../../../../filters/ValueSelect';
+import { PredefinedFilter, PredfinedFilterInputType } from '../../../../redux/state/AppState';
+import * as ColumnFilterRepository from '../../../../repository/ColumnFilterRepository';
 import reduxUtils from '../../../redux-test-utils';
+import { tick } from '../../../test-utils';
 
 describe('FilterInput', () => {
-  let wrapper, props, fetchJsonSpy;
-  const inputFilter = {
+  let wrapper: ShallowWrapper;
+  let props: FilterInputProps;
+  let loadFilterDataSpy: jest.SpyInstance;
+
+  const inputFilter: PredefinedFilter = {
     name: 'custom_foo1',
     description: 'custom_foo1 description',
     column: 'col1',
-    inputType: 'input',
+    inputType: PredfinedFilterInputType.INPUT,
+    active: false,
   };
-  const selectFilter = {
+  const selectFilter: PredefinedFilter = {
     name: 'custom_foo2',
     description: 'custom_foo2 description',
     column: 'col1',
-    inputType: 'select',
+    inputType: PredfinedFilterInputType.SELECT,
+    active: false,
   };
-  const multiselectFilter = {
+  const multiselectFilter: PredefinedFilter = {
     name: 'custom_foo3',
     description: 'custom_foo3 description',
     column: 'col1',
-    inputType: 'multiselect',
+    inputType: PredfinedFilterInputType.MULTISELECT,
+    active: false,
   };
 
   beforeEach(() => {
-    fetchJsonSpy = jest.spyOn(fetcher, 'fetchJson');
+    loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
     props = {
       dataId: '1',
       filter: inputFilter,
-      value: { value: 1, active: true },
+      value: { value: '1', active: true },
       columns: reduxUtils.DTYPES.dtypes,
       save: jest.fn(),
     };
@@ -46,33 +54,31 @@ describe('FilterInput', () => {
 
   it('handle input-style filters', () => {
     wrapper.find('button').simulate('click');
-    expect(wrapper.state().edit).toBe(true);
+    expect(wrapper.find('input')).toHaveLength(1);
     wrapper.find('button').first().simulate('click');
-    expect(wrapper.state().edit).toBe(false);
+    expect(wrapper.find('input')).toHaveLength(0);
     wrapper.find('button').simulate('click');
-    expect(wrapper.state().edit).toBe(true);
     expect(wrapper.find('input')).toHaveLength(1);
     wrapper.find('input').simulate('change', { target: { value: '2' } });
     wrapper.find('button').last().simulate('click');
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 2, true);
-    expect(fetchJsonSpy).not.toHaveBeenCalled();
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '2', true);
+    expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
 
   it('handles enabling/disabling filters', () => {
-    wrapper.find(ButtonToggle).props().update('false');
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 1, false);
-    wrapper.find(ButtonToggle).props().update('true');
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 1, true);
+    wrapper.find(ButtonToggle).props().update(false);
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '1', false);
+    wrapper.find(ButtonToggle).props().update(true);
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '1', true);
   });
 
   it('handle input-style filter parsing error', () => {
     wrapper.find('button').simulate('click');
-    expect(wrapper.state().edit).toBe(true);
     expect(wrapper.find('input')).toHaveLength(1);
     wrapper.find('input').simulate('change', { target: { value: 'a' } });
     wrapper.find('button').last().simulate('click');
     expect(props.save).not.toHaveBeenCalled();
-    expect(wrapper.state().errors).toEqual(['Invalid integer, a!']);
+    expect(wrapper.find('li').map((li) => li.text())).toEqual(['Invalid integer, a!']);
   });
 
   it('handle input-style float filter', () => {
@@ -84,12 +90,12 @@ describe('FilterInput', () => {
     wrapper.find('input').simulate('change', { target: { value: 'a' } });
     wrapper.find('button').last().simulate('click');
     expect(props.save).not.toHaveBeenCalled();
-    expect(wrapper.state().errors).toEqual(['Invalid float, a!']);
+    expect(wrapper.find('li').map((li) => li.text())).toEqual(['Invalid float, a!']);
 
     wrapper.find('input').simulate('change', { target: { value: '1.1' } });
     wrapper.find('button').last().simulate('click');
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 1.1, true);
-    expect(fetchJsonSpy).not.toHaveBeenCalled();
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '1.1', true);
+    expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
 
   it('handle input-style string filter', () => {
@@ -100,45 +106,37 @@ describe('FilterInput', () => {
     wrapper.find('input').simulate('change', { target: { value: 'a' } });
     wrapper.find('button').last().simulate('click');
     expect(props.save).toHaveBeenCalledWith(inputFilter.name, 'a', true);
-    expect(fetchJsonSpy).not.toHaveBeenCalled();
+    expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
 
-  it('handle select-style filters', () => {
-    fetchJsonSpy.mockImplementation((_url, callback) => {
-      callback({ uniques: [1, 2, 3], success: true });
-    });
+  it('handle select-style filters', async () => {
+    loadFilterDataSpy.mockResolvedValue({ uniques: [1, 2, 3], success: true });
     wrapper.setProps({
       filter: selectFilter,
       value: { value: 1, active: true },
     });
     wrapper.find('button').simulate('click');
+    await tick();
     expect(wrapper.find(ValueSelect)).toHaveLength(1);
-    wrapper
-      .find(ValueSelect)
-      .props()
-      .updateState({ selected: { value: 2 } });
+    wrapper.find(ValueSelect).props().updateState('2');
     wrapper.find('button').last().simulate('click');
-    expect(props.save).toHaveBeenCalledWith(selectFilter.name, 2, true);
-    expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
-    expect(fetchJsonSpy.mock.calls[0][0]).toBe('/dtale/column-filter-data/1?col=col1');
+    expect(props.save).toHaveBeenCalledWith(selectFilter.name, '2', true);
+    expect(loadFilterDataSpy).toHaveBeenCalledTimes(1);
+    expect(loadFilterDataSpy).toHaveBeenLastCalledWith('1', 'col1');
   });
 
-  it('handle multiselect-style filters', () => {
-    fetchJsonSpy.mockImplementation((_url, callback) => {
-      callback({ uniques: [1, 2, 3], success: true });
-    });
+  it('handle multiselect-style filters', async () => {
+    loadFilterDataSpy.mockResolvedValue({ uniques: [1, 2, 3], success: true });
     wrapper.setProps({
       filter: multiselectFilter,
       value: { value: [1, 2], active: true },
     });
     wrapper.find('button').simulate('click');
+    await tick();
     expect(wrapper.find(ValueSelect)).toHaveLength(1);
-    wrapper
-      .find(ValueSelect)
-      .props()
-      .updateState({ selected: [{ value: 2 }, { value: 3 }] });
+    wrapper.find(ValueSelect).props().updateState(['2', '3']);
     wrapper.find('button').last().simulate('click');
-    expect(props.save).toHaveBeenCalledWith(multiselectFilter.name, [2, 3], true);
-    expect(fetchJsonSpy).toHaveBeenCalledTimes(1);
+    expect(props.save).toHaveBeenCalledWith(multiselectFilter.name, ['2', '3'], true);
+    expect(loadFilterDataSpy).toHaveBeenCalledTimes(1);
   });
 });

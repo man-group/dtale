@@ -6,6 +6,8 @@ import * as bu from '../backgroundUtils';
 import { ColumnDef, ColumnFormatStyle, DataViewerPropagateState, DataViewerState } from '../DataViewerState';
 import { ColumnType } from '../gridUtils';
 
+import { ExportType } from './ExportOption';
+
 /** placholder for simple void function */
 export type VoidFunc = () => void;
 
@@ -118,7 +120,7 @@ interface HotKeyOutput {
   SHUTDOWN: VoidFunc;
   toggleBackground: (bgType: string) => VoidFunc;
   toggleOutlierBackground: VoidFunc;
-  exportFile: (fileType: string) => VoidFunc;
+  exportFile: (exportType: ExportType) => VoidFunc;
 }
 
 export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
@@ -158,9 +160,9 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
     props.propagateState(updatedState);
   };
   const exportFile =
-    (fileType: string): VoidFunc =>
+    (exportType: ExportType): VoidFunc =>
     (): void => {
-      window.open(`${fullPath('/dtale/data-export', dataId)}?type=${fileType}&_id=${new Date().getTime()}`, '_blank');
+      window.open(`${fullPath('/dtale/data-export', dataId)}?type=${exportType}&_id=${new Date().getTime()}`, '_blank');
     };
   return {
     openTab: openPopupTab,

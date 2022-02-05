@@ -8,7 +8,7 @@ import * as serverState from '../../../dtale/serverStateManagement';
 import * as menuUtils from '../../../menuUtils';
 import { ActionType } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
-import { AppState } from '../../../redux/state/AppState';
+import { AppState, SidePanelType } from '../../../redux/state/AppState';
 import { tick } from '../../test-utils';
 
 describe('FilterDisplay', () => {
@@ -132,7 +132,7 @@ describe('FilterDisplay', () => {
     await tick();
     expect(moveFiltersToCustomSpy).toHaveBeenCalledTimes(1);
     expect(updateSettingsActionSpy).toHaveBeenCalledWith({});
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: 'filter' });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.FILTER });
   });
 
   it('inverts filter', async () => {

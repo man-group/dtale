@@ -1,4 +1,3 @@
-// import scrollbarSize from 'dom-helpers/scrollbarSize'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -10,7 +9,7 @@ import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
-import { SidePanelButtons } from '../../dtale/side/SidePanelButtons';
+import SidePanelButtons from '../../dtale/side/SidePanelButtons';
 import { AppState, BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
 import { CorrelationGridRow } from '../../repository/CorrelationsRepository';
 import { sortOptions } from '../analysis/filters/Constants';
@@ -28,9 +27,9 @@ export const buildSort = (col: string, currSort?: SortDef): SortDef | undefined 
   return [col, SortDir.ASC];
 };
 
-export const sortData = (data: CorrelationGridRow[], sort?: SortDef): CorrelationGridRow[] => {
+export const sortData = <T extends { [k: string]: any }>(data: T[], sort?: SortDef): T[] => {
   if (sort) {
-    const sorter = (rowA: CorrelationGridRow, rowB: CorrelationGridRow): number => {
+    const sorter = (rowA: T, rowB: T): number => {
       const a = rowA[sort[0]];
       const b = rowB[sort[0]];
       if (sort[1] === SortDir.ASC) {
@@ -61,7 +60,7 @@ const filterData = (
   data: CorrelationGridRow[],
   sort?: SortDef,
 ): CorrelationGridRow[] => {
-  let updatedData = sortData(data, sort);
+  let updatedData = sortData<CorrelationGridRow>(data, sort);
   if (col1) {
     updatedData = data.filter((row) => row.column === col1.value);
   }

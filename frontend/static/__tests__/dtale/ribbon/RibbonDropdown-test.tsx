@@ -1,9 +1,17 @@
-import { shallow, ShallowWrapper } from 'enzyme';
-import React from 'react';
+import { mount, ReactWrapper } from 'enzyme';
+import * as React from 'react';
+import { act } from 'react-dom/test-utils';
+import * as redux from 'react-redux';
+
+import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
+jest.mock('../../../dtale/menu/MaxDimensionOption', () => ({
+  MaxHeightOption: createMockComponent(),
+  MaxWidthOption: createMockComponent(),
+}));
 
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
-import ExportOption from '../../../dtale/menu/ExportOption';
+import ExportOption, { ExportType } from '../../../dtale/menu/ExportOption';
 import FilterOption from '../../../dtale/menu/FilterOption';
 import { MenuItem } from '../../../dtale/menu/MenuItem';
 import MergeOption from '../../../dtale/menu/MergeOption';
@@ -11,20 +19,22 @@ import MissingOption from '../../../dtale/menu/MissingOption';
 import PPSOption from '../../../dtale/menu/PPSOption';
 import PredefinedFiltersOption from '../../../dtale/menu/PredefinedFiltersOption';
 import ShowHideColumnsOption from '../../../dtale/menu/ShowHideColumnsOption';
-import { DataMenuItem } from '../../../dtale/ribbon/DataMenuItem';
-import { ReactRibbonDropdown } from '../../../dtale/ribbon/RibbonDropdown';
-import * as fetcher from '../../../fetcher';
+import DataMenuItem from '../../../dtale/ribbon/DataMenuItem';
+import RibbonDropdown, { RibbonDropdownProps } from '../../../dtale/ribbon/RibbonDropdown';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { RibbonDropdownType, SidePanelType } from '../../../redux/state/AppState';
 import * as InstanceRepository from '../../../repository/InstanceRepository';
 import DimensionsHelper from '../../DimensionsHelper';
-import { tick, tickUpdate } from '../../test-utils';
+import { tickUpdate } from '../../test-utils';
 
 describe('RibbonDropdown', () => {
-  let wrapper: ShallowWrapper;
-  let props: any;
-  let fetchJsonPromiseSpy: jest.SpyInstance;
+  let wrapper: ReactWrapper;
+  let props: RibbonDropdownProps;
+  let useSelectorSpy: jest.SpyInstance;
   let cleanupSpy: jest.SpyInstance;
   const processes = [{ id: '2', name: 'foo' }, { id: '3' }];
   const { location, open } = window;
+  const dispatchSpy = jest.fn();
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -32,41 +42,41 @@ describe('RibbonDropdown', () => {
     innerHeight: 500,
   });
 
-  const setupElementAndDropdown = async (name: string, dims?: Partial<DOMRect>): Promise<void> => {
-    const element = document.createElement('div');
-    const rectSpy = jest.spyOn(element, 'getBoundingClientRect');
+  const setupElementAndDropdown = async (name: RibbonDropdownType, dims?: Partial<DOMRect>): Promise<void> => {
+    const rectSpy = jest.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect');
     rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect));
-    (wrapper.instance() as any).ref = { current: element };
-    wrapper.setProps({ visible: true, name, element });
-    await tick();
+    useSelectorSpy.mockReturnValue({
+      dataId: '1',
+      name,
+      element: { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect) },
+    });
+    wrapper = mount(<RibbonDropdown {...{ ...props, visible: true }} />);
+    await act(async () => await tickUpdate(wrapper));
+    wrapper = wrapper.update();
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     dimensions.beforeAll();
     delete (window as any).location;
     delete (window as any).open;
     window.open = jest.fn();
     (window as any).location = { reload: jest.fn() };
+    useSelectorSpy = jest.spyOn(redux, 'useSelector');
+    useSelectorSpy.mockReturnValue({ dataId: '1' });
+    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
+    useDispatchSpy.mockReturnValue(dispatchSpy);
     cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
     cleanupSpy.mockResolvedValue({ success: true });
-    fetchJsonPromiseSpy = jest.spyOn(fetcher, 'fetchJsonPromise');
-    fetchJsonPromiseSpy.mockImplementation(() => Promise.resolve({ data: processes }));
+    const loadProcessKeysSpy = jest.spyOn(InstanceRepository, 'loadProcessKeys');
+    loadProcessKeysSpy.mockResolvedValue({ data: processes, success: true });
     props = {
       visible: false,
-      name: undefined,
-      element: undefined,
-      hideRibbonMenu: jest.fn(),
       columns: [],
       propagateState: jest.fn(),
-      openChart: jest.fn(),
-      showSidePanel: jest.fn(),
-      dataId: '1',
     };
-    wrapper = shallow(<ReactRibbonDropdown {...props} />);
-    await tickUpdate(wrapper);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(jest.resetAllMocks);
 
   afterAll(() => {
     dimensions.afterAll();
@@ -75,7 +85,10 @@ describe('RibbonDropdown', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders successfully', () => {
+  it('renders successfully', async () => {
+    wrapper = mount(<RibbonDropdown {...props} />);
+    await act(async () => await tickUpdate(wrapper));
+    wrapper = wrapper.update();
     expect(wrapper.find('div')).toHaveLength(1);
   });
 
@@ -90,67 +103,88 @@ describe('RibbonDropdown', () => {
   });
 
   it('renders main successfully', async () => {
-    await setupElementAndDropdown('main');
-    expect((wrapper.state() as any).processes).toBe(processes);
-    expect((wrapper.state() as any).processLoad).toBeDefined();
-    expect(wrapper.find('div').props().style).toEqual({ left: 5, top: 30 });
-    expect(wrapper.find(DataMenuItem)).toHaveLength(2);
-    wrapper.setProps({ visible: false, name: null, element: null });
-    await tick();
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    expect(wrapper.find(DataMenuItem)).toHaveLength(processes.length);
+    expect(wrapper.find('div').first().props().style).toEqual({ left: 5, top: 30 });
+    useSelectorSpy.mockReturnValue({ dataId: '1', name: undefined, element: undefined });
+    wrapper.setProps({ visible: false });
+    await act(async () => await tickUpdate(wrapper));
+    wrapper = wrapper.update();
     expect(wrapper.find('div').props().style).toEqual({});
   });
 
   it('handles screen edge successfully', async () => {
-    await setupElementAndDropdown('main', { left: 450, width: 100 });
-    expect(wrapper.find('div').props().style).toEqual({ left: 380, top: 30 });
+    await setupElementAndDropdown(RibbonDropdownType.MAIN, { left: 450, width: 100 });
+    expect(wrapper.find('div').first().props().style).toEqual({ left: 380, top: 30 });
   });
 
   it('can clear current data', async () => {
-    await setupElementAndDropdown('main');
-    wrapper.find(MenuItem).first().props().onClick();
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    await act(async () => {
+      wrapper.find(MenuItem).at(5).props().onClick();
+    });
     expect(cleanupSpy).toBeCalledWith('1');
     expect(window.location.reload).toHaveBeenCalledTimes(1);
   });
 
   it('can clear other data', async () => {
-    await setupElementAndDropdown('main');
-    await wrapper.find(DataMenuItem).first().props().cleanup('2');
-    await tickUpdate(wrapper);
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    await act(async () => {
+      wrapper.find(DataMenuItem).first().props().cleanup('2');
+    });
+    wrapper = wrapper.update();
     expect(cleanupSpy).toBeCalledWith('2');
-    expect((wrapper.state() as any).processes).toEqual([{ id: '3' }]);
+    expect(wrapper.find(DataMenuItem)).toHaveLength(0);
   });
 
   it('renders actions successfully', async () => {
-    await setupElementAndDropdown('actions');
+    await setupElementAndDropdown(RibbonDropdownType.ACTIONS);
     expect(wrapper.find('ul')).toHaveLength(1);
-    wrapper.find(ShowHideColumnsOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('show_hide');
-    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
-    wrapper.find(FilterOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('filter');
-    wrapper.find(PredefinedFiltersOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('predefined_filters');
+    await act(async () => {
+      wrapper.find(ShowHideColumnsOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.SHOW_HIDE });
+    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    await act(async () => {
+      wrapper.find(FilterOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.FILTER });
+    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    await act(async () => {
+      wrapper.find(PredefinedFiltersOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({
+      type: ActionType.SHOW_SIDE_PANEL,
+      view: SidePanelType.PREDEFINED_FILTERS,
+    });
   });
 
   it('renders visualize successfully', async () => {
-    await setupElementAndDropdown('visualize');
+    await setupElementAndDropdown(RibbonDropdownType.VISUALIZE);
     expect(wrapper.find('ul')).toHaveLength(1);
-    wrapper.find(MissingOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('missingno');
-    wrapper.find(CorrelationsOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('correlations');
-    wrapper.find(PPSOption).props().open();
-    expect(props.showSidePanel).toHaveBeenLastCalledWith('pps');
-    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      wrapper.find(MissingOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.MISSINGNO });
+    await act(async () => {
+      wrapper.find(CorrelationsOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.CORRELATIONS });
+    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    await act(async () => {
+      wrapper.find(PPSOption).props().open();
+    });
+    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.PPS });
+    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(3);
   });
 
   it('renders highlight successfully', async () => {
-    await setupElementAndDropdown('highlight');
+    await setupElementAndDropdown(RibbonDropdownType.HIGHLIGHT);
     expect(wrapper.find('ul')).toHaveLength(1);
   });
 
   it('renders settings successfully', async () => {
-    await setupElementAndDropdown('settings');
+    await setupElementAndDropdown(RibbonDropdownType.SETTINGS);
     expect(wrapper.find('ul')).toHaveLength(1);
   });
 
@@ -176,15 +210,17 @@ describe('RibbonDropdown', () => {
       ABOUT: jest.fn(),
       LOGOUT: jest.fn(),
     }));
-    wrapper = shallow(<ReactRibbonDropdown {...props} />);
-    await tickUpdate(wrapper);
-    await setupElementAndDropdown('main');
-    wrapper.find(ExportOption).props().open('tsv')();
-    expect(exportFile).toHaveBeenCalledWith('tsv');
-    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(1);
-    await setupElementAndDropdown('actions');
-    wrapper.find(MergeOption).props().open();
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    await act(async () => {
+      wrapper.find(ExportOption).props().open(ExportType.TSV)();
+    });
+    expect(exportFile).toHaveBeenCalledWith(ExportType.TSV);
+    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    await setupElementAndDropdown(RibbonDropdownType.ACTIONS);
+    await act(async () => {
+      wrapper.find(MergeOption).props().open();
+    });
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
-    expect(props.hideRibbonMenu).toHaveBeenCalledTimes(2);
+    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(2);
   });
 });
