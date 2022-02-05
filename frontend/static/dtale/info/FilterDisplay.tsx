@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { AppState, InstanceSettings, SidePanelType } from '../../redux/state/AppState';
 import { truncate } from '../../stringUtils';
 import { ColumnFilter, OutlierFilter } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -70,7 +70,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
     dispatch(settingsActions.updateSettings(updatedSettings));
-  const showSidePanel = (view: string): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
+  const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
   const filterRef = React.useRef<HTMLDivElement>(null);
 
   const dropFilter =
@@ -148,7 +148,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     const response = await serverState.moveFiltersToCustom(dataId);
     if (response?.settings) {
       updateSettings(response.settings);
-      showSidePanel('filter');
+      showSidePanel(SidePanelType.FILTER);
     }
   };
   const allButtons = (

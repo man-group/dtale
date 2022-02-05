@@ -14,11 +14,6 @@ import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../test-utils';
 
-const toggleFilterMenu = async (result: ReactWrapper): Promise<ReactWrapper> => {
-  result = await clickMainMenuButton(result, 'Custom Filter');
-  return result.update();
-};
-
 describe('FilterPanel', () => {
   let result: ReactWrapper;
   let store: Store;
@@ -53,6 +48,10 @@ describe('FilterPanel', () => {
     jest.restoreAllMocks();
   });
 
+  const toggleFilterMenu = async (): Promise<void> => {
+    result = await clickMainMenuButton(result, 'Custom Filter');
+  };
+
   const buildResult = async (dataId = '1'): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', dataId }, store);
@@ -66,10 +65,10 @@ describe('FilterPanel', () => {
     );
     await act(async () => await tickUpdate(result));
     result = result.update();
-    result = await toggleFilterMenu(result);
+    await toggleFilterMenu();
   };
 
-  const clickFilterBtn = async (text: string): Promise<ReactWrapper> => {
+  const clickFilterBtn = async (text: string): Promise<void> => {
     await act(async () => {
       result
         .find(FilterPanel)
@@ -79,56 +78,64 @@ describe('FilterPanel', () => {
         .first()
         .simulate('click');
     });
-    return result.update();
+    result = result.update();
   };
 
   it('DataViewer: filtering', async () => {
     await buildResult();
     expect(result.find(FilterPanel).length).toBe(1);
-    result = await clickFilterBtn('Close');
+    await clickFilterBtn('Close');
     result.update();
     expect(result.find(FilterPanel).length).toBe(0);
-    await toggleFilterMenu(result);
-    result = await clickFilterBtn('Clear');
+    await toggleFilterMenu();
+    await clickFilterBtn('Clear');
     expect(result.find(FilterPanel).length).toBe(0);
-    await toggleFilterMenu(result);
-    result
-      .find(FilterPanel)
-      .find('button')
-      .findWhere((btn) => btn.text() === 'numexpr')
-      .first()
-      .simulate('click');
-    await tickUpdate(result);
+    await toggleFilterMenu();
+    await act(async () => {
+      result
+        .find(FilterPanel)
+        .find('button')
+        .findWhere((btn) => btn.text() === 'numexpr')
+        .first()
+        .simulate('click');
+    });
+    result = result.update();
     expect(store.getState().queryEngine).toBe('numexpr');
-    result
-      .find(FilterPanel)
-      .first()
-      .find('textarea')
-      .simulate('change', { target: { value: 'test' } });
-    result.update();
-    clickFilterBtn('Apply');
-    await tickUpdate(result);
+    await act(async () => {
+      result
+        .find(FilterPanel)
+        .first()
+        .find('textarea')
+        .simulate('change', { target: { value: 'test' } });
+    });
+    result = result.update();
+    await clickFilterBtn('Apply');
     expect(result.find(DataViewerInfo).first().text()).toBe('Filter:test');
-    result.find(DataViewerInfo).first().find('i.ico-cancel').last().simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      result.find(DataViewerInfo).first().find('i.ico-cancel').last().simulate('click');
+    });
+    result = result.update();
     expect(result.find(DataViewerInfo).find('div.data-viewer-info.is-expanded').length).toBe(0);
   });
 
   it('DataViewer: filtering with errors & documentation', async () => {
     await buildResult();
-    result
-      .find(FilterPanel)
-      .first()
-      .find('textarea')
-      .simulate('change', { target: { value: 'error' } });
-    result.update();
-    clickFilterBtn('Apply');
-    await tickUpdate(result);
+    await act(async () => {
+      result
+        .find(FilterPanel)
+        .first()
+        .find('textarea')
+        .simulate('change', { target: { value: 'error' } });
+    });
+    result = result.update();
+    await clickFilterBtn('Apply');
     expect(result.find(RemovableError).find('div.dtale-alert').text()).toBe('No data found');
-    result.find(FilterPanel).find(RemovableError).first().props().onRemove();
-    result.update();
+    await act(async () => {
+      result.find(FilterPanel).find(RemovableError).first().props().onRemove();
+    });
+    result = result.update();
     expect(result.find(FilterPanel).find('div.dtale-alert').length).toBe(0);
-    clickFilterBtn('Help');
+    await clickFilterBtn('Help');
     const pandasURL = 'https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query';
     expect(openFn.mock.calls[openFn.mock.calls.length - 1][0]).toBe(pandasURL);
   });
@@ -147,8 +154,6 @@ describe('FilterPanel', () => {
     await act(async () => {
       columnFilters().find('i.ico-cancel').first().simulate('click');
     });
-    result = result.update();
-    await act(async () => await tickUpdate(result));
     result = result.update();
     expect(columnFilters()).toHaveLength(0);
   });

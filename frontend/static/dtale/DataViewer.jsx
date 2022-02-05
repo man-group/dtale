@@ -21,8 +21,8 @@ import * as gu from './gridUtils';
 import DataViewerInfo from './info/DataViewerInfo';
 import DataViewerMenu from './menu/DataViewerMenu';
 import * as reduxUtils from './reduxGridUtils';
-import { RibbonDropdown } from './ribbon/RibbonDropdown';
-import { RibbonMenu } from './ribbon/RibbonMenu';
+import RibbonDropdown from './ribbon/RibbonDropdown';
+import RibbonMenu from './ribbon/RibbonMenu';
 import EditedCellInfo from './edited/EditedCellInfo';
 
 require('./DataViewer.css');

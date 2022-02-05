@@ -1,7 +1,7 @@
 import { ActionType, AppActionTypes } from '../../actions/AppActions';
 import {
   BASE_INSTANCE_SETTINGS,
-  DataViewerUpdateProps,
+  DataViewerUpdate,
   FilteredRanges,
   initialVisibility,
   InstanceSettings,
@@ -336,9 +336,9 @@ export function sidePanel(state: SidePanelProps = initialVisibility, action: App
  * @return the updated dataViewerUpdate.
  */
 export function dataViewerUpdate(
-  state: DataViewerUpdateProps | null = null,
+  state: DataViewerUpdate | null = null,
   action: AppActionTypes,
-): DataViewerUpdateProps | null {
+): DataViewerUpdate | null {
   switch (action.type) {
     case ActionType.DATA_VIEWER_UPDATE:
       return action.update;

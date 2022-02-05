@@ -9,7 +9,7 @@ import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/App
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
-import { AppState, Popups, PopupType } from '../../redux/state/AppState';
+import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
@@ -46,7 +46,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
   const hideColumnMenu = (colName: string): AppActions<void> => dispatch(actions.hideColumnMenu(colName));
-  const showSidePanel = (column: string, view: string): SidePanelAction =>
+  const showSidePanel = (column: string, view: SidePanelType): SidePanelAction =>
     dispatch({ type: ActionType.SHOW_SIDE_PANEL, view, column });
 
   const divRef = React.useRef<HTMLDivElement>(null);
@@ -88,7 +88,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     if (window.innerWidth < 800) {
       window.open(buildURLString(menuFuncs.fullPath('/dtale/popup/describe', dataId), { selectedCol }), '_blank');
     } else {
-      showSidePanel(selectedCol, 'describe');
+      showSidePanel(selectedCol, SidePanelType.DESCRIBE);
     }
   };
   const openFormatting = (): void => propagateState({ formattingOpen: true, selectedCols: [selectedCol] });

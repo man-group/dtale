@@ -8,7 +8,8 @@ import { MultiGrid } from 'react-virtualized';
 
 import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
 jest.mock('../../../dtale/side/SidePanelButtons', () => ({
-  SidePanelButtons: createMockComponent(),
+  __esModule: true,
+  default: createMockComponent(),
 }));
 
 import ChartsBody from '../../../popups/charts/ChartsBody';

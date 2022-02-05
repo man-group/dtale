@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
-import { SidePanelButtons } from '../../dtale/side/SidePanelButtons';
+import SidePanelButtons from '../../dtale/side/SidePanelButtons';
 import { ActionType, AppActions, HideSidePanelAction } from '../../redux/actions/AppActions';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';

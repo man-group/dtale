@@ -6,6 +6,7 @@ import {
   ColumnFilter,
   ColumnFormat,
   DataViewerPropagateState,
+  DataViewerState,
   OutlierFilter,
 } from '../../dtale/DataViewerState';
 
@@ -39,15 +40,38 @@ export interface MenuTooltipProps extends HasVisibility {
   content?: React.ReactNode;
 }
 
+/** Ribbon dropdown types */
+export enum RibbonDropdownType {
+  MAIN = 'main',
+  ACTIONS = 'actions',
+  VISUALIZE = 'visualize',
+  HIGHLIGHT = 'highlight',
+  SETTINGS = 'settings',
+}
+
 /** Properties of a ribbon menu dropdown */
 export interface RibbonDropdownProps extends HasVisibility {
   element?: HTMLDivElement;
-  name?: string;
+  name?: RibbonDropdownType;
+}
+
+/** Side panel types */
+export enum SidePanelType {
+  SHOW_HIDE = 'show_hide',
+  DESCRIBE = 'describe',
+  MISSINGNO = 'missingno',
+  CORR_ANALYSIS = 'corr_analysis',
+  CORRELATIONS = 'correlations',
+  PPS = 'pps',
+  FILTER = 'filter',
+  PREDEFINED_FILTERS = 'predefined_filters',
+  GAGE_RNR = 'gage_rnr',
+  TIMESERIES_ANALYSIS = 'timeseries_analysis',
 }
 
 /** Properties of the current side panel */
 export interface SidePanelProps extends HasVisibility {
-  view?: string;
+  view?: SidePanelType;
   column?: string;
   offset?: number;
 }
@@ -58,15 +82,45 @@ export enum DataViewerUpdateType {
   UPDATE_MAX_WIDTH = 'update-max-width',
   UPDATE_MAX_HEIGHT = 'update-max-height',
   DROP_COLUMNS = 'drop-columns',
+  UPDATE_STATE = 'update-state',
 }
 
-/** Properties of a data viewer update */
-export interface DataViewerUpdateProps {
-  type: DataViewerUpdateType;
-  width?: number;
-  height?: number;
-  columns?: string[];
+/** Base properties for a DataViewer update */
+interface BaseDataViewerUpdateProps<T extends DataViewerUpdateType> {
+  type: T;
 }
+
+/** Toggle columns DataViewer update */
+export interface ToggleColumnsDataViewerUpdate extends BaseDataViewerUpdateProps<DataViewerUpdateType.TOGGLE_COLUMNS> {
+  columns: Record<string, boolean>;
+}
+
+/** Update maximum width DataViewer update */
+export interface UpdateMaxWidthDataViewerUpdate
+  extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_WIDTH> {
+  width: number;
+}
+
+/** Update maximum row height DataViewer update */
+export type UpdateMaxHeightDataViewerUpdate = BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_HEIGHT>;
+
+/** Drop columns DataViewer update */
+export interface DropColumnsDataViewerUpdate extends BaseDataViewerUpdateProps<DataViewerUpdateType.DROP_COLUMNS> {
+  columns: string[];
+}
+
+/** Update state DataViewer update */
+export interface UpdateStateDataViewerUpdate extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_STATE> {
+  state: DataViewerState;
+}
+
+/** DataViewer updates */
+export type DataViewerUpdate =
+  | ToggleColumnsDataViewerUpdate
+  | UpdateMaxWidthDataViewerUpdate
+  | UpdateMaxHeightDataViewerUpdate
+  | DropColumnsDataViewerUpdate
+  | UpdateStateDataViewerUpdate;
 
 /** Popup type names */
 export enum PopupType {
@@ -359,12 +413,19 @@ export interface FilteredRanges {
   overall?: Bounds;
 }
 
+/** Predefined filter types */
+export enum PredfinedFilterInputType {
+  INPUT = 'input',
+  SELECT = 'select',
+  MULTISELECT = 'multiselect',
+}
+
 /** Predefined filter properties */
 export interface PredefinedFilter extends HasActivation {
   column: string;
-  default: string | number;
+  default?: string | number;
   description?: string;
-  inputType: 'input' | 'select' | 'multiselect';
+  inputType: PredfinedFilterInputType;
   name: string;
 }
 
@@ -406,7 +467,7 @@ export interface AppState extends AppSettings {
   ribbonMenuOpen: boolean;
   ribbonDropdown: RibbonDropdownProps;
   sidePanel: SidePanelProps;
-  dataViewerUpdate: DataViewerUpdateProps | null;
+  dataViewerUpdate: DataViewerUpdate | null;
   predefinedFilters: PredefinedFilter[];
   dragResize: number | null;
   auth: boolean;

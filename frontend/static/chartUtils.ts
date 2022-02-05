@@ -27,7 +27,6 @@ import {
 } from 'chart.js';
 import Zoom from 'chartjs-plugin-zoom';
 import chroma from 'chroma-js';
-import _ from 'lodash';
 import moment from 'moment';
 import Plotly from 'plotly.js-geo-dist-min';
 
@@ -449,7 +448,7 @@ function createBaseCfg(
 export function createLineCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<ChartConfiguration> {
   const { data, min, max } = dataSpec;
   const { x, y, additionalOptions, configHandler } = propSpec;
-  const seriesCt = _.size(data) * _.size(y);
+  const seriesCt = Object.keys(data ?? {}).length * y.length;
   const colors = COLOR_SCALE.domain([0, seriesCt]);
   const seriesFormatter = (
     k: string,
@@ -527,7 +526,7 @@ export function createPieCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<Ch
   delete cfg.options?.plugins?.tooltip;
   if (gu.isDateCol((propSpec.columns ?? []).find(({ name }) => name === propSpec.x)?.dtype)) {
     if (cfg.data?.labels) {
-      cfg.data.labels = _.map(cfg.data.labels, (l: string) => moment(new Date(l)).format('YYYY-MM-DD'));
+      cfg.data.labels = cfg.data.labels.map((l) => moment(new Date(l as string)).format('YYYY-MM-DD'));
     }
   }
   return propSpec.configHandler?.(cfg) ?? cfg;

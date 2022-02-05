@@ -3,11 +3,13 @@ import { ThunkAction } from 'redux-thunk';
 
 import {
   AppState,
-  DataViewerUpdateProps,
+  DataViewerUpdate,
   FilteredRanges,
   InstanceSettings,
   Popups,
   QueryEngine,
+  RibbonDropdownType,
+  SidePanelType,
   ThemeType,
 } from '../state/AppState';
 
@@ -137,20 +139,20 @@ export interface ShowMenuTooltipAction extends Action<typeof ActionType.SHOW_MEN
 /** Action fired when opening a ribbon dropdown */
 export interface OpenRibbonDropdownAction extends Action<typeof ActionType.OPEN_RIBBON_DROPDOWN> {
   element: HTMLDivElement;
-  name: string;
+  name: RibbonDropdownType;
 }
 
 /** Action fired when showing or updating the width of the side panel */
 export interface SidePanelAction
   extends Action<typeof ActionType.SHOW_SIDE_PANEL | ActionType.UPDATE_SIDE_PANEL_WIDTH> {
-  view?: string;
+  view?: SidePanelType;
   column?: string;
   offset?: number;
 }
 
 /** Action fired when executing a data viewer update */
 export interface DataViewerUpdateAction extends Action<typeof ActionType.DATA_VIEWER_UPDATE> {
-  update: DataViewerUpdateProps;
+  update: DataViewerUpdate;
 }
 
 /** Action fired when dragging/resizing a column */

@@ -63,8 +63,3 @@ export const cleanupEndpoint = (endpoint: string): string => {
   }
   return endpoint;
 };
-
-export const corrAnalysisUrl = (dataId: string): string => `/dtale/corr-analysis/${dataId}`;
-
-export const gageUrl = (dataId: string, operator: string, measurements: string, filterable: boolean): string =>
-  buildURLString(`/dtale/gage-rnr/${dataId}`, { operator, measurements, filterable: `${filterable}` });
