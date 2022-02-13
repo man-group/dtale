@@ -3,6 +3,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
+import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
 import { ColumnFormat } from '../../../dtale/DataViewerState';
@@ -20,7 +21,7 @@ export class Spies {
     [dataId: string, col: string, format: ColumnFormat, all: boolean, nanDisplay: string]
   >;
   public axiosGetSpy: jest.SpyInstance;
-  public propagateStateSpy: jest.Mock;
+  public store: Store | undefined = undefined;
   private dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -30,7 +31,6 @@ export class Spies {
   constructor() {
     this.updateFormatsSpy = jest.spyOn(serverState, 'updateFormats');
     this.axiosGetSpy = jest.spyOn(axios, 'get');
-    this.propagateStateSpy = jest.fn();
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
@@ -57,10 +57,10 @@ export class Spies {
    * @return the enzyme wrapper for testing.
    */
   public async setupWrapper(colIdx: number): Promise<ReactWrapper> {
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    this.store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, this.store);
     let result = mount(
-      <redux.Provider store={store}>
+      <redux.Provider store={this.store}>
         <DataViewer />
       </redux.Provider>,
       {

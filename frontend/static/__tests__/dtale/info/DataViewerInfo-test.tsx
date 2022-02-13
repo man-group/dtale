@@ -47,15 +47,9 @@ describe('DataViewerInfo tests', () => {
 
   it('DataViewerInfo rendering errors', async () => {
     const result = await buildInfo({
-      error: 'Error test',
-      traceback: 'Traceback test',
+      error: <RemovableError error="Error test" traceback="Traceback test" />,
     });
     expect(result.find(RemovableError).length).toBe(1);
-    result.find(RemovableError).find('i.ico-cancel').simulate('click');
-    expect(props.propagateState).toHaveBeenLastCalledWith({
-      error: undefined,
-      traceback: undefined,
-    });
   });
 
   it('DataViewerInfo rendering hidden', async () => {

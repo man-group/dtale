@@ -7,7 +7,6 @@ import { default as Select } from 'react-select';
 import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
 jest.mock('../../../dtale/DataViewer', () => ({
   DataViewer: createMockComponent(),
-  ReactDataViewer: createMockComponent(),
 }));
 jest.mock('../../../popups/merge/ActionConfig', () => createMockComponent());
 jest.mock('../../../popups/merge/MergeOutput', () => createMockComponent());

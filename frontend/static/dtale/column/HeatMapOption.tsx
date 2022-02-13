@@ -1,31 +1,27 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
 
-import * as bu from '../backgroundUtils';
-import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
+import { AppActions } from '../../redux/actions/AppActions';
+import * as settingsActions from '../../redux/actions/settings';
+import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { ColumnDef } from '../DataViewerState';
 
 /** Component properties of HeatMapOption */
 interface HeatMapOptionProps {
   selectedCol: string;
-  backgroundMode?: string;
-  propagateState: DataViewerPropagateState;
   colCfg: ColumnDef;
 }
 
-const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({
-  selectedCol,
-  backgroundMode,
-  propagateState,
-  colCfg,
-  t,
-}) => {
+const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ selectedCol, colCfg, t }) => {
+  const { settings } = useSelector((state: AppState) => state);
+  const dispatch = useDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
   const heatmapType = `heatmap-col-${selectedCol}`;
-  const heatmapActive = backgroundMode === heatmapType;
-  const toggleBackground = (): void =>
-    propagateState({
-      backgroundMode: backgroundMode === heatmapType ? undefined : heatmapType,
-      triggerBgResize: backgroundMode && bu.RESIZABLE.includes(backgroundMode),
-    });
+  const heatmapActive = settings.backgroundMode === heatmapType;
+  const toggleBackground = (): AppActions<void> =>
+    updateSettings({ backgroundMode: settings.backgroundMode === heatmapType ? undefined : heatmapType });
 
   return (
     <React.Fragment>

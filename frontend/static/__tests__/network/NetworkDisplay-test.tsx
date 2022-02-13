@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import { Provider, ProviderProps } from 'react-redux';
+import { Provider } from 'react-redux';
 import { DataSet } from 'vis-data/standalone/umd/vis-data.min';
 import { Edge, Node, Options } from 'vis-network/standalone/umd/vis-network.min';
 
@@ -25,7 +25,7 @@ interface NetworkBody {
 }
 
 describe('NetworkDisplay test', () => {
-  let result: ReactWrapper<ProviderProps>;
+  let result: ReactWrapper;
   const networkSpy: jest.Mock<(network: MockNetwork) => void> = jest.fn();
 
   /** Mocked vis-network Network */

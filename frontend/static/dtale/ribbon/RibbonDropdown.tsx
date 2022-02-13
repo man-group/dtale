@@ -2,16 +2,16 @@ import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, AppActions, HideRibbonMenuAction, SidePanelAction } from '../../redux/actions/AppActions';
-import * as chartActions from '../../redux/actions/charts';
 import {
-  AppState,
-  Popups,
-  PopupType,
-  RangeHighlightConfig,
-  RibbonDropdownType,
-  SidePanelType,
-} from '../../redux/state/AppState';
+  ActionType,
+  AppActions,
+  HideRibbonMenuAction,
+  SidePanelAction,
+  ToggleMenuAction,
+} from '../../redux/actions/AppActions';
+import * as chartActions from '../../redux/actions/charts';
+import * as settingsActions from '../../redux/actions/settings';
+import { AppState, Popups, PopupType, RibbonDropdownType, SidePanelType } from '../../redux/state/AppState';
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -78,30 +78,27 @@ const positionMenu = (selectedItem: HTMLElement | undefined, menuDiv: HTMLElemen
 
 /** Component properties for RibbonDropdown */
 export interface RibbonDropdownProps {
-  visible: boolean;
   columns: ColumnDef[];
   propagateState: DataViewerPropagateState;
-  backgroundMode?: string;
-  rangeHighlight?: RangeHighlightConfig;
 }
 
-const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({
-  visible,
-  columns,
-  propagateState,
-  backgroundMode,
-  rangeHighlight,
-  t,
-}) => {
-  const { dataId, isVSCode, element, name } = useSelector((state: AppState) => ({
+const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, propagateState, t }) => {
+  const { dataId, isVSCode, element, name, settings, visible } = useSelector((state: AppState) => ({
     ...state.ribbonDropdown,
     dataId: state.dataId,
     isVSCode: state.isVSCode,
+    settings: state.settings,
   }));
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
+  const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
+  const updateBg = (bgType: string): AppActions<void> =>
+    dispatch(
+      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+    );
 
   const [style, setStyle] = React.useState<React.CSSProperties>();
   const [processes, setProcesses] = React.useState<InstanceRepository.ProcessKey[]>([]);
@@ -147,10 +144,10 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({
     };
 
   const buttonHandlers = React.useMemo(
-    () => buildHotkeyHandlers({ backgroundMode, columns, propagateState, openChart, dataId, isVSCode }),
-    [backgroundMode, columns, propagateState, openChart, dataId, isVSCode],
+    () => buildHotkeyHandlers({ columns, openChart, openMenu, closeMenu, dataId, isVSCode }),
+    [columns, propagateState, openChart, dataId, isVSCode],
   );
-  const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
+  const { openPopup, exportFile } = buttonHandlers;
   const ribbonExport =
     (exportType: ExportType): VoidFunc =>
     () => {
@@ -228,32 +225,29 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({
       )}
       {name === RibbonDropdownType.HIGHLIGHT && visible && (
         <ul>
-          <HeatMapOption backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
+          <HeatMapOption toggleBackground={updateBg} />
           <HighlightOption
-            open={hideWrapper(toggleBackground('dtypes'))}
+            open={hideWrapper(() => updateBg('dtypes'))}
             mode="dtypes"
             label="Dtypes"
-            current={backgroundMode}
+            current={settings.backgroundMode}
           />
           <HighlightOption
-            open={hideWrapper(toggleBackground('missing'))}
+            open={hideWrapper(() => updateBg('missing'))}
             mode="missing"
             label="Missing"
-            current={backgroundMode}
+            current={settings.backgroundMode}
           />
           <HighlightOption
-            open={hideWrapper(toggleOutlierBackground)}
+            open={hideWrapper(() => updateBg('outliers'))}
             mode="outliers"
             label="Outliers"
-            current={backgroundMode}
+            current={settings.backgroundMode}
           />
-          <RangeHighlightOption
-            {...{ backgroundMode, rangeHighlight, columns, propagateState }}
-            ribbonWrapper={hideWrapper}
-          />
+          <RangeHighlightOption {...{ columns, propagateState }} ribbonWrapper={hideWrapper} />
           <LowVarianceOption
-            toggleLowVarianceBackground={toggleBackground('lowVariance')}
-            backgroundMode={backgroundMode}
+            toggleLowVarianceBackground={() => updateBg('lowVariance')}
+            backgroundMode={settings.backgroundMode}
           />
         </ul>
       )}
@@ -263,7 +257,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({
           <LanguageOption ribbonWrapper={hideWrapper} />
           <MaxWidthOption />
           <MaxHeightOption />
-          <ShowNonNumericHeatmapColumns backgroundMode={backgroundMode} toggleBackground={toggleBackground} />
+          <ShowNonNumericHeatmapColumns />
           <VerticalColumnHeaders />
         </ul>
       )}

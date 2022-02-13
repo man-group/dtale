@@ -42,7 +42,7 @@ export const positionMenu = (
   return css;
 };
 
-export const ignoreMenuClicks = (e: React.MouseEvent): boolean => {
+export const ignoreMenuClicks = (e: MouseEvent): boolean => {
   const colFilter = document.getElementsByClassName('column-filter')[0];
   const target = e.target as HTMLElement;
   if (colFilter && (colFilter === target || colFilter.contains(target))) {

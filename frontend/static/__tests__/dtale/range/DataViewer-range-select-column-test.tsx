@@ -5,10 +5,10 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import { DataViewer, ReactDataViewer } from '../../../dtale/DataViewer';
-import { ReactHeader } from '../../../dtale/Header';
-import * as fetcher from '../../../fetcher';
+import { DataViewer } from '../../../dtale/DataViewer';
+import Header from '../../../dtale/Header';
 import { CopyRangeToClipboard } from '../../../popups/CopyRangeToClipboard';
+import * as CopyRangeRepository from '../../../repository/CopyRangeRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
@@ -23,7 +23,7 @@ describe('DataViewer tests', () => {
     innerHeight: 775,
   });
 
-  let postSpy: jest.SpyInstance<void, [string, Record<string, any>, (data: Record<string, any>) => void]>;
+  let buildCopyColumnsSpy: jest.SpyInstance;
   const execCommandMock = jest.fn();
   let store: Store;
 
@@ -42,8 +42,10 @@ describe('DataViewer tests', () => {
     execCommandMock.mockReset();
     const axiosGetSpy = jest.spyOn(axios, 'get');
     axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
-    postSpy = jest.spyOn(fetcher, 'fetchPost');
-    postSpy.mockImplementation((_url: string, _params: Record<string, any>, callback: any) => callback(TEXT));
+    buildCopyColumnsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyColumns');
+    buildCopyColumnsSpy.mockResolvedValue({ text: TEXT, success: true });
+    const buildCopyRowsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyRows');
+    buildCopyRowsSpy.mockResolvedValue({ text: TEXT, success: true });
   });
 
   const build = async (): Promise<ReactWrapper> => {
@@ -57,40 +59,44 @@ describe('DataViewer tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
-    return result;
+    await act(async () => await tickUpdate(result));
+    return result.update();
   };
 
   it('DataViewer: column range selection', async () => {
     let result = await build();
-    let instance = result.find(ReactHeader).at(1);
     await act(async () => {
-      instance.find('div.headerCell').find('.text-nowrap').simulate('click', { shiftKey: true });
+      result.find(Header).at(1).find('div.headerCell').find('.text-nowrap').simulate('click', { shiftKey: true });
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.columnRange).toEqual({
+    expect(store.getState().columnRange).toEqual({
       start: 1,
       end: 1,
     });
-    instance = result.find(ReactHeader).at(2);
     await act(async () => {
-      (instance.instance() as any).handleMouseOver({
-        shiftKey: true,
-      });
+      result
+        .find(Header)
+        .at(2)
+        .find('div')
+        .first()
+        .props()
+        .onMouseOver?.({
+          shiftKey: true,
+        } as any as React.MouseEvent);
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.columnRange).toEqual({
+    expect(store.getState().columnRange).toEqual({
       start: 1,
       end: 2,
     });
     await act(async () => {
-      instance.find('div.headerCell').find('.text-nowrap').simulate('click', { shiftKey: true });
+      result.find(Header).at(2).find('div.headerCell').find('.text-nowrap').simulate('click', { shiftKey: true });
     });
     result = result.update();
     expect(result.find(CopyRangeToClipboard)).toHaveLength(1);
     expect(store.getState().chartData.text).toBe(TEXT);
-    expect(postSpy).toBeCalledTimes(1);
-    expect(postSpy).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["col1","col2"]` }, expect.any(Function));
+    expect(buildCopyColumnsSpy).toBeCalledTimes(1);
+    expect(buildCopyColumnsSpy).toBeCalledWith('1', ['col1', 'col2']);
 
     await act(async () => {
       result.find(CopyRangeToClipboard).first().find('button').first().simulate('click');
@@ -101,24 +107,24 @@ describe('DataViewer tests', () => {
 
   it('DataViewer: column ctrl selection', async () => {
     let result = await build();
-    let instance = result.find(ReactHeader).at(1);
+    let instance = result.find(Header).at(1);
     await act(async () => {
       instance.find('div.headerCell').find('.text-nowrap').simulate('click', { ctrlKey: true });
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1]);
-    instance = result.find(ReactHeader).at(2);
+    expect(store.getState().ctrlCols).toEqual([1]);
+    instance = result.find(Header).at(2);
     await act(async () => {
       instance.find('div.headerCell').find('.text-nowrap').simulate('click', { ctrlKey: true });
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([1, 2]);
-    instance = result.find(ReactHeader).at(1);
+    expect(store.getState().ctrlCols).toEqual([1, 2]);
+    instance = result.find(Header).at(1);
     await act(async () => {
       instance.find('div.headerCell').find('.text-nowrap').simulate('click', { ctrlKey: true });
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.ctrlCols).toEqual([2]);
+    expect(store.getState().ctrlCols).toEqual([2]);
     result.unmount();
   });
 });

@@ -1,10 +1,8 @@
 /* eslint-disable no-restricted-globals */
 const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 const postcssNested = require('postcss-nested');
-const _ = require('lodash');
 const path = require('path');
 const paths = require('./config/paths');
 
@@ -41,7 +39,6 @@ function createConfig(entry) {
           options: {
             cacheDirectory: true,
             presets: [['@babel/env', { targets: ['last 2 versions'] }], '@babel/react', '@babel/flow'],
-            plugins: ['lodash'],
           },
         },
         {
@@ -144,14 +141,6 @@ function createConfig(entry) {
         exclude: ['.git_keep'],
       }),
       new webpack.HotModuleReplacementPlugin(),
-      new LodashModuleReplacementPlugin({
-        collections: true,
-        coercions: true,
-        exotics: true,
-        flattening: true,
-        paths: true,
-        shorthands: true,
-      }),
     ],
     externals: {
       window: 'window',
@@ -200,7 +189,6 @@ function createDashConfig(entry) {
           options: {
             cacheDirectory: true,
             presets: [['@babel/env', { targets: ['last 2 versions'] }], '@babel/react', '@babel/flow'],
-            plugins: ['lodash'],
           },
         },
         {
@@ -244,4 +232,4 @@ function createDashConfig(entry) {
   };
 }
 
-module.exports = _.concat(_.map(entries, createConfig), _.map(dashEntries, createDashConfig));
+module.exports = [...entries.map(createConfig), ...dashEntries.map(createDashConfig)];

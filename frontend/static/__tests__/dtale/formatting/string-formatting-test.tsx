@@ -1,7 +1,7 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
+import Formatting from '../../../popups/formats/Formatting';
 import StringFormatting from '../../../popups/formats/StringFormatting';
 
 import * as TestSupport from './Formatting.test.support';
@@ -60,7 +60,6 @@ describe('DataViewer tests', () => {
       false,
       'nan',
     );
-    const grid = result.find(MultiGrid).first().instance();
-    expect(grid.props.data['0'].col3.view).toBe('...');
+    expect(result.find(Formatting).props().data['0'].col3.view).toBe('...');
   });
 });

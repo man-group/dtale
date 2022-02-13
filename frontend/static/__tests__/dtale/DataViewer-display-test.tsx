@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import { MultiGrid } from 'react-virtualized';
 import { Store } from 'redux';
 
-import { DataViewer, ReactDataViewer } from '../../dtale/DataViewer';
+import { DataViewer } from '../../dtale/DataViewer';
 import ThemeOption from '../../dtale/menu/ThemeOption';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -39,8 +39,8 @@ describe('DataViewer tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    result = result.update();
   });
 
   afterEach(jest.resetAllMocks);
@@ -51,7 +51,7 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: loads dark mode correct on inital render', async () => {
-    expect(result.find(ReactDataViewer).props().theme).toBe('dark');
+    expect(store.getState().theme).toBe('dark');
     expect(result.find(MultiGrid).props().styleBottomLeftGrid).toMatchObject({
       backgroundColor: 'inherit',
     });
@@ -62,7 +62,7 @@ describe('DataViewer tests', () => {
       result.find(ThemeOption).find('button').first().simulate('click');
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).props().theme).toBe('light');
+    expect(store.getState().theme).toBe('light');
     expect(result.find(MultiGrid).props().styleBottomLeftGrid).toMatchObject({
       backgroundColor: '#f7f7f7',
     });

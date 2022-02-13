@@ -1,3 +1,4 @@
+import { RangeSelection } from '../../../dtale/DataViewerState';
 import { ActionType, AppActionTypes } from '../../actions/AppActions';
 import {
   BASE_INSTANCE_SETTINGS,
@@ -382,3 +383,88 @@ export function dragResize(state: number | null = null, action: AppActionTypes):
       return state;
   }
 }
+
+export const rowRange = (
+  state: RangeSelection<number> | null = null,
+  action: AppActionTypes,
+): RangeSelection<number> | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.rowRange ?? null;
+    default:
+      return state;
+  }
+};
+
+export const columnRange = (
+  state: RangeSelection<number> | null = null,
+  action: AppActionTypes,
+): RangeSelection<number> | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.columnRange ?? null;
+    default:
+      return state;
+  }
+};
+
+export const rangeSelect = (
+  state: RangeSelection<string> | null = null,
+  action: AppActionTypes,
+): RangeSelection<string> | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.rangeSelect ?? null;
+    default:
+      return state;
+  }
+};
+
+export const ctrlRows = (state: number[] | null = null, action: AppActionTypes): number[] | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.ctrlRows ?? null;
+    default:
+      return state;
+  }
+};
+
+export const ctrlCols = (state: number[] | null = null, action: AppActionTypes): number[] | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.ctrlCols ?? null;
+    default:
+      return state;
+  }
+};
+
+export const selectedRow = (state: number | null = null, action: AppActionTypes): number | null => {
+  switch (action.type) {
+    case ActionType.SET_RANGE_STATE:
+      return action.selectedRow ?? null;
+    default:
+      return state;
+  }
+};
+
+export const formattingOpen = (state: string | null = null, action: AppActionTypes): string | null => {
+  switch (action.type) {
+    case ActionType.OPEN_FORMATTING:
+      return action.selectedCol;
+    case ActionType.CLOSE_FORMATTING:
+      return null;
+    default:
+      return state;
+  }
+};
+
+export const menuOpen = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.OPEN_MENU:
+      return true;
+    case ActionType.CLOSE_MENU:
+      return false;
+    default:
+      return state;
+  }
+};

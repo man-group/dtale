@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -49,7 +48,11 @@ const Charts: React.FC<WithTranslation> = ({ t }) => {
       setUrl(undefined);
       return;
     }
-    const params: Record<string, string> = { x: x.value, y: JSON.stringify(_.map(y, 'value')), query: query ?? '' };
+    const params: Record<string, string> = {
+      x: x.value,
+      y: JSON.stringify(y.map(({ value }) => value)),
+      query: query ?? '',
+    };
     if (!!group?.length) {
       params.group = JSON.stringify(group.map(({ value }) => value));
     }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
-import React from 'react';
+import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
@@ -8,7 +8,6 @@ import { Store } from 'redux';
 import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
 jest.mock('../../../dtale/DataViewer', () => ({
   DataViewer: createMockComponent(),
-  ReactDataViewer: createMockComponent(),
 }));
 
 import ButtonToggle from '../../../ButtonToggle';

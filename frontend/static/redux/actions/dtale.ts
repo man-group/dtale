@@ -1,9 +1,19 @@
+import { AnyAction, Store } from 'redux';
+
 import * as serverState from '../../dtale/serverStateManagement';
-import { QueryEngine, SidePanelType } from '../state/AppState';
+import { AppState, QueryEngine, SidePanelType } from '../state/AppState';
 
 import { ActionType, AppActions, InitAction, SidePanelAction, UpdateXarrayDimAction } from './AppActions';
 
 export const init = (): InitAction => ({ type: ActionType.INIT_PARAMS });
+
+export const loadBackgroundMode = (store: Store<AppState, AnyAction>): void => {
+  const { settings } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_SETTINGS,
+    settings: { backgroundMode: settings.backgroundMode ?? !!settings.rangeHighlight?.length ? 'range' : undefined },
+  });
+};
 
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,

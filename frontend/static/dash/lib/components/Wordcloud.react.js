@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
@@ -16,9 +15,10 @@ export default class Wordcloud extends Component {
     return (
       <div id={id}>
         <WordcloudBody
-          {..._.pick(this.props, ['data', 'height'])}
-          y={_.map(this.props.y || [], buildObj)}
-          group={_.map(this.props.group || [], buildObj)}
+          data={this.props.data}
+          height={this.props.height}
+          y={(this.props.y || []).map(buildObj)}
+          group={(this.props.group || []).map(buildObj)}
           chartType={{ value: 'wordcloud' }}
         />
       </div>

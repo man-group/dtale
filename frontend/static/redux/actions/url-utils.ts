@@ -5,9 +5,9 @@ type UrlParameter = Record<string, string | null>;
 
 const URL_KEYS: Record<string, (v: any) => UrlParameter> = {
   ids: (v: number[]): UrlParameter => ({ ids: v.length ? JSON.stringify(v) : null }),
-  sortInfo: (v: string[][]): UrlParameter => ({ sort: v.length ? JSON.stringify(v) : null }),
+  sortInfo: (v: string[][]): UrlParameter => ({ sort: v?.length ? JSON.stringify(v) : null }),
   query: (v: string): UrlParameter => ({ query: v }),
-  selectedCols: (v: string[]): UrlParameter => ({ cols: v.length ? JSON.stringify(v) : null }),
+  selectedCols: (v: string[]): UrlParameter => ({ cols: v?.length ? JSON.stringify(v) : null }),
   selectedCol: (v: string): UrlParameter => ({ col: v }),
 };
 

@@ -58,14 +58,14 @@ const buildCurrencyOpt = (currency: string): BaseOption<string> => ({
 const parseState = (fmt: ColumnFormat): NumericFormatState => {
   const fmtStr = fmt.fmt as string;
   const parsedState: NumericFormatState = {
-    thousands: fmtStr.startsWith('0,000'),
-    abbreviate: fmtStr.includes('a'),
-    exponent: fmtStr.includes('e+0'),
-    bps: fmtStr.includes('BPS'),
+    thousands: fmtStr?.startsWith('0,000') ?? false,
+    abbreviate: fmtStr?.includes('a') ?? false,
+    exponent: fmtStr?.includes('e+0') ?? false,
+    bps: fmtStr?.includes('BPS') ?? false,
     redNegs: fmt.style?.redNegs ?? false,
     currency: fmt.style?.currency ? buildCurrencyOpt(fmt.style.currency) : undefined,
   };
-  if (fmtStr.includes('.')) {
+  if (fmtStr?.includes('.')) {
     let precision = 0;
     const precisionStr = fmtStr.split('.').pop();
     const precisionChars = Array.from(precisionStr ?? '');
@@ -178,7 +178,7 @@ const NumericFormatting: React.FC<BaseFormattingComponentProps & WithTranslation
           <input
             type="text"
             className="form-control"
-            value={fmt.fmt as string}
+            value={(fmt.fmt as string) ?? ''}
             onChange={(event) => setFmt({ ...Object, fmt: event.target.value })}
           />
         </div>

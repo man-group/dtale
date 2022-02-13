@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { usePrevious } from '../../customHooks';
 import ColumnFilter from '../../filters/ColumnFilter';
-import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, AppActions, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
@@ -91,7 +91,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
       showSidePanel(selectedCol, SidePanelType.DESCRIBE);
     }
   };
-  const openFormatting = (): void => propagateState({ formattingOpen: true, selectedCols: [selectedCol] });
+  const openFormatting = (): OpenFormattingAction => dispatch({ type: ActionType.OPEN_FORMATTING, selectedCol });
   const hideCol = async (): Promise<void> => {
     await serverState.toggleVisibility(dataId, selectedCol);
     const updatedColumns = columns.map((c) => ({ ...c, ...(c.name === selectedCol ? { visible: !c.visible } : {}) }));
@@ -185,7 +185,6 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           open={openAction({
             type: PopupType.TYPE_CONVERSION,
             selectedCol,
-            propagateState,
             title: 'Type Conversion',
             visible: true,
           })}
@@ -197,7 +196,6 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
             open={openAction({
               type: PopupType.CLEANERS,
               selectedCol,
-              propagateState,
               title: 'Cleaners',
               visible: true,
             })}

@@ -1,19 +1,13 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { DataViewerPropagateState } from '../dtale/DataViewerState';
-import { AppActions } from '../redux/actions/AppActions';
+import { ActionType, AppActions } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { AppState, CopyRangeToClipboardPopupData } from '../redux/state/AppState';
 
 require('./Confirmation.css');
 
-/** Component properties for CopyRangeToClipboard */
-interface CopyRangeToClipboardProps {
-  propagateState: DataViewerPropagateState;
-}
-
-export const CopyRangeToClipboard: React.FC<CopyRangeToClipboardProps> = ({ propagateState }) => {
+export const CopyRangeToClipboard: React.FC = () => {
   const chartData = useSelector((state: AppState) => state.chartData) as CopyRangeToClipboardPopupData;
   const dispatch = useDispatch();
   const [includeHeaders, setIncludeHeaders] = React.useState<boolean>(false);
@@ -28,7 +22,8 @@ export const CopyRangeToClipboard: React.FC<CopyRangeToClipboardProps> = ({ prop
   }, [includeHeaders]);
 
   const onClose = (): void => {
-    propagateState({ rangeSelect: undefined, columnRange: undefined }, outerOnClose);
+    dispatch({ type: ActionType.SET_RANGE_STATE });
+    outerOnClose();
   };
 
   const copy = (): void => {

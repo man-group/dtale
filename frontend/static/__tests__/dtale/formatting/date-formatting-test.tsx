@@ -1,6 +1,5 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
 import DateFormatting from '../../../popups/formats/DateFormatting';
 import Formatting from '../../../popups/formats/Formatting';
@@ -48,7 +47,6 @@ describe('DateFormatting', () => {
       'Raw:December 31st 1999, 7:00:00 pmFormatted:19991231',
     );
     result = await spies.validateCfg(result, '1', 'col4', { fmt: 'YYYYMMDD' }, false, 'nan');
-    const grid = result.find(MultiGrid).first().instance();
-    expect(grid.props.data['0'].col4.view.length).toBe(8);
+    expect(result.find(Formatting).props().data['0'].col4.view.length).toBe(8);
   });
 });

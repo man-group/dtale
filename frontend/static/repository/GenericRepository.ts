@@ -1,7 +1,18 @@
 import axios from 'axios';
 
-import { logException } from '../fetcher';
 import { cleanupEndpoint } from '../redux/actions/url-utils';
+
+/**
+ * Formatter for logging exceptions.
+ * @param e error
+ * @param callStack callstack of the code throwing this error.
+ */
+export function logException(e: Error, callStack?: string): void {
+  const { fileName, lineNumber } = e as any;
+  console.error(`${e.name}: ${e.message} (${fileName}:${lineNumber})`); // eslint-disable-line no-console
+  console.error(e.stack); // eslint-disable-line no-console
+  console.error(callStack); // eslint-disable-line no-console
+}
 
 /** Properties associated with error display */
 export interface ErrorState {

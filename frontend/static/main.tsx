@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
@@ -35,11 +34,12 @@ require('./publicPath');
 
 let pathname = window.location.pathname;
 if ((window as any).resourceBaseUrl) {
-  pathname = _.replace(pathname, (window as any).resourceBaseUrl, '');
+  pathname = pathname.replace((window as any).resourceBaseUrl, '');
 }
 let storeBuilder: () => Store = () => {
   const store = createAppStore<AppState>(appReducers);
   store.dispatch(actions.init());
+  actions.loadBackgroundMode(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {
@@ -124,7 +124,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   const store = storeBuilder();
   store.getState().chartData = chartData;
   ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
-} else if (_.startsWith(pathname, '/dtale/code-popup')) {
+} else if (pathname.startsWith('/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
   let title: string;
   let body: JSX.Element;

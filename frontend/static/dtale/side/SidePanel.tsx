@@ -21,7 +21,7 @@ require('./SidePanel.scss');
 
 /** Component properties for SidePanel */
 interface SidePanelProps {
-  gridPanel: HTMLDivElement;
+  gridPanel: HTMLDivElement | null;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
@@ -42,7 +42,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
   }, [visible]);
 
   const startResize = (): void => {
-    gridPanel.style.setProperty('transition', 'none', 'important');
+    gridPanel?.style.setProperty('transition', 'none', 'important');
     panel.current?.style.setProperty('transition', 'none', 'important');
   };
 
@@ -56,7 +56,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
   };
 
   const stopResize = (): void => {
-    gridPanel.style.setProperty('transition', null);
+    gridPanel?.style.setProperty('transition', null);
     panel.current?.style.setProperty('transition', null);
     updatePanelWidth(offset);
   };

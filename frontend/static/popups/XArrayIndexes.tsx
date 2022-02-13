@@ -1,10 +1,10 @@
-import _ from 'lodash';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
-import { DataViewerPropagateState, DataViewerState } from '../dtale/DataViewerState';
+import { DataViewerPropagateState, PropagatedState } from '../dtale/DataViewerState';
+import { sortOptions } from '../popups/analysis/filters/Constants';
 import { ActionType } from '../redux/actions/AppActions';
 import { AppState, XArrayIndexesPopupData } from '../redux/state/AppState';
 import { RemovableError } from '../RemovableError';
@@ -34,7 +34,7 @@ const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propaga
       setError(<RemovableError {...response} />);
       return;
     }
-    const newState: Partial<DataViewerState> = { refresh: true };
+    const newState: Partial<PropagatedState> = { refresh: true };
     if (index.find((i) => columns.find((column) => column.name === i.value && column.locked === false))) {
       newState.columns = columns.map((c) => ({
         ...c,
@@ -45,10 +45,7 @@ const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propaga
     propagateState(newState);
   };
 
-  const options: Array<{ value: string }> = _.sortBy(
-    _.map(chartData.columns, (c) => ({ value: c.name })),
-    ({ value }) => _.toLower(value),
-  );
+  const options: Array<{ value: string }> = chartData.columns.map((c) => ({ value: c.name })).sort(sortOptions);
   return (
     <React.Fragment>
       <div className="modal-body">

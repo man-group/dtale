@@ -6,8 +6,8 @@ import {
   ColumnFilter,
   ColumnFormat,
   DataViewerPropagateState,
-  DataViewerState,
   OutlierFilter,
+  RangeSelection,
 } from '../../dtale/DataViewerState';
 
 /** Base properties for react-select dropdown options */
@@ -36,7 +36,7 @@ export const initialVisibility: HasVisibility = { visible: false };
 
 /** Properties of a main menu tooltip */
 export interface MenuTooltipProps extends HasVisibility {
-  element?: HTMLLIElement;
+  element?: HTMLElement;
   content?: React.ReactNode;
 }
 
@@ -82,7 +82,6 @@ export enum DataViewerUpdateType {
   UPDATE_MAX_WIDTH = 'update-max-width',
   UPDATE_MAX_HEIGHT = 'update-max-height',
   DROP_COLUMNS = 'drop-columns',
-  UPDATE_STATE = 'update-state',
 }
 
 /** Base properties for a DataViewer update */
@@ -109,18 +108,12 @@ export interface DropColumnsDataViewerUpdate extends BaseDataViewerUpdateProps<D
   columns: string[];
 }
 
-/** Update state DataViewer update */
-export interface UpdateStateDataViewerUpdate extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_STATE> {
-  state: DataViewerState;
-}
-
 /** DataViewer updates */
 export type DataViewerUpdate =
   | ToggleColumnsDataViewerUpdate
   | UpdateMaxWidthDataViewerUpdate
   | UpdateMaxHeightDataViewerUpdate
-  | DropColumnsDataViewerUpdate
-  | UpdateStateDataViewerUpdate;
+  | DropColumnsDataViewerUpdate;
 
 /** Popup type names */
 export enum PopupType {
@@ -246,7 +239,6 @@ export type PPSPopupData = PopupData<typeof PopupType.PPS> & BaseCorrelationsPop
 
 /** Base popup configuration for column creation */
 interface BaseCreateColumnPopupData {
-  propagateState: DataViewerPropagateState;
   selectedCol?: string;
 }
 
@@ -447,8 +439,18 @@ export interface RangeHighlightConfig {
   [key: string | 'all']: RangeHighlightModes & HasActivation;
 }
 
+/** Range selection properties */
+export interface RangeState {
+  rowRange: RangeSelection<number> | null;
+  columnRange: RangeSelection<number> | null;
+  rangeSelect: RangeSelection<string> | null;
+  ctrlRows: number[] | null;
+  ctrlCols: number[] | null;
+  selectedRow: number | null;
+}
+
 /** Properties of application state */
-export interface AppState extends AppSettings {
+export interface AppState extends AppSettings, RangeState {
   chartData: Popups;
   dataId: string;
   editedCell: string | null;
@@ -472,4 +474,6 @@ export interface AppState extends AppSettings {
   dragResize: number | null;
   auth: boolean;
   username: string | null;
+  menuOpen: boolean;
+  formattingOpen: string | null;
 }

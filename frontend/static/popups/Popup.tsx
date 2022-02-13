@@ -7,9 +7,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import { buildRangeState } from '../dtale/rangeSelectUtils';
+import { ActionType, SetRangeStateAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { loadDatasets } from '../redux/actions/merge';
-import { AppState } from '../redux/state/AppState';
+import { AppState, RangeState } from '../redux/state/AppState';
 
 import DraggableModalDialog from './DraggableModalDialog';
 import * as popupUtils from './popupUtils';
@@ -29,6 +30,8 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
   }));
   const dispatch = useDispatch();
   const mergeRefresher = async (): Promise<void> => await loadDatasets(dispatch);
+  const updateRangeState = (state: RangeState): SetRangeStateAction =>
+    dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
 
   const [minHeight, setMinHeight] = React.useState<number>();
   const [minWidth, setMinWidth] = React.useState<number>();
@@ -48,8 +51,10 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
   }, [chartData]);
 
   const { type, visible, size, backdrop } = chartData;
-  const onClose = (): void =>
-    props.propagateState(buildRangeState(), () => dispatch(closeChart({ ...chartData, size: size || 'lg' })));
+  const onClose = (): void => {
+    updateRangeState(buildRangeState());
+    dispatch(closeChart({ ...chartData, size: size || 'lg' }));
+  };
   const { title, body } = popupUtils.buildBodyAndTitle({
     ...props,
     dataId: dataId ?? '1',

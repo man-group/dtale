@@ -3,9 +3,10 @@ import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, AppActions, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { AppState, Popups, PopupType, RangeHighlightConfig, SidePanelType, SortDef } from '../../redux/state/AppState';
+import * as settingsActions from '../../redux/actions/settings';
+import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
@@ -49,24 +50,27 @@ import XArrayOption from './XArrayOption';
 /** Component properties for DataViewerMenu */
 export interface DataViewerMenuProps {
   columns: ColumnDef[];
-  menuOpen: boolean;
   propagateState: DataViewerPropagateState;
-  backgroundMode?: string;
-  rangeHighlight?: RangeHighlightConfig;
-  sortInfo: SortDef[];
 }
 
-const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuOpen, t, ...props }) => {
-  const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings } = useSelector((state: AppState) => state);
+const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, propagateState }) => {
+  const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings, menuOpen } = useSelector(
+    (state: AppState) => state,
+  );
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
+  const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
+  const updateBg = (bgType: string): AppActions<void> =>
+    dispatch(
+      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+    );
 
-  const buttonHandlers = menuFuncs.buildHotkeyHandlers({ ...props, dataId, openChart, isVSCode });
-  const { openPopup, toggleBackground, toggleOutlierBackground, exportFile } = buttonHandlers;
-  const refreshWidths = (): void => props.propagateState({ columns: props.columns.map((c) => ({ ...c })) });
-  const closeMenu = (): void => document.getElementsByTagName('body')[0].click();
-  const hasNoInfo = gu.hasNoInfo(settings, props.columns);
+  const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
+  const { openPopup, exportFile } = buttonHandlers;
+  const refreshWidths = (): void => propagateState({ columns: columns.map((c) => ({ ...c })) });
+  const hasNoInfo = gu.hasNoInfo(settings, columns);
   const containerProps = menuPinned
     ? { className: 'pinned-data-viewer-menu' }
     : {
@@ -81,7 +85,12 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
   const height = `calc(100vh - ${menuPinned ? 35 : hasNoInfo ? 68 : 98}px)`;
   return (
     <div {...containerProps}>
-      {!menuPinned && menuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: 'esc' }} handlers={{ CLOSE_MENU: closeMenu }} />}
+      {!menuPinned && menuOpen && (
+        <GlobalHotKeys
+          keyMap={{ CLOSE_MENU: 'esc' }}
+          handlers={{ CLOSE_MENU: (): void => document.getElementsByTagName('body')[0].click() }}
+        />
+      )}
       <header
         className={`${mainTitleFont ? '' : 'title-font '}title-font-base pb-1`}
         style={mainTitleFont ? { fontFamily: mainTitleFont } : {}}
@@ -97,7 +106,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
       >
         <ul>
           <NewTabOption />
-          <XArrayOption columns={props.columns.filter(({ name }) => name !== gu.IDX)} />
+          <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />
           <DescribeOption open={buttonHandlers.DESCRIBE} />
           <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />
           <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />
@@ -114,29 +123,29 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ menuO
           <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />
           <ChartsOption open={buttonHandlers.CHARTS} />
           <NetworkOption open={buttonHandlers.NETWORK} />
-          <HeatMapOption backgroundMode={props.backgroundMode} toggleBackground={toggleBackground} />
+          <HeatMapOption toggleBackground={updateBg} />
           <HighlightOption
-            open={toggleBackground('dtypes')}
+            open={() => updateBg('dtypes')}
             mode="dtypes"
             label="Dtypes"
-            current={props.backgroundMode}
+            current={settings.backgroundMode}
           />
           <HighlightOption
-            open={toggleBackground('missing')}
+            open={() => updateBg('missing')}
             mode="missing"
             label="Missing"
-            current={props.backgroundMode}
+            current={settings.backgroundMode}
           />
           <HighlightOption
-            open={toggleOutlierBackground}
+            open={() => updateBg('outliers')}
             mode="outliers"
             label="Outliers"
-            current={props.backgroundMode}
+            current={settings.backgroundMode}
           />
-          <RangeHighlightOption {...props} />
+          <RangeHighlightOption columns={columns} />
           <LowVarianceOption
-            toggleLowVarianceBackground={toggleBackground('lowVariance')}
-            backgroundMode={props.backgroundMode}
+            toggleLowVarianceBackground={() => updateBg('lowVariance')}
+            backgroundMode={settings.backgroundMode}
           />
           <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />
           <InstancesOption

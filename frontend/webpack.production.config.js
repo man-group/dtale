@@ -1,13 +1,11 @@
 /* eslint-disable no-restricted-globals */
-
-const assign = require('lodash/assign');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const _ = require('lodash');
 const baseConfig = require('./webpack.config.js');
 
 function createConfig(subConfig) {
-  return assign({}, subConfig, {
+  return {
+    ...subConfig,
     mode: 'production',
     devtool: 'source-map',
     optimization: {
@@ -27,22 +25,16 @@ function createConfig(subConfig) {
         },
       }),
     ],
-  });
+  };
 }
 
 function createDashConfig(subConfig) {
-  return assign({}, subConfig, {
+  return {
+    ...subConfig,
     mode: 'production',
-  });
+  };
 }
 
-module.exports = _.concat(
-  _.map(
-    _.filter(baseConfig, (c) => !_.endsWith(c.output.path, 'dtale/static/dash')),
-    createConfig,
-  ),
-  _.map(
-    _.filter(baseConfig, (c) => _.endsWith(c.output.path, 'dtale/static/dash')),
-    createDashConfig,
-  ),
+module.exports = baseConfig.map((c) =>
+  c.output.path.endsWith('dtale/static/dash') ? createDashConfig(c) : createConfig(c),
 );

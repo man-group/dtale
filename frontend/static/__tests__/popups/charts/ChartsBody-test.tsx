@@ -8,7 +8,7 @@ import reduxUtils from '../../redux-test-utils';
 import { mockChartJS, mockD3Cloud, tickUpdate } from '../../test-utils';
 
 describe('ChartsBody tests', () => {
-  let result: ReactWrapper<ChartsBodyProps>;
+  let result: ReactWrapper;
   const props: ChartsBodyProps = {
     columns: [],
     visible: true,

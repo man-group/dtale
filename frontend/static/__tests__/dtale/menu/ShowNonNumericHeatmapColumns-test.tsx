@@ -1,42 +1,35 @@
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import {
-  default as ShowNonNumericHeatmapColumns,
-  ShowNonNumericHeatmapColumnsProps,
-} from '../../../dtale/menu/ShowNonNumericHeatmapColumns';
+import { default as ShowNonNumericHeatmapColumns } from '../../../dtale/menu/ShowNonNumericHeatmapColumns';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML } from '../../test-utils';
+import { buildInnerHTML, tickUpdate } from '../../test-utils';
 
 describe('ShowNonNumericHeatmapColumns tests', () => {
   let result: ReactWrapper;
-  let props: ShowNonNumericHeatmapColumnsProps;
   let store: Store;
 
-  const setupOption = (
-    propOverrides?: Partial<ShowNonNumericHeatmapColumnsProps>,
-    showAllHeatmapColumns = false,
-  ): void => {
-    props = {
-      toggleBackground: jest.fn(() => () => undefined),
-      ...propOverrides,
-    };
+  const setupOption = async (backgroundMode?: string, showAllHeatmapColumns = false): Promise<void> => {
     store = reduxUtils.createDtaleStore();
-    store.getState().showAllHeatmapColumns = showAllHeatmapColumns;
     buildInnerHTML({ settings: '' }, store);
+    store.getState().showAllHeatmapColumns = showAllHeatmapColumns;
+    store.getState().settings.backgroundMode = backgroundMode;
     result = mount(
       <Provider store={store}>
-        <ShowNonNumericHeatmapColumns {...props} />,
+        <ShowNonNumericHeatmapColumns />,
       </Provider>,
       {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
+    await act(async () => await tickUpdate(result));
+    result = result.update();
   };
 
-  beforeEach(() => setupOption());
+  beforeEach(async () => await setupOption());
 
   afterEach(jest.resetAllMocks);
 
@@ -51,17 +44,17 @@ describe('ShowNonNumericHeatmapColumns tests', () => {
     expect(store.getState().showAllHeatmapColumns).toBe(true);
   });
 
-  it('handles checkbox check w/ background', () => {
-    setupOption({ backgroundMode: 'heatmap-col' });
+  it('handles checkbox check w/ background', async () => {
+    await setupOption('heatmap-col');
     result.find('i.ico-check-box-outline-blank').simulate('click');
     expect(store.getState().showAllHeatmapColumns).toBe(true);
-    expect(props.toggleBackground).toHaveBeenLastCalledWith('heatmap-col-all');
+    expect(store.getState().settings.backgroundMode).toBe('heatmap-col-all');
   });
 
-  it('handles checkbox uncheck w/ background', () => {
-    setupOption({ backgroundMode: 'heatmap-col-all' }, true);
+  it('handles checkbox uncheck w/ background', async () => {
+    await setupOption('heatmap-col-all', true);
     result.find('i.ico-check-box').simulate('click');
     expect(store.getState().showAllHeatmapColumns).toBe(false);
-    expect(props.toggleBackground).toHaveBeenLastCalledWith('heatmap-col');
+    expect(store.getState().settings.backgroundMode).toBe('heatmap-col');
   });
 });

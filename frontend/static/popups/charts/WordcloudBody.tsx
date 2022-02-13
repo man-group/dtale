@@ -6,7 +6,7 @@ import { BaseOption } from '../../redux/state/AppState';
 import { truncate } from '../../stringUtils';
 
 /** Component properties for WordcloudBody */
-interface WordcloudBodyProps {
+export interface WordcloudBodyProps {
   data?: DataSpec;
   y?: Array<BaseOption<string>>;
   group?: Array<BaseOption<string>>;

@@ -7,7 +7,7 @@ import { renderCodePopupAnchor } from '../CodePopup';
 import { CorrelationTimeseriesParameters } from './Correlations';
 
 /** Component properties for CorrelationsTsOptions */
-interface CorrelationsTsOptionsProp {
+export interface CorrelationsTsOptionsProps {
   hasDate: boolean;
   rolling: boolean;
   useRolling: boolean;
@@ -20,7 +20,7 @@ interface CorrelationsTsOptionsProp {
   tsCode?: string;
 }
 
-const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProp & WithTranslation> = ({
+const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslation> = ({
   selectedCols,
   hasDate,
   dates,
