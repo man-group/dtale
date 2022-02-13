@@ -16,7 +16,7 @@ import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
 import { tickUpdate } from '../../test-utils';
 
-describe('DescribePanel', () => {
+describe('ColumnMenu', () => {
   let wrapper: ReactWrapper;
   let positionMenuSpy: jest.SpyInstance;
   let ignoreMenuClicksSpy: jest.SpyInstance;
@@ -48,13 +48,17 @@ describe('DescribePanel', () => {
     toggleVisibilitySpy = jest.spyOn(serverState, 'toggleVisibility');
     toggleVisibilitySpy.mockImplementation(() => undefined);
     hideColumnMenuSpy = jest.spyOn(actions, 'hideColumnMenu');
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue(props);
     const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
     useDispatchSpy.mockReturnValue(dispatchSpy);
     const loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
     loadFilterDataSpy.mockResolvedValue(undefined);
-    wrapper = mount(<ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />);
+    const store = reduxUtils.createDtaleStore();
+    Object.keys(props).forEach((key) => ((store.getState() as any)[key] = (props as any)[key]));
+    wrapper = mount(
+      <redux.Provider store={store}>
+        <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
+      </redux.Provider>,
+    );
     await act(async () => tickUpdate(wrapper));
     wrapper = wrapper.update();
   });

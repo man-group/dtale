@@ -1,30 +1,16 @@
 import moment from 'moment';
 import numeral from 'numeral';
 import { MultiGridProps } from 'react-virtualized';
-import { Dispatch } from 'redux';
 
-import { ActionType, AppActions, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
-import { openChart } from '../redux/actions/charts';
-import * as actions from '../redux/actions/dtale';
-import { AppState, InstanceSettings, Popups, PredefinedFilterValue, ThemeType } from '../redux/state/AppState';
+import { InstanceSettings, PredefinedFilterValue, SortDef, ThemeType } from '../redux/state/AppState';
 import { truncate } from '../stringUtils';
 
-import {
-  Bounds,
-  ColumnDef,
-  ColumnFormat,
-  DataRecord,
-  DataViewerData,
-  DataViewerProps,
-  DataViewerState,
-  StringColumnFormat,
-} from './DataViewerState';
+import { Bounds, ColumnDef, DataRecord, DataViewerData, StringColumnFormat } from './DataViewerState';
 import { measureText } from './MeasureText';
 import * as menuFuncs from './menu/dataViewerMenuUtils';
-import { buildRangeState } from './rangeSelectUtils';
 
 export const IDX = 'dtale_index';
-const DEFAULT_COL_WIDTH = 70;
+export const DEFAULT_COL_WIDTH = 70;
 
 numeral.nullFormat('');
 
@@ -66,14 +52,9 @@ const buildNumeral = (val: string | number, fmt: string, nanDisplay?: string): s
 const buildString = (val: string | number, cfg?: StringColumnFormat): string =>
   cfg?.truncate ? truncate(`${val}`, cfg.truncate) : `${val}`;
 
-const buildValue = (
-  colCfg: ColumnDef,
-  rawValue?: string | number,
-  columnFormats?: Record<string, ColumnFormat>,
-  settings?: InstanceSettings,
-): string => {
+const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: InstanceSettings): string => {
   if (rawValue !== undefined) {
-    const fmt = columnFormats?.[colCfg.name]?.fmt;
+    const fmt = settings?.columnFormats?.[colCfg.name]?.fmt;
     switch (findColType(colCfg.dtype)) {
       case ColumnType.FLOAT:
         return buildNumeral(
@@ -96,12 +77,15 @@ const buildValue = (
 export const buildDataProps = (
   colCfg: ColumnDef,
   rawValue?: string | number,
-  columnFormats?: Record<string, ColumnFormat>,
   settings?: InstanceSettings,
 ): DataRecord => ({
   raw: rawValue,
-  view: buildValue(colCfg, rawValue, columnFormats, settings),
-  style: menuFuncs.buildStyling(rawValue, findColType(colCfg.dtype), columnFormats?.[colCfg.name]?.style ?? {}),
+  view: buildValue(colCfg, rawValue, settings),
+  style: menuFuncs.buildStyling(
+    rawValue,
+    findColType(colCfg.dtype),
+    settings?.columnFormats?.[colCfg.name]?.style ?? {},
+  ),
 });
 
 const getHeatActive = (column: ColumnDef): boolean =>
@@ -112,16 +96,21 @@ export const heatmapActive = (backgroundMode?: string): boolean =>
 export const heatmapAllActive = (backgroundMode?: string): boolean =>
   ['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode ?? '');
 
-export const getActiveCols = (state: Partial<DataViewerState>): ColumnDef[] =>
-  state.columns?.filter((c) => (heatmapActive(state.backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+export const getActiveCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
+  columns?.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
 
-export const getCol = (index: number, state: Partial<DataViewerState>): ColumnDef | undefined =>
-  getActiveCols(state)[index];
+export const getCol = (index: number, columns: ColumnDef[], backgroundMode?: string): ColumnDef | undefined =>
+  getActiveCols(columns, backgroundMode)[index];
 
-export const getColWidth = (index: number, state: Partial<DataViewerState>, props: DataViewerProps): number => {
-  const col = getCol(index, state);
+export const getColWidth = (
+  index: number,
+  columns: ColumnDef[],
+  backgroundMode?: string,
+  verticalHeaders = false,
+): number => {
+  const col = getCol(index, columns, backgroundMode);
   let width = col?.width;
-  if (props.verticalHeaders) {
+  if (verticalHeaders) {
     width = col?.resized ? width : col?.dataWidth ?? width;
   }
   return width ?? DEFAULT_COL_WIDTH;
@@ -130,16 +119,22 @@ export const getColWidth = (index: number, state: Partial<DataViewerState>, prop
 export const ROW_HEIGHT = 25;
 export const HEADER_HEIGHT = 35;
 
-export const getRowHeight = (index: number, state: Partial<DataViewerState>, props: DataViewerProps): number => {
+export const getRowHeight = (
+  index: number,
+  columns: ColumnDef[],
+  backgroundMode: string | undefined,
+  maxRowHeight: number | undefined,
+  verticalHeaders = false,
+): number => {
   if (index === 0) {
-    if (props.verticalHeaders) {
-      const cols = getActiveCols(state);
+    if (verticalHeaders) {
+      const cols = getActiveCols(columns, backgroundMode);
       const maxWidth = Math.max(...cols.map((col) => col.headerWidth ?? col.width ?? HEADER_HEIGHT));
       return maxWidth < HEADER_HEIGHT ? HEADER_HEIGHT : maxWidth;
     }
     return HEADER_HEIGHT;
   }
-  return props.maxRowHeight ?? ROW_HEIGHT;
+  return maxRowHeight ?? ROW_HEIGHT;
 };
 
 export const getRanges = (array: number[]): string[] => {
@@ -180,9 +175,15 @@ const calcDataWidth = (name: string, dtype: string, data?: DataViewerData): numb
   }
 };
 
-export const calcColWidth = (colCfg: ColumnDef, dataProps: Partial<DataViewerState>): Partial<ColumnDef> => {
+export const calcColWidth = (
+  colCfg: ColumnDef,
+  data: DataViewerData,
+  rowCount: number,
+  sortInfo?: SortDef[],
+  backgroundMode?: string,
+  maxColumnWidth?: number,
+): Partial<ColumnDef> => {
   const { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth } = colCfg;
-  const { data, rowCount, sortInfo, backgroundMode, maxColumnWidth } = dataProps;
   if (resized === true) {
     return { width, headerWidth, dataWidth };
   }
@@ -236,7 +237,7 @@ export const buildGridStyles = (theme = ThemeType.LIGHT, headerHeight = HEADER_H
 });
 
 export const getTotalRange = (columns: ColumnDef[]): Bounds => {
-  const activeCols: ColumnDef[] = getActiveCols({ columns });
+  const activeCols: ColumnDef[] = getActiveCols(columns);
   const mins: number[] = [];
   const maxs: number[] = [];
   activeCols.forEach((col) => {
@@ -249,32 +250,6 @@ export const getTotalRange = (columns: ColumnDef[]): Bounds => {
   });
   return { min: !!mins.length ? Math.min(...mins) : undefined, max: !!maxs.length ? Math.max(...maxs) : undefined };
 };
-
-const loadBackgroundMode = (props: DataViewerProps): string | undefined =>
-  props.settings.backgroundMode ?? !!props.settings.rangeHighlight?.length ? 'range' : undefined;
-
-export const buildState = (props: DataViewerProps): DataViewerState => ({
-  ...buildGridStyles(props.theme),
-  columnFormats: props.settings.columnFormats ?? {},
-  nanDisplay: props.settings.nanDisplay,
-  overscanColumnCount: 0,
-  overscanRowCount: 5,
-  rowCount: 0,
-  fixedColumnCount: (props.settings.locked ?? []).length + 1, // add 1 for IDX column
-  fixedRowCount: 1,
-  data: {},
-  loading: false,
-  ids: [0, 55],
-  loadQueue: [],
-  columns: [],
-  selectedCols: [],
-  menuOpen: false,
-  formattingOpen: false,
-  triggerResize: false,
-  backgroundMode: loadBackgroundMode(props),
-  rangeHighlight: props.settings.rangeHighlight ?? {},
-  ...buildRangeState(),
-});
 
 export const noHidden = (columns: ColumnDef[]): boolean => columns.find(({ visible }) => !visible) === undefined;
 
@@ -309,29 +284,33 @@ interface Cell {
   rowIndex: number;
 }
 
-export const getCell = (cellIdx: string, gridState: Partial<DataViewerState>): Cell => {
+export const getCell = (cellIdx: string, columns: ColumnDef[], data: DataViewerData, backgroundMode?: string): Cell => {
   const [colIndex, rowIndex] = convertCellIdxToCoords(cellIdx);
-  const colCfg = getCol(colIndex, gridState)!;
-  const rec = gridState.data?.[rowIndex - 1]?.[colCfg.name]!;
+  const colCfg = getCol(colIndex, columns, backgroundMode)!;
+  const rec = data?.[rowIndex - 1]?.[colCfg.name]!;
   return { colCfg, rec, colIndex, rowIndex };
 };
 
-export const gridHeight = (height: number, columns: ColumnDef[], props: DataViewerProps): number =>
-  height -
-  (hasNoInfo(props.settings, columns) ? 3 : 30) -
-  (props.ribbonMenuOpen ? 25 : 0) -
-  (props.editedTextAreaHeight ?? 0);
+export const gridHeight = (
+  height: number,
+  columns: ColumnDef[],
+  settings: InstanceSettings,
+  ribbonMenuOpen: boolean,
+  editedTextAreaHeight?: number,
+): number => height - (hasNoInfo(settings, columns) ? 3 : 30) - (ribbonMenuOpen ? 25 : 0) - (editedTextAreaHeight ?? 0);
 
 export const updateColWidths = (
-  currState: DataViewerState,
-  newState: Partial<DataViewerState>,
+  columns: ColumnDef[],
+  data: DataViewerData,
+  rowCount: number,
   settings: InstanceSettings,
-  maxColumnWidth: number,
-): ColumnDef[] =>
-  (newState.columns ?? currState.columns).map((c) => ({
+  maxColumnWidth?: number,
+): ColumnDef[] => {
+  return columns.map((c) => ({
     ...c,
-    ...calcColWidth(c, { ...currState, ...newState, ...settings, maxColumnWidth }),
+    ...calcColWidth(c, data, rowCount, settings.sortInfo, settings.backgroundMode, maxColumnWidth),
   }));
+};
 
 const buildColMap = (columns: ColumnDef[]): Record<string, ColumnDef> =>
   columns.reduce((res, c) => ({ ...res, [c.name]: c }), {});
@@ -339,39 +318,23 @@ const buildColMap = (columns: ColumnDef[]): Record<string, ColumnDef> =>
 export const refreshColumns = (
   newColumns: ColumnDef[],
   columns: ColumnDef[],
-  state: DataViewerState,
+  data: DataViewerData,
+  rowCount: number,
   settings: InstanceSettings,
-  maxColumnWidth: number,
-): DataViewerState => {
+  maxColumnWidth?: number,
+): { columns: ColumnDef[] } & Bounds => {
   const columnMap = buildColMap(columns);
   const newCols = newColumns
     .filter(({ name }) => columnMap[name] === undefined)
-    .map((c) => ({ ...c, locked: false, ...calcColWidth(c, { ...state, ...settings, maxColumnWidth }) }));
+    .map((c) => ({
+      ...c,
+      locked: false,
+      ...calcColWidth(c, data, rowCount, settings.sortInfo, settings.backgroundMode, maxColumnWidth),
+    }));
   const updatedColumns = buildColMap(newColumns);
   const finalColumns = [
     ...columns.map((c) => (c.dtype !== updatedColumns[c.name].dtype ? { ...c, ...updatedColumns[c.name] } : c)),
     ...newCols,
   ];
-  return { ...state, columns: finalColumns, ...getTotalRange(finalColumns) };
+  return { columns: finalColumns, ...getTotalRange(finalColumns) };
 };
-
-export const reduxState = (state: AppState): Partial<DataViewerProps> => ({
-  dataId: state.dataId,
-  iframe: state.iframe,
-  theme: state.theme,
-  settings: state.settings,
-  menuPinned: state.menuPinned,
-  ribbonMenuOpen: state.ribbonMenuOpen,
-  dataViewerUpdate: state.dataViewerUpdate || undefined,
-  maxColumnWidth: state.maxColumnWidth || undefined,
-  maxRowHeight: state.maxRowHeight || undefined,
-  editedTextAreaHeight: state.editedTextAreaHeight,
-  verticalHeaders: state.settings.verticalHeaders ?? false,
-});
-
-export const reduxDispatch = (dispatch: Dispatch<any>): Partial<DataViewerProps> => ({
-  closeColumnMenu: (): AppActions<void> => dispatch(actions.closeColumnMenu()),
-  openChart: (chartProps: Popups): AppActions<void> => dispatch(openChart(chartProps)),
-  updateFilteredRanges: (query: string): AppActions<Promise<void>> => dispatch(actions.updateFilteredRanges(query)),
-  clearDataViewerUpdate: (): ClearDataViewerUpdateAction => dispatch({ type: ActionType.CLEAR_DATA_VIEWER_UPDATE }),
-});

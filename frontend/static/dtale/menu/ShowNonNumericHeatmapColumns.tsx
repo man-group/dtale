@@ -2,35 +2,31 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, HideRibbonMenuAction } from '../../redux/actions/AppActions';
+import { ActionType, AppActions, HideRibbonMenuAction } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
+import * as settingsActions from '../../redux/actions/settings';
 import { AppState } from '../../redux/state/AppState';
 
 import { MenuItem } from './MenuItem';
 
-/** Component properties for ShowNonNumericHeatmapColumns */
-export interface ShowNonNumericHeatmapColumnsProps {
-  backgroundMode?: string;
-  toggleBackground: (backgroundMode: string) => () => void;
-}
-
-const ShowNonNumericHeatmapColumns: React.FC<ShowNonNumericHeatmapColumnsProps & WithTranslation> = ({
-  backgroundMode,
-  toggleBackground,
-  t,
-}) => {
-  const showAllHeatmapColumns = useSelector((state: AppState) => state.showAllHeatmapColumns);
+const ShowNonNumericHeatmapColumns: React.FC<WithTranslation> = ({ t }) => {
+  const { showAllHeatmapColumns, settings } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
   const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
+  const toggleBackground = (backgroundMode: string): AppActions<void> =>
+    dispatch(settingsActions.updateSettings({ backgroundMode }));
 
   const updateShowAllHeatmapColumns = (): void => {
     const updatedShowAllHeatmapColumns = !showAllHeatmapColumns;
     dispatch(actions.updateShowAllHeatmapColumns(updatedShowAllHeatmapColumns));
-    if (backgroundMode) {
-      if (['heatmap-col', 'heatmap-all'].includes(backgroundMode) && updatedShowAllHeatmapColumns) {
-        toggleBackground(`${backgroundMode}-all`)();
-      } else if (['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode) && !updatedShowAllHeatmapColumns) {
-        toggleBackground(backgroundMode.substring(0, backgroundMode.length - 4))(); // trim off "-all"
+    if (settings.backgroundMode) {
+      if (['heatmap-col', 'heatmap-all'].includes(settings.backgroundMode) && updatedShowAllHeatmapColumns) {
+        toggleBackground(`${settings.backgroundMode}-all`);
+      } else if (
+        ['heatmap-col-all', 'heatmap-all-all'].includes(settings.backgroundMode) &&
+        !updatedShowAllHeatmapColumns
+      ) {
+        toggleBackground(settings.backgroundMode.substring(0, settings.backgroundMode.length - 4)); // trim off "-all"
       }
     }
     hideRibbonMenu();

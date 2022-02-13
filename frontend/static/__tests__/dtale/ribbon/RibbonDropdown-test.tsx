@@ -47,10 +47,13 @@ describe('RibbonDropdown', () => {
     rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect));
     useSelectorSpy.mockReturnValue({
       dataId: '1',
+      visible: true,
       name,
+      settings: {},
+      isVSCode: false,
       element: { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect) },
     });
-    wrapper = mount(<RibbonDropdown {...{ ...props, visible: true }} />);
+    wrapper = mount(<RibbonDropdown {...props} />);
     await act(async () => await tickUpdate(wrapper));
     wrapper = wrapper.update();
   };
@@ -62,7 +65,7 @@ describe('RibbonDropdown', () => {
     window.open = jest.fn();
     (window as any).location = { reload: jest.fn() };
     useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1' });
+    useSelectorSpy.mockReturnValue({ dataId: '1', visisble: false });
     const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
     useDispatchSpy.mockReturnValue(dispatchSpy);
     cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
@@ -70,7 +73,6 @@ describe('RibbonDropdown', () => {
     const loadProcessKeysSpy = jest.spyOn(InstanceRepository, 'loadProcessKeys');
     loadProcessKeysSpy.mockResolvedValue({ data: processes, success: true });
     props = {
-      visible: false,
       columns: [],
       propagateState: jest.fn(),
     };

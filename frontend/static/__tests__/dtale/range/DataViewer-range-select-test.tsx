@@ -5,9 +5,9 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import { DataViewer, ReactDataViewer } from '../../../dtale/DataViewer';
-import { ReactGridCell as GridCell } from '../../../dtale/GridCell';
-import { ReactGridEventHandler } from '../../../dtale/GridEventHandler';
+import { DataViewer } from '../../../dtale/DataViewer';
+import GridCell from '../../../dtale/GridCell';
+import GridEventHandler from '../../../dtale/GridEventHandler';
 import { CopyRangeToClipboard } from '../../../popups/CopyRangeToClipboard';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
@@ -52,45 +52,63 @@ describe('DataViewer tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
-    return result;
+    await act(async () => await tickUpdate(result));
+    return result.update();
   };
 
   it('DataViewer: range selection', async () => {
     let result = await build();
     let cellIdx = result.find(GridCell).at(20).find('div').prop('cell_idx');
-    const instance = result.find(ReactGridEventHandler).instance() as typeof ReactGridEventHandler.prototype;
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      shiftKey: true,
-    });
-    cellIdx = result.find(GridCell).last().find('div').prop('cell_idx');
     await act(async () => {
-      instance.handleMouseOver({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        shiftKey: true,
-      });
-      instance.handleClicks({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        shiftKey: true,
-      });
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toEqual({
+    cellIdx = result.find(GridCell).last().find('div').prop('cell_idx');
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onMouseOver?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    expect(store.getState().rangeSelect).toEqual({
       start: '3|3',
       end: '4|5',
     });
-    const copyRange = result.find(CopyRangeToClipboard).first();
     expect(store.getState().chartData.text).toBe('foo\t2000-01-01\nfoo\t\nfoo\t\n');
     await act(async () => {
-      copyRange.find('i.ico-check-box-outline-blank').simulate('click');
+      result.find(CopyRangeToClipboard).first().find('i.ico-check-box-outline-blank').simulate('click');
     });
     result = result.update();
-    expect(copyRange.find('pre').text()).toBe('col3\tcol4\nfoo\t2000-01-01\nfoo\t\nfoo\t\n');
+    expect(result.find(CopyRangeToClipboard).first().find('pre').text()).toBe(
+      'col3\tcol4\nfoo\t2000-01-01\nfoo\t\nfoo\t\n',
+    );
     await act(async () => {
-      copyRange.find('button').first().simulate('click');
+      result.find(CopyRangeToClipboard).first().find('button').first().simulate('click');
     });
     result = result.update();
-    expect(result.find(ReactDataViewer).instance().state.rangeSelect).toBeNull();
+    expect(store.getState().rangeSelect).toBeNull();
   });
 });

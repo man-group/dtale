@@ -11,17 +11,17 @@ describe('ColumnMenu ignoreClicks tests', () => {
 
   it("ColumnMenu: make sure clicks into column-filter won't close the menu", () => {
     getElementsByClassNameSpy.mockImplementation(() => [{ contains: () => true }]);
-    expect(ignoreMenuClicks({ target: { id: 'pass' } } as any as React.MouseEvent)).toBe(true);
+    expect(ignoreMenuClicks({ target: { id: 'pass' } } as any as MouseEvent)).toBe(true);
   });
 
   it("ColumnMenu: make sure clicks into Select__option won't close the menu", () => {
     getElementsByClassNameSpy.mockImplementation(() => [{ contains: () => false }]);
-    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } } as any as React.MouseEvent)).toBe(true);
+    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } } as any as MouseEvent)).toBe(true);
   });
 
   it("ColumnMenu: make sure clicks into ico-info won't close the menu", () => {
     getElementsByClassNameSpy.mockImplementation(() => []);
-    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } } as any as React.MouseEvent)).toBe(true);
+    expect(ignoreMenuClicks({ target: { classList: { contains: () => true } } } as any as MouseEvent)).toBe(true);
   });
 
   it("ColumnMenu: make sure clicks into svg nodes won't close the menu", () => {
@@ -29,7 +29,7 @@ describe('ColumnMenu ignoreClicks tests', () => {
     expect(
       ignoreMenuClicks({
         target: { nodeName: 'svg', classList: { contains: () => false } },
-      } as any as React.MouseEvent),
+      } as any as MouseEvent),
     ).toBe(true);
   });
 
@@ -38,7 +38,7 @@ describe('ColumnMenu ignoreClicks tests', () => {
     expect(
       ignoreMenuClicks({
         target: { nodeName: 'span', classList: { contains: () => false } },
-      } as any as React.MouseEvent),
+      } as any as MouseEvent),
     ).toBe(false);
   });
 });

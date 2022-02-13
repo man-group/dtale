@@ -1,9 +1,8 @@
 import { buildClickHandler } from '../../menuUtils';
-import { AppActions } from '../../redux/actions/AppActions';
+import { AppActions, ToggleMenuAction } from '../../redux/actions/AppActions';
 import { cleanupEndpoint } from '../../redux/actions/url-utils';
 import { InstanceSettings, Popups, PopupType, SortDef, SortDir } from '../../redux/state/AppState';
-import * as bu from '../backgroundUtils';
-import { ColumnDef, ColumnFormatStyle, DataViewerPropagateState, DataViewerState } from '../DataViewerState';
+import { ColumnDef, ColumnFormatStyle } from '../DataViewerState';
 import { ColumnType } from '../gridUtils';
 
 import { ExportType } from './ExportOption';
@@ -94,9 +93,9 @@ export const openPopup =
 
 /** Input properties for hot key builder */
 interface HotkeyProps {
-  backgroundMode?: string;
   columns: ColumnDef[];
-  propagateState: DataViewerPropagateState;
+  openMenu: () => ToggleMenuAction;
+  closeMenu: () => ToggleMenuAction;
   openChart: (chartData: Popups) => AppActions<void>;
   dataId: string;
   isVSCode: boolean;
@@ -118,16 +117,14 @@ interface HotKeyOutput {
   ABOUT: () => AppActions<void>;
   LOGOUT: VoidFunc;
   SHUTDOWN: VoidFunc;
-  toggleBackground: (bgType: string) => VoidFunc;
-  toggleOutlierBackground: VoidFunc;
   exportFile: (exportType: ExportType) => VoidFunc;
 }
 
 export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
-  const { backgroundMode, propagateState, openChart, dataId, isVSCode } = props;
+  const { openChart, closeMenu, dataId, isVSCode } = props;
   const openMenu = (): void => {
-    propagateState({ menuOpen: true });
-    buildClickHandler(() => propagateState({ menuOpen: false }));
+    props.openMenu();
+    buildClickHandler(closeMenu);
   };
   const openTab = (path: string): void => {
     const url = fullPath(path, dataId);
@@ -144,21 +141,6 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
   const openNetwork = (): void => openTab('/dtale/network');
   const openCharts = (): void => openTab('/dtale/charts');
   const openCodeExport = (): void => open('/dtale/popup/code-export', dataId, 450, 700, isVSCode);
-  const bgState = (bgType: string): Partial<DataViewerState> => ({
-    backgroundMode: backgroundMode === bgType ? undefined : bgType,
-    triggerBgResize: bu.RESIZABLE.includes(backgroundMode ?? '') || bu.RESIZABLE.includes(bgType),
-  });
-  const toggleBackground =
-    (bgType: string): VoidFunc =>
-    () =>
-      props.propagateState(bgState(bgType));
-  const toggleOutlierBackground = (): void => {
-    const updatedState = bgState('outliers');
-    if (updatedState.backgroundMode === 'outliers') {
-      updatedState.columns = props.columns.map(bu.buildOutlierScales);
-    }
-    props.propagateState(updatedState);
-  };
   const exportFile =
     (exportType: ExportType): VoidFunc =>
     (): void => {
@@ -179,30 +161,14 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
       1100,
       isVSCode,
     ),
-    BUILD: openPopup(
-      { type: PopupType.BUILD, title: 'Build', visible: true, propagateState },
-      dataId,
-      openChart,
-      515,
-      800,
-      isVSCode,
-    ),
-    CLEAN: openPopup(
-      { type: PopupType.CLEANERS, visible: true, propagateState },
-      dataId,
-      openChart,
-      515,
-      800,
-      isVSCode,
-    ),
+    BUILD: openPopup({ type: PopupType.BUILD, title: 'Build', visible: true }, dataId, openChart, 515, 800, isVSCode),
+    CLEAN: openPopup({ type: PopupType.CLEANERS, visible: true }, dataId, openChart, 515, 800, isVSCode),
     DUPLICATES: openPopup({ type: PopupType.DUPLICATES, visible: true }, dataId, openChart, 400, 770, isVSCode),
     CHARTS: openCharts,
     CODE: openCodeExport,
     ABOUT: () => openChart({ type: PopupType.ABOUT, size: 'sm', backdrop: true, visible: true }),
     LOGOUT: () => (window.location.pathname = fullPath('/logout')),
     SHUTDOWN: () => (window.location.pathname = fullPath('/shutdown')),
-    toggleBackground,
-    toggleOutlierBackground,
     exportFile,
   };
 };

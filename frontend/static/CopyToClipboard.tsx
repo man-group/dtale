@@ -14,7 +14,7 @@ export function canCopy(): boolean {
 
 /** Component properties for button building */
 export interface ButtonBuilderProps {
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
 /** Component properties for CopyToClipboard */
@@ -35,7 +35,7 @@ const CopyToClipboard: React.FC<CopyToClipboardProps & WithTranslation> = ({
   const tooltip = React.useRef<HTMLDivElement>(null);
 
   if (canCopy()) {
-    const copy = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    const copy = (e: React.MouseEvent<HTMLElement>): void => {
       textArea.current?.select?.();
       document.execCommand('copy');
       (e.target as HTMLElement).focus();

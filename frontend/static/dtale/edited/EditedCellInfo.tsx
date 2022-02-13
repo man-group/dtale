@@ -11,7 +11,13 @@ import { onKeyDown as baseKeyDown, EditedCellInfoProps } from './editUtils';
 
 require('./EditedCellInfo.scss');
 
-const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({ propagateState, gridState, t }) => {
+const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
+  propagateState,
+  data,
+  columns,
+  rowCount,
+  t,
+}) => {
   const { dataId, editedCell, settings, maxColumnWidth } = useSelector((state: AppState) => ({
     dataId: state.dataId,
     editedCell: state.editedCell,
@@ -33,8 +39,8 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({ propa
     if (!editedCell) {
       return undefined;
     }
-    return getCell(editedCell, gridState);
-  }, [editedCell, gridState]);
+    return getCell(editedCell, columns, data, settings.backgroundMode);
+  }, [editedCell, columns, data, settings.backgroundMode]);
 
   React.useEffect(() => {
     if (cell?.rec) {
@@ -56,11 +62,13 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({ propa
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>): Promise<void> => {
     if (cell) {
       await baseKeyDown(e, cell.colCfg, cell.rowIndex, value ?? '', origValue ?? '', {
-        gridState,
+        data,
+        columns,
+        rowCount,
         propagateState,
         dataId,
         settings,
-        maxColumnWidth,
+        maxColumnWidth: maxColumnWidth ?? undefined,
         openChart,
         clearEdit,
       });

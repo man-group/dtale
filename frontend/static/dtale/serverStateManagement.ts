@@ -107,7 +107,6 @@ export function lockCols(selectedCols: string[], props: ColumnOperationProps): (
       {
         columns: [...locked, ...columns.filter(({ name }) => !locked.find((column) => column.name === name))],
         fixedColumnCount: locked.length,
-        selectedCols: [],
         triggerResize: true,
       },
       async () => await executeAction('update-locked', dataId, { col: selectedCols[0], action: 'lock' }),
@@ -134,7 +133,6 @@ export function unlockCols(selectedCols: string[], props: ColumnOperationProps):
       {
         columns: [...locked, ...unlocked, ...columns.filter((c) => !c.locked)],
         fixedColumnCount: locked.length,
-        selectedCols: [],
         triggerResize: true,
       },
       async () => await executeAction('update-locked', dataId, { col: selectedCols[0], action: 'unlock' }),

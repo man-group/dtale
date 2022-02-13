@@ -1,0 +1,15 @@
+import * as React from 'react';
+
+import { buildButton } from '../toggleUtils';
+
+describe('toggleUtils tests', () => {
+  it('toggleUtils: testing buildButton', () => {
+    let props = buildButton(true, () => 'active');
+    expect(props.className).toBe('btn btn-primary active');
+    expect(props.onClick?.({} as any as React.MouseEvent<HTMLButtonElement>)).toBeUndefined();
+    props = buildButton(false, () => 'active', true);
+    expect(props.className).toBe('btn btn-primary ');
+    expect(props.onClick?.({} as any as React.MouseEvent<HTMLButtonElement>)).toBe('active');
+    expect(props.disabled).toBe(true);
+  });
+});

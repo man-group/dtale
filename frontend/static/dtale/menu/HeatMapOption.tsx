@@ -9,13 +9,12 @@ import { MenuItem } from './MenuItem';
 
 /** Component properties for HeatMapOption */
 export interface HeatMapOptionProps {
-  backgroundMode?: string;
-  toggleBackground: (mode: string) => () => void;
+  toggleBackground: (mode: string) => void;
 }
 
-const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ backgroundMode, toggleBackground, t }) => {
-  const showAllHeatmapColumns = useSelector((state: AppState) => state.showAllHeatmapColumns);
-  const heatmapActive = gu.heatmapActive(backgroundMode) || gu.heatmapAllActive(backgroundMode);
+const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ toggleBackground, t }) => {
+  const { showAllHeatmapColumns, settings } = useSelector((state: AppState) => state);
+  const heatmapActive = gu.heatmapActive(settings.backgroundMode) || gu.heatmapAllActive(settings.backgroundMode);
   return (
     <MenuItem style={{ color: '#565b68' }} description={t('menu_description:heatmap')}>
       <span className="toggler-action">
@@ -31,10 +30,10 @@ const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ backgro
             key={label}
             style={{ color: '#565b68' }}
             className="btn btn-primary font-weight-bold"
-            onClick={toggleBackground(mode)}
+            onClick={() => toggleBackground(mode)}
           >
-            {mode === backgroundMode && <span className="flames">{t(label, { ns: 'menu' })}</span>}
-            {mode !== backgroundMode && t(label, { ns: 'menu' })}
+            {mode === settings.backgroundMode && <span className="flames">{t(label, { ns: 'menu' })}</span>}
+            {mode !== settings.backgroundMode && t(label, { ns: 'menu' })}
           </button>
         ))}
       </div>

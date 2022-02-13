@@ -93,7 +93,7 @@ const buildCreateColumn = (props: BuilderInput): BuilderOutput => {
       <strong>{props.t('Dataframe Functions', { ns: 'menu' })}</strong>
     </React.Fragment>
   );
-  const body = <CreateColumn />;
+  const body = <CreateColumn propagateState={props.propagateState} />;
   return { title, body };
 };
 
@@ -112,6 +112,7 @@ const buildTypeConversion = (props: BuilderInput): BuilderOutput => {
         saveAs: SaveAs.INPLACE,
         cfg: { col: (props.chartData as CreateColumnPopupData).selectedCol } as TypeConversionConfig,
       }}
+      propagateState={props.propagateState}
     />
   );
   return { title, body };
@@ -131,6 +132,7 @@ const buildCleaners = (props: BuilderInput): BuilderOutput => {
         type: CreateColumnType.CLEANING,
         cfg: { col: (props.chartData as CreateColumnPopupData).selectedCol, cleaners: [] } as CleaningConfig,
       }}
+      propagateState={props.propagateState}
     />
   );
   return { title, body };
@@ -178,7 +180,7 @@ const buildCopyRange = (props: BuilderInput): BuilderOutput => {
       <small className="pl-3">({props.chartData.title})</small>
     </React.Fragment>
   );
-  const body = <CopyRangeToClipboard propagateState={props.propagateState} />;
+  const body = <CopyRangeToClipboard />;
   return { title, body };
 };
 
@@ -189,7 +191,7 @@ const buildRange = (props: BuilderInput): BuilderOutput => {
       <strong>{props.t('Range Highlights', { ns: 'menu' })}</strong>
     </React.Fragment>
   );
-  const body = <RangeHighlight {...props} />;
+  const body = <RangeHighlight />;
   return { title, body };
 };
 

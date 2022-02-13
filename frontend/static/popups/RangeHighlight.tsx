@@ -1,15 +1,17 @@
 import * as React from 'react';
 import { RGBColor, SketchPicker } from 'react-color';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import reactCSS from 'reactcss';
 
-import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import * as serverState from '../dtale/serverStateManagement';
+import { AppActions } from '../redux/actions/AppActions';
+import * as settingsActions from '../redux/actions/settings';
 import {
   AppState,
   BaseOption,
   HasActivation,
+  InstanceSettings,
   RangeHighlightConfig,
   RangeHighlightModeCfg,
   RangeHighlightModes,
@@ -119,16 +121,14 @@ function rangeAsStr(range: RangeHighlightModes): JSX.Element[] {
   return subRanges;
 }
 
-/** Component properties for Rename */
-interface RangeHighlightProps {
-  propagateState: DataViewerPropagateState;
-}
-
-const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propagateState, t }) => {
+const RangeHighlight: React.FC<WithTranslation> = ({ t }) => {
   const { chartData, dataId } = useSelector((state: AppState) => ({
     chartData: state.chartData as RangeHighlightPopupData,
     dataId: state.dataId,
   }));
+  const dispatch = useDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const allOption = React.useMemo(() => buildAllOption(t), [t]);
   const [ranges, setRanges] = React.useState<RangeHighlightConfig>({ ...chartData.rangeHighlight });
@@ -148,13 +148,11 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
   const applyRange = async (): Promise<void> => {
     const updatedRange: RangeHighlightModes & HasActivation = { ...currRange, active: true };
     let backgroundMode;
-    let triggerBgResize = false;
     MODES.forEach(([_label, key, _filter]) => {
       const { active, value } = currRange[key];
       if (active && value !== undefined && !isNaN(value)) {
         updatedRange[key].value = value;
         backgroundMode = 'range';
-        triggerBgResize = true;
       }
     });
     const updatedRanges = { ...ranges, [col.value]: updatedRange };
@@ -163,7 +161,7 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
     }
     setRanges(updatedRanges);
     await serverState.saveRangeHighlights(dataId, updatedRanges);
-    propagateState({ backgroundMode, triggerBgResize, rangeHighlight: updatedRanges });
+    updateSettings({ backgroundMode, rangeHighlight: updatedRanges });
   };
 
   const removeRange = async (colName: string): Promise<void> => {
@@ -172,7 +170,7 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
     setRanges(updatedRanges);
     await serverState.saveRangeHighlights(dataId, ranges);
     const backgroundMode = Object.keys(updatedRanges).length ? 'range' : undefined;
-    propagateState({ backgroundMode, triggerBgResize: true, rangeHighlight: updatedRanges });
+    updateSettings({ backgroundMode, rangeHighlight: updatedRanges });
   };
 
   const toggleRange = async (colName: string): Promise<void> => {
@@ -180,7 +178,7 @@ const RangeHighlight: React.FC<RangeHighlightProps & WithTranslation> = ({ propa
     updatedRanges[colName].active = !updatedRanges[colName].active;
     setRanges(updatedRanges);
     await serverState.saveRangeHighlights(dataId, updatedRanges);
-    propagateState({ backgroundMode: 'range', triggerBgResize: true, rangeHighlight: updatedRanges });
+    updateSettings({ backgroundMode: 'range', rangeHighlight: updatedRanges });
   };
 
   return (

@@ -2,9 +2,9 @@ import chroma from 'chroma-js';
 import * as React from 'react';
 
 import { BASE_COLOR, MODES } from '../popups/RangeHighlight';
-import { RangeHighlightModes } from '../redux/state/AppState';
+import { InstanceSettings, RangeHighlightConfig, RangeHighlightModes } from '../redux/state/AppState';
 
-import { Bounds, ColumnDef, DataRecord, DataViewerState, OutlierRange } from './DataViewerState';
+import { Bounds, ColumnDef, DataRecord, OutlierRange } from './DataViewerState';
 import * as gu from './gridUtils';
 
 export const missingIcon = String.fromCodePoint(10071); // "!" emoji
@@ -111,10 +111,13 @@ const outlierHighlighting = (column: ColumnDef, record: DataRecord): React.CSSPr
 /** Internal characteristics of a range highlight mode */
 type RangeHighlightMode = [string, keyof RangeHighlightModes, (raw: number, value: number) => boolean];
 
-const rangeHighlighting = (state: DataViewerState, column: ColumnDef, record: DataRecord): React.CSSProperties => {
+const rangeHighlighting = (
+  rangeHighlight: RangeHighlightConfig | undefined,
+  column: ColumnDef,
+  record: DataRecord,
+): React.CSSProperties => {
   const { name, dtype } = column;
   const raw = record.raw as number;
-  const { rangeHighlight } = state;
   if (name === gu.IDX || !rangeHighlight) {
     return {};
   }
@@ -151,27 +154,29 @@ const lowVarianceHighlighting = (column: ColumnDef): React.CSSProperties => {
 };
 
 export const updateBackgroundStyles = (
-  state: DataViewerState,
   colCfg: ColumnDef,
   rec: DataRecord,
+  settings: InstanceSettings,
+  min?: number,
+  max?: number,
 ): React.CSSProperties => {
-  switch (state.backgroundMode) {
+  switch (settings.backgroundMode) {
     case `heatmap-col-${colCfg.name}`:
       return heatMapBackground(rec, {
         ...colCfg,
-        ...state.filteredRanges?.ranges?.[colCfg.name],
+        ...settings.filteredRanges?.ranges?.[colCfg.name],
       });
     case 'heatmap-col':
     case 'heatmap-col-all':
       return heatMapBackground(rec, {
         ...colCfg,
-        ...state.filteredRanges?.ranges?.[colCfg.name],
+        ...settings.filteredRanges?.ranges?.[colCfg.name],
       });
     case 'heatmap-all':
     case 'heatmap-all-all': {
       const overall = {
-        min: state.filteredRanges?.overall?.min ?? state.min,
-        max: state.filteredRanges?.overall?.max ?? state.max,
+        min: settings.filteredRanges?.overall?.min ?? min,
+        max: settings.filteredRanges?.overall?.max ?? max,
       };
       return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, overall);
     }
@@ -182,7 +187,7 @@ export const updateBackgroundStyles = (
     case 'outliers':
       return outlierHighlighting(colCfg, rec);
     case 'range':
-      return rangeHighlighting(state, colCfg, rec);
+      return rangeHighlighting(settings.rangeHighlight, colCfg, rec);
     case 'lowVariance':
       return lowVarianceHighlighting(colCfg);
     default:

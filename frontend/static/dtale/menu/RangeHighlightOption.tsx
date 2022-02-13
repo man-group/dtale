@@ -1,33 +1,31 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { AppActions } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { Popups, PopupType, RangeHighlightConfig } from '../../redux/state/AppState';
-import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
+import * as settingsActions from '../../redux/actions/settings';
+import { AppState, InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
+import { ColumnDef } from '../DataViewerState';
 
 import { MenuItem } from './MenuItem';
 import { RibbonOptionProps } from './MenuState';
 
 /** Component properties for RangeHighlightOption */
 interface RangeHighlightOptionProps extends RibbonOptionProps {
-  backgroundMode?: string;
-  rangeHighlight?: RangeHighlightConfig;
-  propagateState: DataViewerPropagateState;
   columns: ColumnDef[];
 }
 const RangeHighlightOption: React.FC<RangeHighlightOptionProps & WithTranslation> = ({
-  backgroundMode,
-  rangeHighlight,
   columns,
-  propagateState,
   ribbonWrapper = (func) => func,
   t,
 }) => {
+  const { backgroundMode, rangeHighlight } = useSelector((state: AppState) => state.settings);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const openRangeHightlight = ribbonWrapper(() =>
     openChart({ type: PopupType.RANGE, size: 'sm', visible: true, backgroundMode, rangeHighlight, columns }),
@@ -37,7 +35,7 @@ const RangeHighlightOption: React.FC<RangeHighlightOptionProps & WithTranslation
       (res, [key, value]) => ({ ...res, [key]: { ...value, active: false } }),
       {},
     );
-    propagateState({ rangeHighlight: updatedRangeHighlight, backgroundMode: undefined });
+    updateSettings({ rangeHighlight: updatedRangeHighlight, backgroundMode: undefined });
   });
 
   return (

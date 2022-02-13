@@ -4,7 +4,7 @@ import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 import { Store } from 'redux';
 
-import { DataRecord, DataViewerData, DataViewerState } from '../../../dtale/DataViewerState';
+import { DataRecord, DataViewerData } from '../../../dtale/DataViewerState';
 import EditedCellInfo from '../../../dtale/edited/EditedCellInfo';
 import * as serverState from '../../../dtale/serverStateManagement';
 import { ActionType } from '../../../redux/actions/AppActions';
@@ -39,7 +39,12 @@ describe('DataViewerInfo tests', () => {
     }
     result = mount(
       <redux.Provider store={store}>
-        <EditedCellInfo propagateState={propagateState} gridState={{ data, columns } as DataViewerState} />
+        <EditedCellInfo
+          propagateState={propagateState}
+          data={data}
+          columns={columns}
+          rowCount={Object.keys(data).length}
+        />
       </redux.Provider>,
       { attachTo: document.getElementById('content') ?? undefined },
     );

@@ -5,10 +5,9 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import { DataViewer, ReactDataViewer } from '../../dtale/DataViewer';
-import { ColumnDef, DataViewerProps, DataViewerState } from '../../dtale/DataViewerState';
+import { DataViewer } from '../../dtale/DataViewer';
+import { ColumnDef } from '../../dtale/DataViewerState';
 import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
-import HeatMapOption from '../../dtale/menu/HeatMapOption';
 import RangeHighlightOption from '../../dtale/menu/RangeHighlightOption';
 import * as serverState from '../../dtale/serverStateManagement';
 import RangeHighlight from '../../popups/RangeHighlight';
@@ -55,7 +54,7 @@ describe('DataViewer highlighting tests', () => {
   });
 
   const heatMapBtn = (): ReactWrapper => findMainMenuButton(result, 'By Col', 'div.btn-group');
-  const dataViewer = (): ReactWrapper<DataViewerProps, DataViewerState> => result.find(ReactDataViewer);
+  const dataViewer = (): ReactWrapper => result.find(DataViewer);
   const allRange = (): ReactWrapper => result.find(RangeHighlight).find('div.form-group').last();
 
   it('DataViewer: heatmap', async () => {
@@ -63,7 +62,7 @@ describe('DataViewer highlighting tests', () => {
       heatMapBtn().find('button').first().simulate('click');
     });
     result = result.update();
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('heatmap-col');
+    expect(store.getState().settings.backgroundMode).toBe('heatmap-col');
     expect(
       dataViewer()
         .find('div.cell')
@@ -78,7 +77,7 @@ describe('DataViewer highlighting tests', () => {
       heatMapBtn().find('button').last().simulate('click');
     });
     result = result.update();
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('heatmap-all');
+    expect(store.getState().settings.backgroundMode).toBe('heatmap-all');
     expect(
       dataViewer()
         .find('div.headerCell')
@@ -88,7 +87,7 @@ describe('DataViewer highlighting tests', () => {
       heatMapBtn().find('button').last().simulate('click');
     });
     result = result.update();
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
     expect(
       dataViewer()
         .find(DataViewerMenu)
@@ -104,23 +103,23 @@ describe('DataViewer highlighting tests', () => {
 
   it('DataViewer: dtype highlighting', async () => {
     result = await clickMainMenuButton(result, 'Highlight Dtypes');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('dtypes');
+    expect(store.getState().settings.backgroundMode).toBe('dtypes');
     result = await clickMainMenuButton(result, 'Highlight Dtypes');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 
   it('DataViewer: missing highlighting', async () => {
     result = await clickMainMenuButton(result, 'Highlight Missing');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('missing');
+    expect(store.getState().settings.backgroundMode).toBe('missing');
     result = await clickMainMenuButton(result, 'Highlight Missing');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 
   it('DataViewer: outlier highlighting', async () => {
     result = await clickMainMenuButton(result, 'Highlight Outliers');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('outliers');
+    expect(store.getState().settings.backgroundMode).toBe('outliers');
     result = await clickMainMenuButton(result, 'Highlight Outliers');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 
   const updateRangeHighlightInputs = async (idx: number): Promise<void> => {
@@ -149,40 +148,38 @@ describe('DataViewer highlighting tests', () => {
     });
     result = result.update();
     expect(saveRangeHighlightsSpy).toHaveBeenCalledTimes(1);
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('range');
-    expect(result.find(RangeHighlightOption).props().rangeHighlight).toStrictEqual(
-      saveRangeHighlightsSpy.mock.calls[0][1],
-    );
+    expect(store.getState().settings.backgroundMode).toBe('range');
+    expect(store.getState().settings.rangeHighlight).toStrictEqual(saveRangeHighlightsSpy.mock.calls[0][1]);
     await act(async () => {
       result.find(RangeHighlightOption).find('i').simulate('click');
     });
     result = result.update();
     await tick();
     result = result.update();
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
-    expect(result.find(RangeHighlightOption).props().rangeHighlight.all.active).toBe(false);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
+    expect(store.getState().settings.rangeHighlight.all.active).toBe(false);
     result = await clickMainMenuButton(result, 'Highlight Range');
     await act(async () => {
       allRange().find('i.ico-check-box-outline-blank').simulate('click');
     });
     result = result.update();
-    expect(result.find(RangeHighlightOption).props().rangeHighlight.all.active).toBe(true);
+    expect(store.getState().settings.rangeHighlight.all.active).toBe(true);
     await act(async () => {
       allRange().find('i.ico-check-box').simulate('click');
     });
     result = result.update();
-    expect(result.find(RangeHighlightOption).props().rangeHighlight.all.active).toBe(false);
+    expect(store.getState().settings.rangeHighlight.all.active).toBe(false);
     await act(async () => {
       allRange().find('i.ico-remove-circle').simulate('click');
     });
     result = result.update();
-    expect(Object.keys(result.find(RangeHighlightOption).props().rangeHighlight)).toHaveLength(0);
+    expect(Object.keys(store.getState().settings.rangeHighlight)).toHaveLength(0);
   });
 
   it('DataViewer: low variance highlighting', async () => {
     result = await clickMainMenuButton(result, 'Low Variance Flag');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe('lowVariance');
+    expect(store.getState().settings.backgroundMode).toBe('lowVariance');
     result = await clickMainMenuButton(result, 'Low Variance Flag');
-    expect(result.find(HeatMapOption).props().backgroundMode).toBe(undefined);
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 });

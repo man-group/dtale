@@ -1,6 +1,5 @@
 import { mount } from 'enzyme';
-import _ from 'lodash';
-import React from 'react';
+import * as React from 'react';
 
 import * as CopyToClipboard from '../../CopyToClipboard';
 import * as menuFuncs from '../../dtale/menu/dataViewerMenuUtils';
@@ -12,7 +11,7 @@ describe('CodePopup tests', () => {
     Object.defineProperty(global.document, 'queryCommandSupported', {
       value: () => true,
     });
-    Object.defineProperty(global.document, 'execCommand', { value: _.noop });
+    Object.defineProperty(global.document, 'execCommand', { value: () => ({}) });
   });
 
   afterEach(jest.resetAllMocks);

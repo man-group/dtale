@@ -1,11 +1,12 @@
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { default as HeatMapOption, HeatMapOptionProps } from '../../../dtale/menu/HeatMapOption';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML } from '../../test-utils';
+import { buildInnerHTML, tickUpdate } from '../../test-utils';
 
 describe('HeatMapOption tests', () => {
   let result: ReactWrapper;
@@ -13,9 +14,12 @@ describe('HeatMapOption tests', () => {
   const toggleBackgroundSpy = jest.fn();
   let store: Store;
 
-  const setupOption = (propOverrides?: Partial<HeatMapOptionProps>, showAllHeatmapColumns = false): void => {
+  const setupOption = async (
+    propOverrides?: Partial<HeatMapOptionProps>,
+    showAllHeatmapColumns = false,
+  ): Promise<void> => {
     props = {
-      toggleBackground: jest.fn((backgroundMode) => () => toggleBackgroundSpy(backgroundMode)),
+      toggleBackground: toggleBackgroundSpy,
       ...propOverrides,
     };
     store = reduxUtils.createDtaleStore();
@@ -29,6 +33,8 @@ describe('HeatMapOption tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
+    await act(async () => await tickUpdate(result));
+    result = result.update();
   };
 
   beforeEach(() => setupOption());

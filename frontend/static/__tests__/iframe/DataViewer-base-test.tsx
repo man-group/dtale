@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 import { Store } from 'redux';
 
 import ColumnMenu from '../../dtale/column/ColumnMenu';
 import { DataViewer } from '../../dtale/DataViewer';
-import { ReactHeader as Header } from '../../dtale/Header';
 import DataViewerInfo from '../../dtale/info/DataViewerInfo';
 import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
 import Formatting from '../../popups/formats/Formatting';
+import { ActionType } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import { createMockComponent } from '../mocks/createMockComponent';
 import reduxUtils from '../redux-test-utils';
@@ -67,7 +67,8 @@ describe('DataViewer iframe tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    return result.update();
   });
 
   afterEach(jest.resetAllMocks);
@@ -84,10 +85,12 @@ describe('DataViewer iframe tests', () => {
   const colMenu = (): ReactWrapper => result.find(ColumnMenu).first();
 
   it('main menu option display', async () => {
-    const grid = result.find(MultiGrid).first().instance();
     validateHeaders(result, ['col1', 'col2', 'col3', 'col4']);
-    expect(grid.props.columns).toEqual(COL_PROPS);
-    result.find('div.crossed').first().find('div.grid-menu').first().simulate('click');
+    expect(result.find(Formatting).props().columns).toEqual(COL_PROPS);
+    await act(async () => {
+      result.find('div.crossed').first().find('div.grid-menu').first().simulate('click');
+    });
+    result = result.update();
     expect(
       result
         .find(DataViewerMenu)
@@ -106,8 +109,8 @@ describe('DataViewer iframe tests', () => {
   it('DataViewer: validate column menu options', async () => {
     result = await openColMenu(result, 3);
     expect(result.find('#column-menu-div').length).toBe(1);
-    result.find(Header).last().instance().props.hideColumnMenu('col4');
-    result.update();
+    store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col4' });
+    result = result.update();
     expect(result.find('#column-menu-div').length).toBe(0);
     result = await openColMenu(result, 3);
     expect(colMenu().find('header').first().text()).toBe('Column "col4"Data Type:datetime64[ns]');
@@ -134,7 +137,7 @@ describe('DataViewer iframe tests', () => {
     expect(result.find('div.row div.col').first().text()).toBe('Sort:col4 (ASC)');
     result = await openColMenu(result, 2);
     expect(colMenu().find('header').first().text()).toBe('Column "col3"Data Type:object');
-    result.find(Header).at(2).instance().props.hideColumnMenu('col3');
+    store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col3' });
     result = await openColMenu(result, 3);
     result = await clickColMenuSubButton(result, 'fa-step-backward', 1);
     validateHeaders(result, ['▲col4', 'col1', 'col2', 'col3']);
@@ -165,8 +168,10 @@ describe('DataViewer iframe tests', () => {
         .map((hc) => hc.find('.text-nowrap').text()),
     ).toEqual(['▲col4', 'col1', 'col2', 'col3']);
     // clear sorts
-    result.find(DataViewerInfo).find('i.ico-cancel').first().simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      result.find(DataViewerInfo).find('i.ico-cancel').first().simulate('click');
+    });
+    result = result.update();
     expect(result.find(DataViewerInfo).find('div.data-viewer-info.is-expanded').length).toBe(0);
     result = await openColMenu(result, 0);
     result = await openColMenu(result, 3);
@@ -190,11 +195,16 @@ describe('DataViewer iframe tests', () => {
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/network/1');
     await clickMainMenuButton(result, 'Instances 1');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/popup/instances/1');
-    const exports = findMainMenuButton(result, 'CSV', 'div.btn-group');
-    exports.find('button').first().simulate('click');
+    await act(async () => {
+      findMainMenuButton(result, 'CSV', 'div.btn-group').find('button').first().simulate('click');
+    });
+    result = result.update();
     let exportURL = openSpy.mock.calls[openSpy.mock.calls.length - 1][0];
     expect(exportURL.startsWith('/dtale/data-export/1') && exportURL.includes('type=csv')).toBe(true);
-    exports.find('button').at(1).simulate('click');
+    await act(async () => {
+      findMainMenuButton(result, 'CSV', 'div.btn-group').find('button').at(1).simulate('click');
+    });
+    result = result.update();
     exportURL = openSpy.mock.calls[openSpy.mock.calls.length - 1][0];
     expect(exportURL.startsWith('/dtale/data-export/1') && exportURL.includes('type=tsv')).toBe(true);
     await clickMainMenuButton(result, 'Refresh Widths');

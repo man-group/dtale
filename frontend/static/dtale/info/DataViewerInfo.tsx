@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, InstanceSettings } from '../../redux/state/AppState';
-import { RemovableError } from '../../RemovableError';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import * as serverState from '../serverStateManagement';
@@ -19,18 +17,11 @@ require('./DataViewerInfo.scss');
 /** Component properties for DataViewerInfo */
 export interface DataViewerInfoProps {
   columns: ColumnDef[];
-  error?: string;
-  traceback?: string;
+  error?: JSX.Element;
   propagateState: DataViewerPropagateState;
 }
 
-const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({
-  columns,
-  error,
-  traceback,
-  propagateState,
-  t,
-}) => {
+const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ columns, error, propagateState, t }) => {
   const reduxState = useSelector((state: AppState) => ({
     dataId: state.dataId,
     predefinedFilterConfigs: state.predefinedFilters,
@@ -111,13 +102,12 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({
     const label = <div className="font-weight-bold d-inline-block">{t('Hidden')}:</div>;
     const hidden = columns.filter((c) => !c.visible).map((c) => c.name);
     const clearHidden = async (): Promise<void> => {
-      const visibility = _.reduce(columns, (ret, { name }) => _.assignIn(ret, { [name]: true }), {});
-      const updatedState = {
+      const visibility = columns.reduce((ret, { name }) => ({ ...ret, [name]: true }), {});
+      await serverState.updateVisibility(reduxState.dataId, visibility);
+      propagateState({
         columns: columns.map((c) => ({ ...c, visible: true })),
         triggerResize: true,
-      };
-      await serverState.updateVisibility(reduxState.dataId, visibility);
-      propagateState(updatedState);
+      });
     };
     const clearAll = <i className="ico-cancel pl-3 pointer" style={{ marginTop: '-0.1em' }} onClick={clearHidden} />;
     if (hidden.length === 1) {
@@ -169,15 +159,7 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({
   return (
     <React.Fragment>
       <div className={`row data-viewer-error${error ? ' is-expanded' : ''}`}>
-        <div className="col-md-12">
-          {error && (
-            <RemovableError
-              error={error}
-              traceback={traceback}
-              onRemove={() => propagateState({ error: undefined, traceback: undefined })}
-            />
-          )}
-        </div>
+        <div className="col-md-12">{error}</div>
       </div>
       <div className={`row text-center data-viewer-info${gu.hasNoInfo(reduxState, columns) ? '' : ' is-expanded'}`}>
         <div className="col text-left">{renderSort()}</div>

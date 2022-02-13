@@ -1,16 +1,5 @@
 import chroma from 'chroma-js';
 import * as React from 'react';
-import { MultiGridProps } from 'react-virtualized';
-
-import { AppActions, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
-import {
-  FilteredRanges,
-  InstanceSettings,
-  Popups,
-  RangeHighlightConfig,
-  SortDef,
-  ThemeType,
-} from '../redux/state/AppState';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -49,20 +38,15 @@ export interface DataRecord {
   style?: React.CSSProperties;
 }
 
-/** Update specification for DataViewer */
-export interface DataViewerUpdate extends Record<string, any> {
-  type: string;
-}
-
 /** Data storage in DataViewer */
 export interface DataViewerData {
   [key: number]: Record<string, DataRecord>;
 }
 
 /** Properties for selecting ranges of rows, columns, etc... */
-interface RangeSelection {
-  start: number;
-  end: number;
+export interface RangeSelection<T> {
+  start: T;
+  end: T;
 }
 
 /** min/max bounds */
@@ -118,52 +102,18 @@ export interface OutlierFilter {
   query: string;
 }
 
-/** State properties of DataViewer */
-export interface DataViewerState extends MultiGridProps, Bounds {
-  columnFormats: Record<string, ColumnFormat>;
-  nanDisplay?: string;
-  data: DataViewerData;
-  loading: boolean;
-  ids: number[];
-  loadQueue: number[][];
+/** State properties that can be propagated back up into DataViewer from other components */
+export interface PropagatedState {
   columns: ColumnDef[];
-  selectedCols: string[];
-  sortInfo: SortDef[];
-  menuOpen: boolean;
-  formattingOpen: boolean;
+  rowCount: number;
   triggerResize: boolean;
-  backgroundMode?: string;
-  rangeHighlight: RangeHighlightConfig;
-  rowRange?: RangeSelection;
-  columnRange?: RangeSelection;
-  rangeSelect?: RangeSelection;
-  ctrlRows?: RangeSelection;
-  ctrlCols?: RangeSelection;
-  selectedRow?: RangeSelection;
-  filteredRanges: FilteredRanges;
-  error?: string;
-  traceback?: string;
-  renameUpdate?: (data: DataViewerData) => DataViewerData;
-}
-
-/** Component properties of DataViewer */
-export interface DataViewerProps {
-  settings: InstanceSettings;
-  dataId: string;
-  iframe: boolean;
-  closeColumnMenu: () => void;
-  openChart: (chartData: Popups) => AppActions<void>;
-  theme: ThemeType;
-  updateFilteredRanges: (query: string) => AppActions<void>;
-  menuPinned: boolean;
-  ribbonMenuOpen: boolean;
-  dataViewerUpdate?: DataViewerUpdate;
-  clearDataViewerUpdate: () => ClearDataViewerUpdateAction;
-  maxColumnWidth?: number;
-  maxRowHeight?: number;
-  editedTextAreaHeight?: number;
-  verticalHeaders: boolean;
+  fixedColumnCount: number;
+  triggerBgResize: boolean;
+  data: DataViewerData;
+  renameUpdate: (data: DataViewerData) => DataViewerData;
+  refresh: boolean;
+  formattingUpdate: boolean;
 }
 
 /** Type definition for propagating state back to DataViewer */
-export type DataViewerPropagateState = (state: Partial<DataViewerState>, callback?: () => void) => void;
+export type DataViewerPropagateState = (state: Partial<PropagatedState>, callback?: () => void) => void;

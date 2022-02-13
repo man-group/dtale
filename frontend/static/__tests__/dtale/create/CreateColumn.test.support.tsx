@@ -36,7 +36,7 @@ export class Spies {
     this.saveSpy.mockResolvedValue({ success: true });
     this.useSelectorSpy.mockReturnValue({
       dataId: '1',
-      chartData: { visible: true, propagateState: this.propagateStateSpy },
+      chartData: { visible: true },
     });
     this.useDispatchSpy.mockReturnValue(jest.fn());
   }
@@ -58,7 +58,9 @@ export class Spies {
    */
   public async setupWrapper(): Promise<ReactWrapper> {
     buildInnerHTML({ settings: '' });
-    const result = mount(<CreateColumn />, { attachTo: document.getElementById('content') ?? undefined });
+    const result = mount(<CreateColumn propagateState={this.propagateStateSpy} />, {
+      attachTo: document.getElementById('content') ?? undefined,
+    });
     await act(async () => await tickUpdate(result));
     return result.update();
   }

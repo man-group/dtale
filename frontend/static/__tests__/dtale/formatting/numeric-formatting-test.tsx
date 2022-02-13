@@ -2,7 +2,6 @@ import { ReactWrapper } from 'enzyme';
 import Modal from 'react-bootstrap/Modal';
 import { act } from 'react-dom/test-utils';
 import { default as Select } from 'react-select';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
 
 import { DataViewerData } from '../../../dtale/DataViewerState';
 import Formatting from '../../../popups/formats/Formatting';
@@ -28,7 +27,10 @@ describe('NumericFormatting', () => {
     spies.setupMockImplementations();
   });
 
-  afterEach(jest.resetAllMocks);
+  afterEach(() => {
+    jest.resetAllMocks();
+    result.unmount();
+  });
 
   afterAll(() => {
     spies.afterAll();
@@ -64,7 +66,7 @@ describe('NumericFormatting', () => {
       result.find(Formatting).find(Modal.Header).first().find('button').simulate('click');
     });
     result = result.update();
-    expect(result.find(Formatting).props().visible).toBe(false);
+    expect(result.find(Formatting).find(Modal).props().show).toBe(false);
     result = await clickColMenuButton(result, 'Formats');
     await act(async () => {
       result.find(NumericFormatting).find('i.ico-info-outline').first().simulate('click');
@@ -91,9 +93,8 @@ describe('NumericFormatting', () => {
     });
     result = result.update();
     result = await spies.validateCfg(result, '1', 'col2', { fmt: '0.000000', style: { redNegs: false } }, false, '-');
-    const grid = result.find(MultiGrid).first().instance();
-    expect(grid.props.data['0'].col2.view).toBe('2.500000');
-    expect(result.find(Formatting).props().nanDisplay).toBe('-');
+    expect(result.find(Formatting).props().data['0'].col2.view).toBe('2.500000');
+    expect(spies.store?.getState().settings.nanDisplay).toBe('-');
   });
 
   it('applies formatting to all columns of a similar data type', async () => {
@@ -126,8 +127,7 @@ describe('NumericFormatting', () => {
     });
     result = result.update();
     result = await spies.validateCfg(result, '1', 'col1', { fmt: '0.000000', style: { redNegs: false } }, true, 'nan');
-    const grid = result.find(MultiGrid).first().instance();
-    expect(grid.props.data['0'].col1.view).toBe('1.000000');
-    expect(grid.props.data['0'].col5.view).toBe('1.000000');
+    expect(result.find(Formatting).props().data['0'].col1.view).toBe('1.000000');
+    expect(result.find(Formatting).props().data['0'].col5.view).toBe('1.000000');
   });
 });

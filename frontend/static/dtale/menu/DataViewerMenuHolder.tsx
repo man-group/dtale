@@ -1,39 +1,31 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { openMenu } from '../../menuUtils';
+import { ActionType } from '../../redux/actions/AppActions';
 import { AppState } from '../../redux/state/AppState';
-import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
+import { ColumnDef } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
 /** Component properties for DataViewerMenuHolder */
 interface DatViewerMenuHolderProps {
   style: React.CSSProperties;
   columns: ColumnDef[];
-  backgroundMode?: string;
-  menuOpen: boolean;
   rowCount: number;
-  propagateState: DataViewerPropagateState;
 }
 
-export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({
-  style,
-  columns,
-  backgroundMode,
-  menuOpen,
-  rowCount,
-  propagateState,
-}) => {
-  const { theme, menuPinned } = useSelector((state: AppState) => ({
-    theme: state.theme,
-    menuPinned: state.menuPinned,
-  }));
+export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ style, columns, rowCount }) => {
+  const { theme, menuPinned, menuOpen, settings } = useSelector((state: AppState) => state);
+  const dispatch = useDispatch();
   const menuToggle = React.useRef<HTMLDivElement>(null);
 
-  const colCount = React.useMemo(() => gu.getActiveCols({ columns, backgroundMode }).length, [columns, backgroundMode]);
+  const colCount = React.useMemo(
+    () => gu.getActiveCols(columns, settings.backgroundMode).length,
+    [columns, settings.backgroundMode],
+  );
   const menuHandler = openMenu(
-    () => propagateState({ menuOpen: true }),
-    () => propagateState({ menuOpen: false }),
+    () => dispatch({ type: ActionType.OPEN_MENU }),
+    () => dispatch({ type: ActionType.CLOSE_MENU }),
     menuToggle,
   );
 

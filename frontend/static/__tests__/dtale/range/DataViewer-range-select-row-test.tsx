@@ -5,10 +5,10 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import { DataViewer, ReactDataViewer } from '../../../dtale/DataViewer';
-import { ReactGridEventHandler } from '../../../dtale/GridEventHandler';
-import * as fetcher from '../../../fetcher';
+import { DataViewer } from '../../../dtale/DataViewer';
+import GridEventHandler from '../../../dtale/GridEventHandler';
 import { CopyRangeToClipboard } from '../../../popups/CopyRangeToClipboard';
+import * as CopyRangeRepository from '../../../repository/CopyRangeRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
@@ -23,7 +23,7 @@ describe('DataViewer tests', () => {
     innerHeight: 775,
   });
 
-  let postSpy: jest.SpyInstance<void, [string, Record<string, any>, (data: Record<string, any>) => void]>;
+  let buildCopyRowsSpy: jest.SpyInstance;
   const execCommandMock = jest.fn();
   let store: Store;
 
@@ -42,8 +42,10 @@ describe('DataViewer tests', () => {
     execCommandMock.mockReset();
     const axiosGetSpy = jest.spyOn(axios, 'get');
     axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
-    postSpy = jest.spyOn(fetcher, 'fetchPost');
-    postSpy.mockImplementation((_url: string, _params: Record<string, any>, callback: any) => callback(TEXT));
+    const buildCopyColumnsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyColumns');
+    buildCopyColumnsSpy.mockResolvedValue({ text: TEXT, success: true });
+    buildCopyRowsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyRows');
+    buildCopyRowsSpy.mockResolvedValue({ text: TEXT, success: true });
   });
 
   const build = async (): Promise<ReactWrapper> => {
@@ -57,43 +59,56 @@ describe('DataViewer tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
-    return result;
+    await act(async () => await tickUpdate(result));
+    return result.update();
   };
 
   it('DataViewer: row range selection', async () => {
     let result = await build();
-    const instance = result.find(ReactGridEventHandler).instance() as typeof ReactGridEventHandler.prototype;
-    instance.handleClicks({
-      target: { attributes: { cell_idx: { nodeValue: '0|1' } } },
-      shiftKey: true,
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: '0|1' } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
     });
-    expect(result.find(ReactDataViewer).instance().state.rowRange).toEqual({
+    result = result.update();
+    expect(store.getState().rowRange).toEqual({
       start: 1,
       end: 1,
     });
-    instance.handleMouseOver({
-      target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
-      shiftKey: true,
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onMouseOver?.({
+          target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
     });
-    expect(result.find(ReactDataViewer).instance().state.rowRange).toEqual({
+    result = result.update();
+    expect(store.getState().rowRange).toEqual({
       start: 1,
       end: 2,
     });
     await act(async () => {
-      instance.handleClicks({
-        target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
-        shiftKey: true,
-      });
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
+          shiftKey: true,
+        } as any as React.MouseEvent);
     });
     result = result.update();
     const copyRange = result.find(CopyRangeToClipboard).first();
     expect(copyRange.find('pre').text()).toBe(TEXT);
-    expect(postSpy).toBeCalledTimes(1);
-    expect(postSpy).toBeCalledWith(
-      '/dtale/build-row-copy/1',
-      { start: 1, end: 2, columns: `["col1","col2","col3","col4"]` },
-      expect.any(Function),
-    );
+    expect(buildCopyRowsSpy).toBeCalledTimes(1);
+    expect(buildCopyRowsSpy).toBeCalledWith('1', ['col1', 'col2', 'col3', 'col4'], { start: '1', end: '2' });
   });
 });

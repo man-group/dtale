@@ -3,7 +3,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import { ColumnDef } from '../../dtale/DataViewerState';
+import { ColumnDef, DataViewerPropagateState } from '../../dtale/DataViewerState';
 import { AppActions } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import { AppState, CreateColumnPopupData } from '../../redux/state/AppState';
@@ -34,9 +34,10 @@ require('./CreateColumn.css');
 /** Component properties for CreateColumn */
 export interface CreateColumnProps {
   prePopulated?: PrepopulateCreateColumn;
+  propagateState?: DataViewerPropagateState;
 }
 
-const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopulated, t }) => {
+const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopulated, propagateState, t }) => {
   const { dataId, chartData } = useSelector((state: AppState) => ({
     dataId: state.dataId,
     chartData: state.chartData as CreateColumnPopupData,
@@ -119,7 +120,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
         window.open(newLoc, '_blank');
         return;
       } else {
-        chartData.propagateState({ refresh: true }, onClose);
+        propagateState?.({ refresh: true }, onClose);
       }
     });
   };

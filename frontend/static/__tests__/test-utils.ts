@@ -81,11 +81,7 @@ export const buildInnerHTML = (props: Record<string, string | undefined> = {}, s
   store?.dispatch(actions.init());
 };
 
-export const findMainMenuButton = (
-  result: ReactWrapper<any, any>,
-  name: string,
-  btnTag = 'button',
-): ReactWrapper<any, any> => {
+export const findMainMenuButton = (result: ReactWrapper, name: string, btnTag = 'button'): ReactWrapper => {
   const DataViewerMenu = require('../dtale/menu/DataViewerMenu').default;
   return result
     .find(DataViewerMenu)
@@ -95,10 +91,10 @@ export const findMainMenuButton = (
 };
 
 export const clickMainMenuButton = async (
-  result: ReactWrapper<any, any>,
+  result: ReactWrapper,
   name: string,
   btnTag = 'button',
-): Promise<ReactWrapper<any, any>> => {
+): Promise<ReactWrapper> => {
   await act(async () => {
     findMainMenuButton(result, name, btnTag).simulate('click');
   });
@@ -111,10 +107,7 @@ export const tick = (timeout = 0): Promise<void> => {
   });
 };
 
-export const tickUpdate = async (
-  result: ReactWrapper<any, any> | ShallowWrapper<any, any>,
-  timeout = 0,
-): Promise<void> => {
+export const tickUpdate = async (result: ReactWrapper | ShallowWrapper, timeout = 0): Promise<void> => {
   await tick(timeout);
   result.update();
 };
