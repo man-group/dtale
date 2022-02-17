@@ -305,7 +305,7 @@ docker run -h `hostname` --network host
 
 This is a hosted notebook site and thanks to Colab's internal function `google.colab.output.eval_js` & the JS function `google.colab.kernel.proexyPort` users can run D-Tale within their notebooks.
 
-**DISCLAIMER:** It is import that you set `USE_COLAB` to true when using D-Tale within this service.  Here is an example:
+**DISCLAIMER:** It is important that you set `USE_COLAB` to true when using D-Tale within this service.  Here is an example:
 
 ```python
 import pandas as pd
