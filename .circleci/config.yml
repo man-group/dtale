@@ -45,6 +45,7 @@ javascript: &javascript
           command: |
             cd frontend
             export TZ=America/New_York
+            export CI=true
             yarn run test-with-coverage -w 1
             bash <(curl -s https://codecov.io/bash) -c -F javascript -f ./JS_coverage/lcov.info
             yarn run report-duplicate-code
@@ -69,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 1.61.1
+  VERSION: 2.0.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
   RUN_BLACK: true
 python: &python

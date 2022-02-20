@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.0.0 (2022-2-20)
+* Typescript conversion of frontend code
+
 ### 1.61.1 (2021-11-17)
 * [#600](https://github.com/man-group/dtale/issues/600): persist selected chart across columns in describe popup
 * [#597](https://github.com/man-group/dtale/issues/597): fix for aggregate function on "Summarize Data"
