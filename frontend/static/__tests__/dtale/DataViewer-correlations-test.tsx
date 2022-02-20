@@ -108,7 +108,7 @@ describe('DataViewer tests', () => {
       tsChart.options?.onClick?.(
         {} as any as ChartEvent,
         [],
-        new MockChart({} as HTMLElement, tsChart) as any as Chart,
+        new MockChart({} as HTMLCanvasElement, tsChart) as any as Chart,
       );
     });
     result = result.update();
@@ -121,7 +121,7 @@ describe('DataViewer tests', () => {
       scatterChart.options?.onClick?.(
         {} as any as ChartEvent,
         [],
-        new MockChart({} as HTMLElement, scatterChart) as any as Chart,
+        new MockChart({} as HTMLCanvasElement, scatterChart) as any as Chart,
       );
     });
     result = result.update();

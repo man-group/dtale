@@ -203,7 +203,7 @@ const buildHistogramAxes = (
  * @return chart.js chart instance
  */
 export function createChart(
-  ctx: HTMLElement,
+  ctx: HTMLCanvasElement,
   fetchedData: ChartJSAnalysisCharts,
   chartOpts: AnalysisParams,
 ): chartUtils.ChartObj {

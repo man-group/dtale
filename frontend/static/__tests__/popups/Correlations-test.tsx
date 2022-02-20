@@ -179,7 +179,7 @@ describe('Correlations tests', () => {
       scatterChart.options?.onClick?.(
         {} as ChartEvent,
         [],
-        new MockChart({} as HTMLElement, scatterChart) as any as Chart,
+        new MockChart({} as HTMLCanvasElement, scatterChart) as any as Chart,
       );
     });
     result = result.update();
@@ -214,7 +214,7 @@ describe('Correlations tests', () => {
       currChart.options?.onClick?.(
         { foo: 1 } as any as ChartEvent,
         [],
-        new MockChart({} as HTMLElement, currChart) as any as Chart,
+        new MockChart({} as HTMLCanvasElement, currChart) as any as Chart,
       );
     });
     result = result.update();

@@ -32,7 +32,7 @@ export const ColumnAnalysisChart: React.FC<ColumnAnalysisChartProps> = ({
 
   const createAnalysisChart = (): void => {
     dataTime.current = fetchedChartData.timestamp;
-    const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined => {
+    const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined => {
       if (finalParams.type === AnalysisType.GEOLOCATION) {
         chartUtils.createGeolocation(id, fetchedChartData as GeolocationChartData);
         return undefined;

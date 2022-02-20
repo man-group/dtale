@@ -85,7 +85,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
   };
 
   const createChartCfg = (
-    ctx: HTMLElement,
+    ctx: HTMLCanvasElement,
     chartData: chartUtils.DataSpec,
     mainProps: chartUtils.PropSpec,
     funcs: any = {},
@@ -141,7 +141,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
           min: updatedData?.min ?? {},
           max: updatedData?.max ?? {},
         };
-        const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined =>
+        const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined =>
           createChartCfg(
             ctx,
             subData,
@@ -161,7 +161,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
       return Object.keys(updatedData?.data ?? {}).map((seriesKey, seriesIndex) => {
         const series = updatedData?.data?.[seriesKey];
         const subData = { data: { all: series ?? {} }, min: updatedData?.min ?? {}, max: updatedData?.max ?? {} };
-        const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined =>
+        const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined =>
           createChartCfg(
             ctx,
             subData,
@@ -177,7 +177,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
         return chartUtils.chartWrapper(`chartCanvas-${seriesKey}`, charts.current?.[seriesIndex], builder);
       });
     }
-    const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined =>
+    const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined =>
       createChartCfg(ctx, updatedData!, mainProps, funcs);
     return [chartUtils.chartWrapper('chartCanvas', charts.current?.[0], builder)];
   };

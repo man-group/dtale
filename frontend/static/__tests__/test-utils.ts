@@ -124,7 +124,7 @@ export class MockChart {
   /** @override */
   public static register = (): void => undefined;
 
-  public ctx: HTMLElement;
+  public ctx: HTMLCanvasElement;
   public cfg: ChartConfiguration;
   public config: { _config: ChartConfiguration };
   public data: ChartData;
@@ -132,7 +132,7 @@ export class MockChart {
   public options: ChartOptions;
 
   /** @override */
-  constructor(ctx: HTMLElement, cfg: ChartConfiguration) {
+  constructor(ctx: HTMLCanvasElement, cfg: ChartConfiguration) {
     this.ctx = ctx;
     this.cfg = cfg;
     this.config = { _config: cfg };
@@ -220,7 +220,7 @@ export const mockT = (key: string): string => {
 /** Type definition for chartUtils.createChart spies */
 export type CreateChartSpy = jest.SpyInstance<
   chartUtils.ChartObj,
-  [ctx: HTMLElement | null, cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>]
+  [ctx: HTMLCanvasElement, cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>]
 >;
 
 export const getLastChart = (

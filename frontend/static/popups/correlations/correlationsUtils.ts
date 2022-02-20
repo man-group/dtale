@@ -43,7 +43,7 @@ export const percent = (num: string | number): string =>
 export type CorrelationScatterPoint = ScatterDataPoint & { [key: string]: any };
 
 export const createScatter = (
-  ctx: HTMLElement,
+  ctx: HTMLCanvasElement,
   data: chartUtils.DataSpec,
   xProp: string,
   yProp: string,

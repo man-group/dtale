@@ -198,7 +198,7 @@ export const Correlations: React.FC = () => {
         return;
       }
       if (response) {
-        const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined => {
+        const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined => {
           if (!(response?.data?.all?.x ?? []).length) {
             return undefined;
           }

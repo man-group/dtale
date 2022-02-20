@@ -63,7 +63,7 @@ export type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
  * @return chart.js chart instance
  */
 export function createChart(
-  ctx: HTMLElement | null,
+  ctx: HTMLCanvasElement,
   cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>,
 ): ChartObj {
   const options = cfg.options || {};
@@ -95,9 +95,9 @@ export function fitToContainer(canvas: HTMLCanvasElement): void {
 export function chartWrapper(
   ctxId: string,
   prevChart?: ChartObj | undefined,
-  builder?: (chartCtx: HTMLElement) => ChartObj | undefined,
+  builder?: (chartCtx: HTMLCanvasElement) => ChartObj | undefined,
 ): ChartObj | undefined {
-  const ctx: HTMLElement | null = document.getElementById(ctxId);
+  const ctx = document.getElementById(ctxId) as HTMLCanvasElement;
   if (ctx) {
     if (prevChart) {
       prevChart.destroy();

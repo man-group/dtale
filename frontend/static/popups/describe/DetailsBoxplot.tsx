@@ -32,7 +32,7 @@ const DetailsBoxplot: React.FC<DetailsBoxplotProps & WithTranslation> = ({ detai
   const boxplot = React.useRef<chartUtils.ChartObj>();
 
   const createBoxplot = (): void => {
-    const builder = (ctx: HTMLElement): chartUtils.ChartObj | undefined => {
+    const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined => {
       const { describe } = details || {};
       const convertToFloat = (val: string): number | undefined =>
         !val || ['nan', 'inf'].includes(val) ? undefined : parseFloat(`${val}`.replace(/,/g, ''));

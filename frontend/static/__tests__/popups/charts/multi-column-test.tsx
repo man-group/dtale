@@ -95,7 +95,7 @@ describe('Charts tests', () => {
       lastChart.options?.onClick?.(
         {} as any as ChartEvent,
         [],
-        new MockChart({} as HTMLElement, lastChart) as any as Chart,
+        new MockChart({} as HTMLCanvasElement, lastChart) as any as Chart,
       );
     });
     result = result.update();

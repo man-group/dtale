@@ -47,7 +47,7 @@ describe('columnAnalysisUtils', () => {
       chart_type: AnalysisType.HISTOGRAM,
       data: [],
     };
-    columnAnalysisUtils.createChart({} as HTMLElement, fetchedData, { type: AnalysisType.HISTOGRAM });
+    columnAnalysisUtils.createChart({} as HTMLCanvasElement, fetchedData, { type: AnalysisType.HISTOGRAM });
     expect(createChartSpy).toHaveBeenCalled();
     const finalChart = createChartSpy.mock.calls[0][1];
     expect(finalChart.data.datasets.map((d) => d.label)).toEqual(['foo', 'bar']);
