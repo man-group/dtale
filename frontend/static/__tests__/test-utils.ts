@@ -14,8 +14,15 @@ import { Store } from 'redux';
 
 import * as chartUtils from '../chartUtils';
 
-export const parseUrlParams = (url: string): Record<string, string> =>
-  JSON.parse('{"' + decodeURI(url.split('?')[1]).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+export const parseUrlParams = (url?: string): Record<string, string> =>
+  JSON.parse(
+    '{"' +
+      decodeURI((url ?? '').split('?')[1])
+        .replace(/"/g, '\\"')
+        .replace(/&/g, '","')
+        .replace(/=/g, '":"') +
+      '"}',
+  );
 
 export const replaceNBSP = (text: string): string => text.replace(/\s/g, ' ');
 

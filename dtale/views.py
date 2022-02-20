@@ -1305,7 +1305,8 @@ def process_keys():
             data=[
                 dict(id=str(data_id), name=global_state.get_name(data_id))
                 for data_id in global_state.keys()
-            ]
+            ],
+            success=True,
         )
     )
 

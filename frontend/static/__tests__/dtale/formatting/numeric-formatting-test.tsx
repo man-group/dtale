@@ -1,7 +1,7 @@
 import { ReactWrapper } from 'enzyme';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { DataViewerData } from '../../../dtale/DataViewerState';
 import Formatting from '../../../popups/formats/Formatting';
@@ -63,7 +63,7 @@ describe('NumericFormatting', () => {
     result = await spies.setupWrapper(1);
     expect(result.find(NumericFormatting)).toHaveLength(1);
     await act(async () => {
-      result.find(Formatting).find(Modal.Header).first().find('button').simulate('click');
+      result.find(Formatting).find(Modal.Header).first().find('i.ico-close').simulate('click');
     });
     result = result.update();
     expect(result.find(Formatting).find(Modal).props().show).toBe(false);
@@ -89,7 +89,13 @@ describe('NumericFormatting', () => {
     result = await toggleFormatting(4);
     result = await toggleFormatting(5);
     await act(async () => {
-      result.find(Formatting).find('div.form-group').last().find(Select).props().onChange({ value: '-' });
+      result
+        .find(Formatting)
+        .find('div.form-group')
+        .last()
+        .find(Select)
+        .props()
+        .onChange?.({ value: '-' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     result = await spies.validateCfg(result, '1', 'col2', { fmt: '0.000000', style: { redNegs: false } }, false, '-');

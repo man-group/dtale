@@ -71,9 +71,9 @@ describe('ColumnMenu', () => {
   });
 
   it('has global hotkey to close menu', async () => {
-    const closeMenu = wrapper.find(GlobalHotKeys).props().handlers.CLOSE_MENU;
+    const closeMenu = wrapper.find(GlobalHotKeys).props().handlers?.CLOSE_MENU;
     await act(async () => {
-      closeMenu();
+      closeMenu?.();
     });
     wrapper = wrapper.update();
     expect(hideColumnMenuSpy).toHaveBeenLastCalledWith(props.selectedCol);

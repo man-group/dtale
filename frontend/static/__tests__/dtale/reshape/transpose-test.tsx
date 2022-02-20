@@ -1,9 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { ReshapeTransposeConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { BaseReshapeComponentProps, ReshapeTransposeConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
 import { default as Transpose, validateTransposeCfg } from '../../../popups/reshape/Transpose';
 
 import * as TestSupport from './Reshape.test.support';
@@ -42,7 +42,7 @@ describe('Transpose', () => {
     spies.afterAll();
   });
 
-  const findTranspose = (): ReactWrapper => result.find(Transpose);
+  const findTranspose = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Transpose);
 
   it('reshapes data using transpose', async () => {
     expect(findTranspose()).toHaveLength(1);
@@ -51,7 +51,7 @@ describe('Transpose', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -59,7 +59,7 @@ describe('Transpose', () => {
         .find(Select)
         .last()
         .props()
-        .onChange([{ value: 'col2' }]);
+        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

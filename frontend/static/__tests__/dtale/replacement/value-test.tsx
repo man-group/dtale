@@ -1,9 +1,13 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import { ReplacementType, ValueConfigType } from '../../../popups/replacement/CreateReplacementState';
+import {
+  BaseReplacementComponentProps,
+  ReplacementType,
+  ValueConfigType,
+} from '../../../popups/replacement/CreateReplacementState';
 import { validateValueCfg, default as Value } from '../../../popups/replacement/Value';
 import { RemovableError } from '../../../RemovableError';
 import { mockT as t } from '../../test-utils';
@@ -24,7 +28,7 @@ describe('Value', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findValue = (): ReactWrapper => result.find(Value);
+  const findValue = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Value);
   const findValueInputRow = (idx = 0): ReactWrapper => findValue().find('div.form-group').at(idx);
 
   it('handles value raw replacement w/ new col', async () => {
@@ -68,7 +72,11 @@ describe('Value', () => {
     });
     result = result.update();
     await act(async () => {
-      findValueInputRow(1).find(Select).first().props().onChange({ value: 'median' });
+      findValueInputRow(1)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'median' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -89,7 +97,11 @@ describe('Value', () => {
     });
     result = result.update();
     await act(async () => {
-      findValueInputRow(1).find(Select).first().props().onChange({ value: 'col2' });
+      findValueInputRow(1)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

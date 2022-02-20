@@ -3,7 +3,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import * as chartUtils from '../../../chartUtils';
 import * as menuUtils from '../../../menuUtils';
@@ -91,7 +91,12 @@ export class Spies {
    */
   public async updateChartType(result: ReactWrapper, chartType: string): Promise<ReactWrapper> {
     await act(async () => {
-      result.find(ChartsBody).find(Select).first().props().onChange({ value: chartType });
+      result
+        .find(ChartsBody)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: chartType }, {} as ActionMeta<unknown>);
     });
     return result.update();
   }

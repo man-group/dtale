@@ -20,10 +20,10 @@ module.exports = {
   coverageReporters: ['html', 'lcovonly', 'text-summary'],
   globals: {
     'ts-jest': {
-      tsConfig: testTsConfig,
+      tsconfig: testTsConfig,
     },
   },
-  moduleFileExtensions: ['js', 'jsx', 'json', 'ts', 'tsx'],
+  moduleFileExtensions: ['js', 'json', 'jsx', 'ts', 'tsx'],
   moduleNameMapper: {
     '\\.(css|scss)$': '<rootDir>/config/styleMock.js',
   },
@@ -35,10 +35,11 @@ module.exports = {
   testURL: 'http://localhost',
   testTimeout: 30000,
   transform: {
-    '^.+\\.(ts|js)x?$': require.resolve('ts-jest'),
+    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
     '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
     '^.+\\.css$': require.resolve('./config/file-transforms/cssTransform.js'),
     '^(?!.*\\.(css|json)$)': require.resolve('./config/file-transforms/fileTransform.js'),
   },
   transformIgnorePatterns: ['[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$'],
+  preset: 'ts-jest/presets/js-with-babel',
 };

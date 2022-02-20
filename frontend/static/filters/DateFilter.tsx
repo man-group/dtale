@@ -5,8 +5,8 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseColumnFilterProps } from './ColumnFilterState';
 
-require('@blueprintjs/core/lib/css/blueprint.css');
-require('@blueprintjs/datetime/lib/css/blueprint-datetime.css');
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
 
 /** Component properties for DateFilter */
 interface DateFilterProps extends BaseColumnFilterProps {
@@ -15,7 +15,6 @@ interface DateFilterProps extends BaseColumnFilterProps {
 }
 
 export const DateFilter: React.FC<DateFilterProps & WithTranslation> = ({
-  selectedCol,
   columnFilter,
   updateState,
   missing,

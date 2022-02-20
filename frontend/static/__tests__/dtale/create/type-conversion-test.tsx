@@ -1,8 +1,13 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType, SaveAs, TypeConversionUnit } from '../../../popups/create/CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  SaveAs,
+  TypeConversionUnit,
+} from '../../../popups/create/CreateColumnState';
 import {
   default as CreateTypeConversion,
   validateTypeConversionCfg,
@@ -54,12 +59,17 @@ describe('CreateTypeConversion', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findTypeConversion = (): ReactWrapper => result.find(CreateTypeConversion);
+  const findTypeConversion = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateTypeConversion);
 
   it('build an int conversion column', async () => {
     expect(findTypeConversion()).toHaveLength(1);
     await act(async () => {
-      findTypeConversion().find(Select).first().props().onChange({ value: 'col1' });
+      findTypeConversion()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -71,7 +81,11 @@ describe('CreateTypeConversion', () => {
     });
     result = result.update();
     await act(async () => {
-      findTypeConversion().find(Select).at(1).props().onChange({ value: 'YYYYMMDD' });
+      findTypeConversion()
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'YYYYMMDD' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {
@@ -89,7 +103,11 @@ describe('CreateTypeConversion', () => {
 
   it('builds a float conversion column', async () => {
     await act(async () => {
-      findTypeConversion().find(Select).first().props().onChange({ value: 'col2' });
+      findTypeConversion()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -114,7 +132,11 @@ describe('CreateTypeConversion', () => {
 
   it('builds a string conversion column', async () => {
     await act(async () => {
-      findTypeConversion().find(Select).first().props().onChange({ value: 'col3' });
+      findTypeConversion()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col3' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -149,7 +171,11 @@ describe('CreateTypeConversion', () => {
     });
     result = result.update();
     await act(async () => {
-      findTypeConversion().find(Select).first().props().onChange({ value: 'col5' });
+      findTypeConversion()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col5' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -177,7 +203,11 @@ describe('CreateTypeConversion', () => {
 
   it('builds a date conversion column', async () => {
     await act(async () => {
-      findTypeConversion().find(Select).first().props().onChange({ value: 'col4' });
+      findTypeConversion()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -185,7 +215,11 @@ describe('CreateTypeConversion', () => {
     });
     result = result.update();
     await act(async () => {
-      findTypeConversion().find(Select).at(1).props().onChange({ value: 'ms' });
+      findTypeConversion()
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'ms' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

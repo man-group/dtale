@@ -1,9 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { CreateColumnType, OutputType, SaveAs } from '../../../popups/create/CreateColumnState';
-import { default as Resample } from '../../../popups/reshape/Resample';
+import { default as Resample, ResampleProps } from '../../../popups/reshape/Resample';
 
 import * as TestSupport from './CreateColumn.test.support';
 
@@ -33,12 +33,16 @@ describe('CreateResample', () => {
     window.open = open;
   });
 
-  const resampleComp = (): ReactWrapper => result.find(Resample).first();
+  const resampleComp = (): ReactWrapper<ResampleProps, Record<string, any>> => result.find(Resample).first();
 
   it('builds resample data', async () => {
     expect(result.find(Resample)).toHaveLength(1);
     await act(async () => {
-      resampleComp().find(Select).first().props().onChange({ value: 'col1' });
+      resampleComp()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -51,7 +55,11 @@ describe('CreateResample', () => {
     });
     result = result.update();
     await act(async () => {
-      resampleComp().find(Select).last().props().onChange({ value: 'mean' });
+      resampleComp()
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     spies.saveSpy.mockResolvedValue({ success: true, data_id: '9999' });

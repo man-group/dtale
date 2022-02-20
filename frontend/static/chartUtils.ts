@@ -257,16 +257,11 @@ export const lineHoverPlugin = (colorScale: chroma.Scale): Plugin<'line'> => ({
 
 const COLOR_SCALE = chroma.scale(['orange', 'yellow', 'green', 'lightblue', 'darkblue']);
 
-/**
- * Update chart.js chart configuration with legend information.
- *
- * @param cfg chart.js chart configuration.
- */
-function updateLegend(cfg: Partial<ChartConfiguration>): void {
-  if (cfg.data?.datasets && cfg.data.datasets.length < 2) {
+export const updateLegend = (cfg: Partial<ChartConfiguration>, forceHide = false): void => {
+  if (forceHide || (cfg.data?.datasets && cfg.data.datasets.length < 2)) {
     cfg.options = { ...cfg.options, plugins: { ...cfg.options?.plugins, legend: { display: false } } };
   }
-}
+};
 
 /**
  * chart.js series builder.

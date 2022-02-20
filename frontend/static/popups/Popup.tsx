@@ -1,6 +1,6 @@
 import { Resizable } from 're-resizable';
 import * as React from 'react';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -91,8 +91,9 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
         minWidth={minWidth}
         onResizeStart={onResizeStart}
       >
-        <Modal.Header closeButton={true}>
+        <Modal.Header>
           <Modal.Title>{title}</Modal.Title>
+          <i className="ico-close pointer" onClick={onClose} />
         </Modal.Header>
         {visible && body}
         <span className="resizable-handle" />

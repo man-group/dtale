@@ -4,14 +4,16 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 import { MultiGrid } from 'react-virtualized';
 
-import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../dtale/side/SidePanelButtons', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
+jest.mock('../../dtale/side/SidePanelButtons', () => {
+  const { createMockComponent } = require('../mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent(),
+  };
+});
 
 import * as chartUtils from '../../chartUtils';
 import ChartsBody from '../../popups/charts/ChartsBody';
@@ -107,12 +109,22 @@ describe('Correlations tests', () => {
   it('Correlations rendering data and filtering it', async () => {
     await buildResult();
     await act(async () => {
-      result.find(CorrelationsGrid).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CorrelationsGrid)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(result.find(MultiGrid).props().rowCount).toBe(2);
     await act(async () => {
-      result.find(CorrelationsGrid).find(Select).last().props().onChange({ value: 'col3' });
+      result
+        .find(CorrelationsGrid)
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'col3' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(result.find(MultiGrid).props().columnCount).toBe(2);

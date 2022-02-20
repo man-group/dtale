@@ -2,18 +2,27 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/DataViewer', () => ({
-  DataViewer: createMockComponent(),
-}));
-jest.mock('../../../popups/merge/ActionConfig', () => createMockComponent());
-jest.mock('../../../popups/merge/MergeOutput', () => createMockComponent());
-jest.mock('../../../popups/Popup', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
+jest.mock('../../../dtale/DataViewer', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return { DataViewer: createMockComponent() };
+});
+jest.mock('../../../popups/merge/ActionConfig', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return createMockComponent();
+});
+jest.mock('../../../popups/merge/MergeOutput', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return createMockComponent();
+});
+jest.mock('../../../popups/Popup', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent(),
+  };
+});
 
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
 import { MergeActionType } from '../../../redux/actions/MergeActions';
@@ -67,7 +76,11 @@ describe('MergeDatasets', () => {
     result = result.update();
     expect(dispatchSpy).toHaveBeenLastCalledWith({ type: MergeActionType.TOGGLE_DATASET, index: 0 });
     await act(async () => {
-      result.find(Select).first().props().onChange([]);
+      result
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.([], {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(dispatchSpy).toHaveBeenLastCalledWith({
@@ -77,7 +90,11 @@ describe('MergeDatasets', () => {
       value: [],
     });
     await act(async () => {
-      result.find(Select).last().props().onChange([]);
+      result
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.([], {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(dispatchSpy).toHaveBeenLastCalledWith({

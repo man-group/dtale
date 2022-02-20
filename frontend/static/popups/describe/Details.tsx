@@ -28,7 +28,7 @@ enum DeepDataView {
 }
 
 /** Component properties for Details */
-interface DetailsProps {
+export interface DetailsProps {
   selected: ColumnDef;
   dtypes: ColumnDef[];
   close?: JSX.Element;

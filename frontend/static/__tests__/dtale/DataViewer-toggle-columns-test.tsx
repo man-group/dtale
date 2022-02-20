@@ -64,7 +64,7 @@ describe('DataViewer tests', () => {
       result
         .find(Formatting)
         .props()
-        .columns.find((c: ColumnDef) => c.name === 'col1').visible,
+        .columns?.find((c: ColumnDef) => c.name === 'col1')?.visible,
     ).toBe(false);
   });
 });

@@ -3,8 +3,10 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../popups/merge/DataPreview', () => ({ DataPreview: createMockComponent() }));
+jest.mock('../../../popups/merge/DataPreview', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return { DataPreview: createMockComponent() };
+});
 
 import MergeOutput from '../../../popups/merge/MergeOutput';
 import * as uploadUtils from '../../../popups/upload/uploadUtils';

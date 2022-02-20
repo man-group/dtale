@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { ColumnFilterProps } from '../../filters/ColumnFilter';
 import NumericFilter from '../../filters/NumericFilter';
@@ -57,7 +57,7 @@ describe('ColumnFilter numeric tests', () => {
       uniqueSelect
         .first()
         .props()
-        .onChange([{ value: 1 }]);
+        .onChange?.([{ value: 1 }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '=', value: [1] });

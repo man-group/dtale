@@ -39,28 +39,29 @@ describe('ColumnFilter date tests', () => {
       result.find('i.ico-check-box-outline-blank').simulate('click');
     });
     result = result.update();
-    expect(result.find(DateInput).first().instance().props.disabled).toBe(true);
+    expect(result.find(DateInput).first().props().disabled).toBe(true);
     await act(async () => {
       result.find('i.ico-check-box').simulate('click');
     });
     result = result.update();
-    expect(result.find(DateInput).first().instance().props.disabled).toBe(false);
-    const dateStart = result.find(DateInput).first().instance();
+    expect(result.find(DateInput).first().props().disabled).toBe(false);
+    let dateStart = result.find(DateInput).first().instance();
     (dateStart as any).inputElement.value = '200';
     await act(async () => {
-      dateStart.props.onChange('200');
+      (dateStart.props as any).onChange('200');
     });
     result = result.update();
+    dateStart = result.find(DateInput).first().instance();
     (dateStart as any).inputElement.value = '20000102';
     await act(async () => {
-      dateStart.props.onChange(moment('20000102').toDate());
+      (dateStart.props as any).onChange(moment('20000102').toDate());
     });
     result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000131' });
     const dateEnd = result.find(DateInput).last().instance();
     (dateEnd as any).inputElement.value = '20000103';
     await act(async () => {
-      dateEnd.props.onChange(moment('20000103').toDate());
+      (dateEnd.props as any).onChange(moment('20000103').toDate());
     });
     result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000103' });

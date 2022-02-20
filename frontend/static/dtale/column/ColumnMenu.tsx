@@ -22,7 +22,7 @@ import HeatMapOption from './HeatMapOption';
 import SortOptions from './SortOptions';
 
 /** Component properties of ColumnMenu */
-interface ColumnMenuProps {
+export interface ColumnMenuProps {
   columns: ColumnDef[];
   propagateState: DataViewerPropagateState;
   backgroundMode?: string;

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ChartConfiguration } from 'chart.js';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -7,14 +8,19 @@ import * as redux from 'react-redux';
 import ButtonToggle from '../../../ButtonToggle';
 import ChartsBody from '../../../popups/charts/ChartsBody';
 import { Checkbox } from '../../../popups/create/LabeledCheckbox';
-import BaseInputs from '../../../popups/timeseries/BaseInputs';
+import BaseInputs, { BaseInputProps } from '../../../popups/timeseries/BaseInputs';
 import BKFilter from '../../../popups/timeseries/BKFilter';
 import CFFilter from '../../../popups/timeseries/CFFilter';
 import HPFilter from '../../../popups/timeseries/HPFilter';
 import Reports from '../../../popups/timeseries/Reports';
-import SeasonalDecompose from '../../../popups/timeseries/SeasonalDecompose';
+import SeasonalDecompose, { SeasonalDecomposeProps } from '../../../popups/timeseries/SeasonalDecompose';
 import {
   BaseComponentProps,
+  BaseTimeseriesConfig,
+  BKConfig,
+  CFConfig,
+  HPConfig,
+  SeasonalDecomposeConfig,
   SeasonalDecomposeModel,
   TimeseriesAnalysisType,
 } from '../../../popups/timeseries/TimeseriesAnalysisState';
@@ -51,9 +57,12 @@ describe('TimeseriesAnalysis', () => {
     return wrapper.update();
   };
 
-  const updateState = async <U,>(result: ReactWrapper<BaseComponentProps<U>>, cfg: U): Promise<ReactWrapper> => {
+  const updateState = async <T, U extends BaseComponentProps<T>>(
+    result: ReactWrapper<U, Record<string, any>>,
+    cfg: T,
+  ): Promise<ReactWrapper> => {
     await act(async () => {
-      result.props().updateState(cfg);
+      result.props().updateState?.(cfg);
     });
     return wrapper.update();
   };
@@ -66,11 +75,14 @@ describe('TimeseriesAnalysis', () => {
   });
 
   it('builds chart configs successfully', async () => {
-    wrapper = await updateState(wrapper.find(BaseInputs), { col: 'foo', index: 'date' });
+    wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
+      col: 'foo',
+      index: 'date',
+    });
     let cfg = wrapper
       .find(ChartsBody)
       .props()
-      .configHandler({
+      .configHandler?.({
         data: { datasets: [{}, {}, {}] },
         options: {
           scales: {
@@ -81,7 +93,7 @@ describe('TimeseriesAnalysis', () => {
           },
           plugins: {},
         },
-      });
+      } as any as ChartConfiguration);
     expect(cfg).toBeDefined();
     await act(async () => {
       wrapper.find(Checkbox).first().find('i').simulate('click');
@@ -90,7 +102,7 @@ describe('TimeseriesAnalysis', () => {
     cfg = wrapper
       .find(ChartsBody)
       .props()
-      .configHandler({
+      .configHandler?.({
         data: { datasets: [{ label: 'foo', data: [] }, {}, {}] },
         options: {
           scales: {
@@ -101,8 +113,8 @@ describe('TimeseriesAnalysis', () => {
           },
           plugins: {},
         },
-      });
-    expect(Object.keys(cfg.options.scales)).toEqual(['y-foo', 'x']);
+      } as any as ChartConfiguration);
+    expect(Object.keys(cfg?.options?.scales ?? {})).toEqual(['y-foo', 'x']);
   });
 
   it('handles mount error', async () => {
@@ -133,21 +145,28 @@ describe('TimeseriesAnalysis', () => {
 
   describe('validate report builder', () => {
     beforeEach(async () => {
-      wrapper = await updateState(wrapper.find(BaseInputs), { col: 'col1', index: 'index' });
+      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
+        col: 'col1',
+        index: 'index',
+      });
     });
 
     it('bkfilter', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.BKFILTER);
-      wrapper = await updateState(wrapper.find(BKFilter), { low: 6, high: 32, K: 12 });
+      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
+        low: 6,
+        high: 32,
+        K: 12,
+      });
       expect(wrapper.find('pre').text()).toBeDefined();
       const url = wrapper.find(ChartsBody).props().url;
-      expect(url.startsWith('/dtale/timeseries-analysis/1')).toBe(true);
+      expect(url?.startsWith('/dtale/timeseries-analysis/1')).toBe(true);
       const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('bkfilter');
     });
 
     it('hpfilter', async () => {
-      wrapper = await updateState(wrapper.find(HPFilter), { lamb: 1600 });
+      wrapper = await updateState<HPConfig, BaseComponentProps<HPConfig>>(wrapper.find(HPFilter), { lamb: 1600 });
       expect(wrapper.find('pre').text()).toBeDefined();
       const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
       expect(urlParams.type).toBe('hpfilter');
@@ -155,7 +174,11 @@ describe('TimeseriesAnalysis', () => {
 
     it('cffilter', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.CFFILTER);
-      wrapper = await updateState(wrapper.find(CFFilter), { low: 6, high: 32, drift: true });
+      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {
+        low: 6,
+        high: 32,
+        drift: true,
+      });
       expect(wrapper.find('pre').text()).toBeDefined();
       const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
       expect(urlParams.type).toBe('cffilter');
@@ -163,7 +186,9 @@ describe('TimeseriesAnalysis', () => {
 
     it('seasonal_decompose', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.SEASONAL_DECOMPOSE);
-      wrapper = await updateState(wrapper.find(SeasonalDecompose), { model: SeasonalDecomposeModel.ADDITIVE });
+      wrapper = await updateState<SeasonalDecomposeConfig, SeasonalDecomposeProps>(wrapper.find(SeasonalDecompose), {
+        model: SeasonalDecomposeModel.ADDITIVE,
+      });
       expect(wrapper.find('pre').text()).toBeDefined();
       const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
       expect(urlParams.type).toBe('seasonal_decompose');
@@ -171,7 +196,10 @@ describe('TimeseriesAnalysis', () => {
 
     it('stl', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.STL);
-      wrapper = await updateState(wrapper.find(SeasonalDecompose), {});
+      wrapper = await updateState<SeasonalDecomposeConfig, SeasonalDecomposeProps>(
+        wrapper.find(SeasonalDecompose),
+        {} as SeasonalDecomposeConfig,
+      );
       expect(wrapper.find('pre').text()).toBeDefined();
       const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
       expect(urlParams.type).toBe('stl');
@@ -180,33 +208,43 @@ describe('TimeseriesAnalysis', () => {
 
   describe('report errors', () => {
     beforeEach(async () => {
-      wrapper = await updateState(wrapper.find(BaseInputs), {});
+      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {});
       expect(wrapper.find(RemovableError).props().error).toBe('Missing an index selection!');
-      wrapper = await updateState(wrapper.find(BaseInputs), { index: 'index' });
+      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), { index: 'index' });
       expect(wrapper.find(RemovableError).props().error).toBe('Missing a column selection!');
-      wrapper = await updateState(wrapper.find(BaseInputs), { col: 'col1', index: 'index' });
+      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
+        col: 'col1',
+        index: 'index',
+      });
     });
 
     it('bkfilter', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.BKFILTER);
-      wrapper = await updateState(wrapper.find(BKFilter), {});
+      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {} as BKConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter a low!');
-      wrapper = await updateState(wrapper.find(BKFilter), { low: 6 });
+      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
+        low: 6,
+      } as BKConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter a high!');
-      wrapper = await updateState(wrapper.find(BKFilter), { low: 6, high: 32 });
+      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
+        low: 6,
+        high: 32,
+      } as BKConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter K!');
     });
 
     it('hpfilter', async () => {
-      wrapper = await updateState(wrapper.find(HPFilter), {});
+      wrapper = await updateState<HPConfig, BaseComponentProps<HPConfig>>(wrapper.find(HPFilter), {} as HPConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter a lambda!');
     });
 
     it('cffilter', async () => {
       wrapper = await updateType(TimeseriesAnalysisType.CFFILTER);
-      wrapper = await updateState(wrapper.find(CFFilter), {});
+      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {} as CFConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter a low!');
-      wrapper = await updateState(wrapper.find(CFFilter), { low: 6 });
+      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {
+        low: 6,
+      } as CFConfig);
       expect(wrapper.find(RemovableError).props().error).toBe('Please enter a high!');
     });
   });

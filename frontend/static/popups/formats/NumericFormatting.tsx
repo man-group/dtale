@@ -2,7 +2,7 @@ import getSymbolFromCurrency from 'currency-symbol-map';
 import currencyToSymbolMap from 'currency-symbol-map/map';
 import numeral from 'numeral';
 import * as React from 'react';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';

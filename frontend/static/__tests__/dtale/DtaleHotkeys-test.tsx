@@ -75,9 +75,9 @@ describe('DtaleHotkeys tests', () => {
 
   it('sets state and fires click handler on menu open', async () => {
     const hotkeys = result.find(GlobalHotKeys);
-    const menuHandler = hotkeys.prop('handlers').MENU;
+    const menuHandler = hotkeys.prop('handlers')?.MENU;
     await act(async () => {
-      menuHandler();
+      menuHandler?.();
     });
     result = result.update();
     expect(store.getState().menuOpen).toBe(true);
@@ -88,9 +88,9 @@ describe('DtaleHotkeys tests', () => {
 
   it('opens new tab on describe open', async () => {
     const hotkeys = result.find(GlobalHotKeys);
-    const describeHandler = hotkeys.prop('handlers').DESCRIBE;
+    const describeHandler = hotkeys.prop('handlers')?.DESCRIBE;
     await act(async () => {
-      describeHandler();
+      describeHandler?.();
     });
     result = result.update();
     expect(openSpy).toHaveBeenLastCalledWith('/dtale/popup/describe/1', '_blank');
@@ -98,9 +98,9 @@ describe('DtaleHotkeys tests', () => {
 
   it('calls window.open on code export', async () => {
     const hotkeys = result.find(GlobalHotKeys);
-    const codeHandler = hotkeys.prop('handlers').CODE;
+    const codeHandler = hotkeys.prop('handlers')?.CODE;
     await act(async () => {
-      codeHandler();
+      codeHandler?.();
     });
     result = result.update();
     expect(openSpy).toHaveBeenLastCalledWith(
@@ -112,9 +112,9 @@ describe('DtaleHotkeys tests', () => {
 
   it('calls window.open on chart display', async () => {
     const hotkeys = result.find(GlobalHotKeys);
-    const chartsHandler = hotkeys.prop('handlers').CHARTS;
+    const chartsHandler = hotkeys.prop('handlers')?.CHARTS;
     await act(async () => {
-      chartsHandler();
+      chartsHandler?.();
     });
     result = result.update();
     expect(openSpy).toHaveBeenLastCalledWith('/dtale/charts/1', '_blank');
@@ -122,9 +122,9 @@ describe('DtaleHotkeys tests', () => {
 
   it('calls openChart from redux', async () => {
     const hotkeys = result.find(GlobalHotKeys);
-    const filterHandler = hotkeys.prop('handlers').FILTER;
+    const filterHandler = hotkeys.prop('handlers')?.FILTER;
     await act(async () => {
-      filterHandler();
+      filterHandler?.();
     });
     result = result.update();
     expect(store.getState().chartData).toEqual(
@@ -138,9 +138,9 @@ describe('DtaleHotkeys tests', () => {
   it('calls build-column-copy for copy handler when ctrlCols exists', async () => {
     await buildMock([mockColumnDef(), mockColumnDef({ name: 'foo', index: 1 })], { ctrlCols: [1] });
     const hotkeys = result.find(GlobalHotKeys);
-    const copyHandler = hotkeys.prop('handlers').COPY;
+    const copyHandler = hotkeys.prop('handlers')?.COPY;
     await act(async () => {
-      copyHandler();
+      copyHandler?.();
     });
     result = result.update();
     expect(axiosPostSpy).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
@@ -157,9 +157,9 @@ describe('DtaleHotkeys tests', () => {
   it('calls build-row-copy for copy handler when ctrlRows exists', async () => {
     await buildMock([mockColumnDef({ name: 'foo' })], { ctrlRows: [1] });
     const hotkeys = result.find(GlobalHotKeys);
-    const copyHandler = hotkeys.prop('handlers').COPY;
+    const copyHandler = hotkeys.prop('handlers')?.COPY;
     await act(async () => {
-      copyHandler();
+      copyHandler?.();
     });
     result = result.update();
     expect(axiosPostSpy).toBeCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });

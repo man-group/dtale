@@ -106,7 +106,7 @@ describe('FilterPopup', () => {
     wrapper = await clickFilterBtn('Apply');
     expect(wrapper.find(RemovableError).props().error).toBe('error');
     await act(async () => {
-      wrapper.find(RemovableError).first().props().onRemove();
+      wrapper.find(RemovableError).first().props().onRemove?.();
     });
     wrapper = wrapper.update();
     expect(wrapper.find(RemovableError)).toHaveLength(0);

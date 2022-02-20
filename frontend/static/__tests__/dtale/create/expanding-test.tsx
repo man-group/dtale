@@ -1,8 +1,8 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateExpanding, validateExpandingCfg } from '../../../popups/create/CreateExpanding';
 import { mockT as t } from '../../test-utils';
 
@@ -22,12 +22,17 @@ describe('CreateExpanding', () => {
 
   afterAll(() => spies.afterAll());
 
-  const expandingInputs = (): ReactWrapper => result.find(CreateExpanding).first();
+  const expandingInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateExpanding).first();
 
   it('builds expanding column', async () => {
     expect(result.find(CreateExpanding)).toHaveLength(1);
     await act(async () => {
-      expandingInputs().find(Select).first().props().onChange({ value: 'col2' });
+      expandingInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -39,7 +44,11 @@ describe('CreateExpanding', () => {
     });
     result = result.update();
     await act(async () => {
-      expandingInputs().find(Select).last().props().onChange({ value: 'sum' });
+      expandingInputs()
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'sum' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

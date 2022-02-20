@@ -1,6 +1,6 @@
 import { Resizable } from 're-resizable';
 import * as React from 'react';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { RemovableError } from '../../RemovableError';

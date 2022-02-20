@@ -2,15 +2,14 @@ import axios from 'axios';
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import * as redux from 'react-redux';
 import { MultiGrid } from 'react-virtualized';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/side/SidePanelButtons', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
+jest.mock('../../../dtale/side/SidePanelButtons', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return { __esModule: true, default: createMockComponent() };
+});
 
 import ChartsBody from '../../../popups/charts/ChartsBody';
 import { Correlations } from '../../../popups/correlations/Correlations';
@@ -218,7 +217,11 @@ describe('Correlations tests', () => {
   it('Handles grid height drag', async () => {
     await buildResult();
     await act(async () => {
-      result.find(CorrelationsGrid).find(Draggable).props().onDrag?.(null, { deltaY: 100 });
+      result
+        .find(CorrelationsGrid)
+        .find(Draggable)
+        .props()
+        .onDrag?.({} as any as DraggableEvent, { deltaY: 100 } as any as DraggableData);
     });
     result = result.update();
     expect(result.find(MultiGrid).props().height).toBe(400);

@@ -1,6 +1,6 @@
 import { Resizable } from 're-resizable';
 import React from 'react';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -113,11 +113,12 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns
               setMinWidth(refToElement.offsetWidth);
             }}
           >
-            <Modal.Header closeButton={true}>
+            <Modal.Header>
               <Modal.Title>
                 <i className="ico-palette" />
                 {t('formatting:Formatting')}
               </Modal.Title>
+              <i className="ico-close pointer" onClick={hide} />
             </Modal.Header>
             <div style={{ paddingBottom: '5em' }}>
               {[ColumnType.FLOAT, ColumnType.INT].includes(colType) && (

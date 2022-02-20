@@ -3,9 +3,14 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
-import { createMockComponent } from '../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../dtale/menu/MenuTooltip', () => ({ MenuTooltip: createMockComponent() }));
-jest.mock('../../dtale/side/SidePanel', () => ({ SidePanel: createMockComponent() }));
+jest.mock('../../dtale/menu/MenuTooltip', () => {
+  const { createMockComponent } = require('../mocks/createMockComponent');
+  return { MenuTooltip: createMockComponent() };
+});
+jest.mock('../../dtale/side/SidePanel', () => {
+  const { createMockComponent } = require('../mocks/createMockComponent');
+  return { SidePanel: createMockComponent() };
+});
 
 import { ColumnDef, DataViewerData } from '../../dtale/DataViewerState';
 import GridEventHandler, { GridEventHandlerProps } from '../../dtale/GridEventHandler';

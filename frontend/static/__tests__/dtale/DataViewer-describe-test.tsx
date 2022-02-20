@@ -9,9 +9,9 @@ import { ColumnAnalysisChart } from '../../popups/analysis/ColumnAnalysisChart';
 import CategoryInputs from '../../popups/analysis/filters/CategoryInputs';
 import DescribeFilters from '../../popups/analysis/filters/DescribeFilters';
 import Describe from '../../popups/describe/Describe';
-import Details from '../../popups/describe/Details';
+import Details, { DetailsProps } from '../../popups/describe/Details';
 import { DetailsCharts } from '../../popups/describe/DetailsCharts';
-import DtypesGrid from '../../popups/describe/DtypesGrid';
+import DtypesGrid, { DtypesGridProps } from '../../popups/describe/DtypesGrid';
 import { DescribePopupData } from '../../redux/state/AppState';
 import * as GenericRepository from '../../repository/GenericRepository';
 import DimensionsHelper from '../DimensionsHelper';
@@ -67,8 +67,8 @@ describe('DataViewer tests', () => {
     window.close = close;
   });
 
-  const dtypesGrid = (): ReactWrapper => result.find(DtypesGrid).first();
-  const details = (): ReactWrapper => result.find(Details).first();
+  const dtypesGrid = (): ReactWrapper<DtypesGridProps, Record<string, any>> => result.find(DtypesGrid).first();
+  const details = (): ReactWrapper<DetailsProps, Record<string, any>> => result.find(Details).first();
   const clickHeaderSort = async (colIndex: number): Promise<ReactWrapper> => {
     await act(async () => {
       dtypesGrid().find("div[role='columnheader']").at(colIndex).simulate('click');

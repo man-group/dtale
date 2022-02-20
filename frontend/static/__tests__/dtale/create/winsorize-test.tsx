@@ -1,9 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 import ReactSlider from 'react-slider';
 
-import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateWinsorize, validateWinsorizeCfg } from '../../../popups/create/CreateWinsorize';
 import { mockT as t } from '../../test-utils';
 
@@ -23,20 +23,32 @@ describe('CreateWinsorize', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findWinsorize = (): ReactWrapper => result.find(CreateWinsorize);
+  const findWinsorize = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateWinsorize);
 
   it('builds a winsorize column', async () => {
     expect(findWinsorize()).toHaveLength(1);
     await act(async () => {
-      findWinsorize().find(Select).first().props().onChange({ value: 'col1' });
+      findWinsorize()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findWinsorize().find(Select).first().props().onChange(null);
+      findWinsorize()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.(null, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findWinsorize().find(Select).first().props().onChange({ value: 'col1' });
+      findWinsorize()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -44,7 +56,7 @@ describe('CreateWinsorize', () => {
         .find(Select)
         .last()
         .props()
-        .onChange([{ value: 'col2' }]);
+        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

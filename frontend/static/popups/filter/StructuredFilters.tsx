@@ -4,7 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 
 /** Component properties for StructuredFilters */
-interface StructuredFiltersProps {
+export interface StructuredFiltersProps {
   label: string;
   dropFilter: (col: string) => void;
   filters: Record<string, ColumnFilter | OutlierFilter>;

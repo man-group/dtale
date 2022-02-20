@@ -1,10 +1,15 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { default as Aggregate, validateAggregateCfg } from '../../../popups/reshape/Aggregate';
-import { AggregationOperationType, ReshapeAggregateConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import {
+  AggregationOperationType,
+  BaseReshapeComponentProps,
+  ReshapeAggregateConfig,
+  ReshapeType,
+} from '../../../popups/reshape/ReshapeState';
 
 import * as TestSupport from './Reshape.test.support';
 
@@ -42,7 +47,7 @@ describe('Aggregate', () => {
     spies.afterAll();
   });
 
-  const findAgg = (): ReactWrapper => result.find(Aggregate);
+  const findAgg = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Aggregate);
 
   const aggInputs = (): ReactWrapper => findAgg().find(Select);
 
@@ -53,7 +58,7 @@ describe('Aggregate', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

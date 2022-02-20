@@ -73,24 +73,42 @@ describe('DataViewer tests', () => {
     ]);
     loadDataSpy.mockClear();
     await act(async () => {
-      dataViewer()
-        .find(MultiGrid)
-        .props()
-        .onSectionRendered({ rowStartIndex: 0, rowStopIndex: 55, columnStartIndex: 0, columnStopIndex: 10 });
+      dataViewer().find(MultiGrid).props().onSectionRendered?.({
+        rowStartIndex: 0,
+        rowStopIndex: 55,
+        columnStartIndex: 0,
+        columnStopIndex: 10,
+        columnOverscanStartIndex: 1,
+        columnOverscanStopIndex: 1,
+        rowOverscanStartIndex: 1,
+        rowOverscanStopIndex: 1,
+      });
     });
     result = result.update();
     await act(async () => {
-      dataViewer()
-        .find(MultiGrid)
-        .props()
-        .onSectionRendered({ rowStartIndex: 0, rowStopIndex: 3, columnStartIndex: 0, columnStopIndex: 10 });
+      dataViewer().find(MultiGrid).props().onSectionRendered?.({
+        rowStartIndex: 0,
+        rowStopIndex: 3,
+        columnStartIndex: 0,
+        columnStopIndex: 10,
+        columnOverscanStartIndex: 1,
+        columnOverscanStopIndex: 1,
+        rowOverscanStartIndex: 1,
+        rowOverscanStopIndex: 1,
+      });
     });
     result = result.update();
     await act(async () => {
-      dataViewer()
-        .find(MultiGrid)
-        .props()
-        .onSectionRendered({ rowStartIndex: 100, rowStopIndex: 101, columnStartIndex: 0, columnStopIndex: 10 });
+      dataViewer().find(MultiGrid).props().onSectionRendered?.({
+        rowStartIndex: 100,
+        rowStopIndex: 101,
+        columnStartIndex: 0,
+        columnStopIndex: 10,
+        columnOverscanStartIndex: 1,
+        columnOverscanStopIndex: 1,
+        rowOverscanStartIndex: 1,
+        rowOverscanStopIndex: 1,
+      });
     });
     result = result.update();
     expect(loadDataSpy.mock.calls).toEqual([['1', { ids: '["100-101"]' }]]);

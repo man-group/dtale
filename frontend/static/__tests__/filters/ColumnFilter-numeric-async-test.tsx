@@ -1,7 +1,7 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { ActionMeta, GroupBase } from 'react-select';
-import { AsyncProps, default as AsyncSelect } from 'react-select/async';
+import { ActionMeta } from 'react-select';
+import { default as AsyncSelect } from 'react-select/async';
 
 import { AsyncOption } from '../../filters/AsyncValueSelect';
 import { ColumnFilterProps } from '../../filters/ColumnFilter';
@@ -53,8 +53,7 @@ describe('ColumnFilter numeric tests', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findAsync = (): ReactWrapper<AsyncProps<AsyncOption<number>, true, GroupBase<AsyncOption<number>>>> =>
-    result.find(AsyncSelect);
+  const findAsync = (): ReactWrapper<Record<string, any>, Record<string, any>> => result.find(AsyncSelect);
 
   it('ColumnFilter int rendering', async () => {
     expect(result.find(NumericFilter).length).toBe(1);

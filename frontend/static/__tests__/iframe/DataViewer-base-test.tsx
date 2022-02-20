@@ -5,14 +5,13 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import ColumnMenu from '../../dtale/column/ColumnMenu';
+import ColumnMenu, { ColumnMenuProps } from '../../dtale/column/ColumnMenu';
 import { DataViewer } from '../../dtale/DataViewer';
 import DataViewerInfo from '../../dtale/info/DataViewerInfo';
 import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
 import Formatting from '../../popups/formats/Formatting';
 import { ActionType } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
-import { createMockComponent } from '../mocks/createMockComponent';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, tickUpdate } from '../test-utils';
 
@@ -51,7 +50,10 @@ describe('DataViewer iframe tests', () => {
     window.open = openSpy;
     (window as any).top = { location: { href: 'http://test.com' } };
     (window as any).self = { location: { href: 'http://test/dtale/iframe' } };
-    jest.mock('@blueprintjs/datetime', () => ({ DateInput: createMockComponent('DateInput') }));
+    jest.mock('@blueprintjs/datetime', () => {
+      const { createMockComponent } = require('../mocks/createMockComponent');
+      return { DateInput: createMockComponent('DateInput') };
+    });
   });
 
   beforeEach(async () => {
@@ -82,7 +84,7 @@ describe('DataViewer iframe tests', () => {
     jest.restoreAllMocks();
   });
 
-  const colMenu = (): ReactWrapper => result.find(ColumnMenu).first();
+  const colMenu = (): ReactWrapper<ColumnMenuProps, Record<string, any>> => result.find(ColumnMenu).first();
 
   it('main menu option display', async () => {
     validateHeaders(result, ['col1', 'col2', 'col3', 'col4']);

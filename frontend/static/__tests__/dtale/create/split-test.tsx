@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
 import {
@@ -28,7 +28,12 @@ describe('CreateStringSplitting', () => {
   it('builds a split column', async () => {
     expect(result.find(CreateStringSplitting)).toHaveLength(1);
     await act(async () => {
-      result.find(CreateStringSplitting).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CreateStringSplitting)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

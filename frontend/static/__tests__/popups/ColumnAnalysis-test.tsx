@@ -3,12 +3,12 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import ButtonToggle from '../../ButtonToggle';
 import * as chartUtils from '../../chartUtils';
 import ColumnAnalysis from '../../popups/analysis/ColumnAnalysis';
-import ColumnAnalysisFilters from '../../popups/analysis/filters/ColumnAnalysisFilters';
+import ColumnAnalysisFilters, { ColumnAnalysisFiltersProps } from '../../popups/analysis/filters/ColumnAnalysisFilters';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
 import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, parseUrlParams, tickUpdate } from '../test-utils';
@@ -155,7 +155,8 @@ describe('ColumnAnalysis tests', () => {
   afterEach(jest.restoreAllMocks);
 
   const input = (): ReactWrapper => result.find('input');
-  const filters = (): ReactWrapper => result.find(ColumnAnalysisFilters);
+  const filters = (): ReactWrapper<ColumnAnalysisFiltersProps, Record<string, any>> =>
+    result.find(ColumnAnalysisFilters);
 
   it('ColumnAnalysis rendering float data', async () => {
     await updateProps();
@@ -199,7 +200,11 @@ describe('ColumnAnalysis tests', () => {
     });
     result = result.update();
     await act(async () => {
-      filters().find(Select).first().props().onChange({ value: 'col1' });
+      filters()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -271,7 +276,10 @@ describe('ColumnAnalysis tests', () => {
     result = result.update();
     const ordinalInputs = result.find(Select);
     await act(async () => {
-      ordinalInputs.first().props().onChange({ value: 'col1' });
+      ordinalInputs
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith(
       '1',

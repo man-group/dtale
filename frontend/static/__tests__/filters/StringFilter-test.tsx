@@ -2,7 +2,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { ColumnFilter } from '../../dtale/DataViewerState';
 import { NE_OPTION } from '../../filters/NumericFilter';
@@ -11,7 +11,7 @@ import ValueSelect from '../../filters/ValueSelect';
 import { tickUpdate } from '../test-utils';
 
 describe('StringFilter', () => {
-  let wrapper: ReactWrapper<StringFilterProps>;
+  let wrapper: ReactWrapper;
   let updateState: jest.Mock<Promise<void>, [ColumnFilter?]>;
   let props: StringFilterProps;
 
@@ -35,7 +35,7 @@ describe('StringFilter', () => {
 
   it('reads presets successfully', () => {
     expect(wrapper.find('button.active').first().text()).toBe(NE_OPTION.label);
-    expect(wrapper.find(Select).first().props().value.value).toBe('equals');
+    expect((wrapper.find(Select).first().props().value as any)?.value).toBe('equals');
     expect(wrapper.find(ValueSelect).last().props().selected).toEqual(['a']);
   });
 
@@ -48,7 +48,11 @@ describe('StringFilter', () => {
 
   it('handles action/raw update', async () => {
     await act(async () => {
-      wrapper.find(Select).first().props().onChange({ value: 'startswith' });
+      wrapper
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'startswith' }, {} as ActionMeta<unknown>);
     });
     wrapper = wrapper.update();
     expect(wrapper.find('input.form-control')).toHaveLength(1);
@@ -67,7 +71,11 @@ describe('StringFilter', () => {
 
   it('handles length check', async () => {
     await act(async () => {
-      wrapper.find(Select).first().props().onChange({ value: 'length' });
+      wrapper
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'length' }, {} as ActionMeta<unknown>);
     });
     wrapper = wrapper.update();
     expect(wrapper.find('input.form-control')).toHaveLength(1);

@@ -41,7 +41,7 @@ describe('BaseInputs', () => {
     });
     wrapper = wrapper.update();
     await act(async () => {
-      wrapper.find(LabeledSelect).props().onChange({ value: 'sum' });
+      wrapper.find(LabeledSelect).props().onChange?.({ value: 'sum' });
     });
     wrapper = wrapper.update();
     expect(props.updateState).toHaveBeenLastCalledWith({

@@ -4,15 +4,20 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/side/SidePanelButtons', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
-jest.mock('../../../popups/describe/Details', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
+jest.mock('../../../dtale/side/SidePanelButtons', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent(),
+  };
+});
+jest.mock('../../../popups/describe/Details', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent(),
+  };
+});
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import DescribePanel from '../../../dtale/side/DescribePanel';

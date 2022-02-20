@@ -1,8 +1,8 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateSubstring, validateSubstringCfg } from '../../../popups/create/CreateSubstring';
 import { mockT as t } from '../../test-utils';
 
@@ -22,12 +22,16 @@ describe('CreateSubstring', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findSubstring = (): ReactWrapper => result.find(CreateSubstring);
+  const findSubstring = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateSubstring);
 
   it('builds a substring column', async () => {
     expect(findSubstring()).toHaveLength(1);
     await act(async () => {
-      findSubstring().find(Select).first().props().onChange({ value: 'col1' });
+      findSubstring()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

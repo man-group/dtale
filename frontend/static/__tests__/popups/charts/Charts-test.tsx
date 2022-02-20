@@ -1,7 +1,7 @@
 import { Chart, ChartEvent } from 'chart.js';
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { getLastChart, MockChart, mockWordcloud } from '../../test-utils'; // eslint-disable-line import/order
 mockWordcloud();
@@ -30,7 +30,11 @@ describe('Charts tests', () => {
 
   it('Charts: rendering', async () => {
     await act(async () => {
-      result.find(Select).first().props().onChange({ value: 'col4' });
+      result
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -38,11 +42,15 @@ describe('Charts tests', () => {
         .find(Select)
         .at(1)
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      result.find(Select).at(3).props().onChange({ value: 'rolling', label: 'Rolling' });
+      result
+        .find(Select)
+        .at(3)
+        .props()
+        .onChange?.({ value: 'rolling', label: 'Rolling' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -54,7 +62,12 @@ describe('Charts tests', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(Aggregations).find(Select).last().props().onChange({ value: 'corr', label: 'Correlation' });
+      result
+        .find(Aggregations)
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'corr', label: 'Correlation' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -69,7 +82,7 @@ describe('Charts tests', () => {
     });
     result = result.update();
     expect(result.find(ChartsBody).find('canvas')).toHaveLength(1);
-    const params = parseUrlParams(result.find(ChartsBody).props().url);
+    const params = parseUrlParams(result.find(ChartsBody).props().url ?? '');
     expect({ ...params, y: decodeURIComponent(params.y), query: decodeURIComponent(params.query) }).toEqual({
       x: 'col4',
       y: '["col1"]',
@@ -89,7 +102,11 @@ describe('Charts tests', () => {
     result = result.update();
     expect(result.find('div.coverage-desc').text()).toBe('Zoomed: 2018-12-17 - 2018-12-25X');
     await act(async () => {
-      result.find(ChartsBody).find(JSAnchor).props().onClick();
+      result
+        .find(ChartsBody)
+        .find(JSAnchor)
+        .props()
+        .onClick?.({} as any as React.MouseEvent<HTMLAnchorElement>);
     });
     result = result.update();
     expect(result.find('div.coverage-desc')).toHaveLength(0);
@@ -103,7 +120,11 @@ describe('Charts tests', () => {
     result = await spies.updateChartType(result, 'pie');
     expect(getLastChart(spies.createChartSpy).type).toBe('pie');
     await act(async () => {
-      result.find(Select).at(3).props().onChange(null);
+      result
+        .find(Select)
+        .at(3)
+        .props()
+        .onChange?.(null, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -111,7 +132,7 @@ describe('Charts tests', () => {
         .find(Select)
         .at(2)
         .props()
-        .onChange([{ value: 'col3' }]);
+        .onChange?.([{ value: 'col3' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -130,7 +151,12 @@ describe('Charts tests', () => {
     result = await spies.updateChartType(result, 'wordcloud');
     result = await spies.updateChartType(result, 'line');
     await act(async () => {
-      result.find(ChartsBody).find(Select).at(1).props().onChange({ value: 'On' });
+      result
+        .find(ChartsBody)
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'On' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(result.find(ChartsBody).find('canvas')).toHaveLength(2);
@@ -149,7 +175,11 @@ describe('Charts tests', () => {
 
   it('Charts: rendering empty data', async () => {
     await act(async () => {
-      result.find(Select).first().props().onChange({ value: 'error' });
+      result
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'error' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -157,7 +187,7 @@ describe('Charts tests', () => {
         .find(Select)
         .at(1)
         .props()
-        .onChange([{ value: 'error2' }]);
+        .onChange?.([{ value: 'error2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -177,7 +207,11 @@ describe('Charts tests', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     await act(async () => {
-      result.find(Select).first().props().onChange({ value: 'error test' });
+      result
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'error test' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

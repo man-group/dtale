@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Modal from 'react-bootstrap/Modal';
+import { default as Modal } from 'react-bootstrap/Modal';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { StringColumnFormat } from '../../dtale/DataViewerState';

@@ -23,7 +23,7 @@ export const validateRowsCfg = (cfg: RowsConfig): string | undefined =>
   !cfg.subset?.length ? 'Missing a column selection!' : undefined;
 
 /** Component properties for Rows */
-interface RowsProps extends BaseDuplicatesComponentProps {
+export interface RowsProps extends BaseDuplicatesComponentProps {
   columns: ColumnDef[];
   selectedCol?: string;
 }

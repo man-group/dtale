@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { default as CreateCleaning, validateCleaningCfg } from '../../../popups/create/CreateCleaning';
 import { CaseType, CleanerType, CreateColumnType } from '../../../popups/create/CreateColumnState';
@@ -54,7 +54,12 @@ describe('CreateCleaning', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(CreateCleaning).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CreateCleaning)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -116,7 +121,12 @@ describe('CreateCleaning', () => {
 
   it('toggles off cleaners', async () => {
     await act(async () => {
-      result.find(CreateCleaning).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CreateCleaning)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

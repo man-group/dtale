@@ -1,8 +1,13 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType, RollingClosedType, RollingWindowType } from '../../../popups/create/CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  RollingClosedType,
+  RollingWindowType,
+} from '../../../popups/create/CreateColumnState';
 import { default as CreateRolling, validateRollingCfg } from '../../../popups/create/CreateRolling';
 import { mockT as t } from '../../test-utils';
 
@@ -22,16 +27,24 @@ describe('CreateRolling', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findRolling = (): ReactWrapper => result.find(CreateRolling);
+  const findRolling = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateRolling);
 
   it('DataViewer: build rolling column', async () => {
     expect(findRolling()).toHaveLength(1);
     await act(async () => {
-      findRolling().find(Select).first().props().onChange({ value: 'col1' });
+      findRolling()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findRolling().find(Select).at(1).props().onChange({ value: 'mean' });
+      findRolling()
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -48,11 +61,19 @@ describe('CreateRolling', () => {
     });
     result = result.update();
     await act(async () => {
-      findRolling().find(Select).at(2).props().onChange({ value: 'col2' });
+      findRolling()
+        .find(Select)
+        .at(2)
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findRolling().find(Select).at(3).props().onChange({ value: 'triang' });
+      findRolling()
+        .find(Select)
+        .at(3)
+        .props()
+        .onChange?.({ value: 'triang' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

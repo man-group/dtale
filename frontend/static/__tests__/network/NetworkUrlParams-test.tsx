@@ -9,7 +9,7 @@ import { tickUpdate } from '../test-utils';
 describe('NetworkUrlParams', () => {
   const { onpopstate } = window;
   const { history } = global;
-  let result: ReactWrapper<NetworkUrlParamsProps>;
+  let result: ReactWrapper;
   let props: NetworkUrlParamsProps;
   let getParamsSpy: jest.SpyInstance<Record<string, string | string[]>, []>;
   const params = { to: 'to', from: 'from', group: 'group', weight: 'weight' };
