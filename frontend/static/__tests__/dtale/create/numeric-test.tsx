@@ -1,8 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import {
+  BaseCreateComponentProps,
   CreateColumnType,
   NumericConfig,
   NumericOperationType,
@@ -27,7 +28,8 @@ describe('CreateNumeric', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findNumericInputs = (): ReactWrapper => result.find(CreateNumeric).first();
+  const findNumericInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateNumeric).first();
   const findLeftInputs = (): ReactWrapper => findNumericInputs().find('div.form-group').at(1);
   const simulateClick = async (btn: ReactWrapper): Promise<ReactWrapper> => {
     await act(async () => {
@@ -67,11 +69,21 @@ describe('CreateNumeric', () => {
     await simulateClick(findLeftInputs().find('button').last());
     await simulateClick(findLeftInputs().find('button').first());
     await act(async () => {
-      findLeftInputs().find(Select).first().props().onChange({ value: 'col1' });
+      findLeftInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findNumericInputs().find('div.form-group').at(2).find(Select).first().props().onChange({ value: 'col2' });
+      findNumericInputs()
+        .find('div.form-group')
+        .at(2)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {
@@ -114,11 +126,21 @@ describe('CreateNumeric', () => {
     await simulateClick(findNumericInputs().find('div.form-group').first().find('button').first());
     await simulateClick(findLeftInputs().find('button').first());
     await act(async () => {
-      findLeftInputs().find(Select).first().props().onChange({ value: 'col1' });
+      findLeftInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findNumericInputs().find('div.form-group').at(2).find(Select).first().props().onChange({ value: 'col2' });
+      findNumericInputs()
+        .find('div.form-group')
+        .at(2)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     spies.saveSpy.mockResolvedValue({ success: false, error: 'error test' });

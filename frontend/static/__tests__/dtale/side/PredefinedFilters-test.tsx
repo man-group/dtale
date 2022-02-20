@@ -71,12 +71,12 @@ describe('PredefinedFilters panel', () => {
 
   it('saves correctly', async () => {
     await act(async () => {
-      wrapper.find(FilterInput).first().props().save('custom_foo1', 2, true);
+      wrapper.find(FilterInput).first().props().save('custom_foo1', '2', true);
     });
     wrapper = wrapper.update();
     expect(updateSettingsActionSpy).toHaveBeenCalledWith({
       predefinedFilters: {
-        custom_foo1: { value: 2, active: true },
+        custom_foo1: { value: '2', active: true },
         custom_foo2: { value: 1, active: true },
         custom_foo3: { value: [1, 2], active: true },
       },

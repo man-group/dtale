@@ -1,9 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { OutputType, ResampleConfig } from '../../../popups/create/CreateColumnState';
-import { default as Resample, validateResampleCfg } from '../../../popups/reshape/Resample';
+import { default as Resample, ResampleProps, validateResampleCfg } from '../../../popups/reshape/Resample';
 import { ReshapeType } from '../../../popups/reshape/ReshapeState';
 
 import * as TestSupport from './Reshape.test.support';
@@ -47,12 +47,16 @@ describe('Resample', () => {
     spies.afterAll();
   });
 
-  const findResample = (): ReactWrapper => result.find(Resample);
+  const findResample = (): ReactWrapper<ResampleProps, Record<string, any>> => result.find(Resample);
 
   it('resamples data', async () => {
     expect(findResample()).toHaveLength(1);
     await act(async () => {
-      findResample().find(Select).first().props().onChange({ value: 'col1' });
+      findResample()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -65,7 +69,11 @@ describe('Resample', () => {
     });
     result = result.update();
     await act(async () => {
-      findResample().find(Select).last().props().onChange({ value: 'mean' });
+      findResample()
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

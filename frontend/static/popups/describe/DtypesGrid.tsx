@@ -66,7 +66,7 @@ const buildSort = (sort: SortDef, info: SortInfo): SortDef => {
 };
 
 /** Component properties for DtypesGrid */
-interface DtypesGridProps {
+export interface DtypesGridProps {
   dtypes: ColumnDef[];
   selected?: ColumnDef;
   setSelected: (selected?: ColumnDef) => void;

@@ -27,6 +27,6 @@ describe('CategoryInputs tests', () => {
     expect(props.setCategoryCol).toHaveBeenCalled();
     expect(props.setCategoryCol).toHaveBeenCalledWith({ value: 'bar' });
     expect(props.setCategoryAgg).toHaveBeenCalledWith({ value: 'mean' });
-    expect(result.find(FilterSelect).first().props().noOptionsText()).toBe('No columns found');
+    expect(result.find(FilterSelect).first().props().noOptionsText?.()).toBe('No columns found');
   });
 });

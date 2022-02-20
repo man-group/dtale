@@ -2,7 +2,7 @@ import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import { ReplacementType } from '../../../popups/replacement/CreateReplacementState';
+import { BaseReplacementComponentProps, ReplacementType } from '../../../popups/replacement/CreateReplacementState';
 import Spaces from '../../../popups/replacement/Spaces';
 
 import * as TestSupport from './CreateReplacement.test.support';
@@ -25,7 +25,7 @@ describe('Spaces', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findSpaces = (): ReactWrapper => result.find(Spaces);
+  const findSpaces = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Spaces);
 
   it('handles replacement w/ new col', async () => {
     expect(findSpaces()).toHaveLength(1);

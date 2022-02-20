@@ -21,7 +21,7 @@ export const validateShowDuplicatesCfg = (cfg: ShowDuplicatesConfig): string | u
   !cfg.group?.length ? 'Missing a group selection!' : undefined;
 
 /** Component properties for ShowDuplicates */
-interface ShowDuplicatesProps extends BaseDuplicatesComponentProps {
+export interface ShowDuplicatesProps extends BaseDuplicatesComponentProps {
   columns: ColumnDef[];
 }
 

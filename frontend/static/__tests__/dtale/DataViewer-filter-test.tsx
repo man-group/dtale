@@ -8,7 +8,7 @@ import { Store } from 'redux';
 import { DataViewer } from '../../dtale/DataViewer';
 import DataViewerInfo from '../../dtale/info/DataViewerInfo';
 import FilterPanel from '../../popups/filter/FilterPanel';
-import StructuredFilters from '../../popups/filter/StructuredFilters';
+import StructuredFilters, { StructuredFiltersProps } from '../../popups/filter/StructuredFilters';
 import { RemovableError } from '../../RemovableError';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -131,7 +131,7 @@ describe('FilterPanel', () => {
     await clickFilterBtn('Apply');
     expect(result.find(RemovableError).find('div.dtale-alert').text()).toBe('No data found');
     await act(async () => {
-      result.find(FilterPanel).find(RemovableError).first().props().onRemove();
+      result.find(FilterPanel).find(RemovableError).first().props().onRemove?.();
     });
     result = result.update();
     expect(result.find(FilterPanel).find('div.dtale-alert').length).toBe(0);
@@ -149,7 +149,8 @@ describe('FilterPanel', () => {
 
   it('DataViewer: column filters', async () => {
     await buildResult();
-    const columnFilters = (): ReactWrapper => result.find(FilterPanel).find(StructuredFilters).first();
+    const columnFilters = (): ReactWrapper<StructuredFiltersProps, Record<string, any>> =>
+      result.find(FilterPanel).find(StructuredFilters).first();
     expect(columnFilters().text()).toBe('Active Column Filters:foo == 1 and');
     await act(async () => {
       columnFilters().find('i.ico-cancel').first().simulate('click');

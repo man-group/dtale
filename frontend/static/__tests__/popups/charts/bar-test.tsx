@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { default as AxisEditor, AxisEditorProps } from '../../../popups/charts/AxisEditor';
 import ChartsBody from '../../../popups/charts/ChartsBody';
@@ -26,11 +26,14 @@ describe('Charts bar tests', () => {
   it('Charts: rendering', async () => {
     const filters = result.find(Select);
     await act(async () => {
-      filters.first().props().onChange({ value: 'col4' });
+      filters
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
       filters
         .at(1)
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     result = await spies.updateChartType(result, 'bar');
@@ -41,7 +44,12 @@ describe('Charts bar tests', () => {
     let lastChart = getLastChart(spies.createChartSpy);
     expect(lastChart.type).toBe('bar');
     await act(async () => {
-      result.find(ChartsBody).find(Select).at(1).props().onChange({ value: 'col1' });
+      result
+        .find(ChartsBody)
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

@@ -3,7 +3,7 @@ import { ReactWrapper } from 'enzyme';
 import moment from 'moment';
 import { act } from 'react-dom/test-utils';
 
-import { CreateColumnType, RandomType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, RandomType } from '../../../popups/create/CreateColumnState';
 import { default as CreateRandom, validateRandomCfg } from '../../../popups/create/CreateRandom';
 import { mockT as t } from '../../test-utils';
 
@@ -23,7 +23,8 @@ describe('CreateRandom', () => {
 
   afterAll(() => spies.afterAll());
 
-  const randomInputs = (): ReactWrapper => result.find(CreateRandom).first();
+  const randomInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateRandom).first();
 
   it('builds random float column', async () => {
     expect(result.find(CreateRandom)).toHaveLength(1);
@@ -162,11 +163,11 @@ describe('CreateRandom', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(DateInput).first().props().onChange(moment('20000101').toDate());
+      result.find(DateInput).first().props().onChange?.(moment('20000101').toDate(), true);
     });
     result = result.update();
     await act(async () => {
-      result.find(DateInput).last().props().onChange(moment('20000102').toDate());
+      result.find(DateInput).last().props().onChange?.(moment('20000102').toDate(), true);
     });
     result = result.update();
     await act(async () => {

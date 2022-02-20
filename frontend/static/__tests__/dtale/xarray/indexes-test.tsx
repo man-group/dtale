@@ -3,7 +3,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
@@ -40,7 +40,8 @@ describe('DataViewer tests', () => {
       </Provider>,
       { attachTo: document.getElementById('content') ?? undefined },
     );
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    result = result.update();
     await clickMainMenuButton(result, 'Convert To XArray');
   });
 
@@ -57,11 +58,13 @@ describe('DataViewer tests', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
-    result.find('div.modal-footer').first().find('button').first().simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      result.find('div.modal-footer').first().find('button').first().simulate('click');
+    });
+    result = result.update();
     expect(store.getState().xarray).toBe(true);
   });
 });

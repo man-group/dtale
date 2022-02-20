@@ -32,7 +32,7 @@ describe('OrdinalInputs tests', () => {
     expect(props.setOrdinalCol).toHaveBeenCalled();
     expect(props.setOrdinalCol).toHaveBeenCalledWith({ value: 'bar' });
     expect(props.setOrdinalAgg).toHaveBeenCalledWith({ value: 'mean' });
-    expect(result.find(FilterSelect).first().props().noOptionsText()).toBe('No columns found');
+    expect(result.find(FilterSelect).first().props().noOptionsText?.()).toBe('No columns found');
   });
 
   it('renders cleaners on word_value_counts', () => {

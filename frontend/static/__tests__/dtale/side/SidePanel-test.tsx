@@ -1,14 +1,16 @@
 import { shallow, ShallowWrapper } from 'enzyme';
 import * as React from 'react';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import { GlobalHotKeys } from 'react-hotkeys';
 import * as redux from 'react-redux';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/side/MissingNoCharts', () => ({
-  __esModule: true,
-  default: createMockComponent(),
-}));
+jest.mock('../../../dtale/side/MissingNoCharts', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent(),
+  };
+});
 
 import { SidePanel } from '../../../dtale/side/SidePanel';
 import { ActionType } from '../../../redux/actions/AppActions';
@@ -61,17 +63,26 @@ describe('SidePanel', () => {
   it('hides side panel on ESC', () => {
     setupMock({ visible: true });
     const { keyMap, handlers } = wrapper.find(GlobalHotKeys).props();
-    expect(keyMap.CLOSE_PANEL).toBe('esc');
-    const closePanel = handlers.CLOSE_PANEL;
-    closePanel();
+    expect(keyMap?.CLOSE_PANEL).toBe('esc');
+    const closePanel = handlers?.CLOSE_PANEL;
+    closePanel?.();
     expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
   });
 
   it('handles resize', () => {
     setupMock({ visible: true });
-    wrapper.find(Draggable).props().onStart();
-    wrapper.find(Draggable).props().onDrag(null, { deltaX: -20 });
-    wrapper.find(Draggable).props().onStop();
+    wrapper
+      .find(Draggable)
+      .props()
+      .onStart?.({} as any as DraggableEvent, {} as any as DraggableData);
+    wrapper
+      .find(Draggable)
+      .props()
+      .onDrag?.({} as any as DraggableEvent, { deltaX: -20 } as DraggableData);
+    wrapper
+      .find(Draggable)
+      .props()
+      .onStop?.({} as any as DraggableEvent, {} as any as DraggableData);
     expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.UPDATE_SIDE_PANEL_WIDTH, offset: -20 });
   });
 });

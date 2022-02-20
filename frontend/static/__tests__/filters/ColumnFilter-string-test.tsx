@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { ColumnFilterProps } from '../../filters/ColumnFilter';
 import StringFilter from '../../filters/StringFilter';
@@ -46,7 +46,7 @@ describe('ColumnFilter string tests', () => {
       uniqueSelect
         .first()
         .props()
-        .onChange([{ value: 'a' }]);
+        .onChange?.([{ value: 'a' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith(

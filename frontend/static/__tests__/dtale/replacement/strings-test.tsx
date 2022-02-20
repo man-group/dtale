@@ -2,7 +2,11 @@ import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import { ReplacementType, StringsConfig } from '../../../popups/replacement/CreateReplacementState';
+import {
+  BaseReplacementComponentProps,
+  ReplacementType,
+  StringsConfig,
+} from '../../../popups/replacement/CreateReplacementState';
 import Strings, * as StringsUtils from '../../../popups/replacement/Strings';
 import { RemovableError } from '../../../RemovableError';
 import { mockT as t } from '../../test-utils';
@@ -27,7 +31,7 @@ describe('Strings', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findStrings = (): ReactWrapper => result.find(Strings);
+  const findStrings = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Strings);
 
   it('handles strings replacement w/ new col', async () => {
     expect(findStrings()).toHaveLength(1);

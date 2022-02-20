@@ -1,8 +1,8 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType, ShiftConfig } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, ShiftConfig } from '../../../popups/create/CreateColumnState';
 import { default as CreateShift, validateShiftCfg } from '../../../popups/create/CreateShift';
 import { mockT as t } from '../../test-utils';
 
@@ -22,12 +22,17 @@ describe('DataViewer tests', () => {
 
   afterAll(() => spies.afterAll());
 
-  const shiftInputs = (): ReactWrapper => result.find(CreateShift).first();
+  const shiftInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateShift).first();
 
   it('DataViewer: build shift column', async () => {
     expect(shiftInputs()).toHaveLength(1);
     await act(async () => {
-      shiftInputs().find(Select).first().props().onChange({ value: 'col2' });
+      shiftInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

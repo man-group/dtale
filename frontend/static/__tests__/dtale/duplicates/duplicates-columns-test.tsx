@@ -3,15 +3,20 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { BouncerWrapper } from '../../../BouncerWrapper';
 import ColumnNames from '../../../popups/duplicates/ColumnNames';
 import Columns from '../../../popups/duplicates/Columns';
 import Duplicates from '../../../popups/duplicates/Duplicates';
-import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
-import Rows from '../../../popups/duplicates/Rows';
-import ShowDuplicates from '../../../popups/duplicates/ShowDuplicates';
+import {
+  BaseDuplicatesComponentProps,
+  DuplicatesActionType,
+  DuplicatesConfigType,
+  KeepType,
+} from '../../../popups/duplicates/DuplicatesState';
+import Rows, { RowsProps } from '../../../popups/duplicates/Rows';
+import ShowDuplicates, { ShowDuplicatesProps } from '../../../popups/duplicates/ShowDuplicates';
 import { PopupType } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import reduxUtils from '../../redux-test-utils';
@@ -104,7 +109,7 @@ describe('Duplicates', () => {
   };
 
   describe('Columns', () => {
-    const columnsComp = (): ReactWrapper => result.find(Columns);
+    const columnsComp = (): ReactWrapper<BaseDuplicatesComponentProps, Record<string, any>> => result.find(Columns);
 
     beforeEach(async () => {
       result = await toggleType();
@@ -113,7 +118,11 @@ describe('Duplicates', () => {
     it('handles duplicates', async () => {
       expect(columnsComp()).toHaveLength(1);
       await act(async () => {
-        columnsComp().find(Select).first().props().onChange({ value: KeepType.FIRST });
+        columnsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -129,7 +138,11 @@ describe('Duplicates', () => {
 
     it('handles no duplicates', async () => {
       await act(async () => {
-        columnsComp().find(Select).first().props().onChange({ value: KeepType.LAST });
+        columnsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -141,7 +154,11 @@ describe('Duplicates', () => {
 
     it('handles error', async () => {
       await act(async () => {
-        columnsComp().find(Select).first().props().onChange({ value: KeepType.NONE });
+        columnsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -153,7 +170,8 @@ describe('Duplicates', () => {
   });
 
   describe('Column Names', () => {
-    const columnNamesComp = (): ReactWrapper => result.find(ColumnNames);
+    const columnNamesComp = (): ReactWrapper<BaseDuplicatesComponentProps, Record<string, any>> =>
+      result.find(ColumnNames);
 
     beforeEach(async () => {
       result = await toggleType(1);
@@ -162,7 +180,11 @@ describe('Duplicates', () => {
     it('handles duplicates', async () => {
       expect(columnNamesComp()).toHaveLength(1);
       await act(async () => {
-        columnNamesComp().find(Select).first().props().onChange({ value: KeepType.FIRST });
+        columnNamesComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -178,7 +200,11 @@ describe('Duplicates', () => {
 
     it('handles no duplicates', async () => {
       await act(async () => {
-        columnNamesComp().find(Select).first().props().onChange({ value: KeepType.LAST });
+        columnNamesComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -190,7 +216,11 @@ describe('Duplicates', () => {
 
     it('handles error', async () => {
       await act(async () => {
-        columnNamesComp().find(Select).first().props().onChange({ value: KeepType.NONE });
+        columnNamesComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -202,7 +232,7 @@ describe('Duplicates', () => {
   });
 
   describe('Rows', () => {
-    const rowsComp = (): ReactWrapper => result.find(Rows);
+    const rowsComp = (): ReactWrapper<RowsProps, Record<string, any>> => result.find(Rows);
 
     beforeEach(async () => {
       result = await toggleType(2);
@@ -211,7 +241,11 @@ describe('Duplicates', () => {
     it('handles duplicates', async () => {
       expect(rowsComp()).toHaveLength(1);
       await act(async () => {
-        rowsComp().find(Select).first().props().onChange({ value: KeepType.FIRST });
+        rowsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -219,7 +253,7 @@ describe('Duplicates', () => {
           .find(Select)
           .last()
           .props()
-          .onChange([{ value: 'foo' }, { value: 'bar' }]);
+          .onChange?.([{ value: 'foo' }, { value: 'bar' }], {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -235,7 +269,11 @@ describe('Duplicates', () => {
 
     it('handles no duplicate rows', async () => {
       await act(async () => {
-        rowsComp().find(Select).first().props().onChange({ value: KeepType.LAST });
+        rowsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -243,7 +281,7 @@ describe('Duplicates', () => {
           .find(Select)
           .last()
           .props()
-          .onChange([{ value: 'foo' }, { value: 'bar' }]);
+          .onChange?.([{ value: 'foo' }, { value: 'bar' }], {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -257,7 +295,11 @@ describe('Duplicates', () => {
 
     it('handles error', async () => {
       await act(async () => {
-        rowsComp().find(Select).first().props().onChange({ value: KeepType.NONE });
+        rowsComp()
+          .find(Select)
+          .first()
+          .props()
+          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -269,7 +311,8 @@ describe('Duplicates', () => {
   });
 
   describe('ShowDuplicates', () => {
-    const showDuplicatesComp = (): ReactWrapper => result.find(ShowDuplicates);
+    const showDuplicatesComp = (): ReactWrapper<ShowDuplicatesProps, Record<string, any>> =>
+      result.find(ShowDuplicates);
 
     beforeEach(async () => {
       result = await toggleType(3);
@@ -282,7 +325,7 @@ describe('Duplicates', () => {
           .find(Select)
           .first()
           .props()
-          .onChange([{ value: 'bar' }]);
+          .onChange?.([{ value: 'bar' }], {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -302,7 +345,7 @@ describe('Duplicates', () => {
           .find(Select)
           .first()
           .props()
-          .onChange([{ value: 'foo' }]);
+          .onChange?.([{ value: 'foo' }], {} as ActionMeta<unknown>);
       });
       result = result.update();
       await act(async () => {
@@ -324,7 +367,7 @@ describe('Duplicates', () => {
           .find(Select)
           .first()
           .props()
-          .onChange([{ value: 'baz' }]);
+          .onChange?.([{ value: 'baz' }], {} as ActionMeta<unknown>);
       });
       result = result.update();
       expect(showDuplicatesComp().find(RemovableError)).toHaveLength(1);

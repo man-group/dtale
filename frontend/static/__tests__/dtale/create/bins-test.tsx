@@ -1,12 +1,12 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import * as customHooks from '../../../customHooks';
 import { ColumnAnalysisChart } from '../../../popups/analysis/ColumnAnalysisChart';
 import { BinsTester } from '../../../popups/create/BinsTester';
 import { default as CreateBins, validateBinsCfg } from '../../../popups/create/CreateBins';
-import { BinsOperation, CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, BinsOperation, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { mockChartJS, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
@@ -29,13 +29,17 @@ describe('CreateBins', () => {
 
   afterAll(() => spies.afterAll());
 
-  const binInputs = (): ReactWrapper => result.find(CreateBins).first();
+  const binInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateBins).first();
 
   it('builds bins cut column', async () => {
     expect(result.find(CreateBins)).toHaveLength(1);
 
     await act(async () => {
-      binInputs().find(Select).first().props().onChange({ value: 'col2' });
+      binInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -93,7 +97,11 @@ describe('CreateBins', () => {
     });
     result = result.update();
     await act(async () => {
-      binInputs().find(Select).first().props().onChange({ value: 'col2' });
+      binInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

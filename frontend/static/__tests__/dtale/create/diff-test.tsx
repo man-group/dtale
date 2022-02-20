@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateDiff, validateDiffCfg } from '../../../popups/create/CreateDiff';
@@ -25,7 +25,12 @@ describe('CreateDiff', () => {
   it('builds row difference column', async () => {
     expect(result.find(CreateDiff)).toHaveLength(1);
     await act(async () => {
-      result.find(CreateDiff).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CreateDiff)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

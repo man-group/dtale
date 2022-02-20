@@ -63,7 +63,11 @@ describe('RibbonMenu', () => {
     wrapper = wrapper.update();
     dispatchSpy.mockReset();
     await act(async () => {
-      wrapper.find(RibbonMenuItem).first().props().onHover();
+      wrapper
+        .find(RibbonMenuItem)
+        .first()
+        .props()
+        .onHover?.('' as RibbonDropdownType, {} as any as HTMLDivElement);
     });
     wrapper = wrapper.update();
     expect(dispatchSpy).not.toHaveBeenCalled();

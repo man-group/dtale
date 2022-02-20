@@ -1,8 +1,8 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType, ReplaceConfig } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType, ReplaceConfig } from '../../../popups/create/CreateColumnState';
 import { default as CreateReplace, validateReplaceCfg } from '../../../popups/create/CreateReplace';
 import { mockT as t } from '../../test-utils';
 
@@ -22,12 +22,16 @@ describe('CreateReplace', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findReplace = (): ReactWrapper => result.find(CreateReplace);
+  const findReplace = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateReplace);
 
   it('builds replace column', async () => {
     expect(findReplace()).toHaveLength(1);
     await act(async () => {
-      findReplace().find(Select).first().props().onChange({ value: 'col1' });
+      findReplace()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

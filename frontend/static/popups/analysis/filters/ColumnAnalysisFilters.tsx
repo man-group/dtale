@@ -15,7 +15,7 @@ import OrdinalInputs from './OrdinalInputs';
 import TextEnterFilter from './TextEnterFilter';
 
 /** Component properties for ColumnAnalysisFilters */
-interface ColumnAnalysisFiltersProps {
+export interface ColumnAnalysisFiltersProps {
   selectedCol: string;
   cols?: ColumnDef[];
   dtype?: string;

@@ -1,7 +1,7 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { ActionMeta, GroupBase } from 'react-select';
-import { AsyncProps, default as AsyncSelect } from 'react-select/async';
+import { ActionMeta } from 'react-select';
+import { default as AsyncSelect } from 'react-select/async';
 
 import { AsyncOption } from '../../filters/AsyncValueSelect';
 import { ColumnFilterProps } from '../../filters/ColumnFilter';
@@ -46,8 +46,7 @@ describe('ColumnFilter string tests', () => {
 
   afterEach(jest.restoreAllMocks);
 
-  const findAsync = (): ReactWrapper<AsyncProps<AsyncOption<string>, true, GroupBase<AsyncOption<string>>>> =>
-    result.find(AsyncSelect);
+  const findAsync = (): ReactWrapper<Record<string, any>, Record<string, any>> => result.find(AsyncSelect);
 
   it('ColumnFilter string rendering', async () => {
     expect(result.find(StringFilter).length).toBe(1);

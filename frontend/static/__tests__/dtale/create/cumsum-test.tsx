@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateCumsum, validateCumsumCfg } from '../../../popups/create/CreateCumsum';
@@ -25,7 +25,12 @@ describe('CreateCumsum', () => {
   it('builds cumulative sum column', async () => {
     expect(result.find(CreateCumsum)).toHaveLength(1);
     await act(async () => {
-      result.find(CreateCumsum).find(Select).first().props().onChange({ value: 'col1' });
+      result
+        .find(CreateCumsum)
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -34,7 +39,7 @@ describe('CreateCumsum', () => {
         .find(Select)
         .last()
         .props()
-        .onChange([{ value: 'col2' }]);
+        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

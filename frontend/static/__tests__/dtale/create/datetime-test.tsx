@@ -1,8 +1,9 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import {
+  BaseCreateComponentProps,
   CreateColumnType,
   DatetimeConversionType,
   DatetimeOperation,
@@ -36,12 +37,17 @@ describe('CreateDatetime', () => {
 
   afterAll(() => spies.afterAll());
 
-  const dateInputs = (): ReactWrapper => result.find(CreateDatetime).first();
+  const dateInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateDatetime).first();
 
   it('builds datetime property column', async () => {
     expect(result.find(CreateDatetime)).toHaveLength(1);
     await act(async () => {
-      dateInputs().find(Select).first().props().onChange({ value: 'col4' });
+      dateInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -63,7 +69,11 @@ describe('CreateDatetime', () => {
 
   it('build datetime conversion column', async () => {
     await act(async () => {
-      dateInputs().find(Select).first().props().onChange({ value: 'col4' });
+      dateInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

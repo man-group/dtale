@@ -1,10 +1,10 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { default as Pivot, validatePivotCfg } from '../../../popups/reshape/Pivot';
-import { ReshapePivotConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { BaseReshapeComponentProps, ReshapePivotConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
 
 import * as TestSupport from './Reshape.test.support';
 
@@ -42,7 +42,7 @@ describe('Pivot', () => {
     spies.afterAll();
   });
 
-  const findPivot = (): ReactWrapper => result.find(Pivot);
+  const findPivot = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Pivot);
 
   it('reshapes data using pivot', async () => {
     expect(findPivot()).toHaveLength(1);
@@ -51,7 +51,7 @@ describe('Pivot', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -59,7 +59,7 @@ describe('Pivot', () => {
         .find(Select)
         .at(1)
         .props()
-        .onChange([{ value: 'col2' }]);
+        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -67,11 +67,15 @@ describe('Pivot', () => {
         .find(Select)
         .at(2)
         .props()
-        .onChange([{ value: 'col3' }]);
+        .onChange?.([{ value: 'col3' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findPivot().find(Select).last().props().onChange({ value: 'count' });
+      findPivot()
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'count' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -99,7 +103,7 @@ describe('Pivot', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     result = await spies.validateError(result, 'Missing a columns selection!');
@@ -108,7 +112,7 @@ describe('Pivot', () => {
         .find(Select)
         .at(1)
         .props()
-        .onChange([{ value: 'col2' }]);
+        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     result = await spies.validateError(result, 'Missing a value(s) selection!');

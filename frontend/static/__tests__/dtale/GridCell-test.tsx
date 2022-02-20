@@ -27,7 +27,6 @@ describe('GridCell', () => {
       ...state,
     });
     props = {
-      key: '1',
       columnIndex: 1,
       rowIndex: 1,
       style: {},

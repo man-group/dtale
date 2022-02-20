@@ -67,6 +67,7 @@ export const createScatter = (
   }
   scatterCfg.options = { ...scatterCfg.options, onClick, maintainAspectRatio: false };
   delete scatterCfg.options.scales?.x?.ticks;
+  chartUtils.updateLegend(scatterCfg, true);
   return chartUtils.createChart(ctx, scatterCfg);
 };
 

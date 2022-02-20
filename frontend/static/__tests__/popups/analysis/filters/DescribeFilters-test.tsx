@@ -2,14 +2,13 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 
-import ButtonToggle from '../../../../ButtonToggle';
+import ButtonToggle, { ButtonToggleOption } from '../../../../ButtonToggle';
 import { AnalysisType } from '../../../../popups/analysis/ColumnAnalysisState';
 import CategoryInputs from '../../../../popups/analysis/filters/CategoryInputs';
 import { default as DescribeFilters, DescribeFiltersProps } from '../../../../popups/analysis/filters/DescribeFilters';
 import GeoFilters from '../../../../popups/analysis/filters/GeoFilters';
 import OrdinalInputs from '../../../../popups/analysis/filters/OrdinalInputs';
 import TextEnterFilter from '../../../../popups/analysis/filters/TextEnterFilter';
-import { BaseOption } from '../../../../redux/state/AppState';
 import { mockColumnDef } from '../../../mocks/MockColumnDef';
 import { tickUpdate } from '../../../test-utils';
 
@@ -50,10 +49,10 @@ describe('DescribeFilters tests', () => {
     result = result.update();
     jest.resetAllMocks();
     await act(async () => {
-      result.find(OrdinalInputs).props().setOrdinalCol('bar');
+      result.find(OrdinalInputs).props().setOrdinalCol({ value: 'bar' });
     });
     await act(async () => {
-      result.find(OrdinalInputs).props().setOrdinalAgg('mean');
+      result.find(OrdinalInputs).props().setOrdinalAgg({ value: 'mean' });
     });
     expect(props.buildChart).toHaveBeenCalledTimes(2);
   });
@@ -67,7 +66,7 @@ describe('DescribeFilters tests', () => {
         result
           .find(ButtonToggle)
           .props()
-          .options.map((option: BaseOption<AnalysisType>) => option.value as AnalysisType),
+          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
       ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.VALUE_COUNTS, AnalysisType.QQ]);
     });
 
@@ -108,7 +107,7 @@ describe('DescribeFilters tests', () => {
         result
           .find(ButtonToggle)
           .props()
-          .options.map((option: BaseOption<AnalysisType>) => option.value as AnalysisType),
+          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
       ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.CATEGORIES, AnalysisType.QQ]);
     });
 
@@ -141,7 +140,7 @@ describe('DescribeFilters tests', () => {
         result
           .find(ButtonToggle)
           .props()
-          .options.map((option: BaseOption<AnalysisType>) => option.value as AnalysisType),
+          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
       ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.VALUE_COUNTS, AnalysisType.QQ]);
     });
 
@@ -168,7 +167,7 @@ describe('DescribeFilters tests', () => {
         result
           .find(ButtonToggle)
           .props()
-          .options.map((option: BaseOption<AnalysisType>) => option.value as AnalysisType),
+          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
       ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.CATEGORIES, AnalysisType.QQ]);
     });
 

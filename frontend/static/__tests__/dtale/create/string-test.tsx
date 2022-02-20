@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateString, validateStringCfg } from '../../../popups/create/CreateString';
@@ -30,7 +30,7 @@ describe('CreateString', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }, { value: 'col2' }]);
+        .onChange?.([{ value: 'col1' }, { value: 'col2' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

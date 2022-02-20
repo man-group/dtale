@@ -5,10 +5,12 @@ import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/DataViewer', () => ({
-  DataViewer: createMockComponent(),
-}));
+jest.mock('../../../dtale/DataViewer', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    DataViewer: createMockComponent(),
+  };
+});
 
 import ButtonToggle from '../../../ButtonToggle';
 import ActionConfig from '../../../popups/merge/ActionConfig';
@@ -134,7 +136,7 @@ describe('MergeDatasets', () => {
     expect(postSpy).toHaveBeenCalled();
     expect(result.find(RemovableError)).toHaveLength(1);
     expect(result.find(RemovableError).props().error).toBe('Bad Merge');
-    result.find(RemovableError).props().onRemove();
+    result.find(RemovableError).props().onRemove?.();
     result.update();
     expect(result.find(RemovableError)).toHaveLength(0);
   });
@@ -176,7 +178,7 @@ describe('MergeDatasets', () => {
     result = result.update();
     expect(result.find(Upload)).toHaveLength(1);
     await act(async () => {
-      result.find(Upload).props().mergeRefresher();
+      result.find(Upload).props().mergeRefresher?.();
     });
     result = result.update();
     expect(axiosGetSpy).toHaveBeenLastCalledWith('/dtale/processes?dtypes=true');

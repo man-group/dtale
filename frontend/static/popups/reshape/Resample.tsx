@@ -43,7 +43,7 @@ export const buildCode = (cfg: ResampleConfig): CreateColumnCodeSnippet => {
 };
 
 /** Component properties for Resample */
-interface ResampleProps {
+export interface ResampleProps {
   updateState: (state: { cfg: ResampleConfig; code: CreateColumnCodeSnippet; saveAs?: SaveAs }) => void;
   columns: ColumnDef[];
   namePopulated?: boolean;

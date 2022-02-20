@@ -3,14 +3,14 @@ import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
 import XArrayDimensions from '../../../popups/XArrayDimensions';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS } from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -60,7 +60,8 @@ describe('DataViewer tests', () => {
       </Provider>,
       { attachTo: document.getElementById('content') ?? undefined },
     );
-    // await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    result = result.update();
     result = await clickMainMenuButton(result, 'XArray Dimensions');
   });
 
@@ -72,11 +73,18 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: update selected dimensions of xarray', async () => {
-    expect(result.find(XArrayDimensions).find(Select).first().props().options[0]).toEqual({
+    expect(result.find(XArrayDimensions).find(Select).first().props().options?.[0]).toEqual({
       value: 'foo1',
     });
     await act(async () => {
-      result.find(XArrayDimensions).find('li').first().find(Select).first().props().onChange({ value: 'foo2' });
+      result
+        .find(XArrayDimensions)
+        .find('li')
+        .first()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'foo2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -84,7 +92,14 @@ describe('DataViewer tests', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(XArrayDimensions).find('li').last().find(Select).first().props().onChange({ value: 'bar2' });
+      result
+        .find(XArrayDimensions)
+        .find('li')
+        .last()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'bar2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -96,7 +111,14 @@ describe('DataViewer tests', () => {
 
   it('DataViewer: clearing selected dimensions', async () => {
     await act(async () => {
-      result.find(XArrayDimensions).find('li').first().find(Select).first().props().onChange(null);
+      result
+        .find(XArrayDimensions)
+        .find('li')
+        .first()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.(null, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

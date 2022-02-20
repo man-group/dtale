@@ -1,8 +1,12 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType, StandardizedAlgoType } from '../../../popups/create/CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  CreateColumnType,
+  StandardizedAlgoType,
+} from '../../../popups/create/CreateColumnState';
 import { default as CreateStandardized, validateStandardizedCfg } from '../../../popups/create/CreateStandardized';
 import { mockT as t } from '../../test-utils';
 
@@ -22,20 +26,33 @@ describe('CreateStandardized', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findStandardized = (): ReactWrapper => result.find(CreateStandardized);
+  const findStandardized = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateStandardized);
 
   it('builds a standardized column', async () => {
     expect(result.find(CreateStandardized)).toHaveLength(1);
     await act(async () => {
-      findStandardized().find(Select).at(1).props().onChange({ value: 'col1' });
+      findStandardized()
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findStandardized().find(Select).first().props().onChange({ value: 'quantile' });
+      findStandardized()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'quantile' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findStandardized().find(Select).first().props().onChange({ value: 'robust' });
+      findStandardized()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'robust' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

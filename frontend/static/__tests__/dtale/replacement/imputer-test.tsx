@@ -2,7 +2,7 @@ import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import { ImputerType } from '../../../popups/replacement/CreateReplacementState';
+import { BaseReplacementComponentProps, ImputerType } from '../../../popups/replacement/CreateReplacementState';
 import Imputer from '../../../popups/replacement/Imputer';
 
 import * as TestSupport from './CreateReplacement.test.support';
@@ -21,7 +21,7 @@ describe('Imputer', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findImputer = (): ReactWrapper => result.find(Imputer);
+  const findImputer = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Imputer);
   const findImputerInputRow = (idx = 0): ReactWrapper => findImputer().find('div.form-group').at(idx);
   const changeType = async (idx = 0): Promise<ReactWrapper> => {
     await act(async () => {

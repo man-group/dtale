@@ -1,7 +1,7 @@
 import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import Draggable from 'react-draggable';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import * as redux from 'react-redux';
 
 import Header, { HeaderProps } from '../../dtale/Header';
@@ -52,9 +52,12 @@ describe('Header', () => {
       preventDefault: jest.fn(),
       stopPropagation: jest.fn(),
       clientX: 10,
-    };
+    } as any as DraggableEvent;
     await act(async () => {
-      wrapper.find(Draggable).props().onStart(event);
+      wrapper
+        .find(Draggable)
+        .props()
+        .onStart?.(event, {} as DraggableData);
     });
     wrapper = wrapper.update();
     expect(event.preventDefault).toHaveBeenCalled();
@@ -65,7 +68,10 @@ describe('Header', () => {
       .props()
       .onClick?.({} as any as React.MouseEvent);
     await act(async () => {
-      wrapper.find(Draggable).props().onDrag(event, { deltaX: 10 });
+      wrapper
+        .find(Draggable)
+        .props()
+        .onDrag?.(event, { deltaX: 10 } as DraggableData);
     });
     wrapper = wrapper.update();
     expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, x: 10 });
@@ -74,7 +80,10 @@ describe('Header', () => {
     expect(event.preventDefault).toHaveBeenCalledTimes(2);
     expect(event.stopPropagation).toHaveBeenCalledTimes(2);
     await act(async () => {
-      wrapper.find(Draggable).props().onStop(event);
+      wrapper
+        .find(Draggable)
+        .props()
+        .onStop?.(event, {} as DraggableData);
     });
     wrapper = wrapper.update();
     expect(props.propagateState).toHaveBeenCalledWith({

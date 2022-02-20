@@ -1,8 +1,8 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { default as CreateTransform, validateTransformCfg } from '../../../popups/create/CreateTransform';
 import { mockT as t } from '../../test-utils';
 
@@ -22,7 +22,7 @@ describe('CreateTransform', () => {
 
   afterAll(() => spies.afterAll());
 
-  const findTransform = (): ReactWrapper => result.find(CreateTransform);
+  const findTransform = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateTransform);
 
   it('builds a transform column', async () => {
     expect(findTransform()).toHaveLength(1);
@@ -31,19 +31,29 @@ describe('CreateTransform', () => {
         .find(Select)
         .first()
         .props()
-        .onChange([{ value: 'col1' }]);
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
     });
     result = result.update();
-    expect(findTransform().find(Select).first().prop('noOptionsMessage')()).toBe('No columns available!');
-    expect(findTransform().find(Select).at(1).prop('noOptionsMessage')()).toBe(
+    expect(findTransform().find(Select).first().props().noOptionsMessage?.({ inputValue: '' })).toBe(
+      'No columns available!',
+    );
+    expect(findTransform().find(Select).at(1).props().noOptionsMessage?.({ inputValue: '' })).toBe(
       'No columns available for the following dtypes: int, float!',
     );
     await act(async () => {
-      findTransform().find(Select).at(1).props().onChange({ value: 'col2' });
+      findTransform()
+        .find(Select)
+        .at(1)
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findTransform().find(Select).last().props().onChange({ value: 'mean' });
+      findTransform()
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {

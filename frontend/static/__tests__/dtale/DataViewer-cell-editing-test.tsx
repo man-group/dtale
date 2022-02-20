@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { mount } from 'enzyme';
 import * as React from 'react';
+import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
@@ -9,7 +10,7 @@ import { GridCellEditor } from '../../dtale/GridCellEditor';
 import GridEventHandler from '../../dtale/GridEventHandler';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tick, tickUpdate } from '../test-utils';
+import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const { open } = window;
@@ -41,7 +42,7 @@ describe('DataViewer tests', () => {
   it('DataViewer: cell editing', async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    const result = mount(
+    let result = mount(
       <Provider store={store}>
         <DataViewer />
       </Provider>,
@@ -49,53 +50,72 @@ describe('DataViewer tests', () => {
         attachTo: document.getElementById('content') ?? undefined,
       },
     );
-    await tickUpdate(result);
+    await act(async () => await tickUpdate(result));
+    result = result.update();
     const cellIdx = result.find(GridCell).last().find('div').prop('cell_idx');
-    result
-      .find(GridEventHandler)
-      .find('div.main-panel-content')
-      .props()
-      .onClick?.({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      } as any as React.MouseEvent);
-    result
-      .find(GridEventHandler)
-      .find('div.main-panel-content')
-      .props()
-      .onClick?.({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      } as any as React.MouseEvent);
-    result.update();
-    result
-      .find(GridCellEditor)
-      .find('input')
-      .props()
-      .onKeyDown?.({ key: 'Escape' } as any as React.KeyboardEvent);
-    result
-      .find(GridEventHandler)
-      .find('div.main-panel-content')
-      .props()
-      .onClick?.({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      } as any as React.MouseEvent);
-    result
-      .find(GridEventHandler)
-      .find('div.main-panel-content')
-      .props()
-      .onClick?.({
-        target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-      } as any as React.MouseEvent);
-    result.update();
-    result
-      .find(GridCellEditor)
-      .find('input')
-      .simulate('change', { target: { value: '20000101' } });
-    result
-      .find(GridCellEditor)
-      .find('input')
-      .props()
-      .onKeyDown?.({ key: 'Enter' } as any as React.KeyboardEvent);
-    await tick();
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridCellEditor)
+        .find('input')
+        .props()
+        .onKeyDown?.({ key: 'Escape' } as any as React.KeyboardEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridEventHandler)
+        .find('div.main-panel-content')
+        .props()
+        .onClick?.({
+          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
+        } as any as React.MouseEvent);
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridCellEditor)
+        .find('input')
+        .simulate('change', { target: { value: '20000101' } });
+    });
+    result = result.update();
+    await act(async () => {
+      result
+        .find(GridCellEditor)
+        .find('input')
+        .props()
+        .onKeyDown?.({ key: 'Enter' } as any as React.KeyboardEvent);
+    });
+    result = result.update();
     expect(result.find(GridCell).last().text()).toBe('20000101');
   });
 });

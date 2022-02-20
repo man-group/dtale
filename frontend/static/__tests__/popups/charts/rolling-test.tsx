@@ -1,6 +1,6 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
 import Aggregations from '../../../popups/charts/Aggregations';
 import { RemovableError } from '../../../RemovableError';
@@ -23,12 +23,18 @@ describe('Charts rolling tests', () => {
   it('Charts: rendering', async () => {
     const filters = result.find(Select);
     await act(async () => {
-      filters.first().props().onChange({ value: 'col4' });
+      filters
+        .first()
+        .props()
+        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
       filters
         .at(1)
         .props()
-        .onChange([{ value: 'col1' }]);
-      filters.at(3).props().onChange({ value: 'rolling', label: 'Rolling' });
+        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      filters
+        .at(3)
+        .props()
+        .onChange?.({ value: 'rolling', label: 'Rolling' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -40,7 +46,12 @@ describe('Charts rolling tests', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(Aggregations).find(Select).last().props().onChange({ value: 'corr', label: 'Correlation' });
+      result
+        .find(Aggregations)
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.({ value: 'corr', label: 'Correlation' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
@@ -57,7 +68,12 @@ describe('Charts rolling tests', () => {
     });
     result = result.update();
     await act(async () => {
-      result.find(Aggregations).find(Select).last().props().onChange(null);
+      result
+        .find(Aggregations)
+        .find(Select)
+        .last()
+        .props()
+        .onChange?.(null, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {

@@ -3,11 +3,13 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
-import { createMockComponent } from '../../mocks/createMockComponent'; // eslint-disable-line import/order
-jest.mock('../../../dtale/menu/MaxDimensionOption', () => ({
-  MaxHeightOption: createMockComponent(),
-  MaxWidthOption: createMockComponent(),
-}));
+jest.mock('../../../dtale/menu/MaxDimensionOption', () => {
+  const { createMockComponent } = require('../../mocks/createMockComponent');
+  return {
+    MaxHeightOption: createMockComponent(),
+    MaxWidthOption: createMockComponent(),
+  };
+});
 
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
@@ -123,7 +125,7 @@ describe('RibbonDropdown', () => {
   it('can clear current data', async () => {
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
     await act(async () => {
-      wrapper.find(MenuItem).at(5).props().onClick();
+      wrapper.find(MenuItem).at(5).props().onClick?.();
     });
     expect(cleanupSpy).toBeCalledWith('1');
     expect(window.location.reload).toHaveBeenCalledTimes(1);

@@ -1,8 +1,13 @@
 import { ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { ActionMeta, default as Select } from 'react-select';
 
-import { ConcatenationConfig, CreateColumnType, OperandDataType } from '../../../popups/create/CreateColumnState';
+import {
+  BaseCreateComponentProps,
+  ConcatenationConfig,
+  CreateColumnType,
+  OperandDataType,
+} from '../../../popups/create/CreateColumnState';
 import { CreateConcatenate, validateConcatenateCfg } from '../../../popups/create/CreateConcatenate';
 import { mockT as t } from '../../test-utils';
 
@@ -12,7 +17,8 @@ describe('CreateConcatenate', () => {
   const spies = new TestSupport.Spies();
   let result: ReactWrapper;
 
-  const findConcatenateInputs = (): ReactWrapper => result.find(CreateConcatenate).first();
+  const findConcatenateInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
+    result.find(CreateConcatenate).first();
   const findLeftInputs = (): ReactWrapper => findConcatenateInputs().find('div.form-group').first();
   const simulateClick = async (btn: ReactWrapper): Promise<ReactWrapper> => {
     await act(async () => {
@@ -46,11 +52,21 @@ describe('CreateConcatenate', () => {
     await simulateClick(findLeftInputs().find('button').last());
     await simulateClick(findLeftInputs().find('button').first());
     await act(async () => {
-      findLeftInputs().find(Select).first().props().onChange({ value: 'col1' });
+      findLeftInputs()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await act(async () => {
-      findConcatenateInputs().find('div.form-group').last().find(Select).first().props().onChange({ value: 'col2' });
+      findConcatenateInputs()
+        .find('div.form-group')
+        .last()
+        .find(Select)
+        .first()
+        .props()
+        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
     });
     result = result.update();
     await spies.validateCfg(result, {
