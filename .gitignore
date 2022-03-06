@@ -29,6 +29,8 @@ frontend/npm-debug.log
 .python-version
 docs/source/dtale*rst
 docs/source/modules.rst
+jupyterhub.sqlite
+jupyterhub_cookie_secret
 
 # built JS files
 dtale/static/dist

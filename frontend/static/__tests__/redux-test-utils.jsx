@@ -1,8 +1,6 @@
 /* eslint max-lines: "off" */
-import _ from 'lodash';
-
-import dtaleApp from '../reducers/dtale';
-import { createStore } from '../reducers/store';
+import dtaleApp from '../redux/reducers/app';
+import { createAppStore } from '../redux/store';
 import chartsData from './data/charts.json';
 import groupedChartsData from './data/charts-grouped.json';
 import columnAnalysisData from './data/column-analysis.json';
@@ -57,7 +55,7 @@ const DATA = {
     { dtale_index: 3, col1: 4, col2: 5.5, col3: 'foo' },
     { dtale_index: 4, col1: 'nan', col2: 5.5, col3: 'foo' },
   ],
-  columns: _.concat([{ name: 'dtale_index', dtype: 'int64', visible: true }], DTYPES.dtypes),
+  columns: [{ dtype: 'int64', index: -1, name: 'dtale_index', visible: true }, ...DTYPES.dtypes],
   total: 5,
   success: true,
 };
@@ -77,7 +75,7 @@ const DESCRIBE = {
     },
     uniques: {
       int: {
-        data: _.map([1, 2, 3, 4], (i) => ({ value: i, count: 1 })),
+        data: [1, 2, 3, 4].map((i) => ({ value: i, count: 1 })),
         top: true,
       },
     },
@@ -86,7 +84,7 @@ const DESCRIBE = {
       max: 3,
       avg: 2,
       diffs: {
-        data: _.map([1, 2, 3, 4], (i) => ({ value: i, count: 1 })),
+        data: [1, 2, 3, 4].map((i) => ({ value: i, count: 1 })),
         top: true,
         total: 10,
       },
@@ -170,7 +168,7 @@ const CONTEXT_VARIABLES = {
 };
 
 function getDataId(url) {
-  if (_.startsWith(url, '/dtale/filter-info')) {
+  if (url.startsWith('/dtale/filter-info')) {
     return url.split('?')[0].split('/')[3];
   }
   return null;
@@ -180,96 +178,108 @@ function getDataId(url) {
 function urlFetcher(url) {
   const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
   const query = urlParams.query;
-  if (_.startsWith(url, '/dtale/data')) {
+  if (url.startsWith('/dtale/data')) {
     if (query === 'error') {
       return { error: 'No data found' };
     }
     return DATA;
-  } else if (_.startsWith(url, '/dtale/dtypes')) {
+  } else if (url.startsWith('/dtale/dtypes')) {
     return DTYPES;
-  } else if (_.startsWith(url, '/dtale/column-analysis')) {
-    return _.assignIn({ code: 'column analysis code test' }, columnAnalysisData);
-  } else if (_.startsWith(url, '/dtale/correlations-ts')) {
-    return _.assignIn({ code: 'correlations ts code test' }, correlationsTsData);
-  } else if (_.startsWith(url, '/dtale/correlations/')) {
-    return _.assignIn({ code: 'correlations code test' }, correlationsData);
-  } else if (_.startsWith(url, '/dtale/scatter')) {
+  } else if (url.startsWith('/dtale/column-analysis')) {
+    return { code: 'column analysis code test', ...columnAnalysisData };
+  } else if (url.startsWith('/dtale/correlations-ts')) {
+    return { code: 'correlations ts code test', ...correlationsTsData };
+  } else if (url.startsWith('/dtale/correlations/')) {
+    return { code: 'correlations code test', ...correlationsData };
+  } else if (url.startsWith('/dtale/scatter')) {
     if (urlParams.rolling) {
-      const dates = _.fill(Array(_.size(scatterData.data.all.x)), '2018-04-30');
-      return _.assign({ code: 'scatter code test' }, scatterData, {
-        data: { all: _.assign({}, scatterData.data.all, { date: dates }) },
+      const dates = Array.from({ length: scatterData.data.all.x.length }, () => '2018-04-30');
+      return {
+        code: 'scatter code test',
+        ...scatterData,
+        data: { all: { ...scatterData.data.all, date: dates } },
         date: ' for 2018-12-16 thru 2018-12-19',
-      });
+      };
     }
     return scatterData;
-  } else if (_.startsWith(url, '/dtale/chart-data')) {
+  } else if (url.startsWith('/dtale/chart-data')) {
     if (urlParams.group) {
-      if (_.size(JSON.parse(urlParams.y)) > 1) {
-        return _.assignIn({}, groupedChartsData, {
-          data: _.mapValues(groupedChartsData.data, (d) => _.assignIn(d, { col2: d.col1 })),
-        });
+      if ((JSON.parse(urlParams.y) ?? []).length > 1) {
+        return {
+          ...groupedChartsData,
+          data: Object.entries(groupedChartsData.data).reduce(
+            (res, [key, value]) => ({ ...res, [key]: { ...value, col2: value.col1 } }),
+            {},
+          ),
+        };
       }
       return groupedChartsData;
     }
-    if (_.size(JSON.parse(urlParams.y)) > 1) {
-      return _.assignIn({}, chartsData, {
-        data: _.mapValues(chartsData.data, (d) => _.assignIn(d, { col2: d.col1 })),
-      });
+    if ((JSON.parse(urlParams.y) ?? []).length > 1) {
+      return {
+        ...chartsData,
+        data: Object.entries(chartsData.data).reduce(
+          (res, [key, value]) => ({ ...res, [key]: { ...value, col2: value.col1 } }),
+          {},
+        ),
+      };
     }
     return chartsData;
   } else if (
-    _.find(
-      _.concat(
-        ['/dtale/update-visibility', '/dtale/update-settings', '/dtale/update-locked', '/dtale/update-column-position'],
-        ['/dtale/delete-col', '/dtale/edit-cell', '/dtale/update-formats', '/dtale/update-xarray-selection'],
-        ['/dtale/to-xarray', '/dtale/duplicates', '/dtale/web-upload', '/dtale/datasets', '/dtale/update-theme'],
-        ['/dtale/update-query-engine', '/dtale/save-range-highlights'],
-      ),
-      (prefix) => _.startsWith(url, prefix),
-    )
+    [
+      ...[
+        '/dtale/update-visibility',
+        '/dtale/update-settings',
+        '/dtale/update-locked',
+        '/dtale/update-column-position',
+      ],
+      ...['/dtale/delete-col', '/dtale/edit-cell', '/dtale/update-formats', '/dtale/update-xarray-selection'],
+      ...['/dtale/to-xarray', '/dtale/duplicates', '/dtale/web-upload', '/dtale/datasets', '/dtale/update-theme'],
+      ...['/dtale/update-query-engine', '/dtale/save-range-highlights'],
+    ].find((prefix) => url.startsWith(prefix))
   ) {
     return { success: true };
-  } else if (_.startsWith(url, '/dtale/test-filter')) {
+  } else if (url.startsWith('/dtale/test-filter')) {
     if (query === 'error') {
       return { error: 'No data found' };
     }
     return { success: true };
-  } else if (_.startsWith(url, '/dtale/describe')) {
-    if (_.has(DESCRIBE, urlParams.col)) {
-      return _.assignIn({ success: true, code: 'describe code test' }, DESCRIBE[urlParams.col]);
+  } else if (url.startsWith('/dtale/describe')) {
+    if (DESCRIBE[urlParams.col]) {
+      return { success: true, code: 'describe code test', ...DESCRIBE[urlParams.col] };
     }
     return { error: 'Column not found!' };
-  } else if (_.startsWith(url, '/dtale/processes')) {
+  } else if (url.startsWith('/dtale/processes')) {
     return { data: PROCESSES, success: true };
-  } else if (_.startsWith(url, '/dtale/build-column')) {
+  } else if (url.startsWith('/dtale/build-column')) {
     if (urlParams.name === 'error') {
       return { error: 'error test' };
     }
     return { success: true, url: 'http://localhost:40000/dtale/main/1' };
-  } else if (_.startsWith(url, '/dtale/build-replacement')) {
+  } else if (url.startsWith('/dtale/build-replacement')) {
     if (urlParams.name === 'error') {
       return { error: 'error test' };
     }
     return { success: true };
-  } else if (_.startsWith(url, '/dtale/reshape')) {
+  } else if (url.startsWith('/dtale/reshape')) {
     if (urlParams.index === 'error') {
       return { error: 'error test' };
     }
     return { success: true, data_id: 9999 };
-  } else if (_.startsWith(url, '/dtale/filter-info')) {
+  } else if (url.startsWith('/dtale/filter-info')) {
     return getDataId(url) === 'error' ? { error: 'Error loading context variables' } : CONTEXT_VARIABLES;
-  } else if (_.startsWith(url, '/dtale/code-export')) {
+  } else if (url.startsWith('/dtale/code-export')) {
     return { code: 'test code' };
-  } else if (_.startsWith(url, '/dtale/cleanup-datasets')) {
+  } else if (url.startsWith('/dtale/cleanup-datasets')) {
     return { success: true };
-  } else if (_.startsWith(url, '/dtale/column-filter-data')) {
-    return { success: true, hasMissing: false, uniques: [1, 2, 3] };
-  } else if (_.startsWith(url, '/dtale/save-column-filter')) {
+  } else if (url.startsWith('/dtale/column-filter-data')) {
+    return { success: true, hasMissing: 0, uniques: [1, 2, 3] };
+  } else if (url.startsWith('/dtale/save-column-filter')) {
     return {
       success: true,
       columnFilters: { foo: { query: 'foo == 1', value: [1] } },
     };
-  } else if (_.startsWith(url, '/dtale/outliers')) {
+  } else if (url.startsWith('/dtale/outliers')) {
     return {
       success: true,
       outliers: [1, 2, 3],
@@ -278,12 +288,12 @@ function urlFetcher(url) {
       queryApplied: true,
       top: true,
     };
-  } else if (_.startsWith(url, '/dtale/bins-tester')) {
+  } else if (url.startsWith('/dtale/bins-tester')) {
     return {
       data: [1, 2, 3, 2, 1],
       labels: ['1', '2', '3', '4', '5'],
     };
-  } else if (_.startsWith(url, '/dtale/load-filtered-ranges')) {
+  } else if (url.startsWith('/dtale/load-filtered-ranges')) {
     return { ranges: {} };
   }
   return {};
@@ -291,7 +301,7 @@ function urlFetcher(url) {
 
 export default {
   urlFetcher,
-  createDtaleStore: () => createStore(dtaleApp.store),
+  createDtaleStore: () => createAppStore(dtaleApp),
   DATA,
   DTYPES,
 };

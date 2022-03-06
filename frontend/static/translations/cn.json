@@ -352,7 +352,8 @@
     "Split By Character": "Split By Character",
     "Delimiter": "Delimiter",
     "Concatenate": "Concatenate",
-    "Replace": "Replace"
+    "Replace": "Replace",
+    "Algorithm": "Algorithm"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -909,7 +910,9 @@
     "Group": "Group",
     "Weight": "Weight",
     "Load": "Load",
-    "Shortest path between nodes": "Shortest path between nodes"
+    "Shortest path between nodes": "Shortest path between nodes",
+    "Color": "Color",
+    "Arrows": "Arrows"
   },
   "main": {
     "Sort": "Sort",
@@ -925,7 +928,8 @@
     "Filter": "Filter",
     "Clear Filters": "Clear Filters",
     "Drop Filtered Rows": "Drop Filtered Rows",
-    "Invert Filter": "Invert Filter"
+    "Invert Filter": "Invert Filter",
+    "Move Filters To Custom": "Move Filters To Custom"
   },
   "side": {
     "Close": "Close",

@@ -27,13 +27,13 @@ import {
 } from 'chart.js';
 import Zoom from 'chartjs-plugin-zoom';
 import chroma from 'chroma-js';
-import _ from 'lodash';
 import moment from 'moment';
 import Plotly from 'plotly.js-geo-dist-min';
 
 import { buildRGBA } from './colors';
 import { ColumnDef } from './dtale/DataViewerState';
 import * as gu from './dtale/gridUtils';
+import { GeolocationChartData, QQChartData } from './popups/analysis/ColumnAnalysisState';
 import { formatScatterPoints } from './scatterChartUtils';
 
 Chart.register(
@@ -53,7 +53,7 @@ Chart.register(
 );
 
 /** Type definition for chart.js chart instance */
-type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
+export type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
 
 /**
  * Builds a new chart.js chart instance.
@@ -63,7 +63,7 @@ type ChartObj = Chart<ChartType, DefaultDataPoint<ChartType>, unknown>;
  * @return chart.js chart instance
  */
 export function createChart(
-  ctx: HTMLElement | null,
+  ctx: HTMLCanvasElement,
   cfg: ChartConfiguration<ChartType, DefaultDataPoint<ChartType>, unknown>,
 ): ChartObj {
   const options = cfg.options || {};
@@ -94,18 +94,18 @@ export function fitToContainer(canvas: HTMLCanvasElement): void {
  */
 export function chartWrapper(
   ctxId: string,
-  prevChart?: ChartObj | null,
-  builder?: (chartCtx: HTMLElement) => ChartObj,
-): ChartObj | null {
-  const ctx: HTMLElement | null = document.getElementById(ctxId);
+  prevChart?: ChartObj | undefined,
+  builder?: (chartCtx: HTMLCanvasElement) => ChartObj | undefined,
+): ChartObj | undefined {
+  const ctx = document.getElementById(ctxId) as HTMLCanvasElement;
   if (ctx) {
     if (prevChart) {
       prevChart.destroy();
     }
     fitToContainer(ctx as HTMLCanvasElement);
-    return builder?.(ctx) ?? null;
+    return builder?.(ctx) ?? undefined;
   }
-  return null;
+  return undefined;
 }
 
 export const TS_COLORS = [
@@ -257,16 +257,11 @@ export const lineHoverPlugin = (colorScale: chroma.Scale): Plugin<'line'> => ({
 
 const COLOR_SCALE = chroma.scale(['orange', 'yellow', 'green', 'lightblue', 'darkblue']);
 
-/**
- * Update chart.js chart configuration with legend information.
- *
- * @param cfg chart.js chart configuration.
- */
-function updateLegend(cfg: Partial<ChartConfiguration>): void {
-  if (cfg.data?.datasets && cfg.data.datasets.length < 2) {
+export const updateLegend = (cfg: Partial<ChartConfiguration>, forceHide = false): void => {
+  if (forceHide || (cfg.data?.datasets && cfg.data.datasets.length < 2)) {
     cfg.options = { ...cfg.options, plugins: { ...cfg.options?.plugins, legend: { display: false } } };
   }
-}
+};
 
 /**
  * chart.js series builder.
@@ -324,13 +319,21 @@ export function buildTicks(prop: string, dataSpec: Partial<DataSpec>, pad = fals
 const formatNumber = (val: number, digits: number): string => `${parseFloat(val.toFixed(digits))}`;
 
 /** Type definition for input data for chart.js charts */
-type InputData = Record<string, Record<string, Array<string | number>>>;
+export type InputData = Record<string, Record<string, Array<string | number>>>;
+
+/** Type definition for axis ranges for chart.js charts */
+export interface AxisSpec {
+  min: Record<string, number>;
+  max: Record<string, number>;
+}
 
 /** Type definition for data specifications input for chart.js charts */
-type DataSpec = { data: InputData; min: Record<string, number>; max: Record<string, number> };
+export interface DataSpec extends AxisSpec {
+  data?: InputData;
+}
 
 /** Type definition for property specifications input for chart.js charts */
-type PropSpec = {
+export type PropSpec = {
   x: string;
   y: string[];
   columns?: ColumnDef[];
@@ -367,7 +370,8 @@ function createBaseCfg(
     yProp: string,
   ) => ChartDataset = buildSeries,
 ): Partial<ChartConfiguration> {
-  const { data, min, max } = dataSpec;
+  const { min, max } = dataSpec;
+  const data = dataSpec.data ?? {};
   const { x, y, additionalOptions } = propSpec;
   const cfg: Partial<ChartConfiguration> = {
     data: {
@@ -439,7 +443,7 @@ function createBaseCfg(
 export function createLineCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<ChartConfiguration> {
   const { data, min, max } = dataSpec;
   const { x, y, additionalOptions, configHandler } = propSpec;
-  const seriesCt = _.size(data) * _.size(y);
+  const seriesCt = Object.keys(data ?? {}).length * y.length;
   const colors = COLOR_SCALE.domain([0, seriesCt]);
   const seriesFormatter = (
     k: string,
@@ -499,7 +503,7 @@ export function createStackedCfg(dataSpec: DataSpec, propSpec: PropSpec): Partia
  */
 export function createPieCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<ChartConfiguration> {
   const { data } = dataSpec;
-  const seriesCt = Object.values(data)[0]?.x.length;
+  const seriesCt = Object.values(data ?? {})[0]?.x.length;
   const colors = COLOR_SCALE.domain([0, seriesCt]);
   const seriesFormatter = (
     k: string,
@@ -517,7 +521,7 @@ export function createPieCfg(dataSpec: DataSpec, propSpec: PropSpec): Partial<Ch
   delete cfg.options?.plugins?.tooltip;
   if (gu.isDateCol((propSpec.columns ?? []).find(({ name }) => name === propSpec.x)?.dtype)) {
     if (cfg.data?.labels) {
-      cfg.data.labels = _.map(cfg.data.labels, (l: string) => moment(new Date(l)).format('YYYY-MM-DD'));
+      cfg.data.labels = cfg.data.labels.map((l) => moment(new Date(l as string)).format('YYYY-MM-DD'));
     }
   }
   return propSpec.configHandler?.(cfg) ?? cfg;
@@ -555,10 +559,9 @@ export function createScatterCfg(
   propSpec: PropSpec,
   dataBuilder: ScatterBuilderDef = scatterBuilder,
 ): ChartConfiguration<'scatter'> {
-  const { data } = dataSpec;
   const { x, y } = propSpec;
   const yProp = y[0];
-  const chartData = dataBuilder(data, yProp);
+  const chartData = dataBuilder(dataSpec.data ?? {}, yProp);
   const scatterData = formatScatterPoints(chartData);
   const cfg: Partial<ChartConfiguration> = {
     options: {
@@ -609,7 +612,7 @@ export function createScatterCfg(
  * @param ctxId the ID of the div component housing the chart.
  * @param fetchedData the data coming from the server.
  */
-export async function createGeolocation(ctxId: string, fetchedData: { lat: number[]; lon: number[] }): Promise<void> {
+export async function createGeolocation(ctxId: string, fetchedData: GeolocationChartData): Promise<void> {
   const layout: Partial<Plotly.Layout> = {
     autosize: true,
     legend: { orientation: 'h' },
@@ -634,7 +637,7 @@ export async function createGeolocation(ctxId: string, fetchedData: { lat: numbe
  * @param ctxId the ID of the div component housing the chart.
  * @param fetchedData the data coming from the server.
  */
-export async function createQQ(ctxId: string, fetchedData: Record<string, number[]>): Promise<void> {
+export async function createQQ(ctxId: string, fetchedData: QQChartData): Promise<void> {
   const layout: Partial<Plotly.Layout> = {
     autosize: true,
     legend: { orientation: 'h' },

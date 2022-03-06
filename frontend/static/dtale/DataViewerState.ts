@@ -1,8 +1,5 @@
 import chroma from 'chroma-js';
 import * as React from 'react';
-import { RGBColor } from 'react-color';
-import { Dispatch } from 'react-redux';
-import { MultiGridProps } from 'react-virtualized';
 
 /** Outlier range bounds and color scales */
 export interface OutlierRange {
@@ -16,55 +13,40 @@ export interface OutlierRange {
 export interface ColumnDef extends Bounds {
   name: string;
   dtype: string;
-  hasMissing?: boolean;
-  hasOutliers?: boolean;
+  hasMissing?: number;
+  hasOutliers?: number;
   outlierRange?: OutlierRange;
   lowVariance?: boolean;
+  locked?: boolean;
+  unique_ct?: number;
+  visible?: boolean;
+  coord?: 'lat' | 'lon';
+  label?: string;
+  index: number;
+  resized?: boolean;
+  width?: number;
+  headerWidth?: number;
+  dataWidth?: number;
+  skew?: number;
+  kurt?: number;
 }
 
 /** Type definition for each cell displayed in the DataViewer */
 export interface DataRecord {
   view: string;
-  raw?: string | number | null;
+  raw?: string | number;
   style?: React.CSSProperties;
 }
 
-/** Update specification for DataViewer */
-export interface DataViewerUpdate extends Record<string, any> {
-  type: string;
-}
-
 /** Data storage in DataViewer */
-export type DataViewerData = Record<number, Record<string, DataRecord>>;
-
-/** Object which can be turned on/off */
-interface HasActivation {
-  active: boolean;
-}
-
-/** Range highlight configuration properties */
-interface RangeHighlightModeCfg {
-  active: boolean;
-  value: number;
-  color: RGBColor;
-}
-
-/** Different types of range highlighting */
-export interface RangeHighlightModes {
-  equals: RangeHighlightModeCfg;
-  greaterThan: RangeHighlightModeCfg;
-  lessThan: RangeHighlightModeCfg;
-}
-
-/** Range highlighting for individual columns or "all" columns */
-interface RangeHighlight extends Record<string, RangeHighlightModes & HasActivation> {
-  all: RangeHighlightModes & HasActivation;
+export interface DataViewerData {
+  [key: number]: Record<string, DataRecord>;
 }
 
 /** Properties for selecting ranges of rows, columns, etc... */
-interface RangeSelection {
-  start: number;
-  end: number;
+export interface RangeSelection<T> {
+  start: T;
+  end: T;
 }
 
 /** min/max bounds */
@@ -73,56 +55,65 @@ export interface Bounds {
   max?: number;
 }
 
-/** Properties for specifying filtered ranges */
-interface FilteredRanges {
+/** Actions available to column filters */
+export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
+
+/** Operands available to column filters */
+export type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
+
+/** Column filter properties */
+export interface ColumnFilter extends Bounds {
+  type: string;
   query?: string;
-  dtypes?: ColumnDef[];
-  ranges?: Record<string, Bounds>;
-  overall?: Bounds;
+  missing?: boolean;
+  action?: ColumnFilterAction;
+  value?: string | string[] | number | number[];
+  raw?: string | number;
+  caseSensitive?: boolean;
+  operand?: ColumnFilterOperand;
+  start?: string;
+  end?: string;
 }
 
-/** State properties of DataViewer */
-export interface DataViewerState extends MultiGridProps, Bounds {
-  columnFormats: Record<string, Record<string, any>>;
-  nanDisplay?: string;
-  data: DataViewerData;
-  loading: boolean;
-  ids: number[];
-  loadQueue: number[][];
+/** The definition for formatting properties for string columns */
+export interface StringColumnFormat {
+  link: boolean;
+  html: boolean;
+  truncate?: number;
+}
+
+/** Formatting properties that can't be stored in a format string */
+export interface ColumnFormatStyle {
+  redNegs?: boolean;
+  currency?: string;
+}
+
+/** Type definition for a column format configuration object */
+export interface ColumnFormat {
+  fmt: string | StringColumnFormat;
+  style?: ColumnFormatStyle;
+  link?: boolean;
+  html?: boolean;
+  truncate?: number;
+}
+
+/** Properties for outlier filters */
+export interface OutlierFilter {
+  query: string;
+}
+
+/** State properties that can be propagated back up into DataViewer from other components */
+export interface PropagatedState {
   columns: ColumnDef[];
-  selectedCols: string[];
-  menuOpen: boolean;
-  formattingOpen: boolean;
+  rowCount: number;
   triggerResize: boolean;
-  backgroundMode?: string;
-  rangeHighlight: RangeHighlight;
-  rowRange?: RangeSelection;
-  columnRange: RangeSelection;
-  rangeSelect: RangeSelection;
-  ctrlRows: RangeSelection;
-  ctrlCols: RangeSelection;
-  selectedRow: RangeSelection;
-  filteredRanges: FilteredRanges;
-  error?: string;
-  traceback?: string;
+  fixedColumnCount: number;
+  triggerBgResize: boolean;
+  data: DataViewerData;
+  renameUpdate: (data: DataViewerData) => DataViewerData;
+  refresh: boolean;
+  formattingUpdate: boolean;
 }
 
-/** Component properties of DataViewer */
-export interface DataViewerProps {
-  settings: Record<string, any>;
-  dataId: string;
-  iframe: boolean;
-  closeColumnMenu: () => void;
-  openChart: (chartData: Record<string, any>) => Dispatch<{ type: 'open-chart'; chartData: Record<string, any> }>;
-  theme: string;
-  updateFilteredRanges: (
-    query: string,
-  ) => (dispatch: Dispatch<Record<string, any>>, getState: () => Record<string, any>) => void;
-  menuPinned: boolean;
-  ribbonMenuOpen: boolean;
-  dataViewerUpdate?: DataViewerUpdate;
-  clearDataViewerUpdate: () => Dispatch<{ type: 'clear-data-viewer-update' }>;
-  maxColumnWidth?: number;
-  editedTextAreaHeight?: number;
-  verticalHeaders: boolean;
-}
+/** Type definition for propagating state back to DataViewer */
+export type DataViewerPropagateState = (state: Partial<PropagatedState>, callback?: () => void) => void;

@@ -2,8 +2,9 @@ import chroma from 'chroma-js';
 import * as React from 'react';
 
 import { BASE_COLOR, MODES } from '../popups/RangeHighlight';
+import { InstanceSettings, RangeHighlightConfig, RangeHighlightModes } from '../redux/state/AppState';
 
-import { Bounds, ColumnDef, DataRecord, DataViewerState, OutlierRange, RangeHighlightModes } from './DataViewerState';
+import { Bounds, ColumnDef, DataRecord, OutlierRange } from './DataViewerState';
 import * as gu from './gridUtils';
 
 export const missingIcon = String.fromCodePoint(10071); // "!" emoji
@@ -23,24 +24,23 @@ const heatMapBackground = (record: DataRecord, range: Bounds): React.CSSProperti
   return { background: heatMap(((record.raw! as number) + factor) / (max! + factor)).hex() };
 };
 
-export const dtypeHighlighting = (column: ColumnDef): React.CSSProperties => {
-  const { name, dtype } = column;
-  if (name === gu.IDX) {
+export const dtypeHighlighting = (column?: ColumnDef): React.CSSProperties => {
+  if (column?.name === gu.IDX) {
     return {};
   }
-  const lowerDtype = (dtype || '').toLowerCase();
+  const lowerDtype = (column?.dtype || '').toLowerCase();
   const colType = gu.findColType(lowerDtype);
   if (lowerDtype.indexOf('category') === 0) {
     return { background: '#E1BEE7' };
   } else if (lowerDtype.indexOf('timedelta') === 0) {
     return { background: '#FFCC80' };
-  } else if (colType === 'float') {
+  } else if (colType === gu.ColumnType.FLOAT) {
     return { background: '#B2DFDB' };
-  } else if (colType === 'int') {
+  } else if (colType === gu.ColumnType.INT) {
     return { background: '#BBDEFB' };
-  } else if (colType === 'date') {
+  } else if (colType === gu.ColumnType.DATE) {
     return { background: '#F8BBD0' };
-  } else if (colType === 'string') {
+  } else if (colType === gu.ColumnType.STRING) {
     return {};
   } else if (lowerDtype.indexOf('bool') === 0) {
     return { background: '#FFF59D' };
@@ -58,7 +58,7 @@ const missingHighlighting = (column: ColumnDef, value: any): React.CSSProperties
   }
   const lowerDtype = (dtype || '').toLowerCase();
   const colType = gu.findColType(lowerDtype);
-  if (colType === 'string') {
+  if (colType === gu.ColumnType.STRING) {
     if ((value || '') === '') {
       return { background: '#FFCC80' };
     }
@@ -98,7 +98,7 @@ const outlierHighlighting = (column: ColumnDef, record: DataRecord): React.CSSPr
   }
   const lowerDtype = (dtype || '').toLowerCase();
   const colType = gu.findColType(lowerDtype);
-  if (['float', 'int'].includes(colType)) {
+  if ([gu.ColumnType.FLOAT, gu.ColumnType.INT].includes(colType)) {
     if (outlierRange && raw < outlierRange.lower) {
       return { background: outlierRange.lowerScale?.(raw).hex() };
     } else if (outlierRange && raw > outlierRange.upper) {
@@ -111,24 +111,27 @@ const outlierHighlighting = (column: ColumnDef, record: DataRecord): React.CSSPr
 /** Internal characteristics of a range highlight mode */
 type RangeHighlightMode = [string, keyof RangeHighlightModes, (raw: number, value: number) => boolean];
 
-const rangeHighlighting = (state: DataViewerState, column: ColumnDef, record: DataRecord): React.CSSProperties => {
+const rangeHighlighting = (
+  rangeHighlight: RangeHighlightConfig | undefined,
+  column: ColumnDef,
+  record: DataRecord,
+): React.CSSProperties => {
   const { name, dtype } = column;
   const raw = record.raw as number;
-  const { rangeHighlight } = state;
   if (name === gu.IDX || !rangeHighlight) {
     return {};
   }
   let range: RangeHighlightModes;
   if (rangeHighlight[name]?.active) {
     range = rangeHighlight[name];
-  } else if (rangeHighlight.all.active) {
+  } else if (rangeHighlight.all?.active) {
     range = rangeHighlight.all;
   } else {
     return {};
   }
   const lowerDtype = (dtype || '').toLowerCase();
   const colType = gu.findColType(lowerDtype);
-  if (['float', 'int'].includes(colType)) {
+  if ([gu.ColumnType.FLOAT, gu.ColumnType.INT].includes(colType)) {
     let styles: React.CSSProperties = {};
     (MODES as RangeHighlightMode[]).forEach((mode) => {
       const { active, value, color } = range[mode[1]];
@@ -151,27 +154,29 @@ const lowVarianceHighlighting = (column: ColumnDef): React.CSSProperties => {
 };
 
 export const updateBackgroundStyles = (
-  state: DataViewerState,
   colCfg: ColumnDef,
   rec: DataRecord,
+  settings: InstanceSettings,
+  min?: number,
+  max?: number,
 ): React.CSSProperties => {
-  switch (state.backgroundMode) {
+  switch (settings.backgroundMode) {
     case `heatmap-col-${colCfg.name}`:
       return heatMapBackground(rec, {
         ...colCfg,
-        ...state.filteredRanges?.ranges?.[colCfg.name],
+        ...settings.filteredRanges?.ranges?.[colCfg.name],
       });
     case 'heatmap-col':
     case 'heatmap-col-all':
       return heatMapBackground(rec, {
         ...colCfg,
-        ...state.filteredRanges?.ranges?.[colCfg.name],
+        ...settings.filteredRanges?.ranges?.[colCfg.name],
       });
     case 'heatmap-all':
     case 'heatmap-all-all': {
       const overall = {
-        min: state.filteredRanges?.overall?.min ?? state.min,
-        max: state.filteredRanges?.overall?.max ?? state.max,
+        min: settings.filteredRanges?.overall?.min ?? min,
+        max: settings.filteredRanges?.overall?.max ?? max,
       };
       return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, overall);
     }
@@ -182,7 +187,7 @@ export const updateBackgroundStyles = (
     case 'outliers':
       return outlierHighlighting(colCfg, rec);
     case 'range':
-      return rangeHighlighting(state, colCfg, rec);
+      return rangeHighlighting(settings.rangeHighlight, colCfg, rec);
     case 'lowVariance':
       return lowVarianceHighlighting(colCfg);
     default:

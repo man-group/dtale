@@ -32,7 +32,7 @@ def loader_func(**kwargs):
     normalize = kwargs.pop("normalize", False)
 
     def resp_handler(resp):
-        return resp.json() if normalize else resp.text
+        return resp.json() if normalize else resp.text.decode("utf-8")
 
     path = handle_path(kwargs.pop("path"), kwargs, resp_handler=resp_handler)
     if normalize:

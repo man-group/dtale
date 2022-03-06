@@ -6,6 +6,7 @@ future
 ipython[notebook]
 jinja2==2.11.3
 markdown
+MarkupSafe==2.0.1
 matplotlib
 missingno
 nbsphinx==0.4.3

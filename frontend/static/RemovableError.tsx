@@ -2,8 +2,8 @@ import React from 'react';
 
 /** Component properties for RemovableError */
 interface RemovableErrorProps {
-  error: string;
-  traceback: string;
+  error?: string;
+  traceback?: string;
   onRemove?: () => void;
 }
 

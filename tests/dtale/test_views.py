@@ -68,7 +68,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=True,
-            columnFormats=None,
+            columnFormats={},
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
@@ -116,7 +116,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=False,
-            columnFormats=None,
+            columnFormats={},
             locked=[],
             precision=6,
             rangeHighlight=range_highlights,
@@ -134,7 +134,7 @@ def test_startup(unittest):
         global_state.get_settings(instance._data_id),
         dict(
             allow_cell_edits=True,
-            columnFormats=None,
+            columnFormats={},
             locked=["security_id"],
             precision=2,
             rangeHighlight=None,
@@ -153,7 +153,7 @@ def test_startup(unittest):
             allow_cell_edits=True,
             locked=[],
             precision=2,
-            columnFormats=None,
+            columnFormats={},
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
@@ -170,7 +170,7 @@ def test_startup(unittest):
             allow_cell_edits=True,
             locked=[],
             precision=2,
-            columnFormats=None,
+            columnFormats={},
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
@@ -227,7 +227,7 @@ def test_startup(unittest):
 
     test_data = np.ndarray(shape=(2, 2), dtype=float, order="F")
     instance = views.startup(URL, data_loader=lambda: test_data)
-    unittest.assertEqual(instance.data.values.tolist(), test_data.tolist())
+    np.testing.assert_almost_equal(instance.data.values, test_data)
 
     test_data = [1, 2, 3]
     instance = views.startup(URL, data_loader=lambda: test_data, ignore_duplicate=True)
@@ -689,7 +689,7 @@ def test_outliers(unittest):
         build_dtypes(dtypes)
         resp = c.get("/dtale/outliers/{}".format(c.port), query_string=dict(col="a"))
         resp = json.loads(resp.data)
-        unittest.assertEqual(resp["outliers"], [1000, 10000, 2000])
+        unittest.assertEqual(resp["outliers"], [1000, 2000, 10000])
         c.get(
             "/dtale/save-column-filter/{}".format(c.port),
             query_string=dict(
@@ -760,19 +760,30 @@ def test_update_visibility(unittest):
         build_dtypes(dtypes)
         c.post(
             "/dtale/update-visibility/{}".format(c.port),
-            data=dict(visibility=json.dumps({"a": True, "b": True, "c": False})),
+            data=json.dumps(
+                dict(visibility=json.dumps({"a": True, "b": True, "c": False}))
+            ),
+            content_type="application/json",
         )
         unittest.assertEqual(
             [True, True, False],
             [col["visible"] for col in global_state.get_dtypes(c.port)],
         )
-        c.post("/dtale/update-visibility/{}".format(c.port), data=dict(toggle="c"))
+        c.post(
+            "/dtale/update-visibility/{}".format(c.port),
+            data=json.dumps(dict(toggle="c")),
+            content_type="application/json",
+        )
         unittest.assertEqual(
             [True, True, True],
             [col["visible"] for col in global_state.get_dtypes(c.port)],
         )
 
-        resp = c.post("/dtale/update-visibility/-1", data=dict(toggle="foo"))
+        resp = c.post(
+            "/dtale/update-visibility/-1",
+            data=json.dumps(dict(toggle="foo")),
+            content_type="application/json",
+        )
         assert "error" in json.loads(resp.data)
 
 
@@ -2430,7 +2441,7 @@ def test_get_async_column_filter_data(unittest, custom_data):
             query_string=dict(col="str_val", input=df.str_val.values[0]),
         )
         response_data = json.loads(response.data)
-        unittest.assertEqual(response_data, [dict(value=str_val)])
+        unittest.assertEqual(response_data, [dict(value=str_val, label=str_val)])
 
         int_val = df.int_val.values[0]
         response = c.get(
@@ -2438,7 +2449,9 @@ def test_get_async_column_filter_data(unittest, custom_data):
             query_string=dict(col="int_val", input=str(df.int_val.values[0])),
         )
         response_data = json.loads(response.data)
-        unittest.assertEqual(response_data, [dict(value=int_val)])
+        unittest.assertEqual(
+            response_data, [dict(value=int_val, label="{}".format(int_val))]
+        )
 
 
 @pytest.mark.unit
@@ -2814,7 +2827,8 @@ def test_build_column_text():
 
         resp = c.post(
             "/dtale/build-column-copy/{}".format(c.port),
-            data={"columns": json.dumps(["a"])},
+            data=json.dumps({"columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"1\n2\n3\n"
 
@@ -2829,12 +2843,14 @@ def test_build_row_text():
 
         resp = c.post(
             "/dtale/build-row-copy/{}".format(c.port),
-            data={"start": 1, "end": 2, "columns": json.dumps(["a"])},
+            data=json.dumps({"start": 1, "end": 2, "columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"1\n2\n"
         resp = c.post(
             "/dtale/build-row-copy/{}".format(c.port),
-            data={"rows": json.dumps([1]), "columns": json.dumps(["a"])},
+            data=json.dumps({"rows": json.dumps([1]), "columns": json.dumps(["a"])}),
+            content_type="application/json",
         )
         assert resp.data == b"2\n"
 
@@ -2906,6 +2922,7 @@ def test_save_range_highlights():
         }
         c.post(
             "/dtale/save-range-highlights/{}".format(c.port),
-            data=dict(ranges=json.dumps(range_highlights)),
+            data=json.dumps(dict(ranges=json.dumps(range_highlights))),
+            content_type="application/json",
         )
         assert global_state.get_settings(c.port)["rangeHighlight"] is not None

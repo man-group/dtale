@@ -1021,7 +1021,7 @@ def startup(
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
-            columnFormats=column_formats,
+            columnFormats=column_formats or {},
             backgroundMode=background_mode,
             rangeHighlight=range_highlights,
             verticalHeaders=vertical_headers,
@@ -1305,7 +1305,8 @@ def process_keys():
             data=[
                 dict(id=str(data_id), name=global_state.get_name(data_id))
                 for data_id in global_state.keys()
-            ]
+            ],
+            success=True,
         )
     )
 
@@ -1440,7 +1441,7 @@ def update_formats(data_id):
 @dtale.route("/save-range-highlights/<data_id>", methods=["POST"])
 @exception_decorator
 def save_range_highlights(data_id):
-    ranges = json.loads(request.form.get("ranges", "{}"))
+    ranges = json.loads(request.json.get("ranges", "{}"))
     curr_settings = global_state.get_settings(data_id) or {}
     updated_settings = dict_merge(curr_settings, dict(rangeHighlight=ranges))
     global_state.set_settings(data_id, updated_settings)
@@ -1547,14 +1548,14 @@ def update_visibility(data_id):
     :return: JSON {success: True/False}
     """
     curr_dtypes = global_state.get_dtypes(data_id)
-    if request.form.get("visibility"):
-        visibility = json.loads(request.form.get("visibility", "{}"))
+    if request.json.get("visibility"):
+        visibility = json.loads(request.json.get("visibility", "{}"))
         global_state.set_dtypes(
             data_id,
             [dict_merge(d, dict(visible=visibility[d["name"]])) for d in curr_dtypes],
         )
-    elif request.form.get("toggle"):
-        toggle_col = request.form.get("toggle")
+    elif request.json.get("toggle"):
+        toggle_col = request.json.get("toggle")
         toggle_idx = next(
             (idx for idx, d in enumerate(curr_dtypes) if d["name"] == toggle_col), None
         )
@@ -1665,7 +1666,7 @@ def build_column_bins_tester(data_id):
     builder = ColumnBuilder(data_id, col_type, cfg["col"], cfg)
     data = global_state.get_data(data_id)
     data, labels = builder.builder.build_test(data)
-    return jsonify(dict(data=data, labels=labels))
+    return jsonify(dict(data=data, labels=labels, timestamp=round(time.time() * 1000)))
 
 
 @dtale.route("/duplicates/<data_id>")
@@ -2024,7 +2025,7 @@ def describe(data_id):
     if classification == "S":
         str_col = data[column]
         sm_metrics, sm_code = build_string_metrics(
-            str_col[~str_col.isnull()].str, column
+            str_col[~str_col.isnull()].astype("str").str, column
         )
         return_data["string_metrics"] = sm_metrics
         code += sm_code
@@ -2154,7 +2155,7 @@ def outliers(data_id):
 
     df = load_filterable_data(data_id, request)
     s = df[column]
-    outliers = s[(s < iqr_lower) | (s > iqr_upper)].unique()
+    outliers = sorted(s[(s < iqr_lower) | (s > iqr_upper)].unique())
     if not len(outliers):
         return jsonify(outliers=[])
 
@@ -2373,7 +2374,11 @@ def get_async_column_filter_data(data_id):
     dtype = find_dtype(s)
     fmt = find_dtype_formatter(dtype)
     vals = s[s.astype("str").str.startswith(input)]
-    vals = [dict(value=fmt(v)) for v in sorted(vals.unique())[:5]]
+
+    def option(v):
+        return dict(value=v, label="{}".format(v))
+
+    vals = [option(fmt(v)) for v in sorted(vals.unique())[:5]]
     return jsonify(vals)
 
 
@@ -3337,7 +3342,7 @@ def dataset_upload():
 @dtale.route("/build-column-copy/<data_id>", methods=["POST"])
 @exception_decorator
 def build_column_text(data_id):
-    columns = request.form.get("columns")
+    columns = request.json.get("columns")
     columns = json.loads(columns)
 
     curr_settings = global_state.get_settings(data_id) or {}
@@ -3354,7 +3359,7 @@ def build_column_text(data_id):
 @exception_decorator
 def build_row_text(data_id):
     start, end, rows, columns = (
-        request.form.get(p) for p in ["start", "end", "rows", "columns"]
+        request.json.get(p) for p in ["start", "end", "rows", "columns"]
     )
     columns = json.loads(columns)
     curr_settings = global_state.get_settings(data_id) or {}
@@ -3498,7 +3503,7 @@ def get_sorted_sequential_diffs(data_id):
 @dtale.route("/merge", methods=["POST"])
 @exception_decorator
 def build_merge():
-    cfg = request.form
+    cfg = request.json
     name = cfg.get("name")
     builder = CombineData(cfg)
     data = builder.build_data()

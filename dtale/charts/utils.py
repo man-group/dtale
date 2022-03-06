@@ -652,7 +652,9 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col):
                 chart_data=", ".join(["chart_data_{}".format(k) for k in aggs])
             )
         )
-        return pd.concat(all_calculated_aggs, axis=1), all_code, all_calculated_cols
+        ret_data = pd.concat(all_calculated_aggs, axis=1)
+        ret_data.index.names = idx_cols
+        return ret_data, all_code, all_calculated_cols
     all_code.append(
         "chart_data = chart_data_{}.reset_index()".format(list(aggs.keys())[0])
     )

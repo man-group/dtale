@@ -1,120 +1,130 @@
-import _ from 'lodash';
-import React from 'react';
+import * as React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import { Store } from 'redux';
 
-import * as actions from './actions/dtale';
-import mergeActions from './actions/merge';
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
-import { ReactColumnAnalysis as ColumnAnalysis } from './popups/analysis/ColumnAnalysis';
+import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
 import { CodeExport } from './popups/CodeExport';
-import { CodePopup } from './popups/CodePopup';
-import Correlations from './popups/Correlations';
-import { ReactCreateColumn as CreateColumn } from './popups/create/CreateColumn';
-import { Describe } from './popups/describe/Describe';
-import { ReactDuplicates as Duplicates } from './popups/duplicates/Duplicates';
-import { ReactFilterPopup as FilterPopup } from './popups/filter/FilterPopup';
+import CodePopup from './popups/CodePopup';
+import { Correlations } from './popups/correlations/Correlations';
+import CreateColumn from './popups/create/CreateColumn';
+import { CreateColumnType, PrepopulateCreateColumn, SaveAs } from './popups/create/CreateColumnState';
+import Describe from './popups/describe/Describe';
+import Duplicates from './popups/duplicates/Duplicates';
+import FilterPopup from './popups/filter/FilterPopup';
 import Instances from './popups/instances/Instances';
-import ReduxMergeDatasets from './popups/merge/MergeDatasets';
+import MergeDatasets from './popups/merge/MergeDatasets';
 import PredictivePowerScore from './popups/pps/PredictivePowerScore';
-import { ReactCreateReplacement as CreateReplacement } from './popups/replacement/CreateReplacement';
-import { ReactReshape as Reshape } from './popups/reshape/Reshape';
-import { ReactUpload as Upload } from './popups/upload/Upload';
-import { Variance } from './popups/variance/Variance';
-import app from './reducers/dtale';
-import mergeApp from './reducers/merge';
-import { createStore } from './reducers/store';
-import { getHiddenValue, toJson } from './reducers/utils';
+import CreateReplacement from './popups/replacement/CreateReplacement';
+import Reshape from './popups/reshape/Reshape';
+import Upload from './popups/upload/Upload';
+import Variance from './popups/variance/Variance';
+import * as actions from './redux/actions/dtale';
+import * as mergeActions from './redux/actions/merge';
+import appReducers from './redux/reducers/app';
+import mergeReducers from './redux/reducers/merge';
+import { getHiddenValue, toJson } from './redux/reducers/utils';
+import { AppState, InstanceSettings } from './redux/state/AppState';
+import { MergeState } from './redux/state/MergeState';
+import { createAppStore } from './redux/store';
 
 require('./publicPath');
 
 let pathname = window.location.pathname;
 if ((window as any).resourceBaseUrl) {
-  pathname = _.replace(pathname, (window as any).resourceBaseUrl, '');
+  pathname = pathname.replace((window as any).resourceBaseUrl, '');
 }
+let storeBuilder: () => Store = () => {
+  const store = createAppStore<AppState>(appReducers);
+  store.dispatch(actions.init());
+  actions.loadBackgroundMode(store);
+  return store;
+};
 if (pathname.indexOf('/dtale/popup') === 0) {
   require('./dtale/DataViewer.css');
 
   let rootNode = null;
-  const settings: Record<string, string> = toJson(getHiddenValue('settings'));
+  const settings = toJson<InstanceSettings>(getHiddenValue('settings'));
   const dataId = getHiddenValue('data_id');
-  const chartData: Record<string, any> = {
-    ...actions.getParams(),
-    visible: true,
-    ...(settings.query ? { query: settings.query } : {}),
-  };
   const pathSegs = pathname.split('/');
   const popupType = pathSegs[pathSegs.length - 1] === 'code-popup' ? 'code-popup' : pathSegs[3];
-  let store = createStore(app.store);
-  let initAction: () => Record<string, any> = actions.init;
+  const chartData: Record<string, any> = {
+    ...actions.getParams(),
+    ...(settings.query ? { query: settings.query } : {}),
+  };
   switch (popupType) {
     case 'filter':
-      rootNode = <FilterPopup {...{ dataId, chartData }} />;
+      rootNode = <FilterPopup />;
       break;
     case 'correlations':
-      rootNode = <Correlations {...{ dataId, chartData }} />;
+      rootNode = <Correlations />;
       break;
     case 'merge':
-      store = createStore(mergeApp);
-      initAction = mergeActions.init;
-      rootNode = <ReduxMergeDatasets />;
+      storeBuilder = () => {
+        const store = createAppStore<MergeState>(mergeReducers);
+        mergeActions.init(store.dispatch);
+        return store;
+      };
+      rootNode = <MergeDatasets />;
       break;
     case 'pps':
-      rootNode = <PredictivePowerScore {...{ dataId, chartData }} />;
+      rootNode = <PredictivePowerScore />;
       break;
     case 'describe':
-      rootNode = <Describe {...{ dataId, chartData }} />;
+      rootNode = <Describe />;
       break;
     case 'variance':
-      rootNode = <Variance {...{ dataId, chartData }} />;
+      rootNode = <Variance />;
       break;
     case 'build':
-      rootNode = <CreateColumn {...{ dataId, chartData }} />;
+      rootNode = <CreateColumn />;
       break;
     case 'duplicates':
-      rootNode = <Duplicates {...{ dataId, chartData }} />;
+      rootNode = <Duplicates />;
       break;
     case 'type-conversion': {
-      const prePopulated = {
-        type: 'type_conversion',
-        saveAs: 'inplace',
-        cfg: { col: chartData.selectedCol },
+      const prePopulated: PrepopulateCreateColumn = {
+        type: CreateColumnType.TYPE_CONVERSION,
+        saveAs: SaveAs.INPLACE,
+        cfg: { col: chartData.selectedCol, applyAllType: false },
       };
-      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      rootNode = <CreateColumn prePopulated={prePopulated} />;
       break;
     }
     case 'cleaners': {
-      const prePopulated = {
-        type: 'cleaning',
-        cfg: { col: chartData.selectedCol },
+      const prePopulated: PrepopulateCreateColumn = {
+        type: CreateColumnType.CLEANING,
+        cfg: { col: chartData.selectedCol, cleaners: [] },
       };
-      rootNode = <CreateColumn {...{ dataId, chartData, prePopulated }} />;
+      rootNode = <CreateColumn prePopulated={prePopulated} />;
       break;
     }
     case 'replacement':
-      rootNode = <CreateReplacement {...{ dataId, chartData }} />;
+      rootNode = <CreateReplacement />;
       break;
     case 'reshape':
-      rootNode = <Reshape {...{ dataId, chartData }} />;
+      rootNode = <Reshape />;
       break;
     case 'column-analysis':
       rootNode = <ColumnAnalysis {...{ dataId, chartData }} height={250} />;
       break;
     case 'instances':
-      rootNode = <Instances dataId={dataId} iframe={true} />;
+      rootNode = <Instances />;
       break;
     case 'code-export':
-      rootNode = <CodeExport dataId={dataId} />;
+      rootNode = <CodeExport />;
       break;
     case 'upload':
     default:
-      rootNode = <Upload chartData={{ visible: true }} />;
+      rootNode = <Upload />;
       break;
   }
-  store.dispatch(initAction());
+  const store = storeBuilder();
+  store.getState().chartData = chartData;
   ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
-} else if (_.startsWith(pathname, '/dtale/code-popup')) {
+} else if (pathname.startsWith('/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
   let title: string;
   let body: JSX.Element;
@@ -131,7 +141,7 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   }
   ReactDOM.render(body, document.getElementById('popup-content'));
 } else {
-  const store = createStore(app.store);
+  const store = storeBuilder();
   store.dispatch(actions.init());
   if (store.getState().openPredefinedFiltersOnStartup) {
     store.dispatch(actions.openPredefinedFilters());

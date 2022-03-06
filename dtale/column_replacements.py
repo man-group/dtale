@@ -128,7 +128,7 @@ class ValueReplacement(object):
         s = data[self.col]
         replacements = {}
         col_replacements = []
-        for replacement in self.cfg.get("value", []):
+        for replacement in self.cfg or []:
             value = get_replacement_value(replacement, "value")
             replacement_type = replacement.get("type")
             if replacement_type == "agg":
@@ -155,9 +155,9 @@ class ValueReplacement(object):
         replacements = []
         series = data[self.col]
         col_replacements = []
-        for replacement in self.cfg.get("value", []):
+        for replacement in self.cfg or []:
             value = get_replacement_value_as_str(replacement, "value", series)
-            replacement_type = self.cfg.get("type")
+            replacement_type = replacement.get("type")
             if replacement_type == "agg":
                 replace = "getattr(df['{col}'], '{agg}')()".format(
                     agg=replacement["value"], col=self.col

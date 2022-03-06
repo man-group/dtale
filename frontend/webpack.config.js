@@ -1,10 +1,8 @@
 /* eslint-disable no-restricted-globals */
 const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const autoprefixer = require('autoprefixer');
 const postcssNested = require('postcss-nested');
-const _ = require('lodash');
 const path = require('path');
 const paths = require('./config/paths');
 
@@ -14,7 +12,7 @@ const entries = [
   ['base_styles', './static/base_styles.js'],
   ['polyfills', './static/polyfills.js'],
   ['dtale', './static/main.tsx'],
-  ['network', './static/network/main.jsx'],
+  ['network', './static/network/main.tsx'],
 ];
 
 function createConfig(entry) {
@@ -41,7 +39,6 @@ function createConfig(entry) {
           options: {
             cacheDirectory: true,
             presets: [['@babel/env', { targets: ['last 2 versions'] }], '@babel/react', '@babel/flow'],
-            plugins: ['lodash'],
           },
         },
         {
@@ -144,14 +141,6 @@ function createConfig(entry) {
         exclude: ['.git_keep'],
       }),
       new webpack.HotModuleReplacementPlugin(),
-      new LodashModuleReplacementPlugin({
-        collections: true,
-        coercions: true,
-        exotics: true,
-        flattening: true,
-        paths: true,
-        shorthands: true,
-      }),
     ],
     externals: {
       window: 'window',
@@ -187,23 +176,47 @@ function createDashConfig(entry) {
       'plotly.js': 'Plotly',
       'prop-types': 'PropTypes',
     },
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss'],
+      symlinks: false,
+    },
     module: {
       rules: [
         {
-          test: /\.jsx?$/,
-          exclude: /node_modules/,
-          use: {
-            loader: 'babel-loader',
+          test: /\.(js|jsx)$/,
+          loader: 'babel-loader',
+          exclude: [/node_modules/],
+          options: {
+            cacheDirectory: true,
+            presets: [['@babel/env', { targets: ['last 2 versions'] }], '@babel/react', '@babel/flow'],
           },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          include: paths.appSrc,
+          exclude: [/node_modules/],
+          use: [
+            {
+              loader: require.resolve('ts-loader'),
+              options: {
+                transpileOnly: true,
+                configFile: paths.appTsConfig,
+              },
+            },
+          ],
         },
         {
           test: /\.css$/,
           use: [
+            'style-loader',
+            { loader: 'css-loader', options: { importLoaders: 1 } },
             {
-              loader: 'style-loader',
-            },
-            {
-              loader: 'css-loader',
+              loader: 'postcss-loader',
+              options: {
+                postcssOptions: {
+                  plugins: [postcssNested, autoprefixer],
+                },
+              },
             },
           ],
         },
@@ -219,4 +232,4 @@ function createDashConfig(entry) {
   };
 }
 
-module.exports = _.concat(_.map(entries, createConfig), _.map(dashEntries, createDashConfig));
+module.exports = [...entries.map(createConfig), ...dashEntries.map(createDashConfig)];

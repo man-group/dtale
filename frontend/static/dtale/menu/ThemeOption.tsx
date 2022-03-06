@@ -1,0 +1,43 @@
+import * as React from 'react';
+import { withTranslation, WithTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { ActionType } from '../../redux/actions/AppActions';
+import { AppState, ThemeType } from '../../redux/state/AppState';
+import { capitalize } from '../../stringUtils';
+import * as serverState from '../serverStateManagement';
+
+import { MenuItem } from './MenuItem';
+import { RibbonOptionProps } from './MenuState';
+
+const ReactThemeOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, t }) => {
+  const theme = useSelector((state: AppState) => state.theme);
+  const dispatch = useDispatch();
+  const updateTheme = (newTheme: ThemeType) => async () => {
+    await serverState.updateTheme(newTheme);
+    dispatch({ type: ActionType.SET_THEME, theme: newTheme });
+  };
+
+  return (
+    <MenuItem style={{ color: '#565b68' }} description={t('menu_description:theme')}>
+      <span className="toggler-action">
+        <i className="fas fa-adjust" />
+      </span>
+      <span className="font-weight-bold pl-2">Theme</span>
+      <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
+        {Object.values(ThemeType).map((value) => (
+          <button
+            key={value}
+            style={{ color: '#565b68' }}
+            className={`btn btn-primary ${value === theme ? 'active' : ''} font-weight-bold`}
+            onClick={value === theme ? () => ({}) : ribbonWrapper(updateTheme(value))}
+          >
+            {t(capitalize(value), { ns: 'menu' })}
+          </button>
+        ))}
+      </div>
+    </MenuItem>
+  );
+};
+
+export default withTranslation(['menu', 'menu_description'])(ReactThemeOption);

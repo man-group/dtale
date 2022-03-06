@@ -3,12 +3,9 @@
     ["@babel/env", { "targets": ["last 2 versions"] }],
     "@babel/flow",
     "@babel/react",
-    "@babel/preset-typescript",
+    "@babel/preset-typescript"
   ],
   "env": {
-    "test": {
-      "plugins": ["istanbul"]
-    },
     "production": {
       "compact" : true
     }
