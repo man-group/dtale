@@ -16,6 +16,7 @@ LOADER_PROPS = [
         name="convert_dates",
         help="comma-separated string of column names which should be parsed as dates",
     ),
+    dict(name="lines", help="Use if the file is a JSONL line file"),
 ]
 
 
