@@ -50,10 +50,11 @@ import XArrayOption from './XArrayOption';
 /** Component properties for DataViewerMenu */
 export interface DataViewerMenuProps {
   columns: ColumnDef[];
+  rows: number;
   propagateState: DataViewerPropagateState;
 }
 
-const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, propagateState }) => {
+const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
   const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings, menuOpen } = useSelector(
     (state: AppState) => state,
   );
@@ -68,7 +69,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
     );
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
-  const { openPopup, exportFile } = buttonHandlers;
+  const { openPopup } = buttonHandlers;
   const refreshWidths = (): void => propagateState({ columns: columns.map((c) => ({ ...c })) });
   const hasNoInfo = gu.hasNoInfo(settings, columns);
   const containerProps = menuPinned
@@ -152,7 +153,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
             open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
           />
           <CodeExportOption open={buttonHandlers.CODE} />
-          <ExportOption open={exportFile} />
+          <ExportOption rows={rows} />
           <UploadOption open={openPopup({ type: PopupType.UPLOAD, visible: true }, 450)} />
           <MenuItem description={t('menu_description:widths')} onClick={refreshWidths}>
             <span className="toggler-action">

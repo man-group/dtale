@@ -22,10 +22,10 @@ import CleanColumn from '../menu/CleanOption';
 import CodeExportOption from '../menu/CodeExportOption';
 import CorrelationAnalysisOption from '../menu/CorrelationAnalysisOption';
 import CorrelationsOption from '../menu/CorrelationsOption';
-import { buildHotkeyHandlers, fullPath, VoidFunc } from '../menu/dataViewerMenuUtils';
+import { buildHotkeyHandlers, fullPath } from '../menu/dataViewerMenuUtils';
 import DescribeOption from '../menu/DescribeOption';
 import DuplicatesOption from '../menu/DuplicatesOption';
-import ExportOption, { ExportType } from '../menu/ExportOption';
+import ExportOption from '../menu/ExportOption';
 import FilterOption from '../menu/FilterOption';
 import GageRnROption from '../menu/GageRnROption';
 import HeatMapOption from '../menu/HeatMapOption';
@@ -79,10 +79,11 @@ const positionMenu = (selectedItem: HTMLElement | undefined, menuDiv: HTMLElemen
 /** Component properties for RibbonDropdown */
 export interface RibbonDropdownProps {
   columns: ColumnDef[];
+  rows: number;
   propagateState: DataViewerPropagateState;
 }
 
-const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, propagateState, t }) => {
+const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, rows, propagateState, t }) => {
   const { dataId, isVSCode, element, name, settings, visible } = useSelector((state: AppState) => ({
     ...state.ribbonDropdown,
     dataId: state.dataId,
@@ -147,13 +148,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
     () => buildHotkeyHandlers({ columns, openChart, openMenu, closeMenu, dataId, isVSCode }),
     [columns, propagateState, openChart, dataId, isVSCode],
   );
-  const { openPopup, exportFile } = buttonHandlers;
-  const ribbonExport =
-    (exportType: ExportType): VoidFunc =>
-    () => {
-      exportFile(exportType)();
-      hideRibbonMenu();
-    };
+  const { openPopup } = buttonHandlers;
   return (
     <div
       className={`ribbon-menu-dd-content${visible ? ' is-expanded' : ''}`}
@@ -169,7 +164,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
           <NewTabOption />
           <UploadOption open={hideWrapper(openPopup({ type: PopupType.UPLOAD, visible: true }, 450))} />
           <CodeExportOption open={hideWrapper(buttonHandlers.CODE)} />
-          <ExportOption open={ribbonExport} />
+          <ExportOption rows={rows} ribbonWrapper={hideWrapper} />
           <ReloadOption />
           <InstancesOption open={hideWrapper(openPopup({ type: PopupType.INSTANCES, visible: true }, 450, 750))} />
           <MenuItem description={t('menu_description:clear_data')} onClick={cleanupThis}>

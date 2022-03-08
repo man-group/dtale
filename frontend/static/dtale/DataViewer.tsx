@@ -35,8 +35,6 @@ import RibbonMenu from './ribbon/RibbonMenu';
 
 require('./DataViewer.css');
 
-const range = (start: number, end: number): number[] => [...Array(end - start).keys()].map((i) => i + start);
-
 export const DataViewer: React.FC = () => {
   const {
     dataId,
@@ -93,7 +91,7 @@ export const DataViewer: React.FC = () => {
     let newIds = [`${updatedIds[0]}-${updatedIds[1]}`];
     let savedData = {};
     if (!refresh) {
-      newIds = gu.getRanges(range(updatedIds[0], updatedIds[1] + 1).filter((i) => !data.hasOwnProperty(i)));
+      newIds = gu.getRanges(gu.range(updatedIds[0], updatedIds[1] + 1).filter((i) => !data.hasOwnProperty(i)));
       savedData = Object.keys(data).reduce((res, key) => {
         if (Number(key) >= updatedIds[0] && Number(key) <= updatedIds[1] + 1) {
           return { ...res, [Number(key)]: data[Number(key)] };
@@ -310,8 +308,8 @@ export const DataViewer: React.FC = () => {
     const columnCount = gu.getActiveCols(columns, settings.backgroundMode).length;
     const startIndex = rowStartIndex * columnCount + columnStartIndex;
     const stopIndex = rowStopIndex * columnCount + columnStopIndex;
-    const oldRange = range(ids[0], ids[1] + 1);
-    const newIds = range(rowStartIndex, rowStopIndex + 1).filter((idx) => !oldRange.includes(idx));
+    const oldRange = gu.range(ids[0], ids[1] + 1);
+    const newIds = gu.range(rowStartIndex, rowStopIndex + 1).filter((idx) => !oldRange.includes(idx));
     if (!newIds.length || newIds.length < 2) {
       return;
     }
@@ -322,7 +320,7 @@ export const DataViewer: React.FC = () => {
   return (
     <GridEventHandler columns={columns} data={data}>
       <DtaleHotkeys columns={columns} />
-      <DataViewerMenu columns={columns} propagateState={propagateState} />
+      <DataViewerMenu columns={columns} propagateState={propagateState} rows={rowCount} />
       <InfiniteLoader
         isRowLoaded={({ index }) => data.hasOwnProperty(index)}
         loadMoreRows={() => Promise.resolve(undefined)}
@@ -370,7 +368,7 @@ export const DataViewer: React.FC = () => {
       <Popup propagateState={propagateState} />
       <Formatting data={data} columns={columns} rowCount={rowCount} propagateState={propagateState} />
       <ColumnMenu columns={columns} propagateState={propagateState} />
-      <RibbonDropdown columns={columns} propagateState={propagateState} />
+      <RibbonDropdown columns={columns} propagateState={propagateState} rows={rowCount} />
     </GridEventHandler>
   );
 };

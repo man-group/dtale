@@ -21,6 +21,20 @@ export const StyledThumb = styled.div`
   cursor: grab;
 `;
 
+export const StyledExportThumb = styled.div`
+  height: 25px;
+  line-height: 25px;
+  min-width: 25px;
+  width: fit-content;
+  padding-left: 2px;
+  padding-right: 2px;
+  text-align: center;
+  background-color: #000;
+  color: #fff;
+  border-radius: 1em;
+  cursor: grab;
+`;
+
 /** State for styled components */
 interface StyledState {
   index: number;
@@ -29,6 +43,10 @@ interface StyledState {
 
 export const Thumb = (props: StyledDivProps, state: StyledState): JSX.Element => (
   <StyledThumb {...props}>{state.valueNow}</StyledThumb>
+);
+
+export const ExportThumb = (props: StyledDivProps, state: StyledState): JSX.Element => (
+  <StyledExportThumb {...props}>{state.valueNow}</StyledExportThumb>
 );
 
 export const StyledTrack = styled.div<StyledState>`

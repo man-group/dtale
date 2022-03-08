@@ -1584,6 +1584,35 @@ def test_get_data(unittest, test_data):
 
 
 @pytest.mark.unit
+def test_export_html(unittest, test_data):
+    import dtale.views as views
+
+    with app.test_client() as c:
+        test_data, _ = views.format_data(test_data)
+        build_data_inst({c.port: test_data})
+        build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        response = c.get("/dtale/data/{}".format(c.port))
+        response_data = json.loads(response.data)
+        unittest.assertEqual(
+            response_data,
+            {},
+            'if no "ids" parameter an empty dict should be returned',
+        )
+
+        response = c.get(
+            "/dtale/data/{}".format(c.port),
+            query_string=dict(export=True),
+        )
+        assert response.content_type == "text/html"
+
+        response = c.get(
+            "/dtale/data/{}".format(c.port),
+            query_string=dict(export=True, export_rows=5),
+        )
+        assert response.content_type == "text/html"
+
+
+@pytest.mark.unit
 def test_export_parquet(test_data):
     pytest.importorskip("pyarrow")
 
