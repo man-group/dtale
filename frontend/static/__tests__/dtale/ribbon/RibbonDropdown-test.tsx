@@ -13,7 +13,6 @@ jest.mock('../../../dtale/menu/MaxDimensionOption', () => {
 
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
-import ExportOption, { ExportType } from '../../../dtale/menu/ExportOption';
 import FilterOption from '../../../dtale/menu/FilterOption';
 import { MenuItem } from '../../../dtale/menu/MenuItem';
 import MergeOption from '../../../dtale/menu/MergeOption';
@@ -76,6 +75,7 @@ describe('RibbonDropdown', () => {
     loadProcessKeysSpy.mockResolvedValue({ data: processes, success: true });
     props = {
       columns: [],
+      rows: 10,
       propagateState: jest.fn(),
     };
   });
@@ -194,9 +194,7 @@ describe('RibbonDropdown', () => {
 
   it('hides menu on click', async () => {
     const funcsSpy = jest.spyOn(menuFuncs, 'buildHotkeyHandlers');
-    const exportFile = jest.fn(() => () => undefined);
     funcsSpy.mockImplementation(() => ({
-      exportFile,
       openTab: jest.fn(),
       openPopup: jest.fn(),
       toggleBackground: jest.fn(),
@@ -215,16 +213,11 @@ describe('RibbonDropdown', () => {
       LOGOUT: jest.fn(),
     }));
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
-    await act(async () => {
-      wrapper.find(ExportOption).props().open(ExportType.TSV)();
-    });
-    expect(exportFile).toHaveBeenCalledWith(ExportType.TSV);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
     await setupElementAndDropdown(RibbonDropdownType.ACTIONS);
     await act(async () => {
       wrapper.find(MergeOption).props().open();
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
-    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(2);
+    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(1);
   });
 });

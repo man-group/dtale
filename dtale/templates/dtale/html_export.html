@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>{{ title }}</title>
+        <style>
+        {{ main_styles }}
+        </style>
+        <script type=text/javascript>
+            var RESPONSE = {{ response|tojson|safe }};
+        </script>
+    </head>
+    <body class="{{ theme }}-mode">
+        <input type="hidden" id="data_id" value="{{data_id}}" />
+        <input type="hidden" id="xarray" value="{{xarray}}" />
+        <input type="hidden" id="xarray_dim" value="{{xarray_dim}}" />
+        <input type="hidden" id="app_settings" value="{{app_settings}}" />
+        <input type="hidden" id="settings" value="{{settings}}" />
+        <input type="hidden" id="version" value="{{version}}" />
+        <input type="hidden" id="hide_shutdown" value="{{hide_shutdown}}" />
+        <input type="hidden" id="allow_cell_edits" value="{{allow_cell_edits}}" />
+        <input type="hidden" id="hide_drop_rows" value="{{hide_drop_rows}}" />
+        <input type="hidden" id="is_vscode" value="{{is_vscode}}" />
+        <input type="hidden" id="processes" value={{processes}} />
+        <input type="hidden" id="theme" value="{{theme}}" />
+        <input type="hidden" id="pin_menu" value="{{pin_menu}}" />
+        <input type="hidden" id="language" value="{{language}}" />
+        <input type="hidden" id="python_version" value="{{python_version}}" />
+        <input type="hidden" id="auth" value="{{session.get('logged_in', False)}}" />
+        <input type="hidden" id="username" value="{{session.get('username')}}" />
+        <input type="hidden" id="predefined_filters" value="{{predefined_filters}}" />
+        <input type="hidden" id="max_column_width" value={{max_column_width}} />
+        <input type="hidden" id="max_row_height" value={{max_row_height}} />
+        <input type="hidden" id="main_title" value="{{main_title}}" />
+        <input type="hidden" id="main_title_font" value="{{main_title_font}}" />
+        <input type="hidden" id="query_engine" value="{{query_engine}}" />
+        <input type="hidden" id="open_custom_filter_on_startup" value="{{open_custom_filter_on_startup}}" />
+        <input type="hidden" id="open_predefined_filters_on_startup" value="{{open_predefined_filters_on_startup}}" />
+        <div class="container-fluid">
+            <div id="content">
+            </div>
+        </div>
+        <script type="text/javascript">
+            {{ polyfills_js|safe }}
+        </script>
+        <script type="text/javascript">
+            {{ export_js|safe }}
+        </script>
+    </body>
+</html>

@@ -2429,8 +2429,9 @@ def get_data(data_id):
         )
 
     params = retrieve_grid_params(request)
+    export = get_bool_arg(request, "export")
     ids = get_json_arg(request, "ids")
-    if ids is None:
+    if not export and ids is None:
         return jsonify({})
 
     col_types = global_state.get_dtypes(data_id)
@@ -2455,29 +2456,102 @@ def get_data(data_id):
     total = len(data)
     results = {}
     if total:
-        for sub_range in ids:
-            sub_range = list(map(int, sub_range.split("-")))
-            if len(sub_range) == 1:
-                sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
-                sub_df = f.format_dicts(sub_df.itertuples())
-                results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
-            else:
-                [start, end] = sub_range
-                sub_df = (
-                    data.iloc[start:]
-                    if end >= len(data) - 1
-                    else data.iloc[start : end + 1]
-                )
-                sub_df = f.format_dicts(sub_df.itertuples())
-                for i, d in zip(range(start, end + 1), sub_df):
-                    results[i] = dict_merge({IDX_COL: i}, d)
+        if export:
+            export_rows = get_int_arg(request, "export_rows")
+            if export_rows:
+                data = data.head(export_rows)
+            results = f.format_dicts(data.itertuples())
+            results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+        else:
+            for sub_range in ids:
+                sub_range = list(map(int, sub_range.split("-")))
+                if len(sub_range) == 1:
+                    sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    results[sub_range[0]] = dict_merge(
+                        {IDX_COL: sub_range[0]}, sub_df[0]
+                    )
+                else:
+                    [start, end] = sub_range
+                    sub_df = (
+                        data.iloc[start:]
+                        if end >= len(data) - 1
+                        else data.iloc[start : end + 1]
+                    )
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    for i, d in zip(range(start, end + 1), sub_df):
+                        results[i] = dict_merge({IDX_COL: i}, d)
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
     return_data = dict(
         results=results, columns=columns, total=total, final_query=final_query
     )
+
+    if export:
+        return export_html(data_id, return_data)
+
     return jsonify(return_data)
+
+
+def export_html(data_id, return_data):
+    def load_file(fpath):
+        with open(
+            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)), "r"
+        ) as file:
+            return file.read()
+
+    istok_woff = load_file("fonts/istok_woff64.txt")
+    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt")
+
+    font_styles = (
+        """
+        @font-face {
+          font-family: "istok";
+          font-weight: 400;
+          font-style: normal;
+          src: url(data:font/truetype;charset=utf-8;base64,"""
+        + istok_woff
+        + """) format("woff");
+        }
+
+        @font-face {
+          font-family: "istok";
+          font-weight: 700;
+          font-style: normal;
+          src: url(data:font/truetype;charset=utf-8;base64,"""
+        + istok_bold_woff
+        + """) format("woff");
+        }
+        """
+    )
+
+    main_styles = load_file("css/main.css").split("\n")
+    main_styles = "\n".join(main_styles[28:])
+    main_styles = "{}\n{}\n".format(font_styles, main_styles)
+
+    return_data["results"] = {r[IDX_COL]: r for r in return_data["results"]}
+
+    polyfills_js = load_file("dist/polyfills_bundle.js")
+    export_js = load_file("dist/export_bundle.js")
+
+    if not PY3:
+        main_styles = main_styles.decode("utf-8")
+        polyfills_js = polyfills_js.decode("utf-8")
+        export_js = export_js.decode("utf-8")
+
+    return send_file(
+        base_render_template(
+            "dtale/html_export.html",
+            data_id,
+            main_styles=main_styles,
+            polyfills_js=polyfills_js,
+            export_js=export_js,
+            response=return_data,
+        ),
+        "dtale_html_export_{}.html".format(json_timestamp(pd.Timestamp("now"))),
+        "text/html",
+    )
 
 
 @dtale.route("/load-filtered-ranges/<data_id>")

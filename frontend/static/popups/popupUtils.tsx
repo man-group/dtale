@@ -13,6 +13,7 @@ import CreateColumn from './create/CreateColumn';
 import { CleaningConfig, CreateColumnType, SaveAs, TypeConversionConfig } from './create/CreateColumnState';
 import Duplicates from './duplicates/Duplicates';
 import { Error } from './ErrorPopup';
+import Export from './Export';
 import FilterPopup from './filter/FilterPopup';
 import Instances from './instances/Instances';
 import PredictivePowerScore from './pps/PredictivePowerScore';
@@ -251,6 +252,17 @@ const buildError = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
+const buildExport = (props: BuilderInput): BuilderOutput => {
+  const title = (
+    <React.Fragment>
+      <i className="far fa-file" />
+      <strong>{props.t('menu:Export')}</strong>
+    </React.Fragment>
+  );
+  const body = <Export />;
+  return { title, body };
+};
+
 const buildInstances = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
@@ -321,6 +333,7 @@ const POPUP_MAP: Record<PopupType, (props: BuilderInput) => BuilderOutput> = {
   [PopupType.VARIANCE]: buildVariance,
   [PopupType.UPLOAD]: buildUpload,
   [PopupType.DUPLICATES]: buildDuplicates,
+  [PopupType.EXPORT]: buildExport,
   [PopupType.HIDDEN]: () => ({}),
   [PopupType.DESCRIBE]: () => ({}),
   [PopupType.CHARTS]: () => ({}),

@@ -44,7 +44,7 @@ export function buildURLParams(input?: Record<string, any>, props?: string[]): R
 export const buildURLString = (base: string, params: Record<string, string>): string =>
   `${base}${base.endsWith('?') ? '' : '?'}${new URLSearchParams(params).toString()}`;
 
-export const buildURL = (base: string, state: Record<string, any>, props: string[]): string =>
+export const buildURL = (base: string, state: Record<string, any>, props?: string[]): string =>
   buildURLString(base, buildURLParams(state, props));
 
 export const dtypesUrl = (dataId: string): string => `/dtale/dtypes/${dataId}`;

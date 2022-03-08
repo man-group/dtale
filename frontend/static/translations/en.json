@@ -19,9 +19,6 @@
     "Instances": "Instances",
     "Code Export": "Code Export",
     "Export": "Export",
-    "CSV": "CSV",
-    "TSV": "TSV",
-    "Parquet": "Parquet",
     "Load Data": "Load Data",
     "Refresh Widths": "Refresh Widths",
     "About": "About",
@@ -75,7 +72,7 @@
     "highlight_range": "Highlight any cells for numeric columns which match any of the filters for equals, greater than or less than. Click \"Highlight Range\" to update filters.",
     "instances": "Show existing datasets loaded to D-Tale.",
     "code": "Code snippet of commands performed upon your data to produce this grid.",
-    "export": "Download DataFrame as CSV or TSV",
+    "export": "Download DataFrame as CSV, TSV, Parquet or HTML",
     "widths": "Auto-Resize the column widths",
     "about": "Link to the source code repository, documentation",
     "shutdown": "Close D-Tale and all other open datasets without save. Do you want to export DataFrame?",
@@ -1026,5 +1023,15 @@
     "drift_desc": "Whether or not to remove a trend from the data. The trend is estimated as np.arange(nobs)*(x[-1] - x[0])/(len(x)-1).",
     "additive": "Additive",
     "multiplicative": "Multiplicative"
+  },
+  "export": {
+    "CSV": "CSV",
+    "TSV": "TSV",
+    "Parquet": "Parquet",
+    "Type": "Type",
+    "Rows": "Rows",
+    "html": "HTML",
+    "html_js": "HTML w/ JS",
+    "rows_desc": "Your dataset contains more than 10,000 rows. I would advise selecting a subset of rows (or editing your filters further).  Setting a value above will take the top N rows from your dataset."
   }
 }

@@ -5,8 +5,6 @@ import { InstanceSettings, Popups, PopupType, SortDef, SortDir } from '../../red
 import { ColumnDef, ColumnFormatStyle } from '../DataViewerState';
 import { ColumnType } from '../gridUtils';
 
-import { ExportType } from './ExportOption';
-
 /** placholder for simple void function */
 export type VoidFunc = () => void;
 
@@ -117,7 +115,6 @@ interface HotKeyOutput {
   ABOUT: () => AppActions<void>;
   LOGOUT: VoidFunc;
   SHUTDOWN: VoidFunc;
-  exportFile: (exportType: ExportType) => VoidFunc;
 }
 
 export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
@@ -141,11 +138,6 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
   const openNetwork = (): void => openTab('/dtale/network');
   const openCharts = (): void => openTab('/dtale/charts');
   const openCodeExport = (): void => open('/dtale/popup/code-export', dataId, 450, 700, isVSCode);
-  const exportFile =
-    (exportType: ExportType): VoidFunc =>
-    (): void => {
-      window.open(`${fullPath('/dtale/data-export', dataId)}?type=${exportType}&_id=${new Date().getTime()}`, '_blank');
-    };
   return {
     openTab: openPopupTab,
     openPopup: (popup: Popups, height = 450, width = 500) =>
@@ -169,6 +161,5 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
     ABOUT: () => openChart({ type: PopupType.ABOUT, size: 'sm', backdrop: true, visible: true }),
     LOGOUT: () => (window.location.pathname = fullPath('/logout')),
     SHUTDOWN: () => (window.location.pathname = fullPath('/shutdown')),
-    exportFile,
   };
 };

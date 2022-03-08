@@ -143,6 +143,7 @@ export enum PopupType {
   DUPLICATES = 'duplicates',
   CHARTS = 'charts',
   DESCRIBE = 'describe',
+  EXPORT = 'export',
 }
 
 /** Configuration for any data for a popup */
@@ -193,6 +194,11 @@ export type CopyRowRangeToClipboardPopupData = PopupData<typeof PopupType.COPY_R
 export interface ErrorPopupData extends PopupData<typeof PopupType.ERROR> {
   error: string;
   traceback?: string;
+}
+
+/** Popup configuration for Error popup */
+export interface ExportPopupData extends PopupData<typeof PopupType.EXPORT> {
+  rows: number;
 }
 
 /** Popup configuration for Error popup */
@@ -320,7 +326,8 @@ export type Popups =
   | VariancePopupData
   | CreateTypeConversionPopupData
   | CreateCleanersPopupData
-  | InstancesPopupData;
+  | InstancesPopupData
+  | ExportPopupData;
 
 /** Sort directions */
 export enum SortDir {

@@ -7,13 +7,18 @@ import * as GenericRepository from './GenericRepository';
 /** Row object */
 type DataRow = { [key: string]: any } & { [IDX]: number };
 
-/** Axios response object for loading data to the grid */
-interface DataResponse extends GenericRepository.BaseResponse {
+/** Content returned from the server for the DataViewer */
+export interface DataResponseContent {
   results: { [key: number]: DataRow };
   columns: ColumnDef[];
   total: number;
   final_query: string;
 }
+
+/** Axios response object for loading data to the grid */
+type DataResponse = DataResponseContent & GenericRepository.BaseResponse;
+
+export const ENDPOINT = '/dtale/data';
 
 /**
  * Load data for this instance for a set of rows and sort.
@@ -23,5 +28,5 @@ interface DataResponse extends GenericRepository.BaseResponse {
  * @return data to be displayed in the main grid.
  */
 export async function load(dataId: string, params: Record<string, string>): Promise<DataResponse | undefined> {
-  return await GenericRepository.getDataFromService<DataResponse>(buildURLString(`/dtale/data/${dataId}?`, params));
+  return await GenericRepository.getDataFromService<DataResponse>(buildURLString(`${ENDPOINT}/${dataId}?`, params));
 }
