@@ -175,7 +175,7 @@ export const Correlations: React.FC = () => {
   const buildScatter = (cols: string[], dateIndex?: number, updatedTsCode?: string): void => {
     const updatedScatterUrl = CorrelationsRepository.buildScatterUrl(
       dataId,
-      selectedCols,
+      cols,
       dateIndex,
       selectedDate,
       rolling,
@@ -320,7 +320,7 @@ export const Correlations: React.FC = () => {
                   dataLoadCallback={(data: chartUtils.DataSpec): void => {
                     const tsData = data as CorrelationsRepository.TimeseriesResponse;
                     setTsPps(tsData.pps);
-                    if (tsData?.data?.all?.x?.[0]) {
+                    if (tsData?.data?.all?.x?.[0] && selectedCols.length > 1) {
                       buildScatter(selectedCols, 0, tsData.code);
                     } else {
                       setTsCode(tsData.code);
