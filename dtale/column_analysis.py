@@ -156,15 +156,20 @@ class HistogramAnalysis(object):
         hist_kwargs = {"density": True} if self.density else {"bins": self.bins}
         hist_data, hist_labels = np.histogram(series, **hist_kwargs)
         hist_data = [json_float(h) for h in hist_data]
-        return (
-            dict(
-                labels=[
-                    "{0:.1f}".format(lbl) for lbl in hist_labels[1:]
-                ],  # drop the first bin because of just a minimum
-                data=hist_data,
-            ),
-            hist_labels,
-        )
+        decimals = 1
+        # drop the first bin because of just a minimum
+        labels = [
+            "".join(["{0:.", "{}".format(decimals), "f}"]).format(lbl)
+            for lbl in hist_labels[1:]
+        ]
+        while len(set(labels)) < len(labels) or decimals > 10:
+            decimals += 1
+            labels = [
+                "".join(["{0:.", "{}".format(decimals), "f}"]).format(lbl)
+                for lbl in hist_labels[1:]
+            ]
+
+        return dict(labels=labels, data=hist_data), hist_labels
 
     def build(self, parent):
         if parent.classifier == "D":
