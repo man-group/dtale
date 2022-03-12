@@ -187,9 +187,15 @@ class DefaultStore(object):
         return self.get_data_inst(data_id).data
 
     def get_data_id_by_name(self, data_name):
-        if data_name not in self._data_names:
-            return None
-        return self._data_names[data_name]
+        data_id = next(
+            (
+                value
+                for key, value in self._data_names.items()
+                if convert_name_to_url_path(key) == data_name or key == data_name
+            ),
+            None,
+        )
+        return data_id
 
     def get_dataset(self, data_id):
         return self.get_data_inst(data_id).dataset
@@ -325,7 +331,7 @@ def drop_punctuation(val):
 def convert_name_to_url_path(name):
     if name is None:
         return None
-    url_name = drop_punctuation(name)
+    url_name = drop_punctuation("{}".format(name))
     url_name = url_name.lower()
     return "_".join(url_name.split(" "))
 
