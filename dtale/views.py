@@ -770,7 +770,16 @@ def format_data(data, inplace=False, drop_index=False):
         else:
             data = data.drop("index", axis=1, errors="ignore")
 
-    data.columns = [str(c).strip() for c in data.columns]
+    def _format_colname(colname):
+        if isinstance(colname, tuple):
+            formatted_vals = [
+                find_dtype_formatter(type(v).__name__)(v, as_string=True)
+                for v in colname
+            ]
+            return "_".join([v for v in formatted_vals if v])
+        return str(colname).strip()
+
+    data.columns = [_format_colname(c) for c in data.columns]
     if len(data.columns) > len(set(data.columns)):
         distinct_cols = set()
         dupes = set()
