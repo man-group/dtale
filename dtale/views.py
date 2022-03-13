@@ -777,17 +777,20 @@ def format_data(data, inplace=False, drop_index=False):
         )
 
     for col in data.columns:
-        if find_dtype(data[col]).startswith("mixed") and not data[col].isnull().all():
+        dtype = find_dtype(data[col])
+        all_null = data[col].isnull().all()
+        if dtype.startswith("mixed") and not all_null:
             try:
                 unique_count(data[col])
             except TypeError:
                 # convert any columns with complex data structures (list, dict, etc...) to strings
                 data.loc[:, col] = data[col].astype("str")
-        elif (
-            find_dtype(data[col]).startswith("period") and not data[col].isnull().all()
-        ):
+        elif dtype.startswith("period") and not all_null:
             # convert any pandas period_range columns to timestamps
             data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
+        elif dtype.startswith("datetime") and not all_null:
+            # remove timezone information for filtering purposes
+            data.loc[:, col] = data[col].dt.tz_localize(None)
 
     return data, index
 
