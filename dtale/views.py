@@ -21,6 +21,12 @@ import matplotlib
 # flake8: NOQA
 matplotlib.use("agg")
 
+import matplotlib.pyplot as plt
+
+# flake8: NOQA
+plt.rcParams["font.sans-serif"] = ["SimHei"]  # Or any other Chinese characters
+matplotlib.rcParams["font.family"] = ["Heiti TC"]
+
 import missingno as msno
 import networkx as nx
 import numpy as np
@@ -3595,6 +3601,7 @@ def build_merge():
 @dtale.route("/missingno/<chart_type>/<data_id>")
 @exception_decorator
 def build_missingno_chart(chart_type, data_id):
+
     df = global_state.get_data(data_id)
     if chart_type == "matrix":
         date_index = get_str_arg(request, "date_index")
