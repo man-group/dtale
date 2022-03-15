@@ -9,6 +9,7 @@ from setuptools.command.test import test as TestCommand
 
 
 def read_file(path):
+    # if this fails on windows then add the following environment variable (PYTHONUTF8=1)
     with open(path) as contents:
         return contents.read()
 

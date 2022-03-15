@@ -39,7 +39,7 @@ from dtale.charts.utils import (
     valid_chart,
     weekday_tick_handler,
 )
-from dtale.utils import build_formatters as chart_formatters
+from dtale.utils import build_formatters as chart_formatters, read_file
 
 from dtale.dash_application.layout.layout import (
     ANIMATE_BY_CHARTS,
@@ -3867,11 +3867,11 @@ def map_chart_post_processing(html_str, params):
         else:
             topo_name = "usa_110m"
         topo_replace = [".fetchTopojson=function(){"]
-        with open(os.path.join(map_path, "{}.json".format(topo_name)), "r") as file:
-            data = file.read().replace("\n", "")
-            topo_replace.append(
-                "PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data)
-            )
+        data = read_file(os.path.join(map_path, "{}.json".format(topo_name)))
+        data = data.replace("\n", "")
+        topo_replace.append(
+            "PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data)
+        )
         topo_replace.append("}")
         topo_replace = "".join(topo_replace)
         return html_str.replace(topo_find, topo_replace)
