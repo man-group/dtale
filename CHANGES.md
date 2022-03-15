@@ -1,6 +1,6 @@
 ## Changelog
 
-### 2.1.1 (2022-3-14)
+### 2.1.2 (2022-3-15)
 * [#617](https://github.com/man-group/dtale/issues/617): file loading on windows
 * [#643](https://github.com/man-group/dtale/issues/643): correlation grid dropdown display
 * [#646](https://github.com/man-group/dtale/issues/646): initial show/hide grid display
