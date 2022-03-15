@@ -86,15 +86,17 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
   setVisibility,
 }) => {
   const [sort, setSort] = React.useState<SortDef>(['index', SortDir.ASC]);
-  const [data, setData] = React.useState<DtypesGridRow[]>(
-    dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })),
-  );
+  const [data, setData] = React.useState<DtypesGridRow[]>([]);
   const [dtypesFilter, setDtypesFilter] = React.useState<string>();
   const [allVisible, setAllVisible] = React.useState(gu.noHidden(dtypes));
 
   React.useEffect(() => {
     setData(data.map((row) => ({ ...row, selected: selected ? selected.index === row.index : row.selected })));
   }, [selected]);
+
+  React.useEffect(() => {
+    setData(dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })));
+  }, [dtypes]);
 
   const headerRenderer = (props: TableHeaderProps): JSX.Element => {
     const { dataKey, label } = props;
