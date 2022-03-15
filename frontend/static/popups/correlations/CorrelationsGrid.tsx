@@ -152,6 +152,8 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
           className="Select is-clearable is-searchable Select--single"
           classNamePrefix="Select"
           options={finalOptions.sort(sortOptions)}
+          getOptionLabel={(option) => option.value}
+          getOptionValue={(option) => option.value}
           value={value ?? null}
           onChange={(selected: BaseOption<string> | null): void => setter(selected ?? undefined)}
           noOptionsMessage={() => t('No columns found', { ns: 'correlations' })}
