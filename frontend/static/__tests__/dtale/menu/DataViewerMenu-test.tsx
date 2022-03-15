@@ -7,9 +7,11 @@ import ChartsOption from '../../../dtale/menu/ChartsOption';
 import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import { default as DataViewerMenu, DataViewerMenuProps } from '../../../dtale/menu/DataViewerMenu';
 import DescribeOption from '../../../dtale/menu/DescribeOption';
+import ExportOption from '../../../dtale/menu/ExportOption';
 import GageRnROption from '../../../dtale/menu/GageRnROption';
 import InstancesOption from '../../../dtale/menu/InstancesOption';
 import LanguageOption from '../../../dtale/menu/LanguageOption';
+import { MenuItem } from '../../../dtale/menu/MenuItem';
 import MergeOption from '../../../dtale/menu/MergeOption';
 import MissingOption from '../../../dtale/menu/MissingOption';
 import PPSOption from '../../../dtale/menu/PPSOption';
@@ -17,6 +19,7 @@ import PredefinedFiltersOption from '../../../dtale/menu/PredefinedFiltersOption
 import ShowHideColumnsOption from '../../../dtale/menu/ShowHideColumnsOption';
 import TimeseriesAnalysisOption from '../../../dtale/menu/TimeseriesAnalysisOption';
 import * as serverState from '../../../dtale/serverStateManagement';
+import { PopupType } from '../../../redux/state/AppState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, PREDEFINED_FILTERS, tickUpdate } from '../../test-utils';
 
@@ -58,6 +61,7 @@ describe('DataViewerMenu tests', () => {
       iframe: false,
       dataId: '1',
       settings: {},
+      rows: 50,
       ...props,
     };
     return mount(
@@ -127,6 +131,13 @@ describe('DataViewerMenu tests', () => {
     await tickUpdate(result);
     expect(updateLanguageSpy.mock.calls[0][0]).toBe('cn');
     expect(store.getState().language).toBe('cn');
+  });
+
+  it('opens export', async () => {
+    const result = buildMenu();
+    await result.find(ExportOption).find(MenuItem).props().onClick?.();
+    await tickUpdate(result);
+    expect(store.getState().chartData).toEqual({ visible: true, type: PopupType.EXPORT, rows: 50, size: 'sm' });
   });
 
   describe('iframe handling', () => {

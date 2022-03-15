@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { default as python } from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
+import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
+
+SyntaxHighlighter.registerLanguage('python', python);
 
 import { ButtonBuilderProps, canCopy, default as CopyToClipboard } from '../CopyToClipboard';
 import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';

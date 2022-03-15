@@ -1,5 +1,17 @@
 ## Changelog
 
+### 2.1.0 (2022-3-13)
+* [#617](https://github.com/man-group/dtale/issues/617): HTML Exports of data grid
+* Added option for JSONL line files in json-loader
+* [#643](https://github.com/man-group/dtale/issues/643): updated how selected columns get passed to correlation scatter charts
+* [#642](https://github.com/man-group/dtale/issues/642): updates for merge screen
+* [#641](https://github.com/man-group/dtale/issues/641): fixed histogram label precision
+* [#614](https://github.com/man-group/dtale/issues/614): display D-Tale by name
+* [#612](https://github.com/man-group/dtale/issues/612): fixed bug with replacing strings
+* [#602](https://github.com/man-group/dtale/issues/602): update any date columns to have naive timezone
+* [#607](https://github.com/man-group/dtale/issues/607): display of chinese characters in missingno plots
+* [#606](https://github.com/man-group/dtale/issues/606): stringify tuple column names
+
 ### 2.0.0 (2022-2-20)
 * Typescript conversion of frontend code
 

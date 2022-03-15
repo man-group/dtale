@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { default as python } from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
+import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
+
+SyntaxHighlighter.registerLanguage('python', python);
 
 import ButtonToggle from '../../ButtonToggle';
 import {

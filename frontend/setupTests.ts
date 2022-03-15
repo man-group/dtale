@@ -6,7 +6,17 @@ import { configure } from 'enzyme';
 configure({ adapter: new ReactSeventeenAdapter() });
 
 // this file is compiled in an odd way so we need to mock it (react-syntax-highlighter)
-jest.mock('react-syntax-highlighter/dist/esm/styles/hljs', () => ({ docco: {} }));
+jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/python', () => ({
+  __esModule: true,
+  default: () => undefined,
+}));
+jest.mock('react-syntax-highlighter/dist/esm/styles/hljs/docco', () => ({ __esModule: true, default: {} }));
+jest.mock('react-syntax-highlighter', () => {
+  const { createMockComponent } = require('./static/__tests__/mocks/createMockComponent');
+  const Light = createMockComponent('Light');
+  Light.registerLanguage = () => undefined;
+  return { Light };
+});
 
 // globally mock this until we actually start to test it
 jest.mock('plotly.js-geo-dist-min', () => ({ newPlot: () => undefined }));

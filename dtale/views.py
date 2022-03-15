@@ -21,6 +21,12 @@ import matplotlib
 # flake8: NOQA
 matplotlib.use("agg")
 
+import matplotlib.pyplot as plt
+
+# flake8: NOQA
+plt.rcParams["font.sans-serif"] = ["SimHei"]  # Or any other Chinese characters
+matplotlib.rcParams["font.family"] = ["Heiti TC"]
+
 import missingno as msno
 import networkx as nx
 import numpy as np
@@ -211,14 +217,18 @@ class DtaleData(object):
         self.is_proxy = is_proxy
         self.app_root = app_root
 
-    def build_main_url(self):
+    def build_main_url(self, name=None):
         return "{}/dtale/main/{}".format(
-            self.app_root if self.is_proxy else self._url, self._data_id
+            self.app_root if self.is_proxy else self._url, name or self._data_id
         )
 
     @property
     def _main_url(self):
-        return self.build_main_url()
+        suffix = self._data_id
+        name = global_state.get_name(suffix)
+        if name:
+            suffix = global_state.convert_name_to_url_path(name)
+        return self.build_main_url(name=suffix)
 
     @property
     def data(self):
@@ -760,7 +770,16 @@ def format_data(data, inplace=False, drop_index=False):
         else:
             data = data.drop("index", axis=1, errors="ignore")
 
-    data.columns = [str(c).strip() for c in data.columns]
+    def _format_colname(colname):
+        if isinstance(colname, tuple):
+            formatted_vals = [
+                find_dtype_formatter(type(v).__name__)(v, as_string=True)
+                for v in colname
+            ]
+            return "_".join([v for v in formatted_vals if v])
+        return str(colname).strip()
+
+    data.columns = [_format_colname(c) for c in data.columns]
     if len(data.columns) > len(set(data.columns)):
         distinct_cols = set()
         dupes = set()
@@ -773,17 +792,20 @@ def format_data(data, inplace=False, drop_index=False):
         )
 
     for col in data.columns:
-        if find_dtype(data[col]).startswith("mixed") and not data[col].isnull().all():
+        dtype = find_dtype(data[col])
+        all_null = data[col].isnull().all()
+        if dtype.startswith("mixed") and not all_null:
             try:
                 unique_count(data[col])
             except TypeError:
                 # convert any columns with complex data structures (list, dict, etc...) to strings
                 data.loc[:, col] = data[col].astype("str")
-        elif (
-            find_dtype(data[col]).startswith("period") and not data[col].isnull().all()
-        ):
+        elif dtype.startswith("period") and not all_null:
             # convert any pandas period_range columns to timestamps
             data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
+        elif dtype.startswith("datetime") and not all_null:
+            # remove timezone information for filtering purposes
+            data.loc[:, col] = data[col].dt.tz_localize(None)
 
     return data, index
 
@@ -2429,8 +2451,9 @@ def get_data(data_id):
         )
 
     params = retrieve_grid_params(request)
+    export = get_bool_arg(request, "export")
     ids = get_json_arg(request, "ids")
-    if ids is None:
+    if not export and ids is None:
         return jsonify({})
 
     col_types = global_state.get_dtypes(data_id)
@@ -2455,29 +2478,102 @@ def get_data(data_id):
     total = len(data)
     results = {}
     if total:
-        for sub_range in ids:
-            sub_range = list(map(int, sub_range.split("-")))
-            if len(sub_range) == 1:
-                sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
-                sub_df = f.format_dicts(sub_df.itertuples())
-                results[sub_range[0]] = dict_merge({IDX_COL: sub_range[0]}, sub_df[0])
-            else:
-                [start, end] = sub_range
-                sub_df = (
-                    data.iloc[start:]
-                    if end >= len(data) - 1
-                    else data.iloc[start : end + 1]
-                )
-                sub_df = f.format_dicts(sub_df.itertuples())
-                for i, d in zip(range(start, end + 1), sub_df):
-                    results[i] = dict_merge({IDX_COL: i}, d)
+        if export:
+            export_rows = get_int_arg(request, "export_rows")
+            if export_rows:
+                data = data.head(export_rows)
+            results = f.format_dicts(data.itertuples())
+            results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+        else:
+            for sub_range in ids:
+                sub_range = list(map(int, sub_range.split("-")))
+                if len(sub_range) == 1:
+                    sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    results[sub_range[0]] = dict_merge(
+                        {IDX_COL: sub_range[0]}, sub_df[0]
+                    )
+                else:
+                    [start, end] = sub_range
+                    sub_df = (
+                        data.iloc[start:]
+                        if end >= len(data) - 1
+                        else data.iloc[start : end + 1]
+                    )
+                    sub_df = f.format_dicts(sub_df.itertuples())
+                    for i, d in zip(range(start, end + 1), sub_df):
+                        results[i] = dict_merge({IDX_COL: i}, d)
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
     return_data = dict(
         results=results, columns=columns, total=total, final_query=final_query
     )
+
+    if export:
+        return export_html(data_id, return_data)
+
     return jsonify(return_data)
+
+
+def export_html(data_id, return_data):
+    def load_file(fpath):
+        with open(
+            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)), "r"
+        ) as file:
+            return file.read()
+
+    istok_woff = load_file("fonts/istok_woff64.txt")
+    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt")
+
+    font_styles = (
+        """
+        @font-face {
+          font-family: "istok";
+          font-weight: 400;
+          font-style: normal;
+          src: url(data:font/truetype;charset=utf-8;base64,"""
+        + istok_woff
+        + """) format("woff");
+        }
+
+        @font-face {
+          font-family: "istok";
+          font-weight: 700;
+          font-style: normal;
+          src: url(data:font/truetype;charset=utf-8;base64,"""
+        + istok_bold_woff
+        + """) format("woff");
+        }
+        """
+    )
+
+    main_styles = load_file("css/main.css").split("\n")
+    main_styles = "\n".join(main_styles[28:])
+    main_styles = "{}\n{}\n".format(font_styles, main_styles)
+
+    return_data["results"] = {r[IDX_COL]: r for r in return_data["results"]}
+
+    polyfills_js = load_file("dist/polyfills_bundle.js")
+    export_js = load_file("dist/export_bundle.js")
+
+    if not PY3:
+        main_styles = main_styles.decode("utf-8")
+        polyfills_js = polyfills_js.decode("utf-8")
+        export_js = export_js.decode("utf-8")
+
+    return send_file(
+        base_render_template(
+            "dtale/html_export.html",
+            data_id,
+            main_styles=main_styles,
+            polyfills_js=polyfills_js,
+            export_js=export_js,
+            response=return_data,
+        ),
+        "dtale_html_export_{}.html".format(json_timestamp(pd.Timestamp("now"))),
+        "text/html",
+    )
 
 
 @dtale.route("/load-filtered-ranges/<data_id>")
@@ -3514,6 +3610,7 @@ def build_merge():
 @dtale.route("/missingno/<chart_type>/<data_id>")
 @exception_decorator
 def build_missingno_chart(chart_type, data_id):
+
     df = global_state.get_data(data_id)
     if chart_type == "matrix":
         date_index = get_str_arg(request, "date_index")

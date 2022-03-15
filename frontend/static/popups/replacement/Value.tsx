@@ -105,7 +105,14 @@ const Value: React.FC<BaseReplacementComponentProps & WithTranslation> = ({
     if (type === ValueConfigType.COL) {
       replace = col?.value;
     } else if (type === ValueConfigType.RAW) {
-      replace = raw === 'nan' ? raw : colType === 'float' ? parseFloat(raw ?? '') : parseInt(raw ?? '', 10);
+      replace =
+        raw === 'nan'
+          ? raw
+          : colType === 'float'
+          ? parseFloat(raw ?? '')
+          : colType === 'int'
+          ? parseInt(raw ?? '', 10)
+          : raw;
     } else {
       replace = agg?.value;
     }

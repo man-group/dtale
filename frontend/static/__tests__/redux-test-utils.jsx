@@ -47,7 +47,7 @@ const DTYPES = {
   success: true,
 };
 
-const DATA = {
+export const DATA = {
   results: [
     { dtale_index: 0, col1: 1, col2: 2.5, col3: 'foo', col4: '2000-01-01' },
     { dtale_index: 1, col1: 2, col2: 3.5, col3: 'foo', col4: '2000-01-01' },
@@ -58,6 +58,7 @@ const DATA = {
   columns: [{ dtype: 'int64', index: -1, name: 'dtale_index', visible: true }, ...DTYPES.dtypes],
   total: 5,
   success: true,
+  final_query: '',
 };
 
 const DESCRIBE = {

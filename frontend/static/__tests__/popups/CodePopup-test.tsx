@@ -24,7 +24,7 @@ describe('CodePopup tests', () => {
       attachTo: document.getElementById('content') ?? undefined,
     });
     result.render();
-    expect(result.find('pre').text()).toBe('test code');
+    expect(result.find('Light').text()).toBe('test code');
     result.find('button').simulate('click');
   });
 

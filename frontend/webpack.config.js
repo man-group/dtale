@@ -13,12 +13,13 @@ const entries = [
   ['polyfills', './static/polyfills.js'],
   ['dtale', './static/main.tsx'],
   ['network', './static/network/main.tsx'],
+  ['export', './static/dtale/export/main.tsx'],
 ];
 
 function createConfig(entry) {
   const entryName = entry[0];
   const entryPath = entry[1];
-  return {
+  const cfg = {
     devtool: 'inline-source-map',
     mode: 'development',
     entry: path.resolve(__dirname, entryPath),
@@ -150,6 +151,10 @@ function createConfig(entry) {
       poll: true,
     },
   };
+  if (entryName === 'export') {
+    cfg.output.publicPath = '';
+  }
+  return cfg;
 }
 
 const dashEntries = [

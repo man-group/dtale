@@ -13,7 +13,7 @@ import {
   ToggleDatasetAction,
   UpdateDatasetAction,
 } from '../../redux/actions/MergeActions';
-import { PopupType } from '../../redux/state/AppState';
+import { BaseOption, PopupType } from '../../redux/state/AppState';
 import { Dataset, MergeInstance, MergeState } from '../../redux/state/MergeState';
 import { RemovableError } from '../../RemovableError';
 import { LabeledInput } from '../create/LabeledInput';
@@ -79,7 +79,13 @@ const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
                   options={columnOptions}
                   placeholder={t('Select Indexes')}
                   value={dataset.index.map((col) => ({ value: col, label: colName(col) }))}
-                  onChange={(index) => updateDataset(datasetIndex, 'index', index)}
+                  onChange={(indexes) =>
+                    updateDataset(
+                      datasetIndex,
+                      'index',
+                      ((indexes ?? []) as Array<BaseOption<ColumnDef>>).map(({ value }) => value),
+                    )
+                  }
                   isMulti={true}
                   labelWidth={2}
                 />
@@ -91,7 +97,13 @@ const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
                 options={columnOptions}
                 placeholder={t('All Columns Selected')}
                 value={dataset.index.map((col) => ({ value: col, label: colName(col) }))}
-                onChange={(index) => updateDataset(datasetIndex, 'columns', index)}
+                onChange={(updatedColumns) =>
+                  updateDataset(
+                    datasetIndex,
+                    'columns',
+                    ((updatedColumns ?? []) as Array<BaseOption<ColumnDef>>).map(({ value }) => value),
+                  )
+                }
                 isMulti={true}
                 labelWidth={2}
               />

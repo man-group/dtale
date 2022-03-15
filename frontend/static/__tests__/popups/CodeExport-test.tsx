@@ -4,6 +4,7 @@ import { act } from 'react-dom/test-utils';
 import * as redux from 'react-redux';
 
 import { CodeExport } from '../../popups/CodeExport';
+import CodePopup from '../../popups/CodePopup';
 import { RemovableError } from '../../RemovableError';
 import * as GenericRepository from '../../repository/GenericRepository';
 import { tickUpdate } from '../test-utils';
@@ -41,7 +42,7 @@ describe('CodeExport tests', () => {
 
   it('CodeExport render & copy test', async () => {
     await build();
-    expect(result.find('pre').text()).toBe('test code');
+    expect(result.find(CodePopup).props().code).toBe('test code');
     result.find('button').simulate('click');
   });
 

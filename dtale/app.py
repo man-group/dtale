@@ -465,6 +465,13 @@ def build_app(
         """
         return "ok"
 
+    @app.url_value_preprocessor
+    def handle_data_id(_endpoint, values):
+        if values and "data_id" in values:
+            # https://github.com/man-group/dtale/commit/536691d365b69a580df836e617978eb563402ac5
+            data_id_from_name = global_state.get_data_id_by_name(values["data_id"])
+            values["data_id"] = data_id_from_name or values["data_id"]
+
     auth.setup_auth(app)
 
     with app.app_context():
@@ -662,6 +669,20 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     """
     global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK
 
+    if name:
+        if global_state.get_data_id_by_name(name):
+            print(
+                "Data has already been loaded to D-Tale with the name '{}', please try another one.".format(
+                    name
+                )
+            )
+            return
+        if any(not c.isalnum() and not c.isspace() for c in name):
+            print(
+                "'name' property cannot contain any special characters only letters, numbers or spaces."
+            )
+            return
+
     try:
         final_options = dtale_config.build_show_options(options)
         logfile, log_level, verbose = map(
@@ -802,7 +823,9 @@ def instances():
                     yield [
                         global_state.convert_name_to_url_path(name),
                         name,
-                        instance.build_main_url(),
+                        instance.build_main_url(
+                            global_state.convert_name_to_url_path(name)
+                        ),
                     ]
 
         data = pd.DataFrame(
@@ -826,12 +849,14 @@ def get_instance(data_id):
     :type data_id: int
     :return: :class:`dtale.views.DtaleData`
     """
-    if not global_state.contains(data_id):
+    final_data_id = global_state.get_data_id_by_name(data_id) or data_id
+    if not global_state.contains(final_data_id):
         return None
+
     if data_id is not None:
         startup_url, final_app_root = build_startup_url_and_app_root()
         return DtaleData(
-            data_id,
+            final_data_id,
             startup_url,
             is_proxy=JUPYTER_SERVER_PROXY,
             app_root=final_app_root,

@@ -13,7 +13,7 @@ import Formatting from '../../popups/formats/Formatting';
 import { ActionType } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, findMainMenuButton, tickUpdate } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, tickUpdate } from '../test-utils';
 
 import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from './iframe-utils';
 
@@ -197,18 +197,6 @@ describe('DataViewer iframe tests', () => {
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/network/1');
     await clickMainMenuButton(result, 'Instances 1');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/popup/instances/1');
-    await act(async () => {
-      findMainMenuButton(result, 'CSV', 'div.btn-group').find('button').first().simulate('click');
-    });
-    result = result.update();
-    let exportURL = openSpy.mock.calls[openSpy.mock.calls.length - 1][0];
-    expect(exportURL.startsWith('/dtale/data-export/1') && exportURL.includes('type=csv')).toBe(true);
-    await act(async () => {
-      findMainMenuButton(result, 'CSV', 'div.btn-group').find('button').at(1).simulate('click');
-    });
-    result = result.update();
-    exportURL = openSpy.mock.calls[openSpy.mock.calls.length - 1][0];
-    expect(exportURL.startsWith('/dtale/data-export/1') && exportURL.includes('type=tsv')).toBe(true);
     await clickMainMenuButton(result, 'Refresh Widths');
     await clickMainMenuButton(result, 'Reload Data');
     expect(window.location.reload).toHaveBeenCalled();

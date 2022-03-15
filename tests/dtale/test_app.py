@@ -140,9 +140,12 @@ def test_show(unittest):
             mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
         )
         mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
-        instance = show(data=test_data, subprocess=False, ignore_duplicate=True)
+        instance = show(
+            data=test_data, subprocess=False, name="foo", ignore_duplicate=True
+        )
         assert "http://localhost:9999" == instance._url
-        assert "http://localhost:9999/dtale/main/1" == instance.main_url()
+        assert "http://localhost:9999/dtale/main/1" == instance.build_main_url()
+        assert "http://localhost:9999/dtale/main/foo" == instance.main_url()
         mock_run.assert_called_once()
         mock_find_free_port.assert_called_once()
 
@@ -155,10 +158,17 @@ def test_show(unittest):
             views.build_dtypes_state(tmp),
             "should update app data/dtypes",
         )
+        # duplicate name
+        assert (
+            show(data=test_data, subprocess=False, name="foo", ignore_duplicate=True)
+            is None
+        )
 
         instance2 = get_instance(instance._data_id)
         assert instance2._url == instance._url
-        # removed data name test. wait for proper data name implementation.
+        instance2 = get_instance("foo")
+        assert instance2._url == instance._url
+        pdt.assert_frame_equal(instance2.data, tmp)
 
         instances()
 
@@ -168,10 +178,25 @@ def test_show(unittest):
         mock_requests.assert_called_once()
         assert mock_requests.call_args[0][0] == "http://localhost:9999/shutdown"
 
-        instance3 = show(
-            data=test_data, subprocess=False, name="It's Here", ignore_duplicate=True
+        # invalid name characters
+        assert (
+            show(
+                data=test_data,
+                subprocess=False,
+                name="It's Here",
+                ignore_duplicate=True,
+            )
+            is None
         )
-        assert instance3.main_url() == "http://localhost:9999/dtale/main/2"
+        instance3 = show(
+            data=test_data, subprocess=False, name="Its Here", ignore_duplicate=True
+        )
+        assert instance3.build_main_url() == "http://localhost:9999/dtale/main/2"
+        assert instance3.main_url() == "http://localhost:9999/dtale/main/its_here"
+        pdt.assert_frame_equal(instance3.data, test_data)
+
+        instance3 = get_instance("its_here")
+        assert instance3._url == instance._url
         pdt.assert_frame_equal(instance3.data, test_data)
 
     with ExitStack() as stack:
@@ -219,7 +244,7 @@ def test_show(unittest):
         )
         stack.enter_context(mock.patch("dtale.app.logger", mock.Mock()))
         instance = show(
-            data=test_data, subprocess=False, name="foo", ignore_duplicate=True
+            data=test_data, subprocess=False, name="foo2", ignore_duplicate=True
         )
         assert np.array_equal(instance.data["0"].values, test_data[0].values)
 
@@ -313,7 +338,7 @@ def test_show(unittest):
             mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
         )
         stack.enter_context(mock.patch("requests.get", mock.Mock()))
-        show(data=test_data, subprocess=False, name="foo2", ignore_duplicate=True)
+        show(data=test_data, subprocess=False, name="foo3", ignore_duplicate=True)
 
         _, kwargs = mock_build_app.call_args
         unittest.assertEqual(

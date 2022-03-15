@@ -15,12 +15,13 @@ export const MenuTooltip: React.FC = () => {
 
   const tooltipRef = React.useRef<HTMLDivElement>(null);
   const lastElementRect = usePrevious(element?.getBoundingClientRect());
+  const lastStyle = usePrevious(style);
 
-  const checkForWindowEdge = (currStyle: React.CSSProperties): void => {
+  const checkForWindowEdge = (): void => {
     if (lastElementRect && tooltipRef.current) {
       let top = lastElementRect.top - (menuPinned ? 0 : lastElementRect.height - 26);
       const tooltipRect = tooltipRef.current?.getBoundingClientRect();
-      const updatedStyle = { ...currStyle };
+      const updatedStyle = { ...style };
       const currLeft = Number(updatedStyle.left ?? 0);
       let updatedBottom = false;
       let updatedRight = false;
@@ -45,7 +46,7 @@ export const MenuTooltip: React.FC = () => {
     if (visible && element) {
       const rect = element.getBoundingClientRect();
       const top = rect.top - (menuPinned ? 0 : rect.height - 26);
-      checkForWindowEdge({ display: 'block', top, left: rect.left + rect.width + 8 });
+      setStyle({ display: 'block', top, left: rect.left + rect.width + 8 });
     } else {
       setStyle({ display: 'none' });
       setBottom(false);
@@ -57,6 +58,12 @@ export const MenuTooltip: React.FC = () => {
     () => computeStyle(),
     [visible, element?.getBoundingClientRect()?.top, element?.getBoundingClientRect()?.left],
   );
+
+  React.useEffect(() => {
+    if (lastStyle?.display === 'none') {
+      checkForWindowEdge();
+    }
+  }, [style]);
 
   return (
     <div
