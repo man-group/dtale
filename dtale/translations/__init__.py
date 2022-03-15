@@ -2,6 +2,7 @@ import json
 import os as _os
 
 import dtale.global_state as global_state
+from dtale.utils import read_file
 
 _basepath = _os.path.dirname(__file__)
 _languages = {}
@@ -9,8 +10,7 @@ for filename in _os.listdir(_basepath):
     lang, ext = _os.path.splitext(filename)
     if ext == ".json":
         filepath = _os.path.abspath(_os.path.join(_basepath, filename))
-        with open(filepath) as f:
-            _languages[lang] = json.load(f)
+        _languages[lang] = json.loads(read_file(filepath))
 
 
 def text(key):

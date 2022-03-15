@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from pkg_resources import parse_version
 from past.utils import old_div
-from six import BytesIO, StringIO
+from six import BytesIO, PY3, StringIO
 
 logger = getLogger(__name__)
 
@@ -785,3 +785,14 @@ def optimize_df(df):
         if num_unique_values / num_total_values < 0.5:
             df[col] = df[col].astype("category")
     return df
+
+
+def read_file(file_path, encoding="utf-8"):
+    open_kwargs = {}
+    if PY3 and encoding:
+        open_kwargs["encoding"] = encoding
+    with open(file_path, "r", **open_kwargs) as file:
+        output = file.read()
+        if not PY3 and encoding:
+            return output.decode(encoding)
+        return output

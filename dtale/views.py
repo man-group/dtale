@@ -100,6 +100,7 @@ from dtale.utils import (
     json_timestamp,
     jsonify,
     jsonify_error,
+    read_file,
     make_list,
     retrieve_grid_params,
     running_with_flask_debug,
@@ -2517,14 +2518,14 @@ def get_data(data_id):
 
 
 def export_html(data_id, return_data):
-    def load_file(fpath):
-        with open(
-            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)), "r"
-        ) as file:
-            return file.read()
+    def load_file(fpath, encoding="utf-8"):
+        return read_file(
+            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)),
+            encoding=encoding,
+        )
 
-    istok_woff = load_file("fonts/istok_woff64.txt")
-    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt")
+    istok_woff = load_file("fonts/istok_woff64.txt", encoding=None)
+    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt", encoding=None)
 
     font_styles = (
         """
@@ -2548,19 +2549,17 @@ def export_html(data_id, return_data):
         """
     )
 
-    main_styles = load_file("css/main.css").split("\n")
+    main_styles = load_file("css/main.css", encoding=None).split("\n")
     main_styles = "\n".join(main_styles[28:])
     main_styles = "{}\n{}\n".format(font_styles, main_styles)
+
+    if not PY3:
+        main_styles = main_styles.decode("utf-8")
 
     return_data["results"] = {r[IDX_COL]: r for r in return_data["results"]}
 
     polyfills_js = load_file("dist/polyfills_bundle.js")
     export_js = load_file("dist/export_bundle.js")
-
-    if not PY3:
-        main_styles = main_styles.decode("utf-8")
-        polyfills_js = polyfills_js.decode("utf-8")
-        export_js = export_js.decode("utf-8")
 
     return send_file(
         base_render_template(
