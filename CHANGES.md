@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2.1.1 (2022-3-14)
+* [#617](https://github.com/man-group/dtale/issues/617): file loading on windows
+* [#643](https://github.com/man-group/dtale/issues/643): correlation grid dropdown display
+* [#646](https://github.com/man-group/dtale/issues/646): initial show/hide grid display
+
 ### 2.1.0 (2022-3-13)
 * [#617](https://github.com/man-group/dtale/issues/617): HTML Exports of data grid
 * Added option for JSONL line files in json-loader
