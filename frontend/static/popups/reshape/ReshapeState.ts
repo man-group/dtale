@@ -46,7 +46,7 @@ export interface ReshapePivotConfig {
   index?: string[];
   columns?: string[];
   values?: string[];
-  func?: string;
+  aggfunc?: string;
   columnNameHeaders: boolean;
 }
 

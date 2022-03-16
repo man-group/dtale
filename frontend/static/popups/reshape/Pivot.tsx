@@ -30,8 +30,8 @@ export const buildCode = (cfg: ReshapePivotConfig): CreateColumnCodeSnippet => {
   let code = 'pd.pivot_table(df, ';
   const buildStr = (vals: string[]): string => `['${vals.join("', '")}']`;
   code += `index=${buildStr(cfg.index)}, columns=${buildStr(cfg.columns)}, values=${buildStr(cfg.values)}`;
-  if (cfg.func) {
-    code += `, aggfunc='${cfg.func}'`;
+  if (cfg.aggfunc) {
+    code += `, aggfunc='${cfg.aggfunc}'`;
   }
   code += ')';
   return code;
@@ -50,7 +50,7 @@ const Pivot: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ updateSt
       index: index?.map(({ value }) => value),
       columns: columns?.map(({ value }) => value),
       values: values?.map(({ value }) => value),
-      func: func?.value,
+      aggfunc: func?.value,
       columnNameHeaders,
     };
     updateState({ cfg, code: buildCode(cfg) });

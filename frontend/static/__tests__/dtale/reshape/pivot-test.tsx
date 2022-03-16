@@ -87,7 +87,7 @@ describe('Pivot', () => {
         index: ['col1'],
         columns: ['col2'],
         values: ['col3'],
-        func: 'count',
+        aggfunc: 'count',
         columnNameHeaders: false,
       },
       type: ReshapeType.PIVOT,
