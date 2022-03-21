@@ -58,7 +58,8 @@ def load_player_suggestions(input):
     parsed_players = []
     for player in players_found:
         link = player.find("div", class_="search-item-name").find("a")
-        name, years = link.text.split("\n")
+        name, years = link.text.split("(")
+        years = years.replace(")", "")
         parsed_players.append(
             dict(href=link.attrs["href"], name=name.strip(), years=years.strip())
         )
@@ -70,7 +71,7 @@ def load_player_suggestions(input):
 
 
 def parse_player_df(content):
-    name = content.select("h1[itemprop=name]")[0].text.strip()
+    name = content.find(id="meta").select("h1")[0].text.strip()
     standard_batting = content.find(id="div_batting_standard")
     standard_batting_tbl = standard_batting.find("table")
 
