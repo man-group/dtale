@@ -175,10 +175,10 @@ class DefaultStore(object):
         data_id = int(data_id)
         return self._data_store.get(data_id)
 
-    def new_data_inst(self, data_id=None):
+    def new_data_inst(self, data_id=None, instance=None):
         if data_id is None:
             data_id = self.build_data_id()
-        new_data = DtaleInstance(None)
+        new_data = instance or DtaleInstance(None)
         data_id = int(data_id)
         self._data_store[data_id] = new_data
         return data_id
@@ -382,6 +382,16 @@ def cleanup(data_id=None):
         _default_store.clear_store()
     else:
         _default_store.delete_instance(data_id)
+
+
+def update_id(old_data_id, new_data_id):
+    if _default_store.contains(new_data_id):
+        raise Exception("Data already exists for id ({})".format(new_data_id))
+    curr_data = _default_store.get_data_inst(old_data_id)
+    _default_store.delete_instance(old_data_id)
+    data_id = int(new_data_id)
+    _default_store.new_data_inst(data_id, curr_data)
+    return data_id
 
 
 def load_flag(data_id, flag_name, default):

@@ -756,3 +756,53 @@ def test_hide_columns():
         )
         assert global_state.get_dtypes(instance._data_id)[0]["visible"] is True
         assert not global_state.get_dtypes(instance._data_id)[1]["visible"] is True
+
+
+@pytest.mark.unit
+def test_update_data_id():
+    import dtale.global_state as global_state
+    from dtale.app import show
+
+    global_state.clear_store()
+    df = pd.DataFrame(dict(a=[1, 2], b=[2, 3]))
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask.run", mock.Mock()))
+        stack.enter_context(
+            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
+        )
+        stack.enter_context(
+            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
+        )
+        stack.enter_context(
+            mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
+        )
+        stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = show(data=df, ignore_duplicate=True, subprocess=False)
+        current_id = int(instance._data_id)
+        instance.update_id(current_id + 1)
+
+        assert len(global_state.get_dtypes(current_id + 1)) == 2
+        assert not global_state.contains(current_id)
+
+    global_state.clear_store()
+    with ExitStack() as stack:
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask", MockDtaleFlask))
+        stack.enter_context(mock.patch("dtale.app.DtaleFlask.run", mock.Mock()))
+        stack.enter_context(
+            mock.patch("dtale.app.find_free_port", mock.Mock(return_value=9999))
+        )
+        stack.enter_context(
+            mock.patch("socket.gethostname", mock.Mock(return_value="localhost"))
+        )
+        stack.enter_context(
+            mock.patch("dtale.app.is_up", mock.Mock(return_value=False))
+        )
+        stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        instance = show(data=df, ignore_duplicate=True, subprocess=False)
+
+        current_id = int(instance._data_id)
+        global_state.update_id(current_id, current_id + 1)
+
+        assert len(global_state.get_dtypes(current_id + 1)) == 2
+        assert not global_state.contains(current_id)

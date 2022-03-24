@@ -247,6 +247,14 @@ class DtaleData(object):
         """
         startup(self._url, data=data, data_id=self._data_id)
 
+    def update_id(self, new_data_id):
+        """
+        Update current data_id to new data_id
+
+        :param new_data_id: the data_id to update to
+        """
+        self._data_id = global_state.update_id(self._data_id, new_data_id)
+
     def main_url(self):
         """
         Helper function creating main :class:`flask:flask.Flask` route using instance's url & data_id

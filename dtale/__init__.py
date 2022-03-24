@@ -9,6 +9,7 @@ dtale = Blueprint("dtale", __name__, url_prefix="/dtale")
 # flake8: NOQA
 from dtale.app import show, get_instance, instances, offline_chart  # isort:skip
 from dtale.cli.loaders import LOADERS  # isort:skip
+from dtale.global_state import update_id  # isort:skip
 
 ALLOW_CELL_EDITS = True
 HIDE_SHUTDOWN = False
