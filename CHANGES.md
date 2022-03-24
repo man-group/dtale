@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.2.0 (2022-3-23)
+* [#601](https://github.com/man-group/dtale/issues/601): added update_id functionality
+* [#649](https://github.com/man-group/dtale/issues/649): fixed incorrect property in pivot opertaions
+
 ### 2.1.2 (2022-3-15)
 * [#617](https://github.com/man-group/dtale/issues/617): file loading on windows
 * [#643](https://github.com/man-group/dtale/issues/643): correlation grid dropdown display
