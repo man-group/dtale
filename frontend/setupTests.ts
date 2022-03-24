@@ -63,5 +63,10 @@ jest.mock('chart.js', () => ({
   },
 }));
 
+window.requestAnimationFrame = (): number => {
+  window.clearTimeout();
+  return 0;
+};
+
 // this is required for webpack dynamic public path setup
 (global as any).__webpack_public_path__ = '';
