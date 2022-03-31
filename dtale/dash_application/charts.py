@@ -350,14 +350,10 @@ def build_axes(
                         pos = axis_ct / 20.0
                         value["position"] = (1 - pos) if right else pos
                         positions.append(value["position"])
-                if (
-                    y2 in axis_data
-                    and not (
-                        axis_data[y2]["min"],
-                        axis_data[y2]["max"],
-                    )
-                    == (mins[y2], maxs[y2])
-                ):
+                if y2 in axis_data and not (
+                    axis_data[y2]["min"],
+                    axis_data[y2]["max"],
+                ) == (mins[y2], maxs[y2]):
                     value["range"] = [axis_data[y2]["min"], axis_data[y2]["max"]]
                 if classify_type(dtypes.get(y2)) == "I":
                     value["tickformat"] = "0:g"

@@ -36,6 +36,6 @@ def test_failed_override():
         with app.test_client() as c:
             resp = c.get("/")
             assert resp.status_code == 302
-            assert resp.location == "http://localhost:{}/dtale/popup/upload".format(
-                c.port
+            assert "http://localhost:{}/dtale/popup/upload".format(c.port).endswith(
+                resp.location
             )

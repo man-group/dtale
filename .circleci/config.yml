@@ -150,7 +150,7 @@ python: &python
           command: |
             if [ "$RUN_BLACK" = "true" ]; then
               . ci/bin/activate
-              pip install black==20.8b1
+              pip install black
               black --check setup.py dtale tests
             fi
       - run:

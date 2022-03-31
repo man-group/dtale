@@ -346,10 +346,10 @@ class RandomColumnBuilder(object):
             if timestamps:
 
                 def pp(start, end, n):
-                    start_u = start.value // 10 ** 9
-                    end_u = end.value // 10 ** 9
+                    start_u = start.value // 10**9
+                    end_u = end.value // 10**9
                     return pd.DatetimeIndex(
-                        (10 ** 9 * np.random.randint(start_u, end_u, n)).view("M8[ns]")
+                        (10**9 * np.random.randint(start_u, end_u, n)).view("M8[ns]")
                     )
 
                 dates = pp(pd.Timestamp(start), pd.Timestamp(end), len(data))
@@ -1077,9 +1077,15 @@ def clean(s, cleaner, cfg):
     elif cleaner == "keep_alpha":
         return apply(s, lambda x: "".join(c for c in x if c.isalpha()))
     elif cleaner == "normalize_accents":
+        normalizer = "NFKD"
+        if not six.PY3:
+            normalizer = normalizer.decode("utf-8")
         return apply(
             s,
-            lambda x: unicodedata.normalize("NFKD", u"{}".format(x))
+            lambda x: unicodedata.normalize(
+                normalizer,
+                "{}".format(x) if six.PY3 else "{}".format(x).decode("utf-8"),
+            )
             .encode("ASCII", "ignore")
             .decode("utf-8"),
         )

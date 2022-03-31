@@ -408,10 +408,10 @@ def test_processes(test_data, unittest):
             [
                 {
                     "rows": 50,
-                    "name": u"foo",
+                    "name": "foo",
                     "ts": 1525106204000,
                     "start": "12:36:44 PM",
-                    "names": u"date,security_id,foo,bar,baz",
+                    "names": "date,security_id,foo,bar,baz",
                     "data_id": str(c.port),
                     "columns": 5,
                     "mem_usage": 4600 if PY3 else 4000,
@@ -1649,21 +1649,21 @@ def test_get_chart_data(unittest, rolling_data):
         response = c.get("/dtale/chart-data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
         expected = {
-            u"data": {
-                u"all": {
-                    u"x": [
+            "data": {
+                "all": {
+                    "x": [
                         "2000-01-01",
                         "2000-01-02",
                         "2000-01-03",
                         "2000-01-04",
                         "2000-01-05",
                     ],
-                    u"security_id|count": [50, 50, 50, 50, 50],
+                    "security_id|count": [50, 50, 50, 50, 50],
                 }
             },
-            u"max": {"security_id|count": 50, "x": "2000-01-05"},
-            u"min": {"security_id|count": 50, "x": "2000-01-01"},
-            u"success": True,
+            "max": {"security_id|count": 50, "x": "2000-01-05"},
+            "min": {"security_id|count": 50, "x": "2000-01-01"},
+            "success": True,
         }
         unittest.assertEqual(
             {k: v for k, v in response_data.items() if k != "code"},
@@ -2392,9 +2392,9 @@ def test_get_column_filter_data(unittest, custom_data):
         unittest.assertEqual(
             response_data,
             {
-                u"hasMissing": False,
-                u"uniques": [u"False", u"True"],
-                u"success": True,
+                "hasMissing": False,
+                "uniques": ["False", "True"],
+                "success": True,
             },
         )
         response = c.get(
@@ -2403,7 +2403,7 @@ def test_get_column_filter_data(unittest, custom_data):
         )
         response_data = json.loads(response.data)
         assert response_data["hasMissing"]
-        assert all(k in response_data for k in [u"hasMissing", u"uniques", u"success"])
+        assert all(k in response_data for k in ["hasMissing", "uniques", "success"])
         response = c.get(
             "/dtale/column-filter-data/{}".format(c.port),
             query_string=dict(col="int_val"),
@@ -2412,20 +2412,20 @@ def test_get_column_filter_data(unittest, custom_data):
         assert not response_data["hasMissing"]
         assert all(
             k in response_data
-            for k in [u"max", u"hasMissing", u"uniques", u"success", u"min"]
+            for k in ["max", "hasMissing", "uniques", "success", "min"]
         )
         response = c.get(
             "/dtale/column-filter-data/{}".format(c.port), query_string=dict(col="Col0")
         )
         response_data = json.loads(response.data)
         assert not response_data["hasMissing"]
-        assert all(k in response_data for k in ["max", "hasMissing", "success", u"min"])
+        assert all(k in response_data for k in ["max", "hasMissing", "success", "min"])
         response = c.get(
             "/dtale/column-filter-data/{}".format(c.port), query_string=dict(col="date")
         )
         response_data = json.loads(response.data)
         assert not response_data["hasMissing"]
-        assert all(k in response_data for k in ["max", "hasMissing", "success", u"min"])
+        assert all(k in response_data for k in ["max", "hasMissing", "success", "min"])
 
         response = c.get(
             "/dtale/column-filter-data/{}".format(c.port),
@@ -2540,7 +2540,7 @@ def test_save_column_filter(unittest, custom_data):
                 ),
             )
             col_cfg = json.loads(response.data)["currFilters"][col]
-            assert col_cfg["query"] == u"`{col}`.isnull()".format(col=col)
+            assert col_cfg["query"] == "`{col}`.isnull()".format(col=col)
             assert col_cfg["missing"]
 
         response = c.get(
@@ -2561,7 +2561,7 @@ def test_save_column_filter(unittest, custom_data):
             query = "`int_val` {} 5".format("==" if operand == "=" else operand)
             unittest.assertEqual(
                 json.loads(response.data)["currFilters"]["int_val"],
-                {u"query": query, u"value": "5", "operand": operand},
+                {"query": query, "value": "5", "operand": operand},
             )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2572,7 +2572,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
-            {u"query": "`int_val` in (5, 4)", u"value": ["5", "4"], "operand": "="},
+            {"query": "`int_val` in (5, 4)", "value": ["5", "4"], "operand": "="},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2586,7 +2586,7 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
             {
-                u"query": "`int_val` >= 4 and `int_val` <= 5",
+                "query": "`int_val` >= 4 and `int_val` <= 5",
                 "min": "4",
                 "max": "5",
                 "operand": "[]",
@@ -2604,7 +2604,7 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
             {
-                u"query": "`int_val` > 4 and `int_val` < 5",
+                "query": "`int_val` > 4 and `int_val` < 5",
                 "min": "4",
                 "max": "5",
                 "operand": "()",
@@ -2621,7 +2621,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
-            {u"query": "`int_val` > 4", "min": "4", "operand": "()"},
+            {"query": "`int_val` > 4", "min": "4", "operand": "()"},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2634,7 +2634,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
-            {u"query": "`int_val` < 5", "max": "5", "operand": "()"},
+            {"query": "`int_val` < 5", "max": "5", "operand": "()"},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2647,7 +2647,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["int_val"],
-            {u"query": "`int_val` == 4", "min": "4", "max": "4", "operand": "()"},
+            {"query": "`int_val` == 4", "min": "4", "max": "4", "operand": "()"},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2661,7 +2661,7 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["date"],
             {
-                u"query": "`date` == '20000101'",
+                "query": "`date` == '20000101'",
                 "start": "20000101",
                 "end": "20000101",
             },
@@ -2678,7 +2678,7 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             json.loads(response.data)["currFilters"]["date"],
             {
-                u"query": "`date` >= '20000101' and `date` <= '20000102'",
+                "query": "`date` >= '20000101' and `date` <= '20000102'",
                 "start": "20000101",
                 "end": "20000102",
             },

@@ -211,7 +211,7 @@ def test_get_host():
 @pytest.mark.unit
 def test_json_string(builtin_pkg):
     assert utils.json_string(None, nan_display="nan") == "nan"
-    assert utils.json_string(u"\u25B2") is not None
+    assert utils.json_string("\u25B2") is not None
 
     class MockStr(object):
         def __init__(self, string=""):
@@ -240,7 +240,7 @@ def test_json_string2(builtin_pkg):
             if PY3:
                 raise UnicodeEncodeError("", "", 0, 0, "")
             else:
-                raise UnicodeEncodeError("", u"", 0, 0, "")
+                raise UnicodeEncodeError("", "", 0, 0, "")
 
     class TestStr(object):
         def encode(self, encoding=None, errors=None):
