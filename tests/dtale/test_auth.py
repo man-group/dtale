@@ -60,17 +60,17 @@ def test_login():
 
             resp = c.get("/dtale/main/{}".format(c.port))
             assert resp.status_code == 302
-            assert resp.location == "http://localhost:{}/login".format(c.port)
+            assert "http://localhost:{}/login".format(c.port).endswith(resp.location)
 
             resp = c.post("/login", data=dict(username="foo", password="bar"))
-            assert resp.location == "http://localhost:{}/dtale/main/{}".format(
-                c.port, c.port
+            assert "http://localhost:{}/dtale/main/{}".format(c.port, c.port).endswith(
+                resp.location
             )
             assert mock_session["logged_in"]
             assert mock_session["username"] == "foo"
 
             resp = c.get("/logout")
-            assert resp.location == "http://localhost:{}/login".format(c.port)
+            assert "http://localhost:{}/login".format(c.port).endswith(resp.location)
             assert mock_session.get("logged_in") is None
 
 

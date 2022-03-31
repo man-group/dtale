@@ -1,6 +1,5 @@
 lz4<=2.2.1; python_version < '3.0'
 lz4; python_version > '3.0'
-click==8.0.4; python_version >= '3.7'
 cycler; python_version > '3.0'
 cycler==0.10.0; python_version == '2.7'
 dash==1.21.0; python_version == '2.7'
@@ -13,7 +12,7 @@ decorator==4.4.2; python_version == '2.7'
 et_xmlfile<=1.0.1; python_version < '3.6'
 et_xmlfile; python_version >= '3.6'
 Flask<=1.1.4; python_version < '3.7'
-Flask<=2.0.3; python_version >= '3.7'
+Flask; python_version >= '3.7'
 Flask-Compress
 flask-ngrok; python_version > '3.0'
 future>=0.14.0
