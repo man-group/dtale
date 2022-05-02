@@ -136,6 +136,14 @@ def test_get_correlations(unittest, test_data, rolling_data):
             "should return correlation date columns",
         )
 
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        response = c.get(
+            "/dtale/correlations/{}".format(c.port), query_string=dict(image=True)
+        )
+        assert response.content_type == "image/png"
+
 
 @pytest.mark.skipif(
     parse_version(platform.python_version()) < parse_version("3.6.0"),
@@ -148,7 +156,9 @@ def test_get_pps_matrix(unittest, test_data):
         test_data, _ = views.format_data(test_data)
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
-        response = c.get("/dtale/correlations/{}?pps=true".format(c.port))
+        response = c.get(
+            "/dtale/correlations/{}".format(c.port), query_string=dict(pps=True)
+        )
         response_data = response.json
         expected = [
             {"bar": 1, "column": "bar", "foo": 0, "security_id": 0},

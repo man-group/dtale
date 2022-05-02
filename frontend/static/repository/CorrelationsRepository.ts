@@ -39,6 +39,13 @@ export interface CorrelationsResponse extends GenericRepository.BaseResponse {
   pps?: PPSGridRow[];
 }
 
+export const buildCorrelationsUrl = (dataId: string, encodeStrings: boolean, pps = false, image = false): string =>
+  buildURLString(`/dtale/correlations/${dataId}`, {
+    encodeStrings: `${encodeStrings}`,
+    pps: `${pps}`,
+    image: `${image}`,
+  });
+
 /**
  * Load correlation or pps matrix for a sepcific data instance.
  *
@@ -53,7 +60,7 @@ export async function loadCorrelations(
   pps = false,
 ): Promise<CorrelationsResponse | undefined> {
   return await GenericRepository.getDataFromService<CorrelationsResponse>(
-    buildURLString(`/dtale/correlations/${dataId}`, { encodeStrings: `${encodeStrings}`, pps: `${pps}` }),
+    buildCorrelationsUrl(dataId, encodeStrings, pps),
   );
 }
 

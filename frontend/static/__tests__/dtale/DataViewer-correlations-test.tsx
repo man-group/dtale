@@ -68,7 +68,12 @@ describe('DataViewer tests', () => {
 
   const buildResult = async (overrides?: Partial<AppState>): Promise<void> => {
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '0', chartData: { visible: true }, ...overrides });
+    useSelectorSpy.mockReturnValue({
+      dataId: '0',
+      chartData: { visible: true },
+      sidePanel: { visible: false },
+      ...overrides,
+    });
     buildInnerHTML({ settings: '' });
     result = mount(<Correlations />, { attachTo: document.getElementById('content') ?? undefined });
     await act(async () => await tickUpdate(result));
