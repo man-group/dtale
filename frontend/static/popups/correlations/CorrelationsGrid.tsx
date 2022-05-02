@@ -11,7 +11,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
 import { AppState, BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
-import { CorrelationGridRow } from '../../repository/CorrelationsRepository';
+import { buildCorrelationsUrl, CorrelationGridRow } from '../../repository/CorrelationsRepository';
 import { sortOptions } from '../analysis/filters/Constants';
 import { renderCodePopupAnchor } from '../CodePopup';
 
@@ -97,7 +97,7 @@ interface CorrelationsGridProps {
 }
 
 const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ columns, t, ...props }) => {
-  const theme = useSelector((state: AppState) => state.theme);
+  const { dataId, sidePanel, theme } = useSelector((state: AppState) => state);
   const columnOptions: Array<BaseOption<string>> = React.useMemo(
     () => columns.map((column) => ({ value: column })),
     columns,
@@ -164,6 +164,18 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
     );
   };
 
+  const exportImage = (
+    <div className="col-auto pr-0 mb-auto mt-auto">
+      <button
+        className="btn btn-plain"
+        onClick={() => window.open(buildCorrelationsUrl(dataId, props.encodeStrings, props.isPPS, true), '_blank')}
+      >
+        <i className="fas fa-file-code pr-3" />
+        <span className="align-middle">{t('Export Image', { ns: 'side' })}</span>
+      </button>
+    </div>
+  );
+
   return (
     <BouncerWrapper showBouncer={!!props.correlations?.length === false}>
       <div className="row pb-5">
@@ -181,7 +193,8 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
           </small>
         </div>
         <div className="col" />
-        <SidePanelButtons />
+        <SidePanelButtons buttons={exportImage} />
+        {!sidePanel.visible && exportImage}
       </div>
       <AutoSizer className="correlations-grid" disableHeight={true}>
         {({ width }) => (

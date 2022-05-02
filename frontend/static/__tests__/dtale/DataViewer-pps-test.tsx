@@ -43,7 +43,7 @@ describe('DataViewer tests', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true } });
+    useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true }, sidePanel: { visible: false } });
 
     buildInnerHTML({ settings: '' });
     result = mount(<PredictivePowerScore />, { attachTo: document.getElementById('content') ?? undefined });

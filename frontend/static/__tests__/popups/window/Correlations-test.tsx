@@ -60,7 +60,7 @@ describe('Correlations tests', () => {
 
   const buildResult = async (overrides?: any): Promise<void> => {
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', chartData, ...overrides });
+    useSelectorSpy.mockReturnValue({ dataId: '1', chartData, sidePanel: { visible: false }, ...overrides });
     buildInnerHTML({ settings: '' });
     result = mount(<Correlations />, {
       attachTo: document.getElementById('content') ?? undefined,

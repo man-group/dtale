@@ -34,6 +34,7 @@ import pandas as pd
 import platform
 import requests
 import scipy.stats as sts
+import seaborn as sns
 import xarray as xr
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from six import BytesIO, PY3, string_types, StringIO
@@ -246,6 +247,22 @@ class DtaleData(object):
 
         """
         startup(self._url, data=data, data_id=self._data_id)
+
+    def get_corr_matrix(self, encode_strings=False, as_df=False):
+        """Helper function to build correlation matrix from data (can be an image or dataframe)."""
+        matrix_data = build_correlations_matrix(
+            self._data_id, is_pps=False, encode_strings=encode_strings, image=not as_df
+        )
+        _, _, _, _, _, _, df_or_image = matrix_data
+        return df_or_image
+
+    def get_pps_matrix(self, encode_strings=False, as_df=False):
+        """Helper function to build correlation matrix from data (can be an image or dataframe)."""
+        matrix_data = build_correlations_matrix(
+            self._data_id, is_pps=True, encode_strings=encode_strings, image=not as_df
+        )
+        _, _, _, _, _, _, df_or_image = matrix_data
+        return df_or_image
 
     def update_id(self, new_data_id):
         """
@@ -2680,23 +2697,7 @@ def get_column_analysis(data_id):
     return jsonify(**analysis.build())
 
 
-@dtale.route("/correlations/<data_id>")
-@exception_decorator
-def get_correlations(data_id):
-    """
-    :class:`flask:flask.Flask` route which gathers Pearson correlations against all combinations of columns with
-    numeric data using :meth:`pandas:pandas.DataFrame.corr`
-
-    On large datasets with no :attr:`numpy:numpy.nan` data this code will use :meth:`numpy:numpy.corrcoef`
-    for speed purposes
-
-    :param data_id: integer string identifier for a D-Tale process's data
-    :type data_id: str
-    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
-    :returns: JSON {
-        data: [{column: col1, col1: 1.0, col2: 0.99, colN: 0.45},...,{column: colN, col1: 0.34, col2: 0.88, colN: 1.0}],
-    } or {error: 'Exception message', traceback: 'Exception stacktrace'}
-    """
+def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image=False):
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
@@ -2709,7 +2710,7 @@ def get_correlations(data_id):
 
     str_encodings_code = ""
     dummy_col_mappings = {}
-    if get_bool_arg(request, "encodeStrings") and valid_str_corr_cols:
+    if encode_strings and valid_str_corr_cols:
         data = data[valid_corr_cols + valid_str_corr_cols]
         for str_col in valid_str_corr_cols:
             dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
@@ -2728,8 +2729,9 @@ def get_correlations(data_id):
     corr_cols_str = "'\n\t'".join(
         ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
     )
+
     pps_data = None
-    if get_bool_arg(request, "pps"):
+    if is_pps:
         code = build_code_export(data_id, imports="import ppscore\n")
         code.append(
             (
@@ -2756,7 +2758,82 @@ def get_correlations(data_id):
     )
     code = "\n".join(code)
     data.index.name = str("column")
-    data = data.reset_index()
+    if image:
+        figsize = (20, 12)
+        plt.figure(figsize=figsize)
+        ax0 = plt.gca()
+        cmap = "Blues" if is_pps else "RdYlGn"
+        vmin = 0.0 if is_pps else -1.0
+        sns.heatmap(
+            data.mask(data.apply(lambda x: x.name == x.index)),
+            ax=ax0,
+            vmin=vmin,
+            vmax=1.0,
+            xticklabels=True,
+            yticklabels=True,
+            cmap=cmap,
+        )
+        output = BytesIO()
+        FigureCanvas(ax0.get_figure()).print_png(output)
+        return (
+            valid_corr_cols,
+            valid_str_corr_cols,
+            valid_date_cols,
+            dummy_col_mappings,
+            pps_data,
+            code,
+            output.getvalue(),
+        )
+    return (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        data,
+    )
+
+
+@dtale.route("/correlations/<data_id>")
+@exception_decorator
+def get_correlations(data_id):
+    """
+    :class:`flask:flask.Flask` route which gathers Pearson correlations against all combinations of columns with
+    numeric data using :meth:`pandas:pandas.DataFrame.corr`
+
+    On large datasets with no :attr:`numpy:numpy.nan` data this code will use :meth:`numpy:numpy.corrcoef`
+    for speed purposes
+
+    :param data_id: integer string identifier for a D-Tale process's data
+    :type data_id: str
+    :param query: string from flask.request.args['query'] which is applied to DATA using the query() function
+    :returns: JSON {
+        data: [{column: col1, col1: 1.0, col2: 0.99, colN: 0.45},...,{column: colN, col1: 0.34, col2: 0.88, colN: 1.0}],
+    } or {error: 'Exception message', traceback: 'Exception stacktrace'}
+    """
+    is_pps = get_bool_arg(request, "pps")
+    image = get_bool_arg(request, "image")
+    matrix_data = build_correlations_matrix(
+        data_id,
+        is_pps=is_pps,
+        encode_strings=get_bool_arg(request, "encodeStrings"),
+        image=image,
+    )
+    (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        df_or_image,
+    ) = matrix_data
+    if image:
+        fname = "{}.png".format("predictive_power_score" if is_pps else "correlations")
+        return send_file(df_or_image, fname, "image/png")
+
+    data = df_or_image.reset_index()
     col_types = grid_columns(data)
     f = grid_formatter(col_types, nan_display=None)
     return jsonify(

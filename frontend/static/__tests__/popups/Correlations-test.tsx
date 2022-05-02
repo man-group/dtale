@@ -35,11 +35,12 @@ const chartData = {
 };
 
 describe('Correlations tests', () => {
-  const { location, opener } = window;
+  const { location, opener, open } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
   });
+  const openSpy = jest.fn();
 
   let result: ReactWrapper;
   let createChartSpy: CreateChartSpy;
@@ -47,6 +48,8 @@ describe('Correlations tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
+    delete (window as any).open;
+    window.open = openSpy;
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
     delete (window as any).location;
@@ -56,7 +59,7 @@ describe('Correlations tests', () => {
 
   beforeEach(async () => {
     const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', chartData });
+    useSelectorSpy.mockReturnValue({ dataId: '1', chartData, sidePanel: { visible: false } });
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
     axiosGetSpy = jest.spyOn(axios, 'get');
     axiosGetSpy.mockImplementation((url: string) => {
@@ -66,11 +69,16 @@ describe('Correlations tests', () => {
     buildInnerHTML({ settings: '' });
   });
 
-  afterEach(() => axiosGetSpy.mockRestore());
+  afterEach(() => {
+    axiosGetSpy.mockRestore();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
 
   afterAll(() => {
     jest.restoreAllMocks();
     dimensions.afterAll();
+    window.open = open;
     window.opener = opener;
     window.location = location;
   });
@@ -83,7 +91,7 @@ describe('Correlations tests', () => {
 
   it('Correlations rendering data', async () => {
     await buildResult();
-    const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
+    const corrGrid = result.find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
       corrGrid.find('div.cell').at(1).simulate('click');
     });
@@ -266,5 +274,15 @@ describe('Correlations tests', () => {
 
   it('Correlations - percent formatting', () => {
     expect(percent('N/A')).toBe('N/A');
+  });
+
+  it('Opens exported image', async () => {
+    await buildResult();
+    const corrGrid = result.find(CorrelationsGrid);
+    corrGrid.find('button').first().simulate('click');
+    expect(openSpy).toHaveBeenLastCalledWith(
+      '/dtale/correlations/1?encodeStrings=false&pps=false&image=true',
+      '_blank',
+    );
   });
 });
