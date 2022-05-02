@@ -127,6 +127,12 @@ python: &python
             pip install xlrd
             pip install xarray
             python setup.py develop
+      - run:
+          name: Print environment
+          command: |
+            set -e
+            . ci/bin/activate
+            pip freeze
       # Save dependency cache
       - save_cache:
           key: v1-dep-{{ .Branch }}-{{ epoch }}
