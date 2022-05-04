@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.3.0 (2022-5-3)
+* Added the ability to export correlations or PPS heatmaps to PNG
+* [#653](https://github.com/man-group/dtale/issues/653): added "__version__" entry to dtale module
+
 ### 2.2.0 (2022-3-23)
 * [#601](https://github.com/man-group/dtale/issues/601): added update_id functionality
 * [#649](https://github.com/man-group/dtale/issues/649): fixed incorrect property in pivot opertaions
