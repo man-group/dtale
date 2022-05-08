@@ -18,12 +18,10 @@ from flask import (
 )
 import matplotlib
 
-# flake8: NOQA
-matplotlib.use("agg")
+matplotlib.use("agg")  # noqa: E261
 
 import matplotlib.pyplot as plt
 
-# flake8: NOQA
 plt.rcParams["font.sans-serif"] = ["SimHei"]  # Or any other Chinese characters
 matplotlib.rcParams["font.family"] = ["Heiti TC"]
 
@@ -2908,8 +2906,10 @@ def get_chart_data(data_id):
 
 
 def get_ppscore(df, col1, col2):
+    if not PY3:
+        return None
     try:
-        import ppscore
+        import dtale.ppscore as ppscore
 
         pps = ppscore.score(df, col1, col2)
         pps["model"] = pps["model"].__str__()
@@ -2922,8 +2922,10 @@ def get_ppscore(df, col1, col2):
 
 
 def get_ppscore_matrix(df):
+    if not PY3:
+        return [], None
     try:
-        import ppscore
+        import dtale.ppscore as ppscore
 
         pps_data = ppscore.matrix(df)
         data = (
