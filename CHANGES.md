@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.4.0 (2022-5-8)
+* [#665](https://github.com/man-group/dtale/issues/665): removed dependency on ppscore and unpinned sklearn
+
 ### 2.3.0 (2022-5-3)
 * Added the ability to export correlations or PPS heatmaps to PNG
 * [#653](https://github.com/man-group/dtale/issues/653): added "__version__" entry to dtale module
