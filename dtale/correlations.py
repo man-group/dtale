@@ -31,7 +31,7 @@ def get_col_groups(data_id, data):
 def build_matrix(data_id, data, cols):
     if data[cols].isnull().values.any():
         data = data.corr(method="pearson")
-        code = build_code_export(data_id)
+        code = build_code_export(data_id, escape=True)
         code.append(
             (
                 "corr_cols = [\n"

@@ -41,7 +41,7 @@ def build_final_chart_code(code):
     )
 
 
-def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
+def build_code_export(data_id, imports="import pandas as pd\n\n", query=None, escape=False):
     """
     Helper function for building a string representing the code that was run to get the data you are viewing to that
     point.
@@ -52,6 +52,8 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     :type imports: string, optional
     :param query: pandas dataframe query string
     :type query: str, optional
+    :param escape: boolean representing escape of curly brackets for code export history
+    :type escape: bool, optional
     :return: python code string
     """
     history = global_state.get_history(data_id) or []
@@ -126,4 +128,8 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
                 cols=", ".join(cols), dirs="', '".join(dirs)
             )
         )
+
+    if escape:
+        final_history = [code_segment.replace('{', '{{').replace('}', '}}') for code_segment in final_history]
+
     return final_history
