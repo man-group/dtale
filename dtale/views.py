@@ -2744,12 +2744,13 @@ def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image
 
         data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
     else:
-        data, matrix_code = correlations.build_matrix(data_id, data, valid_corr_cols)
-        code = [
-            matrix_code.format(
-                corr_cols=corr_cols_str, str_encodings=str_encodings_code
-            )
-        ]
+        data, matrix_code = correlations.build_matrix(
+            data_id,
+            data,
+            valid_corr_cols,
+            {"corr_cols": corr_cols_str, "str_encodings": str_encodings_code},
+        )
+        code = [matrix_code]
 
     code.append(
         "corr_data.index.name = str('column')\ncorr_data = corr_data.reset_index()"

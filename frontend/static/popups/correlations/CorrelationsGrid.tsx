@@ -100,7 +100,7 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
   const { dataId, sidePanel, theme } = useSelector((state: AppState) => state);
   const columnOptions: Array<BaseOption<string>> = React.useMemo(
     () => columns.map((column) => ({ value: column })),
-    columns,
+    [columns],
   );
   const [col1, setCol1] = React.useState<BaseOption<string> | undefined>(
     props.col1 ? { value: props.col1 } : undefined,
@@ -171,7 +171,7 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
         onClick={() => window.open(buildCorrelationsUrl(dataId, props.encodeStrings, props.isPPS, true), '_blank')}
       >
         <i className="fas fa-file-code pr-3" />
-        <span className="align-middle">{t('Export Image', { ns: 'side' })}</span>
+        <span className="align-middle">{t('Export Image', { ns: 'correlations' })}</span>
       </button>
     </div>
   );

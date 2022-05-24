@@ -186,6 +186,7 @@ export const Correlations: React.FC = () => {
     if (scatterUrl === updatedScatterUrl) {
       return;
     }
+    setSelectedCols(cols);
     scatterBouncer.current?.style.setProperty('display', 'block');
     scatterCanvas.current?.style.setProperty('display', 'none');
     CorrelationsRepository.loadScatter(updatedScatterUrl).then((response) => {

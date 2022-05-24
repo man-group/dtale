@@ -32,7 +32,7 @@ const CorrelationScatterStats: React.FC<CorrelationScatterStatsProps & WithTrans
       <div className="pt-5">
         <dl className="property-pair inline">
           <dt>
-            <b>{`${col0} ${t('vs.', { ns: 'correlations' })} ${col1}${date ?? ''}`}</b>;
+            <b>{`${col0} ${t('vs.', { ns: 'correlations' })} ${col1}${date ?? ''}`}</b>
           </dt>
         </dl>
         <dl className="property-pair inline">

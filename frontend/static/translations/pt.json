@@ -503,7 +503,8 @@
     "Correlations Timeseries": "Correlações de Séries Temporais",
     "Predictive Power Score for ": "Power Score Preditivo para ",
     "Encode Strings": "Encode Strings",
-    "encode_strings_tt": "Marcando esta caixa usará OneHotEncode (pd.get_dummies) em qualquer coluna de string com até 50 valores únicos para incluí-los na matriz de correlação. Essas colunas são:"
+    "encode_strings_tt": "Marcando esta caixa usará OneHotEncode (pd.get_dummies) em qualquer coluna de string com até 50 valores únicos para incluí-los na matriz de correlação. Essas colunas são:",
+    "Export Image": "Export Image"
   },
   "xarray": {
     "count": "contas",
