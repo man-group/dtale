@@ -48,7 +48,7 @@ def build_matrix(data_id, data, cols):
         data = np.corrcoef(data[cols].values, rowvar=False)
         data = pd.DataFrame(data, columns=cols, index=cols)
         code = build_code_export(
-            data_id, imports="import numpy as np\nimport pandas as pd\n\n"
+            data_id, imports="import numpy as np\nimport pandas as pd\n\n", escape=True
         )
         code.append(
             (
