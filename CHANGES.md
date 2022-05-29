@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.5.1 (2022-5-29)
+* fixed networkx dependencies
+
 ### 2.5.0 (2022-5-28)
 * [#617](https://github.com/man-group/dtale/issues/617): encoding updates for stylesheets
 * [#668](https://github.com/man-group/dtale/issues/668): update warning filtering to only filter dash_html_components message
