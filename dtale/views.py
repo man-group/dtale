@@ -2572,7 +2572,9 @@ def export_html(data_id, return_data):
         """
     )
 
-    main_styles = load_file("css/main.css", encoding=None).split("\n")
+    main_styles = load_file("css/main.css", encoding="utf-8" if PY3 else None).split(
+        "\n"
+    )
     main_styles = "\n".join(main_styles[28:])
     main_styles = "{}\n{}\n".format(font_styles, main_styles)
 
