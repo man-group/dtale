@@ -918,6 +918,7 @@ def startup(
     app_root=None,
     is_proxy=None,
     vertical_headers=False,
+    hide_shutdown=False,
 ):
     """
     Loads and stores data globally
@@ -1027,6 +1028,7 @@ def startup(
                 app_root=app_root,
                 is_proxy=is_proxy,
                 vertical_headers=vertical_headers,
+                hide_shutdown=hide_shutdown,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1080,6 +1082,8 @@ def startup(
             data = sort_df_for_grid(data, dict(sort=sort))
         if nan_display is not None:
             base_settings["nanDisplay"] = nan_display
+        if hide_shutdown is not None:
+            base_settings["hide_shutdown"] = hide_shutdown
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
             data = optimize_df(data)
@@ -1112,6 +1116,14 @@ def base_render_template(template, data_id, **kwargs):
     curr_settings = global_state.get_settings(data_id) or {}
     curr_app_settings = global_state.get_app_settings()
     _, version = retrieve_meta_info_and_version("dtale")
+    hide_shutdown = global_state.load_flag(data_id, "hide_shutdown", False)
+    allow_cell_edits = global_state.load_flag(data_id, "allow_cell_edits", True)
+    github_fork = global_state.load_flag(data_id, "github_fork", False)
+    app_overrides = dict(
+        allow_cell_edits=allow_cell_edits,
+        hide_shutdown=hide_shutdown,
+        github_fork=github_fork,
+    )
     return render_template(
         template,
         data_id=data_id,
@@ -1120,13 +1132,12 @@ def base_render_template(template, data_id, **kwargs):
         settings=json.dumps(curr_settings),
         version=str(version),
         processes=global_state.size(),
-        allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
         python_version=platform.python_version(),
         predefined_filters=json.dumps(
             [f.asdict() for f in predefined_filters.get_filters()]
         ),
         is_vscode=os.environ.get("VSCODE_PID") is not None,
-        **dict_merge(kwargs, curr_app_settings)
+        **dict_merge(kwargs, curr_app_settings, app_overrides)
     )
 
 

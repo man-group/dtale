@@ -6,6 +6,8 @@ export const hideShutdown = (state = false, action: AppActionTypes): boolean => 
   switch (action.type) {
     case ActionType.INIT_PARAMS:
       return toBool(getHiddenValue('hide_shutdown'));
+    case ActionType.UPDATE_HIDE_SHUTDOWN:
+      return action.value;
     case ActionType.LOAD_PREVIEW:
       return true;
     default:
@@ -51,6 +53,8 @@ export const allowCellEdits = (state = true, action: AppActionTypes): boolean =>
   switch (action.type) {
     case ActionType.INIT_PARAMS:
       return toBool(getHiddenValue('allow_cell_edits'));
+    case ActionType.UPDATE_ALLOW_CELL_EDITS:
+      return action.value;
     case ActionType.LOAD_PREVIEW:
       return false;
     default:

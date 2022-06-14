@@ -16,6 +16,8 @@ require('../../publicPath');
 const store = createAppStore<AppState>(appReducers);
 store.dispatch(actions.init());
 actions.loadBackgroundMode(store);
+actions.loadHideShutdown(store);
+actions.loadAllowCellEdits(store);
 ReactDOM.render(
   <Provider store={store}>
     <ServerlessDataViewer response={(global as any).RESPONSE! as DataResponseContent} />

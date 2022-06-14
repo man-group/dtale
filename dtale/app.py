@@ -731,6 +731,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             vertical_headers=final_options["vertical_headers"],
             is_proxy=JUPYTER_SERVER_PROXY,
             app_root=final_app_root,
+            hide_shutdown=final_options.get("hide_shutdown"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

@@ -9,7 +9,6 @@ try:
 except ImportError:
     from collections import MutableMapping
 
-
 APP_SETTINGS = {
     "theme": "light",
     "pin_menu": False,
@@ -397,11 +396,14 @@ def update_id(old_data_id, new_data_id):
 def load_flag(data_id, flag_name, default):
     import dtale
 
+    app_settings = get_app_settings()
     curr_settings = get_settings(data_id) or {}  # noqa: F821
     global_flag = getattr(dtale, flag_name.upper())
     if global_flag != default:
         return global_flag
-    return curr_settings.get(flag_name, default)
+    if flag_name in app_settings and app_settings[flag_name] != default:
+        return app_settings[flag_name]
+    return curr_settings.get(flag_name, app_settings.get(flag_name, default))
 
 
 def _as_dict(store):

@@ -15,6 +15,16 @@ export const loadBackgroundMode = (store: Store<AppState, AnyAction>): void => {
   });
 };
 
+export const loadHideShutdown = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideShutdown } = store.getState();
+  store.dispatch({ type: ActionType.UPDATE_HIDE_SHUTDOWN, value: settings.hideShutdown ?? hideShutdown });
+};
+
+export const loadAllowCellEdits = (store: Store<AppState, AnyAction>): void => {
+  const { settings, allowCellEdits } = store.getState();
+  store.dispatch({ type: ActionType.UPDATE_ALLOW_CELL_EDITS, value: settings.allowCellEdits ?? allowCellEdits });
+};
+
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
   view: SidePanelType.FILTER,
