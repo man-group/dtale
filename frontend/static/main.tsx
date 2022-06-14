@@ -40,6 +40,8 @@ let storeBuilder: () => Store = () => {
   const store = createAppStore<AppState>(appReducers);
   store.dispatch(actions.init());
   actions.loadBackgroundMode(store);
+  actions.loadHideShutdown(store);
+  actions.loadAllowCellEdits(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {

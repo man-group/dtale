@@ -62,7 +62,8 @@ pandas
 plotly==4.14.3; python_version < '3.6'
 plotly>=5.0.0; python_version >= '3.6'
 pyparsing==2.4.7; python_version == '2.7'
-requests
+requests; python_version >= '3.6'
+requests==2.27.1; python_version == '2.7'
 scikit-learn==0.20.4; python_version < '3.0'
 scikit-learn==0.24.2; python_version == '3.6'
 scikit-learn==1.0.2; python_version == '3.7'

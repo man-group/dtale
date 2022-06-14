@@ -13,15 +13,15 @@ with warnings.catch_warnings():
 
     dtale = Blueprint("dtale", __name__, url_prefix="/dtale")
 
+    ALLOW_CELL_EDITS = True
+    HIDE_SHUTDOWN = False
+    GITHUB_FORK = False
+
     # flake8: NOQA
     from dtale.app import show, get_instance, instances, offline_chart  # isort:skip
     from dtale.cli.loaders import LOADERS  # isort:skip
     from dtale.cli.clickutils import retrieve_meta_info_and_version
     from dtale.global_state import update_id  # isort:skip
-
-    ALLOW_CELL_EDITS = True
-    HIDE_SHUTDOWN = False
-    GITHUB_FORK = False
 
     for loader_name, loader in LOADERS.items():
         if hasattr(loader, "show_loader"):

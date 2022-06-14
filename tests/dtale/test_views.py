@@ -69,6 +69,7 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             columnFormats={},
+            hide_shutdown=False,
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
@@ -117,6 +118,7 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=False,
             columnFormats={},
+            hide_shutdown=False,
             locked=[],
             precision=6,
             rangeHighlight=range_highlights,
@@ -135,6 +137,7 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             columnFormats={},
+            hide_shutdown=False,
             locked=["security_id"],
             precision=2,
             rangeHighlight=None,
@@ -154,6 +157,7 @@ def test_startup(unittest):
             locked=[],
             precision=2,
             columnFormats={},
+            hide_shutdown=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
@@ -171,6 +175,7 @@ def test_startup(unittest):
             locked=[],
             precision=2,
             columnFormats={},
+            hide_shutdown=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,

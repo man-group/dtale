@@ -56,6 +56,8 @@ export enum ActionType {
   SET_QUERY_ENGINE = 'set-query-engine',
   UPDATE_SHOW_ALL_HEATMAP_COLUMNS = 'update-show-all-heatmap-columns',
   SET_RANGE_STATE = 'set-range-state',
+  UPDATE_HIDE_SHUTDOWN = 'update-hide-shutdown',
+  UPDATE_ALLOW_CELL_EDITS = 'update-allow-cell-edits',
 }
 
 /** Action fired when a range is selected */
@@ -215,6 +217,16 @@ export interface OpenChartAction extends Action<typeof ActionType.OPEN_CHART> {
   chartData: Popups;
 }
 
+/** Action fired when updating the hide_shutdown flag */
+export interface UpdateHideShutdown extends Action<typeof ActionType.UPDATE_HIDE_SHUTDOWN> {
+  value: boolean;
+}
+
+/** Action fired when updating the allow_cell_edits flag */
+export interface UpdateAllowCellEdits extends Action<typeof ActionType.UPDATE_ALLOW_CELL_EDITS> {
+  value: boolean;
+}
+
 /** Type definition encompassing all application actions */
 export type AppActionTypes =
   | InitAction
@@ -253,7 +265,9 @@ export type AppActionTypes =
   | SetQueryEngineAction
   | UpdateShowAllHeatmapColumnsAction
   | OpenChartAction
-  | SetRangeStateAction;
+  | SetRangeStateAction
+  | UpdateHideShutdown
+  | UpdateAllowCellEdits;
 
 /** Type definition for redux application actions */
 export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;
