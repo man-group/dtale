@@ -41,13 +41,21 @@ export const buildCode = (cfg: ReplaceConfig): CreateColumnCodeSnippet => {
   return code + ')';
 };
 
-const CreateReplace: React.FC<BaseCreateComponentProps & WithTranslation> = ({
+/** Component properties for CreateReplace */
+export interface CreateReplaceProps extends BaseCreateComponentProps {
+  preselectedCol?: string;
+}
+
+const CreateReplace: React.FC<CreateReplaceProps & WithTranslation> = ({
   namePopulated,
   columns,
   updateState,
+  preselectedCol,
   t,
 }) => {
-  const [col, setCol] = React.useState<BaseOption<string>>();
+  const [col, setCol] = React.useState<BaseOption<string> | undefined>(
+    preselectedCol ? { value: preselectedCol } : undefined,
+  );
   const [search, setSearch] = React.useState('');
   const [replacement, setReplacement] = React.useState('');
   const [caseSensitive, setCaseSensitive] = React.useState(false);
@@ -67,14 +75,16 @@ const CreateReplace: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   return (
     <React.Fragment>
-      <ColumnSelect
-        label={t('Column')}
-        prop="col"
-        parent={{ col }}
-        updateState={(updates: { col?: BaseOption<string> }) => setCol(updates.col)}
-        columns={columns}
-        dtypes={['string']}
-      />
+      {preselectedCol === undefined && (
+        <ColumnSelect
+          label={t('Column')}
+          prop="col"
+          parent={{ col }}
+          updateState={(updates: { col?: BaseOption<string> }) => setCol(updates.col)}
+          columns={columns}
+          dtypes={['string']}
+        />
+      )}
       <LabeledInput label={t('Search For')} value={search} setter={setSearch} />
       <LabeledInput label={t('Replacement')} value={replacement} setter={setReplacement} />
       <LabeledCheckbox label={t('Case Sensitive')} value={caseSensitive} setter={setCaseSensitive} rowClass="mb-0" />

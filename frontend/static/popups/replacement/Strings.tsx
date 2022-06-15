@@ -42,7 +42,7 @@ export const buildCode = (col: string, colType: string, cfg: StringsConfig): Cre
   return [
     'import re',
     '',
-    `regex_pat = re.compile(r'^ *${valStr} *$', flags=${flags})`,
+    `regex_pat = re.compile(r'^.*${valStr}.*$', flags=${flags})`,
     `df.loc[:, '${col}'] = df['${col}'].replace(regex_pat, ${replaceVal}, regex=True)`,
   ];
 };

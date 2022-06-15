@@ -13,11 +13,13 @@ import { RemovableError } from '../../RemovableError';
 import * as CreateReplacementRepository from '../../repository/CreateReplacementRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import CodeSnippet from '../create/CodeSnippet';
-import { SaveAs } from '../create/CreateColumnState';
+import { CreateColumnUpdateState, SaveAs } from '../create/CreateColumnState';
+import * as PartialComponent from '../create/CreateReplace';
 
 import ColumnSaveType from './ColumnSaveType';
 import {
   CreateReplacementSaveParams,
+  PartialReplacementConfig,
   ReplacementConfig,
   ReplacementType,
   ReplacementUpdateProps,
@@ -33,6 +35,7 @@ const buildTypeFilter = (type: ReplacementType): ((colType: ColumnType) => boole
   switch (type) {
     case ReplacementType.SPACES:
     case ReplacementType.STRINGS:
+    case ReplacementType.PARTIAL:
       return (colType) => colType === ColumnType.STRING;
     case ReplacementType.IMPUTER:
       return (colType) => [ColumnType.FLOAT, ColumnType.INT].includes(colType);
@@ -49,6 +52,7 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
       { value: ReplacementType.SPACES, label: t('Spaces Only', { ns: 'replacement' }) },
       { value: ReplacementType.STRINGS, label: t('Contains Char/Substring', { ns: 'replacement' }) },
       { value: ReplacementType.IMPUTER, label: t('Scikit-Learn Imputer', { ns: 'replacement' }) },
+      { value: ReplacementType.PARTIAL, label: t('Replace Substring', { ns: 'replacement' }) },
     ],
     [t],
   );
@@ -101,6 +105,9 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
     switch (cfg?.type) {
       case ReplacementType.STRINGS:
         cfgError = validateStringsCfg(t, cfg.cfg);
+        break;
+      case ReplacementType.PARTIAL:
+        cfgError = PartialComponent.validateReplaceCfg(t, cfg.cfg);
         break;
       case ReplacementType.VALUE:
         cfgError = validateValueCfg(t, cfg.cfg);
@@ -157,6 +164,23 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
         break;
       case ReplacementType.STRINGS:
         body = <Strings {...{ col, colType, columns }} updateState={updateState} />;
+        break;
+      case ReplacementType.PARTIAL:
+        const updatePartial = (state: CreateColumnUpdateState): void => {
+          const updatedState = {
+            cfg: { type: ReplacementType.PARTIAL, cfg: state.cfg.cfg } as PartialReplacementConfig,
+            code: state.code ? `df.loc[:, '${col}'] = ${state.code}` : undefined,
+          };
+          updateState(updatedState);
+        };
+        body = (
+          <PartialComponent.default
+            columns={columns}
+            updateState={updatePartial}
+            namePopulated={true}
+            preselectedCol={col}
+          />
+        );
         break;
       case ReplacementType.IMPUTER:
         body = <Imputer {...{ col, colType, columns }} updateState={updateState} />;

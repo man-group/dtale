@@ -1799,7 +1799,7 @@ def build_replacement(data_id):
     replacement_type = get_str_arg(request, "type")
     cfg = json.loads(get_str_arg(request, "cfg"))
 
-    builder = ColumnReplacement(data_id, col, replacement_type, cfg)
+    builder = ColumnReplacement(data_id, col, replacement_type, cfg, name)
     output = builder.build_replacements()
     dtype = find_dtype(output)
     curr_dtypes = global_state.get_dtypes(data_id)

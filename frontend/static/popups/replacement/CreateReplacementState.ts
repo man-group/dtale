@@ -1,6 +1,6 @@
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
-import { SaveAsProps } from '../create/CreateColumnState';
+import { ReplaceConfig, SaveAsProps } from '../create/CreateColumnState';
 
 /** Different configuration types for value replacement */
 export enum ValueConfigType {
@@ -65,6 +65,7 @@ export enum ReplacementType {
   SPACES = 'spaces',
   STRINGS = 'strings',
   IMPUTER = 'imputer',
+  PARTIAL = 'partial',
 }
 
 /** Base properties of replacement configurations */
@@ -81,13 +82,16 @@ type StringsReplacementConfig = BaseReplacementConfig<ReplacementType.STRINGS, S
 type SpacesReplacementConfig = BaseReplacementConfig<ReplacementType.SPACES, SpacesConfig>;
 /** Imputer replacement configuration */
 type ImputerReplacementConfig = BaseReplacementConfig<ReplacementType.IMPUTER, ImputerConfig>;
+/** Partial string replacement configuration */
+export type PartialReplacementConfig = BaseReplacementConfig<ReplacementType.PARTIAL, ReplaceConfig>;
 
 /** Replacement configuration */
 export type ReplacementConfig =
   | ValueReplacementConfig
   | StringsReplacementConfig
   | SpacesReplacementConfig
-  | ImputerReplacementConfig;
+  | ImputerReplacementConfig
+  | PartialReplacementConfig;
 
 /** Replacement creation updatable properties */
 export interface ReplacementUpdateProps {
