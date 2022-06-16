@@ -74,7 +74,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="2.5.1",
+    version="2.6.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -107,6 +107,8 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     cmdclass={"test": PyTest},
     packages=find_packages(exclude=["tests*", "script*"]),

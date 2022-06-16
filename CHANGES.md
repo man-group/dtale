@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2.6.0 (2022-6-16)
+* added build of python 3.10
+* [#671](https://github.com/man-group/dtale/issues/671): updated substring replacement function regex
+* [#254](https://github.com/man-group/dtale/issues/254): Fixes for disabling actions
+
 ### 2.5.1 (2022-5-29)
 * fixed networkx dependencies
 

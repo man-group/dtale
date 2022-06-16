@@ -2517,6 +2517,8 @@ def test_chart_building_funnel(treemap_data):
 
 @pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_chart_building_clustergram(clustergram_data):
+    pytest.importorskip("dash_bio")
+
     import dtale.views as views
 
     with app.test_client() as c:

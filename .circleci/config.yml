@@ -70,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 2.5.1
+  VERSION: 2.6.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
   RUN_BLACK: true
 python: &python
@@ -126,6 +126,10 @@ python: &python
             # possibly switch this script to use "pip install -r requirements.txt"
             pip install xlrd
             pip install xarray
+            if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
+              pip install pybind11
+              pip install -r requirements.txt
+            fi
             python setup.py develop
       - run:
           name: Print environment
@@ -280,6 +284,13 @@ jobs:
     environment:
       <<: *python_variables
     <<: *python
+  build_3_10:
+    working_directory: ~/man-group/dtale_3_10
+    docker:
+      - image: circleci/python:3.10-buster
+    environment:
+      <<: *python_variables
+    <<: *python
 workflows:
   version: 2
   build_all:
@@ -298,5 +309,8 @@ workflows:
           requires:
             - build_JS
       - build_3_9:
+          requires:
+            - build_JS
+      - build_3_10:
           requires:
             - build_JS
