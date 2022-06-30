@@ -1,6 +1,7 @@
 import dtale.global_state as global_state
 
 from dtale.utils import make_list, triple_quote
+from dtale.query import build_query
 
 CHART_EXPORT_CODE = (
     "\n# If you're having trouble viewing your chart in your notebook try passing your 'chart' into this snippet:\n"
@@ -94,7 +95,7 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     final_history = [startup_str] + history
     final_query = query
     if final_query is None:
-        final_query = settings.get("query")
+        final_query = build_query(data_id, settings.get("query"))
 
     if final_query is not None and final_query != "":
         if len(ctxt_vars or {}):
