@@ -15,7 +15,7 @@
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
-[![Open in VS Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/man-group/dtale)
+[![Open in VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)](https://open.vscode.dev/man-group/dtale)
 
 ## What is it?
 
