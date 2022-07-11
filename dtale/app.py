@@ -14,6 +14,7 @@ from builtins import map, str
 from contextlib import closing
 from logging import ERROR as LOG_ERROR
 from threading import Timer
+from werkzeug.routing import Map
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from flask.testing import FlaskClient
@@ -157,11 +158,24 @@ class DtaleFlask(Flask):
         try:
             routes_to_remove = [r for r in self.url_map._rules if r.rule == rule]
             if routes_to_remove:
-                self.url_map._rules = [
-                    r
+                updated_rules = [
+                    r.empty()
                     for r in self.url_map._rules
                     if not contains_route(routes_to_remove, r)
                 ]
+                self.url_map = Map(
+                    rules=updated_rules,
+                    default_subdomain=self.url_map.default_subdomain,
+                    charset=self.url_map.charset,
+                    strict_slashes=self.url_map.strict_slashes,
+                    merge_slashes=self.url_map.merge_slashes,
+                    redirect_defaults=self.url_map.redirect_defaults,
+                    converters=self.url_map.converters,
+                    sort_parameters=self.url_map.sort_parameters,
+                    sort_key=self.url_map.sort_key,
+                    encoding_errors=self.url_map.encoding_errors,
+                    host_matching=self.url_map.host_matching,
+                )
 
             self.url_map._remap = True
             self.url_map.update()
