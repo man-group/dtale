@@ -83,7 +83,7 @@ const styles = (color: RGBColor): Styles =>
       },
       popover: {
         position: 'absolute',
-        zIndex: '2',
+        zIndex: 2,
       },
       cover: {
         position: 'fixed',

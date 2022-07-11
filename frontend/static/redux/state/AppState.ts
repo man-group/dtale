@@ -361,10 +361,12 @@ export interface InstanceSettings {
   filteredRanges?: FilteredRanges;
   columnFilters?: Record<string, ColumnFilter>;
   invertFilter?: boolean;
+  hide_shutdown: boolean;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   allow_cell_edits: true,
+  hide_shutdown: false,
   precision: 2,
   verticalHeaders: false,
   predefinedFilters: {},

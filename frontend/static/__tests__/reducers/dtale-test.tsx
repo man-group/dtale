@@ -33,6 +33,7 @@ describe('reducer tests', () => {
       filteredRanges: {},
       settings: {
         allow_cell_edits: true,
+        hide_shutdown: false,
         precision: 2,
         predefinedFilters: {},
         verticalHeaders: false,
