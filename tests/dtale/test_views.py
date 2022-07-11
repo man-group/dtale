@@ -1201,6 +1201,10 @@ def test_variance(unittest):
         )
         response_data = json.loads(response.data)
         del response_data["code"]
+        response_data["shapiroWilk"]["statistic"] = round(
+            response_data["shapiroWilk"]["statistic"],
+            4,
+        )
         unittest.assertEqual(response_data, expected["low_var"])
 
 

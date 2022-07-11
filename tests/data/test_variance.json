@@ -53,7 +53,7 @@
         "outlierCt": 1,
         "shapiroWilk": {
             "pvalue": 0.0,
-            "statistic": 0.005482077598571777
+            "statistic": 0.0055
         },
         "size": 2500
     }
