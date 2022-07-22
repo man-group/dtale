@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 import pytest
 from pkg_resources import parse_version
@@ -67,7 +69,7 @@ def test_string():
     cfg["caseSensitive"] = False
     cfg["raw"] = "\'\""
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 1
-    cfg["raw"] = "[\\" # str.contains parses regex
+    cfg["raw"] = "[\\" # don't parse this as regex
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 1
 
     cfg["raw"] = "A"
@@ -76,6 +78,14 @@ def test_string():
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 4
     cfg["raw"] = "D"
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 0
+
+    cfg["action"] = "regex"
+    cfg["raw"] = "[[A].+A$"
+    assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
+
+    with pytest.raises(re.error):
+        cfg["raw"] = "["
+        assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
 
     cfg["action"] = "length"
     cfg["raw"] = "3"

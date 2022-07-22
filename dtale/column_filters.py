@@ -125,13 +125,14 @@ class StringFilter(MissingFilter):
                 raw if case_sensitive else raw.lower(),
             )
             fltr["query"] = handle_ne(fltr["query"], operand)
-        elif action == "contains":
+        elif action in ["contains", "regex"]:
             fltr["query"] = (
-                "{}.str.contains({!r}, na=False, case={}, regex=False)".format(
+                "{}.str.contains({!r}, na=False, case={}, regex={})".format(
                     build_col_key(self.column),
                     raw,
                     "True" if case_sensitive else "False",
-            ))
+                    "True" if action == "regex" else "False",
+                ))
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action == "length":
             if "," in raw:

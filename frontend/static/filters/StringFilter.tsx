@@ -17,6 +17,7 @@ enum StringFilterAction {
   STARTSWITH = 'startswith',
   ENDSWITH = 'endswith',
   CONTAINS = 'contains',
+  REGEX = 'regex',
   LENGTH = 'length',
 }
 
@@ -70,6 +71,8 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
     const base = t('Press ENTER to submit', { ns: 'correlations' });
     if (action === StringFilterAction.LENGTH) {
       return `${base}. Enter integers for length. For a range enter '1,3' which means '1 <= str.length <= 3'.`;
+    } else if (action === StringFilterAction.REGEX) {
+      return `${base}. Enter Python\'s regular expression understood by re.search().`;
     }
     return base;
   };
