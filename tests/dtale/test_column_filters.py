@@ -34,7 +34,7 @@ def test_string():
             return query
         return query.replace("`", "")
 
-    df = pd.DataFrame(dict(foo=["AAA", "aaa", "ABB", "ACC", "\'\"{[\\AA"]))
+    df = pd.DataFrame(dict(foo=["AAA", "aaa", "ABB", "ACC", "'\"{[\\AA"]))
 
     cfg = dict(action="equals", operand="=", value=["AAA"])
 
@@ -45,9 +45,9 @@ def test_string():
     cfg["value"] = ["AAA", "aaa"]
     cfg["operand"] = "="
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
-    cfg["value"] = ["\'\"{[\\AA"]
+    cfg["value"] = ["'\"{[\\AA"]
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 1
-    cfg["value"] = ["aaa", "\'\"{[\\AA"]
+    cfg["value"] = ["aaa", "'\"{[\\AA"]
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
 
     cfg["raw"] = "'"
@@ -67,9 +67,9 @@ def test_string():
 
     cfg["action"] = "contains"
     cfg["caseSensitive"] = False
-    cfg["raw"] = "\'\""
+    cfg["raw"] = "'\""
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 1
-    cfg["raw"] = "[\\" # don't parse this as regex
+    cfg["raw"] = "[\\"  # don't parse this as regex
     assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 1
 
     cfg["raw"] = "A"
@@ -85,7 +85,7 @@ def test_string():
 
     with pytest.raises(re.error):
         cfg["raw"] = "["
-        assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
+        df.query(build_query(StringFilter("foo", "S", cfg)))
 
     cfg["action"] = "length"
     cfg["raw"] = "3"

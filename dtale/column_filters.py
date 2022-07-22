@@ -108,9 +108,7 @@ class StringFilter(MissingFilter):
                     val_str,
                 )
             else:
-                val_str = (
-                    ", ".join(map(fmt_string.format, state))
-                )
+                val_str = ", ".join(map(fmt_string.format, state))
                 fltr["query"] = "{} {} ({})".format(
                     build_col_key(self.column),
                     "in" if operand == "=" else "not in",
@@ -126,13 +124,12 @@ class StringFilter(MissingFilter):
             )
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action in ["contains", "regex"]:
-            fltr["query"] = (
-                "{}.str.contains({!r}, na=False, case={}, regex={})".format(
-                    build_col_key(self.column),
-                    raw,
-                    "True" if case_sensitive else "False",
-                    "True" if action == "regex" else "False",
-                ))
+            fltr["query"] = "{}.str.contains({!r}, na=False, case={}, regex={})".format(
+                build_col_key(self.column),
+                raw,
+                "True" if case_sensitive else "False",
+                "True" if action == "regex" else "False",
+            )
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action == "length":
             if "," in raw:
