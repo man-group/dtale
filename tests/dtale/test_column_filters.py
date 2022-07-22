@@ -85,7 +85,7 @@ def test_string():
 
     with pytest.raises(re.error):
         cfg["raw"] = "["
-        assert len(df.query(build_query(StringFilter("foo", "S", cfg)))) == 2
+        df.query(build_query(StringFilter("foo", "S", cfg)))
 
     cfg["action"] = "length"
     cfg["raw"] = "3"
