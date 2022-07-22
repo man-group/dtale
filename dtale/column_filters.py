@@ -98,11 +98,10 @@ class StringFilter(MissingFilter):
             action=action,
             raw=raw,
         )
+        fmt_string = "{!r}" if self.classification == "S" else "{}"
         if action == "equals":
             if len(state) == 1:
-                val_str = ("'{}'" if self.classification == "S" else "{}").format(
-                    state[0]
-                )
+                val_str = fmt_string.format(state[0])
                 fltr["query"] = "{} {} {}".format(
                     build_col_key(self.column),
                     "==" if operand == "=" else "!=",
@@ -110,9 +109,7 @@ class StringFilter(MissingFilter):
                 )
             else:
                 val_str = (
-                    "'{}'".format("', '".join(state))
-                    if self.classification == "S"
-                    else ",".join(state)
+                    ", ".join(map(fmt_string.format, state))
                 )
                 fltr["query"] = "{} {} ({})".format(
                     build_col_key(self.column),
@@ -121,7 +118,7 @@ class StringFilter(MissingFilter):
                 )
         elif action in ["startswith", "endswith"]:
             case_insensitive_conversion = "" if case_sensitive else ".str.lower()"
-            fltr["query"] = "{}{}.str.{}('{}', na=False)".format(
+            fltr["query"] = "{}{}.str.{}({!r}, na=False)".format(
                 build_col_key(self.column),
                 case_insensitive_conversion,
                 action,
@@ -129,11 +126,12 @@ class StringFilter(MissingFilter):
             )
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action == "contains":
-            fltr["query"] = "{}.str.contains('{}', na=False, case={})".format(
-                build_col_key(self.column),
-                raw,
-                "True" if case_sensitive else "False",
-            )
+            fltr["query"] = (
+                "{}.str.contains({!r}, na=False, case={}, regex=False)".format(
+                    build_col_key(self.column),
+                    raw,
+                    "True" if case_sensitive else "False",
+            ))
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action == "length":
             if "," in raw:
