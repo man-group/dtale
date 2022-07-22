@@ -56,7 +56,7 @@ export interface Bounds {
 }
 
 /** Actions available to column filters */
-export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
+export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'regex' | 'length';
 
 /** Operands available to column filters */
 export type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
