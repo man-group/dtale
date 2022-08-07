@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.7.1 (2022-8-7)
+* updating pillow dependency in python 3.6
+
 ### 2.7.0 (2022-8-7)
 * [#688](https://github.com/man-group/dtale/issues/688): updated calls to Flask.url_for for version 2.2.1
 * [#676](https://github.com/man-group/dtale/issues/676): Changed final_query to include column
