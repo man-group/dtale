@@ -5,6 +5,7 @@ import jinja2
 import logging
 import os
 import pandas as pd
+import platform
 import random
 import socket
 import sys
@@ -16,7 +17,14 @@ from logging import ERROR as LOG_ERROR
 from threading import Timer
 from werkzeug.routing import Map
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for as flask_url_for,
+)
 from flask.testing import FlaskClient
 
 import requests
@@ -152,7 +160,10 @@ class DtaleFlask(Flask):
                     )
                 )
             return fix_url_path("{}/{}".format(self.app_root, args[0]))
-        return url_for(endpoint, *args, **kwargs)
+        major, minor, revision = [int(i) for i in platform.python_version_tuple()]
+        if major == 2 or (major == 3 and minor < 7):
+            return flask_url_for(endpoint, *args, **kwargs)
+        return Flask.url_for(self, endpoint, *args, **kwargs)
 
     def _override_routes(self, rule):
         try:
