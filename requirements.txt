@@ -59,7 +59,7 @@ packaging<=21.0; python_version == '3.5'
 packaging<=21.0; python_version == '3.6'
 packaging<=21.0; python_version == '3.7'
 pandas
-pillow==8.4.0; python_version == '3.6'
+pillow==9.0.1; python_version == '3.6'
 plotly==4.14.3; python_version < '3.6'
 plotly>=5.0.0; python_version >= '3.6'
 pyparsing==2.4.7; python_version == '2.7'
