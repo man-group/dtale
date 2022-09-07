@@ -1,7 +1,13 @@
-import streamlit.server.server as streamlit_server
+try:
+    import streamlit.server.server as streamlit_server
+except ImportError:
+    import streamlit.web.server.server as streamlit_server
 import sys
 
-from streamlit.cli import main
+try:
+    from streamlit.cli import main
+except ImportError:
+    from streamlit.web.cli import main
 from tornado.wsgi import WSGIContainer
 from tornado.web import FallbackHandler
 
