@@ -22,11 +22,9 @@ try:
     pypandoc_func = (
         pypandoc.convert_file if hasattr(pypandoc, "convert_file") else pypandoc.convert
     )
-    long_description = pypandoc_func("README.md", "rst")
-    changelog = pypandoc_func("CHANGES.md", "rst")
+    long_description = pypandoc_func("DESCRIPTION.md", "rst")
 except (IOError, ImportError, OSError):
-    long_description = read_file("README.md")
-    changelog = read_file("CHANGES.md")
+    long_description = read_file("DESCRIPTION.md")
 
 
 class PyTest(TestCommand):
@@ -79,7 +77,7 @@ setup(
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
     license="LGPL",
-    long_description="\n".join((long_description, changelog)),
+    long_description=long_description,
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
     install_requires=read_file("requirements.txt"),
