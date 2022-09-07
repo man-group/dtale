@@ -106,15 +106,24 @@ def build_saved_header(config):
             final_data.append(("Trendline", "\u2714"))
 
     if group_by:
-        final_data.append(("Group By", ", ".join(make_list(group_by))))
-        group_type = config["group_type"]
+        group_by_cols = make_list(group_by)
+        final_data.append(("Group By", ", ".join(group_by_cols)))
+        group_type = config.get("group_type")
         final_data.append(("Group Type", group_type))
         if group_type == "bins":
             final_data.append(("Bin Type", config["bin_type"]))
             final_data.append(("Bins", config["bin_val"]))
         else:
             final_data.append(
-                ("Selected Groups", ", ".join(make_list(config["groups"])))
+                (
+                    "Selected Groups",
+                    ", ".join(
+                        [
+                            "({})".format(",".join([v[c] for c in group_by_cols]))
+                            for v in make_list(config.get("group_val"))
+                        ]
+                    ),
+                )
             )
 
     if config["cpg"]:
