@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.8.0 (2022-9-8)
+* [#693](https://github.com/man-group/dtale/issues/693): updated streamlit script to work with 1.12.0
+* [#694](https://github.com/man-group/dtale/issues/694): shortened setup.py long_description to help with hadoop downloads
+
 ### 2.7.1 (2022-8-7)
 * updating pillow dependency in python 3.6
 
