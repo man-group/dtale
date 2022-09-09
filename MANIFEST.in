@@ -1,5 +1,6 @@
 include README.md
 include CHANGES.md
+include DESCRIPTION.md
 include LICENSE
 include requirements.txt
 include requirements-test.txt
