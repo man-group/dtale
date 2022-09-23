@@ -3420,6 +3420,25 @@ def handle_excel_upload(dfs):
 UPLOAD_SEPARATORS = {"comma": ",", "tab": "\t", "colon": ":", "pipe": "|"}
 
 
+def build_csv_kwargs(request):
+    # Set engine to python to auto detect delimiter...
+    kwargs = {"sep": None}
+    sep_type = request.form.get("separatorType")
+
+    if sep_type in UPLOAD_SEPARATORS:
+        kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
+    elif sep_type == "custom" and request.form.get("separator"):
+        kwargs["sep"] = request.form["separator"]
+        kwargs["sep"] = (
+            str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
+        )
+
+    if "header" in request.form:
+        kwargs["header"] = 0 if request.form["header"] == "true" else None
+
+    return kwargs
+
+
 @dtale.route("/upload", methods=["POST"])
 @exception_decorator
 def upload():
@@ -3429,19 +3448,7 @@ def upload():
         contents = request.files[filename]
         _, ext = os.path.splitext(filename)
         if ext in [".csv", ".tsv"]:
-            # Set engine to python to auto detect delimiter...
-            kwargs = {"sep": None}
-            sep_type = request.form.get("separatorType")
-            if sep_type in UPLOAD_SEPARATORS:
-                kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
-            elif sep_type == "custom" and request.form.get("separator"):
-                kwargs["sep"] = request.form["separator"]
-                kwargs["sep"] = (
-                    str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
-                )
-
-            if "header" in request.form:
-                kwargs["header"] = 0 if request.form["header"] == "true" else None
+            kwargs = build_csv_kwargs(request)
             df = pd.read_csv(
                 StringIO(contents.read().decode()), engine="python", **kwargs
             )
