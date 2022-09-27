@@ -3429,9 +3429,7 @@ def build_csv_kwargs(request):
         kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
     elif sep_type == "custom" and request.form.get("separator"):
         kwargs["sep"] = request.form["separator"]
-        kwargs["sep"] = (
-            str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
-        )
+        kwargs["sep"] = str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
 
     if "header" in request.form:
         kwargs["header"] = 0 if request.form["header"] == "true" else None
