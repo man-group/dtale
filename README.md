@@ -150,10 +150,10 @@ import pandas as pd
 
 df = pd.DataFrame([dict(a=1,b=2,c=3)])
 
-# Assigning a reference to a running D-Tale process
+# Assigning a reference to a running D-Tale process.
 d = dtale.show(df)
 
-# Accessing data associated with D-Tale process
+# Accessing data associated with D-Tale process.
 tmp = d.data.copy()
 tmp['d'] = 4
 
@@ -164,16 +164,16 @@ d.data = tmp
 # Shutting down D-Tale process
 d.kill()
 
-# using Python's `webbrowser` package it will try and open your server's default browser to this process
+# Using Python's `webbrowser` package it will try and open your server's default browser to this process.
 d.open_browser()
 
-# There is also some helpful metadata about the process
-d._data_id  # the process's data identifier
-d._url  # the url to access the process
+# There is also some helpful metadata about the process.
+d._data_id  # The process's data identifier.
+d._url  # The url to access the process.
 
-d2 = dtale.get_instance(d._data_id)  # returns a new reference to the instance running at that data_id
+d2 = dtale.get_instance(d._data_id)  # Returns a new reference to the instance running at that data_id.
 
-dtale.instances()  # prints a list of all ids & urls of running D-Tale sessions
+dtale.instances()  # Prints a list of all ids & urls of running D-Tale sessions.
 
 ```
 
