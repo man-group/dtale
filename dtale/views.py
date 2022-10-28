@@ -16,14 +16,6 @@ from flask import (
     request,
     Response,
 )
-import matplotlib
-
-matplotlib.use("agg")  # noqa: E261
-
-import matplotlib.pyplot as plt
-
-plt.rcParams["font.sans-serif"] = ["SimHei"]  # Or any other Chinese characters
-matplotlib.rcParams["font.family"] = ["Heiti TC"]
 
 import missingno as msno
 import networkx as nx
@@ -34,7 +26,6 @@ import requests
 import scipy.stats as sts
 import seaborn as sns
 import xarray as xr
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from six import BytesIO, PY3, string_types, StringIO
 
 import dtale.correlations as correlations
@@ -122,6 +113,36 @@ def exception_decorator(func):
             return jsonify_error(e)
 
     return _handle_exceptions
+
+
+def matplotlib_decorator(func):
+    @wraps(func)
+    def _handle_matplotlib(*args, **kwargs):
+
+        try:
+            import matplotlib
+
+            current_backend = matplotlib.get_backend()
+
+            matplotlib.use("agg")  # noqa: E261
+
+            import matplotlib.pyplot as plt
+
+            plt.rcParams["font.sans-serif"] = [
+                "SimHei"
+            ]  # Or any other Chinese characters
+            matplotlib.rcParams["font.family"] = ["Heiti TC"]
+
+            return func(*args, **kwargs)
+        except BaseException as e:
+            raise e
+        finally:
+            try:
+                matplotlib.pyplot.switch_backend(current_backend)
+            except BaseException:
+                pass
+
+    return _handle_matplotlib
 
 
 class NoDataLoadedException(Exception):
@@ -2708,6 +2729,46 @@ def get_column_analysis(data_id):
     return jsonify(**analysis.build())
 
 
+@matplotlib_decorator
+def build_correlations_matrix_image(
+    data,
+    is_pps,
+    valid_corr_cols,
+    valid_str_corr_cols,
+    valid_date_cols,
+    dummy_col_mappings,
+    pps_data,
+    code,
+):
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+    plt.figure(figsize=(20, 12))
+    ax0 = plt.gca()
+    cmap = "Blues" if is_pps else "RdYlGn"
+    vmin = 0.0 if is_pps else -1.0
+    sns.heatmap(
+        data.mask(data.apply(lambda x: x.name == x.index)),
+        ax=ax0,
+        vmin=vmin,
+        vmax=1.0,
+        xticklabels=True,
+        yticklabels=True,
+        cmap=cmap,
+    )
+    output = BytesIO()
+    FigureCanvas(ax0.get_figure()).print_png(output)
+    return (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        output.getvalue(),
+    )
+
+
 def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image=False):
     curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
@@ -2771,30 +2832,15 @@ def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image
     code = "\n".join(code)
     data.index.name = str("column")
     if image:
-        figsize = (20, 12)
-        plt.figure(figsize=figsize)
-        ax0 = plt.gca()
-        cmap = "Blues" if is_pps else "RdYlGn"
-        vmin = 0.0 if is_pps else -1.0
-        sns.heatmap(
-            data.mask(data.apply(lambda x: x.name == x.index)),
-            ax=ax0,
-            vmin=vmin,
-            vmax=1.0,
-            xticklabels=True,
-            yticklabels=True,
-            cmap=cmap,
-        )
-        output = BytesIO()
-        FigureCanvas(ax0.get_figure()).print_png(output)
-        return (
+        return build_correlations_matrix_image(
+            data,
+            is_pps,
             valid_corr_cols,
             valid_str_corr_cols,
             valid_date_cols,
             dummy_col_mappings,
             pps_data,
             code,
-            output.getvalue(),
         )
     return (
         valid_corr_cols,
@@ -3713,8 +3759,11 @@ def build_merge():
 
 
 @dtale.route("/missingno/<chart_type>/<data_id>")
+@matplotlib_decorator
 @exception_decorator
 def build_missingno_chart(chart_type, data_id):
+
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
     df = global_state.get_data(data_id)
     if chart_type == "matrix":

@@ -88,7 +88,7 @@ def load_player_suggestions(input):
 
 
 def parse_player_df(content):
-    name = content.select_one("#info").select_one('h1').text.strip()
+    name = content.select_one("#info").select_one("h1").text.strip()
     standard_batting_tbl = content.find(id="batting_standard")
 
     standard_batting_data = []
@@ -154,7 +154,9 @@ def load_iframes():
             '<h3 style="padding-top: 10px">Data For: {}</h3>'
             '<iframe class="grid" src="/dtale/main/1?_id={}"/>'
         ).format(name_str, uuid.uuid4().hex)
-        charts = '<iframe class="chart" src="{}&_id={}" />'.format(chart_url, uuid.uuid4().hex)
+        charts = '<iframe class="chart" src="{}&_id={}" />'.format(
+            chart_url, uuid.uuid4().hex
+        )
         return grid, charts
     return "", ""
 
