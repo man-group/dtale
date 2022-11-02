@@ -156,7 +156,7 @@ export const getRanges = (array: number[]): string[] => {
 const getMaxLengthStr = (col: string, data?: DataViewerData): string =>
   Object.values(data ?? {}).sort(
     (a: Record<string, DataRecord>, b: Record<string, DataRecord>) =>
-      (a[col]?.view?.length ?? 0) - (b[col]?.view?.length ?? 0),
+      (b[col]?.view?.length ?? 0) - (a[col]?.view?.length ?? 0),
   )[0]?.[col]?.view ?? '';
 
 const calcDataWidth = (name: string, dtype: string, data?: DataViewerData): number | undefined => {

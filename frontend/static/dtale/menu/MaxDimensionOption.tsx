@@ -2,7 +2,6 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import { AppState } from '../../redux/state/AppState';
 import { SingleTrack, StyledSlider, Thumb } from '../../sliderUtils';
@@ -42,7 +41,6 @@ export const MaxDimensionOption: React.FC<MaxDimensionOptionProps & WithTranslat
     if (props.maxDimension === null) {
       updateMax(maxDimension);
     } else {
-      await serverState.updateMaxColumnWidth();
       clearMaxDimension();
     }
   };
@@ -108,7 +106,10 @@ export const MaxWidthOption: React.FC = () => {
     dispatch(actions.updateMaxWidth(width));
     await serverState.updateMaxColumnWidth(width);
   };
-  const clearMaxDimension = (): AppActions<void> => dispatch(actions.clearMaxWidth());
+  const clearMaxDimension = async (): Promise<void> => {
+    dispatch(actions.clearMaxWidth());
+    await serverState.updateMaxColumnWidth();
+  };
   return (
     <TranslatedMaxDimensionOption
       label="Width"
@@ -128,7 +129,10 @@ export const MaxHeightOption: React.FC = () => {
     dispatch(actions.updateMaxHeight(height));
     await serverState.updateMaxRowHeight(height);
   };
-  const clearMaxDimension = (): AppActions<void> => dispatch(actions.clearMaxHeight());
+  const clearMaxDimension = async (): Promise<void> => {
+    dispatch(actions.clearMaxHeight());
+    await serverState.updateMaxRowHeight();
+  };
   return (
     <TranslatedMaxDimensionOption
       label="Height"

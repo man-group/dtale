@@ -25,10 +25,8 @@ export const validateCfg = (
   if (!value) {
     return t('Please select a value to search for!');
   }
-  if (!replace) {
-    if (type === ValueConfigType.RAW) {
-      return t('Please enter a raw value!');
-    } else if (type === ValueConfigType.COL) {
+  if (!replace && type !== ValueConfigType.RAW) {
+    if (type === ValueConfigType.COL) {
       return t('Please select a column!');
     }
     return t('Please select an aggregation!');
@@ -109,10 +107,14 @@ const Value: React.FC<BaseReplacementComponentProps & WithTranslation> = ({
         raw === 'nan'
           ? raw
           : colType === 'float'
-          ? parseFloat(raw ?? '')
+          ? raw
+            ? parseFloat(raw)
+            : 'nan'
           : colType === 'int'
-          ? parseInt(raw ?? '', 10)
-          : raw;
+          ? raw
+            ? parseInt(raw, 10)
+            : 'nan'
+          : raw ?? '';
     } else {
       replace = agg?.value;
     }
