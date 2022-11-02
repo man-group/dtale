@@ -9,7 +9,6 @@ import {
   ValueConfigType,
 } from '../../../popups/replacement/CreateReplacementState';
 import { validateValueCfg, default as Value } from '../../../popups/replacement/Value';
-import { RemovableError } from '../../../RemovableError';
 import { mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateReplacement.test.support';
@@ -40,13 +39,7 @@ describe('Value', () => {
         .simulate('change', { target: { value: '3' } });
     });
     result = result.update();
-    await act(async () => {
-      findValueInputRow(1).find('i').last().simulate('click');
-    });
-    result = result.update();
     result = await spies.executeSave(result);
-    expect(result.find(RemovableError)).toHaveLength(1);
-    expect(result.find(RemovableError).props().error).toBe('Please enter a raw value!');
     await act(async () => {
       findValueInputRow(1)
         .find('input')
