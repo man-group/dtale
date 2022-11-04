@@ -3793,6 +3793,14 @@ def build_missingno_chart(chart_type, data_id):
 def drop_filtered_rows(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     final_query = build_query(data_id, curr_settings.get("query"))
+    curr_history = global_state.get_history(data_id) or []
+    curr_history += [
+        (
+            "# drop filtered rows\n"
+            'df = df.query("{}")'.format(final_query.replace("`", ""))
+        )
+    ]
+    global_state.set_history(data_id, curr_history)
     data = run_query(
         handle_predefined(data_id),
         final_query,
