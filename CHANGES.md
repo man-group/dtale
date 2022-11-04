@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2.9.0 (2022-11-4)
+* [#703](https://github.com/man-group/dtale/issues/703): fix for matplotlib imports
+* [#704](https://github.com/man-group/dtale/issues/704): fix for replacing nan with zero
+* [#677](https://github.com/man-group/dtale/issues/677): include row dropping in history
+
 ### 2.8.1 (2022-9-9)
 * Added DESCRIPTION.md to MANIFEST.in
 
