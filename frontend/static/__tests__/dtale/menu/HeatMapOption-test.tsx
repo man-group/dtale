@@ -1,15 +1,15 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { default as HeatMapOption, HeatMapOptionProps } from '../../../dtale/menu/HeatMapOption';
+import { ActionType } from '../../../redux/actions/AppActions';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('HeatMapOption tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   let props: HeatMapOptionProps;
   const toggleBackgroundSpy = jest.fn();
   let store: Store;
@@ -23,39 +23,49 @@ describe('HeatMapOption tests', () => {
       ...propOverrides,
     };
     store = reduxUtils.createDtaleStore();
-    store.getState().showAllHeatmapColumns = showAllHeatmapColumns;
+    store.dispatch({ type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS, showAllHeatmapColumns });
     buildInnerHTML({ settings: '' }, store);
-    result = mount(
-      <Provider store={store}>
-        <HeatMapOption {...props} />,
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <HeatMapOption {...props} />,
+          </Provider>,
+          {
+            container: document.getElementById('content') as HTMLElement,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
   };
-
-  beforeEach(() => setupOption());
 
   afterEach(jest.resetAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
-  it('renders successfully with defaults', () => {
-    expect(result.find('button').map((b) => b.text())).toEqual(['By Col', 'Overall']);
-    result.find('button').first().simulate('click');
+  it('renders successfully with defaults', async () => {
+    await setupOption();
+    const buttons = [...result.getElementsByTagName('button')];
+    expect(buttons.map((b) => b.textContent)).toEqual(['By Col', 'Overall']);
+    await act(() => {
+      fireEvent.click(buttons[0]);
+    });
     expect(toggleBackgroundSpy).toHaveBeenLastCalledWith('heatmap-col');
-    result.find('button').last().simulate('click');
+    await act(() => {
+      fireEvent.click(buttons[buttons.length - 1]);
+    });
     expect(toggleBackgroundSpy).toHaveBeenLastCalledWith('heatmap-all');
   });
 
-  it('handles background updates w/ all columns displayed', () => {
-    setupOption({}, true);
-    result.find('button').first().simulate('click');
+  it('handles background updates w/ all columns displayed', async () => {
+    await setupOption({}, true);
+    const buttons = [...result.getElementsByTagName('button')];
+    await act(() => {
+      fireEvent.click(buttons[0]);
+    });
     expect(toggleBackgroundSpy).toHaveBeenLastCalledWith('heatmap-col-all');
-    result.find('button').last().simulate('click');
+    await act(() => {
+      fireEvent.click(buttons[buttons.length - 1]);
+    });
     expect(toggleBackgroundSpy).toHaveBeenLastCalledWith('heatmap-all-all');
   });
 });

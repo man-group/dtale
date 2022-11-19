@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
 
 import * as CopyToClipboard from '../../CopyToClipboard';
@@ -18,25 +18,25 @@ describe('CodePopup tests', () => {
 
   afterAll(jest.restoreAllMocks);
 
-  it('CodePopup render & copy test', () => {
+  it('CodePopup render & copy test', async () => {
     buildInnerHTML();
-    const result = mount(<CodePopup code="test code" />, {
-      attachTo: document.getElementById('content') ?? undefined,
+    const result = render(<CodePopup code="test code" />, {
+      container: document.getElementById('content') ?? undefined,
+    }).container;
+    expect(result.getElementsByClassName('code-popup-modal')[0].textContent).toBe('test code');
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Copy'));
     });
-    result.render();
-    expect(result.find('Light').text()).toBe('test code');
-    result.find('button').simulate('click');
   });
 
   it("returns null when it can't copy", () => {
     buildInnerHTML();
     const canCopySpy = jest.spyOn(CopyToClipboard, 'canCopy');
     canCopySpy.mockImplementation(() => false);
-    const result = mount(<CodePopup code="test code" />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    result.render();
-    expect(result.find('div')).toHaveLength(1);
+    const result = render(<CodePopup code="test code" />, {
+      container: document.getElementById('content') ?? undefined,
+    }).container;
+    expect(result.getElementsByTagName('div')).toHaveLength(1);
   });
 
   describe('renderCodePopupAnchor', () => {
@@ -51,12 +51,14 @@ describe('CodePopup tests', () => {
 
     afterAll(jest.restoreAllMocks);
 
-    it('onClick implemntation', () => {
+    it('onClick implemntation', async () => {
       const code = 'test code';
       const title = 'test';
       const popupAnchor = renderCodePopupAnchor(code, title);
-      const result = mount(popupAnchor);
-      result.simulate('click');
+      const result = render(popupAnchor).container;
+      await act(async () => {
+        await fireEvent.click(result.getElementsByTagName('a')[0]);
+      });
       expect(menuFuncsOpenSpy).toHaveBeenCalledWith('/dtale/code-popup', undefined, 450, 700);
       expect((window as any).code_popup).toEqual({ code, title });
     });

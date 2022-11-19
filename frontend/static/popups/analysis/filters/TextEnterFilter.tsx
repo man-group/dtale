@@ -64,6 +64,7 @@ const TextEnterFilter: React.FC<TextEnterFilterProps & WithTranslation> = ({
           onChange={updateValue}
           onKeyDown={updateFilter}
           disabled={disabled ?? false}
+          data-testid={`${prop}-input`}
         />
       </div>
     </React.Fragment>

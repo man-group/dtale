@@ -2,11 +2,25 @@ import numeral from 'numeral';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { AutoSizer, Column, Table, TableCellProps, TableHeaderProps } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  Column as _Column,
+  Table as _Table,
+  AutoSizerProps,
+  ColumnProps,
+  TableCellProps,
+  TableHeaderProps,
+  TableProps,
+} from 'react-virtualized';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { buildSort, sortData } from '../../popups/correlations/CorrelationsGrid';
-import { ActionType, AppActions, DataViewerUpdateAction, HideSidePanelAction } from '../../redux/actions/AppActions';
+import {
+  ActionType,
+  DataViewerUpdateAction,
+  HideSidePanelAction,
+  OpenChartAction,
+} from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import { AppState, DataViewerUpdateType, Popups, PopupType, SortDef } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -15,6 +29,10 @@ import { StyledSlider, Thumb, Track } from '../../sliderUtils';
 import * as gu from '../gridUtils';
 import { SORT_CHARS } from '../Header';
 import * as serverState from '../serverStateManagement';
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const Column = _Column as unknown as React.FC<ColumnProps>;
+const Table = _Table as unknown as React.FC<TableProps>;
 
 /** Row in the correlations table */
 interface DataRow extends CorrelationsRepository.Rank {
@@ -37,7 +55,7 @@ const buildData = (
 const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
   const dataId = useSelector((state: AppState) => state.dataId);
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const reduxDropColumns = (columns: string[]): DataViewerUpdateAction =>
     dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: DataViewerUpdateType.DROP_COLUMNS, columns } });
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
@@ -72,10 +90,10 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
     });
   }, []);
 
-  const headerRenderer = (props: TableHeaderProps): JSX.Element => {
+  const headerRenderer = (props: TableHeaderProps): React.ReactNode => {
     const { dataKey, label } = props;
     if (dataKey === 'selected') {
-      return <div className="headerCell">{label}</div>;
+      return <div className="headerCell">{label as any}</div>;
     }
     const onClick = (): void => {
       const updatedData = buildData(corrs ?? {}, ranks, threshold, selections);
@@ -90,7 +108,7 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
         <div className="row">
           <div className="col-auto" style={{ whiteSpace: 'break-spaces' }}>
             {dataKey === sortBy ? `${sortDir ? SORT_CHARS[sortDir] ?? '' : ''} ` : ''}
-            {label}
+            {label as any}
           </div>
         </div>
       </div>
@@ -133,13 +151,13 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
         <div className="col" />
         <div className="col-auto">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? ''} />
           </button>
         </div>
       </div>
       <div>
         <span className="d-inline-block pr-5 align-top mt-3">{t('corr_analysis:Threshold')}</span>
-        <div className="d-inline-block" style={{ width: 200 }}>
+        <div className="d-inline-block" style={{ width: 200 }} data-testid="corr-threshold">
           <StyledSlider
             renderTrack={Track as any}
             renderThumb={Thumb}

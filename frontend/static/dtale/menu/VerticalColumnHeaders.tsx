@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ActionType } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
@@ -19,7 +20,7 @@ const VerticalColumnHeaders: React.FC<WithTranslation> = ({ t }) => {
   const setVerticalHeaders = async (): Promise<void> => {
     const updates = { verticalHeaders: !verticalHeaders };
     await serverState.updateSettings(updates, dataId);
-    dispatch(settingsActions.updateSettings(updates));
+    dispatch(settingsActions.updateSettings(updates) as any as AnyAction);
     dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   };
 

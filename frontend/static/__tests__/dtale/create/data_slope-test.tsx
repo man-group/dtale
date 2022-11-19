@@ -1,21 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateDataSlope, validateDataSlopeCfg } from '../../../popups/create/CreateDataSlope';
-import { mockT as t } from '../../test-utils';
+import { validateDataSlopeCfg } from '../../../popups/create/CreateDataSlope';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateDataSlope', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Data Slope');
+    await spies.clickBuilder('Data Slope');
   });
 
   afterEach(() => spies.afterEach());
@@ -23,17 +21,9 @@ describe('CreateDataSlope', () => {
   afterAll(() => spies.afterAll());
 
   it('builds data slope column', async () => {
-    expect(result.find(CreateDataSlope)).toHaveLength(1);
-    await act(async () => {
-      result
-        .find(CreateDataSlope)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    expect(screen.getByText('Data Slope')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
       },

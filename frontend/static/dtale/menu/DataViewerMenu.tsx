@@ -2,8 +2,9 @@ import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { ActionType, AppActions, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
+import { ActionType, OpenChartAction, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
@@ -59,13 +60,15 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
     (state: AppState) => state,
   );
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
   const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AppActions<void> =>
+  const updateBg = (bgType: string): AnyAction =>
     dispatch(
-      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+      settingsActions.updateSettings({
+        backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
+      }) as any as AnyAction,
     );
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
@@ -85,7 +88,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
       };
   const height = `calc(100vh - ${menuPinned ? 35 : hasNoInfo ? 68 : 98}px)`;
   return (
-    <div {...containerProps}>
+    <div data-testid="data-viewer-menu" {...containerProps}>
       {!menuPinned && menuOpen && (
         <GlobalHotKeys
           keyMap={{ CLOSE_MENU: 'esc' }}

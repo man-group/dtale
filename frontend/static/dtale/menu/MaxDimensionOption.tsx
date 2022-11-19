@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import * as actions from '../../redux/actions/dtale';
 import { AppState } from '../../redux/state/AppState';
@@ -81,7 +82,7 @@ export const MaxDimensionOption: React.FC<MaxDimensionOptionProps & WithTranslat
               }
             }}
           />
-          <div className="col pl-3 pr-2">
+          <div className="col pl-3 pr-2" data-testid={`${description}-slider`}>
             <StyledSlider
               defaultValue={maxDimension}
               renderTrack={SingleTrack as any}
@@ -103,11 +104,11 @@ export const MaxWidthOption: React.FC = () => {
   const maxColumnWidth = useSelector((state: AppState) => state.maxColumnWidth);
   const dispatch = useDispatch();
   const updateMaxDimension = async (width: number): Promise<void> => {
-    dispatch(actions.updateMaxWidth(width));
+    dispatch(actions.updateMaxWidth(width) as any as AnyAction);
     await serverState.updateMaxColumnWidth(width);
   };
   const clearMaxDimension = async (): Promise<void> => {
-    dispatch(actions.clearMaxWidth());
+    dispatch(actions.clearMaxWidth() as any as AnyAction);
     await serverState.updateMaxColumnWidth();
   };
   return (
@@ -126,11 +127,11 @@ export const MaxHeightOption: React.FC = () => {
   const maxRowHeight = useSelector((state: AppState) => state.maxRowHeight);
   const dispatch = useDispatch();
   const updateMaxDimension = async (height: number): Promise<void> => {
-    dispatch(actions.updateMaxHeight(height));
+    dispatch(actions.updateMaxHeight(height) as any as AnyAction);
     await serverState.updateMaxRowHeight(height);
   };
   const clearMaxDimension = async (): Promise<void> => {
-    dispatch(actions.clearMaxHeight());
+    dispatch(actions.clearMaxHeight() as any as AnyAction);
     await serverState.updateMaxRowHeight();
   };
   return (

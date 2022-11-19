@@ -1,16 +1,12 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import GridCell from '../../dtale/GridCell';
-import { GridCellEditor } from '../../dtale/GridCellEditor';
-import GridEventHandler from '../../dtale/GridEventHandler';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, mockChartJS } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const { open } = window;
@@ -27,8 +23,7 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(() => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.resetAllMocks);
@@ -42,80 +37,39 @@ describe('DataViewer tests', () => {
   it('DataViewer: cell editing', async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    let result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    const cellIdx = result.find(GridCell).last().find('div').prop('cell_idx');
+    let container: Element;
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        } as any as React.MouseEvent);
+      const result = render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      );
+      container = result.container;
     });
-    result = result.update();
+    const lastCell = (): Element => {
+      const cells = container!.getElementsByClassName('cell');
+      return cells[cells.length - 1];
+    };
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        } as any as React.MouseEvent);
+      fireEvent.click(lastCell());
+      fireEvent.click(lastCell());
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(GridCellEditor)
-        .find('input')
-        .props()
-        .onKeyDown?.({ key: 'Escape' } as any as React.KeyboardEvent);
+      fireEvent.keyDown(screen.getByTestId('grid-cell-editor'), { key: 'Escape' });
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        } as any as React.MouseEvent);
+      fireEvent.click(lastCell());
+      fireEvent.click(lastCell());
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: cellIdx } } },
-        } as any as React.MouseEvent);
+      fireEvent.change(screen.getByTestId('grid-cell-editor'), { target: { value: '20000101' } });
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(GridCellEditor)
-        .find('input')
-        .simulate('change', { target: { value: '20000101' } });
+      fireEvent.keyDown(screen.getByTestId('grid-cell-editor'), { key: 'Enter' });
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(GridCellEditor)
-        .find('input')
-        .props()
-        .onKeyDown?.({ key: 'Enter' } as any as React.KeyboardEvent);
-    });
-    result = result.update();
-    expect(result.find(GridCell).last().text()).toBe('20000101');
+    expect(lastCell().textContent).toBe('20000101');
   });
 });

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { DataRecord, DataViewerData, DataViewerPropagateState } from '../dtale/DataViewerState';
 import * as serverState from '../dtale/serverStateManagement';
-import { AppActions } from '../redux/actions/AppActions';
+import { CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { AppState, RenamePopupData } from '../redux/state/AppState';
 import { RemovableError } from '../RemovableError';
@@ -35,7 +35,7 @@ export const Rename: React.FC<RenameProps & WithTranslation> = ({ propagateState
     }
   }, [name]);
 
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
 
   const renameAction = async (): Promise<void> => {
     const response = await serverState.renameColumn(dataId, selectedCol, name);

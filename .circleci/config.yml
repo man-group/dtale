@@ -246,7 +246,7 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: circleci/node:16.8.0
+      - image: cimg/node:19.0.1
     <<: *javascript
   build_2_7:
     working_directory: ~/man-group/dtale_2_7

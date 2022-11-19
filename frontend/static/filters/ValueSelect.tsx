@@ -54,7 +54,7 @@ export default class ValueSelect<T> extends React.Component<ValueSelectProps<T>,
           <Select
             isMulti={false}
             {...props}
-            value={selected ? { label: String(selected), value: selected } : null}
+            value={selected ? { label: String(selected as T), value: selected as T } : null}
             onChange={(option) => this.updateState(option?.value)}
           />
         )}

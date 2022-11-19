@@ -1,18 +1,22 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  AutoSizer,
+  AutoSizer as _AutoSizer,
+  InfiniteLoader as _InfiniteLoader,
+  MultiGrid as _MultiGrid,
+  AutoSizerProps,
   GridCellProps,
   IndexRange,
-  InfiniteLoader,
-  MultiGrid,
+  InfiniteLoaderProps,
+  MultiGridProps,
   SectionRenderedParams,
 } from 'react-virtualized';
+import { AnyAction } from 'redux';
 
 import { usePrevious } from '../customHooks';
 import Formatting from '../popups/formats/Formatting';
 import Popup from '../popups/Popup';
-import { ActionType, AppActions, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
+import { ActionType, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
 import * as actions from '../redux/actions/dtale';
 import { buildURLParams } from '../redux/actions/url-utils';
 import { AppState } from '../redux/state/AppState';
@@ -34,6 +38,10 @@ import RibbonDropdown from './ribbon/RibbonDropdown';
 import RibbonMenu from './ribbon/RibbonMenu';
 
 require('./DataViewer.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const InfiniteLoader = _InfiniteLoader as unknown as React.FC<InfiniteLoaderProps>;
+const MultiGrid = _MultiGrid as unknown as React.FC<MultiGridProps>;
 
 export const DataViewer: React.FC = () => {
   const {
@@ -60,9 +68,9 @@ export const DataViewer: React.FC = () => {
     verticalHeaders: state.settings.verticalHeaders ?? false,
   }));
   const dispatch = useDispatch();
-  const closeColumnMenu = (): AppActions<void> => dispatch(actions.closeColumnMenu());
-  const updateFilteredRanges = (query: string): AppActions<Promise<void>> =>
-    dispatch(actions.updateFilteredRanges(query));
+  const closeColumnMenu = (): AnyAction => dispatch(actions.closeColumnMenu() as any as AnyAction);
+  const updateFilteredRanges = (query: string): AnyAction =>
+    dispatch(actions.updateFilteredRanges(query) as any as AnyAction);
   const clearDataViewerUpdate = (): ClearDataViewerUpdateAction =>
     dispatch({ type: ActionType.CLEAR_DATA_VIEWER_UPDATE });
 
@@ -78,7 +86,7 @@ export const DataViewer: React.FC = () => {
   const [max, setMax] = React.useState<number>();
   const [error, setError] = React.useState<JSX.Element>();
 
-  const gridRef = React.useRef<MultiGrid>(null);
+  const gridRef = React.useRef<_MultiGrid>(null);
   const onRowsRendered = React.useRef<{ func?: (params: IndexRange) => void }>({});
 
   const getData = (updatedIds: number[], refresh = false): void => {

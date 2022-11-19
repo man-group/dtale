@@ -4,11 +4,12 @@ import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFormat, DataViewerData, DataViewerPropagateState } from '../../dtale/DataViewerState';
 import { buildDataProps, calcColWidth, ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import * as serverState from '../../dtale/serverStateManagement';
-import { ActionType, AppActions, CloseFormattingAction } from '../../redux/actions/AppActions';
+import { ActionType, CloseFormattingAction } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, BaseOption, InstanceSettings } from '../../redux/state/AppState';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
@@ -33,8 +34,8 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns
   const columnFormats = settings.columnFormats ?? {};
   const dispatch = useDispatch();
   const hide = (): CloseFormattingAction => dispatch({ type: ActionType.CLOSE_FORMATTING });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
 
   const [colDtype, colType] = React.useMemo(() => {
     const dtype = getDtype(formattingOpen ?? undefined, columns);
@@ -120,7 +121,7 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns
               </Modal.Title>
               <i className="ico-close pointer" onClick={hide} />
             </Modal.Header>
-            <div style={{ paddingBottom: '5em' }}>
+            <div className="modal-body" style={{ paddingBottom: '5em' }} data-testid="formatting-body">
               {[ColumnType.FLOAT, ColumnType.INT].includes(colType) && (
                 <NumericFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}

@@ -1,17 +1,15 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
-import { ColumnFilterProps } from '../../filters/ColumnFilter';
-import StringFilter from '../../filters/StringFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import { mockColumnDef } from '../mocks/MockColumnDef';
+import { selectOption } from '../test-utils';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
 describe('ColumnFilter string tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper<ColumnFilterProps>;
+  let result: Element;
   let toggleOutlierFilterSpy: jest.SpyInstance<
     Promise<ColumnFilterRepository.ToggleOutlierFilterResponse | undefined>,
     [string, string]
@@ -44,39 +42,32 @@ describe('ColumnFilter string tests', () => {
   afterAll(() => spies.afterAll());
 
   it('ColumnFilter invalid type rendering', async () => {
-    expect(result.find(StringFilter).length).toBe(1);
+    expect(result.getElementsByClassName('string-filter-inputs').length).toBe(1);
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    expect(result.find('.Select__control--is-disabled').length).toBeGreaterThan(0);
+    expect(result.getElementsByClassName('Select__control--is-disabled').length).toBeGreaterThan(0);
     await act(async () => {
-      result.find('i.ico-check-box').first().simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
     await act(async () => {
-      result.find('i.ico-check-box').last().simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
     expect(toggleOutlierFilterSpy).toHaveBeenCalledWith('1', 'col3');
-    expect(result.find('.Select__control--is-disabled').length).toBe(0);
-    const uniqueSelect = result.find(Select);
+    expect(result.getElementsByClassName('Select__control--is-disabled').length).toBe(0);
+    const uniqueSelect = result.getElementsByClassName('Select')[1] as HTMLElement;
     await act(async () => {
-      uniqueSelect
-        .last()
-        .props()
-        .onChange?.([{ value: 'a' }], {} as ActionMeta<unknown>);
+      await selectEvent.clearAll(uniqueSelect);
     });
-    result = result.update();
+    await selectOption(uniqueSelect, 'a');
     expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',
       expect.objectContaining({ type: 'string', operand: '=', value: ['a'] }),
     );
     await act(async () => {
-      result.find(StringFilter).find('button').first().simulate('click');
+      await fireEvent.click(result.getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',

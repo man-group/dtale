@@ -1,20 +1,16 @@
-import { ReactWrapper } from 'enzyme';
-import { default as Modal } from 'react-bootstrap/Modal';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
+import axios from 'axios';
 
 import { DataViewerData } from '../../../dtale/DataViewerState';
-import Formatting from '../../../popups/formats/Formatting';
-import NumericFormatting from '../../../popups/formats/NumericFormatting';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Formatting.test.support';
 
 describe('NumericFormatting', () => {
   const spies = new TestSupport.Spies();
   const { open } = window;
-  let result: ReactWrapper;
   const openFn = jest.fn();
 
   beforeAll(() => {
@@ -29,7 +25,6 @@ describe('NumericFormatting', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
-    result.unmount();
   });
 
   afterAll(() => {
@@ -37,74 +32,58 @@ describe('NumericFormatting', () => {
     window.open = open;
   });
 
-  const validateFormatting = async (expected: string, i: number): Promise<ReactWrapper> => {
-    let clicker = result.find(NumericFormatting).find('div.form-group').at(i).find('button');
-    if (i === 0) {
-      clicker = clicker.last();
-    } else {
-      clicker = clicker.first();
-    }
+  const validateFormatting = async (expected: string, i: number): Promise<void> => {
+    const clickers = [...spies.body().getElementsByClassName('form-group')[i].getElementsByTagName('button')];
     await act(async () => {
-      clicker.simulate('click');
+      await fireEvent.click(clickers[i === 0 ? clickers.length - 1 : 0]);
     });
-    result = result.update();
-    expect(result.find(NumericFormatting).find('small').first().text()).toBe(expected);
-    return result;
+    expect(spies.body().getElementsByTagName('small')[0].textContent).toBe(expected);
   };
 
-  const toggleFormatting = async (toggleIdx: number): Promise<ReactWrapper> => {
+  const toggleFormatting = async (toggleIdx: number): Promise<void> => {
+    const buttons = [...spies.body().getElementsByClassName('form-group')[toggleIdx].getElementsByTagName('button')];
     await act(async () => {
-      result.find(NumericFormatting).find('div.form-group').at(toggleIdx).find('button').last().simulate('click');
+      await fireEvent.click(buttons[buttons.length - 1]);
     });
-    return result.update();
   };
 
   it('applies formatting', async () => {
-    result = await spies.setupWrapper(1);
-    expect(result.find(NumericFormatting)).toHaveLength(1);
+    await spies.setupWrapper(1);
+    expect(document.getElementsByClassName('modal-title')[0].textContent).toBe('Formatting');
     await act(async () => {
-      result.find(Formatting).find(Modal.Header).first().find('i.ico-close').simulate('click');
+      await fireEvent.click(document.getElementsByClassName('modal-header')[0].getElementsByClassName('ico-close')[0]);
     });
-    result = result.update();
-    expect(result.find(Formatting).find(Modal).props().show).toBe(false);
-    result = await clickColMenuButton(result, 'Formats');
+    expect(spies.body()).toBeUndefined();
     await act(async () => {
-      result.find(NumericFormatting).find('i.ico-info-outline').first().simulate('click');
+      await fireEvent.click(screen.queryAllByTestId('header-cell')[1].getElementsByClassName('text-nowrap')[0]);
     });
-    result = result.update();
+    await clickColMenuButton('Formats');
+    await act(async () => {
+      await fireEvent.click(spies.body().getElementsByClassName('ico-info-outline')[0]);
+    });
     expect(openFn.mock.calls[openFn.mock.calls.length - 1][0]).toBe('http://numeraljs.com/#format');
-    result = await validateFormatting('EX: -123456.789 => -123456.789000', 0);
-    result = await validateFormatting('EX: -123456.789 => -123,456.789000', 1);
-    result = await validateFormatting('EX: -123456.789 => -123.456789k', 2);
-    result = await validateFormatting('EX: -123456.789 => -1.234568e+5', 3);
-    result = await validateFormatting('EX: -123456.789 => 1.23456789b-BPS', 4);
+    await validateFormatting('EX: -123456.789 => -123456.789000', 0);
+    await validateFormatting('EX: -123456.789 => -123,456.789000', 1);
+    await validateFormatting('EX: -123456.789 => -123.456789k', 2);
+    await validateFormatting('EX: -123456.789 => -1.234568e+5', 3);
+    await validateFormatting('EX: -123456.789 => 1.23456789b-BPS', 4);
     await act(async () => {
-      result.find(NumericFormatting).find('div.form-group').at(5).find('button').first().simulate('click');
+      await fireEvent.click(spies.body().querySelectorAll('div.form-group')[5].getElementsByTagName('button')[0]);
     });
-    result = result.update();
-    expect(result.find(NumericFormatting).find('small').first().html().includes('style="color: red;"')).toBe(true);
-    result = await toggleFormatting(1);
-    result = await toggleFormatting(2);
-    result = await toggleFormatting(3);
-    result = await toggleFormatting(4);
-    result = await toggleFormatting(5);
-    await act(async () => {
-      result
-        .find(Formatting)
-        .find('div.form-group')
-        .last()
-        .find(Select)
-        .props()
-        .onChange?.({ value: '-' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    result = await spies.validateCfg(result, '1', 'col2', { fmt: '0.000000', style: { redNegs: false } }, false, '-');
-    expect(result.find(Formatting).props().data['0'].col2.view).toBe('2.500000');
+    expect(spies.body().getElementsByTagName('small')[0].getElementsByTagName('span')[0]).toHaveStyle({ color: 'red' });
+    await toggleFormatting(1);
+    await toggleFormatting(2);
+    await toggleFormatting(3);
+    await toggleFormatting(4);
+    await toggleFormatting(5);
+    await selectOption(spies.body().getElementsByClassName('Select')[1] as HTMLElement, '-');
+    await spies.validateCfg('1', 'col2', { fmt: '0.000000', style: { redNegs: false } }, false, '-');
+    expect(spies.cell('2|1').textContent).toBe('2.500000');
     expect(spies.store?.getState().settings.nanDisplay).toBe('-');
   });
 
   it('applies formatting to all columns of a similar data type', async () => {
-    spies.axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/data')) {
         return Promise.resolve({
           data: {
@@ -123,17 +102,16 @@ describe('NumericFormatting', () => {
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-    result = await spies.setupWrapper(0);
+    await spies.setupWrapper(0);
     await act(async () => {
-      result.find(NumericFormatting).find('div.form-group').first().find('button').last().simulate('click');
+      const buttons = [...spies.body().querySelectorAll('div.form-group')[0].getElementsByTagName('button')];
+      await fireEvent.click(buttons[buttons.length - 1]);
     });
-    result = result.update();
     await act(async () => {
-      result.find(Formatting).find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(spies.body().getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    result = await spies.validateCfg(result, '1', 'col1', { fmt: '0.000000', style: { redNegs: false } }, true, 'nan');
-    expect(result.find(Formatting).props().data['0'].col1.view).toBe('1.000000');
-    expect(result.find(Formatting).props().data['0'].col5.view).toBe('1.000000');
+    await spies.validateCfg('1', 'col1', { fmt: '0.000000', style: { redNegs: false } }, true, 'nan');
+    expect(spies.cell('1|1').textContent).toBe('1.000000');
+    expect(spies.cell('5|1').textContent).toBe('1.000000');
   });
 });

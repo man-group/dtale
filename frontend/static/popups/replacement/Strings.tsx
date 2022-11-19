@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
@@ -10,10 +11,10 @@ import { BaseReplacementComponentProps, ReplacementType, StringsConfig } from '.
 export const validateStringsCfg = (t: TFunction, cfg: StringsConfig): string | undefined => {
   const { value, replace } = cfg;
   if (!value) {
-    return t('Please enter a character or substring!');
+    return t('Please enter a character or substring!') ?? undefined;
   }
   if (!replace) {
-    return t('Please enter a replacement value!');
+    return t('Please enter a replacement value!') ?? undefined;
   }
   return undefined;
 };

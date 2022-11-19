@@ -2,7 +2,14 @@ import numeral from 'numeral';
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { AutoSizer, Column, Table } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  Column as _Column,
+  Table as _Table,
+  AutoSizerProps,
+  ColumnProps,
+  TableProps,
+} from 'react-virtualized';
 
 import { Bouncer } from '../../Bouncer';
 import * as gu from '../../dtale/gridUtils';
@@ -15,6 +22,10 @@ import { DataPreview } from '../merge/DataPreview';
 import { InstanceLabel } from './InstanceLabel';
 
 require('./Instances.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const Column = _Column as unknown as React.FC<ColumnProps>;
+const Table = _Table as unknown as React.FC<TableProps>;
 
 const Instances: React.FC<WithTranslation> = ({ t }) => {
   const { dataId, iframe } = useSelector((state: AppState) => ({ dataId: state.dataId, iframe: state.iframe }));
@@ -59,7 +70,7 @@ const Instances: React.FC<WithTranslation> = ({ t }) => {
     <div key="body" className="modal-body">
       <div className="row">
         <div className="col-md-12">
-          <AutoSizer disableHeight={true}>
+          <AutoSizer disableHeight={true} className="instances-sizer">
             {({ width }) => (
               <Table
                 height={200}

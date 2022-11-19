@@ -1,16 +1,14 @@
+import { act, fireEvent, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
+import selectEvent from 'react-select-event';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
-import XArrayDimensions from '../../../popups/XArrayDimensions';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, selectOption } from '../../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -19,7 +17,6 @@ describe('DataViewer tests', () => {
     innerWidth: 1205,
     innerHeight: 775,
   });
-  let result: ReactWrapper;
   let store: Store;
 
   beforeAll(() => {
@@ -28,8 +25,7 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/xarray-coordinates/1')) {
         return Promise.resolve({
           data: {
@@ -54,15 +50,15 @@ describe('DataViewer tests', () => {
     store = reduxUtils.createDtaleStore();
     const xarrayDim = '{&quot;foo&quot;:&quot;foo1&quot;}';
     buildInnerHTML({ settings: '', xarray: 'True', xarrayDim }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      { attachTo: document.getElementById('content') ?? undefined },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    result = await clickMainMenuButton(result, 'XArray Dimensions');
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      );
+    });
+    await clickMainMenuButton('XArray Dimensions');
   });
 
   afterEach(jest.restoreAllMocks);
@@ -73,58 +69,38 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: update selected dimensions of xarray', async () => {
-    expect(result.find(XArrayDimensions).find(Select).first().props().options?.[0]).toEqual({
-      value: 'foo1',
-    });
+    const select = document.body
+      .getElementsByClassName('modal-body')[0]
+      .getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
-      result
-        .find(XArrayDimensions)
-        .find('li')
-        .first()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'foo2' }, {} as ActionMeta<unknown>);
+      await selectEvent.openMenu(select);
     });
-    result = result.update();
+    expect(select.getElementsByClassName('Select__option--is-selected')[0].textContent).toEqual('foo1');
     await act(async () => {
-      result.find(XArrayDimensions).find('li').last().simulate('click');
+      await selectEvent.select(select, 'foo2');
     });
-    result = result.update();
+    const liElements = document.body.getElementsByClassName('modal-body')[0].getElementsByTagName('li');
+    const lastLi = liElements[liElements.length - 1];
     await act(async () => {
-      result
-        .find(XArrayDimensions)
-        .find('li')
-        .last()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'bar2' }, {} as ActionMeta<unknown>);
+      fireEvent.click(lastLi);
     });
-    result = result.update();
+    await selectOption(lastLi.getElementsByClassName('Select')[0] as HTMLElement, 'bar2');
     await act(async () => {
-      result.find('div.modal-footer').first().find('button').first().simulate('click');
+      fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(store.getState().xarrayDim).toEqual({ foo: 'foo2', bar: 'bar2' });
   });
 
   it('DataViewer: clearing selected dimensions', async () => {
+    const select = document.body
+      .getElementsByClassName('modal-body')[0]
+      .getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
-      result
-        .find(XArrayDimensions)
-        .find('li')
-        .first()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.(null, {} as ActionMeta<unknown>);
+      await selectEvent.clearFirst(select);
     });
-    result = result.update();
     await act(async () => {
-      result.find('div.modal-footer').first().find('button').first().simulate('click');
+      fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(store.getState().xarrayDim).toEqual({});
   });
 });

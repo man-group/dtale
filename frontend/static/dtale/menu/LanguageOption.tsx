@@ -29,7 +29,7 @@ const LanguageOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonW
         <i className="fas fa-language" />
       </span>
       <span className="font-weight-bold pl-2">{t('Language')}</span>
-      <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
+      <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" data-testid="language-options">
         {Object.keys(i18n.options.resources ?? {}).map((value) => (
           <button
             key={value}

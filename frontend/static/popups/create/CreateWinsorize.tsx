@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
@@ -18,7 +19,7 @@ require('./CreateWinsorize.css');
 
 export const validateWinsorizeCfg = (t: TFunction, cfg: WinsorizeConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column to winsorize!');
+    return t('Please select a column to winsorize!') ?? undefined;
   }
   return undefined;
 };
@@ -101,6 +102,7 @@ const CreateWinsorize: React.FC<BaseCreateComponentProps & WithTranslation> = ({
               className="form-control mr-3 slider-input"
               value={limits[0]}
               onChange={(e) => setLimits([parseInt(e.target.value, 10), limits[1]])}
+              data-testid="winsorize-raw-min"
             />
             <StyledSlider
               defaultValue={limits}
@@ -114,6 +116,7 @@ const CreateWinsorize: React.FC<BaseCreateComponentProps & WithTranslation> = ({
               className="form-control ml-3 slider-input"
               value={limits[1]}
               onChange={(e) => setLimits([limits[0], parseInt(e.target.value, 10)])}
+              data-testid="winsorize-raw-max"
             />
           </div>
         </div>

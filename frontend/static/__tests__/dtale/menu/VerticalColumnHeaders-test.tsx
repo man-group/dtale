@@ -1,4 +1,4 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
@@ -9,48 +9,54 @@ import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
 describe('VerticalColumnHeaders tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   let store: Store;
   let updateSettingsSpy: jest.SpyInstance;
 
-  const setupOption = (settings = ''): void => {
+  const setupOption = async (settings = ''): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings }, store);
-    result = mount(
-      <Provider store={store}>
-        <VerticalColumnHeaders />,
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
+    result = await act(() => {
+      return render(
+        <Provider store={store}>
+          <VerticalColumnHeaders />,
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      ).container;
+    });
   };
 
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
     updateSettingsSpy.mockImplementation(() => undefined);
-    setupOption();
   });
 
   afterEach(jest.resetAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
-  it('renders successfully with defaults', () => {
-    expect(result.find('i.ico-check-box-outline-blank')).toHaveLength(1);
+  it('renders successfully with defaults', async () => {
+    await setupOption();
+    expect(result.getElementsByClassName('ico-check-box-outline-blank')).toHaveLength(1);
   });
 
-  it('renders successfully with specified value', () => {
-    setupOption('{&quot;verticalHeaders&quot;:&quot;True&quot;}');
-    expect(result.find('i.ico-check-box')).toHaveLength(1);
+  it('renders successfully with specified value', async () => {
+    await setupOption('{&quot;verticalHeaders&quot;:&quot;True&quot;}');
+    expect(result.getElementsByClassName('ico-check-box')).toHaveLength(1);
   });
 
   it('handles changes to checkbox', async () => {
-    await result.find('i.ico-check-box-outline-blank').simulate('click');
+    await setupOption();
+    await act(async () => {
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+    });
     expect(updateSettingsSpy).toBeCalledTimes(1);
     expect(store.getState().settings).toEqual(expect.objectContaining({ verticalHeaders: true }));
-    result.update();
-    await result.find('i.ico-check-box').simulate('click');
+    await act(async () => {
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+    });
     expect(updateSettingsSpy).toBeCalledTimes(2);
     expect(updateSettingsSpy.mock.calls[1][0]).toEqual({
       verticalHeaders: false,

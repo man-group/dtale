@@ -2,7 +2,7 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { AppActions } from '../redux/actions/AppActions';
+import { CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { AppState, ConfirmationPopupData } from '../redux/state/AppState';
 
@@ -13,7 +13,7 @@ const Confirmation: React.FC<WithTranslation> = ({ t }) => {
   const dispatch = useDispatch();
 
   const { msg, yesAction } = chartData as ConfirmationPopupData;
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
   const fullYesAction = (): void => {
     yesAction?.();
     onClose();

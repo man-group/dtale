@@ -38,7 +38,7 @@ const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name,
   };
 
   return (
-    <li ref={liRef} className="hoverable">
+    <li ref={liRef} className="hoverable" data-testid="data-menu-item">
       <button
         className="btn btn-plain toggler-action w-100 text-left pointer p-3"
         onMouseOver={() => showTooltip(liRef.current!, t('open_process'))}
@@ -52,6 +52,7 @@ const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name,
         onClick={() => onClick(() => cleanup(id))}
         onMouseOver={() => showTooltip(liRef.current!, t('clear_data'))}
         onMouseLeave={hideTooltip}
+        data-testid="data-menu-item-cleanup"
       />
     </li>
   );

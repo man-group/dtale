@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppActions } from '../../redux/actions/AppActions';
+import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import { AppState, ReshapePopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -34,7 +34,7 @@ const Reshape: React.FC<WithTranslation> = ({ t }) => {
     chartData: state.chartData as ReshapePopupData,
   }));
   const dispatch = useDispatch();
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();
@@ -76,7 +76,7 @@ const Reshape: React.FC<WithTranslation> = ({ t }) => {
         break;
     }
     if (validationError) {
-      setError(<RemovableError error={t(validationError)} />);
+      setError(<RemovableError error={t(validationError) ?? ''} />);
       return;
     }
     setLoadingReshape(true);

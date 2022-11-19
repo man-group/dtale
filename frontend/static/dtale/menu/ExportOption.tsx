@@ -2,7 +2,7 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
+import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import { Popups, PopupType } from '../../redux/state/AppState';
 
@@ -16,7 +16,7 @@ interface ExportOptionProps extends RibbonOptionProps {
 
 const ExportOption: React.FC<ExportOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, rows, t }) => {
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
 
   const openExport = ribbonWrapper(() => openChart({ type: PopupType.EXPORT, size: 'sm', visible: true, rows }));
 

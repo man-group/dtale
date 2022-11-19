@@ -1,5 +1,5 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction } from 'react-i18next';
 
 import { KurtMsg, SkewMsg } from '../../dtale/column/ColumnMenuHeader';
 
@@ -24,7 +24,7 @@ interface StatProps {
   t: TFunction;
 }
 
-export const Stat: React.FC<StatProps> = ({ t, field, value, children }) => (
+export const Stat: React.FC<React.PropsWithChildren<StatProps>> = ({ t, field, value, children }) => (
   <li>
     {value !== undefined && (
       <div>

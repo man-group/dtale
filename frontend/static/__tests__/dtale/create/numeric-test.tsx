@@ -1,23 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, getByText, screen } from '@testing-library/react';
 
 import {
-  BaseCreateComponentProps,
   CreateColumnType,
   NumericConfig,
   NumericOperationType,
   OperandDataType,
 } from '../../../popups/create/CreateColumnState';
-import { default as CreateNumeric, validateNumericCfg } from '../../../popups/create/CreateNumeric';
-import { RemovableError } from '../../../RemovableError';
-import { mockT as t } from '../../test-utils';
+import { validateNumericCfg } from '../../../popups/create/CreateNumeric';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateNumeric', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
@@ -27,16 +23,6 @@ describe('CreateNumeric', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
-
-  const findNumericInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateNumeric).first();
-  const findLeftInputs = (): ReactWrapper => findNumericInputs().find('div.form-group').at(1);
-  const simulateClick = async (btn: ReactWrapper): Promise<ReactWrapper> => {
-    await act(async () => {
-      btn.simulate('click');
-    });
-    return result.update();
-  };
 
   it('validates configuration', () => {
     const cfg: NumericConfig = { left: { type: OperandDataType.COL }, right: { type: OperandDataType.COL } };
@@ -54,39 +40,26 @@ describe('CreateNumeric', () => {
   });
 
   it('builds numeric column', async () => {
-    expect(result.find(CreateNumeric)).toHaveLength(1);
+    expect(screen.getByText('Numeric')).toHaveClass('active');
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'numeric_col' } });
+      await fireEvent.change(result.getElementsByTagName('input')[0], { target: { value: 'numeric_col' } });
     });
-    result = result.update();
-    await simulateClick(findNumericInputs().find('div.form-group').first().find('button').first());
-    await simulateClick(findLeftInputs().find('button').first());
-    await simulateClick(findLeftInputs().find('button').last());
-    await simulateClick(findLeftInputs().find('button').first());
     await act(async () => {
-      findLeftInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Sum'));
     });
-    result = result.update();
+    const leftInputs = screen.getByTestId('left-inputs');
     await act(async () => {
-      findNumericInputs()
-        .find('div.form-group')
-        .at(2)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(getByText(leftInputs, 'Col'));
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await act(async () => {
+      await fireEvent.click(getByText(leftInputs, 'Val'));
+    });
+    await act(async () => {
+      await fireEvent.click(getByText(leftInputs, 'Col'));
+    });
+    await selectOption(leftInputs.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(screen.getByTestId('right-inputs').getElementsByClassName('Select')[0] as HTMLElement, 'col2');
+    await spies.validateCfg({
       cfg: {
         left: { type: OperandDataType.COL, col: 'col1', val: undefined },
         right: { type: OperandDataType.COL, col: 'col2', val: undefined },
@@ -98,53 +71,29 @@ describe('CreateNumeric', () => {
   });
 
   it('handles errors', async () => {
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError).text()).toBe('Name is required!');
+    await spies.executeSave();
+    expect(screen.getByRole('alert').textContent).toBe('Name is required!');
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'col4' } });
+      await fireEvent.change(result.getElementsByTagName('input')[0], { target: { value: 'col4' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError).text()).toBe("The column 'col4' already exists!");
+    await spies.executeSave();
+    expect(screen.getByRole('alert').textContent).toBe("The column 'col4' already exists!");
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'error' } });
+      await fireEvent.change(result.getElementsByTagName('input')[0], { target: { value: 'error' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError).text()).toBe('Please select an operation!');
-
-    await simulateClick(findNumericInputs().find('div.form-group').first().find('button').first());
-    await simulateClick(findLeftInputs().find('button').first());
+    await spies.executeSave();
+    expect(screen.getByRole('alert').textContent).toBe('Please select an operation!');
     await act(async () => {
-      findLeftInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Sum'));
     });
-    result = result.update();
+    const leftInputs = screen.getByTestId('left-inputs');
     await act(async () => {
-      findNumericInputs()
-        .find('div.form-group')
-        .at(2)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(getByText(leftInputs, 'Col'));
     });
-    result = result.update();
+    await selectOption(leftInputs.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(screen.getByTestId('right-inputs').getElementsByClassName('Select')[0] as HTMLElement, 'col2');
     spies.saveSpy.mockResolvedValue({ success: false, error: 'error test' });
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError).text()).toBe('error test');
+    await spies.executeSave();
+    expect(screen.getByRole('alert').textContent).toBe('error test');
   });
 });

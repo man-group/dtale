@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { default as python } from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
 import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
+import { AnyAction } from 'redux';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as mergeActions from '../../redux/actions/merge';
-import { MergeActionType, MergeAppActions, ToggleShowCodeAction } from '../../redux/actions/MergeActions';
+import { MergeActionType, ToggleShowCodeAction } from '../../redux/actions/MergeActions';
 import { Dataset, MergeConfig, MergeConfigType, MergeState, StackConfig } from '../../redux/state/MergeState';
 import { capitalize } from '../../stringUtils';
 import { jumpToDataset } from '../upload/uploadUtils';
@@ -75,8 +76,8 @@ const MergeOutput: React.FC<WithTranslation> = ({ t }) => {
     (state: MergeState) => ({ ...state }),
   );
   const dispatch = useDispatch();
-  const buildMerge = (name: string): MergeAppActions<Promise<void>> => dispatch(mergeActions.buildMerge(name));
-  const clearMerge = (): MergeAppActions<Promise<void>> => dispatch(mergeActions.clearMerge());
+  const buildMerge = (name: string): AnyAction => dispatch(mergeActions.buildMerge(name) as any as AnyAction);
+  const clearMerge = (): AnyAction => dispatch(mergeActions.clearMerge() as any as AnyAction);
   const toggleShowCode = (): ToggleShowCodeAction => dispatch({ type: MergeActionType.TOGGLE_SHOW_CODE });
   const [name, setName] = React.useState('');
   const code = React.useMemo(
@@ -85,7 +86,7 @@ const MergeOutput: React.FC<WithTranslation> = ({ t }) => {
   );
 
   return (
-    <ul className="list-group ml-3 mr-3 pt-3">
+    <ul className="list-group ml-3 mr-3 pt-3" data-testid="merge-output">
       <li className="list-group-item p-3 section">
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-4 pr-0">

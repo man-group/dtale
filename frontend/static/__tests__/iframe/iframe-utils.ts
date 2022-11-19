@@ -1,47 +1,39 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import ColumnMenu from '../../dtale/column/ColumnMenu';
-
-export const findColMenuButton = (result: ReactWrapper, name: string, btnTag = 'button'): ReactWrapper => {
-  return result
-    .find(ColumnMenu)
-    .find(`ul li ${btnTag}`)
-    .findWhere((b) => b.text().includes(name));
+export const findColMenuButton = (name: string, btnTag = 'button'): Element => {
+  const buttons = [...document.getElementById('column-menu-div')!.querySelectorAll(`ul li ${btnTag}`)];
+  return buttons.find((b) => b.textContent?.includes(name))!;
 };
 
-export const clickColMenuButton = async (
-  result: ReactWrapper,
-  name: string,
-  btnTag = 'button',
-): Promise<ReactWrapper> => {
+export const clickColMenuButton = async (name: string, btnTag = 'button'): Promise<void> => {
   await act(async () => {
-    findColMenuButton(result, name, btnTag).first().simulate('click');
+    await fireEvent.click(findColMenuButton(name, btnTag));
   });
-  return result.update();
 };
 
-export const clickColMenuSubButton = async (result: ReactWrapper, label: string, row = 0): Promise<ReactWrapper> => {
+export const clickColMenuSubButton = async (label: string, row = 0): Promise<void> => {
   await act(async () => {
-    result
-      .find(ColumnMenu)
-      .find('ul li div.column-sorting')
-      .at(row)
-      .find('button')
-      .findWhere((b) => b.html().includes(label))
-      .first()
-      .simulate('click');
+    const buttons = [
+      ...document
+        .getElementById('column-menu-div')!
+        .querySelectorAll(`ul li div.column-sorting`)
+        [row].getElementsByTagName('button'),
+    ];
+    const button = buttons.find((b) => b.innerHTML.includes(label))!;
+    await fireEvent.click(button);
   });
-  return result.update();
 };
 
-export const openColMenu = async (result: ReactWrapper, colIdx: number): Promise<ReactWrapper> => {
+export const openColMenu = async (colIdx: number): Promise<void> => {
   await act(async () => {
-    result.find('.main-grid div.headerCell').at(colIdx).find('.text-nowrap').simulate('click');
+    await fireEvent.click(screen.queryAllByTestId('header-cell')[colIdx].getElementsByClassName('text-nowrap')[0]);
   });
-  return result.update();
 };
 
-export const validateHeaders = (result: ReactWrapper, headers: string[]): void => {
-  expect(result.find('.main-grid div.headerCell').map((hc) => hc.find('.text-nowrap').text())).toEqual(headers);
+export const validateHeaders = (headers: string[], headerCells?: Element[]): void => {
+  expect(
+    (headerCells ?? screen.queryAllByTestId('header-cell')).map(
+      (hc) => hc.getElementsByClassName('text-nowrap')[0].textContent,
+    ),
+  ).toEqual(headers);
 };

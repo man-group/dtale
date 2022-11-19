@@ -1,16 +1,16 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import DataViewerInfo, { DataViewerInfoProps } from '../../../dtale/info/DataViewerInfo';
 import * as serverState from '../../../dtale/serverStateManagement';
-import { AppState, SortDir } from '../../../redux/state/AppState';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { InstanceSettings, SortDir } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import * as GenericRepository from '../../../repository/GenericRepository';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('DataViewerInfo tests', () => {
   let store: Store;
@@ -23,42 +23,45 @@ describe('DataViewerInfo tests', () => {
     updateSettingsSpy.mockResolvedValue(Promise.resolve({ settings: {} }));
     postSpy = jest.spyOn(GenericRepository, 'postDataToService');
     postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
-    store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
   });
 
   afterEach(jest.restoreAllMocks);
 
   const buildInfo = async (
     additionalProps?: Partial<DataViewerInfoProps>,
-    reduxState?: Partial<AppState>,
-  ): Promise<ReactWrapper> => {
+    settings?: Partial<InstanceSettings>,
+  ): Promise<Element> => {
     props = { propagateState: jest.fn(), columns: [], ...additionalProps };
-    Object.entries({ dataId: '1', ...reduxState }).forEach(([key, value]) => (store.getState()[key] = value));
-    const result = mount(
-      <Provider store={store}>
-        <DataViewerInfo {...props} />
-      </Provider>,
-      { attachTo: document.getElementById('content') ?? undefined },
-    );
-    await act(async () => tickUpdate(result));
-    return result.update();
+    store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    if (settings) {
+      store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings });
+    }
+    return await act(() => {
+      return render(
+        <Provider store={store}>
+          <DataViewerInfo {...props} />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      ).container;
+    });
   };
 
   it('DataViewerInfo rendering errors', async () => {
-    const result = await buildInfo({
+    await buildInfo({
       error: <RemovableError error="Error test" traceback="Traceback test" />,
     });
-    expect(result.find(RemovableError).length).toBe(1);
+    expect(screen.getByRole('alert')).toBeDefined();
   });
 
   it('DataViewerInfo rendering hidden', async () => {
     const result = await buildInfo({ columns: [{ name: 'a', dtype: 'string', index: 0, visible: false }] });
-    expect(result.find('div.col').last().text()).toBe('Hidden:a');
+    const cols = [...result.querySelectorAll('div.col')];
+    expect(cols[cols.length - 1].textContent).toBe('Hidden:a');
   });
 
   it('DataViewerInfo rendering lots of hidden', async () => {
-    let result = await buildInfo({
+    const result = await buildInfo({
       columns: Array.from({ length: 10 }, (value: number, idx: number) => ({
         name: `test_col${idx}`,
         visible: false,
@@ -66,75 +69,70 @@ describe('DataViewerInfo tests', () => {
         index: idx,
       })),
     });
-    const hiddenLink = result.find('div.col').last().find('span.pointer');
-    expect(hiddenLink.text()).toBe('10 Columns');
+    const cols = [...result.querySelectorAll('div.col')];
+    const hiddenLink = cols[cols.length - 1].querySelector('span.pointer')!;
+    expect(hiddenLink.textContent).toBe('10 Columns');
     await act(async () => {
-      hiddenLink.simulate('click');
+      await fireEvent.click(hiddenLink);
     });
-    result = result.update();
-    result.find('div.hidden-menu-toggle').find('button').first().simulate('click');
-    await tickUpdate(result);
+    await act(async () => {
+      await fireEvent.click(result.querySelector('div.hidden-menu-toggle')!.getElementsByTagName('button')[0]);
+    });
   });
 
   it('DataViewerInfo rendering lots of filters', async () => {
-    let result = await buildInfo(undefined, {
-      settings: {
-        query: 'foo == 1',
-        columnFilters: {
-          bar: { type: 'string', query: 'bar == 1' },
-          baz: { type: 'string', query: 'baz == 1' },
-        },
-        allow_cell_edits: true,
-        hide_shutdown: false,
-        precision: 2,
-        verticalHeaders: false,
-        predefinedFilters: {},
+    const result = await buildInfo(undefined, {
+      query: 'foo == 1',
+      columnFilters: {
+        bar: { type: 'string', query: 'bar == 1' },
+        baz: { type: 'string', query: 'baz == 1' },
       },
+      allow_cell_edits: true,
+      hide_shutdown: false,
+      precision: 2,
+      verticalHeaders: false,
+      predefinedFilters: {},
     });
-    const filterLink = result.find('div.filter-menu-toggle').first().find('span.pointer');
-    expect(filterLink.text()).toBe('bar == 1 and baz == 1 and f...');
+    const filterMenuToggle = result.querySelector('div.filter-menu-toggle')!;
+    const filterLink = filterMenuToggle.querySelector('span.pointer')!;
+    expect(filterLink.textContent).toBe('bar == 1 and baz == 1 and f...');
     await act(async () => {
-      filterLink.simulate('click');
+      fireEvent.click(filterLink);
     });
-    result = result.update();
+    const buttons = [...filterMenuToggle.getElementsByTagName('button')];
     await act(async () => {
-      result.find('div.filter-menu-toggle').find('button').first().simulate('click');
+      fireEvent.click(buttons[0]);
     });
-    result = result.update();
     await act(async () => {
-      result.find('div.filter-menu-toggle').find('button').last().simulate('click');
+      fireEvent.click(buttons[buttons.length - 1]);
     });
-    result = result.update();
     expect(store.getState().settings).toEqual(
       expect.objectContaining({ query: '', columnFilters: { baz: { type: 'string', query: 'baz == 1' } } }),
     );
   });
 
   it('DataViewerInfo rendering lots of sorts', async () => {
-    let result = await buildInfo(undefined, {
-      settings: {
-        sortInfo: [
-          ['foo', SortDir.ASC],
-          ['bar', SortDir.DESC],
-          ['baz', SortDir.ASC],
-        ],
-        allow_cell_edits: true,
-        hide_shutdown: false,
-        precision: 2,
-        verticalHeaders: false,
-        predefinedFilters: {},
-      },
+    const result = await buildInfo(undefined, {
+      sortInfo: [
+        ['foo', SortDir.ASC],
+        ['bar', SortDir.DESC],
+        ['baz', SortDir.ASC],
+      ],
+      allow_cell_edits: true,
+      hide_shutdown: false,
+      precision: 2,
+      verticalHeaders: false,
+      predefinedFilters: {},
     });
-    const sortLink = result.find('div.sort-menu-toggle').first().find('span.pointer');
-    expect(sortLink.text()).toBe('foo (ASC), bar (DESC), baz (ASC)');
+    const sortMenuToggle = result.querySelector('div.sort-menu-toggle')!;
+    const sortLink = sortMenuToggle.querySelector('span.pointer')!;
+    expect(sortLink.textContent).toBe('foo (ASC), bar (DESC), baz (ASC)');
     await act(async () => {
-      sortLink.simulate('click');
+      fireEvent.click(sortLink);
     });
-    result = result.update();
     await act(async () => {
-      result.find('div.sort-menu-toggle').find('button').first().simulate('click');
+      fireEvent.click(sortMenuToggle.getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(store.getState().settings.sortInfo).toEqual([
       ['bar', SortDir.DESC],
       ['baz', SortDir.ASC],

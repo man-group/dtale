@@ -1,8 +1,9 @@
+import { act, fireEvent, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 jest.mock('../../dtale/side/SidePanelButtons', () => {
   const { createMockComponent } = require('../mocks/createMockComponent');
@@ -12,15 +13,17 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
   };
 });
 
-import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
-import PPSDetails from '../../popups/pps/PPSDetails';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
+import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../test-utils';
+import { buildInnerHTML } from '../test-utils';
 
 describe('DataViewer tests', () => {
+  let container: HTMLElement;
+  const mockStore = configureStore();
+  let store: Store;
   const { opener } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -29,8 +32,6 @@ describe('DataViewer tests', () => {
     innerHeight: 1340,
   });
 
-  let result: ReactWrapper;
-
   beforeAll(() => {
     dimensions.beforeAll();
     delete window.opener;
@@ -38,22 +39,32 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/correlations/')) {
+        return Promise.resolve({
+          data: { code: 'correlations code test', ...correlationsData, strings: ['col1', 'col2'] },
+        });
+      }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true }, sidePanel: { visible: false } });
+    store = mockStore({
+      dataId: '1',
+      sidePanel: { visible: false },
+      chartData: { visible: true },
+    });
 
     buildInnerHTML({ settings: '' });
-    result = mount(<PredictivePowerScore />, { attachTo: document.getElementById('content') ?? undefined });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    const ppsGrid = result.find(PredictivePowerScore).first().find('div.ReactVirtualized__Grid__innerScrollContainer');
-    await act(async () => {
-      ppsGrid.find('div.cell').at(1).simulate('click');
+    await act(() => {
+      const result = render(
+        <Provider store={store}>
+          <PredictivePowerScore />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      );
+      container = result.container;
     });
-    result = result.update();
+    const ppsGridCell = container.getElementsByClassName('cell')[0];
+    fireEvent.click(ppsGridCell);
   });
 
   afterAll(() => {
@@ -63,17 +74,20 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: predictive power score', async () => {
-    const details = result.find(PPSDetails);
-    expect(details.prop('ppsInfo')).toEqual(expect.objectContaining({ x: 'col1', y: 'col2' }));
+    const details = container.getElementsByClassName('ppscore-descriptors')[0];
+    const baselineScore = details.getElementsByTagName('li')[0];
+    expect(baselineScore).toHaveTextContent('Baseline Score: 24,889,245,973.83');
   });
 
   it('handles encode strings', async () => {
     const loadCorrelationsSpy = jest.spyOn(CorrelationsRepository, 'loadCorrelations');
-    await act(async () => {
-      result.find(CorrelationsGrid).props().toggleStrings();
+    const corrGrid = container.getElementsByClassName('correlations-grid')[0];
+    const corrFilters = corrGrid.getElementsByClassName('correlations-filters')[1];
+    const toggle = corrFilters.getElementsByTagName('i')[0];
+    await act(() => {
+      fireEvent.click(toggle);
     });
-    result = result.update();
-    expect(result.find(CorrelationsGrid).props().encodeStrings).toBe(true);
+    expect(toggle).toHaveClass('ico-check-box pointer');
     expect(loadCorrelationsSpy).toHaveBeenCalledWith('1', true, true);
   });
 });

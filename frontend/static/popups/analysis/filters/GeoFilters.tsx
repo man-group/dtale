@@ -77,14 +77,14 @@ const GeoFilters: React.FC<GeoFiltersProps & WithTranslation> = ({
       lonInput = <div className="mt-auto mb-auto">{lonCols[0].name}</div>;
     } else {
       lonInput = (
-        <div>
+        <div data-testid="lon-input">
           <FilterSelect<string>
             value={lonCol}
             options={lonCols.map((c) => ({ value: c.name }))}
             onChange={(v?: BaseOption<string> | Array<BaseOption<string>>) =>
               setLonCol((v as BaseOption<string>) ?? undefined)
             }
-            noOptionsText={() => t('No columns found')}
+            noOptionsMessage={() => t('No columns found')}
             isClearable={true}
           />
         </div>
@@ -97,14 +97,14 @@ const GeoFilters: React.FC<GeoFiltersProps & WithTranslation> = ({
       latInput = <div className="mt-auto mb-auto">{latCols[0].name}</div>;
     } else {
       latInput = (
-        <div>
+        <div data-testid="lat-input">
           <FilterSelect
             value={latCol}
             options={latCols.map((c) => ({ value: c.name }))}
             onChange={(v?: BaseOption<string> | Array<BaseOption<string>>) =>
               setLatCol((v as BaseOption<string>) ?? undefined)
             }
-            noOptionsText={() => t('No columns found')}
+            noOptionsMessage={() => t('No columns found')}
             isClearable={true}
           />
         </div>

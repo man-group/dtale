@@ -1,10 +1,21 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { AutoSizer, Column, Table } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  Column as _Column,
+  Table as _Table,
+  AutoSizerProps,
+  ColumnProps,
+  TableProps,
+} from 'react-virtualized';
 
 import * as gu from '../../dtale/gridUtils';
 
 require('./ContextVariables.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const Column = _Column as unknown as React.FC<ColumnProps>;
+const Table = _Table as unknown as React.FC<TableProps>;
 
 /** Component properties for ContextVariables */
 interface ContextVariablesProps {

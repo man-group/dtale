@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { default as Modal } from 'react-bootstrap/Modal';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { StringColumnFormat } from '../../dtale/DataViewerState';
@@ -29,7 +28,7 @@ const StringFormatting: React.FC<BaseFormattingComponentProps & WithTranslation>
   const exampleStr = t('I am a long piece of text, please truncate me.');
   const exampleOutput = fmt.truncate ? truncate(exampleStr, fmt.truncate) : exampleStr;
   return (
-    <Modal.Body>
+    <React.Fragment>
       <LabeledCheckbox
         rowClass="mb-2"
         labelWidth={4}
@@ -66,7 +65,7 @@ const StringFormatting: React.FC<BaseFormattingComponentProps & WithTranslation>
           <span>{exampleOutput}</span>
         </div>
       </div>
-    </Modal.Body>
+    </React.Fragment>
   );
 };
 

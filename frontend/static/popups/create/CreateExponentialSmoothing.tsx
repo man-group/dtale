@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
@@ -15,10 +16,10 @@ import {
 
 export const validateExponentialSmoothingCfg = (t: TFunction, cfg: ExponentialSmoothingConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column to smooth!');
+    return t('Please select a column to smooth!') ?? undefined;
   }
   if (!cfg.alpha) {
-    return t('Please enter a valid float for alpha!');
+    return t('Please enter a valid float for alpha!') ?? undefined;
   }
   return undefined;
 };
@@ -79,6 +80,7 @@ const CreateExponentialSmoothing: React.FC<BaseCreateComponentProps & WithTransl
               className="form-control mr-3 alpha-slider-input"
               value={alpha}
               onChange={(e) => setAlpha(Number(e.target.value))}
+              data-testid="alpha-raw-input"
             />
             <StyledSlider
               defaultValue={isNaN(alpha) ? 0.0 : alpha}

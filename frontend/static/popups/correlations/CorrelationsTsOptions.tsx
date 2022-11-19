@@ -113,6 +113,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
           onChange={(e) => setWindow(e.target.value)}
           onKeyDown={updateWindowAndMinPeriods}
           disabled={!props.rolling && !useRolling}
+          data-testid="window"
         />
       </div>
       <div className="col text-center">
@@ -131,6 +132,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
           onChange={(e) => setMinPeriods(e.target.value)}
           onKeyDown={updateWindowAndMinPeriods}
           disabled={!props.rolling && !useRolling}
+          data-testid="min-periods"
         />
       </div>
     </React.Fragment>
@@ -142,7 +144,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
         <div className="row pt-5">
           {renderDescription()}
           <div className="col-auto">
-            <div className="form-group row small-gutters float-right pr-3">
+            <div className="form-group row small-gutters float-right pr-3" data-testid="corr-ts-inputs">
               {dates && dates.length > 1 && (
                 <React.Fragment>
                   <label className="col-form-label text-right">{t('Date Column')}</label>
@@ -151,6 +153,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
                       className="form-control custom-select"
                       defaultValue={props.selectedDate}
                       onChange={changeDate}
+                      data-testid="corr-selected-date"
                     >
                       {dates.map((d) => (
                         <option key={d.name}>{d.name}</option>

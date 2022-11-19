@@ -77,7 +77,7 @@ const NetworkDescription: React.FC<WithTranslation> = ({ t }) => {
   );
 
   return (
-    <div className="row pb-5">
+    <div className="row pb-5" data-testid="network-description">
       <div className="col-md-12">
         <Collapsible title={title} content={renderDescription} />
       </div>

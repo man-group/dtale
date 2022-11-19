@@ -1,7 +1,6 @@
+import { act, fireEvent, getByTestId, getByText, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
@@ -12,29 +11,36 @@ jest.mock('../../../dtale/DataViewer', () => {
   };
 });
 
-import ButtonToggle from '../../../ButtonToggle';
-import ActionConfig from '../../../popups/merge/ActionConfig';
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
-import MergeOutput from '../../../popups/merge/MergeOutput';
-import Upload from '../../../popups/upload/Upload';
 import * as mergeActions from '../../../redux/actions/merge';
-import mergeApp from '../../../redux/reducers/merge';
-import { MergeConfigType } from '../../../redux/state/MergeState';
-import { createAppStore } from '../../../redux/store';
-import { RemovableError } from '../../../RemovableError';
 import * as GenericRepository from '../../../repository/GenericRepository';
+import * as UploadRepository from '../../../repository/UploadRepository';
 import { PROCESSES, default as reduxUtils } from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('MergeDatasets', () => {
-  let result: ReactWrapper;
+  const { close, location, open, opener } = window;
   let store: Store;
-  let axiosGetSpy: jest.SpyInstance;
   let postSpy: jest.SpyInstance;
+  let webUploadSpy: jest.SpyInstance;
 
   beforeEach(async () => {
-    axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation(async (url: string) => {
+    delete (window as any).location;
+    delete (window as any).close;
+    delete (window as any).open;
+    delete window.opener;
+    (window as any).location = {
+      reload: jest.fn(),
+      pathname: '/dtale/merge',
+      href: '',
+      assign: jest.fn(),
+    };
+    window.close = jest.fn();
+    window.open = jest.fn();
+    window.opener = { location: { assign: jest.fn(), pathname: '/dtale/merge' } };
+    webUploadSpy = jest.spyOn(UploadRepository, 'webUpload');
+    webUploadSpy.mockResolvedValue({ success: true, data_id: '2' });
+    (axios.get as any).mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/processes')) {
         const data = PROCESSES.map((p) => ({
           ...p,
@@ -49,117 +55,102 @@ describe('MergeDatasets', () => {
     });
     postSpy = jest.spyOn(GenericRepository, 'postDataToService');
     postSpy.mockResolvedValue(Promise.resolve({ success: true, data_id: '1' }));
-    store = createAppStore(mergeApp);
+    store = reduxUtils.createMergeStore();
     buildInnerHTML({ settings: '' });
     await mergeActions.init(store.dispatch);
-    result = mount(
-      <Provider store={store}>
-        <MergeDatasets />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    await act(
+      async () =>
+        await render(
+          <Provider store={store}>
+            <MergeDatasets />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
   });
 
   afterEach(jest.resetAllMocks);
 
-  afterAll(jest.restoreAllMocks);
+  afterAll(() => {
+    jest.restoreAllMocks();
+    window.location = location;
+    window.close = close;
+    window.open = open;
+    window.opener = opener;
+  });
 
-  const mergeDatasets = (): ReactWrapper => result.find(MergeDatasets);
-  const mergeOutput = (): ReactWrapper => mergeDatasets().find(MergeOutput);
-  const actionConfig = (): ReactWrapper => mergeDatasets().find(ActionConfig);
-  const clickDatasetBtn = async (): Promise<ReactWrapper> => {
+  const mergeOutput = (): HTMLElement => screen.getByTestId('merge-output');
+  const actionConfig = (): HTMLElement => screen.getByTestId('action-config');
+  const clickDatasetBtn = async (dataId = '8080'): Promise<void> => {
     await act(async () => {
-      mergeDatasets().find('ul').at(2).find('button').at(2).simulate('click');
+      await fireEvent.click(screen.getByText(dataId));
     });
-    return result.update();
   };
-  const buildMerge = async (): Promise<ReactWrapper> => {
+  const buildMerge = async (actionType: string): Promise<void> => {
     await act(async () => {
-      mergeOutput().find('button').simulate('click');
+      await fireEvent.click(screen.getByText(`Build ${actionType}`));
     });
-    return result.update();
   };
-  const clickBtn = async (btnText: string, selectedWrapper: ReactWrapper): Promise<ReactWrapper> => {
+  const clickBtn = async (btnText: string, selectedWrapper: HTMLElement): Promise<void> => {
     await act(async () => {
-      selectedWrapper
-        .find('button')
-        .filterWhere((btn) => btn.text() === btnText)
-        .first()
-        .simulate('click');
+      await fireEvent.click(getByText(selectedWrapper, btnText));
     });
-    return result.update();
   };
 
   it('handles merge', async () => {
     expect(store.getState().instances).toHaveLength(4);
-    result = await clickDatasetBtn();
-    result = await clickDatasetBtn();
+    await clickDatasetBtn();
+    await clickDatasetBtn();
     expect(store.getState().datasets).toHaveLength(2);
     await act(async () => {
-      mergeOutput()
-        .find('input')
-        .simulate('change', { target: { value: 'test_merge' } });
+      await fireEvent.change(mergeOutput().getElementsByTagName('input')[0], { target: { value: 'test_merge' } });
     });
-    result = result.update();
-    result = await buildMerge();
+    await buildMerge('Merge');
     expect(postSpy).toHaveBeenCalled();
     expect(postSpy.mock.calls[0][1]).toEqual({
       action: 'merge',
       config: `{"how":"inner","sort":false,"indicator":false}`,
       datasets:
-        `[{"columns":[],"index":[],"dataId":"8081","suffix":null},` +
-        `{"columns":[],"index":[],"dataId":"8081","suffix":null}]`,
+        `[{"columns":[],"index":[],"dataId":"8080","suffix":null},` +
+        `{"columns":[],"index":[],"dataId":"8080","suffix":null}]`,
       name: 'test_merge',
     });
-    expect(
-      mergeOutput()
-        .find('button')
-        .filterWhere((btn) => btn.text() === 'Clear Data & Keep Editing'),
-    ).toHaveLength(1);
-    result = await clickBtn('Clear Data & Keep Editing', mergeOutput());
+    expect(getByText(mergeOutput(), 'Clear Data & Keep Editing')).toBeDefined();
+    await clickBtn('Clear Data & Keep Editing', mergeOutput());
     expect(store.getState().mergeDataId).toBeNull();
   });
 
   it('handles merge error', async () => {
     expect(store.getState().instances).toHaveLength(4);
-    result = await clickDatasetBtn();
-    result = await clickDatasetBtn();
+    await clickDatasetBtn();
+    await clickDatasetBtn();
     expect(store.getState().datasets).toHaveLength(2);
     postSpy.mockResolvedValue(Promise.resolve({ success: false, error: 'Bad Merge' }));
-    result = await buildMerge();
-    await tickUpdate(result);
-    result.update();
+    await buildMerge('Merge');
     expect(postSpy).toHaveBeenCalled();
-    expect(result.find(RemovableError)).toHaveLength(1);
-    expect(result.find(RemovableError).props().error).toBe('Bad Merge');
-    result.find(RemovableError).props().onRemove?.();
-    result.update();
-    expect(result.find(RemovableError)).toHaveLength(0);
+    expect(screen.getByRole('alert').textContent).toBe('Bad Merge');
+    await act(async () => {
+      await fireEvent.click(screen.getByRole('alert').querySelector('.ico-cancel')!);
+    });
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
   });
 
   it('handles stack', async () => {
     await act(async () => {
-      actionConfig().find(ButtonToggle).first().props().update(MergeConfigType.STACK);
+      await fireEvent.click(getByText(actionConfig(), 'Stack'));
     });
-    result = result.update();
     await act(async () => {
-      actionConfig().find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(actionConfig().querySelector('i.ico-check-box-outline-blank')!);
     });
-    result = result.update();
-    result = await clickDatasetBtn();
-    result = await clickDatasetBtn();
+    await clickDatasetBtn('8081 - foo');
+    await clickDatasetBtn('8081 - foo');
     expect(store.getState().datasets).toHaveLength(2);
     await act(async () => {
-      mergeOutput()
-        .find('input')
-        .simulate('change', { target: { value: 'test_stack' } });
+      await fireEvent.change(mergeOutput().getElementsByTagName('input')[0], { target: { value: 'test_stack' } });
     });
-    result = result.update();
-    result = await buildMerge();
+    await buildMerge('Stack');
     expect(postSpy).toHaveBeenCalled();
     expect(postSpy.mock.calls[0][1]).toEqual({
       action: 'stack',
@@ -173,41 +164,35 @@ describe('MergeDatasets', () => {
 
   it('handles upload', async () => {
     await act(async () => {
-      mergeDatasets().find('ul').at(2).find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Upload'));
     });
-    result = result.update();
-    expect(result.find(Upload)).toHaveLength(1);
+    expect(getByTestId(document.body, 'upload')).toBeDefined();
+    const mFile = new File(['test'], 'test.csv');
     await act(async () => {
-      result.find(Upload).props().mergeRefresher?.();
+      const inputEl = getByTestId(document.body, 'drop-input');
+      Object.defineProperty(inputEl, 'files', { value: [mFile] });
+      await fireEvent.drop(inputEl);
     });
-    result = result.update();
-    expect(axiosGetSpy).toHaveBeenLastCalledWith('/dtale/processes?dtypes=true');
+    await act(async () => {
+      await fireEvent.click(getByTestId(document.body, 'csv-options-load'));
+    });
+    expect(axios.get).toHaveBeenLastCalledWith('/dtale/processes?dtypes=true');
   });
 
   it('handles dataset removal datasets', async () => {
     expect(store.getState().instances).toHaveLength(4);
-    result = await clickDatasetBtn();
-    result = await clickDatasetBtn();
-    result = await clickBtn('Remove Dataset', mergeDatasets());
+    await clickDatasetBtn();
+    await clickDatasetBtn();
+    await clickBtn('Remove Dataset', screen.getByText('Dataset 1').parentElement!);
     await act(async () => {
-      mergeDatasets()
-        .find('dt')
-        .filterWhere((dt) => dt.text().startsWith('Dataset 1'))
-        .first()
-        .simulate('click');
+      await fireEvent.click(screen.getByText('Dataset 1'));
     });
-    result = result.update();
     await act(async () => {
-      mergeDatasets()
-        .find('dt')
-        .filterWhere((dt) => dt.text() === 'Data')
-        .first()
-        .simulate('click');
+      await fireEvent.click(screen.getByText('Data'));
     });
-    result = result.update();
     expect(store.getState().datasets).toEqual([
       {
-        dataId: '8081',
+        dataId: '8080',
         index: [],
         columns: [],
         suffix: null,

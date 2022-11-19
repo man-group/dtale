@@ -145,7 +145,7 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
               </button>
             </div>
           </div>
-          {this.network && (
+          {!!this.network && (
             <React.Fragment>
               <NetworkAnalysis to={to} from={from} weight={weight} />
               <div className="row pt-3">
@@ -262,7 +262,7 @@ class ReactNetworkDisplay extends React.Component<AllProps, NetworkDisplayState>
   private async load(): Promise<void> {
     const currParams = networkUtils.buildParams(this.state);
     if (!currParams.to || !currParams.from) {
-      this.network?.destroy();
+      this.network?.destroy?.();
       this.network = undefined;
       this.setState({ ...networkUtils.buildState(), loadingDtypes: false, dtypes: this.state.dtypes });
       return;

@@ -1,19 +1,16 @@
+import { act, fireEvent, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { MultiGrid } from 'react-virtualized';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import ThemeOption from '../../dtale/menu/ThemeOption';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, findMainMenuButton, mockChartJS } from '../test-utils';
 
 describe('DataViewer tests', () => {
-  let result: ReactWrapper;
+  let container: Element;
   let store: Store;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -26,21 +23,21 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', theme: 'dark' }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    await act(() => {
+      const result = render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      );
+      container = result.container;
+    });
   });
 
   afterEach(jest.resetAllMocks);
@@ -52,18 +49,15 @@ describe('DataViewer tests', () => {
 
   it('DataViewer: loads dark mode correct on inital render', async () => {
     expect(store.getState().theme).toBe('dark');
-    expect(result.find(MultiGrid).props().styleBottomLeftGrid).toMatchObject({
+    expect(container.getElementsByClassName('BottomLeftGrid_ScrollWrapper')[0]).toHaveStyle({
       backgroundColor: 'inherit',
     });
   });
 
   it('DataViewer: toggle dark mode', async () => {
-    await act(async () => {
-      result.find(ThemeOption).find('button').first().simulate('click');
-    });
-    result = result.update();
+    await act(async () => fireEvent.click(findMainMenuButton('Light')!));
     expect(store.getState().theme).toBe('light');
-    expect(result.find(MultiGrid).props().styleBottomLeftGrid).toMatchObject({
+    expect(container.getElementsByClassName('BottomLeftGrid_ScrollWrapper')[0]).toHaveStyle({
       backgroundColor: '#f7f7f7',
     });
   });

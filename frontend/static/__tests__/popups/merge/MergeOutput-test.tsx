@@ -1,23 +1,32 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
 jest.mock('../../../popups/merge/DataPreview', () => {
   const { createMockComponent } = require('../../mocks/createMockComponent');
-  return { DataPreview: createMockComponent() };
+  return { DataPreview: createMockComponent('DataPreview', () => <div data-testid="data-preview" />) };
 });
 
 import MergeOutput from '../../../popups/merge/MergeOutput';
 import * as uploadUtils from '../../../popups/upload/uploadUtils';
 import * as mergeActions from '../../../redux/actions/merge';
+import { MergeActionType } from '../../../redux/actions/MergeActions';
 import { HowToMerge, MergeConfigType, MergeState } from '../../../redux/state/MergeState';
-import { tickUpdate } from '../../test-utils';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('MergeOutput', () => {
-  let result: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance;
+  const mockDispatch = jest.fn();
   const state: Partial<MergeState> = {
+    instances: [{ data_id: '1', names: [{ index: 0, name: 'foo', dtype: 'int' }], rows: 10, columns: '' }],
     action: MergeConfigType.MERGE,
     mergeConfig: { how: HowToMerge.INNER, sort: false, indicator: false },
     stackConfig: { ignoreIndex: false },
@@ -43,36 +52,54 @@ describe('MergeOutput', () => {
     mergeDataId: null,
     showCode: false,
   };
+  let store: Store;
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue(state);
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(jest.fn());
+    useDispatchMock.mockImplementation(() => mockDispatch);
   });
 
   afterEach(jest.resetAllMocks);
   afterAll(jest.restoreAllMocks);
 
   const buildResult = async (): Promise<void> => {
-    result = mount(<MergeOutput />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    store = reduxUtils.createMergeStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: MergeActionType.LOAD_INSTANCES, instances: { data: state.instances } });
+    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: state.action });
+    Object.entries(state.mergeConfig ?? {}).forEach(([prop, value]) => {
+      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.MERGE, prop, value });
+    });
+    Object.entries(state.mergeConfig ?? {}).forEach(([prop, value]) => {
+      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.STACK, prop, value });
+    });
+    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
+    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
+    await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <MergeOutput />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
   };
 
   it('triggers function correctly', async () => {
     const buildMergeSpy = jest.spyOn(mergeActions, 'buildMerge');
     buildMergeSpy.mockImplementation(jest.fn());
     await buildResult();
-    expect(result.find('h3').text()).toBe('Merge Output');
+    expect(screen.getByText('Merge Output')).toBeDefined();
     await act(async () => {
-      result.find('input').simulate('change', { target: { value: 'test merge' } });
+      await fireEvent.change(screen.getByText('Name').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: 'test merge' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      result.find('button').simulate('click');
+      await fireEvent.click(screen.getByText('Build Merge'));
     });
-    result = result.update();
     expect(buildMergeSpy).toHaveBeenLastCalledWith('test merge');
   });
 
@@ -81,18 +108,18 @@ describe('MergeOutput', () => {
     clearMergeSpy.mockImplementation(jest.fn());
     const jumpToDatasetSpy = jest.spyOn(uploadUtils, 'jumpToDataset');
     jumpToDatasetSpy.mockImplementation(() => Promise.resolve(undefined));
-    useSelectorSpy.mockReturnValue({ ...state, mergeDataId: '1' });
     await buildResult();
     await act(async () => {
-      result.find('button').at(1).simulate('click');
+      await store.dispatch({ type: MergeActionType.LOAD_MERGE_DATA, dataId: '1' });
     });
-    result = result.update();
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Keep Data & Jump To Grid'));
+    });
     expect(jumpToDatasetSpy).toHaveBeenLastCalledWith('1', undefined, true);
     await act(async () => {
-      result.find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Clear Data & Keep Editing'));
     });
-    result = result.update();
     expect(clearMergeSpy).toHaveBeenCalled();
-    expect(result.find('CustomMockComponent').props()).toEqual({ dataId: '1' });
+    expect(screen.getByTestId('data-preview')).toBeDefined();
   });
 });

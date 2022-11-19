@@ -1,62 +1,39 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, screen } from '@testing-library/react';
+import axios from 'axios';
+import selectEvent from 'react-select-event';
 
-import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateTransform, validateTransformCfg } from '../../../popups/create/CreateTransform';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { validateTransformCfg } from '../../../popups/create/CreateTransform';
+import reduxUtils from '../../redux-test-utils';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateTransform', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
-
-  beforeEach(async () => {
-    spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Transform');
-  });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findTransform = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateTransform);
-
   it('builds a transform column', async () => {
-    expect(findTransform()).toHaveLength(1);
-    await act(async () => {
-      findTransform()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(findTransform().find(Select).first().props().noOptionsMessage?.({ inputValue: '' })).toBe(
-      'No columns available!',
+    spies.setupMockImplementations();
+    await spies.setupWrapper();
+    await spies.clickBuilder('Transform');
+    expect(screen.getByText('Transform')).toHaveClass('active');
+    await selectOption(
+      screen.getByText('Group By').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col1',
     );
-    expect(findTransform().find(Select).at(1).props().noOptionsMessage?.({ inputValue: '' })).toBe(
-      'No columns available for the following dtypes: int, float!',
+    await selectOption(
+      screen.getByText('Col').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
     );
-    await act(async () => {
-      findTransform()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findTransform()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await selectOption(
+      screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Mean',
+    );
+    await spies.validateCfg({
       cfg: {
         col: 'col2',
         group: ['col1'],
@@ -65,6 +42,33 @@ describe('CreateTransform', () => {
       name: 'col2_transform',
       type: CreateColumnType.TRANSFORM,
     });
+  });
+
+  it('check no option messages', async () => {
+    spies.setupMockImplementations();
+    (axios.get as any).mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/dtypes')) {
+        return Promise.resolve({
+          data: {
+            dtypes: [],
+            success: true,
+          },
+        });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
+    await spies.setupWrapper();
+    await spies.clickBuilder('Transform');
+    const groupSelect = screen.getByText('Group By').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await act(async () => {
+      await selectEvent.openMenu(groupSelect);
+    });
+    expect(screen.getByText('No columns available!')).toBeDefined();
+    const colSelect = screen.getByText('Col').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await act(async () => {
+      await selectEvent.openMenu(colSelect);
+    });
+    expect(screen.getByText('No columns available for the following dtypes: int, float!')).toBeDefined();
   });
 
   it('DataViewer: build transform cfg validation', () => {

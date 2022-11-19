@@ -1,21 +1,25 @@
+import { act, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import { ColumnDef } from '../../dtale/DataViewerState';
-import Formatting from '../../popups/formats/Formatting';
 import { ActionType } from '../../redux/actions/AppActions';
 import { DataViewerUpdateType } from '../../redux/state/AppState';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, mockChartJS } from '../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('DataViewer tests', () => {
-  let result: ReactWrapper;
+  const mockDispatch = jest.fn();
   let store: Store;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -28,8 +32,8 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    useDispatchMock.mockImplementation(() => mockDispatch);
+    (axios.get as any).mockImplementation((url: string) => {
       if (url === '/dtale/data/1?ids=%5B%22100-101%22%5D') {
         return Promise.resolve({ data: { error: 'No data found' } });
       }
@@ -37,34 +41,37 @@ describe('DataViewer tests', () => {
     });
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    await act(() =>
+      render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      ),
     );
-
-    await act(async () => await tickUpdate(result));
-    result = result.update();
   });
 
   afterAll(() => dimensions.afterAll());
 
   it('DataViewer: handles an update to columnsToToggle', async () => {
-    store.dispatch({
-      type: ActionType.DATA_VIEWER_UPDATE,
-      update: { type: DataViewerUpdateType.TOGGLE_COLUMNS, columns: { col1: false } },
+    expect([...screen.queryAllByTestId('header-cell')].map((h) => h.textContent?.trim())).toEqual([
+      'col1⋮',
+      'col2⋮',
+      'col3⋮',
+      'col4⋮',
+    ]);
+    await act(() => {
+      store.dispatch({
+        type: ActionType.DATA_VIEWER_UPDATE,
+        update: { type: DataViewerUpdateType.TOGGLE_COLUMNS, columns: { col1: false } },
+      });
     });
-    result = result.update();
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    expect(
-      result
-        .find(Formatting)
-        .props()
-        .columns?.find((c: ColumnDef) => c.name === 'col1')?.visible,
-    ).toBe(false);
+    expect([...screen.queryAllByTestId('header-cell')].map((h) => h.textContent?.trim())).toEqual([
+      'col2⋮',
+      'col3⋮',
+      'col4⋮',
+    ]);
   });
 });

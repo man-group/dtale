@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { BaseOption } from '../../redux/state/AppState';
@@ -21,16 +22,16 @@ import Languages from './nltk-languages.json';
 export const validateCleaningCfg = (t: TFunction, cfg: CleaningConfig): string | undefined => {
   const { col, cleaners, stopwords, caseType } = cfg;
   if (!col) {
-    return t('Please select a column to clean!');
+    return t('Please select a column to clean!') ?? undefined;
   }
   if (!cleaners.length) {
-    return t('Please apply function(s)!');
+    return t('Please apply function(s)!') ?? undefined;
   }
   if (cleaners.includes(CleanerType.UPDATE_CASE) && !caseType) {
-    return t('Please select a case to apply!');
+    return t('Please select a case to apply!') ?? undefined;
   }
   if (cleaners.includes(CleanerType.STOPWORDS) && !stopwords) {
-    return t('Please enter a comma-separated string of stop words!');
+    return t('Please enter a comma-separated string of stop words!') ?? undefined;
   }
   return undefined;
 };
@@ -170,7 +171,7 @@ const CreateCleaning: React.FC<CreateCleaningProps & WithTranslation> = ({
 
   const updateCleaners = (newCleaner: CleanerType): void => {
     if (state.cleaners.includes(newCleaner)) {
-      setState({ ...state, cleaners: state.cleaners.filter((cleaner) => cleaner === newCleaner) });
+      setState({ ...state, cleaners: state.cleaners.filter((cleaner) => cleaner !== newCleaner) });
     } else {
       setState({ ...state, cleaners: [...state.cleaners, newCleaner] });
     }
@@ -203,7 +204,7 @@ const CreateCleaning: React.FC<CreateCleaningProps & WithTranslation> = ({
                   height: '42px',
                 },
                 onClick: () => updateCleaners(cleaner.value),
-                onMouseEnter: () => setDescription(t(cleaner.value)),
+                onMouseEnter: () => setDescription(t(cleaner.value) ?? undefined),
                 onMouseLeave: () => setDescription(undefined),
               };
               if (state.cleaners.includes(cleaner.value)) {
@@ -226,7 +227,7 @@ const CreateCleaning: React.FC<CreateCleaningProps & WithTranslation> = ({
       </div>
       {state.cleaners.includes(CleanerType.STOPWORDS) && (
         <LabeledInput
-          label={t('Stop Words')}
+          label={t('Stop Words') ?? ''}
           value={state.stopwords}
           setter={(value) => setState({ ...state, stopwords: value })}
         />

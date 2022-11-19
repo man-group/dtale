@@ -1,83 +1,92 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
-import RibbonMenu, { RibbonMenuItem } from '../../../dtale/ribbon/RibbonMenu';
+import RibbonMenu from '../../../dtale/ribbon/RibbonMenu';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { RibbonDropdownType } from '../../../redux/state/AppState';
-import { tickUpdate } from '../../test-utils';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('RibbonMenu', () => {
-  let wrapper: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+  let wrapper: RenderResult;
+  let store: Store;
+  const mockDispatch = jest.fn();
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ visible: true });
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
-    wrapper = mount(<RibbonMenu />);
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
+    useDispatchMock.mockImplementation(() => mockDispatch);
   });
 
-  it('renders successfully', () => {
-    expect(wrapper.find('RibbonMenuItem')).toHaveLength(5);
+  const buildMock = async (overrides?: Record<string, string>): Promise<void> => {
+    store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '', ...overrides }, store);
+    store.dispatch({ type: ActionType.SHOW_RIBBON_MENU });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      const result = render(
+        <Provider store={store}>
+          <RibbonMenu />
+        </Provider>,
+        { container: document.getElementById('content') as HTMLElement },
+      );
+      return result;
+    });
+  };
+
+  it('renders successfully', async () => {
+    await buildMock();
+    expect(wrapper.container.getElementsByClassName('ribbon-menu-item')).toHaveLength(5);
   });
 
   it('activates hover on click of item & opens dropdown', async () => {
+    await buildMock();
     await act(async () => {
-      wrapper.find(RibbonMenuItem).first().find('div').simulate('click');
+      fireEvent.click(screen.getByText('D-TALE'));
     });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith(
+    expect(mockDispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: RibbonDropdownType.MAIN }),
     );
   });
 
   it('opens dropdown when hover is active', async () => {
+    await buildMock();
     await act(async () => {
-      wrapper.find(RibbonMenuItem).first().find('div').simulate('click');
+      fireEvent.click(screen.getByText('D-TALE'));
     });
-    wrapper = wrapper.update();
     await act(async () => {
-      wrapper.find(RibbonMenuItem).last().find('div').simulate('mouseover');
+      fireEvent.mouseOver(screen.getByText('Settings'));
     });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith(
+    expect(mockDispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: RibbonDropdownType.SETTINGS }),
     );
   });
 
   it('turns off hover when menu closes', async () => {
+    await buildMock();
     await act(async () => {
-      wrapper.find(RibbonMenuItem).first().find('div').simulate('click');
+      fireEvent.click(screen.getByText('D-TALE'));
     });
-    wrapper = wrapper.update();
-    useSelectorSpy.mockReturnValue({ visible: false });
+    await act(() => {
+      store.dispatch({ type: ActionType.HIDE_RIBBON_MENU });
+    });
+    mockDispatch.mockReset();
     await act(async () => {
-      wrapper.setProps({});
+      fireEvent.mouseOver(screen.getByText('D-TALE'));
     });
-    wrapper = wrapper.update();
-    dispatchSpy.mockReset();
-    await act(async () => {
-      wrapper
-        .find(RibbonMenuItem)
-        .first()
-        .props()
-        .onHover?.('' as RibbonDropdownType, {} as any as HTMLDivElement);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('sets main title font', () => {
-    useSelectorSpy.mockReturnValue({ visible: true, mainTitleFont: 'Arial' });
-    wrapper = mount(<RibbonMenu />);
-    const title = wrapper.find('span.title-font-base').props();
-    expect(title.className).toBe('title-font-base');
-    expect(title.style?.fontFamily).toBe('Arial');
+  it('sets main title font', async () => {
+    await buildMock({ mainTitleFont: 'Arial' });
+    const title = wrapper.container.querySelector('span.title-font-base');
+    expect(title).toHaveClass('title-font-base');
+    expect(title).toHaveStyle({ 'font-family': 'Arial' });
   });
 });

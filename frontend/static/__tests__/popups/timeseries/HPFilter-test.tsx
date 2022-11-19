@@ -1,7 +1,6 @@
+import { act, render } from '@testing-library/react';
 import { ChartDataset } from 'chart.js';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { chartConfigBuilder, default as HPFilter } from '../../../popups/timeseries/HPFilter';
 import {
@@ -10,12 +9,11 @@ import {
   HPConfig,
   TimeseriesAnalysisType,
 } from '../../../popups/timeseries/TimeseriesAnalysisState';
-import { tickUpdate } from '../../test-utils';
 
 import { updateValue } from './BKFilter-test';
 
 describe('HPFilter', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let props: BaseComponentProps<HPConfig>;
   const updateState = jest.fn();
 
@@ -24,12 +22,11 @@ describe('HPFilter', () => {
       cfg: { ...BASE_CFGS[TimeseriesAnalysisType.HPFILTER] },
       updateState,
     };
-    wrapper = mount(<HPFilter {...props} />);
-    await act(async () => tickUpdate(wrapper));
+    wrapper = await act(async () => await render(<HPFilter {...props} />).container);
   });
 
   it('updates state', async () => {
-    wrapper = await updateValue(wrapper, 5);
+    await updateValue(wrapper, 5);
     expect(props.updateState).toHaveBeenLastCalledWith({ lamb: 5 });
   });
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, AppActions, ClearEditAction } from '../redux/actions/AppActions';
+import { ActionType, ClearEditAction, OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import { AppState, Popups } from '../redux/state/AppState';
 
@@ -34,7 +34,7 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
     maxColumnWidth: state.maxColumnWidth,
   }));
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const clearEdit = (): ClearEditAction => dispatch({ type: ActionType.CLEAR_EDIT });
 
   const [value, setValue] = React.useState(props.value ?? '');
@@ -68,6 +68,7 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
 
   return (
     <input
+      data-testid="grid-cell-editor"
       ref={input}
       style={{ background: 'lightblue', width: 'inherit' }}
       type="text"

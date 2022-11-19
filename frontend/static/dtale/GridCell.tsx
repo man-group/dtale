@@ -90,7 +90,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
         className="cell"
         style={{ ...style, padding: 0 }}
         onMouseOver={() => showTooltip(ref.current!, t('editing'))}
-        onMouseLeave={hideTooltip}
+        onMouseOut={hideTooltip}
       >
         <GridCellEditor
           {...{ value: `${rec.raw ?? ''}`, data, columns, rowCount, colCfg: colCfg!, propagateState, rowIndex }}

@@ -44,8 +44,8 @@ const CSVOptions: React.FC<CSVOptionsProps & WithTranslation> = ({ show, loader,
         <Modal.Header>
           <Modal.Title>{t('CSV Options')}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div style={{ maxHeight: 300, overflowY: 'auto' }} className="col-md-12">
+        <div key="body" className="modal-body">
+          <div style={{ maxHeight: 300, overflowY: 'auto' }} className="col-md-12" data-testid="csv-options">
             <LabeledCheckbox label={`${t('Header')}?`} value={header} setter={setHeader} />
             <div className="form-group row">
               <label className="col-md-3 col-form-label text-right">{t('Separator')}</label>
@@ -69,12 +69,16 @@ const CSVOptions: React.FC<CSVOptionsProps & WithTranslation> = ({ show, loader,
               </div>
             )}
           </div>
-        </Modal.Body>
+        </div>
         <Modal.Footer>
-          <button className="btn btn-secondary" onClick={close}>
+          <button className="btn btn-secondary" data-testid="csv-options-cancel" onClick={close}>
             <span>{t('Cancel')}</span>
           </button>
-          <button className="btn btn-primary" onClick={() => loader?.({ header, separatorType, separator })}>
+          <button
+            className="btn btn-primary"
+            data-testid="csv-options-load"
+            onClick={() => loader?.({ header, separatorType, separator })}
+          >
             <span>{t('Load')}</span>
           </button>
         </Modal.Footer>

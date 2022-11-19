@@ -1,13 +1,9 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta } from 'react-select';
-import { default as AsyncSelect } from 'react-select/async';
+import { act, fireEvent, screen } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
-import { AsyncOption } from '../../filters/AsyncValueSelect';
-import { ColumnFilterProps } from '../../filters/ColumnFilter';
-import StringFilter from '../../filters/StringFilter';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxTestUtils from '../redux-test-utils';
+import { selectOption } from '../test-utils';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
@@ -16,7 +12,7 @@ const ASYNC_OPTIONS = [{ value: 'f' }, { value: 'g' }, { value: 'h' }];
 
 describe('ColumnFilter string tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper<ColumnFilterProps>;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
@@ -46,34 +42,23 @@ describe('ColumnFilter string tests', () => {
 
   afterEach(jest.restoreAllMocks);
 
-  const findAsync = (): ReactWrapper<Record<string, any>, Record<string, any>> => result.find(AsyncSelect);
-
   it('ColumnFilter string rendering', async () => {
-    expect(result.find(StringFilter).length).toBe(1);
+    expect(result.getElementsByClassName('string-filter-inputs').length).toBe(1);
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    expect(findAsync().prop('isDisabled')).toBe(true);
     await act(async () => {
-      result.find('i.ico-check-box').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
-    expect(findAsync().prop('isDisabled')).toBe(false);
-    const asyncOptions = await findAsync()
-      .props()
-      .loadOptions?.('a', () => undefined);
-    expect(asyncOptions).toEqual(ASYNC_OPTIONS);
-    expect(findAsync().props().defaultOptions).toEqual(INITIAL_UNIQUES.map((iu) => ({ value: iu, label: iu })));
+    expect(result.getElementsByClassName('bp4-disabled')).toHaveLength(0);
+    const asyncSelect = result.getElementsByClassName('Select')[1] as HTMLElement;
     await act(async () => {
-      findAsync()
-        .props()
-        ?.onChange?.([{ value: 'a', label: 'a' }], {
-          action: 'select-option',
-          option: { value: 'a', label: 'a' },
-        } as ActionMeta<AsyncOption<string>>);
+      await selectEvent.clearAll(asyncSelect);
     });
-    result = result.update();
+    await act(async () => {
+      await selectEvent.openMenu(asyncSelect);
+    });
+    await selectOption(asyncSelect, ['a']);
     expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',
@@ -84,9 +69,8 @@ describe('ColumnFilter string tests', () => {
       }),
     );
     await act(async () => {
-      result.find(StringFilter).find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('\u2260'));
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith(
       '1',
       'col3',

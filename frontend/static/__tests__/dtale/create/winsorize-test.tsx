@@ -1,99 +1,81 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
-import ReactSlider from 'react-slider';
+import { act, fireEvent, screen } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
-import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateWinsorize, validateWinsorizeCfg } from '../../../popups/create/CreateWinsorize';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { validateWinsorizeCfg } from '../../../popups/create/CreateWinsorize';
+import { FakeMouseEvent, selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateWinsorize', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
+    (Element.prototype as any).getBoundingClientRect = jest.fn(() => {
+      return {
+        width: 0,
+        height: 100,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 100,
+      };
+    });
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Winsorize');
+    await spies.clickBuilder('Winsorize');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findWinsorize = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateWinsorize);
-
   it('builds a winsorize column', async () => {
-    expect(findWinsorize()).toHaveLength(1);
+    expect(screen.getByText('Winsorize')).toHaveClass('active');
+    const colSelect = screen.getByText('Col').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(colSelect, 'col1');
     await act(async () => {
-      findWinsorize()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await selectEvent.clearFirst(colSelect);
     });
-    result = result.update();
+    await selectOption(colSelect, 'col1');
+    await selectOption(
+      screen.getByText('Group By').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    let thumb = result.getElementsByClassName('thumb-0')[0];
     await act(async () => {
-      findWinsorize()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.(null, {} as ActionMeta<unknown>);
+      await fireEvent(thumb, new FakeMouseEvent('mousedown', { bubbles: true, pageX: 0, pageY: 0 }));
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent(thumb, new FakeMouseEvent('mousemove', { bubbles: true, pageX: 20, pageY: 0 }));
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
+      await fireEvent.mouseUp(thumb);
     });
-    result = result.update();
+    thumb = result.getElementsByClassName('thumb-1')[0];
     await act(async () => {
-      findWinsorize().find(ReactSlider).prop('onAfterChange')([20, 80]);
+      await fireEvent(thumb, new FakeMouseEvent('mousedown', { bubbles: true, pageX: 0, pageY: 0 }));
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize().find(ReactSlider).prop('onAfterChange')([20, 80]);
+      await fireEvent(thumb, new FakeMouseEvent('mousemove', { bubbles: true, pageX: 80, pageY: 0 }));
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '30' } });
+      await fireEvent.mouseUp(thumb);
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '70' } });
+      await fireEvent.change(screen.getByTestId('winsorize-raw-min'), { target: { value: '30' } });
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize().find('i').first().simulate('click');
+      await fireEvent.change(screen.getByTestId('winsorize-raw-max'), { target: { value: '70' } });
     });
-    result = result.update();
     await act(async () => {
-      findWinsorize().find('i').last().simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await act(async () => {
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+    });
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         group: ['col2'],

@@ -1,19 +1,30 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import GridCell, { GridCellProps } from '../../dtale/GridCell';
 import { ActionType } from '../../redux/actions/AppActions';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 
-describe('GridCell', () => {
-  let wrapper: ReactWrapper;
-  let props: GridCellProps;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
 
-  const buildMock = (propOverrides?: GridCellProps, state?: { [key: string]: any }): void => {
-    useSelectorSpy.mockReturnValue({
+const useDispatchMock = useDispatch as jest.Mock;
+
+describe('GridCell', () => {
+  let container: HTMLElement;
+  let rerender: (ui: React.ReactElement<any, string | React.JSXElementConstructor<any>>) => void;
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
+  let props: GridCellProps;
+
+  const buildMock = (propOverrides?: GridCellProps, state?: { [key: string]: any }, useRerender = false): void => {
+    store = mockStore({
       dataId: '1',
       editedCell: '1|1',
       settings: {},
@@ -46,13 +57,25 @@ describe('GridCell', () => {
       propagateState: jest.fn(),
       ...propOverrides,
     };
-    wrapper = mount(<GridCell {...props} />);
+    if (useRerender) {
+      rerender(
+        <Provider store={store}>
+          <GridCell {...props} />
+        </Provider>,
+      );
+    } else {
+      const result = render(
+        <Provider store={store}>
+          <GridCell {...props} />
+        </Provider>,
+      );
+      container = result.container;
+      rerender = result.rerender;
+    }
   };
 
   beforeEach(() => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
     buildMock();
   });
 
@@ -60,21 +83,16 @@ describe('GridCell', () => {
 
   afterAll(jest.restoreAllMocks);
 
-  it('correctly triggers tooltip on edited cell hovering', () => {
-    wrapper
-      .find('div')
-      .props()
-      .onMouseOver?.({} as any as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
-    wrapper
-      .find('div')
-      .props()
-      .onMouseLeave?.({} as any as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
+  it('correctly triggers tooltip on edited cell hovering', async () => {
+    await fireEvent.mouseOver(container.getElementsByClassName('cell')[0]);
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
+    await fireEvent.mouseOut(container.getElementsByClassName('cell')[0]);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
   });
 
   it('adds resized class to cell', () => {
-    buildMock(undefined, { editedCell: null });
-    expect(wrapper.find('div').last().props().className).toBe('resized');
+    buildMock(undefined, { editedCell: null }, true);
+    const divs = container.getElementsByTagName('div');
+    expect(divs[divs.length - 1]).toHaveClass('resized');
   });
 });

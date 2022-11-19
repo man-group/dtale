@@ -1,17 +1,16 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { default as Pivot, validatePivotCfg } from '../../../popups/reshape/Pivot';
-import { BaseReshapeComponentProps, ReshapePivotConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { validatePivotCfg } from '../../../popups/reshape/Pivot';
+import { ReshapePivotConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Reshape.test.support';
 
 describe('Pivot', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -30,7 +29,7 @@ describe('Pivot', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Pivot');
+    await spies.clickBuilder('Pivot');
   });
 
   afterEach(() => spies.afterEach());
@@ -42,47 +41,18 @@ describe('Pivot', () => {
     spies.afterAll();
   });
 
-  const findPivot = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Pivot);
+  const findSelects = (): HTMLCollectionOf<Element> => result.container.getElementsByClassName('Select');
 
   it('reshapes data using pivot', async () => {
-    expect(findPivot()).toHaveLength(1);
+    expect(findSelects()).toHaveLength(4);
+    await selectOption(findSelects()[0] as HTMLElement, 'col1');
+    await selectOption(findSelects()[1] as HTMLElement, 'col2');
+    await selectOption(findSelects()[2] as HTMLElement, 'col3');
+    await selectOption(findSelects()[3] as HTMLElement, 'Count');
     await act(async () => {
-      findPivot()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
-    await act(async () => {
-      findPivot()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findPivot()
-        .find(Select)
-        .at(2)
-        .props()
-        .onChange?.([{ value: 'col3' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findPivot()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'count' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         index: ['col1'],
         columns: ['col2'],
@@ -97,25 +67,11 @@ describe('Pivot', () => {
   });
 
   it('handles errors', async () => {
-    result = await spies.validateError(result, 'Missing an index selection!');
-    await act(async () => {
-      findPivot()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing a columns selection!');
-    await act(async () => {
-      findPivot()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing a value(s) selection!');
+    await spies.validateError('Missing an index selection!');
+    await selectOption(findSelects()[0] as HTMLElement, 'col1');
+    await spies.validateError('Missing a columns selection!');
+    await selectOption(findSelects()[1] as HTMLElement, 'col2');
+    await spies.validateError('Missing a value(s) selection!');
   });
 
   it('validates configuration', () => {

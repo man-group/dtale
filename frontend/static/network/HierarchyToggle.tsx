@@ -21,7 +21,7 @@ const HierarchyToggle: React.FC<HierarchyToggleProps & WithTranslation> = ({ upd
   ];
 
   return (
-    <div className="col-auto">
+    <div className="col-auto" data-testid="hierarchal-layout">
       <b>{t('Hierarchical Layout')}</b>
       <ButtonToggle options={options} update={setHierarchy} defaultValue={hierarchy} allowDeselect={true} />
     </div>

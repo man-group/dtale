@@ -1,85 +1,66 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import Aggregations from '../../../popups/charts/Aggregations';
-import { RemovableError } from '../../../RemovableError';
+import { selectOption } from '../..//test-utils';
 
 import * as TestSupport from './charts.test.support';
 
 describe('Charts rolling tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeAll(() => spies.beforeAll());
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupCharts();
+    await spies.setupCharts();
   });
 
   afterAll(() => spies.afterAll());
 
-  it('Charts: rendering', async () => {
-    const filters = result.find(Select);
+  it('Charts: rendering window error', async () => {
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(
+      screen.getByText('Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    await selectOption(
+      screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Rolling',
+    );
     await act(async () => {
-      filters
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
-      filters
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
-      filters
-        .at(3)
-        .props()
-        .onChange?.({ value: 'rolling', label: 'Rolling' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Window').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '' },
+      });
     });
-    result = result.update();
+    await selectOption(
+      screen.getByText('Computation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Correlation',
+    );
     await act(async () => {
-      result
-        .find(Aggregations)
-        .find('input')
-        .at(1)
-        .simulate('change', { target: { value: '' } });
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
+    expect(screen.getByRole('alert').textContent).toBe('Aggregation (rolling) requires a window');
+  });
+
+  it('Charts: rendering computation error', async () => {
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(
+      screen.getByText('Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    await selectOption(
+      screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Rolling',
+    );
     await act(async () => {
-      result
-        .find(Aggregations)
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'corr', label: 'Correlation' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Window').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '10' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      result.find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    expect(result.find(RemovableError).first().props().error).toBe('Aggregation (rolling) requires a window');
-    await act(async () => {
-      result
-        .find(Aggregations)
-        .find('input')
-        .at(1)
-        .simulate('change', { target: { value: '10' } });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(Aggregations)
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.(null, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
-    expect(result.find(RemovableError).first().props().error).toBe('Aggregation (rolling) requires a computation');
+    expect(screen.getByRole('alert').textContent).toBe('Aggregation (rolling) requires a computation');
   });
 });

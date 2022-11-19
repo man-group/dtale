@@ -1,21 +1,29 @@
-import { shallow, ShallowWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import DataMenuItem, { DataMenuItemProps } from '../../../dtale/ribbon/DataMenuItem';
 import { ActionType } from '../../../redux/actions/AppActions';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
+
 describe('DataMenuItem', () => {
-  let wrapper: ShallowWrapper;
+  let wrapper: RenderResult;
   let props: DataMenuItemProps;
   const { location } = window;
-  const dispatchSpy = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
+  const mockDispatch = jest.fn();
 
-  beforeEach(() => {
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue(false);
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+  beforeEach(async () => {
+    useDispatchMock.mockImplementation(() => mockDispatch);
     delete (window as any).location;
     (window as any).location = {
       assign: jest.fn(),
@@ -26,7 +34,14 @@ describe('DataMenuItem', () => {
       name: 'foo',
       cleanup: jest.fn(),
     };
-    wrapper = shallow(<DataMenuItem {...props} />);
+    store = mockStore({ dataId: '1', iframe: false });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      return render(
+        <Provider store={store}>
+          <DataMenuItem {...props} />
+        </Provider>,
+      );
+    });
   });
 
   afterEach(jest.resetAllMocks);
@@ -36,51 +51,47 @@ describe('DataMenuItem', () => {
     jest.restoreAllMocks();
   });
 
-  it('correctly calls show/hide tooltip on button', () => {
-    wrapper
-      .find('button')
-      .props()
-      .onMouseOver?.({} as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
-    wrapper
-      .find('button')
-      .props()
-      .onMouseLeave?.({} as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
+  it('correctly calls show/hide tooltip on button', async () => {
+    const button = wrapper.container.getElementsByTagName('button')[0];
+    await act(() => {
+      fireEvent.mouseOver(button);
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
+    await act(() => {
+      fireEvent.mouseLeave(button);
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
   });
 
-  it('correctly calls show/hide tooltip on icon', () => {
-    wrapper
-      .find('i')
-      .props()
-      .onMouseOver?.({} as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
-    wrapper
-      .find('i')
-      .props()
-      .onMouseLeave?.({} as React.MouseEvent);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
+  it('correctly calls show/hide tooltip on icon', async () => {
+    const icon = wrapper.container.getElementsByTagName('i')[0];
+    await act(() => {
+      fireEvent.mouseOver(icon);
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
+    await act(() => {
+      fireEvent.mouseLeave(icon);
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
   });
 
-  it('correctly updates view', () => {
-    wrapper
-      .find('button')
-      .props()
-      .onClick?.({} as React.MouseEvent);
+  it('correctly updates view', async () => {
+    await act(() => {
+      fireEvent.click(wrapper.container.getElementsByTagName('button')[0]);
+    });
     expect(window.location.assign).toHaveBeenCalledWith('origin/dtale/main/1');
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
   });
 
-  it('correctly clears data', () => {
-    wrapper
-      .find('i')
-      .props()
-      .onClick?.({} as React.MouseEvent);
+  it('correctly clears data', async () => {
+    await act(() => {
+      fireEvent.click(wrapper.container.getElementsByTagName('i')[0]);
+    });
     expect(props.cleanup).toHaveBeenCalledWith('1');
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
   });
 
   it('renders data name', () => {
-    expect(wrapper.find('button').text()).toBe('1 - foo');
+    expect(wrapper.container.getElementsByTagName('button')[0].textContent).toBe('1 - foo');
   });
 });

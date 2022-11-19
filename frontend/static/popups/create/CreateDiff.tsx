@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -10,10 +11,10 @@ import { LabeledInput } from './LabeledInput';
 
 export const validateDiffCfg = (t: TFunction, cfg: DiffConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   if (!cfg.periods || !parseInt(cfg.periods, 10)) {
-    return t('Please select a valid value for periods!');
+    return t('Please select a valid value for periods!') ?? undefined;
   }
   return undefined;
 };
@@ -57,7 +58,7 @@ const CreateDiff: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         columns={columns}
         dtypes={['int', 'float']}
       />
-      <LabeledInput label={t('Periods')} value={periods} setter={setPeriods} />
+      <LabeledInput label={t('Periods') ?? ''} value={periods} setter={setPeriods} />
     </React.Fragment>
   );
 };

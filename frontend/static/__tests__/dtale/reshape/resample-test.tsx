@@ -1,17 +1,16 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { OutputType, ResampleConfig } from '../../../popups/create/CreateColumnState';
-import { default as Resample, ResampleProps, validateResampleCfg } from '../../../popups/reshape/Resample';
+import { validateResampleCfg } from '../../../popups/reshape/Resample';
 import { ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Reshape.test.support';
 
 describe('Resample', () => {
   const { location, open, close, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -34,7 +33,7 @@ describe('Resample', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Resample');
+    await spies.clickBuilder('Resample');
   });
 
   afterEach(() => spies.afterEach());
@@ -47,44 +46,23 @@ describe('Resample', () => {
     spies.afterAll();
   });
 
-  const findResample = (): ReactWrapper<ResampleProps, Record<string, any>> => result.find(Resample);
+  const findSelects = (): HTMLCollectionOf<Element> => result.container.getElementsByClassName('Select');
 
   it('resamples data', async () => {
-    expect(findResample()).toHaveLength(1);
+    expect(findSelects()).toHaveLength(3);
+    await selectOption(findSelects()[0] as HTMLElement, 'col4');
     await act(async () => {
-      findResample()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      fireEvent.change(screen.getByTestId('offset-input'), { target: { value: '17min' } });
     });
-    result = result.update();
+    await selectOption(findSelects()[2] as HTMLElement, 'Mean');
     await act(async () => {
-      findResample()
-        .find('div.form-group.row')
-        .at(2)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '17min' } });
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
-    await act(async () => {
-      findResample()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: 'mean',
         columns: undefined,
-        index: 'col1',
+        index: 'col4',
         freq: '17min',
       },
       type: ReshapeType.RESAMPLE,

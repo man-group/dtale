@@ -1,32 +1,16 @@
+import { act, fireEvent, getByTestId, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
-import ColumnMenu, { ColumnMenuProps } from '../../dtale/column/ColumnMenu';
 import { DataViewer } from '../../dtale/DataViewer';
-import DataViewerInfo from '../../dtale/info/DataViewerInfo';
-import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
-import Formatting from '../../popups/formats/Formatting';
 import { ActionType } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, tickUpdate } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton } from '../test-utils';
 
 import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from './iframe-utils';
-
-const COL_PROPS = reduxUtils.DATA.columns.map((c, i) => {
-  const width = i === 0 ? 70 : 20;
-  return {
-    ...c,
-    width,
-    headerWidth: i === 0 ? 70 : 20,
-    dataWidth: width,
-    locked: i === 0,
-  };
-});
 
 describe('DataViewer iframe tests', () => {
   const { location, open, top, self } = window;
@@ -36,7 +20,7 @@ describe('DataViewer iframe tests', () => {
     innerWidth: 500,
     innerHeight: 500,
   });
-  let result: ReactWrapper;
+  let result: Element;
   let store: Store;
   const openSpy = jest.fn();
 
@@ -50,27 +34,27 @@ describe('DataViewer iframe tests', () => {
     window.open = openSpy;
     (window as any).top = { location: { href: 'http://test.com' } };
     (window as any).self = { location: { href: 'http://test/dtale/iframe' } };
-    jest.mock('@blueprintjs/datetime', () => {
+    jest.mock('@blueprintjs/datetime2', () => {
       const { createMockComponent } = require('../mocks/createMockComponent');
-      return { DateInput: createMockComponent('DateInput') };
+      return { DateInput2: createMockComponent('DateInput2') };
     });
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', iframe: 'True', xarray: 'True' }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <DataViewer />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    return result.update();
   });
 
   afterEach(jest.resetAllMocks);
@@ -84,20 +68,17 @@ describe('DataViewer iframe tests', () => {
     jest.restoreAllMocks();
   });
 
-  const colMenu = (): ReactWrapper<ColumnMenuProps, Record<string, any>> => result.find(ColumnMenu).first();
+  const colMenu = (): Element => document.getElementById('column-menu-div')!;
 
   it('main menu option display', async () => {
-    validateHeaders(result, ['col1', 'col2', 'col3', 'col4']);
-    expect(result.find(Formatting).props().columns).toEqual(COL_PROPS);
+    validateHeaders(['col1', 'col2', 'col3', 'col4']);
     await act(async () => {
-      result.find('div.crossed').first().find('div.grid-menu').first().simulate('click');
+      await fireEvent.click(result.querySelector('div.crossed')!.querySelector('div.grid-menu')!);
     });
-    result = result.update();
     expect(
-      result
-        .find(DataViewerMenu)
-        .find('ul li span.font-weight-bold')
-        .map((s) => s.text()),
+      [...screen.getByTestId('data-viewer-menu').querySelectorAll('ul li span.font-weight-bold')].map(
+        (s) => s.textContent,
+      ),
     ).toEqual([
       ...['Open In New Tab', 'XArray Dimensions', 'Describe', 'Custom Filter', 'show_hide', 'Dataframe Functions'],
       ...['Clean Column', 'Merge & Stack', 'Summarize Data', 'Time Series Analysis', 'Duplicates', 'Missing Analysis'],
@@ -109,18 +90,15 @@ describe('DataViewer iframe tests', () => {
   });
 
   it('DataViewer: validate column menu options', async () => {
-    result = await openColMenu(result, 3);
-    expect(result.find('#column-menu-div').length).toBe(1);
-    store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col4' });
-    result = result.update();
-    expect(result.find('#column-menu-div').length).toBe(0);
-    result = await openColMenu(result, 3);
-    expect(colMenu().find('header').first().text()).toBe('Column "col4"Data Type:datetime64[ns]');
-    expect(
-      colMenu()
-        .find('ul li span.font-weight-bold')
-        .map((s) => s.text()),
-    ).toEqual([
+    await openColMenu(3);
+    expect(document.getElementById('column-menu-div')).toBeDefined();
+    await act(async () => {
+      await store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col4' });
+    });
+    expect(document.getElementById('column-menu-div')).toBeNull();
+    await openColMenu(3);
+    expect(colMenu().getElementsByTagName('header')[0].textContent).toBe('Column "col4"Data Type:datetime64[ns]');
+    expect(Array.from(colMenu().querySelectorAll('ul li span.font-weight-bold')).map((s) => s.textContent)).toEqual([
       'Lock',
       'Hide',
       'Delete',
@@ -134,81 +112,76 @@ describe('DataViewer iframe tests', () => {
   });
 
   it('handles base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
-    result = await openColMenu(result, 3);
-    result = await clickColMenuSubButton(result, 'Asc');
-    expect(result.find('div.row div.col').first().text()).toBe('Sort:col4 (ASC)');
-    result = await openColMenu(result, 2);
-    expect(colMenu().find('header').first().text()).toBe('Column "col3"Data Type:object');
-    store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col3' });
-    result = await openColMenu(result, 3);
-    result = await clickColMenuSubButton(result, 'fa-step-backward', 1);
-    validateHeaders(result, ['▲col4', 'col1', 'col2', 'col3']);
-    result = await openColMenu(result, 3);
-    result = await clickColMenuSubButton(result, 'fa-caret-left', 1);
-    validateHeaders(result, ['▲col4', 'col1', 'col3', 'col2']);
-    result = await openColMenu(result, 2);
-    result = await clickColMenuSubButton(result, 'fa-caret-right', 1);
-    validateHeaders(result, ['▲col4', 'col1', 'col2', 'col3']);
-    result = await openColMenu(result, 0);
+    await openColMenu(3);
+    await clickColMenuSubButton('Asc');
+    expect(result.querySelector('div.row div.col')!.textContent).toBe('Sort:col4 (ASC)');
+    await openColMenu(2);
+    expect(colMenu().getElementsByTagName('header')[0].textContent).toBe('Column "col3"Data Type:object');
+    await act(async () => {
+      await store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col3' });
+    });
+    await openColMenu(3);
+    await clickColMenuSubButton('fa-step-backward', 1);
+    validateHeaders(['▲col4', 'col1', 'col2', 'col3']);
+    await openColMenu(3);
+    await clickColMenuSubButton('fa-caret-left', 1);
+    validateHeaders(['▲col4', 'col1', 'col3', 'col2']);
+    await openColMenu(2);
+    await clickColMenuSubButton('fa-caret-right', 1);
+    validateHeaders(['▲col4', 'col1', 'col2', 'col3']);
+    await openColMenu(0);
     // lock
-    result = await clickColMenuButton(result, 'Lock');
-    expect(
-      result
-        .find('div.TopRightGrid_ScrollWrapper')
-        .first()
-        .find('div.headerCell')
-        .map((hc) => hc.find('.text-nowrap').text()),
-    ).toEqual(['col1', 'col2', 'col3']);
+    await clickColMenuButton('Lock');
+    validateHeaders(
+      ['col1', 'col2', 'col3'],
+      Array.from(result.querySelector('div.TopRightGrid_ScrollWrapper')!.getElementsByClassName('headerCell')),
+    );
     // unlock
-    result = await openColMenu(result, 0);
-    result = await clickColMenuButton(result, 'Unlock');
-    expect(
-      result
-        .find('div.TopRightGrid_ScrollWrapper')
-        .first()
-        .find('div.headerCell')
-        .map((hc) => hc.find('.text-nowrap').text()),
-    ).toEqual(['▲col4', 'col1', 'col2', 'col3']);
+    await openColMenu(0);
+    await clickColMenuButton('Unlock');
+    validateHeaders(['▲col4', 'col1', 'col2', 'col3']);
     // clear sorts
     await act(async () => {
-      result.find(DataViewerInfo).find('i.ico-cancel').first().simulate('click');
+      await fireEvent.click(
+        result.getElementsByClassName('data-viewer-info')[0].getElementsByClassName('ico-cancel')[0],
+      );
     });
-    result = result.update();
-    expect(result.find(DataViewerInfo).find('div.data-viewer-info.is-expanded').length).toBe(0);
-    result = await openColMenu(result, 0);
-    result = await openColMenu(result, 3);
-    result = await openColMenu(result, 2);
+    expect(result.querySelectorAll('div.data-viewer-info.is-expanded').length).toBe(0);
+    await openColMenu(0);
+    await openColMenu(3);
+    await openColMenu(2);
   });
 
   it('handles main menu functions', async () => {
-    result = await openColMenu(result, 2);
-    result = await clickColMenuButton(result, 'Describe(Column Analysis)');
+    await openColMenu(2);
+    await clickColMenuButton('Describe(Column Analysis)');
     expect(openSpy.mock.calls[0][0]).toBe('/dtale/popup/describe/1?selectedCol=col3');
-    await clickMainMenuButton(result, 'Describe');
+    await clickMainMenuButton('Describe');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/popup/describe/1');
-    await clickMainMenuButton(result, 'Correlations');
+    await clickMainMenuButton('Correlations');
     expect(store.getState().sidePanel).toEqual({
       visible: true,
       view: 'correlations',
     });
-    await clickMainMenuButton(result, 'Charts');
+    await clickMainMenuButton('Charts');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/charts/1');
-    await clickMainMenuButton(result, 'Network Viewer');
+    await clickMainMenuButton('Network Viewer');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/network/1');
-    await clickMainMenuButton(result, 'Instances 1');
+    await clickMainMenuButton('Instances 1');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/popup/instances/1');
-    await clickMainMenuButton(result, 'Refresh Widths');
-    await clickMainMenuButton(result, 'Reload Data');
+    await clickMainMenuButton('Refresh Widths');
+    await clickMainMenuButton('Reload Data');
     expect(window.location.reload).toHaveBeenCalled();
-    await clickMainMenuButton(result, 'Shutdown');
+    await clickMainMenuButton('Shutdown');
     expect(window.location.pathname).not.toBeNull();
-    result = await clickColMenuButton(result, 'Formats');
-    expect(result.find(Formatting).length).toBe(1);
+    await openColMenu(2);
+    await clickColMenuButton('Formats');
+    expect(getByTestId(document.body, 'formatting-body')).toBeDefined();
   });
 
   it('opens in a new tab', async () => {
     (window as any).location = { reload: jest.fn(), pathname: '/dtale/iframe/1' };
-    await clickMainMenuButton(result, 'Open In New Tab');
+    await clickMainMenuButton('Open In New Tab');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/main/1');
   });
 });

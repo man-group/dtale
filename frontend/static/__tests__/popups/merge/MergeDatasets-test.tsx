@@ -1,8 +1,6 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
+import { Provider, useDispatch } from 'react-redux';
 
 jest.mock('../../../dtale/DataViewer', () => {
   const { createMockComponent } = require('../../mocks/createMockComponent');
@@ -26,110 +24,95 @@ jest.mock('../../../popups/Popup', () => {
 
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
 import { MergeActionType } from '../../../redux/actions/MergeActions';
-import { MergeConfigType, MergeState } from '../../../redux/state/MergeState';
-import { tickUpdate } from '../../test-utils';
+import { MergeConfigType, MergeInstance } from '../../../redux/state/MergeState';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML, selectOption } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('MergeDatasets', () => {
-  let result: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
-  const state: Partial<MergeState> = {
-    instances: [{ data_id: '1', names: [{ index: 0, name: 'foo', dtype: 'int' }], rows: 10, columns: '' }],
-    loading: false,
-    loadingDatasets: false,
-    action: MergeConfigType.MERGE,
-    datasets: [
-      {
-        dataId: '1',
-        index: [],
-        columns: [],
-        suffix: null,
-        isOpen: true,
-        isDataOpen: false,
-      },
-    ],
-    loadingError: null,
-    mergeError: null,
-  };
+  const mockDispatch = jest.fn();
+  const instances: MergeInstance[] = [
+    { data_id: '1', names: [{ index: 0, name: 'foo', dtype: 'int' }], rows: 10, columns: '' },
+  ];
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue(state);
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
   });
 
   afterEach(jest.resetAllMocks);
   afterAll(jest.restoreAllMocks);
 
   const buildResult = async (): Promise<void> => {
-    result = mount(<MergeDatasets />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    const store = reduxUtils.createMergeStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: MergeActionType.LOAD_INSTANCES, instances: { data: instances } });
+    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: MergeConfigType.MERGE });
+    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
+
+    await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <MergeDatasets />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
   };
 
   it('triggers dataset functions', async () => {
     await buildResult();
     await act(async () => {
-      result.find('dt').first().simulate('click');
+      await fireEvent.click(screen.getByText('Dataset 1'));
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: MergeActionType.TOGGLE_DATASET, index: 0 });
-    await act(async () => {
-      result
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.TOGGLE_DATASET, index: 0 });
+    await selectOption(
+      screen.getByText('Index(es)*:').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'foo (int)',
+    );
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
       index: 0,
       prop: 'index',
-      value: [],
+      value: [instances[0].names[0]],
     });
-    await act(async () => {
-      result
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.([], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    await selectOption(
+      screen.getByText('Column(s):').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'foo (int)',
+    );
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
       index: 0,
       prop: 'columns',
-      value: [],
+      value: [instances[0].names[0]],
     });
     await act(async () => {
-      result
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: 'suffix' } });
+      await fireEvent.change(screen.getByText('Suffix:').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: 'suffix' },
+      });
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
       index: 0,
       prop: 'suffix',
       value: 'suffix',
     });
     await act(async () => {
-      result
-        .find('button')
-        .findWhere((b) => b.text() === 'Remove Dataset')
-        .first()
-        .simulate('click');
+      await fireEvent.click(screen.getByText('Remove Dataset'));
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: MergeActionType.REMOVE_DATASET, index: 0 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.REMOVE_DATASET, index: 0 });
     await act(async () => {
-      result.find('dt').last().simulate('click');
+      await fireEvent.click(screen.getByText('Data'));
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
       index: 0,
       prop: 'isDataOpen',

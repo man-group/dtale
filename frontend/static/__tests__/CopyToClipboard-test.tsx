@@ -1,4 +1,4 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
 
 import CopyToClipboard, { ButtonBuilderProps } from '../CopyToClipboard';
@@ -6,23 +6,21 @@ import CopyToClipboard, { ButtonBuilderProps } from '../CopyToClipboard';
 import { buildInnerHTML } from './test-utils';
 
 describe('CopyToClipboard tests', () => {
-  const render = (): ReactWrapper => {
+  const buildMock = (): HTMLElement => {
     buildInnerHTML();
     const buttonBuilder = (props: ButtonBuilderProps): JSX.Element => (
       <div id="clicker" {...props}>
         Hello
       </div>
     );
-    const result = mount(<CopyToClipboard text="test code" buttonBuilder={buttonBuilder} />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    result.render();
-    return result;
+    return render(<CopyToClipboard text="test code" buttonBuilder={buttonBuilder} />, {
+      container: document.getElementById('content') ?? undefined,
+    }).container;
   };
 
   it('CopyToClipboard no queryCommandSupported test', () => {
-    const result = render();
-    expect(result.html()).toBeNull();
+    const result = buildMock();
+    expect(result.innerHTML).toBe('');
   });
 
   it('CopyToClipboard queryCommandSupported test', () => {
@@ -30,8 +28,8 @@ describe('CopyToClipboard tests', () => {
       value: () => true,
     });
     Object.defineProperty(global.document, 'execCommand', { value: () => ({}) });
-    const result = render();
-    expect(result.find('#clicker').length).toBe(1);
-    result.find('#clicker').simulate('click');
+    buildMock();
+    expect(document.getElementById('clicker')).toBeDefined();
+    fireEvent.click(document.getElementById('clicker')!);
   });
 });

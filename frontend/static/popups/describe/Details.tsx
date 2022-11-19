@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { Bouncer } from '../../Bouncer';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
-import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, InstanceSettings } from '../../redux/state/AppState';
@@ -37,8 +37,8 @@ export interface DetailsProps {
 const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
   const { dataId, settings } = useSelector((state: AppState) => ({ dataId: state.dataId, settings: state.settings }));
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const deepDataOptions = React.useMemo(
     () => [
@@ -227,7 +227,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
   return (
     <React.Fragment>
       {details && (
-        <React.Fragment>
+        <div data-testid="details">
           <div className="row">
             <div className="col">
               <span className="mb-0 font-weight-bold" style={{ fontSize: '2em' }}>
@@ -264,7 +264,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
             <Uniques uniques={details.sequential_diffs.diffs} baseTitle="Sequential Difference" />
           )}
           {deepData === DeepDataView.OUTLIERS && renderOutliers()}
-        </React.Fragment>
+        </div>
       )}
     </React.Fragment>
   );

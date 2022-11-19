@@ -1,26 +1,13 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 
-import ColumnMenu from '../../dtale/column/ColumnMenu';
 import { DataViewer } from '../../dtale/DataViewer';
-import DataViewerMenu from '../../dtale/menu/DataViewerMenu';
 import DimensionsHelper from '../DimensionsHelper';
+import { validateHeaders } from '../iframe/iframe-utils';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS, tickUpdate } from '../test-utils';
-
-const COL_PROPS = reduxUtils.DATA.columns.map((c, i) => {
-  const width = i === 0 ? 70 : 20;
-  return {
-    ...c,
-    width,
-    headerWidth: i === 0 ? 70 : 20,
-    dataWidth: width,
-    locked: i === 0,
-  };
-});
+import { buildInnerHTML, clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const { location } = window;
@@ -38,8 +25,7 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(() => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.resetAllMocks);
@@ -53,32 +39,25 @@ describe('DataViewer tests', () => {
   it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
-    let result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    const container = await act(
+      async () =>
+        render(
+          <Provider store={store}>
+            <DataViewer />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    expect(result.find('.main-grid div.headerCell').map((hc) => hc.find('.text-nowrap').text())).toEqual([
-      'col1',
-      'col2',
-      'col3',
-      'col4',
-    ]);
-    expect(result.find(ColumnMenu).props().columns).toEqual(COL_PROPS);
+    validateHeaders(['col1', 'col2', 'col3', 'col4']);
     await act(async () => {
-      result.find('div.crossed').first().find('div.grid-menu').first().simulate('click');
+      fireEvent.click(container.getElementsByClassName('crossed')[0].getElementsByClassName('grid-menu')[0]);
     });
-    result = result.update();
     expect(
-      result
-        .find(DataViewerMenu)
-        .find('ul li span.font-weight-bold')
-        .map((s) => s.text()),
+      [...screen.getByTestId('data-viewer-menu').querySelectorAll('ul li span.font-weight-bold')].map(
+        (s) => s.textContent,
+      ),
     ).toEqual([
       ...['Convert To XArray', 'Describe', 'Custom Filter', 'Predefined Filters', 'show_hide', 'Dataframe Functions'],
       ...['Clean Column', 'Merge & Stack', 'Summarize Data', 'Time Series Analysis', 'Duplicates', 'Missing Analysis'],
@@ -87,8 +66,8 @@ describe('DataViewer tests', () => {
       ...['gage_rnr', 'Instances 1', 'Code Export', 'Export', 'Load Data', 'Refresh Widths', 'About', 'Theme'],
       ...['Reload Data', 'Pin menu', 'Language', 'Shutdown'],
     ]);
-    result = await clickMainMenuButton(result, 'Refresh Widths');
-    result = await clickMainMenuButton(result, 'Shutdown');
+    await clickMainMenuButton('Refresh Widths');
+    await clickMainMenuButton('Shutdown');
     expect(window.location.pathname).not.toBeNull();
   });
 });

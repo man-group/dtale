@@ -1,9 +1,15 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AutoSizer, GridCellProps, MultiGrid } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  MultiGrid as _MultiGrid,
+  AutoSizerProps,
+  GridCellProps,
+  MultiGridProps,
+} from 'react-virtualized';
+import { AnyAction } from 'redux';
 
 import { usePrevious } from '../../customHooks';
-import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import { AppState } from '../../redux/state/AppState';
 import { DataResponseContent } from '../../repository/DataRepository';
@@ -16,6 +22,9 @@ import { MeasureText } from '../MeasureText';
 import GridCell from './GridCell';
 
 require('../DataViewer.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const MultiGrid = _MultiGrid as unknown as React.FC<MultiGridProps>;
 
 /** Component properties for ServerlessDataViewer */
 interface ServerlessDataViewerProps {
@@ -43,8 +52,8 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
     verticalHeaders: state.settings.verticalHeaders ?? false,
   }));
   const dispatch = useDispatch();
-  const updateFilteredRanges = (query: string): AppActions<Promise<void>> =>
-    dispatch(actions.updateFilteredRanges(query));
+  const updateFilteredRanges = (query: string): AnyAction =>
+    dispatch(actions.updateFilteredRanges(query) as any as AnyAction);
 
   const [rowCount, setRowCount] = React.useState(0);
   const [fixedColumnCount, setFixedColumnCount] = React.useState((settings.locked ?? []).length + 1); // add 1 for IDX column
@@ -54,7 +63,7 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
   const [min, setMin] = React.useState<number>();
   const [max, setMax] = React.useState<number>();
 
-  const gridRef = React.useRef<MultiGrid>(null);
+  const gridRef = React.useRef<_MultiGrid>(null);
 
   const getData = (): void => {
     if (response) {

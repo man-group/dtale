@@ -1,18 +1,16 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
 import { ColumnFormat } from '../../../dtale/DataViewerState';
 import * as serverState from '../../../dtale/serverStateManagement';
-import Formatting from '../../../popups/formats/Formatting';
 import DimensionsHelper from '../../DimensionsHelper';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 /** Bundles alot of jest setup for CreateColumn component tests */
 export class Spies {
@@ -20,8 +18,7 @@ export class Spies {
     serverState.BaseReturn,
     [dataId: string, col: string, format: ColumnFormat, all: boolean, nanDisplay: string]
   >;
-  public axiosGetSpy: jest.SpyInstance;
-  public store: Store | undefined = undefined;
+  public store?: Store;
   private dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -30,12 +27,11 @@ export class Spies {
   /** Initializes all spy instances */
   constructor() {
     this.updateFormatsSpy = jest.spyOn(serverState, 'updateFormats');
-    this.axiosGetSpy = jest.spyOn(axios, 'get');
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
-    this.axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.updateFormatsSpy.mockResolvedValue({ success: true });
   }
 
@@ -51,65 +47,78 @@ export class Spies {
   }
 
   /**
-   * Build the initial enzyme wrapper.
+   * Build the initial wrapper.
    *
    * @param colIdx the index of the column to open the menu of.
-   * @return the enzyme wrapper for testing.
    */
-  public async setupWrapper(colIdx: number): Promise<ReactWrapper> {
-    this.store = reduxUtils.createDtaleStore();
+  public async setupWrapper(colIdx: number): Promise<Element> {
+    const store = reduxUtils.createDtaleStore();
+    this.store = store;
     buildInnerHTML({ settings: '' }, this.store);
-    let result = mount(
-      <redux.Provider store={this.store}>
-        <DataViewer />
-      </redux.Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    const result = await act(
+      async () =>
+        await render(
+          <Provider store={store}>
+            <DataViewer />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
     await act(async () => {
-      result.find('.main-grid div.headerCell').at(colIdx).find('.text-nowrap').simulate('click');
+      await fireEvent.click(screen.queryAllByTestId('header-cell')[colIdx].getElementsByClassName('text-nowrap')[0]);
     });
-    result.update();
-    return await clickColMenuButton(result, 'Formats');
+    await clickColMenuButton('Formats');
+    return result;
   }
 
   /**
    * Execute the "Apply" button on Formatting.
-   *
-   * @param result the current enzyme wrapper.
-   * @return the udpated enzyme wrapper.
    */
-  public async executeApply(result: ReactWrapper): Promise<ReactWrapper> {
+  public async executeApply(): Promise<void> {
     await act(async () => {
-      result.find(Formatting).find('div.modal-footer').first().find('button').first().simulate('click');
+      fireEvent.click(document.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
     });
-    return result.update();
   }
 
   /**
    * Execute apply on the current formatting popup and validate the values saved.
    *
-   * @param result current enzyme wrapper
    * @param dataId the identifier of the data instance we want to create a column for
    * @param col the col whoe format to update
    * @param fmt the formatting updates
    * @param applyToAll apply formatting updates to all
    * @param nanDisplay the string to display for nan values
-   * @return the updated enzyme wrapper
    */
   public async validateCfg(
-    result: ReactWrapper,
     dataId: string,
     col: string,
     fmt: ColumnFormat,
     applyToAll: boolean,
     nanDisplay: string,
-  ): Promise<ReactWrapper> {
-    result = await this.executeApply(result);
+  ): Promise<void> {
+    await this.executeApply();
     expect(this.updateFormatsSpy).toHaveBeenLastCalledWith(dataId, col, fmt, applyToAll, nanDisplay);
-    return result;
+  }
+
+  /**
+   * Get Formatting modal body
+   *
+   * @return Formatting body
+   */
+  public body(): Element {
+    return document.getElementsByClassName('modal-body')[0];
+  }
+
+  /**
+   * Get grid by its cell index
+   *
+   * @param cellIdx cell index
+   * @return grid cell
+   */
+  public cell(cellIdx: string): Element {
+    const grid = document.getElementsByClassName('main-grid')[0];
+    return [...grid.getElementsByClassName('cell')].find((c) => c.getAttribute('cell_idx') === cellIdx)!;
   }
 }

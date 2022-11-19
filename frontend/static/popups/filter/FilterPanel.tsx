@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
-import { ActionType, AppActions, HideSidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, HideSidePanelAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, InstanceSettings, QueryEngine } from '../../redux/state/AppState';
@@ -26,9 +27,9 @@ const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
 
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback));
-  const setEngine = (engine: QueryEngine): AppActions<void> => dispatch(dtaleActions.setQueryEngine(engine));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
+  const setEngine = (engine: QueryEngine): SetQueryEngineAction => dispatch(dtaleActions.setQueryEngine(engine));
 
   const [query, setQuery] = React.useState('');
   const [contextVars, setContextVars] = React.useState<Array<{ name: string; value: string }>>([]);
@@ -86,7 +87,7 @@ const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
   };
 
   return (
-    <React.Fragment>
+    <div data-testid="filter-panel">
       {error}
       <div className="row">
         <div className="col-md-12">
@@ -145,7 +146,7 @@ const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
         </div>
       </div>
       {contextVars.length > 0 && <ContextVariables contextVars={contextVars} />}
-    </React.Fragment>
+    </div>
   );
 };
 

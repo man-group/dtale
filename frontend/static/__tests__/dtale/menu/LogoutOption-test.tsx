@@ -1,30 +1,37 @@
-import { shallow, ShallowWrapper } from 'enzyme';
+import { act, render } from '@testing-library/react';
 import * as React from 'react';
-import * as redux from 'react-redux';
+import { Provider } from 'react-redux';
 
 import LogoutOption from '../../../dtale/menu/LogoutOption';
-import { AppState } from '../../../redux/state/AppState';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('LogoutOption', () => {
-  let wrapper: ShallowWrapper;
-  let useSelectorSpy: jest.SpyInstance;
+  let wrapper: Element;
 
-  const buildMock = (props?: Partial<AppState>): void => {
-    useSelectorSpy.mockReturnValue({ username: 'aschonfeld', auth: true, ...props });
-    wrapper = shallow(<LogoutOption open={jest.fn()} />);
+  const buildMock = async (props?: Record<string, string>): Promise<void> => {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '', username: 'aschonfeld', auth: 'True', ...props }, store);
+    wrapper = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <LogoutOption open={jest.fn()} />
+          </Provider>,
+          {
+            container: document.getElementById('content') as HTMLElement,
+          },
+        ).container,
+    );
   };
 
-  beforeEach(() => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    buildMock();
+  it('renders sucessfully', async () => {
+    await buildMock();
+    expect(wrapper.textContent).toBe('Logout, aschonfeld');
   });
 
-  it('renders sucessfully', () => {
-    expect(wrapper.find('span.font-weight-bold').text()).toBe('Logout, aschonfeld');
-  });
-
-  it('shows null when no auth', () => {
-    buildMock({ auth: false });
-    expect(wrapper.html()).toBeNull();
+  it('shows null when no auth', async () => {
+    await buildMock({ auth: 'False' });
+    expect(wrapper.innerHTML).toBe('');
   });
 });

@@ -1,8 +1,9 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
+import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import { AppState, PopupType } from '../../redux/state/AppState';
 import { ColumnDef } from '../DataViewerState';
@@ -29,7 +30,7 @@ const XArrayOption: React.FC<XArrayOptionProps & WithTranslation> = ({ columns, 
     xarrayDim: state.xarrayDim,
   }));
   const dispatch = useDispatch();
-  const openXArrayPopup = (type: PopupType.XARRAY_DIMENSIONS | PopupType.XARRAY_INDEXES): AppActions<void> =>
+  const openXArrayPopup = (type: PopupType.XARRAY_DIMENSIONS | PopupType.XARRAY_INDEXES): OpenChartAction =>
     dispatch(chartActions.openChart({ type, columns, visible: true }));
 
   if (xarray) {

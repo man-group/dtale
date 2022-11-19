@@ -1,6 +1,5 @@
 import moment from 'moment';
 import * as React from 'react';
-import { default as Modal } from 'react-bootstrap/Modal';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { ColumnFormat } from '../../dtale/DataViewerState';
@@ -24,7 +23,7 @@ const DateFormatting: React.FC<BaseFormattingComponentProps & WithTranslation> =
   const exampleStr = m.format('MMMM Do YYYY, h:mm:ss a');
   const exampleOutput = fmt ? m.format(fmt) : exampleStr;
   return (
-    <Modal.Body>
+    <React.Fragment>
       <div className="form-group row">
         <label className="col-md-4 col-form-label text-right">
           <span>{t('moment.js Format')}</span>
@@ -53,7 +52,7 @@ const DateFormatting: React.FC<BaseFormattingComponentProps & WithTranslation> =
           />
         </div>
       </div>
-      <div className="row text-left" style={{ fontSize: '80%' }}>
+      <div className="row text-left" style={{ fontSize: '80%' }} data-testid="date-format-examples">
         <div className="col-md-12">
           <span className="font-weight-bold pr-3">{t('Raw')}:</span>
           <span>{exampleStr}</span>
@@ -63,7 +62,7 @@ const DateFormatting: React.FC<BaseFormattingComponentProps & WithTranslation> =
           <span>{exampleOutput}</span>
         </div>
       </div>
-    </Modal.Body>
+    </React.Fragment>
   );
 };
 

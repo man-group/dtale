@@ -1,61 +1,34 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { screen } from '@testing-library/react';
 
-import {
-  BaseCreateComponentProps,
-  CreateColumnType,
-  StandardizedAlgoType,
-} from '../../../popups/create/CreateColumnState';
-import { default as CreateStandardized, validateStandardizedCfg } from '../../../popups/create/CreateStandardized';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType, StandardizedAlgoType } from '../../../popups/create/CreateColumnState';
+import { validateStandardizedCfg } from '../../../popups/create/CreateStandardized';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateStandardized', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Standardize');
+    await spies.setupWrapper();
+    await spies.clickBuilder('Standardize');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findStandardized = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateStandardized);
-
   it('builds a standardized column', async () => {
-    expect(result.find(CreateStandardized)).toHaveLength(1);
-    await act(async () => {
-      findStandardized()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findStandardized()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'quantile' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findStandardized()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'robust' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    expect(screen.getByText('Standardize')).toHaveClass('active');
+    const algoSelect = screen.getByText('Algorithm').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(algoSelect, 'QuantileTransformer');
+    await selectOption(
+      screen.getByText('Column').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col1',
+    );
+    await selectOption(algoSelect, 'RobustScalar');
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         algo: StandardizedAlgoType.ROBUST,

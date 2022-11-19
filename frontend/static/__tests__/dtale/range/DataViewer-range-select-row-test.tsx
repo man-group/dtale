@@ -1,17 +1,14 @@
+import { act, fireEvent, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../../dtale/DataViewer';
-import GridEventHandler from '../../../dtale/GridEventHandler';
-import { CopyRangeToClipboard } from '../../../popups/CopyRangeToClipboard';
 import * as CopyRangeRepository from '../../../repository/CopyRangeRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, mockChartJS } from '../../test-utils';
 
 const TEXT = 'COPIED_TEXT';
 
@@ -40,74 +37,53 @@ describe('DataViewer tests', () => {
 
   beforeEach(() => {
     execCommandMock.mockReset();
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     const buildCopyColumnsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyColumns');
     buildCopyColumnsSpy.mockResolvedValue({ text: TEXT, success: true });
     buildCopyRowsSpy = jest.spyOn(CopyRangeRepository, 'buildCopyRows');
     buildCopyRowsSpy.mockResolvedValue({ text: TEXT, success: true });
   });
 
-  const build = async (): Promise<ReactWrapper> => {
+  const build = async (): Promise<HTMLElement> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    const result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    return await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <DataViewer />
+          </Provider>,
+          {
+            container: document.getElementById('content') as HTMLElement,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    return result.update();
   };
 
   it('DataViewer: row range selection', async () => {
-    let result = await build();
+    const result = await build();
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: '0|1' } } },
-          shiftKey: true,
-        } as any as React.MouseEvent);
+      fireEvent.click(result.getElementsByClassName('cell')[0], { shiftKey: true });
     });
-    result = result.update();
     expect(store.getState().rowRange).toEqual({
       start: 1,
       end: 1,
     });
+    const cellOnRow2 = [...result.getElementsByClassName('cell')].find((c) =>
+      c.getAttribute('cell_idx')?.endsWith('2'),
+    )!;
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onMouseOver?.({
-          target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
-          shiftKey: true,
-        } as any as React.MouseEvent);
+      fireEvent.mouseOver(cellOnRow2, { shiftKey: true });
     });
-    result = result.update();
     expect(store.getState().rowRange).toEqual({
       start: 1,
       end: 2,
     });
     await act(async () => {
-      result
-        .find(GridEventHandler)
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: '0|2' } } },
-          shiftKey: true,
-        } as any as React.MouseEvent);
+      fireEvent.click(cellOnRow2, { shiftKey: true });
     });
-    result = result.update();
-    const copyRange = result.find(CopyRangeToClipboard).first();
-    expect(copyRange.find('pre').text()).toBe(TEXT);
+    const copyRange = document.getElementById('copy-range-to-clipboard')!;
+    expect(copyRange.getElementsByTagName('pre')[0].textContent).toBe(TEXT);
     expect(buildCopyRowsSpy).toBeCalledTimes(1);
     expect(buildCopyRowsSpy).toBeCalledWith('1', ['col1', 'col2', 'col3', 'col4'], { start: '1', end: '2' });
   });

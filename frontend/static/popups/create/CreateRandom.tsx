@@ -1,7 +1,8 @@
-import { DateInput } from '@blueprintjs/datetime';
+import { DateInput2 } from '@blueprintjs/datetime2';
+import { TFunction } from 'i18next';
 import moment from 'moment';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { capitalize } from '../../stringUtils';
@@ -17,8 +18,10 @@ import {
 import { LabeledCheckbox } from './LabeledCheckbox';
 import { LabeledInput } from './LabeledInput';
 
-require('@blueprintjs/core/lib/css/blueprint.css');
-require('@blueprintjs/datetime/lib/css/blueprint-datetime.css');
+import '@blueprintjs/icons/lib/css/blueprint-icons.css';
+import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
+import '@blueprintjs/datetime2/lib/css/blueprint-datetime2.css';
 
 const DATE_FMT = 'YYYYMMDD';
 const MIN_DATE = '19000101';
@@ -30,19 +33,19 @@ export const validateRandomCfg = (t: TFunction, cfg: RandomConfigs): string | un
     const low = cfg.low ? parseInt(cfg.low, 10) : undefined;
     const high = cfg.high ? parseInt(cfg.high, 10) : undefined;
     if (low && !isNaN(low) && high && !isNaN(high) && low > high) {
-      return t('Invalid range specification, low must be less than high!');
+      return t('Invalid range specification, low must be less than high!') ?? undefined;
     }
   } else if (type === RandomType.DATE) {
     const start = cfg.start ? moment(cfg.start) : undefined;
     const end = cfg.end ? moment(cfg.end) : undefined;
     if (start && end && start.isAfter(end)) {
-      return t('Start must be before End!');
+      return t('Start must be before End!') ?? undefined;
     }
   }
   return undefined;
 };
 
-const dateFormatter = (date: Date): string => moment(date).format(DATE_FMT);
+const dateFormatter = (date: Date | null): string => moment(date).format(DATE_FMT);
 
 const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
   namePopulated,
@@ -100,7 +103,7 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   const buildDateInput = (setter: (value?: string) => void, defaultValue: string, value?: string): JSX.Element => (
     <div className="col-md-3 text-left">
-      <DateInput
+      <DateInput2
         formatDate={dateFormatter}
         parseDate={(str) => moment(str).toDate()}
         placeholder={DATE_FMT}
@@ -108,8 +111,8 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         minDate={moment(MIN_DATE).toDate()}
         maxDate={moment(MAX_DATE).toDate()}
         showActionsBar={false}
-        value={value ? moment(value).toDate() : null}
-        onChange={(date) => setter(dateFormatter(date))}
+        value={value ? moment(value, DATE_FMT).toISOString() : null}
+        onChange={(date) => setter(date ?? undefined)}
       />
       <small>{`(Default: ${defaultValue})`}</small>
     </div>
@@ -117,7 +120,7 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
 
   const renderDateInputs = (): JSX.Element => (
     <React.Fragment>
-      <div className="form-group row mb-0">
+      <div className="form-group row mb-0" data-testid="date-inputs">
         <label className="col-md-3 col-form-label text-right">{t('Range')}</label>
         {buildDateInput(setStart, MIN_DATE, start)}
         <div className="col-auto p-0">
@@ -147,13 +150,13 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         <React.Fragment>
           <LabeledInput
             type="number"
-            label={t('Length')}
+            label={t('Length') ?? ''}
             value={length}
             setter={(value) => setLength(Number(value))}
             subLabel={`${t('Default')}: 10`}
           />
           <LabeledInput
-            label={t('Chars')}
+            label={t('Chars') ?? ''}
             value={chars}
             setter={setChars}
             subLabel={`${t('Default')}: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'`}
@@ -162,10 +165,16 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       )}
       {[RandomType.INT, RandomType.FLOAT].includes(type) && (
         <React.Fragment>
-          <LabeledInput type="number" label={t('Low')} value={low} setter={setLow} subLabel={`${t('Default')}: 0`} />
           <LabeledInput
             type="number"
-            label={t('Low')}
+            label={t('Low') ?? ''}
+            value={low}
+            setter={setLow}
+            subLabel={`${t('Default')}: 0`}
+          />
+          <LabeledInput
+            type="number"
+            label={t('Low') ?? ''}
             value={high}
             setter={setHigh}
             subLabel={`${t('Default')}: ${type === RandomType.FLOAT ? '1' : '100'}`}
@@ -174,7 +183,7 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       )}
       {RandomType.CHOICE === type && (
         <LabeledInput
-          label={t('Choices')}
+          label={t('Choices') ?? ''}
           value={choices}
           setter={setChoices}
           subLabel={`${t('Default')}: 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'`}

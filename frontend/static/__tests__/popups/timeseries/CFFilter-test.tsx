@@ -1,7 +1,6 @@
+import { act, fireEvent, render } from '@testing-library/react';
 import { ChartDataset } from 'chart.js';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { default as CFFilter, chartConfigBuilder } from '../../../popups/timeseries/CFFilter';
 import {
@@ -10,12 +9,11 @@ import {
   CFConfig,
   TimeseriesAnalysisType,
 } from '../../../popups/timeseries/TimeseriesAnalysisState';
-import { tickUpdate } from '../../test-utils';
 
 import { updateValue } from './BKFilter-test';
 
 describe('CFFilter', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let props: BaseComponentProps<CFConfig>;
   const updateState = jest.fn();
 
@@ -24,22 +22,20 @@ describe('CFFilter', () => {
       cfg: { ...BASE_CFGS[TimeseriesAnalysisType.CFFILTER] },
       updateState,
     };
-    wrapper = mount(<CFFilter {...props} />);
-    await act(async () => tickUpdate(wrapper));
+    wrapper = await act(async () => await render(<CFFilter {...props} />).container);
   });
 
   it('renders successfully', () => {
-    expect(wrapper.find('div.col-md-4')).toHaveLength(3);
+    expect(wrapper.querySelectorAll('div.col-md-4')).toHaveLength(3);
     expect(props.updateState).toHaveBeenCalledTimes(1);
   });
 
   it('updates state', async () => {
-    wrapper = await updateValue(wrapper, 5);
-    wrapper = await updateValue(wrapper, 5, 1);
+    await updateValue(wrapper, 5);
+    await updateValue(wrapper, 5, 1);
     await act(async () => {
-      wrapper.find('i').simulate('click');
+      await fireEvent.click(wrapper.getElementsByTagName('i')[0]);
     });
-    wrapper = wrapper.update();
     expect(props.updateState).toHaveBeenLastCalledWith({ low: 5, high: 5, drift: false });
   });
 

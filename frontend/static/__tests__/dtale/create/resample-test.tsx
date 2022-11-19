@@ -1,16 +1,14 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType, OutputType, SaveAs } from '../../../popups/create/CreateColumnState';
-import { default as Resample, ResampleProps } from '../../../popups/reshape/Resample';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateResample', () => {
   const { location, open } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -22,7 +20,7 @@ describe('CreateResample', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Resample');
+    await spies.clickBuilder('Resample');
   });
 
   afterEach(() => spies.afterEach());
@@ -33,44 +31,30 @@ describe('CreateResample', () => {
     window.open = open;
   });
 
-  const resampleComp = (): ReactWrapper<ResampleProps, Record<string, any>> => result.find(Resample).first();
-
   it('builds resample data', async () => {
-    expect(result.find(Resample)).toHaveLength(1);
+    expect(screen.getByText('Resample')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
     await act(async () => {
-      resampleComp()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Offset').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '17min' },
+      });
     });
-    result = result.update();
+    await selectOption(result.getElementsByClassName('Select')[1] as HTMLElement, 'col1');
+    await selectOption(result.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
     await act(async () => {
-      resampleComp()
-        .find('div.form-group.row')
-        .at(2)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '17min' } });
+      await fireEvent.change(screen.getByText('Offset').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '17min' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      resampleComp()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
+    await selectOption(result.getElementsByClassName('Select')[2] as HTMLElement, 'Mean');
     spies.saveSpy.mockResolvedValue({ success: true, data_id: '9999' });
     await spies.validateCfg(
-      result,
       {
         cfg: {
           agg: 'mean',
-          columns: undefined,
+          columns: ['col1', 'col2'],
           freq: '17min',
-          index: 'col1',
+          index: 'col4',
         },
         saveAs: SaveAs.NONE,
         type: CreateColumnType.RESAMPLE,

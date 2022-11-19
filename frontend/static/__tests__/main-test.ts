@@ -93,12 +93,11 @@ describe('main tests', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
-    jest.mock('@blueprintjs/datetime', () => {
+    jest.mock('@blueprintjs/datetime2', () => {
       const { createMockComponent } = require('./mocks/createMockComponent');
-      return { DateInput: createMockComponent('DateInput') };
+      return { DateInput2: createMockComponent('DateInput2') };
     });
   });
 
@@ -129,9 +128,9 @@ describe('main tests', () => {
     (window as any).location = { pathname: `/dtale/${mainName}/1`, search };
     buildInnerHTML();
 
-    const ReactDOM = require('react-dom');
-    const renderSpy = jest.spyOn(ReactDOM, 'render');
-    renderSpy.mockImplementation(() => undefined);
+    const ReactDOMClient = require('react-dom/client');
+    const renderSpy = jest.spyOn(ReactDOMClient, 'createRoot');
+    renderSpy.mockImplementation(() => ({ render: () => undefined }));
     require(`../${fname}`);
     expect(renderSpy).toHaveBeenCalledTimes(1);
   };

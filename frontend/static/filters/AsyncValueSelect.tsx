@@ -71,7 +71,7 @@ export default class AsyncValueSelect<T> extends React.Component<AsyncValueSelec
           <AsyncSelect
             isMulti={false}
             {...props}
-            value={selected ? { label: String(selected), value: selected } : null}
+            value={selected ? { label: String(selected), value: selected as T } : null}
             onChange={(option) => this.updateState(option?.value)}
           />
         )}

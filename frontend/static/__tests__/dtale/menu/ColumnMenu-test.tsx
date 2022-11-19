@@ -1,11 +1,9 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { GlobalHotKeys } from 'react-hotkeys';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
 import ColumnMenu from '../../../dtale/column/ColumnMenu';
-import { ColumnMenuOption } from '../../../dtale/column/ColumnMenuOption';
 import * as columnMenuUtils from '../../../dtale/column/columnMenuUtils';
 import * as serverState from '../../../dtale/serverStateManagement';
 import { ActionType } from '../../../redux/actions/AppActions';
@@ -14,15 +12,23 @@ import { AppState, SidePanelType } from '../../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../../repository/ColumnFilterRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('ColumnMenu', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: RenderResult;
+  let store: Store;
   let positionMenuSpy: jest.SpyInstance;
   let ignoreMenuClicksSpy: jest.SpyInstance;
   let toggleVisibilitySpy: jest.SpyInstance;
   let hideColumnMenuSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+  const mockDispatch = jest.fn();
   const dimensions = new DimensionsHelper({
     offsetWidth: 1000,
     offsetHeight: 1000,
@@ -40,6 +46,7 @@ describe('ColumnMenu', () => {
   const propagateState = jest.fn();
 
   beforeEach(async () => {
+    useDispatchMock.mockImplementation(() => mockDispatch);
     dimensions.beforeAll();
     positionMenuSpy = jest.spyOn(columnMenuUtils, 'positionMenu');
     positionMenuSpy.mockImplementation(() => undefined);
@@ -48,19 +55,19 @@ describe('ColumnMenu', () => {
     toggleVisibilitySpy = jest.spyOn(serverState, 'toggleVisibility');
     toggleVisibilitySpy.mockImplementation(() => undefined);
     hideColumnMenuSpy = jest.spyOn(actions, 'hideColumnMenu');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
     const loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
     loadFilterDataSpy.mockResolvedValue(undefined);
-    const store = reduxUtils.createDtaleStore();
-    Object.keys(props).forEach((key) => ((store.getState() as any)[key] = (props as any)[key]));
-    wrapper = mount(
-      <redux.Provider store={store}>
-        <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
-      </redux.Provider>,
+    store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: ActionType.TOGGLE_COLUMN_MENU, colName: 'col1' });
+    wrapper = await act(
+      async () =>
+        await render(
+          <Provider store={store}>
+            <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
+          </Provider>,
+        ),
     );
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -71,23 +78,19 @@ describe('ColumnMenu', () => {
   });
 
   it('has global hotkey to close menu', async () => {
-    const closeMenu = wrapper.find(GlobalHotKeys).props().handlers?.CLOSE_MENU;
     await act(async () => {
-      closeMenu?.();
+      await fireEvent.keyDown(wrapper.container, { keyCode: 27 });
     });
-    wrapper = wrapper.update();
+    await act(async () => {
+      await fireEvent.keyUp(wrapper.container, { keyCode: 27 });
+    });
     expect(hideColumnMenuSpy).toHaveBeenLastCalledWith(props.selectedCol);
   });
 
   it('opens side panel on describe', async () => {
     await act(async () => {
-      wrapper
-        .find(ColumnMenuOption)
-        .findWhere((option) => option.props().iconClass === 'ico-visibility-off')
-        .props()
-        .open();
+      await fireEvent.click(wrapper.container.getElementsByClassName('ico-visibility-off')[0]);
     });
-    wrapper = wrapper.update();
     expect(toggleVisibilitySpy).toHaveBeenCalledTimes(1);
     const toggleParams = toggleVisibilitySpy.mock.calls[0];
     expect(toggleParams[0]).toBe(props.dataId);
@@ -102,14 +105,9 @@ describe('ColumnMenu', () => {
 
   it('correctly hides column', async () => {
     await act(async () => {
-      wrapper
-        .find(ColumnMenuOption)
-        .findWhere((option) => option.props().iconClass === 'ico-view-column')
-        .props()
-        .open();
+      await fireEvent.click(wrapper.container.getElementsByClassName('ico-view-column')[0]);
     });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenCalledWith({
+    expect(mockDispatch).toHaveBeenCalledWith({
       type: ActionType.SHOW_SIDE_PANEL,
       view: SidePanelType.DESCRIBE,
       column: props.selectedCol,

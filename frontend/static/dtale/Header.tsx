@@ -1,15 +1,18 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { openMenu } from '../menuUtils';
 import {
   ActionType,
-  AppActions,
   DragResizeAction,
+  OpenChartAction,
   SetRangeStateAction,
   StopResizeAction,
+  ToggleColumnAction,
 } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as actions from '../redux/actions/dtale';
@@ -90,12 +93,12 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
 }) => {
   const { dataId, settings, columnRange, ctrlCols } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
-  const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): AppActions<void> =>
+  const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction =>
     dispatch(actions.toggleColumnMenu(colName, headerRef));
-  const hideColumnMenu = (colName: string): AppActions<void> => dispatch(actions.hideColumnMenu(colName));
+  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
   const updateDragResize = (x: number): DragResizeAction => dispatch({ type: ActionType.DRAG_RESIZE, x });
   const stopDragResize = (): StopResizeAction => dispatch({ type: ActionType.STOP_RESIZE });
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const updateRangeState = (state: RangeState): SetRangeStateAction =>
     dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
 
@@ -155,7 +158,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
       if (e.shiftKey) {
         if (columnRange) {
           const title = t('Copy Columns to Clipboard?');
-          const callback = (copyText: CopyText): AppActions<void> =>
+          const callback = (copyText: CopyText): OpenChartAction =>
             openChart({
               ...copyText,
               type: PopupType.COPY_COLUMN_RANGE,
@@ -216,6 +219,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
       style={{ ...headerStyle, ...(drag ? { width: colWidth } : {}) }}
       onMouseOver={handleMouseOver}
       ref={headerRef}
+      data-testid="header-cell"
     >
       <div
         className={classes.join(' ')}

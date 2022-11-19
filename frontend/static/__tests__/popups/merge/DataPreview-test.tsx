@@ -1,14 +1,12 @@
+import { act, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
 
 import { DataPreview } from '../../../popups/merge/DataPreview';
 import DimensionsHelper from '../../DimensionsHelper';
-import { clickColMenuSubButton, openColMenu } from '../../iframe/iframe-utils';
+import { clickColMenuSubButton, openColMenu, validateHeaders } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('DataPreview', () => {
   const dimensions = new DimensionsHelper({
@@ -21,8 +19,7 @@ describe('DataPreview', () => {
   });
 
   beforeEach(() => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.restoreAllMocks);
@@ -31,13 +28,14 @@ describe('DataPreview', () => {
 
   it('loads properly', async () => {
     buildInnerHTML({ settings: '' });
-    let result = mount(<DataPreview dataId="1" />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    result = await openColMenu(result, 3);
-    result = await clickColMenuSubButton(result, 'Asc');
-    expect(result.find(Provider).props().store.getState().settings.sortInfo).toEqual([['col4', 'ASC']]);
+    await act(
+      async () =>
+        await render(<DataPreview dataId="1" />, {
+          container: document.getElementById('content') ?? undefined,
+        }).container,
+    );
+    await openColMenu(3);
+    await clickColMenuSubButton('Asc');
+    validateHeaders(['col1', 'col2', 'col3', '▲col4']);
   });
 });

@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -10,7 +11,7 @@ import { LabeledInput } from './LabeledInput';
 
 export const validateStringCfg = (t: TFunction, cfg: StringConfig): string | undefined => {
   if ((cfg.cols?.length ?? 0) < 2) {
-    return t('Please select at least 2 columns to concatenate!');
+    return t('Please select at least 2 columns to concatenate!') ?? undefined;
   }
   return undefined;
 };

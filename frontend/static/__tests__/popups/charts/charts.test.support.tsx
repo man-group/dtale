@@ -1,17 +1,24 @@
+import { act, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
+import { Provider } from 'react-redux';
 
 import * as chartUtils from '../../../chartUtils';
 import * as menuUtils from '../../../menuUtils';
 import Charts from '../../../popups/charts/Charts';
-import ChartsBody from '../../../popups/charts/ChartsBody';
+import { ActionType } from '../../../redux/actions/AppActions';
+import * as ChartsRepository from '../../../repository/ChartsRepository';
 import DimensionsHelper from '../../DimensionsHelper';
+import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, mockChartJS, mockD3Cloud, parseUrlParams, tickUpdate } from '../../test-utils';
+import {
+  buildInnerHTML,
+  CreateChartSpy,
+  mockChartJS,
+  mockD3Cloud,
+  parseUrlParams,
+  selectOption,
+} from '../../test-utils';
 
 /** Bundles alot of jest setup for Charts component tests */
 export class Spies {
@@ -25,8 +32,8 @@ export class Spies {
       clickFilters?: (e: MouseEvent) => boolean,
     ]
   >;
-  public axiosGetSpy: jest.SpyInstance;
-  public useSelectorSpy: jest.SpyInstance;
+  public chartsRepositorySpy: jest.SpyInstance;
+  private result?: Element;
 
   private dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -37,14 +44,37 @@ export class Spies {
   constructor() {
     this.createChartSpy = jest.spyOn(chartUtils, 'createChart');
     this.openMenuSpy = jest.spyOn(menuUtils, 'openMenu');
-    this.axiosGetSpy = jest.spyOn(axios, 'get');
-    this.useSelectorSpy = jest.spyOn(redux, 'useSelector');
+    this.chartsRepositorySpy = jest.spyOn(ChartsRepository, 'load');
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
-    this.axiosGetSpy.mockImplementation((url: string) => {
-      if (url.startsWith('/dtale/chart-data/')) {
+    (axios.get as any).mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/dtypes')) {
+        return Promise.resolve({
+          data: {
+            dtypes: [
+              ...reduxUtils.DTYPES.dtypes,
+              mockColumnDef({
+                name: 'error',
+                index: 4,
+                dtype: 'mixed-integer',
+              }),
+              mockColumnDef({
+                name: 'error2',
+                index: 5,
+                dtype: 'mixed-integer',
+              }),
+              mockColumnDef({
+                name: 'error test',
+                index: 6,
+                dtype: 'mixed-integer',
+              }),
+            ],
+            success: true,
+          },
+        });
+      } else if (url.startsWith('/dtale/chart-data/')) {
         const params = parseUrlParams(url);
         if (params.x === 'error' && JSON.parse(decodeURIComponent(params.y)).includes('error2')) {
           return Promise.resolve({ data: { data: {} } });
@@ -52,7 +82,6 @@ export class Spies {
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-    this.useSelectorSpy.mockReturnValue({ dataId: '1', chartData: { visible: true, x: 'x', y: ['y1', 'y2'] } });
   }
 
   /** Setup before all jest tests  */
@@ -71,40 +100,51 @@ export class Spies {
   /**
    * Setup Charts React
    *
-   * @return Charts component ReactWrapper instance.
+   * @return Charts component element.
    */
-  public async setupCharts(): Promise<ReactWrapper> {
-    buildInnerHTML({ settings: '' });
-    const result = mount(<Charts />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    await act(async () => await tickUpdate(result));
-    return result.update();
+  public async setupCharts(): Promise<Element> {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true, x: 'col4', y: ['col1'] } });
+    this.result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <Charts />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
+    return this.result;
   }
 
   /**
-   * Update selected chart type on Charts ReactWraper
+   * Update selected chart type on Charts element
    *
-   * @param result Charts component ReactWrapper
    * @param chartType the chart type to update to.
-   * @return Charts component ReactWrapper instance with udpated chart type selection.
    */
-  public async updateChartType(result: ReactWrapper, chartType: string): Promise<ReactWrapper> {
-    await act(async () => {
-      result
-        .find(ChartsBody)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: chartType }, {} as ActionMeta<unknown>);
-    });
-    return result.update();
+  public async updateChartType(chartType: string): Promise<void> {
+    await selectOption(
+      screen.getByText('Chart').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      chartType,
+    );
   }
 
   /** Call the most recent closeMenu function passed to menuUtils.openMenu */
   public async callLastCloseMenu(): Promise<void> {
     await act(async () => {
-      this.openMenuSpy.mock.calls[this.openMenuSpy.mock.calls.length - 1][1]();
+      await this.openMenuSpy.mock.calls[this.openMenuSpy.mock.calls.length - 1][1]();
     });
+  }
+
+  /**
+   * Get the last URL passed to ChartsRepository.load
+   *
+   * @return last chart url
+   */
+  public geLastChartUrl(): string {
+    return this.chartsRepositorySpy.mock.calls[this.chartsRepositorySpy.mock.calls.length - 1][0];
   }
 }

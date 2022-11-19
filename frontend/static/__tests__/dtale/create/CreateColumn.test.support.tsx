@@ -1,14 +1,20 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 
 import CreateColumn from '../../../popups/create/CreateColumn';
 import { CreateColumnSaveParams, CreateColumnType, SaveAs } from '../../../popups/create/CreateColumnState';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { PopupType } from '../../../redux/state/AppState';
 import * as CreateColumnRepository from '../../../repository/CreateColumnRepository';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
 
 /** Bundles alot of jest setup for CreateColumn component tests */
 export class Spies {
@@ -16,29 +22,22 @@ export class Spies {
     Promise<CreateColumnRepository.SaveResponse | undefined>,
     [dataId: string, params: CreateColumnSaveParams, route?: string]
   >;
-  public axiosGetSpy: jest.SpyInstance;
-  public useSelectorSpy: jest.SpyInstance;
-  public useDispatchSpy: jest.SpyInstance;
   public propagateStateSpy: jest.Mock;
+  public mockDispatch = jest.fn();
+  private useDispatchMock = useDispatch as jest.Mock;
+  private result?: Element;
 
   /** Initializes all spy instances */
   constructor() {
     this.saveSpy = jest.spyOn(CreateColumnRepository, 'save');
-    this.axiosGetSpy = jest.spyOn(axios, 'get');
-    this.useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    this.useDispatchSpy = jest.spyOn(redux, 'useDispatch');
     this.propagateStateSpy = jest.fn();
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
-    this.axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    this.useDispatchMock.mockImplementation(() => this.mockDispatch);
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.saveSpy.mockResolvedValue({ success: true });
-    this.useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      chartData: { visible: true },
-    });
-    this.useDispatchSpy.mockReturnValue(jest.fn());
   }
 
   /** Cleanup after each jest tests */
@@ -52,81 +51,78 @@ export class Spies {
   }
 
   /**
-   * Build the initial enzyme wrapper.
+   * Build the initial wrapper.
    *
-   * @return the enzyme wrapper for testing.
+   * @return the wrapper for testing.
    */
-  public async setupWrapper(): Promise<ReactWrapper> {
-    buildInnerHTML({ settings: '' });
-    const result = mount(<CreateColumn propagateState={this.propagateStateSpy} />, {
-      attachTo: document.getElementById('content') ?? undefined,
+  public async setupWrapper(): Promise<Element> {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({
+      type: ActionType.OPEN_CHART,
+      chartData: { type: PopupType.BUILD, propagateState: this.propagateStateSpy, selectedCol: 'col1' },
     });
-    await act(async () => await tickUpdate(result));
-    return result.update();
+    return await act(async () => {
+      this.result = render(
+        <Provider store={store}>
+          <CreateColumn propagateState={this.propagateStateSpy} />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      ).container;
+      return this.result;
+    });
   }
 
   /**
    * Execute the "Save" button on CreateColumn.
-   *
-   * @param result the current enzyme wrapper.
-   * @return the udpated enzyme wrapper.
    */
-  public async executeSave(result: ReactWrapper): Promise<ReactWrapper> {
+  public async executeSave(): Promise<void> {
     await act(async () => {
-      result.find('div.modal-footer').first().find('button').first().simulate('click');
+      const footer = this.result!.getElementsByClassName('modal-footer')[0];
+      await fireEvent.click(footer.getElementsByTagName('button')[0]);
     });
-    return result.update();
   }
 
   /**
    * Find button with specific text within CreateColumn and simulate a click.
    *
-   * @param result the current enzyme wrapper
    * @param name the name of the button to click
-   * @return the updated enzyme wrapper
    */
-  public async clickBuilder(result: ReactWrapper, name: string): Promise<ReactWrapper> {
-    const buttonRow = result
-      .find(CreateColumn)
-      .find('div.form-group')
-      .findWhere((row: ReactWrapper) => row.find('button').findWhere((b) => b.text() === name) !== undefined);
+  public async clickBuilder(name: string): Promise<void> {
     await act(async () => {
-      buttonRow
-        .find('button')
-        .findWhere((b) => b.text() === name)
-        .first()
-        .simulate('click');
+      fireEvent.click(screen.getByText(name));
     });
-    return result.update();
   }
 
   /**
    * Execute a save on the current column creation configuration and validate the configuration used.
    *
-   * @param result current enzyme wrapper
    * @param overrides column creation parameter overrides
    * @param dataId the identifier of the data instance we want to create a column for
    * @param route the API route to use for saving
-   * @return the updated enzyme wrapper
    */
   public async validateCfg(
-    result: ReactWrapper,
     overrides: Partial<CreateColumnSaveParams>,
     dataId = '1',
     route = 'build-column',
-  ): Promise<ReactWrapper> {
-    result = await this.executeSave(result);
+  ): Promise<void> {
+    await this.executeSave();
+    let name: string | undefined = 'col';
+    if (overrides.hasOwnProperty('name') && overrides.name === undefined) {
+      name = undefined;
+    } else if (overrides.name) {
+      name = overrides.name;
+    }
     expect(this.saveSpy).toHaveBeenLastCalledWith(
       dataId,
       {
         cfg: {},
-        name: 'col',
         saveAs: SaveAs.NEW,
         type: CreateColumnType.NUMERIC,
         ...overrides,
+        ...(name ? {} : { name }),
       },
       route,
     );
-    return result;
   }
 }

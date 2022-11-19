@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import ButtonToggle from '../ButtonToggle';
 import { fullPath } from '../dtale/menu/dataViewerMenuUtils';
-import { AppActions } from '../redux/actions/AppActions';
+import { CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { buildURL } from '../redux/actions/url-utils';
 import { AppState, ExportPopupData } from '../redux/state/AppState';
@@ -30,7 +30,7 @@ const Export: React.FC<WithTranslation> = ({ t }) => {
     settings: state.settings,
   }));
   const dispatch = useDispatch();
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
 
   const exportFile = (exportType: ExportType): void => {
     window.open(`${fullPath('/dtale/data-export', dataId)}?type=${exportType}&_id=${new Date().getTime()}`, '_blank');
@@ -126,7 +126,7 @@ const Export: React.FC<WithTranslation> = ({ t }) => {
           </div>
           <div className="row">
             <div className="col-md-12 text-right">
-              <button className="btn btn-primary" onClick={exportHTML}>
+              <button className="btn btn-primary" onClick={exportHTML} data-testid="export-html">
                 <i className="far fa-file pr-3" />
                 <span>{t('Export HTML')}</span>
               </button>
