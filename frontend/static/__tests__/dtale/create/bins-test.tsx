@@ -1,19 +1,15 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import * as customHooks from '../../../customHooks';
-import { ColumnAnalysisChart } from '../../../popups/analysis/ColumnAnalysisChart';
-import { BinsTester } from '../../../popups/create/BinsTester';
-import { default as CreateBins, validateBinsCfg } from '../../../popups/create/CreateBins';
-import { BaseCreateComponentProps, BinsOperation, CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { mockChartJS, mockT as t } from '../../test-utils';
+import { validateBinsCfg } from '../../../popups/create/CreateBins';
+import { BinsOperation, CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { mockChartJS, selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateBins', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeAll(() => mockChartJS());
 
@@ -22,50 +18,35 @@ describe('CreateBins', () => {
     const useDebounceSpy = jest.spyOn(customHooks, 'useDebounce');
     useDebounceSpy.mockImplementation((value) => value);
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Bins');
+    await spies.clickBuilder('Bins');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const binInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateBins).first();
+  const binInputs = (): HTMLElement => screen.getByTestId('bins-inputs');
 
   it('builds bins cut column', async () => {
-    expect(result.find(CreateBins)).toHaveLength(1);
+    expect(binInputs).toBeDefined();
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col2');
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Cut (Evenly Spaced)'));
+    });
+    await act(async () => {
+      await fireEvent.change(binInputs().querySelectorAll('div.form-group')[2].getElementsByTagName('input')[0], {
+        target: { value: '4' },
+      });
+    });
+    await act(async () => {
+      await fireEvent.change(binInputs().querySelectorAll('div.form-group')[3].getElementsByTagName('input')[0], {
+        target: { value: 'foo,bar,bin,baz' },
+      });
+    });
 
-    await act(async () => {
-      binInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      binInputs().find('div.form-group').at(1).find('button').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      binInputs()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
-    await act(async () => {
-      binInputs()
-        .find('div.form-group')
-        .at(3)
-        .find('input')
-        .simulate('change', { target: { value: 'foo,bar,bin,baz' } });
-    });
-    result = result.update();
+    expect(screen.getByTestId('column-analysis-chart')).toBeDefined();
 
-    expect(result.find(BinsTester).find(ColumnAnalysisChart)).toHaveLength(1);
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col2',
         bins: '4',
@@ -88,36 +69,21 @@ describe('CreateBins', () => {
 
   it('builds bins qcut column', async () => {
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'qcut_col' } });
+      await fireEvent.change(result.querySelector('div.form-group')!.getElementsByTagName('input')[0], {
+        target: { value: 'qcut_col' },
+      });
     });
-    result = result.update();
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col2');
     await act(async () => {
-      binInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Qcut (Evenly Sized)'));
     });
-    result = result.update();
     await act(async () => {
-      binInputs().find('div.form-group').at(1).find('button').last().simulate('click');
+      await fireEvent.change(binInputs().querySelectorAll('div.form-group')[2].getElementsByTagName('input')[0], {
+        target: { value: '4' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      binInputs()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
 
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col2',
         bins: '4',

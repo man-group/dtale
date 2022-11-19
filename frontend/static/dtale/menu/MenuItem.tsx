@@ -11,7 +11,7 @@ interface MenuItemProps {
   onClick?: () => void;
 }
 
-export const MenuItem: React.FC<MenuItemProps> = ({
+export const MenuItem: React.FC<React.PropsWithChildren<MenuItemProps>> = ({
   className = 'hoverable',
   style,
   onClick,
@@ -37,7 +37,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     props.onMouseLeave = hideTooltip;
   }
   return (
-    <li ref={ref} {...props}>
+    <li ref={ref} {...props} data-testid="menu-item">
       {children}
     </li>
   );

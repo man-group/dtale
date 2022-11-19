@@ -1,49 +1,21 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import * as React from 'react';
 
 import { KurtMsg, SkewMsg } from '../../../dtale/column/ColumnMenuHeader';
 
 describe('ColumnMenuHeader tests', () => {
-  it('correctly renders skew message', () => {
-    expect(
-      mount(<SkewMsg skew={0} />)
-        .find('span')
-        .text(),
-    ).toBe('(fairly symmetrical)');
-    expect(
-      mount(<SkewMsg skew={-0.75} />)
-        .find('span')
-        .text(),
-    ).toBe('(moderately skewed)');
-    expect(
-      mount(<SkewMsg skew={0.7} />)
-        .find('span')
-        .text(),
-    ).toBe('(moderately skewed)');
-    expect(
-      mount(<SkewMsg skew={-2} />)
-        .find('span')
-        .text(),
-    ).toBe('(highly skewed)');
-    expect(mount(<SkewMsg skew="nan" />).html()).toBeNull();
+  it('renders fairly symmetrical', () => {
+    expect(render(<SkewMsg skew={0} />).container.textContent).toBe('(fairly symmetrical)');
+    expect(render(<SkewMsg skew={-0.75} />).container.textContent).toBe('(moderately skewed)');
+    expect(render(<SkewMsg skew={0.7} />).container.textContent).toBe('(moderately skewed)');
+    expect(render(<SkewMsg skew={-2} />).container.textContent).toBe('(highly skewed)');
+    expect(render(<SkewMsg skew="nan" />).container.innerHTML).toBe('');
   });
 
   it('correctly renders kurtosis message', () => {
-    expect(
-      mount(<KurtMsg kurt={4} />)
-        .find('span')
-        .text(),
-    ).toBe('(leptokurtic)');
-    expect(
-      mount(<KurtMsg kurt={3} />)
-        .find('span')
-        .text(),
-    ).toBe('(mesokurtic)');
-    expect(
-      mount(<KurtMsg kurt={2} />)
-        .find('span')
-        .text(),
-    ).toBe('(platykurtic)');
-    expect(mount(<KurtMsg kurt="nan" />).html()).toBeNull();
+    expect(render(<KurtMsg kurt={4} />).container.textContent).toBe('(leptokurtic)');
+    expect(render(<KurtMsg kurt={3} />).container.textContent).toBe('(mesokurtic)');
+    expect(render(<KurtMsg kurt={2} />).container.textContent).toBe('(platykurtic)');
+    expect(render(<KurtMsg kurt="nan" />).container.innerHTML).toBe('');
   });
 });

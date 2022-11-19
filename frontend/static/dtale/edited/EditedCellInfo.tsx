@@ -2,7 +2,12 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, AppActions, ClearEditAction, EditedTextAreaHeightAction } from '../../redux/actions/AppActions';
+import {
+  ActionType,
+  ClearEditAction,
+  EditedTextAreaHeightAction,
+  OpenChartAction,
+} from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import { AppState, Popups } from '../../redux/state/AppState';
 import { getCell } from '../gridUtils';
@@ -25,7 +30,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
     maxColumnWidth: state.maxColumnWidth,
   }));
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const clearEdit = (): ClearEditAction => dispatch({ type: ActionType.CLEAR_EDIT });
   const updateHeight = (height: number): EditedTextAreaHeightAction =>
     dispatch({ type: ActionType.EDITED_CELL_TEXTAREA_HEIGHT, height });

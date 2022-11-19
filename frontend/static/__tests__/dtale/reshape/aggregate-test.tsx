@@ -1,22 +1,17 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { default as Aggregate, validateAggregateCfg } from '../../../popups/reshape/Aggregate';
-import {
-  AggregationOperationType,
-  BaseReshapeComponentProps,
-  ReshapeAggregateConfig,
-  ReshapeType,
-} from '../../../popups/reshape/ReshapeState';
+import { validateAggregateCfg } from '../../../popups/reshape/Aggregate';
+import { AggregationOperationType, ReshapeAggregateConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Reshape.test.support';
 
 describe('Aggregate', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -35,7 +30,7 @@ describe('Aggregate', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'GroupBy');
+    await spies.clickBuilder('GroupBy');
   });
 
   afterEach(() => spies.afterEach());
@@ -47,52 +42,18 @@ describe('Aggregate', () => {
     spies.afterAll();
   });
 
-  const findAgg = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Aggregate);
-
-  const aggInputs = (): ReactWrapper => findAgg().find(Select);
-
   it("reshapes data using aggregate 'By Column'", async () => {
-    expect(findAgg()).toHaveLength(1);
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'Count');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
     await act(async () => {
-      aggInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
     });
-    result = result.update();
     await act(async () => {
-      aggInputs()
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: 'count' } });
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(2).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs()
-        .at(1)
-        .find('input')
-        .simulate('change', { target: [{ value: 'col2' }] });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(1).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      findAgg().find('i').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
@@ -103,11 +64,9 @@ describe('Aggregate', () => {
     expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
 
     await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').first().simulate('click');
+      fireEvent.click(screen.getByText('New Instance'));
     });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
@@ -116,48 +75,23 @@ describe('Aggregate', () => {
       output: OutputType.NEW,
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/main/2', '_blank');
-    expect(spies.onCloseSpy).toHaveBeenCalled();
+    expect(spies.mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLOSE_CHART });
   });
 
   it("reshapes data using aggregate 'By Function'", async () => {
     await act(async () => {
-      aggInputs()
-        .first()
-        .simulate('change', { target: { value: 'col1' } });
+      fireEvent.click(screen.getByText('By Function'));
     });
-    result = result.update();
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'Count');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'col1');
     await act(async () => {
-      findAgg().find('button').last().simulate('click');
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
     await act(async () => {
-      aggInputs()
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'count' } });
+      fireEvent.click(screen.getByText('Execute'));
     });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(1).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs()
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: 'col2' } });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(2).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
 
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.FUNC, cols: ['col1'], func: 'count' },
       },
@@ -168,19 +102,13 @@ describe('Aggregate', () => {
   });
 
   it('handles errors', async () => {
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection!');
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await spies.validateError('Missing an aggregation selection!');
     await act(async () => {
-      aggInputs()
-        .first()
-        .simulate('change', { target: { value: 'col1' } });
+      fireEvent.click(screen.getByText('By Function'));
     });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
-    await act(async () => {
-      findAgg().find('button').last().simulate('click');
-    });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection!');
   });
 
   it('validates configuration', () => {

@@ -1,7 +1,8 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { createEvent, fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 jest.mock('../../dtale/menu/MenuTooltip', () => {
   const { createMockComponent } = require('../mocks/createMockComponent');
@@ -17,19 +18,33 @@ import GridEventHandler, { GridEventHandlerProps } from '../../dtale/GridEventHa
 import { ActionType } from '../../redux/actions/AppActions';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 
-describe('RibbonDropdown', () => {
-  let wrapper: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
 
-  const buildMock = (props?: GridEventHandlerProps, state?: { [key: string]: any }): void => {
-    useSelectorSpy.mockReturnValue({
+const useDispatchMock = useDispatch as jest.Mock;
+
+describe('RibbonDropdown', () => {
+  let container: HTMLElement;
+  let rerender: (ui: React.ReactElement<any, string | React.JSXElementConstructor<any>>) => void;
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
+
+  const buildMock = (
+    props?: GridEventHandlerProps,
+    state?: { [key: string]: any },
+    children?: React.ReactNode,
+    useRerender = false,
+  ): void => {
+    store = mockStore({
       allowCellEdits: true,
       dataId: '1',
       ribbonMenuOpen: false,
       menuPinned: false,
-      ribbonDropdownOpen: false,
-      sidePanelOpen: false,
+      ribbonDropdown: { visible: false },
+      sidePanel: { visible: false },
       dragResize: null,
       rangeSelect: null,
       rowRange: null,
@@ -37,13 +52,25 @@ describe('RibbonDropdown', () => {
       settings: {},
       ...state,
     });
-    wrapper = mount(<GridEventHandler {...{ columns: [], data: {}, ...props }} />);
+    if (useRerender) {
+      rerender(
+        <Provider store={store}>
+          <GridEventHandler {...{ columns: [], data: {}, ...props }}>{children}</GridEventHandler>
+        </Provider>,
+      );
+    } else {
+      const result = render(
+        <Provider store={store}>
+          <GridEventHandler {...{ columns: [], data: {}, ...props }}>{children}</GridEventHandler>
+        </Provider>,
+      );
+      container = result.container;
+      rerender = result.rerender;
+    }
   };
 
   beforeEach(() => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
     jest.spyOn(global, 'addEventListener').mockImplementation(() => undefined);
     jest.spyOn(global, 'removeEventListener').mockImplementation(() => undefined);
     buildMock();
@@ -57,76 +84,53 @@ describe('RibbonDropdown', () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseMove?.({ clientY: 5 } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
+    const mainPanel = container.getElementsByClassName('main-panel-content')[0];
+    const myEvent = createEvent.mouseMove(mainPanel, { clientY: 5 });
+    fireEvent(mainPanel, myEvent);
+
     expect(clearTimeoutSpy).not.toHaveBeenCalled();
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1][0]();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.SHOW_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.SHOW_RIBBON_MENU });
     setTimeoutSpy.mockRestore();
   });
 
-  it('hides ribbon menu outside of first 35 pixels', async () => {
+  it('hides ribbon menu outside of first 45 pixels', async () => {
     await buildMock(undefined, { ribbonMenuOpen: true });
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseMove?.({ clientY: 45 } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
+    const mainPanel = container.getElementsByClassName('main-panel-content')[0];
+    const myEvent = createEvent.mouseMove(mainPanel, { clientY: 45 });
+    fireEvent(mainPanel, myEvent);
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1][0]();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
     setTimeoutSpy.mockRestore();
   });
 
   it('does not hide ribbon menu when dropdown is open', async () => {
-    buildMock(undefined, { ribbonMenuOpen: true, ribbonDropdownOpen: true });
+    buildMock(undefined, { ribbonMenuOpen: true, ribbonDropdown: { visible: true } });
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseMove?.({ clientY: 45 } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
+    const mainPanel = container.getElementsByClassName('main-panel-content')[0];
+    const myEvent = createEvent.mouseMove(mainPanel, { clientY: 45 });
+    await fireEvent(mainPanel, myEvent);
     expect(setTimeoutSpy).toHaveBeenCalledTimes(0);
     setTimeoutSpy.mockRestore();
   });
 
   it('displays blue-line correctly', () => {
     buildMock(undefined, { dragResize: 5 });
-    expect(wrapper.find('div.blue-line')).toHaveLength(1);
+    expect(container.getElementsByClassName('blue-line')).toHaveLength(1);
   });
 
   it('hides tooltip when cellIdx is empty', async () => {
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseOver?.({
-          clientY: 100,
-          target: {
-            attributes: {
-              cell_idx: {
-                nodeValue: '1|2',
-              },
-            },
-            querySelector: () => ({ clientWidth: 100, scrollWidth: 100 }),
-          },
-        } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
+    buildMock(undefined, {}, <div className="cell" {...{ cell_idx: '1|2' }} />, true);
+    const cell = container.getElementsByClassName('cell')[0];
+    const target: any = { querySelector: () => ({ clientWidth: 100, scrollWidth: 100 }) };
+    const myEvent = createEvent.mouseOver(cell, { clientY: 100, target } as any as Event);
+    await fireEvent(cell, myEvent);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
   });
 
   it('shows tooltip when cellIdx is populated', async () => {
@@ -135,36 +139,20 @@ describe('RibbonDropdown', () => {
       mockColumnDef({ name: 'a', dtype: 'string', index: 1, visible: true }),
     ];
     const data: DataViewerData = { 0: { a: { raw: 'Hello World', view: 'Hello World' } } };
-    buildMock({ columns, data });
-    const target = { attributes: { cell_idx: { nodeValue: '0|1' } } } as any as HTMLElement;
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseOver?.({ target } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).not.toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
-    (target.attributes as any).cell_idx.nodeValue = '1|1';
-    target.querySelector = () => undefined;
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseOver?.({ target } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).not.toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
+    buildMock({ columns, data }, {}, <div className="cell" {...{ cell_idx: '0|1' }} />, true);
+    let cell = container.getElementsByClassName('cell')[0];
+    let myEvent = createEvent.mouseOver(cell);
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).not.toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
+    buildMock({ columns, data }, {}, <div className="cell" {...{ cell_idx: '1|1' }} />, true);
+    cell = container.getElementsByClassName('cell')[0];
+    myEvent = createEvent.mouseOver(cell, { target: { querySelector: () => undefined } });
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).not.toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_MENU_TOOLTIP }));
     const childDiv = { clientWidth: 100, scrollWidth: 150 };
-    target.querySelector = () => childDiv;
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onMouseOver?.({ target } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    myEvent = createEvent.mouseOver(cell, { target: { querySelector: () => childDiv } });
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.SHOW_MENU_TOOLTIP,
       element: childDiv,
       content: 'Hello World',
@@ -172,16 +160,11 @@ describe('RibbonDropdown', () => {
   });
 
   it('selects row on click of index', async () => {
-    await act(async () => {
-      wrapper
-        .find('div.main-panel-content')
-        .props()
-        .onClick?.({
-          target: { attributes: { cell_idx: { nodeValue: '0|1' } } },
-        } as any as React.MouseEvent);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    buildMock(undefined, {}, <div className="cell" {...{ cell_idx: '0|1' }} />, true);
+    const cell = container.getElementsByClassName('cell')[0];
+    const myEvent = createEvent.click(cell);
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({ type: ActionType.SET_RANGE_STATE, selectedRow: 1 }),
     );
   });

@@ -1,27 +1,37 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import Header, { HeaderProps } from '../../dtale/Header';
 import { ActionType } from '../../redux/actions/AppActions';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
+
 describe('Header', () => {
-  let wrapper: ReactWrapper;
+  let container: HTMLElement;
+  let rerender: (ui: React.ReactElement<any, string | React.JSXElementConstructor<any>>) => void;
   let props: HeaderProps;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
 
   const buildMock = async (propOverrides?: HeaderProps, state?: { [key: string]: any }): Promise<void> => {
-    useSelectorSpy.mockReturnValue({
+    store = mockStore({
       dataId: '1',
       settings: {},
       columnRange: null,
       ctrlCols: null,
       ...state,
     });
+
     props = {
       columns: [
         mockColumnDef({ index: 0, visible: true }),
@@ -33,13 +43,17 @@ describe('Header', () => {
       style: {},
       ...propOverrides,
     };
-    wrapper = mount(<Header {...props} />);
+    const result = render(
+      <Provider store={store}>
+        <Header {...props} />
+      </Provider>,
+    );
+    container = result.container;
+    rerender = result.rerender;
   };
 
   beforeEach(() => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
     buildMock();
   });
 
@@ -48,57 +62,45 @@ describe('Header', () => {
   afterAll(jest.restoreAllMocks);
 
   it('handles drag operations', async () => {
-    const event = {
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
+    const dragHandle = container.getElementsByClassName('DragHandle')[0];
+    const current = {
       clientX: 10,
-    } as any as DraggableEvent;
-    await act(async () => {
-      wrapper
-        .find(Draggable)
-        .props()
-        .onStart?.(event, {} as DraggableData);
-    });
-    wrapper = wrapper.update();
-    expect(event.preventDefault).toHaveBeenCalled();
-    expect(event.stopPropagation).toHaveBeenCalled();
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.DRAG_RESIZE, x: 10 });
-    wrapper
-      .find('.text-nowrap')
-      .props()
-      .onClick?.({} as any as React.MouseEvent);
-    await act(async () => {
-      wrapper
-        .find(Draggable)
-        .props()
-        .onDrag?.(event, { deltaX: 10 } as DraggableData);
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, x: 10 });
-    expect(wrapper.find('div').first().props().style?.width).toBe(110);
-    const updatedColumns = [{ ...props.columns[0] }, { ...props.columns[1], width: 110, resized: true }];
-    expect(event.preventDefault).toHaveBeenCalledTimes(2);
-    expect(event.stopPropagation).toHaveBeenCalledTimes(2);
-    await act(async () => {
-      wrapper
-        .find(Draggable)
-        .props()
-        .onStop?.(event, {} as DraggableData);
-    });
-    wrapper = wrapper.update();
+      clientY: 10,
+    };
+    let myEvent = createEvent.mouseDown(dragHandle, current);
+    fireEvent(dragHandle, myEvent);
+    expect(myEvent.defaultPrevented).toBe(true);
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.DRAG_RESIZE, x: 10 });
+
+    current.clientX += 1;
+    myEvent = createEvent.mouseMove(dragHandle, current);
+    fireEvent(dragHandle, myEvent);
+    expect(myEvent.defaultPrevented).toBe(true);
+    const textWrapper = container.getElementsByClassName('text-nowrap')[0];
+    myEvent = createEvent.click(textWrapper);
+    fireEvent(textWrapper, myEvent);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, x: 11 });
+    expect(screen.queryAllByTestId('header-cell')[0]).toHaveStyle(`width: 101px`);
+    const updatedColumns = [{ ...props.columns[0] }, { ...props.columns[1], width: 101, resized: true }];
+    myEvent = createEvent.mouseUp(dragHandle, current);
+    fireEvent(dragHandle, myEvent);
+    expect(myEvent.defaultPrevented).toBe(true);
     expect(props.propagateState).toHaveBeenCalledWith({
       columns: updatedColumns,
       triggerResize: true,
     });
-    expect(event.preventDefault).toHaveBeenCalledTimes(3);
-    expect(event.stopPropagation).toHaveBeenCalledTimes(3);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.STOP_RESIZE });
-    wrapper.setProps({ columns: updatedColumns });
-    expect(wrapper.find('.resized')).toHaveLength(1);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.STOP_RESIZE });
+    rerender(
+      <Provider store={store}>
+        <Header {...{ ...props, columns: updatedColumns }} />
+      </Provider>,
+    );
+    expect(container.getElementsByClassName('resized')).toHaveLength(1);
   });
 
   it('vertical headers', () => {
     buildMock(undefined, { settings: { verticalHeaders: true } });
-    expect(wrapper.find('div').at(1).props().className).toBe('text-nowrap rotate-header');
+    const textCell = container.getElementsByClassName('text-nowrap')[0];
+    expect(textCell).toHaveClass('text-nowrap rotate-header');
   });
 });

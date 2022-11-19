@@ -197,7 +197,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
 
   return (
     <React.Fragment>
-      <div className="row">
+      <div className="row numeric-filter-inputs">
         <div className="col-md-12">
           <div className="btn-group compact m-auto font-weight-bold column-sorting" style={{ fontSize: '16px' }}>
             {OPERANDS.map((option, i) => {
@@ -211,7 +211,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
                     setOperand(option.value);
                     setTriggerSave(true);
                   }}
-                  title={t(option.hint)}
+                  title={t(option.hint) ?? undefined}
                   disabled={active || missing}
                 >
                   {option.label ?? option.value}

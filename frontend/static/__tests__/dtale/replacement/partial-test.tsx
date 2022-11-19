@@ -1,8 +1,6 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import CreateReplace, { CreateReplaceProps } from '../../../popups/create/CreateReplace';
 import * as ReplaceUtils from '../../../popups/create/CreateReplace';
 import { ReplacementType } from '../../../popups/replacement/CreateReplacementState';
 
@@ -10,44 +8,28 @@ import * as TestSupport from './CreateReplacement.test.support';
 
 describe('Strings', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    spies.useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      chartData: { visible: true, propagateState: spies.propagateStateSpy, selectedCol: 'col3' },
-    });
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Replace Substring');
+    result = await spies.setupWrapper({ selectedCol: 'col3' });
+    await spies.clickBuilder('Replace Substring');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findReplace = (): ReactWrapper<CreateReplaceProps, Record<string, any>> => result.find(CreateReplace);
-
   it('handles partial replacement w/ new col', async () => {
-    expect(findReplace()).toHaveLength(1);
-    result = await spies.setName(result, 'cut_col');
+    expect(screen.getByText('Replacement')).toBeDefined();
+    await spies.setName('cut_col');
     await act(async () => {
-      findReplace()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      await fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: 'nan' } });
     });
-    result = result.update();
     await act(async () => {
-      findReplace()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      await fireEvent.change(result.container.getElementsByTagName('input')[2], { target: { value: 'nan' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.PARTIAL,
       cfg: { search: 'nan', replacement: 'nan', col: 'col3', caseSensitive: false, regex: false },
       col: 'col3',
@@ -59,30 +41,18 @@ describe('Strings', () => {
   it('handles partial replacement', async () => {
     const validationSpy = jest.spyOn(ReplaceUtils, 'validateReplaceCfg');
     await act(async () => {
-      findReplace()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'A' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[0], { target: { value: 'A' } });
     });
-    result = result.update();
     await act(async () => {
-      findReplace().find('div.form-group').at(2).find('i').simulate('click');
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     await act(async () => {
-      findReplace().find('div.form-group').last().find('i').simulate('click');
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     await act(async () => {
-      findReplace()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: 'nan' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
+    await spies.executeSave();
     expect(validationSpy).toHaveBeenLastCalledWith(expect.any(Function), {
       search: 'A',
       replacement: 'nan',

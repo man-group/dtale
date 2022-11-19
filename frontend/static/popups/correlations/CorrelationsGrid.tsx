@@ -3,9 +3,13 @@ import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
-import { GridCellProps } from 'react-virtualized';
-import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
+import {
+  AutoSizer as _AutoSizer,
+  MultiGrid as _MultiGrid,
+  AutoSizerProps,
+  GridCellProps,
+  MultiGridProps,
+} from 'react-virtualized';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
@@ -19,6 +23,9 @@ import { CorrelationsCell } from './CorrelationsCell';
 import * as corrUtils from './correlationsUtils';
 
 require('./CorrelationsGrid.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const MultiGrid = _MultiGrid as unknown as React.FC<MultiGridProps>;
 
 export const buildSort = (col: string, currSort?: SortDef): SortDef | undefined => {
   if (currSort && currSort[0] === col) {

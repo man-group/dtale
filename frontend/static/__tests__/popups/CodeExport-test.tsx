@@ -1,22 +1,30 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider } from 'react-redux';
 
 import { CodeExport } from '../../popups/CodeExport';
-import CodePopup from '../../popups/CodePopup';
-import { RemovableError } from '../../RemovableError';
 import * as GenericRepository from '../../repository/GenericRepository';
-import { tickUpdate } from '../test-utils';
+import reduxUtils from '../redux-test-utils';
+import { buildInnerHTML } from '../test-utils';
 
 describe('CodeExport tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   let fetchJsonSpy: jest.SpyInstance<Promise<unknown>, [string]>;
 
   const build = async (): Promise<void> => {
-    result = mount(<CodeExport />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '', iframe: 'True', xarray: 'True' }, store);
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <CodeExport />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
   };
 
   beforeAll(() => {
@@ -34,16 +42,16 @@ describe('CodeExport tests', () => {
       }
       return Promise.resolve(undefined);
     });
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
   });
 
   afterEach(jest.restoreAllMocks);
 
   it('CodeExport render & copy test', async () => {
     await build();
-    expect(result.find(CodePopup).props().code).toBe('test code');
-    result.find('button').simulate('click');
+    expect(result.getElementsByClassName('code-popup-modal')[0].textContent).toBe('test code');
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Copy'));
+    });
   });
 
   it('CodeExport error test', async () => {
@@ -54,6 +62,6 @@ describe('CodeExport tests', () => {
       return Promise.resolve(undefined);
     });
     await build();
-    expect(result.find(RemovableError).text()).toBe('error test');
+    expect(screen.getByRole('alert').textContent).toBe('error test');
   });
 });

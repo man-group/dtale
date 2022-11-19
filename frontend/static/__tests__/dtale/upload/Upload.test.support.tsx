@@ -1,13 +1,11 @@
+import { act, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import Upload from '../../../popups/upload/Upload';
 import { Dataset, DataType } from '../../../popups/upload/UploadState';
 import * as UploadRepository from '../../../repository/UploadRepository';
 import reduxUtils from '../../redux-test-utils';
-import { tickUpdate } from '../../test-utils';
 
 /** Bundles alot of jest setup for CreateColumn component tests */
 export class Spies {
@@ -17,7 +15,6 @@ export class Spies {
     [type: DataType, url: string, proxy?: string]
   >;
   public presetUploadSpy: jest.SpyInstance<Promise<UploadRepository.UploadResponse | undefined>, [dataset: Dataset]>;
-  public axiosGetSpy: jest.SpyInstance;
   public readAsDataURLSpy: jest.SpyInstance;
   public btoaSpy: jest.SpyInstance;
 
@@ -26,14 +23,13 @@ export class Spies {
     this.uploadSpy = jest.spyOn(UploadRepository, 'upload');
     this.webUploadSpy = jest.spyOn(UploadRepository, 'webUpload');
     this.presetUploadSpy = jest.spyOn(UploadRepository, 'presetUpload');
-    this.axiosGetSpy = jest.spyOn(axios, 'get');
     this.readAsDataURLSpy = jest.spyOn(FileReader.prototype, 'readAsDataURL');
     this.btoaSpy = jest.spyOn(window, 'btoa');
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
-    this.axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.uploadSpy.mockResolvedValue({ success: true, data_id: '2' });
     this.webUploadSpy.mockResolvedValue({ success: true, data_id: '2' });
     this.presetUploadSpy.mockResolvedValue({ success: true, data_id: '2' });
@@ -50,13 +46,14 @@ export class Spies {
   }
 
   /**
-   * Build the initial enzyme wrapper.
+   * Build the initial wrapper.
    *
-   * @return the enzyme wrapper for testing.
+   * @return the wrapper for testing.
    */
-  public async setupWrapper(): Promise<ReactWrapper> {
-    const result = mount(<Upload />);
-    await act(async () => await tickUpdate(result));
-    return result.update();
+  public async setupWrapper(): Promise<Element> {
+    return await act((): Element => {
+      const { container } = render(<Upload />);
+      return container;
+    });
   }
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 
 import '../../i18n';
@@ -18,9 +18,9 @@ store.dispatch(actions.init());
 actions.loadBackgroundMode(store);
 actions.loadHideShutdown(store);
 actions.loadAllowCellEdits(store);
-ReactDOM.render(
+const root = ReactDOMClient.createRoot(document.getElementById('content')!);
+root.render(
   <Provider store={store}>
     <ServerlessDataViewer response={(global as any).RESPONSE! as DataResponseContent} />
   </Provider>,
-  document.getElementById('content'),
 );

@@ -1,3 +1,6 @@
+.column-filter.date-filter {
+  display: inline-flex;
+}
 .column-filter .Select {
   min-width: 11em;
   max-width: 11em;

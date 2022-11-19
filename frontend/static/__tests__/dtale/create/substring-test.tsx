@@ -1,64 +1,47 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { BaseCreateComponentProps, CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateSubstring, validateSubstringCfg } from '../../../popups/create/CreateSubstring';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType } from '../../../popups/create/CreateColumnState';
+import { validateSubstringCfg } from '../../../popups/create/CreateSubstring';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateSubstring', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Substring');
+    await spies.setupWrapper();
+    await spies.clickBuilder('Substring');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findSubstring = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateSubstring);
-
   it('builds a substring column', async () => {
-    expect(findSubstring()).toHaveLength(1);
+    expect(screen.getByText('Substring')).toHaveClass('active');
+    await selectOption(
+      screen.getByText('Column*').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col3',
+    );
     await act(async () => {
-      findSubstring()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Start').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '2' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      findSubstring()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '2' } });
+      await fireEvent.change(screen.getByText('End').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '4' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      findSubstring()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
-        col: 'col1',
+        col: 'col3',
         start: '2',
         end: '4',
       },
-      name: 'col1_substring',
+      name: 'col3_substring',
       type: CreateColumnType.SUBSTRING,
     });
   });

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, InstanceSettings } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
@@ -31,8 +31,8 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     sortInfo: state.settings.sortInfo,
   }));
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const [menuOpen, setMenuOpen] = React.useState<InfoMenuType>();
   const sortRef = React.useRef<HTMLDivElement>(null);
@@ -65,8 +65,8 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     }
     const clickHandler = buildMenuHandler(InfoMenuType.SORT, setMenuOpen, sortRef);
     const dropSort =
-      (dropCol: string): (() => AppActions<void>) =>
-      (): AppActions<void> =>
+      (dropCol: string): (() => AnyAction) =>
+      (): AnyAction =>
         updateSettings({ sortInfo: reduxState.sortInfo?.filter((s) => s[0] !== dropCol) ?? [] });
     return (
       <React.Fragment>

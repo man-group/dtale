@@ -167,7 +167,7 @@ const Reports: React.FC<WithTranslation> = ({ t }) => {
           <div className="col" />
           <div className="col-auto">
             <button className="btn btn-plain" onClick={hideSidePanel}>
-              <i className="ico-close pointer" title={t('side:Close')} />
+              <i className="ico-close pointer" title={t('side:Close') ?? undefined} />
             </button>
           </div>
         </div>

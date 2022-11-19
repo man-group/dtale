@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ColumnDef } from '../../../dtale/DataViewerState';
-import { ActionType, AppActions, HideSidePanelAction } from '../../../redux/actions/AppActions';
+import { ActionType, HideSidePanelAction } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
 import { AppState, InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
@@ -25,8 +26,8 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
   }));
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const [filters, setFilters] = React.useState<PredefinedFilter[]>([]);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
@@ -81,7 +82,7 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
         <div className="col" />
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? ''} />
           </button>
         </div>
       </div>

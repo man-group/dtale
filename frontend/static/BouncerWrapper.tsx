@@ -10,7 +10,7 @@ interface BouncerWrapperProps {
 }
 
 /** Wrapper component which conditionally renders a bouncer or children */
-export const BouncerWrapper: React.FC<BouncerWrapperProps> = ({ showBouncer, children }) => (
+export const BouncerWrapper: React.FC<React.PropsWithChildren<BouncerWrapperProps>> = ({ showBouncer, children }) => (
   <>
     {showBouncer ? (
       <div className="bouncer-wrapper">

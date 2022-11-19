@@ -26,7 +26,13 @@ interface ExampleToggleProps {
   codeKey: string;
 }
 
-const BaseExampleToggle: React.FC<ExampleToggleProps & WithTranslation> = ({ show, setShow, children, codeKey, t }) => {
+const BaseExampleToggle: React.FC<React.PropsWithChildren<ExampleToggleProps & WithTranslation>> = ({
+  show,
+  setShow,
+  children,
+  codeKey,
+  t,
+}) => {
   return (
     <dl className="dataset accordion pt-3">
       <dt
@@ -82,7 +88,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
       <React.Fragment>
         <div className="row ml-0 mr-0">
           <div className="col-md-4">
-            <div className="form-group row">
+            <div className="form-group row" data-testid="how-toggle">
               <label className="col-auto col-form-label text-right pr-0">{t('How')}:</label>
               <ButtonToggle
                 options={howOpts}
@@ -157,7 +163,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
   };
 
   return (
-    <ul className="list-group ml-3 mr-3 pt-3">
+    <ul className="list-group ml-3 mr-3 pt-3" data-testid="action-config">
       <li className="list-group-item p-3 section">
         <div className="row ml-0 mr-0">
           <div className="col-auto pl-4 pr-0">

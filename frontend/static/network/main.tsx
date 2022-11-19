@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 
 import '../i18n';
@@ -13,9 +13,9 @@ require('../publicPath');
 
 const store = createAppStore(app);
 store.dispatch(actions.init());
-ReactDOM.render(
+const root = ReactDOMClient.createRoot(document.getElementById('content')!);
+root.render(
   <Provider store={store}>
     <NetworkDisplay {...actions.getParams()} />
   </Provider>,
-  document.getElementById('content'),
 );

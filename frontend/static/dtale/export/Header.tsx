@@ -1,6 +1,7 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, DragResizeAction, StopResizeAction } from '../../redux/actions/AppActions';

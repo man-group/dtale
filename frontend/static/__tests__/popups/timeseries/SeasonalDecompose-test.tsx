@@ -1,7 +1,6 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ChartDataset } from 'chart.js';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import {
   chartConfigBuilder,
@@ -13,33 +12,33 @@ import {
   SeasonalDecomposeModel,
   TimeseriesAnalysisType,
 } from '../../../popups/timeseries/TimeseriesAnalysisState';
-import { tickUpdate } from '../../test-utils';
 
 describe('SeasonalDecompose', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let props: SeasonalDecomposeProps;
   const updateState = jest.fn();
 
-  beforeEach(async () => {
+  const buildMock = async (overrides?: Partial<SeasonalDecomposeProps>): Promise<void> => {
     props = {
       cfg: { ...BASE_CFGS[TimeseriesAnalysisType.SEASONAL_DECOMPOSE] },
       type: TimeseriesAnalysisType.SEASONAL_DECOMPOSE,
       updateState,
+      ...overrides,
     };
-    wrapper = mount(<SeasonalDecompose {...props} />);
-    await act(async () => tickUpdate(wrapper));
-  });
+    wrapper = await act(async () => await render(<SeasonalDecompose {...props} />).container);
+  };
 
-  it('renders successfully', () => {
-    expect(wrapper.find('div.col-md-4')).toHaveLength(1);
+  it('renders successfully', async () => {
+    await buildMock();
+    expect(wrapper.querySelectorAll('div.col-md-4')).toHaveLength(1);
     expect(props.updateState).toHaveBeenLastCalledWith({ model: SeasonalDecomposeModel.ADDITIVE });
   });
 
   it('updates state', async () => {
+    await buildMock();
     await act(async () => {
-      wrapper.find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('multiplicative'));
     });
-    wrapper = wrapper.update();
     expect(props.updateState).toHaveBeenLastCalledWith({ model: SeasonalDecomposeModel.MULTIPLICATIVE });
   });
 
@@ -78,14 +77,14 @@ describe('SeasonalDecompose', () => {
   });
 
   describe('stl', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       jest.resetAllMocks();
-      wrapper.setProps({ type: TimeseriesAnalysisType.STL });
+      await buildMock({ type: TimeseriesAnalysisType.STL });
     });
 
     it('renders successfully', () => {
-      expect(wrapper.find('div.col-md-4')).toHaveLength(0);
-      expect(props.updateState).toHaveBeenCalledTimes(0);
+      expect(wrapper.querySelectorAll('div.col-md-4')).toHaveLength(0);
+      expect(props.updateState).toHaveBeenLastCalledWith({ model: SeasonalDecomposeModel.ADDITIVE });
     });
   });
 });

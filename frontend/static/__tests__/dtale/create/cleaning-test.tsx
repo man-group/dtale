@@ -1,22 +1,21 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
+import axios from 'axios';
 
-import { default as CreateCleaning, validateCleaningCfg } from '../../../popups/create/CreateCleaning';
+import { validateCleaningCfg } from '../../../popups/create/CreateCleaning';
 import { CaseType, CleanerType, CreateColumnType } from '../../../popups/create/CreateColumnState';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
-import { mockT as t } from '../../test-utils';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateCleaning', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    spies.axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/dtypes')) {
         return Promise.resolve({
           data: {
@@ -35,76 +34,41 @@ describe('CreateCleaning', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Cleaning');
+    await spies.clickBuilder('Cleaning');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  it('builds cleaning column', async () => {
-    expect(result.find(CreateCleaning)).toHaveLength(1);
-    await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'conv_col' } });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateCleaning)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find(CreateCleaning).find('div.form-group').at(1).find('button').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateCleaning)
-        .find('div.form-group')
-        .at(1)
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Drop Stop Words')
-        .first()
-        .simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateCleaning)
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: 'foo,bar' } });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateCleaning)
-        .find('div.form-group')
-        .at(1)
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Update Word Case')
-        .first()
-        .simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      result.find(CreateCleaning).find('div.form-group').last().find('button').first().simulate('click');
-    });
-    result = result.update();
+  const formGroups = (): NodeListOf<Element> => result.querySelectorAll('div.form-group');
 
-    await spies.validateCfg(result, {
+  it('builds cleaning column', async () => {
+    expect(screen.getByText('Function(s)')).toBeDefined();
+    await act(async () => {
+      await fireEvent.change(formGroups()[0].getElementsByTagName('input')[0], { target: { value: 'conv_col' } });
+    });
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col3');
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Replace Multi-Space w/ Single-Space'));
+    });
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Drop Stop Words'));
+    });
+    await act(async () => {
+      const inputs = [...result.getElementsByTagName('input')];
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: 'foo,bar' } });
+    });
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Update Word Case'));
+    });
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Upper'));
+    });
+
+    await spies.validateCfg({
       cfg: {
-        col: 'col1',
+        col: 'col3',
         cleaners: [
           CleanerType.HIDDEN_CHARS,
           CleanerType.DROP_MULTISPACE,
@@ -120,34 +84,22 @@ describe('CreateCleaning', () => {
   });
 
   it('toggles off cleaners', async () => {
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col3');
     await act(async () => {
-      result
-        .find(CreateCleaning)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Remove Hidden Characters'));
     });
-    result = result.update();
     await act(async () => {
-      result.find(CreateCleaning).find('div.form-group').at(1).find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Replace Multi-Space w/ Single-Space'));
     });
-    result = result.update();
     await act(async () => {
-      result.find(CreateCleaning).find('div.form-group').at(1).find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Remove Punctuation'));
     });
-    result = result.update();
-    await act(async () => {
-      result.find(CreateCleaning).find('div.form-group').at(1).find('button').at(1).simulate('click');
-    });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
-        col: 'col1',
+        col: 'col3',
         cleaners: [CleanerType.DROP_MULTISPACE, CleanerType.DROP_PUNCTUATION],
       },
-      name: 'col1_cleaned',
+      name: 'col3_cleaned',
       type: CreateColumnType.CLEANING,
     });
   });

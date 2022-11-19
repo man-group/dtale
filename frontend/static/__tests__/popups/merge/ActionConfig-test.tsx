@@ -1,18 +1,25 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
-import ButtonToggle from '../../../ButtonToggle';
-import ActionConfig, { ExampleToggle } from '../../../popups/merge/ActionConfig';
+import ActionConfig from '../../../popups/merge/ActionConfig';
 import { MergeActionType } from '../../../redux/actions/MergeActions';
-import { HowToMerge, MergeConfigType, MergeState } from '../../../redux/state/MergeState';
-import { tickUpdate } from '../../test-utils';
+import { HowToMerge, MergeConfig, MergeConfigType, MergeState } from '../../../redux/state/MergeState';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('ActionConfig', () => {
-  let result: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
+  let result: Element;
+  let store: Store;
+  const mockDispatch = jest.fn();
   const state: Partial<MergeState> = {
     action: MergeConfigType.MERGE,
     mergeConfig: { how: HowToMerge.INNER, sort: false, indicator: false },
@@ -20,105 +27,118 @@ describe('ActionConfig', () => {
   };
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue(state);
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
   });
 
   afterEach(jest.resetAllMocks);
   afterAll(jest.restoreAllMocks);
 
-  const buildResult = async (): Promise<void> => {
-    result = mount(<ActionConfig />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+  const buildResult = async (overrides?: Partial<MergeState>): Promise<void> => {
+    store = reduxUtils.createMergeStore();
+    buildInnerHTML({ settings: '' }, store);
+    const finalState = { ...state, ...overrides };
+    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, ...finalState });
+    Object.entries(finalState.mergeConfig ?? {}).forEach(([prop, value]) => {
+      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.MERGE, prop, value });
+    });
+    Object.entries(finalState.mergeConfig ?? {}).forEach(([prop, value]) => {
+      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.STACK, prop, value });
+    });
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <ActionConfig />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
   };
 
-  const showExample = async (): Promise<ReactWrapper> => {
+  const showExample = async (): Promise<void> => {
     await act(async () => {
-      result.find('dt').first().simulate('click');
+      await fireEvent.click(result.getElementsByTagName('dt')[0]);
     });
-    return result.update();
   };
 
   it('triggers merge config functions', async () => {
     await buildResult();
     await act(async () => {
-      result.find(ButtonToggle).first().props().update(MergeConfigType.STACK);
+      await fireEvent.click(screen.getByText('Stack'));
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_TYPE,
       action: MergeConfigType.STACK,
     });
     await act(async () => {
-      result.find(ButtonToggle).first().props().update(MergeConfigType.MERGE);
+      await fireEvent.click(screen.getByText('Merge'));
     });
-    result = result.update();
     await act(async () => {
-      result.find(ButtonToggle).last().props().update(HowToMerge.LEFT);
+      await fireEvent.click(screen.getByText('Left'));
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
       action: MergeConfigType.MERGE,
       prop: 'how',
       value: HowToMerge.LEFT,
     });
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').first().simulate('click');
+      await fireEvent.click(result.querySelector('i.ico-check-box-outline-blank')!);
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
       action: MergeConfigType.MERGE,
       prop: 'sort',
       value: true,
     });
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').at(1).simulate('click');
+      await fireEvent.click(result.querySelectorAll('i.ico-check-box-outline-blank')[1]);
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
       action: MergeConfigType.MERGE,
       prop: 'indicator',
       value: true,
     });
-    result = await showExample();
-    expect(result.find(ExampleToggle).props().show).toBe(true);
-    expect(result.find('img').props().src?.endsWith('merging_merge_on_key_multiple.png')).toBe(true);
+    await showExample();
+    expect(result.querySelector('.dataset.accordion-title.is-expanded')).toBeDefined();
+    expect(
+      result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_merge_on_key_multiple.png'),
+    ).toBe(true);
   });
 
   it('triggers stack config functions', async () => {
-    useSelectorSpy.mockReturnValue({ ...state, action: MergeConfigType.STACK });
-    await buildResult();
+    await buildResult({ action: MergeConfigType.STACK });
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').first().simulate('click');
+      await fireEvent.click(result.querySelector('i.ico-check-box-outline-blank')!);
     });
-    result = result.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({
+    expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
       action: MergeConfigType.STACK,
       prop: 'ignoreIndex',
       value: true,
     });
-    result = await showExample();
-    expect(result.find('img').props().src?.endsWith('merging_concat_basic.png')).toBe(true);
+    await showExample();
+    expect(result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_concat_basic.png')).toBe(true);
   });
 
   it('displays different merge examples', async () => {
-    useSelectorSpy.mockReturnValue({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.LEFT } });
-    await buildResult();
-    result = await showExample();
-    expect(result.find('img').props().src?.endsWith('merging_merge_on_key_left.png')).toBe(true);
-    useSelectorSpy.mockReturnValue({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.RIGHT } });
-    await buildResult();
-    result = await showExample();
-    expect(result.find('img').props().src?.endsWith('merging_merge_on_key_right.png')).toBe(true);
-    useSelectorSpy.mockReturnValue({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.OUTER } });
-    result = await showExample();
-    expect(result.find('img').props().src?.endsWith('merging_merge_on_key_outer.png')).toBe(true);
+    await buildResult({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.LEFT } as MergeConfig });
+    await showExample();
+    expect(result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_merge_on_key_left.png')).toBe(
+      true,
+    );
+    await buildResult({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.RIGHT } as MergeConfig });
+    await showExample();
+    expect(result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_merge_on_key_right.png')).toBe(
+      true,
+    );
+    await buildResult({ ...state, mergeConfig: { ...state.mergeConfig, how: HowToMerge.OUTER } as MergeConfig });
+    await showExample();
+    expect(result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_merge_on_key_outer.png')).toBe(
+      true,
+    );
   });
 });

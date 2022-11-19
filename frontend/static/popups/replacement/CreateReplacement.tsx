@@ -6,7 +6,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
-import { AppActions } from '../../redux/actions/AppActions';
+import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import { AppState, BaseOption, ReplacementPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -61,7 +61,7 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
     chartData: state.chartData as ReplacementPopupData,
   }));
   const dispatch = useDispatch();
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
 
   const [type, setType] = React.useState<ReplacementType>();
   const [saveAs, setSaveAs] = React.useState(SaveAs.INPLACE);

@@ -15,7 +15,13 @@ interface RibbonMenuItemProps {
   selected?: RibbonDropdownType;
 }
 
-export const RibbonMenuItem: React.FC<RibbonMenuItemProps> = ({ name, onClick, onHover, selected, children }) => {
+export const RibbonMenuItem: React.FC<React.PropsWithChildren<RibbonMenuItemProps>> = ({
+  name,
+  onClick,
+  onHover,
+  selected,
+  children,
+}) => {
   const divRef = React.useRef<HTMLDivElement>(null);
 
   return (
@@ -71,12 +77,11 @@ const RibbonMenu: React.FC<WithTranslation> = ({ t }) => {
   };
 
   const itemProps = { onHover, onClick: menuClick, selected: ribbonDropdown };
-
   return (
     <div className={`ribbon-menu-content${visible ? ' is-expanded' : ''} row ml-0`} onClick={onClick}>
       <RibbonMenuItem name={RibbonDropdownType.MAIN} {...itemProps}>
         <span className={`${mainTitleFont ? '' : 'title-font '}title-font-base`} style={titleStyle}>
-          {mainTitle ?? 'D-TALE'}
+          {mainTitle ? mainTitle : 'D-TALE'}
         </span>
       </RibbonMenuItem>
       <RibbonMenuItem name={RibbonDropdownType.ACTIONS} {...itemProps}>

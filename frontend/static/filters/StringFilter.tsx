@@ -91,7 +91,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
                 setOperand(active ? EQ_OPTION.value : NE_OPTION.value);
                 setTriggerSave(true);
               }}
-              title={t(active ? NE_OPTION.hint : EQ_OPTION.hint)}
+              title={t(active ? NE_OPTION.hint : EQ_OPTION.hint) ?? ''}
               disabled={missing}
             >
               {NE_OPTION.label}

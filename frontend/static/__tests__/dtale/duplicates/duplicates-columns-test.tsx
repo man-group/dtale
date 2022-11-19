@@ -1,30 +1,18 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
 
-import { BouncerWrapper } from '../../../BouncerWrapper';
-import ColumnNames from '../../../popups/duplicates/ColumnNames';
-import Columns from '../../../popups/duplicates/Columns';
 import Duplicates from '../../../popups/duplicates/Duplicates';
-import {
-  BaseDuplicatesComponentProps,
-  DuplicatesActionType,
-  DuplicatesConfigType,
-  KeepType,
-} from '../../../popups/duplicates/DuplicatesState';
-import Rows, { RowsProps } from '../../../popups/duplicates/Rows';
-import ShowDuplicates, { ShowDuplicatesProps } from '../../../popups/duplicates/ShowDuplicates';
+import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
+import { ActionType } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
-import { RemovableError } from '../../../RemovableError';
 import reduxUtils from '../../redux-test-utils';
-import { parseUrlParams, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, parseUrlParams, selectOption } from '../../test-utils';
 
 describe('Duplicates', () => {
   const { location, open, opener } = window;
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -41,8 +29,7 @@ describe('Duplicates', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation(async (url: string) => {
+    (axios.get as any).mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/duplicates')) {
         const urlParams = parseUrlParams(url);
         if (urlParams.action === DuplicatesActionType.TEST) {
@@ -78,19 +65,31 @@ describe('Duplicates', () => {
           return Promise.resolve({ data: { data_id: 1 } });
         }
       }
+      if (url.startsWith('/dtale/dtypes')) {
+        const dtypes = JSON.parse(JSON.stringify(reduxUtils.DTYPES));
+        dtypes.dtypes[0].name = 'foo';
+        dtypes.dtypes[1].name = 'bar';
+        dtypes.dtypes[2].name = 'baz';
+        return Promise.resolve({ data: dtypes });
+      }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
 
     const store = reduxUtils.createDtaleStore();
-    store.getState().dataId = '1';
-    store.getState().chartData = { type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' };
-    result = mount(
-      <Provider store={store}>
-        <Duplicates />
-      </Provider>,
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({
+      type: ActionType.OPEN_CHART,
+      chartData: { type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' },
+    });
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <Duplicates />
+          </Provider>,
+          { container: document.getElementById('content') ?? undefined },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
   });
 
   afterEach(jest.restoreAllMocks);
@@ -101,276 +100,152 @@ describe('Duplicates', () => {
     window.opener = opener;
   });
 
-  const toggleType = async (btnIdx = 0): Promise<ReactWrapper> => {
+  const toggleType = async (text: string): Promise<void> => {
     await act(async () => {
-      result.find(Duplicates).find('div.modal-body').find('button').at(btnIdx).simulate('click');
+      await fireEvent.click(screen.getByText(text));
     });
-    return result.update();
   };
 
-  describe('Columns', () => {
-    const columnsComp = (): ReactWrapper<BaseDuplicatesComponentProps, Record<string, any>> => result.find(Columns);
+  const selects = (idx = 0): HTMLElement =>
+    result.querySelector('div.modal-body')!.getElementsByClassName('Select')[idx] as HTMLElement;
 
+  describe('Columns', () => {
     beforeEach(async () => {
-      result = await toggleType();
+      await toggleType('Remove Duplicate Columns');
     });
 
     it('handles duplicates', async () => {
-      expect(columnsComp()).toHaveLength(1);
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      await selectOption(selects(), 'First');
       await act(async () => {
-        columnsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
       await act(async () => {
-        columnsComp().find('button').last().simulate('click');
+        await fireEvent.click(screen.getByText('Execute'));
       });
-      result = result.update();
-      await act(async () => {
-        result.find('div.modal-footer').first().find('button').first().simulate('click');
-      });
-      result = result.update();
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicates', async () => {
+      await selectOption(selects(), 'Last');
       await act(async () => {
-        columnsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        columnsComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(Columns).find(BouncerWrapper).last().text()).toBe('No duplicate columns exist.');
+      expect(screen.getByText('No duplicate columns exist.')).toBeDefined();
     });
 
     it('handles error', async () => {
+      await selectOption(selects(), 'None');
       await act(async () => {
-        columnsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        columnsComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(Columns).find(RemovableError)).toHaveLength(1);
+      expect(screen.getByRole('alert')).toBeDefined();
     });
   });
 
   describe('Column Names', () => {
-    const columnNamesComp = (): ReactWrapper<BaseDuplicatesComponentProps, Record<string, any>> =>
-      result.find(ColumnNames);
-
     beforeEach(async () => {
-      result = await toggleType(1);
+      await toggleType('Remove Duplicate Column Names');
     });
 
     it('handles duplicates', async () => {
-      expect(columnNamesComp()).toHaveLength(1);
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      await selectOption(selects(), 'First');
       await act(async () => {
-        columnNamesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
       await act(async () => {
-        columnNamesComp().find('button').last().simulate('click');
+        await fireEvent.click(screen.getByText('Execute'));
       });
-      result = result.update();
-      await act(async () => {
-        result.find('div.modal-footer').first().find('button').first().simulate('click');
-      });
-      result = result.update();
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicates', async () => {
+      await selectOption(selects(), 'Last');
       await act(async () => {
-        columnNamesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        columnNamesComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(ColumnNames).find(BouncerWrapper).last().text()).toBe('No duplicate column names exist.');
+      expect(screen.getByText('No duplicate column names exist.')).toBeDefined();
     });
 
     it('handles error', async () => {
+      await selectOption(selects(), 'None');
       await act(async () => {
-        columnNamesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        columnNamesComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(ColumnNames).find(RemovableError)).toHaveLength(1);
+      expect(screen.getByRole('alert')).toBeDefined();
     });
   });
 
   describe('Rows', () => {
-    const rowsComp = (): ReactWrapper<RowsProps, Record<string, any>> => result.find(Rows);
-
     beforeEach(async () => {
-      result = await toggleType(2);
+      await toggleType('Remove Duplicate Rows');
     });
 
     it('handles duplicates', async () => {
-      expect(rowsComp()).toHaveLength(1);
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      await selectOption(selects(1), ['foo', 'bar']);
       await act(async () => {
-        rowsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.FIRST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
       await act(async () => {
-        rowsComp()
-          .find(Select)
-          .last()
-          .props()
-          .onChange?.([{ value: 'foo' }, { value: 'bar' }], {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
       await act(async () => {
-        rowsComp().find('button').last().simulate('click');
+        await fireEvent.click(screen.getByText('Execute'));
       });
-      result = result.update();
-      await act(async () => {
-        result.find('div.modal-footer').first().find('button').first().simulate('click');
-      });
-      result = result.update();
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicate rows', async () => {
+      await selectOption(selects(), 'Last');
+      await selectOption(selects(1), ['foo', 'bar']);
       await act(async () => {
-        rowsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.LAST }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        rowsComp()
-          .find(Select)
-          .last()
-          .props()
-          .onChange?.([{ value: 'foo' }, { value: 'bar' }], {} as ActionMeta<unknown>);
-      });
-      result = result.update();
-      await act(async () => {
-        rowsComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(Rows).find(BouncerWrapper).last().text()).toBe(
-        'No duplicate rows exist for the column(s): foo, bar',
-      );
+      expect(screen.getByText('No duplicate rows exist for the column(s): foo, bar')).toBeDefined();
     });
 
     it('handles error', async () => {
+      await selectOption(selects(), 'None');
       await act(async () => {
-        rowsComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.({ value: KeepType.NONE }, {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        rowsComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(result.find(Rows).find(RemovableError)).toHaveLength(1);
+      expect(screen.getByRole('alert')).toBeDefined();
     });
   });
 
-  describe('ShowDuplicates', () => {
-    const showDuplicatesComp = (): ReactWrapper<ShowDuplicatesProps, Record<string, any>> =>
-      result.find(ShowDuplicates);
-
+  describe('Show Duplicates', () => {
     beforeEach(async () => {
-      result = await toggleType(3);
+      await toggleType('Show Duplicates');
     });
 
     it('handles duplicates', async () => {
-      expect(showDuplicatesComp()).toHaveLength(1);
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      await selectOption(selects(), 'bar');
       await act(async () => {
-        showDuplicatesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.([{ value: 'bar' }], {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
       await act(async () => {
-        showDuplicatesComp().find('button').last().simulate('click');
+        await fireEvent.click(screen.getByText('Execute'));
       });
-      result = result.update();
-      await act(async () => {
-        result.find('div.modal-footer').first().find('button').first().simulate('click');
-      });
-      result = result.update();
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicates', async () => {
+      await selectOption(selects(), 'foo');
       await act(async () => {
-        showDuplicatesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.([{ value: 'foo' }], {} as ActionMeta<unknown>);
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        showDuplicatesComp().find('button').last().simulate('click');
-      });
-      result = result.update();
-      expect(showDuplicatesComp().find(BouncerWrapper).last().text()).toBe(
-        'No duplicates exist in any of the (foo) groups',
-      );
+      expect(screen.getByText('No duplicates exist in any of the (foo) groups')).toBeDefined();
     });
 
     it('handles error', async () => {
       await act(async () => {
-        showDuplicatesComp().find('button').last().simulate('click');
+        await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      result = result.update();
-      await act(async () => {
-        showDuplicatesComp()
-          .find(Select)
-          .first()
-          .props()
-          .onChange?.([{ value: 'baz' }], {} as ActionMeta<unknown>);
-      });
-      result = result.update();
-      expect(showDuplicatesComp().find(RemovableError)).toHaveLength(1);
+      await selectOption(selects(), 'baz');
+      expect(screen.getByRole('alert')).toBeDefined();
     });
   });
 });

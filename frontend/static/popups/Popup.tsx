@@ -82,6 +82,7 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
         backdrop: backdrop ?? 'static',
         dialogClassName: `${type}-modal`,
       }}
+      className={chartData.type}
     >
       {visible && <GlobalHotKeys keyMap={{ CLOSE_MODAL: 'esc' }} handlers={{ CLOSE_MODAL: onClose }} />}
       <Resizable

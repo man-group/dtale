@@ -1,21 +1,18 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateString, validateStringCfg } from '../../../popups/create/CreateString';
-import { mockT as t } from '../../test-utils';
+import { validateStringCfg } from '../../../popups/create/CreateString';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateString', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'String');
+    await spies.setupWrapper();
+    await spies.clickBuilder('String');
   });
 
   afterEach(() => spies.afterEach());
@@ -23,20 +20,27 @@ describe('CreateString', () => {
   afterAll(() => spies.afterAll());
 
   it('builds a transform column', async () => {
-    expect(result.find(CreateString)).toHaveLength(1);
-    await act(async () => {
-      result
-        .find(CreateString)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }, { value: 'col2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    expect(screen.getByText('String')).toHaveClass('active');
+    const colSelect = screen.getByText('Columns').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(colSelect, 'col1');
+    await selectOption(colSelect, 'col2');
+    await spies.validateCfg({
       cfg: {
         cols: ['col1', 'col2'],
         joinChar: '_',
+      },
+      name: 'col1_col2_concat',
+      type: CreateColumnType.STRING,
+    });
+    await act(async () => {
+      await fireEvent.change(screen.getByText('Join Character').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '-' },
+      });
+    });
+    await spies.validateCfg({
+      cfg: {
+        cols: ['col1', 'col2'],
+        joinChar: '-',
       },
       name: 'col1_col2_concat',
       type: CreateColumnType.STRING,

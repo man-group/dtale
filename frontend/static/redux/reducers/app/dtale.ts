@@ -257,14 +257,17 @@ export function menuPinned(state = false, action: AppActionTypes): boolean {
  * @param action application event.
  * @return the updated menuTooltip.
  */
-export function menuTooltip(state: MenuTooltipProps = initialVisibility, action: AppActionTypes): MenuTooltipProps {
+export function menuTooltip(
+  state: MenuTooltipProps = { ...initialVisibility },
+  action: AppActionTypes,
+): MenuTooltipProps {
   switch (action.type) {
     case ActionType.SHOW_MENU_TOOLTIP:
       return { visible: true, element: action.element, content: action.content };
     case ActionType.HIDE_MENU_TOOLTIP:
     case ActionType.HIDE_RIBBON_MENU:
     case ActionType.CLEAR_EDIT:
-      return initialVisibility;
+      return { ...state, ...initialVisibility };
     default:
       return state;
   }
@@ -296,14 +299,14 @@ export function ribbonMenuOpen(state = false, action: AppActionTypes): boolean {
  * @return the updated ribbonDropdown.
  */
 export function ribbonDropdown(
-  state: RibbonDropdownProps = initialVisibility,
+  state: RibbonDropdownProps = { ...initialVisibility },
   action: AppActionTypes,
 ): RibbonDropdownProps {
   switch (action.type) {
     case ActionType.OPEN_RIBBON_DROPDOWN:
       return { visible: true, element: action.element, name: action.name };
     case ActionType.HIDE_RIBBON_MENU:
-      return initialVisibility;
+      return { ...state, ...initialVisibility };
     default:
       return state;
   }
@@ -316,12 +319,12 @@ export function ribbonDropdown(
  * @param action application event.
  * @return the updated sidePanel.
  */
-export function sidePanel(state: SidePanelProps = initialVisibility, action: AppActionTypes): SidePanelProps {
+export function sidePanel(state: SidePanelProps = { ...initialVisibility }, action: AppActionTypes): SidePanelProps {
   switch (action.type) {
     case ActionType.SHOW_SIDE_PANEL:
       return { visible: true, view: action.view, column: action.column };
     case ActionType.HIDE_SIDE_PANEL:
-      return initialVisibility;
+      return { ...state, ...initialVisibility };
     case ActionType.UPDATE_SIDE_PANEL_WIDTH:
       return { ...state, offset: action.offset };
     default:

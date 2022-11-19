@@ -8,7 +8,7 @@ export interface FilterSelectProps<T> {
   isMulti?: boolean;
   isClearable?: boolean;
   onChange: (v?: BaseOption<T> | Array<BaseOption<T>>) => void;
-  noOptionsText?: () => string;
+  noOptionsMessage?: () => string;
   value?: BaseOption<T> | Array<BaseOption<T>>;
   options: Array<BaseOption<T>>;
 }
@@ -22,7 +22,7 @@ export default class FilterSelect<T> extends React.Component<FilterSelectProps<T
 
   /** @override */
   public render(): JSX.Element {
-    const { value, isClearable, options, noOptionsText } = this.props;
+    const { value, isClearable, options, noOptionsMessage } = this.props;
     const props = {
       className: 'Select is-clearable is-searchable Select--single',
       classNamePrefix: 'Select',
@@ -30,7 +30,7 @@ export default class FilterSelect<T> extends React.Component<FilterSelectProps<T
       getOptionLabel: (option: BaseOption<T>) => option.label ?? String(option.value),
       filterOption: createFilter({ ignoreAccents: false }), // required for performance reasons!
       options,
-      noOptionsText,
+      noOptionsMessage,
     };
     return (
       <React.Fragment>

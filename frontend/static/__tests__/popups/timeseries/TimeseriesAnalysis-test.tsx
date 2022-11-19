@@ -1,251 +1,275 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { ChartConfiguration } from 'chart.js';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import selectEvent from 'react-select-event';
 
-import ButtonToggle from '../../../ButtonToggle';
-import ChartsBody from '../../../popups/charts/ChartsBody';
-import { Checkbox } from '../../../popups/create/LabeledCheckbox';
-import BaseInputs, { BaseInputProps } from '../../../popups/timeseries/BaseInputs';
-import BKFilter from '../../../popups/timeseries/BKFilter';
-import CFFilter from '../../../popups/timeseries/CFFilter';
-import HPFilter from '../../../popups/timeseries/HPFilter';
+import * as chartUtils from '../../../chartUtils';
+import * as BKFilterUtils from '../../../popups/timeseries/BKFilter';
+import * as CFFilterUtils from '../../../popups/timeseries/CFFilter';
+import * as HPFilterUtils from '../../../popups/timeseries/HPFilter';
 import Reports from '../../../popups/timeseries/Reports';
-import SeasonalDecompose, { SeasonalDecomposeProps } from '../../../popups/timeseries/SeasonalDecompose';
-import {
-  BaseComponentProps,
-  BaseTimeseriesConfig,
-  BKConfig,
-  CFConfig,
-  HPConfig,
-  SeasonalDecomposeConfig,
-  SeasonalDecomposeModel,
-  TimeseriesAnalysisType,
-} from '../../../popups/timeseries/TimeseriesAnalysisState';
+import { TimeseriesAnalysisType } from '../../../popups/timeseries/TimeseriesAnalysisState';
 import { ActionType } from '../../../redux/actions/AppActions';
-import { RemovableError } from '../../../RemovableError';
+import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
-import { parseUrlParams, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, parseUrlParams, selectOption } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('TimeseriesAnalysis', () => {
-  let axiosGetSpy: jest.SpyInstance;
-  let wrapper: ReactWrapper;
-  const dispatchSpy = jest.fn();
+  let wrapper: Element;
+  const mockDispatch = jest.fn();
+  let createChartSpy: CreateChartSpy;
 
   beforeEach(async () => {
-    axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', pythonVersion: [3, 8, 0] });
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
-    wrapper = mount(<Reports />);
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
+    useDispatchMock.mockImplementation(() => mockDispatch);
+    createChartSpy = jest.spyOn(chartUtils, 'createChart');
+    (axios.get as any).mockImplementation(async (url: string) => {
+      if (url.startsWith('/dtale/dtypes')) {
+        return Promise.resolve({
+          data: {
+            dtypes: [
+              ...reduxUtils.DTYPES.dtypes,
+              mockColumnDef({
+                name: 'col5',
+                index: 4,
+                dtype: 'datetime64[ns]',
+                visible: true,
+                unique_ct: 1,
+              }),
+            ],
+            success: true,
+          },
+        });
+      }
+      if (url.startsWith('/dtale/timeseries-analysis')) {
+        return Promise.resolve({ data: { data: { datasets: [{}, {}, {}] } } });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
   });
+
+  const buildMock = async (): Promise<void> => {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    wrapper = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <Reports />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
+  };
 
   afterEach(jest.resetAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
-  const updateType = async (type: TimeseriesAnalysisType): Promise<ReactWrapper> => {
+  const updateType = async (type: TimeseriesAnalysisType): Promise<void> => {
     await act(async () => {
-      wrapper.find(ButtonToggle).first().props().update(type);
+      await fireEvent.click(screen.getByText(type));
     });
-    return wrapper.update();
   };
 
-  const updateState = async <T, U extends BaseComponentProps<T>>(
-    result: ReactWrapper<U, Record<string, any>>,
-    cfg: T,
-  ): Promise<ReactWrapper> => {
+  it('renders successfully', async () => {
+    await buildMock();
+    expect(screen.getByText('Index')).toBeDefined();
+    const indexSelect = screen.getByText('Index').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
-      result.props().updateState?.(cfg);
+      await selectEvent.openMenu(indexSelect);
     });
-    return wrapper.update();
-  };
-
-  it('renders successfully', () => {
-    expect(wrapper.find(BaseInputs)).toHaveLength(1);
-    expect(wrapper.find(BaseInputs).props().columns).toHaveLength(4);
-    expect(wrapper.find(BaseInputs).props().cfg).toMatchObject({ index: 'col4' });
-    expect(wrapper.find(HPFilter)).toHaveLength(1);
+    expect(Array.from(indexSelect.getElementsByClassName('Select__option')).map((o) => o.textContent)).toEqual([
+      'col4',
+      'col5',
+    ]);
+    expect(screen.getByText('Lambda')).toBeDefined();
   });
 
   it('builds chart configs successfully', async () => {
-    wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
-      col: 'foo',
-      index: 'date',
-    });
-    let cfg = wrapper
-      .find(ChartsBody)
-      .props()
-      .configHandler?.({
-        data: { datasets: [{}, {}, {}] },
-        options: {
-          scales: {
-            'y-cycle': {},
-            'y-trend': {},
-            'y-foo': { title: {} },
-            x: { title: { display: false } },
-          },
-          plugins: {},
-        },
-      } as any as ChartConfiguration);
-    expect(cfg).toBeDefined();
+    await buildMock();
+    await selectOption(
+      screen.getByText('Index').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col4',
+    );
+    await selectOption(
+      screen.getByText('Column').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    let tsChart = getLastChart(createChartSpy, 'line');
+    expect(tsChart).toBeDefined();
     await act(async () => {
-      wrapper.find(Checkbox).first().find('i').simulate('click');
+      await fireEvent.click(wrapper.getElementsByTagName('i')[0]);
     });
-    wrapper = wrapper.update();
-    cfg = wrapper
-      .find(ChartsBody)
-      .props()
-      .configHandler?.({
-        data: { datasets: [{ label: 'foo', data: [] }, {}, {}] },
-        options: {
-          scales: {
-            'y-cycle': {},
-            'y-trend': {},
-            'y-foo': { title: {} },
-            x: { title: { display: false } },
-          },
-          plugins: {},
-        },
-      } as any as ChartConfiguration);
-    expect(Object.keys(cfg?.options?.scales ?? {})).toEqual(['y-foo', 'x']);
+    tsChart = getLastChart(createChartSpy, 'line');
+    expect(Object.keys(tsChart?.options?.scales ?? {})).toEqual(['y-col2', 'y-cycle', 'y-trend', 'x']);
   });
 
   it('handles mount error', async () => {
-    axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: { error: 'failure' } }));
-    wrapper = mount(<Reports />);
-    await act(async () => tickUpdate(wrapper));
-    expect(wrapper.find(RemovableError).props().error).toBe('failure');
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: { error: 'failure' } }));
+    await buildMock();
+    expect(screen.getByRole('alert').textContent).toBe('failure');
   });
 
   it('renders report inputs successfully', async () => {
-    wrapper = await updateType(TimeseriesAnalysisType.BKFILTER);
-    expect(wrapper.find(BKFilter)).toHaveLength(1);
-    wrapper = await updateType(TimeseriesAnalysisType.CFFILTER);
-    expect(wrapper.find(CFFilter)).toHaveLength(1);
-    wrapper = await updateType(TimeseriesAnalysisType.SEASONAL_DECOMPOSE);
-    expect(wrapper.find(SeasonalDecompose)).toHaveLength(1);
-    wrapper = await updateType(TimeseriesAnalysisType.STL);
-    expect(wrapper.find(SeasonalDecompose)).toHaveLength(1);
+    await buildMock();
+    await updateType(TimeseriesAnalysisType.BKFILTER);
+    expect(screen.getByText('K')).toBeDefined();
+    await updateType(TimeseriesAnalysisType.CFFILTER);
+    expect(screen.getByText('Drift')).toBeDefined();
+    await updateType(TimeseriesAnalysisType.SEASONAL_DECOMPOSE);
+    expect(screen.getByText('Model')).toBeDefined();
+    await updateType(TimeseriesAnalysisType.STL);
+    expect(screen.queryAllByText('Model')).toHaveLength(0);
   });
 
   it('closes successfully', async () => {
+    await buildMock();
     await act(async () => {
-      wrapper.find('button').first().simulate('click');
+      await fireEvent.click(wrapper.getElementsByTagName('button')[0]);
     });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
   });
 
   describe('validate report builder', () => {
     beforeEach(async () => {
-      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
-        col: 'col1',
-        index: 'index',
-      });
+      await buildMock();
+      await selectOption(
+        screen.getByText('Index').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+        'col4',
+      );
+      await selectOption(
+        screen.getByText('Column').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+        'col2',
+      );
     });
 
+    const getLastChartUrl = (): string => {
+      const chartCalls = (axios.get as any as jest.SpyInstance).mock.calls.filter((call) =>
+        call[0].startsWith('/dtale/timeseries-analysis'),
+      );
+      return chartCalls[chartCalls.length - 1][0];
+    };
+
     it('bkfilter', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.BKFILTER);
-      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
-        low: 6,
-        high: 32,
-        K: 12,
+      await updateType(TimeseriesAnalysisType.BKFILTER);
+      await act(async () => {
+        await fireEvent.change(screen.getByText('Low').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 6 },
+        });
       });
-      expect(wrapper.find('pre').text()).toBeDefined();
-      const url = wrapper.find(ChartsBody).props().url;
+      await act(async () => {
+        await fireEvent.change(screen.getByText('High').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 32 },
+        });
+      });
+      await act(async () => {
+        await fireEvent.change(screen.getByText('K').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 12 },
+        });
+      });
+      expect(wrapper.getElementsByTagName('pre')).not.toHaveLength(0);
+      const url = getLastChartUrl();
       expect(url?.startsWith('/dtale/timeseries-analysis/1')).toBe(true);
       const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('bkfilter');
     });
 
     it('hpfilter', async () => {
-      wrapper = await updateState<HPConfig, BaseComponentProps<HPConfig>>(wrapper.find(HPFilter), { lamb: 1600 });
-      expect(wrapper.find('pre').text()).toBeDefined();
-      const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
+      await act(async () => {
+        await fireEvent.change(screen.getByText('Lambda').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 1600 },
+        });
+      });
+      expect(wrapper.getElementsByTagName('pre')).not.toHaveLength(0);
+      const url = getLastChartUrl();
+      const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('hpfilter');
     });
 
     it('cffilter', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.CFFILTER);
-      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {
-        low: 6,
-        high: 32,
-        drift: true,
+      await updateType(TimeseriesAnalysisType.CFFILTER);
+      await act(async () => {
+        await fireEvent.change(screen.getByText('Low').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 6 },
+        });
       });
-      expect(wrapper.find('pre').text()).toBeDefined();
-      const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
+      await act(async () => {
+        await fireEvent.change(screen.getByText('High').parentElement!.getElementsByTagName('input')[0], {
+          target: { value: 32 },
+        });
+      });
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Drift').parentElement!.getElementsByTagName('i')[0]);
+      });
+      expect(wrapper.getElementsByTagName('pre')).not.toHaveLength(0);
+      const url = getLastChartUrl();
+      const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('cffilter');
     });
 
     it('seasonal_decompose', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.SEASONAL_DECOMPOSE);
-      wrapper = await updateState<SeasonalDecomposeConfig, SeasonalDecomposeProps>(wrapper.find(SeasonalDecompose), {
-        model: SeasonalDecomposeModel.ADDITIVE,
+      await updateType(TimeseriesAnalysisType.SEASONAL_DECOMPOSE);
+      await act(async () => {
+        await fireEvent.click(screen.getByText('additive'));
       });
-      expect(wrapper.find('pre').text()).toBeDefined();
-      const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
+      expect(wrapper.getElementsByTagName('pre')).not.toHaveLength(0);
+      const url = getLastChartUrl();
+      const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('seasonal_decompose');
     });
 
     it('stl', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.STL);
-      wrapper = await updateState<SeasonalDecomposeConfig, SeasonalDecomposeProps>(
-        wrapper.find(SeasonalDecompose),
-        {} as SeasonalDecomposeConfig,
-      );
-      expect(wrapper.find('pre').text()).toBeDefined();
-      const urlParams = parseUrlParams(wrapper.find(ChartsBody).props().url);
+      await updateType(TimeseriesAnalysisType.STL);
+      expect(wrapper.getElementsByTagName('pre')).not.toHaveLength(0);
+      const url = getLastChartUrl();
+      const urlParams = parseUrlParams(url);
       expect(urlParams.type).toBe('stl');
     });
   });
 
   describe('report errors', () => {
-    beforeEach(async () => {
-      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {});
-      expect(wrapper.find(RemovableError).props().error).toBe('Missing an index selection!');
-      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), { index: 'index' });
-      expect(wrapper.find(RemovableError).props().error).toBe('Missing a column selection!');
-      wrapper = await updateState<BaseTimeseriesConfig, BaseInputProps>(wrapper.find(BaseInputs), {
-        col: 'col1',
-        index: 'index',
+    it('BaseInputs', async () => {
+      await buildMock();
+      await act(async () => {
+        await fireEvent.change(wrapper.getElementsByTagName('input')[0], { target: { value: '' } });
       });
+      expect(screen.getByRole('alert').textContent).toBe('Missing an index selection!');
+      await selectOption(
+        screen.getByText('Index').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+        'col4',
+      );
+      expect(screen.getByRole('alert').textContent).toBe('Missing a column selection!');
     });
 
     it('bkfilter', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.BKFILTER);
-      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {} as BKConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter a low!');
-      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
-        low: 6,
-      } as BKConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter a high!');
-      wrapper = await updateState<BKConfig, BaseComponentProps<BKConfig>>(wrapper.find(BKFilter), {
-        low: 6,
-        high: 32,
-      } as BKConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter K!');
+      expect(BKFilterUtils.validate({ index: 'col4', col: 'col1', low: 0, high: 0, K: 0 })).toBe('Please enter a low!');
+      expect(BKFilterUtils.validate({ index: 'col4', col: 'col1', low: 6, high: 0, K: 0 })).toBe(
+        'Please enter a high!',
+      );
+      expect(BKFilterUtils.validate({ index: 'col4', col: 'col1', low: 6, high: 32, K: 0 })).toBe('Please enter K!');
     });
 
     it('hpfilter', async () => {
-      wrapper = await updateState<HPConfig, BaseComponentProps<HPConfig>>(wrapper.find(HPFilter), {} as HPConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter a lambda!');
+      expect(HPFilterUtils.validate({ index: 'col4', col: 'col1', lamb: 0 })).toBe('Please enter a lambda!');
     });
 
     it('cffilter', async () => {
-      wrapper = await updateType(TimeseriesAnalysisType.CFFILTER);
-      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {} as CFConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter a low!');
-      wrapper = await updateState<CFConfig, BaseComponentProps<CFConfig>>(wrapper.find(CFFilter), {
-        low: 6,
-      } as CFConfig);
-      expect(wrapper.find(RemovableError).props().error).toBe('Please enter a high!');
+      expect(CFFilterUtils.validate({ index: 'col4', col: 'col1', low: 0, high: 0, drift: false })).toBe(
+        'Please enter a low!',
+      );
+      expect(CFFilterUtils.validate({ index: 'col4', col: 'col1', low: 6, high: 0, drift: false })).toBe(
+        'Please enter a high!',
+      );
     });
   });
 });

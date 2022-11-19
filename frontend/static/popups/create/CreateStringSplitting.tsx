@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -15,7 +16,7 @@ import { LabeledInput } from './LabeledInput';
 
 export const validateStringSplittingCfg = (t: TFunction, cfg: StringSplittingConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Missing a column selection!');
+    return t('Missing a column selection!') ?? undefined;
   }
   return undefined;
 };

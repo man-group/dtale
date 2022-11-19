@@ -1,8 +1,8 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { Table } from 'react-virtualized';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import CorrelationAnalysis from '../../../dtale/side/CorrelationAnalysis';
@@ -10,9 +10,15 @@ import { ActionType } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
 import { ConfirmationPopupData, DataViewerUpdateType, PopupType } from '../../../redux/state/AppState';
 import * as CorrelationsRepository from '../../../repository/CorrelationsRepository';
-import { StyledSlider } from '../../../sliderUtils';
 import DimensionsHelper from '../../DimensionsHelper';
-import { tickUpdate } from '../../test-utils';
+import { FakeMouseEvent } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 const ANALYSIS = {
   ranks: [
@@ -30,9 +36,11 @@ const ANALYSIS = {
 };
 
 describe('CorrelationAnalysis', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: RenderResult;
+  const mockStore = configureStore();
+  let store: Store;
+  const mockDispatch = jest.fn();
   let serverStateSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
   const dimensions = new DimensionsHelper({
     offsetWidth: 1205,
     offsetHeight: 775,
@@ -41,17 +49,29 @@ describe('CorrelationAnalysis', () => {
   beforeAll(() => dimensions.beforeAll());
 
   beforeEach(async () => {
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    (Element.prototype as any).getBoundingClientRect = jest.fn(() => {
+      return {
+        width: 0,
+        height: 100,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 10,
+      };
+    });
+    useDispatchMock.mockImplementation(() => mockDispatch);
     const loadAnalysisSpy = jest.spyOn(CorrelationsRepository, 'loadAnalysis');
     loadAnalysisSpy.mockResolvedValue({ ...ANALYSIS, success: true });
     serverStateSpy = jest.spyOn(serverState, 'deleteColumns');
     serverStateSpy.mockResolvedValue(Promise.resolve({ success: true }));
-    wrapper = mount(<CorrelationAnalysis />);
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
+    store = mockStore({ dataId: '1' });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      return render(
+        <Provider store={store}>
+          <CorrelationAnalysis />
+        </Provider>,
+      );
+    });
   });
 
   afterEach(jest.resetAllMocks);
@@ -62,35 +82,33 @@ describe('CorrelationAnalysis', () => {
   });
 
   it('renders successfully', () => {
-    expect(wrapper.find(Table).props().rowCount).toBe(3);
+    expect(screen.getByRole('grid').getAttribute('aria-rowcount')).toBe('3');
   });
 
   it('handles sorts', async () => {
     await act(async () => {
-      wrapper.find('div.headerCell.pointer').first().simulate('click');
+      fireEvent.click(wrapper.container.querySelector('div.headerCell.pointer')!);
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find('div.headerCell.pointer').map((div) => div.text())).toEqual([
+    expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       '▲ Column',
       'Max Correlation w/ Other Columns',
       'Correlations\nAbove Threshold',
       'Missing Rows',
     ]);
     await act(async () => {
-      wrapper.find('div.headerCell.pointer').first().simulate('click');
+      fireEvent.click(wrapper.container.querySelector('div.headerCell.pointer')!);
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find('div.headerCell.pointer').map((div) => div.text())).toEqual([
+    expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       '▼ Column',
       'Max Correlation w/ Other Columns',
       'Correlations\nAbove Threshold',
       'Missing Rows',
     ]);
     await act(async () => {
-      wrapper.find('div.headerCell.pointer').last().simulate('click');
+      const headers = wrapper.container.querySelectorAll('div.headerCell.pointer');
+      fireEvent.click(headers[headers.length - 1]);
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find('div.headerCell.pointer').map((div) => div.text())).toEqual([
+    expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       'Column',
       'Max Correlation w/ Other Columns',
       'Correlations\nAbove Threshold',
@@ -101,33 +119,36 @@ describe('CorrelationAnalysis', () => {
   it('handles deselection of columns', async () => {
     const openChartSpy = jest.spyOn(chartActions, 'openChart');
     await act(async () => {
-      wrapper.find('i.ico-check-box').first().simulate('click');
+      fireEvent.click(wrapper.container.querySelector('i.ico-check-box')!);
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find('i.ico-check-box-outline-blank')).toHaveLength(1);
-    expect(wrapper.find('button.btn-primary')).toHaveLength(1);
+    expect(wrapper.container.querySelector('i.ico-check-box-outline-blank')).toBeDefined();
+    expect(wrapper.container.querySelector('button.btn-primary')).toBeDefined();
     await act(async () => {
-      wrapper.find('button.btn-primary').first().simulate('click');
+      fireEvent.click(wrapper.container.querySelector('button.btn-primary')!);
     });
-    wrapper = wrapper.update();
     expect(openChartSpy).toHaveBeenLastCalledWith(expect.objectContaining({ type: PopupType.CONFIRM }));
     await act(async () => {
       (openChartSpy.mock.calls[0][0] as ConfirmationPopupData).yesAction?.();
     });
-    wrapper = wrapper.update();
     expect(serverStateSpy).toHaveBeenCalledWith('1', ['foo']);
-    expect(dispatchSpy).toHaveBeenCalledWith({
+    expect(mockDispatch).toHaveBeenCalledWith({
       type: ActionType.DATA_VIEWER_UPDATE,
       update: { type: DataViewerUpdateType.DROP_COLUMNS, columns: ['foo'] },
     });
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
   });
 
   it('handles threshold updates', async () => {
+    const thumb = screen.getByRole('slider');
     await act(async () => {
-      wrapper.find(StyledSlider).props().onAfterChange(0.25);
+      await fireEvent(thumb, new FakeMouseEvent('mousedown', { bubbles: true, pageX: 0, pageY: 0 }));
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find(Table).props().rowCount).toBe(3);
+    await act(async () => {
+      await fireEvent(thumb, new FakeMouseEvent('mousemove', { bubbles: true, pageX: 50, pageY: 0 }));
+    });
+    await act(async () => {
+      await fireEvent.mouseUp(thumb);
+    });
+    expect(screen.getByRole('grid').getAttribute('aria-rowcount')).toBe('3');
   });
 });

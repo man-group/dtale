@@ -1,12 +1,11 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import * as menuUtils from '../../../menuUtils';
-import { default as AxisEditor, AxisEditorProps } from '../../../popups/charts/AxisEditor';
+import { default as AxisEditor } from '../../../popups/charts/AxisEditor';
 
 describe('ChartLabel tests', () => {
-  let result: ReactWrapper<AxisEditorProps>;
+  let result: Element;
   const updateAxis = jest.fn();
   let openMenuSpy: jest.SpyInstance<
     (e: React.MouseEvent) => void,
@@ -28,7 +27,7 @@ describe('ChartLabel tests', () => {
       y: [{ value: 'y' }],
       updateAxis,
     };
-    result = mount(<AxisEditor {...props} />);
+    result = render(<AxisEditor {...props} />).container;
   });
 
   afterEach(jest.resetAllMocks);
@@ -36,40 +35,27 @@ describe('ChartLabel tests', () => {
   afterAll(jest.restoreAllMocks);
 
   it('creates label', () => {
-    expect(result.find('span.axis-select').text()).toBe('y (1,5)');
+    expect(result.querySelector('span.axis-select')!.textContent).toBe('y (1,5)');
   });
 
   it('handles errors & changes', async () => {
     await act(async () => {
-      result.find('span.axis-select').simulate('click');
+      await fireEvent.click(result.querySelector('span.axis-select')!);
     });
-    result = result.update();
+    const inputs = Array.from(result.querySelectorAll('input.axis-input'));
     await act(async () => {
-      result
-        .find('input.axis-input')
-        .first()
-        .simulate('change', { target: { value: '3' } });
+      await fireEvent.change(inputs[0], { target: { value: '3' } });
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find('input.axis-input')
-        .last()
-        .simulate('change', { target: { value: '4' } });
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: '4' } });
     });
-    result = result.update();
     await act(async () => {
       openMenuSpy.mock.calls[openMenuSpy.mock.calls.length - 1][1]();
     });
-    result = result.update();
     expect(updateAxis).toBeCalledWith({ min: { y: 3 }, max: { y: 4 } });
     await act(async () => {
-      result
-        .find('input.axis-input')
-        .last()
-        .simulate('change', { target: { value: 'a' } });
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: 'a' } });
     });
-    result = result.update();
     updateAxis.mockReset();
     await act(async () => {
       openMenuSpy.mock.calls[openMenuSpy.mock.calls.length - 1][1]();

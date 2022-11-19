@@ -1,7 +1,14 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { AutoSizer, Column, Table } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  Column as _Column,
+  Table as _Table,
+  AutoSizerProps,
+  ColumnProps,
+  TableProps,
+} from 'react-virtualized';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ColumnSelect from '../../popups/create/ColumnSelect';
@@ -15,6 +22,10 @@ import { ColumnDef } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
 require('./GageRnR.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const Column = _Column as unknown as React.FC<ColumnProps>;
+const Table = _Table as unknown as React.FC<TableProps>;
 
 /** State properties for a Gage R & R report */
 interface GageRnrState {
@@ -86,7 +97,7 @@ const GageRnR: React.FC<WithTranslation> = ({ t }) => {
         <FilterableToggle hasFilters={hasFilters} {...state} propagateState={(updates) => loadReport(updates)} />
         <div className="col-auto">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? ''} />
           </button>
         </div>
       </div>

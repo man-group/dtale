@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef, DataViewerPropagateState } from '../../dtale/DataViewerState';
-import { AppActions } from '../../redux/actions/AppActions';
+import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import { AppState, CreateColumnPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -43,7 +43,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     chartData: state.chartData as CreateColumnPopupData,
   }));
   const dispatch = useDispatch();
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();

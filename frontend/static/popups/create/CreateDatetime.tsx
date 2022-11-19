@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { BaseOption } from '../../redux/state/AppState';
@@ -19,7 +20,7 @@ import {
 export const validateDatetimeCfg = (t: TFunction, cfg: DatetimeConfig): string | undefined => {
   const { col } = cfg;
   if (!col) {
-    return t('Missing a column selection!');
+    return t('Missing a column selection!') ?? undefined;
   }
   return undefined;
 };

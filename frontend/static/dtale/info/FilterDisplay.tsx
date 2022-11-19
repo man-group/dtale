@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { ActionType, AppActions, SidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, SidePanelAction } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { AppState, InstanceSettings, SidePanelType } from '../../redux/state/AppState';
 import { truncate } from '../../stringUtils';
@@ -20,8 +21,8 @@ export const Queries: React.FC<{ prop: string; filters: Record<string, OutlierFi
 }) => {
   const dataId = useSelector((state: AppState) => state.dataId);
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
   const dropColFilter =
     (dropCol: string): (() => Promise<void>) =>
     async (): Promise<void> => {
@@ -35,7 +36,7 @@ export const Queries: React.FC<{ prop: string; filters: Record<string, OutlierFi
     <React.Fragment>
       {Object.entries(filters).map(([col, cfg]) => {
         return (
-          <li key={`${prop}-${col}`}>
+          <li key={`${prop}-${col}`} data-testid="query-entry">
             <span className="toggler-action">
               <button className="btn btn-plain ignore-clicks" onClick={dropColFilter(col)}>
                 <i className="ico-cancel mr-4" />
@@ -68,8 +69,8 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     sortInfo: state.settings.sortInfo,
   }));
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
   const filterRef = React.useRef<HTMLDivElement>(null);
 
@@ -157,14 +158,14 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
         className="ico-cancel pl-3 pointer"
         style={{ marginTop: '-0.1em' }}
         onClick={clearFilter()}
-        title={t('Clear Filters')}
+        title={t('Clear Filters') ?? ''}
       />
       {!reduxState.hideDropRows && (
         <i
           className="fas fa-eraser pl-3 pointer"
           style={{ marginTop: '-0.1em' }}
           onClick={clearFilter(true)}
-          title={t('Drop Filtered Rows')}
+          title={t('Drop Filtered Rows') ?? ''}
         />
       )}
       <i
@@ -174,14 +175,14 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
           opacity: reduxState.invertFilter ? 1 : 0.5,
         }}
         onClick={toggleInvert}
-        title={t('Invert Filter')}
+        title={t('Invert Filter') ?? ''}
       />
       {(!!Object.keys(columnFilters).length || !!Object.keys(outlierFilters).length) && (
         <i
           className="fa fa-filter pl-3 pointer"
           style={{ marginTop: '-0.1em' }}
           onClick={moveToCustom}
-          title={t('Move Filters To Custom')}
+          title={t('Move Filters To Custom') ?? ''}
         />
       )}
     </>

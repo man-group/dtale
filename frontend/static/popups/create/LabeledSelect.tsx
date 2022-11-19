@@ -11,7 +11,7 @@ interface DtaleSelectProps {
   value?: BaseOption<any> | Array<BaseOption<any>>;
   onChange?: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
   noOptionsMessage?: string;
-  placeholder?: string;
+  placeholder?: string | null;
 }
 
 export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
@@ -47,7 +47,7 @@ interface LabeledSelectProps extends DtaleSelectProps {
   labelWidth?: number;
 }
 
-export const LabeledSelect: React.FC<LabeledSelectProps> = ({
+export const LabeledSelect: React.FC<React.PropsWithChildren<LabeledSelectProps>> = ({
   label,
   subLabel,
   children,

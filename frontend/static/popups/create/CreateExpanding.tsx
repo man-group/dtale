@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
@@ -17,10 +18,10 @@ import { LabeledSelect } from './LabeledSelect';
 
 export const validateExpandingCfg = (t: TFunction, cfg: ExpandingConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   if (!cfg.agg) {
-    return t('Please select an aggregation!');
+    return t('Please select an aggregation!') ?? undefined;
   }
   return undefined;
 };
@@ -67,7 +68,7 @@ const CreateExpanding: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       />
       <LabeledInput
         type="number"
-        label={t('Min Periods')}
+        label={t('Min Periods') ?? ''}
         value={periods}
         setter={(value) => setPeriods(Number(value))}
       />

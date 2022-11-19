@@ -1,52 +1,52 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
+import { Provider } from 'react-redux';
 
-import ButtonToggle from '../../ButtonToggle';
 import * as chartUtils from '../../chartUtils';
 import ColumnAnalysis from '../../popups/analysis/ColumnAnalysis';
-import ColumnAnalysisFilters, { ColumnAnalysisFiltersProps } from '../../popups/analysis/filters/ColumnAnalysisFilters';
-import { RemovableError } from '../../RemovableError';
+import { ActionType } from '../../redux/actions/AppActions';
+import { ColumnAnalysisPopupData, PopupType } from '../../redux/state/AppState';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
-import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, parseUrlParams, tickUpdate } from '../test-utils';
+import reduxUtils from '../redux-test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, parseUrlParams, selectOption } from '../test-utils';
 
 import { ANALYSIS_DATA } from './ColumnAnalysis.test.support';
 
-const props = {
-  dataId: '1',
-  chartData: {
-    visible: true,
-    type: 'column-analysis',
-    title: 'ColumnAnalysis Test',
-    selectedCol: 'bar',
-    query: 'col == 3',
-  },
+const props: ColumnAnalysisPopupData = {
+  visible: true,
+  type: PopupType.COLUMN_ANALYSIS,
+  title: 'ColumnAnalysis Test',
+  selectedCol: 'bar',
+  query: 'col == 3',
 };
 
 describe('ColumnAnalysis tests', () => {
-  let result: ReactWrapper;
-  let useSelectorSpy: jest.SpyInstance<
-    unknown,
-    [selector: (state: unknown) => unknown, equalityFn?: ((left: unknown, right: unknown) => boolean) | undefined]
-  >;
+  let result: Element;
   let createChartSpy: CreateChartSpy;
   let loadAnalysisSpy: jest.SpyInstance<
     Promise<ColumnAnalysisRepository.ColumnAnalysisResponse | undefined>,
     [dataId: string, params: Record<string, any>]
   >;
 
-  const updateProps = async (newProps = props): Promise<void> => {
-    useSelectorSpy.mockReset();
-    useSelectorSpy.mockReturnValue(newProps);
-    buildInnerHTML();
-    result = mount(<ColumnAnalysis />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+  const updateProps = async (chartData?: Partial<ColumnAnalysisPopupData>): Promise<void> => {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...props, ...chartData } });
+    if (chartData?.visible === false) {
+      store.dispatch({ type: ActionType.CLOSE_CHART });
+    }
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <ColumnAnalysis />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
+    );
   };
 
   beforeAll(mockChartJS);
@@ -54,8 +54,7 @@ describe('ColumnAnalysis tests', () => {
   beforeEach(async () => {
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
     loadAnalysisSpy = jest.spyOn(ColumnAnalysisRepository, 'loadAnalysis');
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/column-analysis')) {
         const params = parseUrlParams(url);
         const ordinal = ANALYSIS_DATA.data;
@@ -146,36 +145,43 @@ describe('ColumnAnalysis tests', () => {
           return Promise.resolve({ data: { ...ANALYSIS_DATA, timestamp: new Date().getTime() } });
         }
       }
-      return Promise.resolve({ data: {} });
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
   });
 
   afterEach(jest.restoreAllMocks);
 
-  const input = (): ReactWrapper => result.find('input');
-  const filters = (): ReactWrapper<ColumnAnalysisFiltersProps, Record<string, any>> =>
-    result.find(ColumnAnalysisFilters);
+  const input = (): HTMLInputElement => result.getElementsByTagName('input')[0];
 
   it('ColumnAnalysis rendering float data', async () => {
     await updateProps();
-    expect(result.find(ButtonToggle).props().options[2].label).toBe('Geolocation');
-    expect(input().prop('value')).toBe('20');
+    expect(screen.getByText('Geolocation')).toBeDefined();
+    expect(input().value).toBe('20');
     expect(getLastChart(createChartSpy).type).toBe('bar');
     expect(getLastChart(createChartSpy).data.datasets[0].data).toEqual(ANALYSIS_DATA.data);
     expect(getLastChart(createChartSpy).data.labels).toEqual(ANALYSIS_DATA.labels);
     expect(getLastChart(createChartSpy).options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
     await act(async () => {
-      input().simulate('change', { target: { value: '' } });
-      input().simulate('keyDown', { key: 'Shift' });
-      input().simulate('keyDown', { key: 'Enter' });
-      input().simulate('change', { target: { value: 'a' } });
-      input().simulate('keyDown', { key: 'Enter' });
-      input().simulate('change', { target: { value: '50' } });
-      input().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.change(input(), { target: { value: '' } });
     });
-    result = result.update();
+    await act(async () => {
+      await fireEvent.keyDown(input(), { key: 'Shift' });
+    });
+    await act(async () => {
+      await fireEvent.keyDown(input(), { key: 'Enter' });
+    });
+    await act(async () => {
+      await fireEvent.change(input(), { target: { value: 'a' } });
+    });
+    await act(async () => {
+      await fireEvent.keyDown(input(), { key: 'Enter' });
+    });
+    await act(async () => {
+      await fireEvent.change(input(), { target: { value: '50' } });
+    });
+    await act(async () => {
+      await fireEvent.keyDown(input(), { key: 'Enter' });
+    });
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith(
       '1',
       expect.objectContaining({
@@ -186,40 +192,27 @@ describe('ColumnAnalysis tests', () => {
 
   it('ColumnAnalysis chart functionality', async () => {
     createChartSpy.mockReset();
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, visible: false },
-    });
+    await updateProps({ visible: false });
     expect(createChartSpy).not.toHaveBeenCalled();
   });
 
   it('ColumnAnalysis additional functions', async () => {
     await updateProps();
     await act(async () => {
-      result.find(ColumnAnalysisFilters).find('button').at(1).simulate('click');
+      await fireEvent.click(screen.getByText('Categories'));
     });
-    result = result.update();
+    await selectOption(screen.getByTestId('category-col').getElementsByClassName('Select')[0] as HTMLElement, 'strCol');
     await act(async () => {
-      filters()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(input(), { target: { value: '50' } });
     });
-    result = result.update();
     await act(async () => {
-      filters()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '50' } });
-      filters().find('input').first().simulate('keyDown', { key: 'Enter' });
+      fireEvent.keyDown(input(), { key: 'Enter' });
     });
-    result = result.update();
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith(
       '1',
       expect.objectContaining({
         categoryAgg: 'mean',
-        categoryCol: 'col1',
+        categoryCol: 'strCol',
         type: 'categories',
       }),
     );
@@ -228,81 +221,60 @@ describe('ColumnAnalysis tests', () => {
   it('geolocation chart functionality', async () => {
     await updateProps();
     await act(async () => {
-      result.find('ButtonToggle').find('button').at(2).simulate('click');
+      await fireEvent.click(screen.getByText('Geolocation'));
     });
-    result = result.update();
-    expect(result.find('GeoFilters')).toHaveLength(1);
-    expect(result.find('GeoFilters').text()).toBe('Latitude:barLongitude:lon');
+    const latitudeFilter = screen.getByText('Latitude:');
+    expect(latitudeFilter).toBeDefined();
+    expect(latitudeFilter.parentElement!.textContent).toBe('Latitude:barLongitude:lon');
   });
 
   it('qq plot chart functionality', async () => {
     await updateProps();
     const qqSpy = jest.spyOn(chartUtils, 'createQQ');
     await act(async () => {
-      result.find('ButtonToggle').find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Q-Q Plot'));
     });
-    result = result.update();
     expect(qqSpy).toHaveBeenCalled();
   });
 
   it('ColumnAnalysis rendering int data', async () => {
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, selectedCol: 'intCol' },
-    });
+    await updateProps({ ...props, selectedCol: 'intCol' });
     await act(async () => {
-      filters().find('button').at(1).simulate('click');
+      await fireEvent.click(screen.getByText('Value Counts'));
     });
-    result = result.update();
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith('1', expect.objectContaining({ type: 'value_counts' }));
   });
 
   it('ColumnAnalysis rendering string data', async () => {
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, selectedCol: 'strCol' },
-    });
+    await updateProps({ ...props, selectedCol: 'strCol' });
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith('1', expect.objectContaining({ type: 'histogram' }));
   });
 
   it('ColumnAnalysis rendering date data', async () => {
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, selectedCol: 'dateCol' },
-    });
+    await updateProps({ ...props, selectedCol: 'dateCol' });
     await act(async () => {
-      filters().find('button').at(1).simulate('click');
+      await fireEvent.click(screen.getByText('Value Counts'));
     });
-    result = result.update();
-    const ordinalInputs = result.find(Select);
-    await act(async () => {
-      ordinalInputs
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
+    await selectOption(
+      result.getElementsByClassName('ordinal-dd')[0].getElementsByClassName('Select')[0] as HTMLElement,
+      'intCol',
+    );
     expect(loadAnalysisSpy).toHaveBeenLastCalledWith(
       '1',
       expect.objectContaining({
         ordinalAgg: 'sum',
-        ordinalCol: 'col1',
+        ordinalCol: 'intCol',
       }),
     );
   });
 
   it('ColumnAnalysis missing data', async () => {
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, selectedCol: 'null' },
-    });
+    await updateProps({ ...props, selectedCol: 'null' });
     expect(createChartSpy).not.toHaveBeenCalled();
   });
 
   it('ColumnAnalysis error', async () => {
-    await updateProps({
-      ...props,
-      chartData: { ...props.chartData, selectedCol: 'error' },
-    });
-    expect(result.find(RemovableError).text()).toBe('column analysis error');
+    await updateProps({ ...props, selectedCol: 'error' });
+    expect(screen.getByRole('alert').textContent).toBe('column analysis error');
   });
 });

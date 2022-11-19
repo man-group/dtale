@@ -1,23 +1,17 @@
+import { act, fireEvent, screen } from '@testing-library/react';
+import axios from 'axios';
 import { Chart, ChartEvent } from 'chart.js';
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import selectEvent from 'react-select-event';
 
-import { getLastChart, MockChart, mockWordcloud } from '../../test-utils'; // eslint-disable-line import/order
-mockWordcloud();
-
-import { JSAnchor } from '../../../JSAnchor';
-import Aggregations from '../../../popups/charts/Aggregations';
-import ChartsBody from '../../../popups/charts/ChartsBody';
-import { RemovableError } from '../../../RemovableError';
 import reduxUtils from '../../redux-test-utils';
-import { parseUrlParams } from '../../test-utils';
+import { getLastChart, MockChart, mockWordcloud, parseUrlParams, selectOption } from '../../test-utils';
+mockWordcloud();
 
 import * as TestSupport from './charts.test.support';
 
 describe('Charts tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeAll(() => spies.beforeAll());
 
@@ -29,69 +23,45 @@ describe('Charts tests', () => {
   afterAll(() => spies.afterAll());
 
   it('Charts: rendering', async () => {
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(
+      screen.getByText('Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    await selectOption(
+      screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Rolling',
+    );
     await act(async () => {
-      result
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Window').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '10' },
+      });
     });
-    result = result.update();
+    await selectOption(
+      screen.getByText('Computation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Correlation',
+    );
     await act(async () => {
-      result
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Query').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: "col4 == '20181201'" },
+      });
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(Select)
-        .at(3)
-        .props()
-        .onChange?.({ value: 'rolling', label: 'Rolling' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(Aggregations)
-        .find('input')
-        .at(1)
-        .simulate('change', { target: { value: '10' } });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(Aggregations)
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'corr', label: 'Correlation' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find('input.form-control')
-        .first()
-        .simulate('change', { target: { value: "col4 == '20181201'" } });
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
-    expect(result.find(ChartsBody).find('canvas')).toHaveLength(1);
-    const params = parseUrlParams(result.find(ChartsBody).props().url ?? '');
+    expect(result.getElementsByTagName('canvas')).toHaveLength(1);
+    const params = parseUrlParams(spies.geLastChartUrl() ?? '');
     expect({ ...params, y: decodeURIComponent(params.y), query: decodeURIComponent(params.query) }).toEqual({
       x: 'col4',
       y: '["col1"]',
+      group: '["col2"]',
       agg: 'rolling',
       query: "col4+==+'20181201'",
       rollingComp: 'corr',
       rollingWin: '10',
     });
-    let lastChart = getLastChart(spies.createChartSpy);
+    const lastChart = getLastChart(spies.createChartSpy);
     await act(async () => {
       lastChart.options?.onClick?.(
         {} as any as ChartEvent,
@@ -99,48 +69,48 @@ describe('Charts tests', () => {
         new MockChart({} as HTMLCanvasElement, lastChart) as any as Chart,
       );
     });
-    result = result.update();
-    expect(result.find('div.coverage-desc').text()).toBe('Zoomed: 2018-12-17 - 2018-12-25X');
+    const coverageDesc = result.querySelector('div.coverage-desc')!;
+    expect(coverageDesc.textContent).toBe('Zoomed: 2018-12-17 - 2018-12-26X');
     await act(async () => {
-      result
-        .find(ChartsBody)
-        .find(JSAnchor)
-        .props()
-        .onClick?.({} as any as React.MouseEvent<HTMLAnchorElement>);
+      await fireEvent.click(coverageDesc.getElementsByTagName('a')[0]);
     });
-    result = result.update();
-    expect(result.find('div.coverage-desc')).toHaveLength(0);
-    result = await spies.updateChartType(result, 'bar');
+    expect(result.querySelectorAll('div.coverage-desc')).toHaveLength(0);
+    await spies.updateChartType('bar');
     expect(getLastChart(spies.createChartSpy).type).toBe('bar');
-    result = await spies.updateChartType(result, 'wordcloud');
-    result = await spies.updateChartType(result, 'stacked');
+    await spies.updateChartType('wordcloud');
+    await spies.updateChartType('stacked');
     expect((getLastChart(spies.createChartSpy).options?.scales?.x as any)?.stacked).toBe(true);
-    result = await spies.updateChartType(result, 'scatter');
+  });
+
+  it('Charts: rendering w/o groups', async () => {
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    const aggSelect = screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(aggSelect, 'Mean');
+    await act(async () => {
+      await fireEvent.change(screen.getByText('Query').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: "col4 == '20181201'" },
+      });
+    });
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Load'));
+    });
+    await spies.updateChartType('scatter');
     expect(getLastChart(spies.createChartSpy).type).toBe('scatter');
-    result = await spies.updateChartType(result, 'pie');
+    await spies.updateChartType('pie');
     expect(getLastChart(spies.createChartSpy).type).toBe('pie');
     await act(async () => {
-      result
-        .find(Select)
-        .at(3)
-        .props()
-        .onChange?.(null, {} as ActionMeta<unknown>);
+      await selectEvent.clearAll(aggSelect);
     });
-    result = result.update();
+    await selectOption(
+      screen.getByText('Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col3',
+    );
     await act(async () => {
-      result
-        .find(Select)
-        .at(2)
-        .props()
-        .onChange?.([{ value: 'col3' }], {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
-    result = await spies.updateChartType(result, 'line');
-    lastChart = getLastChart(spies.createChartSpy);
+    await spies.updateChartType('line');
+    let lastChart = getLastChart(spies.createChartSpy);
     expect(
       (lastChart.options?.plugins?.tooltip?.callbacks?.label as any)?.({
         parsed: { x: 1545973200000, y: 1.123456 },
@@ -148,18 +118,13 @@ describe('Charts tests', () => {
         datasetIndex: 0,
       }),
     ).toBe('val1 - col1: 1.1235');
-    result = await spies.updateChartType(result, 'wordcloud');
-    result = await spies.updateChartType(result, 'line');
-    await act(async () => {
-      result
-        .find(ChartsBody)
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'On' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(result.find(ChartsBody).find('canvas')).toHaveLength(2);
+    await spies.updateChartType('wordcloud');
+    await spies.updateChartType('line');
+    await selectOption(
+      screen.getByText('Chart per Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'On',
+    );
+    expect(result.getElementsByTagName('canvas')).toHaveLength(2);
     lastChart = getLastChart(spies.createChartSpy);
     expect(
       (lastChart.options?.plugins?.tooltip?.callbacks?.label as any)?.({
@@ -168,55 +133,41 @@ describe('Charts tests', () => {
         datasetIndex: 0,
       }),
     ).toBe('1.1235');
-    result = await spies.updateChartType(result, 'wordcloud');
-    const wc = result.find('CustomMockComponent').first();
-    expect((wc.props() as any).callbacks.getWordTooltip({ fullText: 'test', value: 5 })).toBe('test (5)');
+    await spies.updateChartType('wordcloud');
+    expect(screen.queryAllByTestId('mock-wordcloud')).toHaveLength(2);
   });
 
   it('Charts: rendering empty data', async () => {
+    await selectOption(
+      screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'error',
+    );
+    await selectOption(
+      screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'error2',
+    );
     await act(async () => {
-      result
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'error' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'error2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
-    expect(result.find(RemovableError).props().error).toBe('No data found.');
-    result = await spies.updateChartType(result, 'bar');
-    expect(result.find(RemovableError).props().error).toBe('No data found.');
+    expect(screen.getByRole('alert').textContent).toBe('No data found.');
+    await spies.updateChartType('bar');
+    expect(screen.getByRole('alert').textContent).toBe('No data found.');
   });
 
   it('Charts: rendering errors', async () => {
-    spies.axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/chart-data/')) {
         return Promise.resolve({ data: { error: 'error test' } });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
+    await selectOption(
+      screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'error test',
+    );
     await act(async () => {
-      result
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'error test' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    expect(result.find(RemovableError).props().error).toBe('error test');
+    expect(screen.getByRole('alert').textContent).toBe('error test');
   });
 });

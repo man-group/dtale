@@ -1,51 +1,34 @@
-import { DateInput } from '@blueprintjs/datetime';
-import { ReactWrapper } from 'enzyme';
-import moment from 'moment';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { BaseCreateComponentProps, CreateColumnType, RandomType } from '../../../popups/create/CreateColumnState';
-import { default as CreateRandom, validateRandomCfg } from '../../../popups/create/CreateRandom';
+import { CreateColumnType, RandomType } from '../../../popups/create/CreateColumnState';
+import { validateRandomCfg } from '../../../popups/create/CreateRandom';
 import { mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateRandom', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Random');
+    await spies.clickBuilder('Random');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const randomInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateRandom).first();
-
   it('builds random float column', async () => {
-    expect(result.find(CreateRandom)).toHaveLength(1);
+    expect(screen.getByText('Random')).toHaveClass('active');
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '-2' } });
+      await fireEvent.change(result.getElementsByTagName('input')[1], { target: { value: '-2' } });
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: '2' } });
+      await fireEvent.change(result.getElementsByTagName('input')[2], { target: { value: '2' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         type: RandomType.FLOAT,
         low: '-2',
@@ -58,26 +41,15 @@ describe('CreateRandom', () => {
 
   it('builds random int column', async () => {
     await act(async () => {
-      randomInputs().find('div.form-group').first().find('button').at(1).simulate('click');
+      await fireEvent.click(screen.getByText('Int'));
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: '-2' } });
+      await fireEvent.change(result.getElementsByTagName('input')[1], { target: { value: '-2' } });
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: '2' } });
+      await fireEvent.change(result.getElementsByTagName('input')[2], { target: { value: '2' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         type: RandomType.INT,
         low: '-2',
@@ -90,26 +62,15 @@ describe('CreateRandom', () => {
 
   it('builds random string column', async () => {
     await act(async () => {
-      randomInputs().find('div.form-group').first().find('button').at(2).simulate('click');
+      await fireEvent.click(screen.queryAllByText('String')[1]);
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: '5' } });
+      await fireEvent.change(result.getElementsByTagName('input')[1], { target: { value: '5' } });
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: 'abcde' } });
+      await fireEvent.change(result.getElementsByTagName('input')[2], { target: { value: 'abcde' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         type: RandomType.STRING,
         chars: 'abcde',
@@ -122,18 +83,12 @@ describe('CreateRandom', () => {
 
   it('builds random choice column', async () => {
     await act(async () => {
-      randomInputs().find('div.form-group').first().find('button').at(3).simulate('click');
+      await fireEvent.click(screen.getByText('Choice'));
     });
-    result = result.update();
     await act(async () => {
-      randomInputs()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'foo,bar,baz' } });
+      await fireEvent.change(result.getElementsByTagName('input')[1], { target: { value: 'foo,bar,baz' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         type: RandomType.CHOICE,
         choices: 'foo,bar,baz',
@@ -145,10 +100,9 @@ describe('CreateRandom', () => {
 
   it('builds random bool column', async () => {
     await act(async () => {
-      randomInputs().find('div.form-group').first().find('button').at(4).simulate('click');
+      await fireEvent.click(screen.getByText('Bool'));
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         type: RandomType.BOOL,
       },
@@ -159,30 +113,28 @@ describe('CreateRandom', () => {
 
   it('DataViewer: build random date column', async () => {
     await act(async () => {
-      randomInputs().find('div.form-group').first().find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Date'));
     });
-    result = result.update();
     await act(async () => {
-      result.find(DateInput).first().props().onChange?.(moment('20000101').toDate(), true);
+      await fireEvent.click(result.getElementsByClassName('bp4-popover2-target')[0]);
     });
-    result = result.update();
     await act(async () => {
-      result.find(DateInput).last().props().onChange?.(moment('20000102').toDate(), true);
+      await fireEvent.change(result.getElementsByClassName('bp4-input')[0], { target: { value: '20000101' } });
     });
-    result = result.update();
     await act(async () => {
-      randomInputs().find('i').first().simulate('click');
+      await fireEvent.change(result.getElementsByClassName('bp4-input')[1], { target: { value: '20000102' } });
     });
-    result = result.update();
     await act(async () => {
-      randomInputs().find('i').last().simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await act(async () => {
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+    });
+    await spies.validateCfg({
       cfg: {
         type: RandomType.DATE,
-        start: '20000101',
-        end: '20000102',
+        start: '2000-01-01',
+        end: '2000-01-02',
         businessDay: true,
         timestamps: true,
       },

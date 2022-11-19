@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import * as gu from '../../../dtale/gridUtils';
@@ -40,7 +41,9 @@ const OrdinalInputs: React.FC<OrdinalInputsProps & WithTranslation> = ({
   const colOptions: Array<BaseOption<string>> = React.useMemo(
     () =>
       cols
-        .filter((c) => c.name !== selectedCol && [gu.ColumnType.FLOAT, gu.ColumnType.INT].includes(colType))
+        .filter(
+          (c) => c.name !== selectedCol && [gu.ColumnType.FLOAT, gu.ColumnType.INT].includes(gu.findColType(c.dtype)),
+        )
         .map((c) => ({ value: c.name }))
         .sort(sortOptions),
     [cols, selectedCol],
@@ -101,7 +104,7 @@ const OrdinalInputs: React.FC<OrdinalInputsProps & WithTranslation> = ({
             <small>({t('Choose Col/Agg')})</small>
           </div>
         </div>
-        <div className="col-auto pl-0 mr-3 ordinal-dd">
+        <div data-testid="ordinal-col" className="col-auto pl-0 mr-3 ordinal-dd">
           <FilterSelect<string>
             value={ordinalCol}
             options={colOptions}
@@ -109,11 +112,11 @@ const OrdinalInputs: React.FC<OrdinalInputsProps & WithTranslation> = ({
               setOrdinalCol(v as BaseOption<string>);
               props.setOrdinalCol((v as BaseOption<string>) ?? undefined);
             }}
-            noOptionsText={() => t('analysis:No columns found')}
+            noOptionsMessage={() => t('analysis:No columns found')}
             isClearable={true}
           />
         </div>
-        <div className="col-auto pl-0 mr-3 ordinal-dd">
+        <div data-testid="ordinal-agg" className="col-auto pl-0 mr-3 ordinal-dd">
           <FilterSelect<string>
             value={ordinalAgg}
             options={analysisAggOptions}

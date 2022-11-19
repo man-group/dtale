@@ -2,13 +2,18 @@ import React from 'react';
 
 /** Component properties for RemovableError */
 interface RemovableErrorProps {
-  error?: string;
+  error?: string | null;
   traceback?: string;
   onRemove?: () => void;
 }
 
 /** Simple component for display error messages and their possible traceback */
-export const RemovableError: React.FC<RemovableErrorProps> = ({ error, traceback, onRemove, children }) => (
+export const RemovableError: React.FC<React.PropsWithChildren<RemovableErrorProps>> = ({
+  error,
+  traceback,
+  onRemove,
+  children,
+}) => (
   <>
     {error && (
       <div className="dtale-alert alert alert-danger" role="alert">

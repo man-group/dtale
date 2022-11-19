@@ -1,76 +1,73 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
+import axios from 'axios';
 
 import { CreateColumnType, SimilarityAlgoType } from '../../../popups/create/CreateColumnState';
-import { default as CreateSimilarity, validateSimilarityCfg } from '../../../popups/create/CreateSimilarity';
-import { BaseOption } from '../../../redux/state/AppState';
-import { mockT as t } from '../../test-utils';
+import { validateSimilarityCfg } from '../../../popups/create/CreateSimilarity';
+import { mockColumnDef } from '../../mocks/MockColumnDef';
+import reduxUtils from '../../redux-test-utils';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateSimilarity', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Similarity');
+    (axios.get as any).mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/dtypes')) {
+        return Promise.resolve({
+          data: {
+            dtypes: [
+              ...reduxUtils.DTYPES.dtypes,
+              mockColumnDef({
+                name: 'col5',
+                index: 4,
+                dtype: 'string',
+              }),
+            ],
+            success: true,
+          },
+        });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
+    await spies.setupWrapper();
+    await spies.clickBuilder('Similarity');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const selects = (): ReactWrapper => result.find(CreateSimilarity).find(Select);
-
   it('builds similarity column', async () => {
-    expect(result.find(CreateSimilarity)).toHaveLength(1);
+    expect(screen.getByText('Similarity')).toHaveClass('active');
+    const algoSelect = screen.getByText('Algorithm').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(algoSelect, 'Damerau-Leveneshtein');
+    await selectOption(
+      screen.getByText('Left').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col3',
+    );
+    await selectOption(
+      screen.getByText('Right').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col5',
+    );
+    await selectOption(algoSelect, 'Jaro-Winkler');
+    await selectOption(algoSelect, 'Jaccard Index');
     await act(async () => {
-      (selects().at(1).prop('onChange') as (option: BaseOption<string>) => void)?.({ value: 'col1' });
-    });
-    result = result.update();
-    await act(async () => {
-      (selects().at(2).prop('onChange') as (option: BaseOption<string>) => void)({ value: 'col2' });
-    });
-    result = result.update();
-    await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<SimilarityAlgoType>) => void)({
-        value: SimilarityAlgoType.DAMERAU_LEVENSHTEIN,
+      await fireEvent.change(screen.getByText('n-gram').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '4' },
       });
     });
-    result = result.update();
-    await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<SimilarityAlgoType>) => void)({
-        value: SimilarityAlgoType.JARO_WINKLER,
-      });
-    });
-    result = result.update();
-    await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<SimilarityAlgoType>) => void)({
-        value: SimilarityAlgoType.JACCARD,
-      });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateSimilarity)
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
-        left: 'col1',
-        right: 'col2',
+        left: 'col3',
+        right: 'col5',
         algo: SimilarityAlgoType.JACCARD,
         k: '4',
         normalized: false,
       },
-      name: 'col1_col2_distance',
+      name: 'col3_col5_distance',
       type: CreateColumnType.SIMILARITY,
     });
   });

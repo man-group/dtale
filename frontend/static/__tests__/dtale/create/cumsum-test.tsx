@@ -1,21 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateCumsum, validateCumsumCfg } from '../../../popups/create/CreateCumsum';
-import { mockT as t } from '../../test-utils';
+import { validateCumsumCfg } from '../../../popups/create/CreateCumsum';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateCumsum', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Cumulative Sum');
+    await spies.clickBuilder('Cumulative Sum');
   });
 
   afterEach(() => spies.afterEach());
@@ -23,26 +21,10 @@ describe('CreateCumsum', () => {
   afterAll(() => spies.afterAll());
 
   it('builds cumulative sum column', async () => {
-    expect(result.find(CreateCumsum)).toHaveLength(1);
-    await act(async () => {
-      result
-        .find(CreateCumsum)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateCumsum)
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    expect(screen.getByText('Cumulative Sum')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         group: ['col2'],

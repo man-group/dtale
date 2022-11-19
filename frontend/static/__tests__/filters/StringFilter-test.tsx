@@ -1,23 +1,21 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
+import { Provider } from 'react-redux';
 
 import { ColumnFilter } from '../../dtale/DataViewerState';
 import { NE_OPTION } from '../../filters/NumericFilter';
 import { default as StringFilter, StringFilterProps } from '../../filters/StringFilter';
-import ValueSelect from '../../filters/ValueSelect';
-import { tickUpdate } from '../test-utils';
+import reduxUtils from '../redux-test-utils';
+import { buildInnerHTML, selectOption } from '../test-utils';
 
 describe('StringFilter', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let updateState: jest.Mock<Promise<void>, [ColumnFilter?]>;
   let props: StringFilterProps;
 
   beforeEach(async () => {
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue('1');
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
     updateState = jest.fn((state?: ColumnFilter) => Promise.resolve(undefined));
     props = {
       selectedCol: 'foo',
@@ -27,80 +25,66 @@ describe('StringFilter', () => {
       missing: false,
       uniqueCt: 3,
     };
-    wrapper = mount(<StringFilter {...props} />);
-    await act(async () => await tickUpdate(wrapper));
+    wrapper = await act(
+      async () =>
+        render(
+          <Provider store={store}>
+            <StringFilter {...props} />
+          </Provider>,
+          { container: document.getElementById('content') ?? undefined },
+        ).container,
+    );
   });
 
   afterEach(jest.restoreAllMocks);
 
-  it('reads presets successfully', () => {
-    expect(wrapper.find('button.active').first().text()).toBe(NE_OPTION.label);
-    expect((wrapper.find(Select).first().props().value as any)?.value).toBe('equals');
-    expect(wrapper.find(ValueSelect).last().props().selected).toEqual(['a']);
+  it('reads presets successfully', async () => {
+    expect(wrapper.querySelector('button.active')!.textContent).toBe(NE_OPTION.label);
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Aa'));
+    });
+    expect(updateState).toHaveBeenLastCalledWith(
+      expect.objectContaining({ caseSensitive: true, value: ['a'], action: 'equals' }),
+    );
   });
 
   it('handles case-sensitive update', async () => {
     await act(async () => {
-      wrapper.find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Aa'));
     });
     expect(updateState).toHaveBeenLastCalledWith(expect.objectContaining({ caseSensitive: true }));
   });
 
   it('handles action/raw update', async () => {
+    await selectOption(wrapper.getElementsByClassName('Select')[0] as HTMLElement, 'startswith');
+    expect(wrapper.querySelectorAll('input.form-control')).toHaveLength(1);
+    const inputs = [...wrapper.getElementsByTagName('input')];
     await act(async () => {
-      wrapper
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'startswith' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: 'b' } });
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find('input.form-control')).toHaveLength(1);
     await act(async () => {
-      wrapper
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: 'b' } });
-    });
-    wrapper = wrapper.update();
-    await act(async () => {
-      wrapper.find('input').last().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(inputs[inputs.length - 1], { keyCode: 13 });
     });
     expect(updateState).toHaveBeenLastCalledWith(expect.objectContaining({ raw: 'b' }));
   });
 
   it('handles length check', async () => {
-    await act(async () => {
-      wrapper
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'length' }, {} as ActionMeta<unknown>);
-    });
-    wrapper = wrapper.update();
-    expect(wrapper.find('input.form-control')).toHaveLength(1);
+    await selectOption(wrapper.getElementsByClassName('Select')[0] as HTMLElement, 'length');
+    expect(wrapper.querySelectorAll('input.form-control')).toHaveLength(1);
     updateState.mockReset();
+    const inputs = [...wrapper.getElementsByTagName('input')];
     await act(async () => {
-      wrapper
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: 'b' } });
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: 'b' } });
     });
-    wrapper = wrapper.update();
     await act(async () => {
-      wrapper.find('input').last().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(inputs[inputs.length - 1], { keyCode: 13 });
     });
-    wrapper = wrapper.update();
     expect(updateState).not.toHaveBeenCalled();
     await act(async () => {
-      wrapper
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '1,3' } });
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: '1,3' } });
     });
-    wrapper = wrapper.update();
     await act(async () => {
-      wrapper.find('input').last().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(inputs[inputs.length - 1], { keyCode: 13 });
     });
     expect(updateState).toHaveBeenLastCalledWith(expect.objectContaining({ raw: '1,3' }));
   });

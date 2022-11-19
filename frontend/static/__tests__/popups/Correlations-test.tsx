@@ -1,11 +1,8 @@
+import { act, fireEvent, getByText, queryAllByRole, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import { Chart, ChartEvent } from 'chart.js';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
-import { ActionMeta, default as Select } from 'react-select';
-import { MultiGrid } from 'react-virtualized';
+import { Provider } from 'react-redux';
 
 jest.mock('../../dtale/side/SidePanelButtons', () => {
   const { createMockComponent } = require('../mocks/createMockComponent');
@@ -16,16 +13,14 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
 });
 
 import * as chartUtils from '../../chartUtils';
-import ChartsBody from '../../popups/charts/ChartsBody';
 import { Correlations } from '../../popups/correlations/Correlations';
-import CorrelationScatterStats from '../../popups/correlations/CorrelationScatterStats';
-import CorrelationsGrid from '../../popups/correlations/CorrelationsGrid';
-import CorrelationsTsOptions from '../../popups/correlations/CorrelationsTsOptions';
 import { percent } from '../../popups/correlations/correlationsUtils';
+import { ActionType } from '../../redux/actions/AppActions';
+import { CorrelationsPopupData } from '../../redux/state/AppState';
 import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS } from '../test-utils';
 
 const chartData = {
   visible: true,
@@ -42,9 +37,8 @@ describe('Correlations tests', () => {
   });
   const openSpy = jest.fn();
 
-  let result: ReactWrapper;
+  let result: Element;
   let createChartSpy: CreateChartSpy;
-  let axiosGetSpy: jest.SpyInstance;
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -58,11 +52,8 @@ describe('Correlations tests', () => {
   });
 
   beforeEach(async () => {
-    const useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', chartData, sidePanel: { visible: false } });
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
-    axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
 
@@ -70,7 +61,7 @@ describe('Correlations tests', () => {
   });
 
   afterEach(() => {
-    axiosGetSpy.mockRestore();
+    (axios.get as any).mockRestore();
     jest.clearAllMocks();
     jest.restoreAllMocks();
   });
@@ -83,63 +74,46 @@ describe('Correlations tests', () => {
     window.location = location;
   });
 
-  const buildResult = async (props = { chartData }): Promise<void> => {
-    result = mount(<Correlations />, { attachTo: document.getElementById('content') ?? undefined });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+  const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...chartData, ...overrides } });
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <Correlations />
+          </Provider>,
+          { container: document.getElementById('content') ?? undefined },
+        ).container,
+    );
   };
 
   it('Correlations rendering data', async () => {
     await buildResult();
-    const corrGrid = result.find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
-      corrGrid.find('div.cell').at(1).simulate('click');
+      await fireEvent.click(result.querySelectorAll('div.cell')[1]);
     });
-    result = result.update();
-    expect(result.find(ChartsBody)).toHaveLength(1);
+    expect(screen.getByTestId('charts-body')).toBeDefined();
     expect(
-      result
-        .find('select.custom-select')
-        .first()
-        .find('option')
-        .map((o) => o.text()),
+      Array.from(result.querySelector('select.custom-select')!.getElementsByTagName('option')).map(
+        (o) => o.textContent,
+      ),
     ).toEqual(['col4', 'col5']);
     await act(async () => {
-      result
-        .find('select.custom-select')
-        .first()
-        .simulate('change', { target: { value: 'col5' } });
+      await fireEvent.change(result.querySelector('select.custom-select')!, { target: { value: 'col5' } });
     });
-    result = result.update();
-    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col5');
+    expect(getByText(screen.getByTestId('corr-selected-date'), 'col4')).toHaveAttribute('selected');
   });
 
   it('Correlations rendering data and filtering it', async () => {
-    await buildResult();
-    await act(async () => {
-      result
-        .find(CorrelationsGrid)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(result.find(MultiGrid).props().rowCount).toBe(2);
-    await act(async () => {
-      result
-        .find(CorrelationsGrid)
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.({ value: 'col3' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    expect(result.find(MultiGrid).props().columnCount).toBe(2);
+    await buildResult({ col1: 'col1', col2: 'col3' });
+    expect(queryAllByRole(screen.queryAllByRole('grid')[0], 'rowgroup')).toHaveLength(1);
+    expect(screen.queryAllByRole('grid')[1].getElementsByClassName('headerCell')).toHaveLength(1);
   });
 
   it('Correlations rendering data w/ one date column', async () => {
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/correlations/')) {
         return Promise.resolve({
           data: {
@@ -151,30 +125,26 @@ describe('Correlations tests', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     await buildResult();
-    const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
-      corrGrid.find('div.cell').at(1).simulate('click');
+      await fireEvent.click(result.querySelectorAll('div.cell')[1]);
     });
-    result = result.update();
-    expect(result.find(ChartsBody).length).toBe(1);
-    expect(result.find('select.custom-select').length).toBe(0);
-    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col4');
+    expect(screen.getByTestId('charts-body')).toBeDefined();
+    expect(result.querySelector('select.custom-select')).toBeNull();
+    expect(axios.get).toHaveBeenLastCalledWith(expect.stringContaining('dateCol=col4'));
   });
 
   it('Correlations rendering data w/ no date columns', async () => {
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/correlations/')) {
         return Promise.resolve({ data: { data: correlationsData.data, dates: [] } });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     await buildResult();
-    const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
     await act(async () => {
-      corrGrid.find('div.cell').at(1).simulate('click');
+      await fireEvent.click(result.querySelectorAll('div.cell')[1]);
     });
-    result = result.update();
-    expect(result.find('#rawScatterChart').length).toBe(1);
+    expect(document.getElementById('rawScatterChart')).toBeDefined();
     const scatterChart = getLastChart(createChartSpy);
     const title = (scatterChart.options?.plugins?.tooltip?.callbacks as any)?.title?.([{ raw: { index: 0 } }]);
     expect(title).toEqual(['index: 0']);
@@ -190,18 +160,12 @@ describe('Correlations tests', () => {
         new MockChart({} as HTMLCanvasElement, scatterChart) as any as Chart,
       );
     });
-    result = result.update();
   });
 
-  const minPeriods = (): ReactWrapper =>
-    result
-      .find(CorrelationsTsOptions)
-      .find('input')
-      .findWhere((i) => i.prop('type') === 'text')
-      .last();
+  const minPeriods = (): Element => screen.getByTestId('min-periods');
 
   it('Correlations rendering rolling data', async () => {
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/correlations/')) {
         const dates = [
           { name: 'col4', rolling: true },
@@ -212,11 +176,10 @@ describe('Correlations tests', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     await buildResult();
-    const corrGrid = result.first().find('div.ReactVirtualized__Grid__innerScrollContainer');
-    corrGrid.find('div.cell').at(1).simulate('click');
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-    expect(result.find(ChartsBody).length).toBe(1);
+    await act(async () => {
+      await fireEvent.click(result.querySelectorAll('div.cell')[1]);
+    });
+    expect(screen.getByTestId('charts-body')).toBeDefined();
     const currChart = getLastChart(createChartSpy);
     await act(async () => {
       currChart.options?.onClick?.(
@@ -225,51 +188,42 @@ describe('Correlations tests', () => {
         new MockChart({} as HTMLCanvasElement, currChart) as any as Chart,
       );
     });
-    result = result.update();
     expect(getLastChart(createChartSpy).type).toBe('scatter');
-    expect(result.find(CorrelationScatterStats).text()).toMatch(/col1 vs. col2 for 2018-12-16 thru 2018-12-19/);
+    expect(result.querySelector('dl.property-pair.inline')!.textContent).toMatch(
+      /col1 vs. col2 for 2018-12-16 thru 2018-12-19/,
+    );
     expect(
       (getLastChart(createChartSpy).options?.plugins?.tooltip?.callbacks as any)?.title?.([
         { raw: { index: 0, date: '2018-04-30' }, datasetIndex: 0, index: 0 },
       ]),
     ).toEqual(['index: 0', 'date: 2018-04-30']);
     expect(
-      result
-        .find('select.custom-select')
-        .first()
-        .find('option')
-        .map((o) => o.text()),
+      Array.from(result.querySelector('select.custom-select')!.getElementsByTagName('option')).map(
+        (o) => o.textContent,
+      ),
     ).toEqual(['col4', 'col5']);
-    expect(result.find(CorrelationsTsOptions).props().selectedDate).toBe('col4');
+    expect(getByText(screen.getByTestId('corr-selected-date'), 'col4')).toHaveAttribute('selected');
     await act(async () => {
-      result
-        .find(CorrelationsTsOptions)
-        .find('input')
-        .findWhere((i) => i.prop('type') === 'text')
-        .first()
-        .simulate('change', { target: { value: '5' } });
+      await fireEvent.change(screen.getByTestId('window'), { target: { value: '5' } });
     });
-    result = result.update();
     await act(async () => {
-      minPeriods().simulate('change', { target: { value: '5' } });
+      await fireEvent.change(minPeriods(), { target: { value: '5' } });
     });
-    result = result.update();
     await act(async () => {
-      minPeriods().simulate('keydown', { key: 'Enter' });
+      await fireEvent.keyDown(minPeriods(), { key: 'Enter' });
     });
-    result = result.update();
-    expect(result.find(CorrelationsTsOptions).props().minPeriods).toBe(5);
+    expect(axios.get).toHaveBeenLastCalledWith(expect.stringContaining('minPeriods=5'));
   });
 
   it('Correlations missing data', async () => {
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/correlations/')) {
         return Promise.resolve({ data: { error: 'No data found.' } });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     await buildResult();
-    expect(result.find('div.ReactVirtualized__Grid__innerScrollContainer').length).toBe(0);
+    expect(result.querySelector('div.ReactVirtualized__Grid__innerScrollContainer')).toBeNull();
   });
 
   it('Correlations - percent formatting', () => {
@@ -278,8 +232,9 @@ describe('Correlations tests', () => {
 
   it('Opens exported image', async () => {
     await buildResult();
-    const corrGrid = result.find(CorrelationsGrid);
-    corrGrid.find('button').first().simulate('click');
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Export Image'));
+    });
     expect(openSpy).toHaveBeenLastCalledWith(
       '/dtale/correlations/1?encodeStrings=false&pps=false&image=true',
       '_blank',

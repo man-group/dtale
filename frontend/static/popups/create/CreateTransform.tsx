@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
@@ -16,13 +17,13 @@ import { LabeledSelect } from './LabeledSelect';
 
 export const validateTransformCfg = (t: TFunction, cfg: TransformConfig): string | undefined => {
   if (!cfg.group?.length) {
-    return t('Please select a group!');
+    return t('Please select a group!') ?? undefined;
   }
   if (!cfg.col) {
-    return t('Please select a column to transform!');
+    return t('Please select a column to transform!') ?? undefined;
   }
   if (!cfg.agg) {
-    return t('Please select an aggregation!');
+    return t('Please select an aggregation!') ?? undefined;
   }
   return undefined;
 };

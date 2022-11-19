@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -14,7 +15,7 @@ import {
 
 export const validateZScoreNormalizeCfg = (t: TFunction, cfg: ZScoreNormalizeConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column to normalize!');
+    return t('Please select a column to normalize!') ?? undefined;
   }
   return undefined;
 };

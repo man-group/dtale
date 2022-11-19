@@ -1,25 +1,33 @@
+import { fireEvent, render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { GlobalHotKeys } from 'react-hotkeys';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { DtaleHotkeys } from '../../dtale/DtaleHotkeys';
 import * as menuUtils from '../../menuUtils';
-import { AppState } from '../../redux/state/AppState';
+import { ActionType } from '../../redux/actions/AppActions';
+import { AppState, PopupType } from '../../redux/state/AppState';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../test-utils';
+import { buildInnerHTML } from '../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('DtaleHotkeys tests', () => {
   const { open, innerWidth, innerHeight } = window;
   const text = 'COPIED_TEXT';
-  let result: ReactWrapper;
+  let container: HTMLElement;
+  const mockDispatch = jest.fn();
   let buildClickHandlerSpy: jest.SpyInstance;
-  let axiosPostSpy: jest.SpyInstance;
+  const mockStore = configureStore();
   let store: Store;
   const openSpy = jest.fn();
 
@@ -33,24 +41,24 @@ describe('DtaleHotkeys tests', () => {
   const buildMock = async (columns: ColumnDef[] = [], appState?: Partial<AppState>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    Object.keys(appState ?? {}).forEach((key) => (store.getState()[key] = (appState as any)[key]));
-    result = mount(
+    store = mockStore({
+      ...store.getState(),
+      ...appState,
+    });
+
+    container = render(
       <Provider store={store}>
         <DtaleHotkeys columns={columns} />
       </Provider>,
-      { attachTo: document.getElementById('content') ?? undefined },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+      { container: document.getElementById('content') ?? undefined },
+    ).container;
   };
 
   beforeEach(async () => {
+    useDispatchMock.mockImplementation(() => mockDispatch);
     buildClickHandlerSpy = jest.spyOn(menuUtils, 'buildClickHandler');
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
-    axiosPostSpy = jest.spyOn(axios, 'post');
-    axiosPostSpy.mockResolvedValue({ data: { text, success: true } });
-    await buildMock();
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.post as any).mockResolvedValue({ data: { text, success: true } });
   });
 
   afterEach(() => {
@@ -64,45 +72,42 @@ describe('DtaleHotkeys tests', () => {
     window.innerWidth = innerWidth;
   });
 
-  it('renders GlobalHotKeys', () => {
-    expect(result.find(GlobalHotKeys).length).toBe(1);
-  });
-
   it('does not render when cell being edited', async () => {
     await buildMock([], { editedCell: 'true' });
-    expect(result.find(GlobalHotKeys).length).toBe(0);
+    fireEvent.keyDown(container, { key: 'm' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'm' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('sets state and fires click handler on menu open', async () => {
-    const hotkeys = result.find(GlobalHotKeys);
-    const menuHandler = hotkeys.prop('handlers')?.MENU;
-    await act(async () => {
-      menuHandler?.();
-    });
-    result = result.update();
-    expect(store.getState().menuOpen).toBe(true);
+    await buildMock();
+    fireEvent.keyDown(container, { key: 'm' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'm' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: true });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.OPEN_MENU });
     expect(buildClickHandlerSpy.mock.calls).toHaveLength(1);
     buildClickHandlerSpy.mock.calls[0][0]();
-    expect(store.getState().menuOpen).toBe(false);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLOSE_MENU });
   });
 
   it('opens new tab on describe open', async () => {
-    const hotkeys = result.find(GlobalHotKeys);
-    const describeHandler = hotkeys.prop('handlers')?.DESCRIBE;
-    await act(async () => {
-      describeHandler?.();
-    });
-    result = result.update();
+    await buildMock();
+    fireEvent.keyDown(container, { key: 'd' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'd' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
     expect(openSpy).toHaveBeenLastCalledWith('/dtale/popup/describe/1', '_blank');
   });
 
   it('calls window.open on code export', async () => {
-    const hotkeys = result.find(GlobalHotKeys);
-    const codeHandler = hotkeys.prop('handlers')?.CODE;
-    await act(async () => {
-      codeHandler?.();
-    });
-    result = result.update();
+    await buildMock();
+    fireEvent.keyDown(container, { key: 'x' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'x' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
     expect(openSpy).toHaveBeenLastCalledWith(
       '/dtale/popup/code-export/1',
       '_blank',
@@ -111,65 +116,59 @@ describe('DtaleHotkeys tests', () => {
   });
 
   it('calls window.open on chart display', async () => {
-    const hotkeys = result.find(GlobalHotKeys);
-    const chartsHandler = hotkeys.prop('handlers')?.CHARTS;
-    await act(async () => {
-      chartsHandler?.();
-    });
-    result = result.update();
+    await buildMock();
+    fireEvent.keyDown(container, { key: 'c' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'c' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
     expect(openSpy).toHaveBeenLastCalledWith('/dtale/charts/1', '_blank');
   });
 
   it('calls openChart from redux', async () => {
-    const hotkeys = result.find(GlobalHotKeys);
-    const filterHandler = hotkeys.prop('handlers')?.FILTER;
-    await act(async () => {
-      filterHandler?.();
+    await buildMock();
+    fireEvent.keyDown(container, { key: 'f' });
+    fireEvent.keyDown(container, { keyCode: 16, shiftKey: true });
+    fireEvent.keyUp(container, { key: 'f' });
+    fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: ActionType.OPEN_CHART,
+      chartData: { type: PopupType.FILTER, title: 'Filter', visible: true },
     });
-    result = result.update();
-    expect(store.getState().chartData).toEqual(
-      expect.objectContaining({
-        type: 'filter',
-        visible: true,
-      }),
-    );
   });
 
   it('calls build-column-copy for copy handler when ctrlCols exists', async () => {
     await buildMock([mockColumnDef(), mockColumnDef({ name: 'foo', index: 1 })], { ctrlCols: [1] });
-    const hotkeys = result.find(GlobalHotKeys);
-    const copyHandler = hotkeys.prop('handlers')?.COPY;
-    await act(async () => {
-      copyHandler?.();
-    });
-    result = result.update();
-    expect(axiosPostSpy).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
-    expect(store.getState().chartData).toEqual(
-      expect.objectContaining({
+    await fireEvent.keyDown(container, { key: 'c' });
+    await fireEvent.keyDown(container, { keyCode: 17, ctrlKey: true });
+    await fireEvent.keyUp(container, { key: 'c' });
+    await fireEvent.keyUp(container, { keyCode: 17, ctrlKey: false });
+    expect(axios.post).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: ActionType.OPEN_CHART,
+      chartData: expect.objectContaining({
         text,
         headers: ['foo'],
         type: 'copy-column-range',
         title: 'Copy Columns to Clipboard?',
       }),
-    );
+    });
   });
 
   it('calls build-row-copy for copy handler when ctrlRows exists', async () => {
     await buildMock([mockColumnDef({ name: 'foo' })], { ctrlRows: [1] });
-    const hotkeys = result.find(GlobalHotKeys);
-    const copyHandler = hotkeys.prop('handlers')?.COPY;
-    await act(async () => {
-      copyHandler?.();
-    });
-    result = result.update();
-    expect(axiosPostSpy).toBeCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });
-    expect(store.getState().chartData).toEqual(
-      expect.objectContaining({
+    await fireEvent.keyDown(container, { key: 'c' });
+    await fireEvent.keyDown(container, { keyCode: 17, ctrlKey: true });
+    await fireEvent.keyUp(container, { key: 'c' });
+    await fireEvent.keyUp(container, { keyCode: 17, ctrlKey: false });
+    expect(axios.post).toBeCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: ActionType.OPEN_CHART,
+      chartData: expect.objectContaining({
         text,
         headers: ['foo'],
         type: 'copy-row-range',
         title: 'Copy Rows to Clipboard?',
       }),
-    );
+    });
   });
 });

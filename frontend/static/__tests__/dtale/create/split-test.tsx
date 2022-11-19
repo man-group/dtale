@@ -1,24 +1,18 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import {
-  default as CreateStringSplitting,
-  validateStringSplittingCfg,
-} from '../../../popups/create/CreateStringSplitting';
-import { mockT as t } from '../../test-utils';
+import { validateStringSplittingCfg } from '../../../popups/create/CreateStringSplitting';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateStringSplitting', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Split By Character');
+    await spies.setupWrapper();
+    await spies.clickBuilder('Split By Character');
   });
 
   afterEach(() => spies.afterEach());
@@ -26,31 +20,22 @@ describe('CreateStringSplitting', () => {
   afterAll(() => spies.afterAll());
 
   it('builds a split column', async () => {
-    expect(result.find(CreateStringSplitting)).toHaveLength(1);
+    expect(screen.getByText('Split By Character')).toHaveClass('active');
+    await selectOption(
+      screen.getByText('Column*').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col3',
+    );
     await act(async () => {
-      result
-        .find(CreateStringSplitting)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Delimiter').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: ',' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: ',' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
-        col: 'col1',
+        col: 'col3',
         delimiter: ',',
       },
-      name: 'col1_split',
+      name: 'col3_split',
       type: CreateColumnType.SPLIT,
     });
   });

@@ -53,7 +53,7 @@ const Imputer: React.FC<BaseReplacementComponentProps & WithTranslation> = ({
 
   return (
     <React.Fragment>
-      <div className="form-group row">
+      <div className="form-group row" data-testid="imputer-type">
         <label className="col-md-3 col-form-label text-right">{t('Type')}</label>
         <div className="col-md-8">
           <ButtonToggle options={typeOpts} update={setType} defaultValue={type} compact={false} />

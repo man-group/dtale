@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { useDebounce } from '../../customHooks';
@@ -20,10 +21,10 @@ import { LabeledInput } from './LabeledInput';
 export const validateBinsCfg = (t: TFunction, cfg: BinsConfig): string | undefined => {
   const { col, bins, labels } = cfg;
   if (!col) {
-    return t('Missing a column selection!');
+    return t('Missing a column selection!') ?? undefined;
   }
   if (!bins || !parseInt(bins, 10)) {
-    return t('Missing a bins selection!');
+    return t('Missing a bins selection!') ?? undefined;
   }
   const labelCt = (labels ?? '').split(',').length;
   if (labels && labelCt !== parseInt(bins, 10)) {
@@ -95,7 +96,7 @@ const CreateBins: React.FC<CreateBinsProps & WithTranslation> = ({ namePopulated
 
   const cfg = buildCfg(state);
   return (
-    <div className="row">
+    <div className="row" data-testid="bins-inputs">
       <div className="col-md-8 pr-0">
         <ColumnSelect
           label={t('Column')}
@@ -121,11 +122,11 @@ const CreateBins: React.FC<CreateBinsProps & WithTranslation> = ({ namePopulated
         </div>
         <LabeledInput
           type="number"
-          label={t('Bins')}
+          label={t('Bins') ?? ''}
           value={state.bins}
           setter={(value) => setState({ ...state, bins: value })}
         />
-        <LabeledInput label={t('Labels')} value={labels} setter={setLabels} />
+        <LabeledInput label={t('Labels') ?? ''} value={labels} setter={setLabels} />
       </div>
       <div className="col-md-4 pl-0">
         <BinsTester valid={validateBinsCfg(t, cfg) === undefined} cfg={cfg} />

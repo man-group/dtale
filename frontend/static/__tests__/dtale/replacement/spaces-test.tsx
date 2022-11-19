@@ -1,44 +1,31 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import { BaseReplacementComponentProps, ReplacementType } from '../../../popups/replacement/CreateReplacementState';
-import Spaces from '../../../popups/replacement/Spaces';
+import { ReplacementType } from '../../../popups/replacement/CreateReplacementState';
 
 import * as TestSupport from './CreateReplacement.test.support';
 
 describe('Spaces', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    spies.useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      chartData: { visible: true, propagateState: spies.propagateStateSpy, selectedCol: 'col3' },
-    });
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Spaces Only');
+    result = await spies.setupWrapper({ selectedCol: 'col3' });
+    await spies.clickBuilder('Spaces Only');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findSpaces = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Spaces);
-
   it('handles replacement w/ new col', async () => {
-    expect(findSpaces()).toHaveLength(1);
-    result = await spies.setName(result, 'cut_col');
+    expect(screen.getByText('Replace With')).toBeDefined();
+    await spies.setName('cut_col');
     await act(async () => {
-      findSpaces()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: '' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: '' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.SPACES,
       cfg: { replace: '' },
       col: 'col3',
@@ -49,14 +36,9 @@ describe('Spaces', () => {
 
   it('replacement', async () => {
     await act(async () => {
-      findSpaces()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[0], { target: { value: 'nan' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.SPACES,
       cfg: { replace: 'nan' },
       col: 'col3',

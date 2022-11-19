@@ -104,17 +104,17 @@ const MissingNoCharts: React.FC<WithTranslation> = ({ t }) => {
         <div className="col" />
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={() => window.open(imageUrl, '_blank')}>
-            <i className="ico-open-in-new pointer" title={t('Open In New Tab', { ns: 'side' })} />
+            <i className="ico-open-in-new pointer" title={t('Open In New Tab', { ns: 'side' }) ?? undefined} />
           </button>
         </div>
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={() => window.open(fileUrl, '_blank')}>
-            <i className="fas fa-file-code pointer" title={t('missing:Download')} />
+            <i className="fas fa-file-code pointer" title={t('missing:Download') ?? undefined} />
           </button>
         </div>
         <div className="col-auto">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? undefined} />
           </button>
         </div>
       </div>

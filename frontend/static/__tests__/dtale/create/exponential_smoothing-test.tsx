@@ -1,24 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import {
-  default as CreateExponentialSmoothing,
-  validateExponentialSmoothingCfg,
-} from '../../../popups/create/CreateExponentialSmoothing';
-import { mockT as t } from '../../test-utils';
+import { validateExponentialSmoothingCfg } from '../../../popups/create/CreateExponentialSmoothing';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateExponentialSmoothing', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Exponential Smoothing');
+    await spies.clickBuilder('Exponential Smoothing');
   });
 
   afterEach(() => spies.afterEach());
@@ -26,27 +21,12 @@ describe('CreateExponentialSmoothing', () => {
   afterAll(() => spies.afterAll());
 
   it('DataViewer: build exponential smoothing column', async () => {
-    expect(result.find(CreateExponentialSmoothing)).toHaveLength(1);
+    expect(screen.getByText('Exponential Smoothing')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
     await act(async () => {
-      result
-        .find(CreateExponentialSmoothing)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByTestId('alpha-raw-input'), { target: { value: '0.3' } });
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateExponentialSmoothing)
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '0.3' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         alpha: 0.3,

@@ -1,26 +1,10 @@
-import { Chart, ChartDataset, ChartMeta, DatasetController, Element, Scale, TooltipItem } from 'chart.js';
+import { Chart, ChartDataset, ChartMeta, DatasetController, Element, TooltipItem } from 'chart.js';
 
 import * as chartUtils from '../chartUtils';
 import * as correlationsUtils from '../popups/correlations/correlationsUtils';
 
 import { mockColumnDef } from './mocks/MockColumnDef';
-import { mockChartJS } from './test-utils';
-
-export const CTX: Partial<CanvasRenderingContext2D> = {
-  createLinearGradient: (_px1: number, _px2: number, _px3: number, _px4: number): CanvasGradient => ({
-    addColorStop: (_px5: number, _color: string): void => undefined,
-  }),
-  save: () => undefined,
-  beginPath: () => undefined,
-  moveTo: () => undefined,
-  lineTo: () => undefined,
-  lineWidth: 0,
-  strokeStyle: undefined,
-  stroke: () => undefined,
-  restore: () => undefined,
-};
-
-export const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
+import { CTX, mockChartJS, SCALE } from './test-utils';
 
 const LINE_POINT: chartUtils.LinePoint = {
   element: { x: 0 } as any as Element,

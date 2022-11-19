@@ -61,7 +61,7 @@ const Describe: React.FC<WithTranslation> = ({ t }) => {
 
   return (
     <React.Fragment>
-      <div className="modal-body describe-body">
+      <div className="modal-body describe-body" data-testid="describe">
         {dtypes && selected && (
           <ColumnNavigation selectedIndex={selected.index} dtypes={dtypes} setSelected={setSelected} />
         )}

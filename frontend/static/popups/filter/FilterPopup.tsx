@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
-import { AppActions } from '../../redux/actions/AppActions';
+import { CloseChartAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
@@ -25,10 +26,10 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
     queryEngine: state.queryEngine,
   }));
   const dispatch = useDispatch();
-  const onClose = (): AppActions<void> => dispatch(closeChart(chartData));
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback));
-  const setEngine = (engine: QueryEngine): AppActions<void> => dispatch(dtaleActions.setQueryEngine(engine));
+  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
+  const setEngine = (engine: QueryEngine): SetQueryEngineAction => dispatch(dtaleActions.setQueryEngine(engine));
 
   const [query, setQuery] = React.useState('');
   const [contextVars, setContextVars] = React.useState<Array<{ name: string; value: string }>>([]);

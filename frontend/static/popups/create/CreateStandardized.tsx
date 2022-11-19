@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -22,7 +23,7 @@ const buildAlgos = (t: TFunction): Array<BaseOption<StandardizedAlgoType>> => [
 
 export const validateStandardizedCfg = (t: TFunction, cfg: StandardizedConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   return undefined;
 };

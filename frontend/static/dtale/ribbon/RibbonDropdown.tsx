@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import {
   ActionType,
-  AppActions,
   HideRibbonMenuAction,
+  OpenChartAction,
   SidePanelAction,
   ToggleMenuAction,
 } from '../../redux/actions/AppActions';
@@ -91,14 +92,16 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
     settings: state.settings,
   }));
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
   const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AppActions<void> =>
+  const updateBg = (bgType: string): AnyAction =>
     dispatch(
-      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+      settingsActions.updateSettings({
+        backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
+      }) as any as AnyAction,
     );
 
   const [style, setStyle] = React.useState<React.CSSProperties>();

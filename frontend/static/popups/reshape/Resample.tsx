@@ -88,7 +88,13 @@ const Resample: React.FC<ResampleProps & WithTranslation> = ({ namePopulated, up
       <div className="form-group row">
         <label className="col-md-3 col-form-label text-right">{t('reshape:Offset')}</label>
         <div className="col-md-8">
-          <input type="text" className="form-control" value={freq} onChange={(e) => setFreq(e.target.value)} />
+          <input
+            type="text"
+            className="form-control"
+            value={freq}
+            onChange={(e) => setFreq(e.target.value)}
+            data-testid="offset-input"
+          />
           <small>
             {t('Examples of pandas offset aliases found ')}
             <a href={OFFSET_URL} rel="noopener noreferrer" target="_blank">

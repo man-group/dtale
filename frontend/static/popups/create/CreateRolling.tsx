@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { BaseOption } from '../../redux/state/AppState';
@@ -26,10 +27,10 @@ const buildWindowTypes = (t: TFunction): Array<BaseOption<RollingWindowType>> =>
 
 export const validateRollingCfg = (t: TFunction, cfg: RollingConfig): string | undefined => {
   if (!cfg.col) {
-    return t('builders:Please select a column!');
+    return t('builders:Please select a column!') ?? undefined;
   }
   if (!cfg.comp) {
-    return t('builders:Please select a computation!');
+    return t('builders:Please select a computation!') ?? undefined;
   }
   return undefined;
 };

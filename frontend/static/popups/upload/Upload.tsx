@@ -73,7 +73,7 @@ const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) 
   };
 
   return (
-    <div key="body" className="modal-body">
+    <div key="body" className="modal-body" data-testid="upload">
       <h3>{t('Load File')}</h3>
       <div className="row">
         <div className="col-md-12">
@@ -123,7 +123,7 @@ const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) 
                     className: 'filepicker dropzone dz-clickable',
                   })}
                 >
-                  <input {...getInputProps()} name="file" />
+                  <input {...getInputProps()} name="file" data-testid="drop-input" />
                   <div data-filetype=".csv" className="filepicker-file-icon" />
                   <div data-filetype=".tsv" className="filepicker-file-icon" />
                   <div data-filetype=".xls" className="filepicker-file-icon" />
@@ -192,7 +192,7 @@ const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) 
               buttonProps.className += loadingDataset === value ? ' p-4' : '';
               buttonProps.style = { ...buttonProps.style, border: 'solid 1px #a7b3b7' };
               buttonProps.onClick = () => loadDataset(value);
-              buttonProps.onMouseOver = () => setDatasetDescription(t(value));
+              buttonProps.onMouseOver = () => setDatasetDescription(t(value) ?? '');
               return (
                 <div key={value} className="col-md-4 p-1">
                   <button {...buttonProps}>

@@ -48,7 +48,7 @@ const CategoryInputs: React.FC<CategoryInputsProps & WithTranslation> = ({ selec
           <small>{`(${t('Choose Col/Agg', { ns: 'analysis' })})`}</small>
         </div>
       </div>
-      <div className="col-auto pl-0 mr-3 ordinal-dd">
+      <div data-testid="category-col" className="col-auto pl-0 mr-3 ordinal-dd">
         <FilterSelect<string>
           value={categoryCol}
           options={colOpts}
@@ -56,11 +56,11 @@ const CategoryInputs: React.FC<CategoryInputsProps & WithTranslation> = ({ selec
             setCategoryCol(v as BaseOption<string>);
             props.setCategoryCol((v as BaseOption<string>) ?? undefined);
           }}
-          noOptionsText={() => t('No columns found')}
+          noOptionsMessage={() => t('No columns found')}
           isClearable={true}
         />
       </div>
-      <div className="col-auto pl-0 mr-3 ordinal-dd">
+      <div data-testid="category-agg" className="col-auto pl-0 mr-3 ordinal-dd">
         <FilterSelect<string>
           value={categoryAgg}
           options={analysisAggOptions}

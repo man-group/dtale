@@ -1,17 +1,11 @@
+import { act, fireEvent, render, RenderResult, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 jest.mock('../../../dtale/side/SidePanelButtons', () => {
-  const { createMockComponent } = require('../../mocks/createMockComponent');
-  return {
-    __esModule: true,
-    default: createMockComponent(),
-  };
-});
-jest.mock('../../../popups/describe/Details', () => {
   const { createMockComponent } = require('../../mocks/createMockComponent');
   return {
     __esModule: true,
@@ -21,42 +15,47 @@ jest.mock('../../../popups/describe/Details', () => {
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import DescribePanel from '../../../dtale/side/DescribePanel';
-import { ColumnNavigation } from '../../../popups/describe/ColumnNavigation';
-import DtypesGrid from '../../../popups/describe/DtypesGrid';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { DataViewerUpdateType, SidePanelType } from '../../../redux/state/AppState';
-import { RemovableError } from '../../../RemovableError';
 import * as DtypesRepository from '../../../repository/DtypesRepository';
 import reduxUtils from '../../redux-test-utils';
-import { tickUpdate } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('DescribePanel', () => {
-  let wrapper: ReactWrapper;
-  const dispatchSpy = jest.fn();
-  let useSelectorSpy: jest.SpyInstance;
+  let wrapper: RenderResult;
+  const mockStore = configureStore();
+  let store: Store;
+  const mockDispatch = jest.fn();
 
-  const buildMock = async (): Promise<void> => {
-    wrapper = mount(<DescribePanel />);
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
+  const buildMock = async (state?: { [key: string]: any }): Promise<void> => {
+    store = mockStore({ dataId: '1', settings: {}, sidePanel: { visible: false }, ...state });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      return render(
+        <Provider store={store}>
+          <DescribePanel />
+        </Provider>,
+      );
+    });
   };
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
-    useSelectorSpy.mockReturnValue({ dataId: '1', visible: false });
-    await buildMock();
+    useDispatchMock.mockImplementation(() => mockDispatch);
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.resetAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
-  it('renders successfully', () => {
-    expect(wrapper.html()).toBe(null);
+  it('renders successfully', async () => {
+    await buildMock();
+    expect(wrapper.container.innerHTML).toBe('');
   });
 
   describe('loading details', () => {
@@ -67,28 +66,27 @@ describe('DescribePanel', () => {
       window.open = jest.fn();
     });
 
-    beforeEach(async () => {
-      useSelectorSpy.mockReturnValue({ dataId: '1', column: 'col1', visible: true, view: SidePanelType.DESCRIBE });
-      await buildMock();
-    });
-
     afterAll(() => (window.open = open));
 
-    it('loads details', () => {
-      expect(wrapper.find(ColumnNavigation).props().selectedIndex).toEqual(reduxUtils.DTYPES.dtypes[0].index);
+    it('loads details', async () => {
+      await buildMock({ dataId: '1', sidePanel: { column: 'col1', visible: true, view: SidePanelType.DESCRIBE } });
+      expect(screen.getByTestId('details').getElementsByTagName('span')[0].textContent).toEqual(
+        reduxUtils.DTYPES.dtypes[0].name,
+      );
     });
 
     it('handles changing column', async () => {
-      useSelectorSpy.mockReturnValue({ dataId: '1', column: 'col2', visible: true, view: SidePanelType.DESCRIBE });
-      await buildMock();
-      expect(wrapper.find(ColumnNavigation).props().selectedIndex).toEqual(reduxUtils.DTYPES.dtypes[1].index);
+      await buildMock({ dataId: '1', sidePanel: { column: 'col2', visible: true, view: SidePanelType.DESCRIBE } });
+      expect(screen.getByTestId('details').getElementsByTagName('span')[0].textContent).toEqual(
+        reduxUtils.DTYPES.dtypes[1].name,
+      );
     });
 
     it('handles dtype loading error gracefully', async () => {
       const loadDtypesSpy = jest.spyOn(DtypesRepository, 'loadDtypes');
       loadDtypesSpy.mockResolvedValue({ error: 'dtype error', success: false, dtypes: [] });
-      await buildMock();
-      expect(wrapper.find(RemovableError)).toHaveLength(1);
+      await buildMock({ dataId: '1', sidePanel: { column: 'col1', visible: true, view: SidePanelType.DESCRIBE } });
+      expect(screen.getByRole('alert')).toBeDefined();
       loadDtypesSpy.mockRestore();
     });
   });
@@ -99,19 +97,18 @@ describe('DescribePanel', () => {
     beforeEach(async () => {
       serverStateSpy = jest.spyOn(serverState, 'updateVisibility');
       serverStateSpy.mockImplementation(() => undefined);
-      useSelectorSpy.mockReturnValue({ dataId: '1', visible: true, view: SidePanelType.SHOW_HIDE });
-      await buildMock();
     });
 
-    it('renders successfully', () => {
-      expect(wrapper.find(DtypesGrid)).toHaveLength(1);
+    it('renders successfully', async () => {
+      await buildMock({ dataId: '1', sidePanel: { visible: true, view: SidePanelType.SHOW_HIDE } });
+      expect(screen.getByRole('grid')).toBeDefined();
     });
 
     it('updates visibility correctly', async () => {
+      await buildMock({ dataId: '1', sidePanel: { visible: true, view: SidePanelType.SHOW_HIDE } });
       await act(async () => {
-        wrapper.find('button').first().simulate('click');
+        fireEvent.click(wrapper.container.getElementsByTagName('button')[0]);
       });
-      wrapper = wrapper.update();
       expect(serverStateSpy.mock.calls[0][0]).toBe('1');
       expect(serverStateSpy.mock.calls[0][1]).toEqual({
         col1: true,
@@ -119,7 +116,7 @@ describe('DescribePanel', () => {
         col3: true,
         col4: true,
       });
-      expect(dispatchSpy).toHaveBeenCalledWith({
+      expect(mockDispatch).toHaveBeenCalledWith({
         type: ActionType.DATA_VIEWER_UPDATE,
         update: {
           type: DataViewerUpdateType.TOGGLE_COLUMNS,

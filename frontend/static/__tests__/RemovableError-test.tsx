@@ -1,12 +1,13 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import * as React from 'react';
 
 import { RemovableError } from '../RemovableError';
 
 describe('RemovableError tests', () => {
   it('RemovableError Remove null onRemove', () => {
-    const result = mount(<RemovableError error="foo" />);
-    result.render();
-    expect(result.hasClass('fa-times-circle')).toBe(false);
+    const result = render(<RemovableError error="foo" />).container;
+    expect(result.getElementsByClassName('ico-cancel')).toHaveLength(0);
+    expect(result.getElementsByTagName('pre')).toHaveLength(0);
+    expect(result.textContent).toBe('foo');
   });
 });

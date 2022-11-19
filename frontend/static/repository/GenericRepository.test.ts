@@ -1,19 +1,11 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 import * as GenericRepository from './GenericRepository';
 
 describe('GenericRepository', () => {
-  let axiosPostSpy: jest.SpyInstance<
-    Promise<unknown>,
-    [url: string, data?: unknown, config?: AxiosRequestConfig<unknown>]
-  >;
-  let axiosGetSpy: jest.SpyInstance<Promise<unknown>, [url: string, config?: AxiosRequestConfig<unknown>]>;
-
   beforeEach(() => {
-    axiosPostSpy = jest.spyOn(axios, 'post');
-    axiosPostSpy.mockResolvedValue(Promise.resolve({ data: undefined }));
-    axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockResolvedValue(Promise.resolve({ data: 'bar' }));
+    (axios.post as any).mockResolvedValue(Promise.resolve({ data: undefined }));
+    (axios.get as any).mockResolvedValue(Promise.resolve({ data: 'bar' }));
   });
 
   afterEach(jest.restoreAllMocks);

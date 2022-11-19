@@ -1,16 +1,26 @@
-import { shallow, ShallowWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import SidePanelButtons from '../../../dtale/side/SidePanelButtons';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { SidePanelType } from '../../../redux/state/AppState';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
+
 describe('SidePanelButtons', () => {
-  let wrapper: ShallowWrapper;
-  const dispatchSpy = jest.fn();
+  let wrapper: RenderResult;
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
   const openSpy = jest.fn();
-  let useSelectorSpy: jest.SpyInstance;
   const { open } = window;
 
   beforeAll(() => {
@@ -19,9 +29,7 @@ describe('SidePanelButtons', () => {
   });
 
   beforeEach(() => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
   });
 
   afterEach(jest.resetAllMocks);
@@ -31,23 +39,28 @@ describe('SidePanelButtons', () => {
     jest.restoreAllMocks();
   });
 
-  const setupMock = (): void => {
-    wrapper = shallow(<SidePanelButtons />);
+  const setupMock = async (state?: { [key: string]: any }): Promise<void> => {
+    store = mockStore({ ...state });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      return render(
+        <Provider store={store}>
+          <SidePanelButtons />
+        </Provider>,
+      );
+    });
   };
 
-  it('add close/tab functions', () => {
-    useSelectorSpy.mockReturnValue({ dataId: '1', column: 'foo', visible: true, view: SidePanelType.DESCRIBE });
-    setupMock();
-    const buttons = wrapper.find('button');
-    buttons.last().simulate('click');
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
-    buttons.first().simulate('click');
+  it('add close/tab functions', async () => {
+    await setupMock({ dataId: '1', sidePanel: { visible: true, column: 'foo', view: SidePanelType.DESCRIBE } });
+    const buttons = wrapper.container.getElementsByTagName('button');
+    fireEvent.click(buttons[buttons.length - 1]);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
+    fireEvent.click(buttons[0]);
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/describe/1?selectedCol=foo', '_blank');
   });
 
-  it('does not render when the side panel is not visible', () => {
-    useSelectorSpy.mockReturnValue({ dataId: '1', visible: false });
-    setupMock();
-    expect(wrapper.html()).toBeNull();
+  it('does not render when the side panel is not visible', async () => {
+    await setupMock({ dataId: '1', sidePanel: { visible: false } });
+    expect(wrapper.container.innerHTML).toBe('');
   });
 });

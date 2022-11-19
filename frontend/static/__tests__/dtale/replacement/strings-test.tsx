@@ -1,58 +1,36 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import {
-  BaseReplacementComponentProps,
-  ReplacementType,
-  StringsConfig,
-} from '../../../popups/replacement/CreateReplacementState';
-import Strings, * as StringsUtils from '../../../popups/replacement/Strings';
-import { RemovableError } from '../../../RemovableError';
+import { ReplacementType, StringsConfig } from '../../../popups/replacement/CreateReplacementState';
+import * as StringsUtils from '../../../popups/replacement/Strings';
 import { mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateReplacement.test.support';
 
 describe('Strings', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    spies.useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      chartData: { visible: true, propagateState: spies.propagateStateSpy, selectedCol: 'col3' },
-    });
-    result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Contains Char/Substring');
+    result = await spies.setupWrapper({ selectedCol: 'col3' });
+    await spies.clickBuilder('Contains Char/Substring');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findStrings = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Strings);
-
   it('handles strings replacement w/ new col', async () => {
-    expect(findStrings()).toHaveLength(1);
-    result = await spies.setName(result, 'cut_col');
+    expect(screen.getByText('Is Character?')).toBeDefined();
+    await spies.setName('cut_col');
     await act(async () => {
-      findStrings()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: 'nan' } });
     });
-    result = result.update();
     await act(async () => {
-      findStrings()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[2], { target: { value: 'nan' } });
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.STRINGS,
       cfg: { value: 'nan', replace: 'nan', isChar: false, ignoreCase: false },
       col: 'col3',
@@ -64,30 +42,18 @@ describe('Strings', () => {
   it('handles strings replacement', async () => {
     const validationSpy = jest.spyOn(StringsUtils, 'validateStringsCfg');
     await act(async () => {
-      findStrings()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'A' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[0], { target: { value: 'A' } });
     });
-    result = result.update();
     await act(async () => {
-      findStrings().find('div.form-group').at(1).find('i').simulate('click');
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     await act(async () => {
-      findStrings().find('div.form-group').at(2).find('i').simulate('click');
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     await act(async () => {
-      findStrings()
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: 'nan' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
+    await spies.executeSave();
     expect(validationSpy).toHaveBeenLastCalledWith(expect.any(Function), {
       value: 'A',
       isChar: true,
@@ -98,17 +64,12 @@ describe('Strings', () => {
   });
 
   it('handles string replacement w/ new invalid col', async () => {
-    result = await spies.setName(result, 'error');
+    await spies.setName('error');
     await act(async () => {
-      findStrings()
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.change(result.container.getElementsByTagName('input')[1], { target: { value: 'nan' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError)).toHaveLength(1);
+    await spies.executeSave();
+    expect(screen.getByRole('alert')).toBeDefined();
   });
 
   it('validates configuration', () => {

@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
@@ -12,9 +12,14 @@ describe('reducer tests', () => {
     const body = document.getElementsByTagName('body')[0];
     body.innerHTML = `<div id="content" style="height: 1000px;width: 1000px;"></div>`;
 
-    mount(<Provider store={store} />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
+    render(
+      <Provider store={store}>
+        <div />
+      </Provider>,
+      {
+        container: document.getElementById('content') ?? undefined,
+      },
+    );
     const state = {
       chartData: { visible: false, type: PopupType.HIDDEN },
       hideShutdown: false,

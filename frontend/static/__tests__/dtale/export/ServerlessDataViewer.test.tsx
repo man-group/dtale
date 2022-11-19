@@ -1,13 +1,11 @@
-import { mount } from 'enzyme';
+import { act, render } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { MultiGrid } from 'react-virtualized';
 
 import { ServerlessDataViewer } from '../../../dtale/export/ServerlessDataViewer';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, PREDEFINED_FILTERS, tickUpdate } from '../../test-utils';
+import { buildInnerHTML, PREDEFINED_FILTERS } from '../../test-utils';
 
 describe('ServerlessDataViewer', () => {
   const dimensions = new DimensionsHelper({
@@ -26,15 +24,18 @@ describe('ServerlessDataViewer', () => {
   it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
-    const result = mount(
-      <Provider store={store}>
-        <ServerlessDataViewer response={reduxUtils.DATA} />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    const result = await act(
+      async () =>
+        render(
+          <Provider store={store}>
+            <ServerlessDataViewer response={reduxUtils.DATA} />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
-    expect(result.find(MultiGrid).props().rowCount).toBe(6);
+    expect(result.getElementsByClassName('rows')[0].textContent).toBe('5');
+    expect(result.getElementsByClassName('cols')[0].textContent).toBe('4');
   });
 });

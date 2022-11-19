@@ -13,7 +13,7 @@ import {
 /** Base properties for react-select dropdown options */
 export interface BaseOption<T> {
   value: T;
-  label?: string;
+  label?: string | null;
 }
 
 /** Base properties for ButtonToggle options */

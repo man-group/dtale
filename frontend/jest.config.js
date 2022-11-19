@@ -18,24 +18,22 @@ module.exports = {
   ],
   coverageDirectory: './JS_coverage',
   coverageReporters: ['html', 'lcovonly', 'text-summary'],
-  globals: {
-    'ts-jest': {
-      tsconfig: testTsConfig,
-    },
-  },
   moduleFileExtensions: ['js', 'json', 'jsx', 'ts', 'tsx'],
   moduleNameMapper: {
     '\\.(css|scss)$': '<rootDir>/config/styleMock.js',
+    axios: '<rootDir>/node_modules/axios/dist/node/axios.cjs',
   },
   setupFiles: [testPolyfills],
   setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],
   testMatch: ['<rootDir>/static/**/*test.{js,ts}?(x)'],
   testPathIgnorePatterns: ['/node_modules/'],
   testEnvironment: 'jsdom',
-  testURL: 'http://localhost',
+  testEnvironmentOptions: {
+    url: 'http://localhost',
+  },
   testTimeout: 30000,
   transform: {
-    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
+    '^.+\\.(ts|tsx)$': [require.resolve('ts-jest'), testTsConfig],
     '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
     '^.+\\.css$': require.resolve('./config/file-transforms/cssTransform.js'),
     '^(?!.*\\.(css|json)$)': require.resolve('./config/file-transforms/fileTransform.js'),

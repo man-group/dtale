@@ -1,88 +1,85 @@
-import { shallow, ShallowWrapper } from 'enzyme';
+import { act, fireEvent, render, RenderResult } from '@testing-library/react';
+import axios from 'axios';
 import * as React from 'react';
-import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
-import { GlobalHotKeys } from 'react-hotkeys';
-import * as redux from 'react-redux';
-
-jest.mock('../../../dtale/side/MissingNoCharts', () => {
-  const { createMockComponent } = require('../../mocks/createMockComponent');
-  return {
-    __esModule: true,
-    default: createMockComponent(),
-  };
-});
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import { SidePanel } from '../../../dtale/side/SidePanel';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { SidePanelType } from '../../../redux/state/AppState';
+import reduxUtils from '../../redux-test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('SidePanel', () => {
-  let wrapper: ShallowWrapper;
-  const dispatchSpy = jest.fn();
-  let useSelectorSpy: jest.SpyInstance;
+  let wrapper: RenderResult;
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
 
-  const setupMock = (overrides?: Record<string, any>): void => {
-    useSelectorSpy.mockReturnValue({ visible: false, ...overrides });
-    wrapper = shallow(<SidePanel gridPanel={document.createElement('div')} />);
+  const setupMock = async (state?: { [key: string]: any }): Promise<void> => {
+    store = mockStore({ dataId: '1', settings: {}, predefinedFilters: [], sidePanel: { visible: false, ...state } });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      return render(
+        <Provider store={store}>
+          <SidePanel gridPanel={document.createElement('div')} />
+        </Provider>,
+      );
+    });
   };
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
-    setupMock();
+    useDispatchMock.mockImplementation(() => mockDispatch);
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.clearAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
-  it('renders successfully', () => {
-    expect(wrapper.find('div.side-panel-content')).toHaveLength(1);
-    expect(wrapper.find('div').children()).toHaveLength(1);
+  it('renders successfully', async () => {
+    await setupMock();
+    expect(wrapper.container.getElementsByClassName('side-panel-content')).toHaveLength(1);
+    expect(wrapper.container.getElementsByClassName('side-panel-content')[0].children).toHaveLength(0);
   });
 
-  it('shows missing charts', () => {
-    setupMock({ visible: true, view: SidePanelType.MISSINGNO });
-    expect(wrapper.find('div.side-panel-content.is-expanded')).toHaveLength(1);
-    expect(wrapper.find('div').children()).toHaveLength(5);
+  it('shows missing charts', async () => {
+    await setupMock({ visible: true, view: SidePanelType.MISSINGNO });
+    expect(wrapper.container.querySelectorAll('div.side-panel-content.is-expanded')).toHaveLength(1);
+    expect(wrapper.container.getElementsByClassName('row')[0].textContent).toBe('Missing Analysis');
   });
 
-  it('shows Gage R&R', () => {
-    setupMock({ visible: true, view: SidePanelType.GAGE_RNR });
-    expect(wrapper.find('div.side-panel-content.is-expanded')).toHaveLength(1);
-    expect(wrapper.find('div').children()).toHaveLength(5);
+  it('shows Gage R&R', async () => {
+    await setupMock({ visible: true, view: SidePanelType.GAGE_RNR });
+    expect(wrapper.container.querySelectorAll('div.side-panel-content.is-expanded')).toHaveLength(1);
+    expect(wrapper.container.getElementsByClassName('row')[0].textContent).toBe('gage_rnr');
   });
 
-  it('shows predefined filters', () => {
-    setupMock({ visible: true, view: SidePanelType.PREDEFINED_FILTERS });
-    expect(wrapper.find('div.side-panel-content.is-expanded')).toHaveLength(1);
-    expect(wrapper.find('div').children()).toHaveLength(5);
+  it('shows predefined filters', async () => {
+    await setupMock({ visible: true, view: SidePanelType.PREDEFINED_FILTERS });
+    expect(wrapper.container.querySelectorAll('div.side-panel-content.is-expanded')).toHaveLength(1);
+    expect(wrapper.container.getElementsByClassName('row')[0].textContent).toBe('Predefined Filters');
   });
 
-  it('hides side panel on ESC', () => {
-    setupMock({ visible: true });
-    const { keyMap, handlers } = wrapper.find(GlobalHotKeys).props();
-    expect(keyMap?.CLOSE_PANEL).toBe('esc');
-    const closePanel = handlers?.CLOSE_PANEL;
-    closePanel?.();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
+  it('hides side panel on ESC', async () => {
+    await setupMock({ visible: true });
+    await fireEvent.keyDown(wrapper.container, { keyCode: 27 });
+    await fireEvent.keyUp(wrapper.container, { keyCode: 27 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
   });
 
-  it('handles resize', () => {
-    setupMock({ visible: true });
-    wrapper
-      .find(Draggable)
-      .props()
-      .onStart?.({} as any as DraggableEvent, {} as any as DraggableData);
-    wrapper
-      .find(Draggable)
-      .props()
-      .onDrag?.({} as any as DraggableEvent, { deltaX: -20 } as DraggableData);
-    wrapper
-      .find(Draggable)
-      .props()
-      .onStop?.({} as any as DraggableEvent, {} as any as DraggableData);
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.UPDATE_SIDE_PANEL_WIDTH, offset: -20 });
+  it('handles resize', async () => {
+    await setupMock({ visible: true });
+    const handle = wrapper.container.getElementsByClassName('PanelDragHandle')[0];
+    fireEvent.mouseDown(handle, { clientX: 30, clientY: 20 });
+    fireEvent.mouseMove(handle, { clientX: 10, clientY: 20 });
+    fireEvent.mouseUp(handle);
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.UPDATE_SIDE_PANEL_WIDTH, offset: -20 });
   });
 });

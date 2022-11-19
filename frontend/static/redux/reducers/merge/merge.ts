@@ -190,9 +190,9 @@ const datasetReducers = combineReducers<Dataset>({
   dataId: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
     mergeAction.prop === 'dataId' ? mergeAction.value : state,
   index: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
-    mergeAction.prop === 'index' ? mergeAction.value : state,
+    (mergeAction.prop === 'index' ? mergeAction.value : state).map((c) => ({ ...c })),
   columns: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
-    mergeAction.prop === 'columns' ? mergeAction.value : state,
+    (mergeAction.prop === 'columns' ? mergeAction.value : state).map((c) => ({ ...c })),
   suffix: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
     mergeAction.prop === 'suffix' ? mergeAction.value : state,
   isOpen: (state = initialDataset.isOpen, mergeAction: ConfigUpdateAction<boolean>): boolean =>
@@ -213,7 +213,11 @@ export function datasets(state: Dataset[] = [], mergeAction: MergeAppActionTypes
     case MergeActionType.ADD_DATASET:
       return [
         ...state.map((d) => ({ ...d, isOpen: false })),
-        datasetReducers(initialDataset, { ...mergeAction, prop: 'dataId', value: mergeAction.dataId } as AnyAction),
+        datasetReducers({ ...initialDataset }, {
+          ...mergeAction,
+          prop: 'dataId',
+          value: mergeAction.dataId,
+        } as AnyAction),
       ];
     case MergeActionType.REMOVE_DATASET:
       return state.filter((_, i) => i !== mergeAction.index).map((d, i) => ({ ...d, isOpen: i === state.length - 2 }));

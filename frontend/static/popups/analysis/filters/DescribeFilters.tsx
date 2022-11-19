@@ -208,7 +208,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
           onChange={(value?: BaseOption<string> | Array<BaseOption<string>>) =>
             setTarget((value as BaseOption<string>) ?? undefined)
           }
-          noOptionsText={() => t('No columns found')}
+          noOptionsMessage={() => t('No columns found')}
           isClearable={true}
         />
       </div>

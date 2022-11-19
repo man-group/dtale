@@ -223,10 +223,17 @@ def test_from_category():
 
     cfg = {"col": "cat_bool", "to": "bool", "from": "category"}
     builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
+    boolean_types = (np.bool_, bool)
+    results = [np.bool_(True), True]
+    try:
+        boolean_types = boolean_types + (np.bool,)
+        results.append(np.bool(True))
+    except BaseException:
+        pass
     verify_builder(
         builder,
-        lambda col: isinstance(col.values[0], (np.bool, np.bool_))
-        and col.values[0] in [np.bool(True), np.bool_(True)],
+        lambda col: isinstance(col.values[0], boolean_types)
+        and col.values[0] in results,
     )
 
     cfg = {"col": "cat_str", "to": "str", "from": "category"}

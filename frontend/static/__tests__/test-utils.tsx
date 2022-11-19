@@ -1,3 +1,5 @@
+/* eslint max-classes-per-file: "off" */
+import { act, fireEvent, Matcher, screen } from '@testing-library/react';
 import {
   ChartConfiguration,
   ChartData,
@@ -7,9 +9,11 @@ import {
   ChartType,
   DefaultDataPoint,
   InteractionItem,
+  Scale,
 } from 'chart.js';
-import { ReactWrapper, ShallowWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { TFunction } from 'i18next';
+import * as React from 'react';
+import selectEvent from 'react-select-event';
 import { Store } from 'redux';
 
 import * as chartUtils from '../chartUtils';
@@ -88,35 +92,22 @@ export const buildInnerHTML = (props: Record<string, string | undefined> = {}, s
   store?.dispatch(actions.init());
 };
 
-export const findMainMenuButton = (result: ReactWrapper, name: string, btnTag = 'button'): ReactWrapper => {
-  const DataViewerMenu = require('../dtale/menu/DataViewerMenu').default;
-  return result
-    .find(DataViewerMenu)
-    .find(`ul li ${btnTag}`)
-    .findWhere((b) => b.text().includes(name))
-    .first();
+export const findMainMenuButton = (name: string, btnTag = 'button'): Element | undefined => {
+  const menu = screen.getByTestId('data-viewer-menu');
+  const buttons = menu.querySelectorAll(`ul li ${btnTag}`);
+  return [...buttons].find((b) => b?.textContent?.includes(name));
 };
 
-export const clickMainMenuButton = async (
-  result: ReactWrapper,
-  name: string,
-  btnTag = 'button',
-): Promise<ReactWrapper> => {
+export const clickMainMenuButton = async (name: string, btnTag = 'button'): Promise<void> => {
   await act(async () => {
-    findMainMenuButton(result, name, btnTag).simulate('click');
+    fireEvent.click(findMainMenuButton(name, btnTag)!);
   });
-  return result.update();
 };
 
 export const tick = (timeout = 0): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(resolve, timeout);
   });
-};
-
-export const tickUpdate = async (result: ReactWrapper | ShallowWrapper, timeout = 0): Promise<void> => {
-  await tick(timeout);
-  result.update();
 };
 
 /** Mocked version of chart.js Chart object */
@@ -201,12 +192,12 @@ export const mockWordcloud = (): void => {
     const { createMockComponent } = require('./mocks/createMockComponent');
     return {
       __esModule: true,
-      default: createMockComponent(),
+      default: createMockComponent('MockWordcloud', () => <div data-testid="mock-wordcloud" />),
     };
   });
 };
 
-export const mockT = (key: string): string => {
+export const mockT = ((key: string): string => {
   const keySegs = key.split(':');
   if (keySegs.length > 2) {
     keySegs.shift();
@@ -215,7 +206,7 @@ export const mockT = (key: string): string => {
     return keySegs[keySegs.length - 1];
   }
   return key;
-};
+}) as any as TFunction;
 
 /** Type definition for chartUtils.createChart spies */
 export type CreateChartSpy = jest.SpyInstance<
@@ -232,4 +223,57 @@ export const getLastChart = (
     return typeCalls[typeCalls.length - 1][1];
   }
   return spy.mock.calls[spy.mock.calls.length - 1][1];
+};
+
+export const CTX: Partial<CanvasRenderingContext2D> = {
+  createLinearGradient: (_px1: number, _px2: number, _px3: number, _px4: number): CanvasGradient => ({
+    addColorStop: (_px5: number, _color: string): void => undefined,
+  }),
+  save: () => undefined,
+  beginPath: () => undefined,
+  moveTo: () => undefined,
+  lineTo: () => undefined,
+  lineWidth: 0,
+  strokeStyle: undefined,
+  stroke: () => undefined,
+  restore: () => undefined,
+};
+
+export const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
+
+/** FakeMouseEvent properties */
+interface MouseEventWithOffsets extends MouseEventInit {
+  pageX?: number;
+  pageY?: number;
+  offsetX?: number;
+  offsetY?: number;
+  x?: number;
+  y?: number;
+}
+
+/** Fake mouse event class */
+export class FakeMouseEvent extends MouseEvent {
+  /** @override */
+  constructor(type: string, values: MouseEventWithOffsets) {
+    const { pageX, pageY, offsetX, offsetY, x, y, ...mouseValues } = values;
+    super(type, mouseValues);
+
+    Object.assign(this, {
+      offsetX: offsetX || 0,
+      offsetY: offsetY || 0,
+      pageX: pageX || 0,
+      pageY: pageY || 0,
+      x: x || 0,
+      y: y || 0,
+    });
+  }
+}
+
+export const selectOption = async (selectElement: HTMLElement, option: Matcher | Matcher[]): Promise<void> => {
+  await act(async () => {
+    await selectEvent.openMenu(selectElement);
+  });
+  await act(async () => {
+    await selectEvent.select(selectElement, option);
+  });
 };

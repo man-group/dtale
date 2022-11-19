@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   ActionType,
-  AppActions,
   EditedCellAction,
   HideMenuTooltipAction,
   HideRibbonMenuAction,
+  OpenChartAction,
   SetRangeStateAction,
   ShowMenuTooltipAction,
   ShowRibbonMenuAction,
@@ -31,7 +31,12 @@ export interface GridEventHandlerProps {
   data: DataViewerData;
 }
 
-const GridEventHandler: React.FC<GridEventHandlerProps & WithTranslation> = ({ columns, data, t, children }) => {
+const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps & WithTranslation>> = ({
+  columns,
+  data,
+  t,
+  children,
+}) => {
   const {
     allowCellEdits,
     dataId,
@@ -62,7 +67,7 @@ const GridEventHandler: React.FC<GridEventHandlerProps & WithTranslation> = ({ c
     settings: state.settings,
   }));
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const editCell = (editedCell: string): EditedCellAction => dispatch({ type: ActionType.EDIT_CELL, editedCell });
   const setRibbonVisibility = (show: boolean): ShowRibbonMenuAction | HideRibbonMenuAction =>
     dispatch({ type: show ? ActionType.SHOW_RIBBON_MENU : ActionType.HIDE_RIBBON_MENU });
@@ -110,7 +115,7 @@ const GridEventHandler: React.FC<GridEventHandlerProps & WithTranslation> = ({ c
     const coords = convertCellIdxToCoords(cellIdx);
     if (rowRange) {
       const title = t('Copy Rows to Clipboard?');
-      const callback = (copyText: CopyText): AppActions<void> =>
+      const callback = (copyText: CopyText): OpenChartAction =>
         openChart({
           ...copyText,
           type: PopupType.COPY_ROW_RANGE,

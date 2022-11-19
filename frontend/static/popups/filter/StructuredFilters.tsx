@@ -12,8 +12,8 @@ export interface StructuredFiltersProps {
 
 const StructuredFilters: React.FC<StructuredFiltersProps & WithTranslation> = ({ dropFilter, filters, label, t }) => (
   <React.Fragment>
-    {Object.keys(filters ?? {}).length > 0 && (
-      <React.Fragment>
+    {!!Object.keys(filters ?? {}).length && (
+      <div data-testid="structured-filters">
         <div className="font-weight-bold">{`${t('Active')} ${label}:`}</div>
         {Object.keys(filters)
           .filter((k) => filters[k].query !== undefined)
@@ -23,7 +23,7 @@ const StructuredFilters: React.FC<StructuredFiltersProps & WithTranslation> = ({
               <span className="align-middle">{`${filters[k].query} and`}</span>
             </div>
           ))}
-      </React.Fragment>
+      </div>
     )}
   </React.Fragment>
 );

@@ -1,9 +1,10 @@
+/* eslint no-console: "off" */
+import '@testing-library/jest-dom';
 import 'regenerator-runtime/runtime';
+import { TextDecoder, TextEncoder } from 'util';
 
-import ReactSeventeenAdapter from '@wojtekmaj/enzyme-adapter-react-17';
-import { configure } from 'enzyme';
-
-configure({ adapter: new ReactSeventeenAdapter() });
+(global as any).TextEncoder = TextEncoder;
+(global as any).TextDecoder = TextDecoder;
 
 // this file is compiled in an odd way so we need to mock it (react-syntax-highlighter)
 jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/python', () => ({
@@ -63,10 +64,35 @@ jest.mock('chart.js', () => ({
   },
 }));
 
-window.requestAnimationFrame = (): number => {
-  window.clearTimeout();
-  return 0;
+window.requestAnimationFrame = (callback) => window.setTimeout(callback, 0);
+window.cancelAnimationFrame = (id) => {
+  window.clearTimeout(id);
 };
+
+// needed for react-slider
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+(window as any).ResizeObserver = ResizeObserver;
 
 // this is required for webpack dynamic public path setup
 (global as any).__webpack_public_path__ = '';
+
+(global as any).IS_REACT_ACT_ENVIRONMENT = true;
+
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const firstArg = args[0];
+  if (
+    typeof args[0] === 'string' &&
+    (args[0].startsWith("Warning: It looks like you're using the wrong act()") ||
+      firstArg.startsWith('Warning: The current testing environment is not configured to support act') ||
+      firstArg.startsWith('Warning: You seem to have overlapping act() calls'))
+  ) {
+    return;
+  }
+  originalConsoleError.apply(console, args);
+};

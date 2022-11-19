@@ -166,7 +166,7 @@ const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
       )}
       <ActionConfig />
       <BouncerWrapper showBouncer={loading}>
-        <ul className="list-group ml-3 mr-3 pt-5">
+        <ul className="list-group ml-3 mr-3 pt-5" data-testid="merge-datasets">
           <li className="list-group-item p-3 section">
             <div className="row ml-0 mr-0">
               <div className="col-auto pl-4 pr-0">

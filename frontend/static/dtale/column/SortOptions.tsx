@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
 import { InstanceSettings, SortDef, SortDir } from '../../redux/state/AppState';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
@@ -15,8 +15,8 @@ interface SortOptionsProps {
 
 const SortOptions: React.FC<SortOptionsProps & WithTranslation> = ({ sortInfo, selectedCol, t }) => {
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
   const currDir = sortInfo?.find(([col, _dir]) => selectedCol === col)?.[1];
 
   const renderBtn = (active: boolean, label: string, dir?: SortDir): JSX.Element => {

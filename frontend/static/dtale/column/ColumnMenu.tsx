@@ -2,10 +2,11 @@ import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { usePrevious } from '../../customHooks';
 import ColumnFilter from '../../filters/ColumnFilter';
-import { ActionType, AppActions, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, OpenChartAction, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
@@ -44,8 +45,8 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
-  const hideColumnMenu = (colName: string): AppActions<void> => dispatch(actions.hideColumnMenu(colName));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
   const showSidePanel = (column: string, view: SidePanelType): SidePanelAction =>
     dispatch({ type: ActionType.SHOW_SIDE_PANEL, view, column });
 
@@ -107,10 +108,10 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     const title = `Delete column - ${selectedCol}`;
     openChart({ type: PopupType.CONFIRM, title, msg, yesAction, size: 'sm', visible: true });
   };
-  const renameCol = (): AppActions<void> =>
+  const renameCol = (): OpenChartAction =>
     openChart({ type: PopupType.RENAME, selectedCol, columns, size: 'sm', visible: true });
   const openAction = (popup: Popups): (() => void) => openPopup(popup, 400, 770);
-  const closeMenu = (): AppActions<void> => hideColumnMenu(selectedCol);
+  const closeMenu = (): AnyAction => hideColumnMenu(selectedCol);
 
   const renderMoveBtn = (
     icon: string,
@@ -122,7 +123,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
       style={{ color: '#565b68', width: '2em', ...icnStyle }}
       className={`btn btn-primary font-weight-bold`}
       onClick={func(selectedCol, { columns, propagateState, dataId })}
-      title={t(hint, { ns: 'column_menu' })}
+      title={t(hint, { ns: 'column_menu' }) ?? ''}
     >
       <i className={`fas fa-${icon}`} />
     </button>

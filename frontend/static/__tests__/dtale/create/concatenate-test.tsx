@@ -1,36 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, getByText, screen } from '@testing-library/react';
 
-import {
-  BaseCreateComponentProps,
-  ConcatenationConfig,
-  CreateColumnType,
-  OperandDataType,
-} from '../../../popups/create/CreateColumnState';
-import { CreateConcatenate, validateConcatenateCfg } from '../../../popups/create/CreateConcatenate';
-import { mockT as t } from '../../test-utils';
+import { ConcatenationConfig, CreateColumnType, OperandDataType } from '../../../popups/create/CreateColumnState';
+import { validateConcatenateCfg } from '../../../popups/create/CreateConcatenate';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateConcatenate', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
-
-  const findConcatenateInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateConcatenate).first();
-  const findLeftInputs = (): ReactWrapper => findConcatenateInputs().find('div.form-group').first();
-  const simulateClick = async (btn: ReactWrapper): Promise<ReactWrapper> => {
-    await act(async () => {
-      btn.simulate('click');
-    });
-    return result.update();
-  };
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Concatenate');
+    await spies.clickBuilder('Concatenate');
   });
 
   afterEach(() => spies.afterEach());
@@ -38,38 +21,25 @@ describe('CreateConcatenate', () => {
   afterAll(() => spies.afterAll());
 
   it('builds concatenate column', async () => {
-    expect(result.find(CreateConcatenate)).toHaveLength(1);
+    expect(screen.getByText('Concatenate')).toHaveClass('active');
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'numeric_col' } });
+      await fireEvent.change(result.querySelector('div.form-group')!.getElementsByTagName('input')[0], {
+        target: { value: 'numeric_col' },
+      });
     });
-    result = result.update();
-    await simulateClick(findLeftInputs().find('button').first());
-    await simulateClick(findLeftInputs().find('button').last());
-    await simulateClick(findLeftInputs().find('button').first());
+    const leftInputs = screen.getByTestId('left-inputs');
     await act(async () => {
-      findLeftInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(getByText(leftInputs, 'Col'));
     });
-    result = result.update();
     await act(async () => {
-      findConcatenateInputs()
-        .find('div.form-group')
-        .last()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(getByText(leftInputs, 'Val'));
     });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await act(async () => {
+      await fireEvent.click(getByText(leftInputs, 'Col'));
+    });
+    await selectOption(leftInputs.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(screen.getByTestId('right-inputs').getElementsByClassName('Select')[0] as HTMLElement, 'col2');
+    await spies.validateCfg({
       cfg: {
         left: { col: 'col1', type: OperandDataType.COL },
         right: { col: 'col2', type: OperandDataType.COL },

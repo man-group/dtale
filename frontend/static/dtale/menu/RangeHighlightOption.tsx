@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { Bouncer } from '../../Bouncer';
-import { AppActions } from '../../redux/actions/AppActions';
+import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
+import { AppState, InstanceSettings, Popups, PopupType, RangeHighlightConfig } from '../../redux/state/AppState';
 import { ColumnDef } from '../DataViewerState';
 
 import { MenuItem } from './MenuItem';
@@ -23,18 +24,23 @@ const RangeHighlightOption: React.FC<RangeHighlightOptionProps & WithTranslation
 }) => {
   const { backgroundMode, rangeHighlight } = useSelector((state: AppState) => state.settings);
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const openRangeHightlight = ribbonWrapper(() =>
-    openChart({ type: PopupType.RANGE, size: 'sm', visible: true, backgroundMode, rangeHighlight, columns }),
+    openChart({
+      type: PopupType.RANGE,
+      size: 'sm',
+      visible: true,
+      backgroundMode,
+      rangeHighlight: { ...rangeHighlight },
+      columns,
+    }),
   );
   const turnOffRangeHighlight = ribbonWrapper(() => {
-    const updatedRangeHighlight = Object.entries(rangeHighlight ?? {}).reduce(
-      (res, [key, value]) => ({ ...res, [key]: { ...value, active: false } }),
-      {},
-    );
+    const updatedRangeHighlight = JSON.parse(JSON.stringify(rangeHighlight ?? {})) as RangeHighlightConfig;
+    Object.values(updatedRangeHighlight).forEach((value) => (value.active = false));
     updateSettings({ rangeHighlight: updatedRangeHighlight, backgroundMode: undefined });
   });
 

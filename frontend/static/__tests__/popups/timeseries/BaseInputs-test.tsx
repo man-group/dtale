@@ -1,49 +1,42 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
-import ColumnSelect from '../../../popups/create/ColumnSelect';
-import { LabeledSelect } from '../../../popups/create/LabeledSelect';
 import { BaseInputProps, default as BaseInputs } from '../../../popups/timeseries/BaseInputs';
+import { selectOption } from '../../test-utils';
 
 describe('BaseInputs', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let props: BaseInputProps;
 
   beforeEach(() => {
     props = {
-      columns: [{ dtype: 'int', name: 'foo', index: 0 }],
+      columns: [
+        { dtype: 'int', name: 'foo', index: 0 },
+        { dtype: 'datetime', name: 'date', index: 1 },
+      ],
       cfg: {},
       updateState: jest.fn(),
     };
-    wrapper = mount(<BaseInputs {...props} />);
+    wrapper = render(<BaseInputs {...props} />).container;
   });
 
   it('renders successfully', () => {
-    expect(wrapper.find('div.col-md-4')).toHaveLength(3);
+    expect(wrapper.querySelectorAll('div.col-md-4')).toHaveLength(3);
   });
 
   it('updates state', async () => {
-    await act(async () => {
-      wrapper
-        .find(ColumnSelect)
-        .first()
-        .props()
-        .updateState({ index: { value: 'date' } });
-    });
-    wrapper = wrapper.update();
-    await act(async () => {
-      wrapper
-        .find(ColumnSelect)
-        .last()
-        .props()
-        .updateState({ col: { value: 'foo' } });
-    });
-    wrapper = wrapper.update();
-    await act(async () => {
-      wrapper.find(LabeledSelect).props().onChange?.({ value: 'sum' });
-    });
-    wrapper = wrapper.update();
+    await selectOption(
+      screen.getByText('Index').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'date',
+    );
+    await selectOption(
+      screen.getByText('Column').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'foo',
+    );
+    await selectOption(
+      screen.getByText('Agg').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Sum',
+    );
     expect(props.updateState).toHaveBeenLastCalledWith({
       index: 'date',
       col: 'foo',

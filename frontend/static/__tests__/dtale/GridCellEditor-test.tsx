@@ -1,23 +1,31 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
+import { default as configureStore } from 'redux-mock-store';
 
 import { GridCellEditor, GridCellEditorProps } from '../../dtale/GridCellEditor';
 import { ActionType } from '../../redux/actions/AppActions';
 import { mockColumnDef } from '../mocks/MockColumnDef';
-import { tickUpdate } from '../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('GridCellEditor', () => {
-  let wrapper: ReactWrapper;
+  let container: HTMLElement;
+  const mockDispatch = jest.fn();
+  const mockStore = configureStore();
+  let store: Store;
   let props: GridCellEditorProps;
   let addEventListenerSpy: jest.SpyInstance;
   let removeEventListenerSpy: jest.SpyInstance;
-  let useSelectorSpy: jest.SpyInstance;
-  const dispatchSpy = jest.fn();
 
   const buildMock = async (propOverrides?: GridCellEditorProps, state?: { [key: string]: any }): Promise<void> => {
-    useSelectorSpy.mockReturnValue({
+    store = mockStore({
       dataId: '1',
       settings: {},
       maxColumnWidth: null,
@@ -35,15 +43,17 @@ describe('GridCellEditor', () => {
     };
     addEventListenerSpy = jest.spyOn(window, 'addEventListener');
     removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-    wrapper = mount(<GridCellEditor {...props} />);
-    await act(async () => tickUpdate(wrapper));
-    wrapper = wrapper.update();
+    container = render(
+      <Provider store={store}>
+        <div>
+          <GridCellEditor {...props} />
+        </div>
+      </Provider>,
+    ).container;
   };
 
   beforeEach(async () => {
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
+    useDispatchMock.mockImplementation(() => mockDispatch);
     addEventListenerSpy = jest.spyOn(window, 'addEventListener');
     removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
     await buildMock();
@@ -55,18 +65,15 @@ describe('GridCellEditor', () => {
 
   it('clears edit on escape', async () => {
     expect(addEventListenerSpy).toHaveBeenCalled();
-    await act(async () => {
-      addEventListenerSpy.mock.calls.find((call) => call[0] === 'keydown')[1]({ key: 'Escape' });
-    });
-    wrapper = wrapper.update();
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.CLEAR_EDIT });
+    const input = container.getElementsByTagName('input')[0];
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLEAR_EDIT });
   });
 
   it('drops window listener on unmount', async () => {
-    await act(async () => {
-      wrapper.unmount();
-    });
-    wrapper = wrapper.update();
+    const body = container.getElementsByTagName('div')[0];
+    const input = container.getElementsByTagName('input')[0];
+    body.removeChild(input);
     expect(removeEventListenerSpy).toHaveBeenCalled();
   });
 });

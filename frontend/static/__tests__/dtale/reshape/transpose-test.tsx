@@ -1,17 +1,16 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { BaseReshapeComponentProps, ReshapeTransposeConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
-import { default as Transpose, validateTransposeCfg } from '../../../popups/reshape/Transpose';
+import { ReshapeTransposeConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { validateTransposeCfg } from '../../../popups/reshape/Transpose';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Reshape.test.support';
 
 describe('Transpose', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -30,7 +29,7 @@ describe('Transpose', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Transpose');
+    await spies.clickBuilder('Transpose');
   });
 
   afterEach(() => spies.afterEach());
@@ -42,31 +41,16 @@ describe('Transpose', () => {
     spies.afterAll();
   });
 
-  const findTranspose = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Transpose);
+  const findSelects = (): HTMLCollectionOf<Element> => result.container.getElementsByClassName('Select');
 
   it('reshapes data using transpose', async () => {
-    expect(findTranspose()).toHaveLength(1);
+    expect(findSelects()).toHaveLength(2);
+    await selectOption(findSelects()[0] as HTMLElement, 'col1');
+    await selectOption(findSelects()[1] as HTMLElement, 'col2');
     await act(async () => {
-      findTranspose()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
-    await act(async () => {
-      findTranspose()
-        .find(Select)
-        .last()
-        .props()
-        .onChange?.([{ value: 'col2' }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: { index: ['col1'], columns: ['col2'] },
       type: ReshapeType.TRANSPOSE,
       output: OutputType.OVERRIDE,
@@ -75,7 +59,7 @@ describe('Transpose', () => {
   });
 
   it('handles errors', async () => {
-    result = await spies.validateError(result, 'Missing an index selection!');
+    await spies.validateError('Missing an index selection!');
   });
 
   it('validates configuration', () => {

@@ -1,14 +1,13 @@
+import { act, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { default as ChartsBody, ChartsBodyProps } from '../../../popups/charts/ChartsBody';
 import reduxUtils from '../../redux-test-utils';
-import { mockChartJS, mockD3Cloud, tickUpdate } from '../../test-utils';
+import { mockChartJS, mockD3Cloud } from '../../test-utils';
 
 describe('ChartsBody tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   const props: ChartsBodyProps = {
     columns: [],
     visible: true,
@@ -23,8 +22,7 @@ describe('ChartsBody tests', () => {
   });
 
   beforeEach(() => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('chart-data-error-test1')) {
         return Promise.resolve({ data: { data: {} } });
       }
@@ -38,22 +36,26 @@ describe('ChartsBody tests', () => {
   afterAll(jest.restoreAllMocks);
 
   const mountChart = async (overrides: Partial<ChartsBodyProps>): Promise<void> => {
-    result = mount(<ChartsBody {...{ ...props, ...overrides }} />, {
-      attachTo: document.getElementById('content') ?? undefined,
-    });
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    result = await act(
+      () =>
+        render(<ChartsBody {...{ ...props, ...overrides }} />, {
+          container: document.getElementById('content') ?? undefined,
+        }).container,
+    );
   };
 
   it('handles missing data', async () => {
     await mountChart({ url: 'chart-data-error-test1' });
-    expect(result.html().includes('No data found.')).toBe(true);
+    expect(screen.getByText('No data found.')).toBeDefined();
   });
 
   it('handles errors', async () => {
     await mountChart({ url: 'chart-data-error-test2' });
-    expect(result.html().includes('Error test.')).toBe(true);
-    result.setProps({ visible: false });
-    expect(result.html()).toBeNull();
+    expect(screen.getByText('Error test.')).toBeDefined();
+  });
+
+  it('hides chart', async () => {
+    await mountChart({ visible: false });
+    expect(result.innerHTML).toBe('');
   });
 });

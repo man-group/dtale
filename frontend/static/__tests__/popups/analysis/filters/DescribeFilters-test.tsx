@@ -1,25 +1,23 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
-import ButtonToggle, { ButtonToggleOption } from '../../../../ButtonToggle';
 import { AnalysisType } from '../../../../popups/analysis/ColumnAnalysisState';
-import CategoryInputs from '../../../../popups/analysis/filters/CategoryInputs';
 import { default as DescribeFilters, DescribeFiltersProps } from '../../../../popups/analysis/filters/DescribeFilters';
-import GeoFilters from '../../../../popups/analysis/filters/GeoFilters';
-import OrdinalInputs from '../../../../popups/analysis/filters/OrdinalInputs';
-import TextEnterFilter from '../../../../popups/analysis/filters/TextEnterFilter';
 import { mockColumnDef } from '../../../mocks/MockColumnDef';
-import { tickUpdate } from '../../../test-utils';
+import { selectOption } from '../../../test-utils';
 
 describe('DescribeFilters tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   let props: DescribeFiltersProps;
 
-  beforeEach(async () => {
+  const buildMock = async (overrides?: Partial<DescribeFiltersProps>): Promise<void> => {
     props = {
       selectedCol: 'foo',
-      cols: [mockColumnDef({ name: 'foo', dtype: 'str' }), mockColumnDef({ name: 'bar', dtype: 'str', index: 1 })],
+      cols: [
+        mockColumnDef({ name: 'foo', dtype: 'str' }),
+        mockColumnDef({ name: 'bar', dtype: 'str', index: 1 }),
+        mockColumnDef({ name: 'baz', dtype: 'int', index: 2 }),
+      ],
       dtype: 'int64',
       code: 'test code',
       type: AnalysisType.BOXPLOT,
@@ -32,201 +30,198 @@ describe('DescribeFilters tests', () => {
         sequential_diffs: { diffs: { data: [] }, min: '', max: '', avg: '' },
         string_metrics: {},
       },
+      ...overrides,
     };
-    result = mount(<DescribeFilters {...props} />);
-    await act(async () => await tickUpdate(result));
-    result = result.update();
-  });
+    result = render(<DescribeFilters {...props} />).container;
+  };
 
   afterEach(jest.resetAllMocks);
 
   afterAll(jest.restoreAllMocks);
 
   it('calls buildChart', async () => {
+    await buildMock();
     await act(async () => {
-      result.find(ButtonToggle).props().update(AnalysisType.VALUE_COUNTS);
+      await fireEvent.click(screen.getByText('Value Counts'));
     });
-    result = result.update();
     jest.resetAllMocks();
-    await act(async () => {
-      result.find(OrdinalInputs).props().setOrdinalCol({ value: 'bar' });
-    });
-    await act(async () => {
-      result.find(OrdinalInputs).props().setOrdinalAgg({ value: 'mean' });
-    });
+    await selectOption(screen.getByTestId('ordinal-col').querySelector('.Select')!, 'baz');
+    await selectOption(screen.getByTestId('ordinal-agg').querySelector('.Select')!, 'Mean');
     expect(props.buildChart).toHaveBeenCalledTimes(2);
   });
 
   describe('rendering int column', () => {
+    beforeEach(async () => await buildMock());
+
     it('rendering boxplot', () => {
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(0);
-      expect(
-        result
-          .find(ButtonToggle)
-          .props()
-          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
-      ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.VALUE_COUNTS, AnalysisType.QQ]);
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('value-input')).toHaveLength(0);
+      expect(Array.from(result.getElementsByTagName('button')).map((b) => b.textContent)).toEqual([
+        'Describe',
+        'Histogram',
+        'Value Counts',
+        'Q-Q Plot',
+      ]);
     });
 
     it('rendering histogram', async () => {
       await act(async () => {
-        result.find(ButtonToggle).first().props().update(AnalysisType.HISTOGRAM);
+        await fireEvent.click(screen.getByText('Histogram'));
       });
-      result = result.update();
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(1);
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.getByTestId('value-input')).toBeDefined();
       await act(async () => {
-        result.find(ButtonToggle).last().props().update(true);
+        await fireEvent.click(screen.getByText('Probability'));
       });
-      result = result.update();
       expect(props.buildChart).toHaveBeenLastCalledWith(expect.objectContaining({ density: true }));
     });
 
-    it('rendering value_counts', () => {
-      result.find(ButtonToggle).first().find('button').at(2).simulate('click');
-      expect(result.find(OrdinalInputs)).toHaveLength(1);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(1);
+    it('rendering value_counts', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Value Counts'));
+      });
+      expect(screen.getByTestId('ordinal-col')).toBeDefined();
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.getByTestId('value-input')).toBeDefined();
     });
   });
 
   describe('rendering float column', () => {
-    beforeEach(() => {
-      result.setProps({ dtype: 'float64', details: { type: 'float64' } });
-      result.update();
-    });
+    beforeEach(async () => await buildMock({ dtype: 'float64' }));
 
     it('rendering boxplot', () => {
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(0);
-      expect(
-        result
-          .find(ButtonToggle)
-          .props()
-          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
-      ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.CATEGORIES, AnalysisType.QQ]);
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('value-input')).toHaveLength(0);
+      expect(Array.from(result.getElementsByTagName('button')).map((b) => b.textContent)).toEqual([
+        'Describe',
+        'Histogram',
+        'Categories',
+        'Q-Q Plot',
+      ]);
     });
 
-    it('rendering histogram', () => {
-      result.find(ButtonToggle).first().find('button').at(1).simulate('click');
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(1);
+    it('rendering histogram', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Histogram'));
+      });
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.getByTestId('value-input')).toBeDefined();
     });
 
-    it('rendering categories', () => {
-      result.find(ButtonToggle).first().find('button').at(2).simulate('click');
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(1);
-      expect(result.find(TextEnterFilter)).toHaveLength(1);
+    it('rendering categories', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Categories'));
+      });
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.getByTestId('category-col')).toBeDefined();
+      expect(screen.getByTestId('value-input')).toBeDefined();
     });
   });
 
   describe('rendering datetime column', () => {
-    beforeEach(() => {
-      result.setProps({ dtype: 'datetime[ns]', details: { type: 'datetime' } });
-      result.update();
-    });
+    beforeEach(async () => await buildMock({ dtype: 'datetime[ns]' }));
 
     it('rendering boxplot', () => {
-      expect(result.find(OrdinalInputs)).toHaveLength(0);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(0);
-      expect(
-        result
-          .find(ButtonToggle)
-          .props()
-          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
-      ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.VALUE_COUNTS, AnalysisType.QQ]);
+      expect(screen.queryAllByTestId('ordinal-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.queryAllByTestId('value-input')).toHaveLength(0);
+      expect(Array.from(result.getElementsByTagName('button')).map((b) => b.textContent)).toEqual([
+        'Describe',
+        'Histogram',
+        'Value Counts',
+        'Q-Q Plot',
+      ]);
     });
 
-    it('rendering value_counts', () => {
-      result.find(ButtonToggle).first().find('button').at(2).simulate('click');
-      expect(result.find(OrdinalInputs)).toHaveLength(1);
-      expect(result.find(CategoryInputs)).toHaveLength(0);
-      expect(result.find(TextEnterFilter)).toHaveLength(1);
+    it('rendering value_counts', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Value Counts'));
+      });
+      expect(screen.getByTestId('ordinal-col')).toBeDefined();
+      expect(screen.queryAllByTestId('category-col')).toHaveLength(0);
+      expect(screen.getByTestId('value-input')).toBeDefined();
     });
   });
 
   describe('rendering geolocation column', () => {
-    beforeEach(() => {
-      result.setProps({
-        dtype: 'float',
-        coord: 'lat',
-        details: { type: 'float' },
-      });
-      result.update();
-    });
+    beforeEach(
+      async () =>
+        await buildMock({
+          dtype: 'float',
+          selectedCol: 'lat',
+          cols: [
+            mockColumnDef({ name: 'lat', dtype: 'float', coord: 'lat' }),
+            mockColumnDef({ name: 'lon', dtype: 'float', coord: 'lon', index: 1 }),
+          ],
+        }),
+    );
 
     it('loading options', () => {
-      expect(
-        result
-          .find(ButtonToggle)
-          .props()
-          .options.map((option: ButtonToggleOption) => option.value as AnalysisType),
-      ).toEqual([AnalysisType.BOXPLOT, AnalysisType.HISTOGRAM, AnalysisType.CATEGORIES, AnalysisType.QQ]);
+      expect(Array.from(result.getElementsByTagName('button')).map((b) => b.textContent)).toEqual([
+        'Describe',
+        'Histogram',
+        'Categories',
+        'Geolocation',
+        'Q-Q Plot',
+      ]);
     });
 
     it('rendering geolocation', async () => {
       await act(async () => {
-        result.find(ButtonToggle).first().props().update(AnalysisType.GEOLOCATION);
+        await fireEvent.click(screen.getByText('Geolocation'));
       });
-      result = result.update();
-      expect(result.find(GeoFilters)).toHaveLength(1);
+      expect(screen.getByText('Latitude:')).toBeDefined();
     });
   });
 
   describe('chart navigation', () => {
     let addEventListenerSpy: jest.SpyInstance;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+      await buildMock();
       addEventListenerSpy = jest.spyOn(document, 'addEventListener');
     });
 
     const move = async (prop: string): Promise<void> => {
       await act(async () => {
-        addEventListenerSpy.mock.calls[addEventListenerSpy.mock.calls.length - 1][1]({
+        await addEventListenerSpy.mock.calls[addEventListenerSpy.mock.calls.length - 1][1]({
           key: prop,
           stopPropagation: jest.fn(),
         });
       });
-      result = result.update();
     };
 
     it('moves selected chart on LEFT', async () => {
       await act(async () => {
-        result.find(ButtonToggle).first().props().update(AnalysisType.HISTOGRAM);
+        await fireEvent.click(screen.getByText('Histogram'));
       });
-      result = result.update();
       await move('ArrowLeft');
-      expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.BOXPLOT);
+      expect(result.querySelector('button.active')!.textContent).toBe('Describe');
     });
 
     it('moves selected chart on RIGHT', async () => {
       await move('ArrowRight');
-      expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.HISTOGRAM);
+      expect(result.querySelector('button.active')!.textContent).toBe('Histogram');
     });
 
     it('does nothing on RIGHT if at last chart', async () => {
       await act(async () => {
-        result.find(ButtonToggle).first().props().update(AnalysisType.QQ);
+        await fireEvent.click(screen.getByText('Q-Q Plot'));
       });
-      result = result.update();
       await move('ArrowRight');
-      expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.QQ);
+      expect(result.querySelector('button.active')!.textContent).toBe('Q-Q Plot');
     });
 
     it('does nothing on LEFT if at first chart', async () => {
       await act(async () => {
-        result.find(ButtonToggle).first().props().update(AnalysisType.BOXPLOT);
+        await fireEvent.click(screen.getByText('Describe'));
       });
-      result = result.update();
       await move('ArrowLeft');
-      expect(result.find(ButtonToggle).first().props().defaultValue).toBe(AnalysisType.BOXPLOT);
+      expect(result.querySelector('button.active')!.textContent).toBe('Describe');
     });
   });
 });

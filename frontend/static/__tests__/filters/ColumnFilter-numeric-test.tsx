@@ -1,16 +1,13 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { ColumnFilterProps } from '../../filters/ColumnFilter';
-import NumericFilter from '../../filters/NumericFilter';
 import { mockColumnDef } from '../mocks/MockColumnDef';
+import { selectOption } from '../test-utils';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
 describe('ColumnFilter numeric tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper<ColumnFilterProps>;
+  let result: Element;
 
   beforeEach(() => {
     spies.setupMockImplementations();
@@ -40,52 +37,31 @@ describe('ColumnFilter numeric tests', () => {
       selectedCol: 'col1',
       columns: [mockColumnDef({ name: 'col1', dtype: 'int64' })],
     });
-    expect(result.find(NumericFilter).length).toBe(1);
+    expect(result.getElementsByClassName('numeric-filter-inputs').length).toBe(1);
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: true });
-    expect(result.find('.Select__control--is-disabled').length).toBeGreaterThan(0);
+    expect(result.getElementsByClassName('Select__control--is-disabled').length).toBeGreaterThan(0);
     await act(async () => {
-      result.find('i.ico-check-box').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
-    expect(result.find('.Select__control--is-disabled').length).toBe(0);
-    const uniqueSelect = result.find(Select);
-    await act(async () => {
-      uniqueSelect
-        .first()
-        .props()
-        .onChange?.([{ value: 1 }], {} as ActionMeta<unknown>);
-    });
-    result = result.update();
+    expect(result.getElementsByClassName('Select__control--is-disabled').length).toBe(0);
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 1);
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '=', value: [1] });
     await act(async () => {
-      result.find(NumericFilter).find('div.row').first().find('button').at(1).simulate('click');
+      await fireEvent.click(screen.getByText('\u2260'));
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: 'ne', value: [1] });
     await act(async () => {
-      result.find(NumericFilter).find('div.row').first().find('button').at(3).simulate('click');
+      await fireEvent.click(screen.getByText('>'));
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(NumericFilter)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'a' } });
+      await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: 'a' } });
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(NumericFilter)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '0' } });
+      await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: '0' } });
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '>', value: 0 });
   });
 
@@ -94,52 +70,34 @@ describe('ColumnFilter numeric tests', () => {
       selectedCol: 'col2',
       columns: [mockColumnDef({ name: 'col2', dtype: 'float64', min: 2.5, max: 5.5 })],
     });
-    expect(result.find(NumericFilter).length).toBe(1);
+    expect(result.getElementsByClassName('numeric-filter-inputs').length).toBe(1);
     await act(async () => {
-      result.find('i.ico-check-box-outline-blank').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    expect(result.find('input').first().props().disabled).toBe(true);
+    const numericInput = (idx = 0): HTMLInputElement =>
+      result.getElementsByClassName('numeric-filter')[idx] as HTMLInputElement;
+    expect(numericInput().disabled).toBe(true);
     await act(async () => {
-      result.find('i.ico-check-box').simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
-    expect(result.find('input').first().props().disabled).toBe(false);
+    expect(numericInput().disabled).toBe(false);
     await act(async () => {
-      result
-        .find(NumericFilter)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '1.1' } });
+      await fireEvent.change(numericInput(), { target: { value: '1.1' } });
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '=', value: 1.1 });
     await act(async () => {
-      result.find(NumericFilter).find('div.row').first().find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('()'));
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(NumericFilter)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '1.2' } });
+      await fireEvent.change(numericInput(0), { target: { value: '1.2' } });
     });
-    result = result.update();
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '()', min: 1.2, max: 3 });
     await act(async () => {
-      result
-        .find(NumericFilter)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'a' } });
-      result
-        .find(NumericFilter)
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: 'b' } });
+      await fireEvent.change(numericInput(0), { target: { value: 'a' } });
     });
-    result = result.update();
+    await act(async () => {
+      await fireEvent.change(numericInput(1), { target: { value: 'b' } });
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float' });
   });
 });
