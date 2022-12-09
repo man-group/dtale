@@ -1,6 +1,6 @@
 lz4<=2.2.1; python_version < '3.0'
 lz4; python_version > '3.0'
-certifi==2021.10.8; python_version == '2.7'
+certifi==2022.12.7; python_version == '2.7'
 certifi; python_version > '3.0'
 cycler; python_version > '3.0'
 cycler==0.10.0; python_version == '2.7'
