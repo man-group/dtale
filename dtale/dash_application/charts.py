@@ -635,7 +635,7 @@ def build_layout(cfg):
     :return: layout object
     :rtype: :plotly:`plotly.graph_objs.Layout <plotly.graph_objs.Layout>`
     """
-    return go.Layout(**dict_merge(dict(legend=dict(orientation="h")), cfg))
+    return go.Layout(**dict_merge(dict(legend=dict(orientation="h", y=-0.3)), cfg))
 
 
 def cpg_chunker(charts, columns=2):

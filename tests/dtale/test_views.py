@@ -2036,6 +2036,7 @@ def test_chart_exports_funnel(treemap_data):
 
 @pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_chart_exports_clustergram(clustergram_data):
+    pytest.importorskip("dash_bio")
     import dtale.views as views
 
     global_state.clear_store()
