@@ -695,9 +695,14 @@ def test_streamlit(unittest):
         build_app_mock = stack.enter_context(
             mock.patch("dtale.app.build_app", mock.Mock())
         )
-        start_listening_mock = stack.enter_context(
-            mock.patch("streamlit.server.server.start_listening", mock.Mock())
-        )
+        try:
+            start_listening_mock = stack.enter_context(
+                mock.patch("streamlit.server.server.start_listening", mock.Mock())
+            )
+        except BaseException:
+            start_listening_mock = stack.enter_context(
+                mock.patch("streamlit.web.server.server.start_listening", mock.Mock())
+            )
 
         import dtale.cli.streamlit_script as streamlit_script
 

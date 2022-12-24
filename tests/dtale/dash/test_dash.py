@@ -1304,7 +1304,7 @@ def test_chart_building_bar_and_popup(unittest):
             ]["layout"],
             {
                 "barmode": "group",
-                "legend": {"orientation": "h"},
+                "legend": {"orientation": "h", "y": -0.3},
                 "title": {"text": "b, c by a"},
                 "xaxis": {"tickformat": "0:g", "title": {"text": "a"}},
                 "yaxis": {"tickformat": "0:g", "title": {"text": "b"}},
@@ -1380,7 +1380,7 @@ def test_chart_building_bar_and_popup(unittest):
             ]["layout"],
             {
                 "barmode": "stack",
-                "legend": {"orientation": "h"},
+                "legend": {"orientation": "h", "y": -0.3},
                 "title": {"text": "b, c by a"},
                 "xaxis": {
                     "tickformat": "0:g",
@@ -1415,7 +1415,7 @@ def test_chart_building_bar_and_popup(unittest):
             ]["layout"],
             {
                 "barmode": "group",
-                "legend": {"orientation": "h"},
+                "legend": {"orientation": "h", "y": -0.3},
                 "title": {"text": "b, c by a"},
                 "xaxis": {
                     "tickmode": "array",
