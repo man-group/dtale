@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { act, fireEvent, queryByText, screen } from '@testing-library/react';
 
 import * as TestSupport from './Upload.test.support';
 
@@ -103,13 +103,11 @@ describe('Upload', () => {
   it('DataViewer: cancel CSV upload', async () => {
     window.location.pathname = '/dtale/popup/upload';
     await fireUpload();
-    await act(() => {
-      fireEvent.click(screen.getByTestId('csv-options-cancel'));
+    await act(async () => {
+      await fireEvent.click(screen.getByTestId('csv-options-cancel'));
     });
     expect(spies.uploadSpy).not.toHaveBeenCalled();
-    waitForElementToBeRemoved(screen.queryByText('Separator')).catch((err) =>
-      fail('Error trying to remove CSVOptions'),
-    );
+    expect(queryByText(document.body, 'Separator')).toBe(null);
   });
 
   it('DataViewer: upload from web', async () => {

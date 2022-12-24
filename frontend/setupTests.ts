@@ -1,4 +1,5 @@
 /* eslint no-console: "off" */
+/* eslint max-classes-per-file: "off" */
 import '@testing-library/jest-dom';
 import 'regenerator-runtime/runtime';
 import { TextDecoder, TextEncoder } from 'util';
@@ -69,11 +70,22 @@ window.cancelAnimationFrame = (id) => {
   window.clearTimeout(id);
 };
 
-// needed for react-slider
+/**
+ * Mocked ResizeObserver needed for react-slider
+ */
 class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  /** @override */
+  public observe(): void {
+    return;
+  }
+  /** @override */
+  public unobserve(): void {
+    return;
+  }
+  /** @override */
+  public disconnect(): void {
+    return;
+  }
 }
 
 (window as any).ResizeObserver = ResizeObserver;

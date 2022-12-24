@@ -340,7 +340,7 @@ export type SortDef = [string, SortDir];
 
 /** Value holder for predefined filters */
 export interface PredefinedFilterValue extends HasActivation {
-  value?: string | string[];
+  value?: any | any[];
 }
 
 /** Settings available to each instance (piece of data) of D-Tale */
