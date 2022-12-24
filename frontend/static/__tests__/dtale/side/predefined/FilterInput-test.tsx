@@ -76,7 +76,7 @@ describe('FilterInput', () => {
         await fireEvent.change(wrapper.container.getElementsByTagName('input')[0], { target: { value: '2' } }),
     );
     await act(async () => await fireEvent.click(screen.getByText('Save')));
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '2', true);
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 2, true);
     expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
 
@@ -125,7 +125,7 @@ describe('FilterInput', () => {
         await fireEvent.change(wrapper.container.getElementsByTagName('input')[0], { target: { value: '1.1' } }),
     );
     await act(async () => await fireEvent.click(screen.getByText('Save')));
-    expect(props.save).toHaveBeenCalledWith(inputFilter.name, '1.1', true);
+    expect(props.save).toHaveBeenCalledWith(inputFilter.name, 1.1, true);
     expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
 
@@ -153,7 +153,7 @@ describe('FilterInput', () => {
     expect(wrapper.container.getElementsByClassName('Select')).toHaveLength(1);
     await selectOption(wrapper.container.getElementsByClassName('Select')[0] as HTMLElement, '2');
     await act(async () => await fireEvent.click(screen.getByText('Save')));
-    expect(props.save).toHaveBeenCalledWith(selectFilter.name, '2', true);
+    expect(props.save).toHaveBeenCalledWith(selectFilter.name, 2, true);
     expect(loadFilterDataSpy).toHaveBeenCalledTimes(1);
     expect(loadFilterDataSpy).toHaveBeenLastCalledWith('1', 'col1');
   });
@@ -172,7 +172,7 @@ describe('FilterInput', () => {
     });
     await selectOption(select, ['2', '3']);
     await act(async () => await fireEvent.click(screen.getByText('Save')));
-    expect(props.save).toHaveBeenCalledWith(multiselectFilter.name, ['2', '3'], true);
+    expect(props.save).toHaveBeenCalledWith(multiselectFilter.name, [2, 3], true);
     expect(loadFilterDataSpy).toHaveBeenCalledTimes(1);
   });
 });

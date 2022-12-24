@@ -97,7 +97,7 @@ describe('PredefinedFilters panel', () => {
     });
     expect(updateSettingsActionSpy).toHaveBeenCalledWith({
       predefinedFilters: {
-        custom_foo1: { value: '2', active: true },
+        custom_foo1: { value: 2, active: true },
         custom_foo2: { value: 1, active: true },
         custom_foo3: { value: [1, 2], active: true },
       },

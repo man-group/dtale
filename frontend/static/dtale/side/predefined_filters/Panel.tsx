@@ -46,7 +46,7 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
     });
   }, []);
 
-  const save = async (name: string, value: string | string[] | undefined, active: boolean): Promise<void> => {
+  const save = async (name: string, value: any | any[] | undefined, active: boolean): Promise<void> => {
     const updatedFilterValues = { ...filterValues };
     if (value) {
       updatedFilterValues[name] = { value, active };
