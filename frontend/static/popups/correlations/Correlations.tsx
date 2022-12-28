@@ -1,4 +1,4 @@
-import { ActiveElement, Chart, ChartConfiguration, ChartEvent } from 'chart.js';
+import { ActiveElement, Chart, ChartConfiguration, ChartEvent, ScriptableContext } from 'chart.js';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 
@@ -305,14 +305,32 @@ export const Correlations: React.FC = () => {
                     if (lineConfig.options?.scales?.x) {
                       lineConfig.options.scales.x = { ...lineConfig.options.scales.x, title: { display: false } };
                     }
+                    const lineGradient = chartUtils.getLineGradient(corrUtils.colorScale, 'y-corr', -1, 1);
                     config.options.onClick = viewScatter;
                     config.options.plugins = { ...config.options.plugins, legend: { display: false } };
-                    config.plugins = [
-                      chartUtils.gradientLinePlugin(corrUtils.colorScale, 'y-corr', -1, 1),
-                      chartUtils.lineHoverPlugin(corrUtils.colorScale),
-                    ];
+                    config.plugins = [chartUtils.lineHoverPlugin(corrUtils.colorScale)];
                     if (config.data?.datasets?.[0]) {
                       (config.data.datasets[0] as any).selectedPoint = 0;
+                      const buildColor = (context: ScriptableContext<'line'>): CanvasGradient | undefined => {
+                        const { chart } = context;
+                        const { data } = context.dataset;
+
+                        if (!chart.chartArea) {
+                          // This case happens on initial chart load
+                          return;
+                        }
+                        return lineGradient(context.chart, data as number[]);
+                      };
+                      const dataset = config.data.datasets[0];
+                      dataset.borderColor = buildColor;
+                      dataset.backgroundColor = buildColor;
+                      dataset.hoverBackgroundColor = buildColor;
+                      dataset.hoverBorderColor = buildColor;
+                      (dataset as any).pointHoverBackgroundColor = buildColor;
+                      (dataset as any).pointBorderColor = buildColor;
+                      (dataset as any).pointBackgroundColor = buildColor;
+                      (dataset as any).pointHoverBackgroundColor = buildColor;
+                      (dataset as any).pointHoverBorderColor = buildColor;
                     }
                     return config;
                   }}

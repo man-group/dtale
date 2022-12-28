@@ -152,3 +152,13 @@ export const COLORS: Array<[string, string]> = [
 export function buildRGBA(colorScale: Scale): (val: number) => string {
   return (val: number) => `rgba(${colorScale(val).rgba().join(',')})`;
 }
+
+/**
+ * Creates an RGB string builder for a specific chroma-js colorscale.
+ *
+ * @param colorScale chroma-js colorscale.
+ * @return rgba string builder.
+ */
+export function buildRGB(colorScale: Scale): (val: number) => string {
+  return (val: number) => `rgb(${colorScale(val).rgb().join(',')})`;
+}

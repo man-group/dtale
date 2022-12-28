@@ -225,19 +225,19 @@ export const getLastChart = (
   return spy.mock.calls[spy.mock.calls.length - 1][1];
 };
 
-export const CTX: Partial<CanvasRenderingContext2D> = {
+export const buildChartContext = (): Partial<CanvasRenderingContext2D> => ({
   createLinearGradient: (_px1: number, _px2: number, _px3: number, _px4: number): CanvasGradient => ({
     addColorStop: (_px5: number, _color: string): void => undefined,
   }),
-  save: () => undefined,
-  beginPath: () => undefined,
-  moveTo: () => undefined,
-  lineTo: () => undefined,
+  save: jest.fn(),
+  beginPath: jest.fn(),
+  moveTo: jest.fn(),
+  lineTo: jest.fn(),
   lineWidth: 0,
   strokeStyle: undefined,
-  stroke: () => undefined,
-  restore: () => undefined,
-};
+  stroke: jest.fn(),
+  restore: jest.fn(),
+});
 
 export const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
 
