@@ -1,5 +1,14 @@
 ## Changelog
 
+### 2.9.1 (2022-12-28)
+* [#709](https://github.com/man-group/dtale/issues/709): added additional VSCode check for VSCODE_INJECTION
+* [#714](https://github.com/man-group/dtale/issues/714): pushed plotly legend below x-axis labels
+* [#711](https://github.com/man-group/dtale/issues/711): fix for predefined filters to return numbers to the backend when necessary
+* frontend package upgrades:
+  * upgraded to latest version of react
+  * dropped enzyme in favor of @testing-library/react
+  * upgraded chart.js
+
 ### 2.9.0 (2022-11-4)
 * [#703](https://github.com/man-group/dtale/issues/703): fix for matplotlib imports
 * [#704](https://github.com/man-group/dtale/issues/704): fix for replacing nan with zero
