@@ -19,7 +19,15 @@ import { Correlations } from '../../popups/correlations/Correlations';
 import { AppState } from '../../redux/state/AppState';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, CTX, getLastChart, MockChart, mockChartJS, SCALE } from '../test-utils';
+import {
+  buildChartContext,
+  buildInnerHTML,
+  CreateChartSpy,
+  getLastChart,
+  MockChart,
+  mockChartJS,
+  SCALE,
+} from '../test-utils';
 
 describe('DataViewer tests', () => {
   let container: Element;
@@ -107,7 +115,7 @@ describe('DataViewer tests', () => {
         'y-corr': { ...SCALE },
       },
       config: { _config: { data: tsChart.data } },
-      ctx: { ...CTX },
+      ctx: buildChartContext(),
     };
     tsChart.plugins?.[0]?.afterLayout?.(layoutObj as any as Chart, {}, {});
     await act(async () => {

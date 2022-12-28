@@ -1,5 +1,5 @@
 /* eslint max-lines: "off" */
-import { BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
+import { BoxAndWiskers, BoxPlotController } from '@sgratzl/chartjs-chart-boxplot';
 import {
   BarController,
   BarElement,
@@ -30,7 +30,7 @@ import chroma from 'chroma-js';
 import moment from 'moment';
 import Plotly from 'plotly.js-geo-dist-min';
 
-import { buildRGBA } from './colors';
+import { buildRGB } from './colors';
 import { ColumnDef } from './dtale/DataViewerState';
 import * as gu from './dtale/gridUtils';
 import { GeolocationChartData, QQChartData } from './popups/analysis/ColumnAnalysisState';
@@ -40,6 +40,7 @@ Chart.register(
   BarController,
   BarElement,
   BoxPlotController,
+  BoxAndWiskers,
   CategoryScale,
   Legend,
   LineController,
@@ -142,35 +143,33 @@ export function updateColorProps(cfg: ChartDataset<'line'>, color: string): void
  * @param maxY the pre-calculated maximum y-value.
  * @return min/max of scatter data y-value.
  */
-function fetchYBounds(data: ScatterDataPoint[], minY?: number, maxY?: number): { min: number; max: number } {
+function fetchYBounds(data: number[], minY?: number, maxY?: number): { min: number; max: number } {
   let finalMinY: number | undefined = minY;
   let finalMaxY: number | undefined = maxY;
   if (minY !== undefined || maxY !== undefined) {
-    const sortedData = data.sort((a: ScatterDataPoint, b: ScatterDataPoint) => (a.y > b.y ? 1 : -1));
-    finalMinY = finalMinY === undefined ? sortedData[0]?.y : finalMinY;
-    finalMaxY = finalMaxY === undefined ? sortedData[sortedData.length - 1]?.y : finalMaxY;
+    const sortedData = data.sort((a: number, b: number) => (a > b ? 1 : -1));
+    finalMinY = finalMinY === undefined ? sortedData[0] : finalMinY;
+    finalMaxY = finalMaxY === undefined ? sortedData[sortedData.length - 1] : finalMaxY;
   }
   return { min: finalMinY ?? 0, max: finalMaxY ?? 0 };
 }
 
-export const gradientLinePlugin = (
-  colorScale: chroma.Scale,
-  yAxisID?: string,
-  minY?: number,
-  maxY?: number,
-): Plugin<'line'> => ({
-  id: 'gradientLinePlugin',
-
-  afterLayout: (chart: Chart<'line', ScatterDataPoint[], unknown>): void => {
-    const rgbaBuilder = buildRGBA(colorScale);
+export const getLineGradient =
+  (
+    colorScale: chroma.Scale,
+    yAxisID?: string,
+    minY?: number,
+    maxY?: number,
+  ): ((chart: Chart<'line', number[], unknown>, data: number[]) => CanvasGradient) =>
+  (chart: Chart<'line', number[], unknown>, data: number[]): CanvasGradient => {
+    const { ctx, scales } = chart;
+    const rgbaBuilder = buildRGB(colorScale);
     // The context, needed for the creation of the linear gradient.
-    const ctx = chart.ctx;
     // The first (and, assuming, only) dataset.
-    const dataset = chart.data.datasets[0];
     // Calculate sort data for easy min/max access.
-    const { min: finalMinY, max: finalMaxY } = fetchYBounds(dataset.data ?? [], minY, maxY);
+    const { min: finalMinY, max: finalMaxY } = fetchYBounds(data, minY, maxY);
     // Calculate Y pixels for min and max values.
-    const yAxis = chart.scales[yAxisID ?? 'y-axis-0'];
+    const yAxis = scales[yAxisID ?? 'y-axis-0'];
     const minValueYPixel = yAxis.getPixelForValue(finalMinY);
     const maxValueYPixel = yAxis.getPixelForValue(finalMaxY);
     // Create the gradient.
@@ -180,16 +179,8 @@ export const gradientLinePlugin = (
       gradient.addColorStop(0.5, rgbaBuilder(0)); // yellow
     }
     gradient.addColorStop(1, rgbaBuilder(finalMaxY)); // green
-    dataset.borderColor = gradient;
-    dataset.pointHoverBackgroundColor = gradient;
-    dataset.pointBorderColor = gradient;
-    dataset.pointBackgroundColor = gradient;
-    dataset.pointHoverBackgroundColor = gradient;
-    dataset.pointHoverBorderColor = gradient;
-    // Uncomment this for some effects, especially together with commenting the `fill: false` option below.
-    // dataset.backgroundColor = gradient;
-  },
-});
+    return gradient;
+  };
 
 /** Configuration of point in chart.js line chart */
 export interface LinePoint {
@@ -207,50 +198,43 @@ export interface LinePoint {
  */
 function drawLine(
   chart: Chart<'line', number[], unknown>,
-  point: LinePoint,
+  point: TooltipItem<'line'>,
   colorBuilder: (val: number) => string,
 ): void {
-  const ctx = chart.ctx;
+  const { ctx } = chart;
   const x = point.element.x;
-  const dataset = chart.data.datasets[point.datasetIndex];
-  const yAxisID = dataset.yAxisID;
+  const yAxisID = point.dataset.yAxisID;
   const topY = chart.scales[yAxisID!].top;
   const bottomY = chart.scales[yAxisID!].bottom;
-  const value = dataset.data[point.dataIndex];
 
   // draw line
   ctx.save();
   ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = colorBuilder(point.parsed.y);
   ctx.moveTo(x, topY);
   ctx.lineTo(x, bottomY);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = colorBuilder(value);
   ctx.stroke();
   ctx.restore();
-}
-
-/** Chart.js line dataset w/ selection information. */
-interface LineWithSelection extends ChartDataset<'line', number[]> {
-  selectedPoint?: number;
 }
 
 export const lineHoverPlugin = (colorScale: chroma.Scale): Plugin<'line'> => ({
   id: 'lineHoverPlugin',
 
+  defaults: {
+    width: 2,
+    color: '#2A91D1',
+  },
+
+  afterEvent: (chart) => {
+    chart.draw();
+  },
+
   afterDraw: (chart: Chart<'line', number[], unknown>): void => {
     const dataPoints = chart.tooltip?.dataPoints;
-    if (dataPoints) {
-      drawLine(chart, dataPoints[0], buildRGBA(colorScale));
+    if (dataPoints?.length) {
+      drawLine(chart, dataPoints[0], (val: number): string => colorScale(val).hex());
       return;
-    }
-    const selectedPoint = (chart.data.datasets[0] as LineWithSelection).selectedPoint;
-    if (selectedPoint !== undefined) {
-      const point: LinePoint = {
-        element: chart.getDatasetMeta(0).data[selectedPoint],
-        dataIndex: selectedPoint,
-        datasetIndex: 0,
-      };
-      drawLine(chart, point, () => 'rgb(42, 145, 209)');
     }
   },
 });

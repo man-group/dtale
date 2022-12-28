@@ -1689,6 +1689,11 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
 
+"@kurkle/color@^0.3.0":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@kurkle/color/-/color-0.3.1.tgz#ef72bc8022ccf77cdd2715097f062ee591ec145c"
+  integrity sha512-hW0GwZj06z/ZFUW2Espl7toVDjghJN+EKqyXzPSV8NV89d5BYp5rRMBJoc+aUN0x5OXDMeRQHazejr2Xmqj2tw==
+
 "@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1":
   version "5.1.1-v1"
   resolved "https://registry.yarnpkg.com/@nicolo-ribaudo/eslint-scope-5-internals/-/eslint-scope-5-internals-5.1.1-v1.tgz#dbf733a965ca47b1973177dc0bb6c889edcfb129"
@@ -1798,10 +1803,10 @@
   resolved "https://registry.yarnpkg.com/@sgratzl/boxplots/-/boxplots-1.3.0.tgz#c9063d98e33a15f880cf4bd3531be71497e2a94e"
   integrity sha512-2BRWv+WOH58pwzSgP50buoXgxQic+4auz3BF0wiIUXS8D3QGkdBNgsNdQO1754Tm/0uEwly0R3WaCiGnoYWcmA==
 
-"@sgratzl/chartjs-chart-boxplot@3.7.1":
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/@sgratzl/chartjs-chart-boxplot/-/chartjs-chart-boxplot-3.7.1.tgz#cbe5c31cc2bc1b3c37c6fa3bca8b7781ebcc62d4"
-  integrity sha512-DYyOedq9CVFcDQZbRekyZAu/Bg0SUgaa19hsl4ikU85Di2DPdaiC/tFIkwHS6YB4L1GMWNvY+TDUODMYRFjhxA==
+"@sgratzl/chartjs-chart-boxplot@4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@sgratzl/chartjs-chart-boxplot/-/chartjs-chart-boxplot-4.1.0.tgz#58757c83c1b5102fbee26a63c2f014f8e7d1f833"
+  integrity sha512-fhQ22hES8Ej5vBNunmLGEUcDMRctPzJNUMzRtqUVMh3xIgHYNhXcPhzRBymEbsB/UGMkknoIXsaMR13vAWudeg==
   dependencies:
     "@sgratzl/boxplots" "^1.3.0"
 
@@ -3297,15 +3302,17 @@ character-reference-invalid@^1.0.0:
   resolved "https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-1.1.4.tgz#083329cda0eae272ab3dbbf37e9a382c13af1560"
   integrity sha512-mKKUkUbhPpQlCOfIuZkvSEgktjPFIsZKRRbC6KWVEMvlzblj3i3asQv5ODsrwt0N3pHAEvjP8KTQPHkp0+6jOg==
 
-chart.js@3.7.1:
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-3.7.1.tgz#0516f690c6a8680c6c707e31a4c1807a6f400ada"
-  integrity sha512-8knRegQLFnPQAheZV8MjxIXc5gQEfDFD897BJgv/klO/vtIyFFmgMXrNfgrXpbTr/XbTturxRgxIXx/Y+ASJBA==
+chart.js@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-4.1.1.tgz#9bd96ddaa444205ec55dd103f713f65530e9a2df"
+  integrity sha512-P0pCosNXp+LR8zO/QTkZKT6Hb7p0DPFtypEeVOf+6x06hX13NIb75R0DXUA4Ksx/+48chDQKtCCmRCviQRTqsA==
+  dependencies:
+    "@kurkle/color" "^0.3.0"
 
-chartjs-plugin-zoom@1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/chartjs-plugin-zoom/-/chartjs-plugin-zoom-1.2.1.tgz#7e350ba20d907f397d0c055239dcc67d326df705"
-  integrity sha512-2zbWvw2pljrtMLMXkKw1uxYzAne5PtjJiOZftcut4Lo3Ee8qUt95RpMKDWrZ+pBZxZKQKOD/etdU4pN2jxZUmg==
+chartjs-plugin-zoom@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/chartjs-plugin-zoom/-/chartjs-plugin-zoom-2.0.0.tgz#b02f5c4422fe517d0fb5d188b408158fef76c415"
+  integrity sha512-bqpi7DGy9a5hX7ThKl/xQaLzXvneSwhS0w/lNimZ8AJaoRVMKz5JfUoqwciJYV5ixKXJbgyvwC9HcJnyVsYmjg==
   dependencies:
     hammerjs "^2.0.8"
 
