@@ -1125,6 +1125,14 @@ def startup(
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
 
 
+def is_vscode():
+    if os.environ.get("VSCODE_PID") is not None:
+        return True
+    if "1" == os.environ.get("VSCODE_INJECTION"):
+        return True
+    return False
+
+
 def base_render_template(template, data_id, **kwargs):
     """
     Overriden version of Flask.render_template which will also include vital instance information
@@ -1157,7 +1165,7 @@ def base_render_template(template, data_id, **kwargs):
         predefined_filters=json.dumps(
             [f.asdict() for f in predefined_filters.get_filters()]
         ),
-        is_vscode=os.environ.get("VSCODE_PID") is not None,
+        is_vscode=is_vscode(),
         **dict_merge(kwargs, curr_app_settings, app_overrides)
     )
 
