@@ -22,6 +22,7 @@ export const isIntCol = (dtype?: string): boolean => startswithOne((dtype ?? '')
 export const isFloatCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('float');
 export const isDateCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['timestamp', 'datetime']);
+export const isBoolCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('bool');
 export const getDtype = (col: string | undefined, columns: ColumnDef[]): string | undefined =>
   columns.find(({ name }) => name === col)?.dtype;
 
@@ -31,6 +32,7 @@ export enum ColumnType {
   INT = 'int',
   FLOAT = 'float',
   DATE = 'date',
+  BOOL = 'bool',
   UNKNOWN = 'unknown',
 }
 
@@ -43,6 +45,8 @@ export const findColType = (dtype?: string): ColumnType => {
     return ColumnType.FLOAT;
   } else if (isDateCol(dtype)) {
     return ColumnType.DATE;
+  } else if (isBoolCol(dtype)) {
+    return ColumnType.BOOL;
   }
   return ColumnType.UNKNOWN;
 };
