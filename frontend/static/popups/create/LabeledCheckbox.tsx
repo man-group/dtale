@@ -1,16 +1,17 @@
 import * as React from 'react';
 
 /** Component properties for CheckboxProps */
-interface CheckboxProps {
+interface CheckboxProps extends React.HTMLAttributes<HTMLImageElement> {
   value: boolean;
-  setter: (value: boolean) => void;
-  className?: string;
+  setter?: (value: boolean) => void;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({ value, setter, className }) => (
+export const Checkbox: React.FC<CheckboxProps> = ({ value, setter, className, style, ...props }) => (
   <i
-    className={`ico-check-box${value ? '' : '-outline-blank'} pointer${className ? ` ${className}` : ''}`}
-    onClick={() => setter(!value)}
+    className={`ico-check-box${value ? '' : '-outline-blank'}${setter ? ' pointer' : ''}${
+      className ? ` ${className}` : ''
+    }`}
+    {...(setter ? { onClick: () => setter(!value), ...props } : { ...props })}
   />
 );
 

@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { Checkbox } from '../popups/create/LabeledCheckbox';
 import { ActionType, ClearEditAction, OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import { AppState, Popups } from '../redux/state/AppState';
 
 import { ColumnDef, DataViewerData, DataViewerPropagateState } from './DataViewerState';
 import * as editUtils from './edited/editUtils';
+import * as gu from './gridUtils';
 
 /** Component properties for GridCellEditor */
 export interface GridCellEditorProps {
@@ -65,6 +67,21 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
       rowCount,
     });
   };
+
+  if (gu.ColumnType.BOOL === gu.findColType(colCfg.dtype)) {
+    return (
+      <div
+        onKeyDown={onKeyDown}
+        tabIndex={-1}
+        style={{ background: 'lightblue', width: 'inherit', height: 'inherit', padding: '0 0.65em' }}
+      >
+        <Checkbox
+          value={'true' === value.toLowerCase()}
+          setter={(checked: boolean) => setValue(checked ? 'True' : 'False')}
+        />
+      </div>
+    );
+  }
 
   return (
     <input

@@ -49,4 +49,7 @@ export const onKeyDown = async (
     }));
     propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, props.clearEdit);
   }
+  if (gu.ColumnType.BOOL === gu.findColType(colCfg?.dtype) && e.key === 'n') {
+    await onKeyDown({ key: 'Enter' } as any as React.KeyboardEvent, colCfg, rowIndex, 'nan', origValue, props);
+  }
 };

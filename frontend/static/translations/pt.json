@@ -78,6 +78,7 @@
     "shutdown": "Fecha D-Tale e todos os outros conjuntos de dados abertos sem salvar.Você quer exportar o DataFrame?",
     "logout": "Autenticação está ativada em D-Tale. Você encerrará sua sessão atual e será redirecionado para a tela de login.",
     "editing": "Atualiza células para qualquer coisa que você gostaria. Pressione \"Enter\" para confirmar ou \"Esc\" para sair. Tipos inválidos vão lançar erros. Valores protegidos são \"nan\" & \"inf\".",
+    "bool_editing": "Atualiza células para qualquer coisa que você gostaria. Pressione \"Enter\" para confirmar ou \"Esc\" para sair. Press \"n\" to set value to \"nan\".",
     "xarray_conversion": "Converte seu pandas.Dataframe para um xarray.Dataset selecionando colunas como um índice. Uma vez concluído, você poderá visualizar diferentes fatias de seus dados, escolhendo valores de índice. ",
     "upload": "Carrega arquivos CSV/TSV, CSV/TSV/JSON da wev ou datasets de exemplo para D-Tale usando pandas.read_csv(), pandas.read_json() ou carregadores customizados.",
     "duplicates": "Remove colunas/valores duplicados de seus dados, bem como extrair duplicatas em instâncias separadas.",
