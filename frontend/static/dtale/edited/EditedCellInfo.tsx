@@ -2,6 +2,8 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { Checkbox } from '../../popups/create/LabeledCheckbox';
+import { DtaleSelect } from '../../popups/create/LabeledSelect';
 import {
   ActionType,
   ClearEditAction,
@@ -9,8 +11,9 @@ import {
   OpenChartAction,
 } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { AppState, Popups } from '../../redux/state/AppState';
-import { getCell } from '../gridUtils';
+import { AppState, BaseOption, Popups } from '../../redux/state/AppState';
+import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
+import { ColumnType, findColType, getCell } from '../gridUtils';
 
 import { onKeyDown as baseKeyDown, EditedCellInfoProps } from './editUtils';
 
@@ -39,6 +42,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
 
   const [value, setValue] = React.useState<string>();
   const [origValue, setOrigValue] = React.useState<string>();
+  const [options, setOptions] = React.useState<Array<BaseOption<string>>>([]);
 
   const cell = React.useMemo(() => {
     if (!editedCell) {
@@ -64,7 +68,16 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
     }
   }, [origValue]);
 
-  const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>): Promise<void> => {
+  React.useEffect(() => {
+    if (cell?.colCfg && ColumnType.CATEGORY === findColType(cell.colCfg.dtype)) {
+      (async () => {
+        const filterData = await ColumnFilterRepository.loadFilterData(dataId, cell.colCfg.name);
+        setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
+      })();
+    }
+  }, [cell?.colCfg.name]);
+
+  const onKeyDown = async (e: React.KeyboardEvent<HTMLElement>): Promise<void> => {
     if (cell) {
       await baseKeyDown(e, cell.colCfg, cell.rowIndex, value ?? '', origValue ?? '', {
         data,
@@ -80,6 +93,48 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
     }
   };
 
+  const colType = React.useMemo(() => findColType(cell?.colCfg.dtype), [cell?.colCfg.dtype]);
+  const isBool = React.useMemo(() => ColumnType.BOOL === colType, [colType]);
+
+  const getInput = (): React.ReactNode => {
+    if (isBool) {
+      return (
+        <div onKeyDown={onKeyDown} tabIndex={-1} style={{ width: 'inherit', height: 'inherit', padding: '0 0.65em' }}>
+          <Checkbox
+            value={'true' === (value ?? '').toLowerCase()}
+            setter={(checked: boolean) => setValue(checked ? 'True' : 'False')}
+          />
+        </div>
+      );
+    } else if (ColumnType.CATEGORY === colType) {
+      return (
+        <div
+          onKeyDown={onKeyDown}
+          tabIndex={-1}
+          style={{ width: 'inherit', height: 'inherit', padding: '0' }}
+          className="editor-select"
+        >
+          <DtaleSelect
+            value={{ value }}
+            options={[{ value: 'nan' }, ...options]}
+            onChange={(state: BaseOption<string> | Array<BaseOption<any>> | undefined) =>
+              setValue((state as BaseOption<string>)?.value ?? '')
+            }
+          />
+        </div>
+      );
+    }
+    return (
+      <textarea
+        ref={inputRef}
+        style={{ width: 'inherit' }}
+        value={value ?? ''}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={onKeyDown}
+      />
+    );
+  };
+
   return (
     <div className={`row edited-cell-info${editedCell ? ' is-expanded' : ''}`}>
       {cell && (
@@ -90,14 +145,8 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
           <span>, Row:</span>
           <span className="font-weight-bold pl-3">{cell.rowIndex - 1}</span>
           <span>]</span>
-          <small className="pl-3">(Press ENTER to submit or ESC to exit)</small>
-          <textarea
-            ref={inputRef}
-            style={{ width: 'inherit' }}
-            value={value ?? ''}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={onKeyDown}
-          />
+          <small className="pl-3">{`(Press ENTER to submit or ESC to exit${isBool ? ' or "n" for "nan"' : ''})`}</small>
+          {getInput()}
         </div>
       )}
     </div>

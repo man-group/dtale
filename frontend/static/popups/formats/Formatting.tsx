@@ -128,7 +128,7 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns
               {ColumnType.DATE === colType && (
                 <DateFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}
-              {[ColumnType.STRING, ColumnType.UNKNOWN].includes(colType) && (
+              {[ColumnType.STRING, ColumnType.CATEGORY, ColumnType.UNKNOWN].includes(colType) && (
                 <StringFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}
               <LabeledCheckbox

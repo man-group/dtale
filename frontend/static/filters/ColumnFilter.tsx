@@ -174,6 +174,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   let markup = null;
   switch (colType) {
     case gu.ColumnType.STRING:
+    case gu.ColumnType.CATEGORY:
     case gu.ColumnType.UNKNOWN: {
       if (!dtype.startsWith('timedelta')) {
         markup = (
