@@ -1,14 +1,17 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
 import { Provider, useDispatch } from 'react-redux';
+import selectEvent from 'react-select-event';
 import { Store } from 'redux';
 
-import { DataRecord, DataViewerData } from '../../../dtale/DataViewerState';
+import { DataViewerData } from '../../../dtale/DataViewerState';
 import EditedCellInfo from '../../../dtale/edited/EditedCellInfo';
 import * as serverState from '../../../dtale/serverStateManagement';
 import { ActionType } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
 import { PopupType } from '../../../redux/state/AppState';
+import * as ColumnFilterRepository from '../../../repository/ColumnFilterRepository';
+import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -37,10 +40,34 @@ describe('DataViewerInfo tests', () => {
   afterAll(jest.restoreAllMocks);
 
   const buildInfo = async (editedCell?: string): Promise<void> => {
-    const columns = [{ name: 'a', dtype: 'string', index: 1, visible: true }];
-    const data: DataViewerData = { 0: { a: { raw: 'Hello World' } as DataRecord } };
+    const columns = [
+      { name: 'a', dtype: 'string', index: 1, visible: true },
+      mockColumnDef({
+        name: 'bar',
+        index: 2,
+        dtype: 'bool',
+        visible: true,
+        width: 100,
+        resized: false,
+      }),
+      mockColumnDef({
+        name: 'baz',
+        index: 3,
+        dtype: 'category',
+        visible: true,
+        width: 100,
+        resized: false,
+      }),
+    ];
+    const data: DataViewerData = {
+      0: {
+        a: { raw: 'Hello World', view: 'Hello World' },
+        bar: { raw: 'True', view: 'True' },
+        baz: { raw: 'a', view: 'a' },
+      },
+    };
     if (editedCell) {
-      store.getState().editedCell = editedCell;
+      store.dispatch({ type: ActionType.EDIT_CELL, editedCell });
     }
     result = await act(
       async () =>
@@ -112,5 +139,35 @@ describe('DataViewerInfo tests', () => {
         type: PopupType.ERROR,
       }),
     );
+  });
+
+  it('renders checkbox for boolean column when edited', async () => {
+    const editCellSpy = jest.spyOn(serverState, 'editCell');
+    editCellSpy.mockResolvedValue(undefined);
+    await buildInfo('1|1');
+    expect(result.getElementsByClassName('ico-check-box')).toHaveLength(1);
+    const checkbox = result.getElementsByClassName('ico-check-box')[0];
+    await act(async () => {
+      await fireEvent.keyDown(checkbox, { key: 'n' });
+    });
+    expect(editCellSpy).toHaveBeenLastCalledWith('1', 'bar', 0, 'nan');
+  });
+
+  it('renders select for category column when edited', async () => {
+    const loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
+    loadFilterDataSpy.mockResolvedValue({ success: true, hasMissing: false, uniques: ['a', 'b', 'c'] });
+    await buildInfo('2|1');
+    expect(result.getElementsByClassName('Select')).toHaveLength(1);
+    const select = result.getElementsByClassName('Select')[0] as HTMLElement;
+    await act(async () => {
+      await selectEvent.openMenu(select);
+    });
+    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'nan',
+      'a',
+      'b',
+      'c',
+    ]);
+    expect(loadFilterDataSpy).toHaveBeenLastCalledWith('1', 'baz');
   });
 });

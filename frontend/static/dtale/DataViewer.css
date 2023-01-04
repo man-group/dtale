@@ -169,3 +169,31 @@ body,
   border-radius: 0.25rem;
   border: 1px solid #a7b3b7;
 }
+
+.editor-select .Select--single {
+  min-width: inherit;
+  width: inherit;
+  height: inherit;
+}
+
+.editor-select .Select__control {
+  height: inherit;
+}
+
+.editor-select .Select__value-container {
+  padding: 0;
+}
+
+.editor-select .Select__indicator {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.editor-select .Select__indicators {
+  height: inherit;
+}
+
+.editor-select .Select__control .Select__single-value {
+  right: unset;
+  padding-left: 0;
+}

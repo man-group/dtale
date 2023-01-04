@@ -32,7 +32,7 @@ const TYPE_MAP: Record<string, string[]> = {
 const getColType = (col: BaseOption<string> | undefined, columns: ColumnDef[]): string | undefined => {
   const dtype = getDtype(col?.value, columns);
   const colType = findColType(dtype);
-  if (colType === ColumnType.UNKNOWN) {
+  if ([ColumnType.CATEGORY, ColumnType.UNKNOWN].includes(colType)) {
     return dtype;
   }
   return colType;
