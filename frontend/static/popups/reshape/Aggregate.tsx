@@ -7,6 +7,7 @@ import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } 
 import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
+import { Checkbox } from '../create/LabeledCheckbox';
 import { DtaleSelect } from '../create/LabeledSelect';
 
 import { AggregationOperationType, BaseReshapeComponentProps, ReshapeAggregateConfig } from './ReshapeState';
@@ -25,7 +26,8 @@ export const validateAggregateCfg = (cfg: ReshapeAggregateConfig): string | unde
 };
 
 export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet => {
-  let dfStr = cfg.index?.length ? `df.groupby(['${cfg.index.join("', '")}'])` : 'df';
+  const dropna = cfg.dropna ? 'True' : 'False';
+  let dfStr = cfg.index?.length ? `df.groupby(['${cfg.index.join("', '")}'], dropna=${dropna})` : 'df';
   const code = [];
   if (cfg.agg.type === AggregationOperationType.FUNC) {
     if (!cfg.agg.func) {
@@ -43,7 +45,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
     if (!Object.keys(cfg.agg.cols ?? {}).length) {
       return undefined;
     }
-    let aggStr = '${dfStr}.aggregate({';
+    let aggStr = `${dfStr}.aggregate({`;
     const aggFmt = (agg: string): string => (agg === 'gmean' ? 'gmean' : `'${agg}'`);
     const { cols } = cfg.agg;
     aggStr += Object.keys(cols)
@@ -64,6 +66,7 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
     [t],
   );
   const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
+  const [dropna, setDropna] = React.useState(true);
   const [type, setType] = React.useState<AggregationOperationType>(AggregationOperationType.COL);
   const [columnConfig, setColumnConfig] = React.useState<Record<string, string[]>>({});
   const [func, setFunc] = React.useState<BaseOption<string>>();
@@ -84,18 +87,20 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
               {},
             ),
           },
+          dropna,
         };
         break;
       case AggregationOperationType.FUNC:
       default:
         cfg = {
           agg: { type: AggregationOperationType.FUNC, func: func?.value, cols: funcCols?.map(({ value }) => value) },
+          dropna,
         };
         break;
     }
     cfg = { ...cfg, index: index?.map(({ value }) => value) };
     updateState({ cfg, code: buildCode(cfg) });
-  }, [index, type, columnConfig, func, funcCols]);
+  }, [index, dropna, type, columnConfig, func, funcCols]);
 
   const filteredColumnOptions = React.useMemo(
     () => constructColumnOptionsFilteredByOtherValues(columns, [index]),
@@ -129,7 +134,18 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
         updateState={(updatedState) => setIndex(updatedState.index as Array<BaseOption<string>>)}
         isMulti={true}
         columns={columns}
-      />
+      >
+        {!!index?.length && (
+          <div className="row mb-0">
+            <label className="col-auto col-form-label pr-3" style={{ fontSize: '85%' }}>
+              {`${t('dropna')}?`}
+            </label>
+            <div className="col-auto p-0">
+              <Checkbox value={dropna} setter={setDropna} />
+            </div>
+          </div>
+        )}
+      </ColumnSelect>
       <div className="form-group row">
         <div className="col-md-3 text-right mb-auto mt-3">
           <ButtonToggle

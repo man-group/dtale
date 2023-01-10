@@ -38,6 +38,7 @@ type AggregationConfigs = ColumnAggregationConfig | FunctionAggregationConfig;
 /** Reshaped data by aggregation configuration */
 export interface ReshapeAggregateConfig {
   index?: string[];
+  dropna: boolean;
   agg: AggregationConfigs;
 }
 

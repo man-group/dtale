@@ -76,6 +76,10 @@ export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCod
     buildChart({ type });
   }, []);
 
+  React.useEffect(() => {
+    setDtype(props.dtype);
+  }, [col]);
+
   return (
     <div data-testid="details-charts">
       {error}

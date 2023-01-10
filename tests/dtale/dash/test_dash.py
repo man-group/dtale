@@ -244,6 +244,7 @@ def test_input_changes(unittest):
                 {"id": "load-input", "property": "value"},
                 {"id": "load-type-dropdown", "property": "value"},
                 {"id": "cleaners-dropdown", "property": "value"},
+                {"id": "dropna-checkbox", "property": "value"},
             ],
             "state": [
                 pathname,
@@ -263,6 +264,7 @@ def test_input_changes(unittest):
                 "z": None,
                 "group": "foo",
                 "group_val": [dict(foo="bar")],
+                "dropna": True,
                 "agg": "raw",
                 "window": None,
                 "rolling_comp": None,
@@ -348,6 +350,7 @@ def test_map_data(unittest):
                 },
                 {"id": "map-proj-dropdown", "property": "value", "value": None},
                 {"id": "map-group-dropdown", "property": "value", "value": None},
+                {"id": "map-dropna-checkbox", "property": "value", "value": True},
                 {"id": "geojson-dropdown", "property": "value", "value": None},
                 {"id": "featureidkey-dropdown", "property": "value", "value": None},
             ],
@@ -364,6 +367,7 @@ def test_map_data(unittest):
                 "map_val": None,
                 "scope": "world",
                 "proj": None,
+                "map_dropna": True,
             },
         )
 
@@ -392,8 +396,8 @@ def test_map_data(unittest):
         unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
 
         params["inputs"][0]["value"] = "choropleth"
-        params["inputs"][-3]["value"] = "foo"
-        params["inputs"][-4]["value"] = "hammer"
+        params["inputs"][-4]["value"] = "foo"
+        params["inputs"][-5]["value"] = "hammer"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(resp_data["map-loc-mode-input"]["style"], {})
@@ -632,7 +636,7 @@ def test_chart_type_changes():
             "..y-multi-input.style...y-single-input.style...z-input.style...group-input.style..."
             "rolling-inputs.style...cpg-input.style...cpy-input.style...barmode-input.style...barsort-input.style..."
             "top-bars-input.style...yaxis-input.style...animate-input.style...animate-by-input.style..."
-            "animate-by-dropdown.options...trendline-input.style.."
+            "animate-by-dropdown.options...trendline-input.style...dropna-input.style.."
         )
         inputs = {
             "id": "input-data",
@@ -1159,6 +1163,7 @@ def test_chart_building_scatter():
             "y": ["b"],
             "z": None,
             "group": None,
+            "dropna": True,
             "agg": None,
             "window": None,
             "rolling_comp": None,
@@ -2058,6 +2063,11 @@ def test_candlestick_data(candlestick_data, unittest):
                     "property": "value",
                     "value": ["symbol"],
                 },
+                {
+                    "id": "candlestick-dropna-checkbox",
+                    "property": "value",
+                    "value": True,
+                },
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2072,6 +2082,7 @@ def test_candlestick_data(candlestick_data, unittest):
                 "cs_high": "high",
                 "cs_low": "low",
                 "cs_group": ["symbol"],
+                "cs_dropna": True,
             },
         )
 
@@ -2143,6 +2154,11 @@ def test_treemap_data(treemap_data, unittest):
                     "property": "value",
                     "value": ["group"],
                 },
+                {
+                    "id": "treemap-dropna-checkbox",
+                    "property": "value",
+                    "value": True,
+                },
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2154,6 +2170,7 @@ def test_treemap_data(treemap_data, unittest):
                 "treemap_value": "volume",
                 "treemap_label": "label",
                 "treemap_group": ["group"],
+                "treemap_dropna": True,
             },
         )
 
@@ -2299,6 +2316,11 @@ def test_funnel_data(treemap_data, unittest):
                     "value": ["group"],
                 },
                 {
+                    "id": "funnel-dropna-checkbox",
+                    "property": "value",
+                    "value": True,
+                },
+                {
                     "id": "funnel-stack-toggle",
                     "property": "on",
                     "value": False,
@@ -2314,6 +2336,7 @@ def test_funnel_data(treemap_data, unittest):
                 "funnel_value": "volume",
                 "funnel_label": "label",
                 "funnel_group": ["group"],
+                "funnel_dropna": True,
                 "funnel_stacked": False,
             },
         )
@@ -2348,6 +2371,11 @@ def test_clustergram_data(clustergram_data, unittest):
                     "property": "value",
                     "value": None,
                 },
+                {
+                    "id": "clustergram-dropna-checkbox",
+                    "property": "value",
+                    "value": True,
+                },
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2356,6 +2384,7 @@ def test_clustergram_data(clustergram_data, unittest):
         unittest.assertEqual(
             resp_data["clustergram-input-data"]["data"],
             {
+                "clustergram_dropna": True,
                 "clustergram_value": ["mpg", "cyl"],
                 "clustergram_label": "model",
             },
@@ -2406,6 +2435,11 @@ def test_pareto_data(pareto_data, unittest):
                     "property": "value",
                     "value": None,
                 },
+                {
+                    "id": "pareto-dropna-checkbox",
+                    "property": "value",
+                    "value": True,
+                },
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2419,6 +2453,7 @@ def test_pareto_data(pareto_data, unittest):
                 "pareto_line": "cum_pct",
                 "pareto_sort": None,
                 "pareto_dir": "DESC",
+                "pareto_dropna": True,
             },
         )
 

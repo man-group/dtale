@@ -566,7 +566,8 @@
     "Missing a value(s) selection!": "Missing a value(s) selection!",
     "Col": "列",
     "Offset": "Offset",
-    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found ",
+    "dropna": "Drop NaN values"
   },
   "replacement": {
     "Inplace": "替换",

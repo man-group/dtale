@@ -22,7 +22,7 @@ def test_date_freq_handler():
 def test_group_filter_handler():
     s = chart_utils.group_filter_handler("date|WD", 1, "I")
     assert s[1] == "date.dt.dayofweek: 1"
-    s = chart_utils.group_filter_handler("date|WD", "nan", "I")
+    s = chart_utils.group_filter_handler("date|WD", "NaN", "I")
     assert s[1] == "date: NaN"
     s = chart_utils.group_filter_handler("date|H2", 1, "I")
     assert s[1] == "date.dt.hour: 1"
@@ -42,7 +42,7 @@ def test_group_filter_handler():
     assert s[1] == "foo: 1"
     s = chart_utils.group_filter_handler("foo", "bar", "S")
     assert s[1] == "foo: bar"
-    s = chart_utils.group_filter_handler("foo", "nan", "S")
+    s = chart_utils.group_filter_handler("foo", "NaN", "S")
     assert s[1] == "foo: NaN"
 
 
