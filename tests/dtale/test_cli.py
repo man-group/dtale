@@ -533,7 +533,7 @@ def test_run():
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
-        assert mock_exit.called_with(0)
+        mock_exit.assert_called_with(0)
 
     with ExitStack() as stack:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
@@ -561,7 +561,7 @@ def test_run():
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
-        assert mock_exit.called_with(1)
+        mock_exit.assert_called_with(1)
 
 
 @pytest.mark.unit
@@ -611,7 +611,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py2_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
     with ExitStack() as stack:
         stack.enter_context(
@@ -635,7 +635,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py33_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
     with ExitStack() as stack:
         stack.enter_context(
@@ -647,7 +647,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py35_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
 
 @pytest.mark.unit
@@ -674,17 +674,16 @@ def test_loader_retrievers(builtin_pkg):
         )
 
         assert get_py35_loader("custom.loaders", "loader.py") is not None
-        assert mock_importlib_util.spec_from_file_location.called_once()
-        mock_spec = mock_importlib_util.spec_from_file_location.return_value
-        assert mock_importlib_util.module_from_spec.called_once()
-        mock_loader = mock_spec.loader.return_value
-        assert mock_loader.exec_module.called_once()
+        mock_importlib_util.util.spec_from_file_location.assert_called_once()
+        mock_spec = mock_importlib_util.util.spec_from_file_location.return_value
+        mock_importlib_util.util.module_from_spec.assert_called_once()
+        mock_spec.loader.exec_module.assert_called_once()
         assert get_py33_loader("custom.loaders", "loader.py") is not None
-        assert mock_importlib_machinery.SourceFileLoader.called_once()
+        mock_importlib_machinery.SourceFileLoader.assert_called_once()
         mock_sourcefileloader = mock_importlib_machinery.SourceFileLoader.return_value
-        assert mock_sourcefileloader.load_module.called_once()
+        mock_sourcefileloader.load_module.assert_called_once()
         assert get_py2_loader("custom.loaders", "loader.py") is not None
-        assert mock_imp.load_source.called_once()
+        mock_imp.load_source.assert_called_once()
 
 
 @pytest.mark.unit
