@@ -48,6 +48,9 @@ describe('Aggregate', () => {
     await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'Count');
     await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
     await act(async () => {
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box')[0]);
+    });
+    await act(async () => {
       fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
     });
     await act(async () => {
@@ -57,6 +60,7 @@ describe('Aggregate', () => {
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
+        dropna: false,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
@@ -70,6 +74,7 @@ describe('Aggregate', () => {
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
+        dropna: false,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.NEW,
@@ -94,6 +99,7 @@ describe('Aggregate', () => {
     await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.FUNC, cols: ['col1'], func: 'count' },
+        dropna: true,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
@@ -112,7 +118,7 @@ describe('Aggregate', () => {
   });
 
   it('validates configuration', () => {
-    const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC } };
+    const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC }, dropna: true };
     expect(validateAggregateCfg(cfg)).toBe('Missing an aggregation selection!');
     cfg.index = ['x'];
     cfg.agg = { type: AggregationOperationType.COL, cols: {} };

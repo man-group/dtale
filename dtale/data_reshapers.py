@@ -115,11 +115,13 @@ class AggregateBuilder(object):
         self.cfg = cfg
 
     def reshape(self, data):
-        index, agg = (self.cfg.get(p) for p in ["index", "agg"])
+        index, agg, dropna = (self.cfg.get(p) for p in ["index", "agg", "dropna"])
         agg_type, func, cols = (agg.get(p) for p in ["type", "func", "cols"])
 
         if index:
-            agg_data = data.groupby(index)
+            agg_data = data.groupby(
+                index, dropna=dropna if dropna is not None else True
+            )
             if agg_type == "func":
                 if cols:
                     agg_data = agg_data[cols]
@@ -146,7 +148,8 @@ class AggregateBuilder(object):
         return agg_data
 
     def build_code(self):
-        index, agg = (self.cfg.get(p) for p in ["index", "agg"])
+        index, agg, dropna = (self.cfg.get(p) for p in ["index", "agg", "dropna"])
+        dropna = dropna if dropna is not None else True
         agg_type, func, cols = (agg.get(p) for p in ["type", "func", "cols"])
         code = []
         if (agg_type == "func" and func == "gmean") or (
@@ -160,19 +163,25 @@ class AggregateBuilder(object):
                 agg_str = ".agg(gmean)" if agg == "gmean" else ".{}()".format(agg)
                 if cols is not None:
                     code.append(
-                        "df = df.groupby(['{index}'])['{columns}']{agg}".format(
-                            index=index, columns="', '".join(cols), agg=agg_str
+                        "df = df.groupby(['{index}'], dropna={dropna})['{columns}']{agg}".format(
+                            index=index,
+                            columns="', '".join(cols),
+                            agg=agg_str,
+                            dropna=dropna,
                         )
                     )
                     return code
                 code.append(
-                    "df = df.groupby(['{index}']){agg}".format(
-                        index="', '".join(index), agg=agg_str
+                    "df = df.groupby(['{index}'], dropna={dropna}){agg}".format(
+                        index="', '".join(index), agg=agg_str, dropna=dropna
                     )
                 )
                 return code
             code += [
-                "df = df.groupby(['{index}']).aggregate(".format(index=index) + "{",
+                "df = df.groupby(['{index}'], dropna={dropna}).aggregate(".format(
+                    index=index, dropna=dropna
+                )
+                + "{",
                 ",\n".join(
                     "\t'{col}': ['{aggs}']".format(
                         col=col, aggs=", ".join(gmean_str_handler(aggs))

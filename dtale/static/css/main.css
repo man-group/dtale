@@ -7929,6 +7929,10 @@ a.text-dark:focus, a.text-dark:hover {
   border-width: 0 5px 5px;
 }
 
+.Select .Select__indicators {
+  height: inherit;
+}
+
 .is-searchable > .Select__control--is-focused,
 .is-searchable > .Select-control--is-focused {
   cursor: text;

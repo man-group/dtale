@@ -104,6 +104,17 @@ def parse_group_filter(group_filter):
     return group_filter, False
 
 
+BOOL_PROPS = [
+    "dropna",
+    "map_dropna",
+    "cs_dropna",
+    "treemap_dropna",
+    "funnel_dropna",
+    "clustergram_dropna",
+    "pareto_dropna",
+]
+
+
 def chart_url_params(search):
     """
     Builds chart parameters by parsing the query string from main URL
@@ -174,6 +185,10 @@ def chart_url_params(search):
         )
         del params["group_filter"]
         params["cpg"] = False
+
+    for prop in BOOL_PROPS:
+        if params.get(prop) is not None:
+            params[prop] = "true" == params[prop]
     return params
 
 
@@ -196,6 +211,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "bins_val",
         "bin_type",
         "scale",
+        "dropna",
     ]
     chart_type = params.get("chart_type")
     if chart_type == "bar":
@@ -210,15 +226,28 @@ def chart_url_querystring(params, data=None, group_filter=None):
             base_props += ["map_type", "loc_mode", "loc", "map_val"]
             if params.get("loc_mode") == "geojson-id":
                 base_props += ["geojson", "featureidkey"]
-        base_props += ["map_group"]
+        base_props += ["map_group", "map_dropna"]
     elif chart_type == "candlestick":
-        base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+        base_props += [
+            "cs_x",
+            "cs_open",
+            "cs_close",
+            "cs_high",
+            "cs_low",
+            "cs_group",
+            "cs_dropna",
+        ]
     elif chart_type == "treemap":
-        base_props += ["treemap_value", "treemap_label", "treemap_group"]
+        base_props += [
+            "treemap_value",
+            "treemap_label",
+            "treemap_group",
+            "treemap_dropna",
+        ]
     elif chart_type == "funnel":
-        base_props += ["funnel_value", "funnel_label", "funnel_group"]
+        base_props += ["funnel_value", "funnel_label", "funnel_group", "funnel_dropna"]
     elif chart_type == "clustergram":
-        base_props += ["clustergram_label", "clustergram_group"]
+        base_props += ["clustergram_label", "clustergram_group", "clustergram_dropna"]
     elif chart_type == "pareto":
         base_props += [
             "pareto_x",
@@ -227,11 +256,15 @@ def chart_url_querystring(params, data=None, group_filter=None):
             "pareto_sort",
             "pareto_dir",
             "pareto_group",
+            "pareto_dropna",
         ]
     elif chart_type == "scatter":
         base_props += ["trendline"]
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
+    for prop in BOOL_PROPS:
+        if final_params.get(prop) is not None:
+            final_params[prop] = "true" if params.get(prop) is True else "false"
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
     final_params["cpy"] = "true" if params.get("cpy") is True else "false"
     if chart_type in ANIMATION_CHARTS:
@@ -2105,7 +2138,7 @@ def candlestick_builder(data_id, export=False, **inputs):
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
-        x, cs_open, cs_close, high, low, group, agg = (
+        x, cs_open, cs_close, high, low, group, dropna, agg = (
             inputs.get(p)
             for p in [
                 "cs_x",
@@ -2114,6 +2147,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 "cs_high",
                 "cs_low",
                 "cs_group",
+                "cs_dropna",
                 "agg",
             ]
         )
@@ -2134,6 +2168,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 inputs,
                 agg,
                 group_col=group,
+                dropna=dropna,
             )
             [cs_open, cs_close, high, low] = final_cols
             code += agg_code
@@ -2154,7 +2189,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                     low=g[low],
                     name=name,
                 )
-                for name, g in data.groupby(group)
+                for name, g in data.groupby(group, dropna=dropna)
             ]
             candlestick_str = (
                 "chart = [\n"
@@ -2162,10 +2197,16 @@ def candlestick_builder(data_id, export=False, **inputs):
                 "\t\tx=g['{x}'], open=g['{cs_open}'], close=g['{cs_close}'],\n"
                 "\t\thigh=g['{high}'], low=g['{low}], name=name\n"
                 "\t)\n"
-                "for name, g in chart_data.groupby('{group}')\n"
+                "for name, g in chart_data.groupby(['{group}'], dropna='{dropna}')\n"
                 "]"
             ).format(
-                x=x, cs_open=cs_open, cs_close=cs_close, high=high, low=low, group=group
+                x=x,
+                cs_open=cs_open,
+                cs_close=cs_close,
+                high=high,
+                low=low,
+                group="','".join(make_list(group)),
+                dropna=dropna,
             )
         else:
             data = [
@@ -2232,8 +2273,14 @@ def treemap_builder(data_id, export=False, **inputs):
     """
     code = None
     try:
-        treemap_value, treemap_label, group = (
-            inputs.get(p) for p in ["treemap_value", "treemap_label", "treemap_group"]
+        treemap_value, treemap_label, group, dropna = (
+            inputs.get(p)
+            for p in [
+                "treemap_value",
+                "treemap_label",
+                "treemap_group",
+                "treemap_dropna",
+            ]
         )
         data, code = build_figure_data(data_id, **inputs)
         if data is None:
@@ -2357,13 +2404,14 @@ def treemap_builder(data_id, export=False, **inputs):
             (
                 "charts = [\n"
                 "\t_build_treemap_data(g['{treemap_value}'].values, g['{treemap_label}'].values, name)\n"
-                "\tfor name, g in chart_data.groupby(['{group}'])\n"
+                "\tfor name, g in chart_data.groupby(['{group}'], dropna='{dropna}')\n"
                 "]\n"
                 "chart = go.Figure(charts[0])"
             ).format(
                 treemap_value=treemap_value,
                 treemap_label=treemap_label,
                 group="','".join(make_list(group)),
+                dropna=dropna,
             )
         )
 
@@ -2392,9 +2440,15 @@ def funnel_builder(data_id, export=False, **inputs):
     :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
     """
 
-    selected_value, selected_label, group, stacked = (
+    selected_value, selected_label, group, dropna, stacked = (
         inputs.get(p)
-        for p in ["funnel_value", "funnel_label", "funnel_group", "funnel_stacked"]
+        for p in [
+            "funnel_value",
+            "funnel_label",
+            "funnel_group",
+            "funnel_dropna",
+            "funnel_stacked",
+        ]
     )
     group = make_list(group)
     is_stacked = stacked and len(group) > 0
@@ -2441,9 +2495,9 @@ def funnel_builder(data_id, export=False, **inputs):
             funnel_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
                     "\tcharts.append(go.Funnel(x=group['{value}'], y=group['x'], name=group_key))\n"
-                ).format(group="','".join(group), value=final_cols[0])
+                ).format(group="','".join(group), value=final_cols[0], dropna=dropna)
             )
             chart_val = "charts"
         funnel_code.append(
@@ -2581,12 +2635,13 @@ def clustergram_builder(data_id, export=False, **inputs):
     :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
     """
 
-    selected_values, selected_label, group, colorscale = (
+    selected_values, selected_label, group, dropna, colorscale = (
         inputs.get(p)
         for p in [
             "clustergram_value",
             "clustergram_label",
             "clustergram_group",
+            "clustergram_dropna",
             "colorscale",
         ]
     )
@@ -2633,7 +2688,7 @@ def clustergram_builder(data_id, export=False, **inputs):
             (
                 "charts = []\n"
                 "chart_data = chart_data[chart_data[['{value}']] > 0]\n"
-                "for group_key, group in chart_data.groupby(['{group}']):\n"
+                "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
                 "\tchart = Clustergram(\n"
                 "\t\tdata=group[['{value}']].values,\n"
                 "\t\tcolumn_labels=['{value}'],\n"
@@ -2648,6 +2703,7 @@ def clustergram_builder(data_id, export=False, **inputs):
                 "\tcharts.append(chart)\n"
             ).format(
                 group="','".join(group),
+                dropna=dropna,
                 value="','".join(inputs["clustergram_value"]),
                 color_map=color_map,
                 color_threshold="{'row': 250, 'col': 700}",
@@ -2712,7 +2768,7 @@ def clustergram_builder(data_id, export=False, **inputs):
 
 def pareto_builder(data_id, export=False, **inputs):
 
-    x, bars, line, sort, sort_dir, group = (
+    x, bars, line, sort, sort_dir, group, dropna = (
         inputs.get(p)
         for p in [
             "pareto_x",
@@ -2721,6 +2777,7 @@ def pareto_builder(data_id, export=False, **inputs):
             "pareto_sort",
             "pareto_dir",
             "pareto_group",
+            "pareto_dropna",
         ]
     )
     sort = sort or bars
@@ -2759,7 +2816,7 @@ def pareto_builder(data_id, export=False, **inputs):
             pareto_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
                     "\tsorted_group = group.sort_values('{sort}', ascending={sort_dir})\n"
                     "\tchart = make_subplots(specs=[[{specs}]])\n"
                     "\tchart.add_trace(\n"
@@ -2773,7 +2830,7 @@ def pareto_builder(data_id, export=False, **inputs):
                     "\tchart.update_layout(title='{title}')\n"
                     "\tcharts.append(chart)\n"
                     "figure = go.Figure(data=charts)"
-                ).format(group=group, **code_kwargs)
+                ).format(group=group, dropna=dropna, **code_kwargs)
             )
         else:
             pareto_code.append(
@@ -2910,10 +2967,15 @@ def get_map_props(inputs):
         "agg",
         "animate_by",
         "map_group",
+        "map_dropna",
         "group_val",
     ]
     MapProps = namedtuple("MapProps", " ".join(props))
-    return MapProps(**{p: inputs.get(p) for p in props})
+    map_props = MapProps(**{p: inputs.get(p) for p in props})
+    map_props._replace(
+        map_dropna=True if map_props.map_dropna is None else map_props.map_dropna
+    )
+    return map_props
 
 
 def build_scattergeo(inputs, raw_data, layout):
@@ -2936,6 +2998,7 @@ def build_scattergeo(inputs, raw_data, layout):
             props.agg,
             z=props.map_val,
             animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
 
@@ -3048,6 +3111,7 @@ def build_mapbox(inputs, raw_data, layout):
             props.agg,
             z=props.map_val,
             animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
 
@@ -3147,7 +3211,13 @@ def build_choropleth(inputs, raw_data, layout):
     choropleth_kwargs = {}
     if props.agg is not None:
         data, agg_code, _ = build_agg_data(
-            data, props.loc, props.map_val, {}, props.agg, animate_by=props.animate_by
+            data,
+            props.loc,
+            props.map_val,
+            {},
+            props.agg,
+            animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
     if not len(data):
@@ -3275,6 +3345,7 @@ def build_figure_data(
     data=None,
     extended_aggregation=[],
     cleaners=[],
+    dropna=True,
     **kwargs
 ):
     """
@@ -3345,14 +3416,15 @@ def build_figure_data(
             "{}_value".format(chart_type),
             "{}_label".format(chart_type),
             "{}_group".format(chart_type),
+            "{}_dropna".format(chart_type),
         ]
-        y, x, group = (kwargs.get(p) for p in props)
+        y, x, group, dropna = (kwargs.get(p) for p in props)
         y = make_list(y)
 
     if chart_type == "pareto":
-        x, bars, line, sort, sort_dir, group = (
+        x, bars, line, sort, sort_dir, group, dropna = (
             kwargs.get("pareto_{}".format(prop))
-            for prop in ["x", "bars", "line", "sort", "dir", "group"]
+            for prop in ["x", "bars", "line", "sort", "dir", "group", "dropna"]
         )
         y = [c for c in [bars, line, sort] if c is not None]
 
@@ -3361,6 +3433,7 @@ def build_figure_data(
         group_col=group,
         group_type=group_type,
         group_val=group_val,
+        dropna=dropna,
         bins_val=bins_val,
         bin_type=bin_type,
         agg=agg,
@@ -3446,16 +3519,25 @@ def build_raw_figure_data(
         global_state.get_context_variables(data_id),
     )
     if chart_type == "maps":
+        props = get_map_props(kwargs)
         if kwargs.get("map_type") == "choropleth":
-            loc, map_val = (kwargs.get(p) for p in ["loc", "map_val"])
-            data, _ = retrieve_chart_data(data, loc, map_val)
+            data, _ = retrieve_chart_data(data, props.loc, props.map_val)
             if agg is not None:
-                data, _, _ = build_agg_data(data, loc, map_val, {}, agg)
+                data, _, _ = build_agg_data(
+                    data, props.loc, props.map_val, {}, agg, dropna=props.map_dropna
+                )
             return data
-        lat, lon, map_val = (kwargs.get(p) for p in ["lat", "lon", "map_val"])
-        data, _ = retrieve_chart_data(data, lat, lon, map_val)
+        data, _ = retrieve_chart_data(data, props.lat, props.lon, props.map_val)
         if agg is not None:
-            data, _, _ = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+            data, _, _ = build_agg_data(
+                data,
+                props.lat,
+                props.lon,
+                {},
+                agg,
+                z=props.map_val,
+                dropna=props.map_dropna,
+            )
         return data
 
     chart_kwargs = dict(
@@ -3562,7 +3644,7 @@ def build_chart(data_id=None, data=None, **inputs):
         chart_inputs = {
             k: v
             for k, v in inputs.items()
-            if k not in ["chart_type", "x", "y", "z", "group"]
+            if k not in ["chart_type", "x", "y", "z", "group", "dropna"]
         }
 
         if chart_type == "wordcloud":

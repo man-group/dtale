@@ -546,6 +546,19 @@ div.tab {
     border: 1px solid #a7b3b7;
     border-radius: 0 .25rem .25rem 0;
 }
+.checkbox-wrapper {
+    border: 1px solid #a7b3b7;
+    border-radius: 0 .25rem .25rem 0;
+}
+.checkbox-wrapper .form-check-input {
+    position: absolute;
+    right: 0;
+    margin-right: 0.35em;
+    margin-top: 0.6em;
+}
+#collapse-cleaners-btn {
+  border-width: 0;
+}
 div.modebar > div.modebar-group:last-child, /* hide plotly logo */
 div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
 {

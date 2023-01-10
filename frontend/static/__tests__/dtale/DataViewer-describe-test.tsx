@@ -111,11 +111,12 @@ describe('DataViewer tests', () => {
       const buttons = [...screen.getByTestId('describe-filters').getElementsByTagName('button')];
       fireEvent.click(buttons.find((btn) => btn.textContent === 'Categories')!);
     });
-    const categorySelect = screen.getByTestId('category-col').getElementsByClassName('Select')[0] as HTMLElement;
-    await selectOption(categorySelect, 'col3');
+    const categorySelect = (): HTMLElement =>
+      screen.getByTestId('category-col').getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(categorySelect(), 'col3');
     expect(container.getElementsByTagName('canvas')).toHaveLength(1);
     await act(async () => {
-      await selectEvent.clearFirst(categorySelect);
+      await selectEvent.clearFirst(categorySelect());
     });
     expect(container.querySelectorAll('div.missing-category')).toHaveLength(1);
   });

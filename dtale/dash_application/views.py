@@ -232,6 +232,7 @@ def init_callbacks(dash_app):
             Input("load-input", "value"),
             Input("load-type-dropdown", "value"),
             Input("cleaners-dropdown", "value"),
+            Input("dropna-checkbox", "value"),
         ],
         [
             State("url", "pathname"),
@@ -259,6 +260,7 @@ def init_callbacks(dash_app):
         load,
         load_type,
         cleaners,
+        dropna,
         pathname,
         query,
         data_id,
@@ -291,6 +293,7 @@ def init_callbacks(dash_app):
             load=load,
             load_type=load_type,
             cleaners=make_list(cleaners),
+            dropna=True if dropna is None else dropna,
         )
         options = build_input_options(
             global_state.get_data(data_id),
@@ -403,6 +406,7 @@ def init_callbacks(dash_app):
             Input("map-mapbox-style-dropdown", "value"),
             Input("map-proj-dropdown", "value"),
             Input("map-group-dropdown", "value"),
+            Input("map-dropna-checkbox", "value"),
             Input("geojson-dropdown", "value"),
             Input("featureidkey-dropdown", "value"),
         ],
@@ -419,6 +423,7 @@ def init_callbacks(dash_app):
         style,
         proj,
         group,
+        dropna,
         geojson,
         featureidkey,
         data_id,
@@ -426,14 +431,23 @@ def init_callbacks(dash_app):
         map_type = map_type or "choropleth"
         if map_type == "choropleth":
             map_data = dict(
-                map_type=map_type, loc_mode=loc_mode, loc=loc, map_val=map_val
+                map_type=map_type,
+                loc_mode=loc_mode,
+                loc=loc,
+                map_val=map_val,
+                map_dropna=dropna,
             )
             if loc_mode == "geojson-id":
                 map_data["geojson"] = geojson
                 map_data["featureidkey"] = featureidkey
         elif map_type == "mapbox":
             map_data = dict(
-                map_type=map_type, lat=lat, lon=lon, map_val=map_val, mapbox_style=style
+                map_type=map_type,
+                lat=lat,
+                lon=lon,
+                map_val=map_val,
+                mapbox_style=style,
+                map_dropna=dropna,
             )
         else:
             map_data = dict(
@@ -443,6 +457,7 @@ def init_callbacks(dash_app):
                 map_val=map_val,
                 scope=scope,
                 proj=proj,
+                map_dropna=dropna,
             )
 
         if group is not None:
@@ -517,6 +532,7 @@ def init_callbacks(dash_app):
             Input("candlestick-high-dropdown", "value"),
             Input("candlestick-low-dropdown", "value"),
             Input("candlestick-group-dropdown", "value"),
+            Input("candlestick-dropna-checkbox", "value"),
         ],
         [State("data-tabs", "value")],
     )
@@ -527,6 +543,7 @@ def init_callbacks(dash_app):
         cs_high,
         cs_low,
         group,
+        dropna,
         data_id,
     ):
         cs_data = dict(
@@ -535,6 +552,7 @@ def init_callbacks(dash_app):
             cs_close=cs_close,
             cs_high=cs_high,
             cs_low=cs_low,
+            cs_dropna=dropna,
         )
         if group is not None:
             cs_data["cs_group"] = group
@@ -564,10 +582,11 @@ def init_callbacks(dash_app):
         )
 
     def label_value_callback(prop):
-        def _callback(selected_value, selected_label, group, data_id, **kwargs):
+        def _callback(selected_value, selected_label, group, dropna, data_id, **kwargs):
             label_value_data = {
                 "{}_value".format(prop): selected_value,
                 "{}_label".format(prop): selected_label,
+                "{}_dropna".format(prop): True if dropna is None else dropna,
             }
             if group is not None:
                 label_value_data["{}_group".format(prop)] = group
@@ -583,9 +602,16 @@ def init_callbacks(dash_app):
 
         return _callback
 
-    def funnel_callback(selected_value, selected_label, group, stacked, data_id):
+    def funnel_callback(
+        selected_value, selected_label, group, dropna, stacked, data_id
+    ):
         label_value_data, value_options, label_options = label_value_callback("funnel")(
-            selected_value, selected_label, group, data_id, funnel_stacked=stacked
+            selected_value,
+            selected_label,
+            group,
+            dropna,
+            data_id,
+            funnel_stacked=stacked,
         )
         return (
             label_value_data,
@@ -594,10 +620,10 @@ def init_callbacks(dash_app):
             show_style(len(make_list(group)) > 0),
         )
 
-    def clustergram_callback(selected_value, selected_label, group, data_id):
+    def clustergram_callback(selected_value, selected_label, group, dropna, data_id):
         label_value_data, value_options, label_options = label_value_callback(
             "clustergram"
-        )(selected_value, selected_label, group, data_id)
+        )(selected_value, selected_label, group, dropna, data_id)
         return (
             label_value_data,
             value_options,
@@ -618,6 +644,7 @@ def init_callbacks(dash_app):
             Input("pareto-sort-dropdown", "value"),
             Input("pareto-dir-dropdown", "value"),
             Input("pareto-group-dropdown", "value"),
+            Input("pareto-dropna-checkbox", "value"),
         ],
         [State("data-tabs", "value")],
     )
@@ -628,6 +655,7 @@ def init_callbacks(dash_app):
         pareto_sort,
         pareto_dir,
         group,
+        dropna,
         data_id,
     ):
         pareto_data = dict(
@@ -636,6 +664,7 @@ def init_callbacks(dash_app):
             pareto_line=pareto_line,
             pareto_sort=pareto_sort,
             pareto_dir=pareto_dir,
+            pareto_dropna=True if dropna is None else dropna,
         )
         if group is not None:
             pareto_data["pareto_group"] = group
@@ -664,6 +693,7 @@ def init_callbacks(dash_app):
             Input("treemap-value-dropdown", "value"),
             Input("treemap-label-dropdown", "value"),
             Input("treemap-group-dropdown", "value"),
+            Input("treemap-dropna-checkbox", "value"),
         ],
         [State("data-tabs", "value")],
     )(label_value_callback("treemap"))
@@ -679,6 +709,7 @@ def init_callbacks(dash_app):
             Input("funnel-value-dropdown", "value"),
             Input("funnel-label-dropdown", "value"),
             Input("funnel-group-dropdown", "value"),
+            Input("funnel-dropna-checkbox", "value"),
             Input("funnel-stack-toggle", "on"),
         ],
         [State("data-tabs", "value")],
@@ -694,6 +725,7 @@ def init_callbacks(dash_app):
             Input("clustergram-value-dropdown", "value"),
             Input("clustergram-label-dropdown", "value"),
             Input("clustergram-group-dropdown", "value"),
+            Input("clustergram-dropna-checkbox", "value"),
         ],
         [State("data-tabs", "value")],
     )(clustergram_callback)
@@ -715,6 +747,7 @@ def init_callbacks(dash_app):
             Output("animate-by-input", "style"),
             Output("animate-by-dropdown", "options"),
             Output("trendline-input", "style"),
+            Output("dropna-input", "style"),
         ],
         [Input("input-data", "modified_timestamp")],
         [State("input-data", "data"), State("url", "pathname")],
@@ -731,6 +764,7 @@ def init_callbacks(dash_app):
         y_single_style = {"display": "block" if show_input("y") else "none"}
         z_style = {"display": "block" if show_input("z") else "none"}
         group_style = {"display": "block" if show_input("group") else "none"}
+        dropna_style = {"display": "block" if show_input("group") else "none"}
         rolling_style = {"display": "inherit" if agg == "rolling" else "none"}
         cpg_style = {"display": "block" if show_chart_per_group(**inputs) else "none"}
         cpy_style = {"display": "block" if show_chart_per_y(**inputs) else "none"}
@@ -757,6 +791,7 @@ def init_callbacks(dash_app):
             animate_by_style,
             animate_opts,
             trendline_style,
+            dropna_style,
         )
 
     @dash_app.callback(

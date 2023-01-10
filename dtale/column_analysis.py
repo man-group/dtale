@@ -318,9 +318,9 @@ class CategoryAnalysis(object):
         self.top = get_int_arg(req, "top")
 
     def build(self, parent):
-        hist = parent.data.groupby(self.category_col)[[parent.selected_col]].agg(
-            self.aggs
-        )
+        hist = parent.data.groupby(self.category_col, dropna=False)[
+            [parent.selected_col]
+        ].agg(self.aggs)
         hist.columns = hist.columns.droplevel(0)
         hist.columns = ["count", "data"]
         if self.category_agg == "pctsum":
@@ -328,7 +328,7 @@ class CategoryAnalysis(object):
         hist.index.name = "labels"
         hist = hist.reset_index()
         hist, top, top_code = handle_top(hist, self.top)
-        f = grid_formatter(grid_columns(hist), nan_display=None)
+        f = grid_formatter(grid_columns(hist), nan_display="NaN")
         return_data = f.format_lists(hist)
         return_data["top"] = top
         return return_data, self._build_code(parent, top_code)
@@ -364,7 +364,7 @@ class CategoryAnalysis(object):
         )
 
         code = [
-            "chart = df.groupby('{cat}')[['{col}']].agg(['{aggs}'])".format(
+            "chart = df.groupby('{cat}', dropna=False)[['{col}']].agg(['{aggs}'])".format(
                 cat=self.category_col,
                 col=parent.selected_col,
                 aggs="', '".join(self.aggs),
@@ -444,6 +444,7 @@ class ValueCountAnalysis(object):
         )
         code += cleaner_code
         hist = self.build_hist(s, code)
+        print(hist)
 
         if self.ordinal_col is not None:
             ordinal_data, ordinal_code = self.setup_ordinal_data(parent)

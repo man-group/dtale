@@ -567,7 +567,8 @@
     "Missing a value(s) selection!": "Falta selecionar valor(es)!",
     "Col": "Col",
     "Offset": "Deslocamento",
-    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found ",
+    "dropna": "Drop NaN values"
   },
   "replacement": {
     "Inplace": "No lugar",
