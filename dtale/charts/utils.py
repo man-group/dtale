@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 from dtale.column_analysis import handle_cleaners
 from dtale.query import build_col_key, run_query
 from dtale.utils import (
@@ -526,7 +527,7 @@ def build_agg_data(
         ]
         groups.columns = idx_cols + group_cols
     else:
-        groups = df.groupby(idx_cols, dropna=dropna)
+        groups = pandas_util.groupby(df, idx_cols, dropna=dropna)
         groups, code, group_cols = compute_aggs(
             df, groups, aggs, idx_cols, group_col, dropna=dropna
         )
@@ -578,7 +579,10 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col, dropna=True):
             calc_group = getattr(groups[curr_agg_cols], func)()
             calc_group = (
                 calc_group
-                / getattr(df.groupby(subidx_cols, dropna=dropna)[curr_agg_cols], func)()
+                / getattr(
+                    pandas_util.groupby(df, subidx_cols, dropna=dropna)[curr_agg_cols],
+                    func,
+                )()
                 * 100
             )
             if isinstance(calc_group, pd.Series):
@@ -590,16 +594,15 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col, dropna=True):
             elif len(curr_agg_cols) == 1:
                 groups.name = curr_agg_cols[0]
             code = (
-                "{chart_data} = chart_data.groupby(['{cols}'], dropna={dropna})[['{agg_cols}']].{agg}()\n"
-                "{chart_data} = {chart_data} / {chart_data}.groupby(['{subidx_cols}'], dropna={dropna}).{agg}()"
+                "{chart_data} = chart_data{groupby}[['{agg_cols}']].{agg}()\n"
+                "{chart_data} = {chart_data} / {chart_data}{subgroupby}.{agg}()"
             )
             code = code.format(
-                cols="', '".join(idx_cols),
-                subidx_cols="', '".join(subidx_cols),
+                groupby=pandas_util.groupby_code(idx_cols, dropna=dropna),
+                subgroupby=pandas_util.groupby_code(subidx_cols, dropna=dropna),
                 agg_cols="', '".join(make_list(curr_agg_cols)),
                 agg=func,
                 chart_data=chart_data_key,
-                dropna=dropna,
             )
             all_code.append(code)
         elif curr_agg in ["first", "last"]:
@@ -616,7 +619,7 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col, dropna=True):
             calc_group = pd.concat(list(_build_first_last()), axis=1)
             all_code += [
                 (
-                    "groups = chart_data.groupby(['{cols}'], dropna={dropna})\n"
+                    "groups = chart_data{groupby}\n"
                     "\ndef _build_first_last():\n"
                     "\tfor col in ['{agg_cols}']:\n"
                     "\t\tyield groups[[col]].apply(\n"
@@ -624,22 +627,20 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col, dropna=True):
                     "\t\t)\n\n"
                     "{chart_data} = pd.DataFrame(list(_build_first_last()), columns=['{agg_cols}'])"
                 ).format(
-                    cols="', '".join(idx_cols),
+                    groupby=pandas_util.groupby_code(idx_cols, dropna=dropna),
                     agg_cols="', '".join(curr_agg_cols),
                     agg_func=agg_func,
                     chart_data=chart_data_key,
-                    dropna=dropna,
                 )
             ]
         else:
             calc_group = getattr(groups[curr_agg_cols], curr_agg)()
             all_code += [
-                "{chart_data} = chart_data.groupby(['{cols}'], dropna={dropna})[['{agg_cols}']].{agg}()".format(
-                    cols="', '".join(idx_cols),
+                "{chart_data} = chart_data{groupby}[['{agg_cols}']].{agg}()".format(
+                    groupby=pandas_util.groupby_code(idx_cols, dropna=dropna),
                     agg_cols="', '".join(curr_agg_cols),
                     agg=curr_agg,
                     chart_data=chart_data_key,
-                    dropna=dropna,
                 )
             ]
         final_cols = ["{}|{}".format(col, curr_agg) for col in calc_group.columns]
@@ -863,7 +864,7 @@ def build_base_chart(
         }
 
         def _load_groups(df):
-            for group_val, grp in df.groupby(group_col, dropna=dropna):
+            for group_val, grp in pandas_util.groupby(df, group_col, dropna=dropna):
 
                 def _group_filter():
                     for gv, gc in zip(make_list(group_val), group_col):

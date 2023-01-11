@@ -4,6 +4,7 @@ from logging import getLogger
 import dash
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+from six import PY3
 
 from dtale.dash_application import dcc, html
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -764,7 +765,7 @@ def init_callbacks(dash_app):
         y_single_style = {"display": "block" if show_input("y") else "none"}
         z_style = {"display": "block" if show_input("z") else "none"}
         group_style = {"display": "block" if show_input("group") else "none"}
-        dropna_style = {"display": "block" if show_input("group") else "none"}
+        dropna_style = {"display": "block" if PY3 and show_input("group") else "none"}
         rolling_style = {"display": "inherit" if agg == "rolling" else "none"}
         cpg_style = {"display": "block" if show_chart_per_group(**inputs) else "none"}
         cpy_style = {"display": "block" if show_chart_per_y(**inputs) else "none"}
