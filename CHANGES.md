@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2.9.2 (2023-1-11)
+* [#719](https://github.com/man-group/dtale/issues/719): allow NaN values in groupby
+* Updated cell editor and header editor to use select dropdown on category columns
+* [#708](https://github.com/man-group/dtale/issues/708): render boolean column values as checkboxes)
+
 ### 2.9.1 (2022-12-28)
 * [#709](https://github.com/man-group/dtale/issues/709): added additional VSCode check for VSCODE_INJECTION
 * [#714](https://github.com/man-group/dtale/issues/714): pushed plotly legend below x-axis labels
