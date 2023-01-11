@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { default as Select } from 'react-select';
 
 import ButtonToggle from '../../ButtonToggle';
 import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } from '../../popups/create/ColumnSelect';
-import { BaseOption } from '../../redux/state/AppState';
+import { AppState, BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
 import { Checkbox } from '../create/LabeledCheckbox';
@@ -61,6 +62,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
 };
 
 const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ columns, updateState, t }) => {
+  const pythonVersion = useSelector((state: AppState) => state.pythonVersion);
   const aggregateAggs = React.useMemo(
     () => [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }],
     [t],
@@ -135,7 +137,7 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
         isMulti={true}
         columns={columns}
       >
-        {!!index?.length && (
+        {(pythonVersion?.[0] ?? 0) >= 3 && !!index?.length && (
           <div className="row mb-0">
             <label className="col-auto col-form-label pr-3" style={{ fontSize: '85%' }}>
               {`${t('dropna')}?`}

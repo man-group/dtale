@@ -902,18 +902,25 @@ def build_label_value_store(prop, inputs):
     )
 
 
+def bootstrap_checkbox_prop():
+    if parse_version(dbc.__version__) >= parse_version("1.0.0"):
+        return "value"
+    return "checked"
+
+
 def build_dropna(dropna, prop=None):
     if PY3:
+        checkbox_kwargs = dict(
+            id="{}-dropna-checkbox".format(prop)
+            if prop is not None
+            else "dropna-checkbox",
+            style=dict(width="inherit"),
+        )
+        checkbox_kwargs[bootstrap_checkbox_prop()] = True if dropna is None else dropna
         return build_input(
             text("Dropna"),
             html.Div(
-                dbc.Checkbox(
-                    id="{}-dropna-checkbox".format(prop)
-                    if prop is not None
-                    else "dropna-checkbox",
-                    value=True if dropna is None else dropna,
-                    style=dict(width="inherit"),
-                ),
+                dbc.Checkbox(**checkbox_kwargs),
                 className="checkbox-wrapper",
             ),
             className="col-auto",

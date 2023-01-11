@@ -556,7 +556,7 @@ div.tab {
     margin-right: 0.35em;
     margin-top: 0.6em;
 }
-#collapse-cleaners-btn {
+#collapse-cleaners-btn, #collapse-data-btn {
   border-width: 0;
 }
 div.modebar > div.modebar-group:last-child, /* hide plotly logo */

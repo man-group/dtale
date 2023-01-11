@@ -50,6 +50,7 @@ from dtale.dash_application.layout.layout import (
     get_group_types,
     show_input_handler,
     show_yaxis_ranges,
+    bootstrap_checkbox_prop,
 )
 from dtale.dash_application.layout.utils import show_style
 from dtale.dash_application.utils import get_data_id
@@ -233,7 +234,7 @@ def init_callbacks(dash_app):
             Input("load-input", "value"),
             Input("load-type-dropdown", "value"),
             Input("cleaners-dropdown", "value"),
-            Input("dropna-checkbox", "value"),
+            Input("dropna-checkbox", bootstrap_checkbox_prop()),
         ],
         [
             State("url", "pathname"),
@@ -407,7 +408,7 @@ def init_callbacks(dash_app):
             Input("map-mapbox-style-dropdown", "value"),
             Input("map-proj-dropdown", "value"),
             Input("map-group-dropdown", "value"),
-            Input("map-dropna-checkbox", "value"),
+            Input("map-dropna-checkbox", bootstrap_checkbox_prop()),
             Input("geojson-dropdown", "value"),
             Input("featureidkey-dropdown", "value"),
         ],
@@ -533,7 +534,7 @@ def init_callbacks(dash_app):
             Input("candlestick-high-dropdown", "value"),
             Input("candlestick-low-dropdown", "value"),
             Input("candlestick-group-dropdown", "value"),
-            Input("candlestick-dropna-checkbox", "value"),
+            Input("candlestick-dropna-checkbox", bootstrap_checkbox_prop()),
         ],
         [State("data-tabs", "value")],
     )
@@ -645,7 +646,7 @@ def init_callbacks(dash_app):
             Input("pareto-sort-dropdown", "value"),
             Input("pareto-dir-dropdown", "value"),
             Input("pareto-group-dropdown", "value"),
-            Input("pareto-dropna-checkbox", "value"),
+            Input("pareto-dropna-checkbox", bootstrap_checkbox_prop()),
         ],
         [State("data-tabs", "value")],
     )
@@ -694,7 +695,7 @@ def init_callbacks(dash_app):
             Input("treemap-value-dropdown", "value"),
             Input("treemap-label-dropdown", "value"),
             Input("treemap-group-dropdown", "value"),
-            Input("treemap-dropna-checkbox", "value"),
+            Input("treemap-dropna-checkbox", bootstrap_checkbox_prop()),
         ],
         [State("data-tabs", "value")],
     )(label_value_callback("treemap"))
@@ -710,7 +711,7 @@ def init_callbacks(dash_app):
             Input("funnel-value-dropdown", "value"),
             Input("funnel-label-dropdown", "value"),
             Input("funnel-group-dropdown", "value"),
-            Input("funnel-dropna-checkbox", "value"),
+            Input("funnel-dropna-checkbox", bootstrap_checkbox_prop()),
             Input("funnel-stack-toggle", "on"),
         ],
         [State("data-tabs", "value")],
@@ -726,7 +727,7 @@ def init_callbacks(dash_app):
             Input("clustergram-value-dropdown", "value"),
             Input("clustergram-label-dropdown", "value"),
             Input("clustergram-group-dropdown", "value"),
-            Input("clustergram-dropna-checkbox", "value"),
+            Input("clustergram-dropna-checkbox", bootstrap_checkbox_prop()),
         ],
         [State("data-tabs", "value")],
     )(clustergram_callback)
