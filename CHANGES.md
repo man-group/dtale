@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.10.0 (2023-1-11)
+* Updated usage to dash_bootstrap_components.Checkbox to be backwards compatible
+
 ### 2.9.2 (2023-1-11)
 * [#719](https://github.com/man-group/dtale/issues/719): allow NaN values in groupby
 * Updated cell editor and header editor to use select dropdown on category columns
