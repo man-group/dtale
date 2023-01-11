@@ -22,6 +22,7 @@ from dtale.dash_application import dcc, html
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 from dtale.charts.utils import (
     AGGS,
     DUPES_MSG,
@@ -2189,7 +2190,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                     low=g[low],
                     name=name,
                 )
-                for name, g in data.groupby(group, dropna=dropna)
+                for name, g in pandas_util.groupby(data, group, dropna=dropna)
             ]
             candlestick_str = (
                 "chart = [\n"
@@ -2197,7 +2198,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 "\t\tx=g['{x}'], open=g['{cs_open}'], close=g['{cs_close}'],\n"
                 "\t\thigh=g['{high}'], low=g['{low}], name=name\n"
                 "\t)\n"
-                "for name, g in chart_data.groupby(['{group}'], dropna='{dropna}')\n"
+                "for name, g in chart_data{groupby}\n"
                 "]"
             ).format(
                 x=x,
@@ -2205,8 +2206,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 cs_close=cs_close,
                 high=high,
                 low=low,
-                group="','".join(make_list(group)),
-                dropna=dropna,
+                groupby=pandas_util.groupby_code(make_list(group), dropna=dropna),
             )
         else:
             data = [
@@ -2404,14 +2404,13 @@ def treemap_builder(data_id, export=False, **inputs):
             (
                 "charts = [\n"
                 "\t_build_treemap_data(g['{treemap_value}'].values, g['{treemap_label}'].values, name)\n"
-                "\tfor name, g in chart_data.groupby(['{group}'], dropna='{dropna}')\n"
+                "\tfor name, g in chart_data{groupby}\n"
                 "]\n"
                 "chart = go.Figure(charts[0])"
             ).format(
                 treemap_value=treemap_value,
                 treemap_label=treemap_label,
-                group="','".join(make_list(group)),
-                dropna=dropna,
+                groupby=pandas_util.groupby_code(make_list(group), dropna=dropna),
             )
         )
 
@@ -2495,9 +2494,12 @@ def funnel_builder(data_id, export=False, **inputs):
             funnel_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
+                    "for group_key, group in chart_data{groupby}:\n"
                     "\tcharts.append(go.Funnel(x=group['{value}'], y=group['x'], name=group_key))\n"
-                ).format(group="','".join(group), value=final_cols[0], dropna=dropna)
+                ).format(
+                    groupby=pandas_util.groupby_code(group, dropna=dropna),
+                    value=final_cols[0],
+                )
             )
             chart_val = "charts"
         funnel_code.append(
@@ -2688,7 +2690,7 @@ def clustergram_builder(data_id, export=False, **inputs):
             (
                 "charts = []\n"
                 "chart_data = chart_data[chart_data[['{value}']] > 0]\n"
-                "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
+                "for group_key, group in chart_data{groupby}:\n"
                 "\tchart = Clustergram(\n"
                 "\t\tdata=group[['{value}']].values,\n"
                 "\t\tcolumn_labels=['{value}'],\n"
@@ -2702,8 +2704,7 @@ def clustergram_builder(data_id, export=False, **inputs):
                 "\tchart['layout']['title'] = {title}"
                 "\tcharts.append(chart)\n"
             ).format(
-                group="','".join(group),
-                dropna=dropna,
+                groupby=pandas_util.groupby_code(group, dropna=dropna),
                 value="','".join(inputs["clustergram_value"]),
                 color_map=color_map,
                 color_threshold="{'row': 250, 'col': 700}",
@@ -2816,7 +2817,7 @@ def pareto_builder(data_id, export=False, **inputs):
             pareto_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}'], dropna={dropna}):\n"
+                    "for group_key, group in chart_data{groupby}:\n"
                     "\tsorted_group = group.sort_values('{sort}', ascending={sort_dir})\n"
                     "\tchart = make_subplots(specs=[[{specs}]])\n"
                     "\tchart.add_trace(\n"
@@ -2830,7 +2831,10 @@ def pareto_builder(data_id, export=False, **inputs):
                     "\tchart.update_layout(title='{title}')\n"
                     "\tcharts.append(chart)\n"
                     "figure = go.Figure(data=charts)"
-                ).format(group=group, dropna=dropna, **code_kwargs)
+                ).format(
+                    groupby=pandas_util.groupby_code(group, dropna=dropna),
+                    **code_kwargs
+                )
             )
         else:
             pareto_code.append(

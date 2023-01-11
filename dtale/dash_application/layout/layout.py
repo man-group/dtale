@@ -6,6 +6,7 @@ import dash_daq as daq
 import os
 import plotly
 from pkg_resources import parse_version
+from six import PY3
 
 from dtale.dash_application import dcc, html
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -901,6 +902,37 @@ def build_label_value_store(prop, inputs):
     )
 
 
+def build_dropna(dropna, prop=None):
+    if PY3:
+        return build_input(
+            text("Dropna"),
+            html.Div(
+                dbc.Checkbox(
+                    id="{}-dropna-checkbox".format(prop)
+                    if prop is not None
+                    else "dropna-checkbox",
+                    value=True if dropna is None else dropna,
+                    style=dict(width="inherit"),
+                ),
+                className="checkbox-wrapper",
+            ),
+            className="col-auto",
+            id="{}-dropna-input".format(prop) if prop is not None else "dropna-input",
+        )
+    return build_input(
+        text("Dropna"),
+        dcc.Input(
+            id="{}-dropna-checkbox".format(prop)
+            if prop is not None
+            else "dropna-checkbox",
+            type="hidden",
+            value=True if dropna is None else dropna,
+        ),
+        id="{}-dropna-input".format(prop) if prop is not None else "dropna-input",
+        style={"display": "none"},
+    )
+
+
 def build_label_value_inputs(
     prop,
     inputs,
@@ -962,19 +994,7 @@ def build_label_value_inputs(
                 className="col",
                 id="{}-group-input".format(prop),
             ),
-            build_input(
-                text("Dropna"),
-                html.Div(
-                    dbc.Checkbox(
-                        id="{}-dropna-checkbox".format(prop),
-                        value=True if dropna is None else dropna,
-                        style=dict(width="inherit"),
-                    ),
-                    className="checkbox-wrapper",
-                ),
-                className="col-auto",
-                id="{}-dropna-input".format(prop),
-            ),
+            build_dropna(dropna, prop),
         ],
         id="{}-inputs".format(prop),
         className="row charts-filters",
@@ -1099,19 +1119,7 @@ def build_pareto_inputs(inputs, df, group_options):
                 className="col",
                 id="pareto-group-input",
             ),
-            build_input(
-                text("Dropna"),
-                html.Div(
-                    dbc.Checkbox(
-                        id="pareto-dropna-checkbox",
-                        value=True if dropna is None else dropna,
-                        style=dict(width="inherit"),
-                    ),
-                    className="checkbox-wrapper",
-                ),
-                className="col-auto",
-                id="pareto-dropna-input",
-            ),
+            build_dropna(dropna, "pareto"),
         ],
         id="pareto-inputs",
         style={} if show_inputs else {"display": "none"},
@@ -1777,19 +1785,7 @@ def charts_layout(df, settings, **inputs):
                                     id="group-input",
                                     style=show_style(show_input("group")),
                                 ),
-                                build_input(
-                                    text("Dropna"),
-                                    html.Div(
-                                        dbc.Checkbox(
-                                            id="dropna-checkbox",
-                                            value=True if dropna is None else dropna,
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="checkbox-wrapper",
-                                    ),
-                                    className="col-auto",
-                                    id="dropna-input",
-                                ),
+                                build_dropna(dropna),
                             ],
                             id="standard-inputs",
                             style={}
@@ -1961,19 +1957,7 @@ def charts_layout(df, settings, **inputs):
                                     className="col",
                                     id="map-group-input",
                                 ),
-                                build_input(
-                                    text("Dropna"),
-                                    html.Div(
-                                        dbc.Checkbox(
-                                            id="map-dropna-checkbox",
-                                            value=inputs.get("map_dropna", True),
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="checkbox-wrapper",
-                                    ),
-                                    className="col-auto",
-                                    id="map-dropna-input",
-                                ),
+                                build_dropna(inputs.get("map_dropna", True), "map"),
                             ],
                             id="map-inputs",
                             className="row charts-filters",
@@ -2044,18 +2028,8 @@ def charts_layout(df, settings, **inputs):
                                     className="col",
                                     id="candlestick-group-input",
                                 ),
-                                build_input(
-                                    text("Dropna"),
-                                    html.Div(
-                                        dbc.Checkbox(
-                                            id="candlestick-dropna-checkbox",
-                                            value=inputs.get("cs_dropna", True),
-                                            style=dict(width="inherit"),
-                                        ),
-                                        className="checkbox-wrapper",
-                                    ),
-                                    className="col-auto",
-                                    id="candlestick-dropna-input",
+                                build_dropna(
+                                    inputs.get("cs_dropna", True), "candlestick"
                                 ),
                             ],
                             id="candlestick-inputs",
