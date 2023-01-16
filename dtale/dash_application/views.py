@@ -132,6 +132,12 @@ def add_dash(server):
 
     init_callbacks(dash_app)
 
+    def _handle_error(error):
+        """Replace the default handler with one that does not print anything"""
+        return "", 204
+
+    dash_app.server.errorhandler(dash.exceptions.PreventUpdate)(_handle_error)
+
     return dash_app.server
 
 
@@ -1141,7 +1147,7 @@ def init_callbacks(dash_app):
             maxs = range_data.get("max", {})
             range_min = get_default_range(mins, final_cols)
             range_max = get_default_range(maxs, final_cols, max=True)
-        elif yaxis is None:
+        elif yaxis is None or range_data is None:
             raise PreventUpdate
         else:
             range_min, range_max = (
