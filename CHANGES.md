@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.10.1 (2023-1-16 - beta)
+* Test release for fixing issue with Dash not returning 204s
+
 ### 2.10.0 (2023-1-11)
 * Updated usage to dash_bootstrap_components.Checkbox to be backwards compatible
 
