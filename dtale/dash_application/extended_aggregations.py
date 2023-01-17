@@ -1,10 +1,10 @@
 import dash_bootstrap_components as dbc
 
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 
 from dtale.charts.utils import AGGS, NON_EXT_AGGREGATION
 from dtale.dash_application import dcc, html
+from dtale.dash_application.exceptions import DtalePreventUpdate
 from dtale.dash_application.layout.utils import (
     build_hoverable,
     build_input,
@@ -355,7 +355,7 @@ def init_callbacks(dash_app):
     )
     def populate_col_dropdowns(is_open, input_data):
         if not is_open:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         y = make_list(input_data.get("y"))
         z = make_list(input_data.get("z"))
         col_options = [build_option(sub_col) for sub_col in (y if not len(z) else z)]

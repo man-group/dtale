@@ -5,9 +5,9 @@ import pandas as pd
 import dash_bootstrap_components as dbc
 
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 
 from dtale.dash_application import dcc, html
+from dtale.dash_application.exceptions import DtalePreventUpdate
 from dtale.dash_application.layout.utils import build_input, build_option
 from dtale.translations import text
 
@@ -179,7 +179,7 @@ def init_callbacks(dash_app):
     )
     def update_geojson(contents, filename):
         if filename is None:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         geojson_options = [build_option(ct["key"]) for ct in get_custom_geojson()]
         try:
             geojson_key = load_geojson(contents, filename)

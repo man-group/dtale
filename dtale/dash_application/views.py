@@ -3,12 +3,12 @@ from logging import getLogger
 
 import dash
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 from six import PY3
 
 from dtale.dash_application import dcc, html
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.drilldown_modal as drilldown_modal
+from dtale.dash_application.exceptions import DtalePreventUpdate
 import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.dash_application.saved_charts as saved_charts
 import dtale.dash_application.lock_zoom as lock_zoom
@@ -134,9 +134,15 @@ def add_dash(server):
 
     def _handle_error(error):
         """Replace the default handler with one that does not print anything"""
+        import dtale.app as dtale_app
+
+        if dtale_app.USE_COLAB:
+            raise ValueError(
+                "Currently executing in google colab which does not handle dash.PreventUpdate 204s"
+            )
         return "", 204
 
-    dash_app.server.errorhandler(dash.exceptions.PreventUpdate)(_handle_error)
+    dash_app.server.errorhandler(DtalePreventUpdate)(_handle_error)
 
     return dash_app.server
 
@@ -380,7 +386,7 @@ def init_callbacks(dash_app):
     )
     def update_data_selection(data_id, input_data):
         if data_id == input_data["data_id"]:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         return None, None, None, None, None, None
 
     @dash_app.callback(
@@ -974,9 +980,9 @@ def init_callbacks(dash_app):
             else {},
         )
         if not auto_load and load_clicks == prev_load_clicks:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if all_inputs == last_chart_inputs:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             all_inputs["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
         charts, range_data, code = build_chart(**all_inputs)
@@ -1148,7 +1154,7 @@ def init_callbacks(dash_app):
             range_min = get_default_range(mins, final_cols)
             range_max = get_default_range(maxs, final_cols, max=True)
         elif yaxis is None or range_data is None:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         else:
             range_min, range_max = (
                 range_data[p].get(yaxis_name) for p in ["min", "max"]
@@ -1293,7 +1299,7 @@ def init_callbacks(dash_app):
         """
         dash_app.config.suppress_callback_exceptions = False
         if pathname is None:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         params = chart_url_params(search)
         params["data_id"] = params.get("data_id") or get_data_id(pathname)
         df = global_state.get_data(params["data_id"])
