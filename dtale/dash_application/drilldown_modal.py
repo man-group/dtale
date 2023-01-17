@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 
 import dtale.global_state as global_state
 from dtale.charts.utils import AGGS
@@ -12,6 +11,7 @@ from dtale.dash_application.charts import (
     build_axes,
     chart_builder_passthru,
 )
+from dtale.dash_application.exceptions import DtalePreventUpdate
 from dtale.dash_application.layout.utils import (
     build_cols,
     build_option,
@@ -127,16 +127,16 @@ def build_drilldown_title(data_id, all_inputs, click_point, props, val_prop):
 def init_callbacks(dash_app):
     def toggle_modal(close1, close2, click_data, is_open, inputs, drilldowns_on):
         if not drilldowns_on:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if (inputs.get("agg") or "raw") == "raw":
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if close1 or close2 or click_data:
             return not is_open
         return is_open
 
     def build_x_dropdown(is_open, inputs, chart_inputs, yaxis_data, map_data):
         if not is_open:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         data_id = inputs["data_id"]
         df = global_state.get_data(data_id)
         all_inputs = combine_inputs(
@@ -168,14 +168,14 @@ def init_callbacks(dash_app):
         drilldowns_on,
     ):
         if not drilldowns_on:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         all_inputs = combine_inputs(
             dash_app, inputs, chart_inputs, yaxis_data, map_data
         )
         if (all_inputs.get("agg") or "raw") == "raw":
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if not click_data:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         data_id = inputs["data_id"]
         chart_type = all_inputs.get("chart_type")
         click_data = click_data or current_click_data
@@ -205,7 +205,7 @@ def init_callbacks(dash_app):
         drilldowns_on,
     ):
         if not drilldowns_on:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         data_id = inputs["data_id"]
         all_inputs = combine_inputs(
             dash_app, inputs, chart_inputs, yaxis_data, map_data
@@ -215,9 +215,9 @@ def init_callbacks(dash_app):
         frame_col = all_inputs.get("animate_by")
         all_inputs.pop("animate_by", None)
         if agg == "raw":
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if drilldown_x is None and chart_type != "maps":
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if click_data:
             click_point = next((p for p in click_data.get("points", [])), None)
             if click_point:
