@@ -43,6 +43,7 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
 
   const [value, setValue] = React.useState(props.value ?? '');
   const [options, setOptions] = React.useState<Array<BaseOption<string>>>([]);
+  const [customOptions, setCustomOptions] = React.useState<Array<BaseOption<string>>>([]);
   const input = React.useRef<HTMLInputElement>(null);
 
   const escapeHandler = (event: KeyboardEvent): void => {
@@ -58,7 +59,10 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
   }, []);
 
   React.useEffect(() => {
-    if (gu.ColumnType.CATEGORY === gu.findColType(colCfg.dtype)) {
+    const settingsOptions = (settings.column_edit_options ?? {})[colCfg.name] ?? [];
+    if (settingsOptions.length) {
+      setCustomOptions(settingsOptions.map((so) => ({ value: so })));
+    } else if (gu.ColumnType.CATEGORY === gu.findColType(colCfg.dtype)) {
       (async () => {
         const filterData = await ColumnFilterRepository.loadFilterData(dataId, colCfg.name);
         setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
@@ -80,7 +84,24 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
     });
   };
 
-  if (gu.ColumnType.BOOL === gu.findColType(colCfg.dtype)) {
+  if (customOptions.length) {
+    return (
+      <div
+        onKeyDown={onKeyDown}
+        tabIndex={-1}
+        style={{ background: 'lightblue', width: 'inherit', height: 'inherit', padding: '0' }}
+        className="editor-select"
+      >
+        <DtaleSelect
+          value={{ value }}
+          options={[{ value: 'nan' }, ...customOptions]}
+          onChange={(state: BaseOption<string> | Array<BaseOption<any>> | undefined) =>
+            setValue((state as BaseOption<string>)?.value ?? '')
+          }
+        />
+      </div>
+    );
+  } else if (gu.ColumnType.BOOL === gu.findColType(colCfg.dtype)) {
     return (
       <div
         onKeyDown={onKeyDown}

@@ -940,6 +940,7 @@ def startup(
     is_proxy=None,
     vertical_headers=False,
     hide_shutdown=False,
+    column_edit_options=None,
 ):
     """
     Loads and stores data globally
@@ -1105,6 +1106,8 @@ def startup(
             base_settings["nanDisplay"] = nan_display
         if hide_shutdown is not None:
             base_settings["hide_shutdown"] = hide_shutdown
+        if column_edit_options is not None:
+            base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe:
             data = optimize_df(data)

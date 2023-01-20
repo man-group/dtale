@@ -122,6 +122,9 @@ def test_build_show_options(unittest):
     )
     unittest.assertEqual(final_options["sort"], [("a", "ASC")])
     unittest.assertEqual(final_options["locked"], ["a", "b"])
+    unittest.assertEqual(
+        final_options["column_edit_options"], {"a": ["foo", "bar", "baz"]}
+    )
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

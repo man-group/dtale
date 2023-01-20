@@ -167,4 +167,25 @@ describe('GridCell', () => {
     ]);
     expect(loadFilterDataSpy).toHaveBeenLastCalledWith('1', 'baz');
   });
+
+  it('renders select for column w/ custom options when edited', async () => {
+    const settings = { column_edit_options: { baz: ['foo', 'bar', 'bizzle'] } };
+    await buildMock(
+      { columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } },
+      { editedCell: '3|1', settings },
+      true,
+    );
+    expect(container.getElementsByClassName('Select')).toHaveLength(1);
+    const select = container.getElementsByClassName('Select')[0] as HTMLElement;
+    await act(async () => {
+      await selectEvent.openMenu(select);
+    });
+    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'nan',
+      'foo',
+      'bar',
+      'bizzle',
+    ]);
+    expect(loadFilterDataSpy).not.toHaveBeenCalled();
+  });
 });

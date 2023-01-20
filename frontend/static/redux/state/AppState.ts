@@ -362,6 +362,7 @@ export interface InstanceSettings {
   columnFilters?: Record<string, ColumnFilter>;
   invertFilter?: boolean;
   hide_shutdown: boolean;
+  column_edit_options?: Record<string, string[]>;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({

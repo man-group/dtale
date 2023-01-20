@@ -43,6 +43,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   const [value, setValue] = React.useState<string>();
   const [origValue, setOrigValue] = React.useState<string>();
   const [options, setOptions] = React.useState<Array<BaseOption<string>>>([]);
+  const [customOptions, setCustomOptions] = React.useState<Array<BaseOption<string>>>([]);
 
   const cell = React.useMemo(() => {
     if (!editedCell) {
@@ -69,11 +70,17 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   }, [origValue]);
 
   React.useEffect(() => {
-    if (cell?.colCfg && ColumnType.CATEGORY === findColType(cell.colCfg.dtype)) {
-      (async () => {
-        const filterData = await ColumnFilterRepository.loadFilterData(dataId, cell.colCfg.name);
-        setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
-      })();
+    if (cell?.colCfg) {
+      const { name } = cell.colCfg;
+      const settingsOptions = (settings.column_edit_options ?? {})[name] ?? [];
+      if (settingsOptions.length) {
+        setCustomOptions(settingsOptions.map((so) => ({ value: so })));
+      } else if (ColumnType.CATEGORY === findColType(cell.colCfg.dtype)) {
+        (async () => {
+          const filterData = await ColumnFilterRepository.loadFilterData(dataId, name);
+          setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
+        })();
+      }
     }
   }, [cell?.colCfg.name]);
 
@@ -97,7 +104,24 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   const isBool = React.useMemo(() => ColumnType.BOOL === colType, [colType]);
 
   const getInput = (): React.ReactNode => {
-    if (isBool) {
+    if (customOptions.length) {
+      return (
+        <div
+          onKeyDown={onKeyDown}
+          tabIndex={-1}
+          style={{ width: 'inherit', height: 'inherit', padding: '0' }}
+          className="editor-select"
+        >
+          <DtaleSelect
+            value={{ value }}
+            options={[{ value: 'nan' }, ...customOptions]}
+            onChange={(state: BaseOption<string> | Array<BaseOption<any>> | undefined) =>
+              setValue((state as BaseOption<string>)?.value ?? '')
+            }
+          />
+        </div>
+      );
+    } else if (isBool) {
       return (
         <div onKeyDown={onKeyDown} tabIndex={-1} style={{ width: 'inherit', height: 'inherit', padding: '0 0.65em' }}>
           <Checkbox
