@@ -681,6 +681,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :type github_fork: bool, optional
     :param hide_drop_rows: If true, this will hide the "Drop Rows" buton from users
     :type hide_drop_rows: bool, optional
+    :param hide_shutdown: If true, this will hide the "Shutdown" buton from users
+    :type hide_shutdown: bool, optional
 
     :Example:
 
@@ -757,6 +759,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             is_proxy=JUPYTER_SERVER_PROXY,
             app_root=final_app_root,
             hide_shutdown=final_options.get("hide_shutdown"),
+            column_edit_options=final_options.get("column_edit_options"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

@@ -129,7 +129,13 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   }
   return (
     <div className={className} style={{ ...style, ...valueStyle }} {...divProps}>
-      {colCfg?.resized ? <div className="resized">{value}</div> : value}
+      {colCfg?.resized ? (
+        <div className="resized" {...{ cell_idx: cellIdx }}>
+          {value}
+        </div>
+      ) : (
+        value
+      )}
     </div>
   );
 };

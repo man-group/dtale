@@ -181,6 +181,8 @@ def build_show_options(options=None):
         background_mode=None,
         range_highlights=None,
         vertical_headers=False,
+        hide_shutdown=False,
+        column_edit_options=None,
     )
     config_options = {}
     config = get_config()
@@ -260,6 +262,13 @@ def build_show_options(options=None):
         config_options["vertical_headers"] = get_config_val(
             config, defaults, "vertical_headers", "getboolean"
         )
+        config_options["column_edit_options"] = get_config_val(
+            config, defaults, "column_edit_options"
+        )
+        if config_options["column_edit_options"]:
+            config_options["column_edit_options"] = json.loads(
+                config_options["column_edit_options"]
+            )
 
     return dict_merge(defaults, config_options, options)
 
