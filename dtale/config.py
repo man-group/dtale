@@ -183,6 +183,7 @@ def build_show_options(options=None):
         vertical_headers=False,
         hide_shutdown=False,
         column_edit_options=None,
+        auto_hide_empty_columns=False,
     )
     config_options = {}
     config = get_config()
@@ -269,6 +270,9 @@ def build_show_options(options=None):
             config_options["column_edit_options"] = json.loads(
                 config_options["column_edit_options"]
             )
+        config_options["auto_hide_empty_columns"] = get_config_val(
+            config, defaults, "auto_hide_empty_columns", "getboolean"
+        )
 
     return dict_merge(defaults, config_options, options)
 
