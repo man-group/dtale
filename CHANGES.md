@@ -1,10 +1,8 @@
 ## Changelog
 
-### 2.10.2 (2023-1-17 - beta)
-* Test release for fixing issue with Dash not returning 204s
-
-### 2.10.1 (2023-1-16 - beta)
-* Test release for fixing issue with Dash not returning 204s
+### 2.11.0 (2023-1-23)
+* [#659](https://github.com/man-group/dtale/issues/659): editing cells with predefined values
+* [#692](https://github.com/man-group/dtale/issues/692): updated dash to throw regular exceptions instead of 204s when in Google Colab
 
 ### 2.10.0 (2023-1-11)
 * Updated usage to dash_bootstrap_components.Checkbox to be backwards compatible
