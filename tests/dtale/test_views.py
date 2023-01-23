@@ -185,12 +185,16 @@ def test_startup(unittest):
 
     test_data = pd.DataFrame(
         [
-            dict(date=pd.Timestamp("now"), security_id=1, foo=1.0, bar=2.0),
-            dict(date=pd.Timestamp("now"), security_id=1, foo=2.0, bar=np.inf),
+            dict(date=pd.Timestamp("now"), security_id=1, foo=1.0, bar=2.0, baz=np.nan),
+            dict(
+                date=pd.Timestamp("now"), security_id=1, foo=2.0, bar=np.inf, baz=np.nan
+            ),
         ],
-        columns=["date", "security_id", "foo", "bar"],
+        columns=["date", "security_id", "foo", "bar", "baz"],
     )
-    instance = views.startup(URL, data_loader=lambda: test_data)
+    instance = views.startup(
+        URL, data_loader=lambda: test_data, auto_hide_empty_columns=True
+    )
     unittest.assertEqual(
         {
             "name": "bar",
@@ -214,6 +218,13 @@ def test_startup(unittest):
             None,
         ),
     )
+
+    non_visible = [
+        dt["name"]
+        for dt in global_state.get_dtypes(instance._data_id)
+        if not dt["visible"]
+    ]
+    unittest.assertEqual(non_visible, ["baz"])
 
     test_data = pd.DataFrame([dict(a=1, b=2)])
     test_data = test_data.rename(columns={"b": "a"})

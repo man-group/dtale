@@ -941,6 +941,7 @@ def startup(
     vertical_headers=False,
     hide_shutdown=False,
     column_edit_options=None,
+    auto_hide_empty_columns=False,
 ):
     """
     Loads and stores data globally
@@ -998,6 +999,11 @@ def startup(
     :type range_highlights: dict, optional
     :param vertical_headers: if True, then rotate column headers vertically
     :type vertical_headers: boolean, optional
+    :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
+    :type column_edit_options: dict, optional
+    :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
+                                    NaN values
+    :type auto_hide_empty_columns: boolean, optional
     """
 
     if (
@@ -1051,6 +1057,8 @@ def startup(
                 is_proxy=is_proxy,
                 vertical_headers=vertical_headers,
                 hide_shutdown=hide_shutdown,
+                column_edit_options=column_edit_options,
+                auto_hide_empty_columns=auto_hide_empty_columns,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1118,6 +1126,12 @@ def startup(
                 if show_columns and col["name"] not in show_columns:
                     col["visible"] = False
                 if hide_columns and col["name"] in hide_columns:
+                    col["visible"] = False
+        if auto_hide_empty_columns:
+            is_empty = data.isnull().all()
+            is_empty = list(is_empty[is_empty].index.values)
+            for col in dtypes_state:
+                if col["name"] in is_empty:
                     col["visible"] = False
         global_state.set_dtypes(data_id, dtypes_state)
         global_state.set_context_variables(

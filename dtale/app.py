@@ -683,6 +683,11 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :type hide_drop_rows: bool, optional
     :param hide_shutdown: If true, this will hide the "Shutdown" buton from users
     :type hide_shutdown: bool, optional
+    :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
+    :type column_edit_options: dict, optional
+    :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
+                                    NaN values
+    :type auto_hide_empty_columns: boolean, optional
 
     :Example:
 
@@ -760,6 +765,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             app_root=final_app_root,
             hide_shutdown=final_options.get("hide_shutdown"),
             column_edit_options=final_options.get("column_edit_options"),
+            auto_hide_empty_columns=final_options.get("auto_hide_empty_columns"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

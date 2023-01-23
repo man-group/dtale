@@ -47,6 +47,8 @@ hide_columns = c
 column_formats = {"a": {"fmt": {"html": true}}}
 sort = a|ASC,b|DESC
 locked = a,b
+column_edit_options = {"a": ["yes", "no", "maybe"]}
+auto_hide_empty_columns = False
 ```
 
 Some notes on these properties:
