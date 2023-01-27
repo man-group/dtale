@@ -31,7 +31,13 @@ def inner_build_query(settings, query=None):
 
 
 def run_query(
-    df, query, context_vars=None, ignore_empty=False, pct=100, pct_type="random"
+    df,
+    query,
+    context_vars=None,
+    ignore_empty=False,
+    pct=100,
+    pct_type="random",
+    highlight_filter=False,
 ):
     """
     Utility function for running :func:`pandas:pandas.DataFrame.query` . This function contains extra logic to
@@ -48,6 +54,8 @@ def run_query(
     :type context_vars: dict, optional
     :param pct: random percentage of dataframe to load
     :type pct: int, optional
+    :param highlight_filter: if true, then highlight which rows will be filtered rather than drop them
+    :type highlight_filter: boolean, optional
     :return: filtered dataframe
     """
 
@@ -61,20 +69,34 @@ def run_query(
         return df
 
     if (query or "") == "":
+        if highlight_filter:
+            return _load_pct(df), []
         return _load_pct(df)
 
     is_pandas25 = parse_version(pd.__version__) >= parse_version("0.25.0")
     curr_app_settings = global_state.get_app_settings()
     engine = curr_app_settings.get("query_engine", "python")
-    df = df.query(
-        query if is_pandas25 else query.replace("`", ""),
-        local_dict=context_vars or {},
-        engine=engine,
-    )
+    filtered_indexes = []
+    if highlight_filter:
+        filtered_indexes = set(
+            df.query(
+                query if is_pandas25 else query.replace("`", ""),
+                local_dict=context_vars or {},
+                engine=engine,
+            ).index
+        )
+    else:
+        df = df.query(
+            query if is_pandas25 else query.replace("`", ""),
+            local_dict=context_vars or {},
+            engine=engine,
+        )
 
     if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))
 
+    if highlight_filter:
+        return _load_pct(df), filtered_indexes
     return _load_pct(df)
 
 

@@ -184,6 +184,7 @@ def build_show_options(options=None):
         hide_shutdown=False,
         column_edit_options=None,
         auto_hide_empty_columns=False,
+        highlight_filter=False,
     )
     config_options = {}
     config = get_config()
@@ -272,6 +273,9 @@ def build_show_options(options=None):
             )
         config_options["auto_hide_empty_columns"] = get_config_val(
             config, defaults, "auto_hide_empty_columns", "getboolean"
+        )
+        config_options["highlight_filter"] = get_config_val(
+            config, defaults, "highlight_filter", "getboolean"
         )
 
     return dict_merge(defaults, config_options, options)

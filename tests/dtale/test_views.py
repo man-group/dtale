@@ -76,6 +76,7 @@ def test_startup(unittest):
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
+            highlightFilter=False,
         ),
         "should lock index columns",
     )
@@ -124,6 +125,7 @@ def test_startup(unittest):
             rangeHighlight=range_highlights,
             backgroundMode=None,
             verticalHeaders=False,
+            highlightFilter=False,
         ),
         "no index = nothing locked",
     )
@@ -143,6 +145,7 @@ def test_startup(unittest):
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
+            highlightFilter=False,
         ),
         "should lock index columns",
     )
@@ -161,6 +164,7 @@ def test_startup(unittest):
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
+            highlightFilter=False,
         ),
         "should lock index columns",
     )
@@ -179,6 +183,7 @@ def test_startup(unittest):
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
+            highlightFilter=False,
         ),
         "should lock index columns",
     )
@@ -1504,11 +1509,61 @@ def test_get_data(unittest, test_data):
             "should return data at index 1 w/ sort",
         )
 
+        global_state.get_settings(c.port)["highlightFilter"] = True
+        params = dict(ids=json.dumps(["1"]))
+        response = c.get("/dtale/data/{}".format(c.port), query_string=params)
+        response_data = json.loads(response.data)
+        expected = {
+            "1": dict(
+                date="2000-01-01",
+                security_id=1,
+                dtale_index=1,
+                foo=1,
+                bar=1.5,
+                baz="baz",
+                __filtered=True,
+            )
+        }
+        unittest.assertEqual(
+            response_data["results"],
+            expected,
+            "should return data at index 1 w/ filtered flag for highlighting",
+        )
+
+        params = dict(ids=json.dumps(["1-2"]))
+        response = c.get("/dtale/data/{}".format(c.port), query_string=params)
+        response_data = json.loads(response.data)
+        expected = {
+            "1": dict(
+                date="2000-01-01",
+                security_id=1,
+                dtale_index=1,
+                foo=1,
+                bar=1.5,
+                baz="baz",
+                __filtered=True,
+            ),
+            "2": dict(
+                date="2000-01-01",
+                security_id=2,
+                dtale_index=2,
+                foo=1,
+                bar=1.5,
+                baz="baz",
+            ),
+        }
+        unittest.assertEqual(
+            response_data["results"],
+            expected,
+            "should return data at indexes 1-2 w/ filtered flag for highlighting",
+        )
+
         response = c.get("/dtale/code-export/{}".format(c.port))
         response_data = json.loads(response.data)
         assert response_data["success"]
 
         global_state.get_settings(c.port)["query"] = "security_id == 50"
+        global_state.get_settings(c.port)["highlightFilter"] = False
         params = dict(ids=json.dumps(["0"]))
         response = c.get("/dtale/data/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)

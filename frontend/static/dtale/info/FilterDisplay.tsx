@@ -67,6 +67,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     predefinedFilters: state.settings.predefinedFilters ?? {},
     outlierFilters: state.settings.outlierFilters ?? {},
     sortInfo: state.settings.sortInfo,
+    highlightFilter: state.settings.highlightFilter ?? false,
   }));
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
@@ -152,6 +153,10 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
       showSidePanel(SidePanelType.FILTER);
     }
   };
+  const saveHighlightFilter = async (): Promise<void> => {
+    await serverState.updateSettings({ highlightFilter: !reduxState.highlightFilter }, dataId);
+    updateSettings({ highlightFilter: !reduxState.highlightFilter });
+  };
   const allButtons = (
     <>
       <i
@@ -185,6 +190,15 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
           title={t('Move Filters To Custom') ?? ''}
         />
       )}
+      <i
+        className="fa-solid fa-highlighter pl-3 pointer"
+        style={{
+          marginTop: '-0.1em',
+          opacity: reduxState.highlightFilter ? 1 : 0.5,
+        }}
+        onClick={saveHighlightFilter}
+        title={t(reduxState.highlightFilter ? 'Hide Filtered Rows' : 'Highlight Filtered Rows') ?? ''}
+      />
     </>
   );
 

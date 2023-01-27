@@ -459,7 +459,8 @@
     "context_variables_des3": "They can be referenced in filters by prefixing the variable name with '@', ",
     "context_variables_des4": "to only show rows where 'Col' is in list 'foo'",
     "No context variables are defined.": "没有定义上下文变量。",
-    "Context Variables": "情景变量"
+    "Context Variables": "情景变量",
+    "Query Engine": "Query Engine"
   },
   "popup": {
     "Yes/No": "是/否",
@@ -931,7 +932,9 @@
     "Clear Filters": "Clear Filters",
     "Drop Filtered Rows": "Drop Filtered Rows",
     "Invert Filter": "Invert Filter",
-    "Move Filters To Custom": "Move Filters To Custom"
+    "Move Filters To Custom": "Move Filters To Custom",
+    "Hide Filtered Rows": "Hide Filtered Rows",
+    "Highlight Filtered Rows": "Highlight Filtered Rows"
   },
   "side": {
     "Close": "Close",

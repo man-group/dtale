@@ -170,6 +170,14 @@ describe('FilterDisplay', () => {
     expect(updateSettingsSpy).toHaveBeenCalledWith({ invertFilter: true }, '1');
   });
 
+  it('highlight filter', async () => {
+    await buildMock();
+    await act(async () => {
+      await fireEvent.click(wrapper.querySelector('i.fa-highlighter')!);
+    });
+    expect(updateSettingsSpy).toHaveBeenCalledWith({ highlightFilter: true }, '1');
+  });
+
   describe('Queries', () => {
     let queries: Element;
 

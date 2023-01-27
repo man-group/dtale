@@ -679,7 +679,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param github_fork: If true, this will display a "Fork me on GitHub" ribbon in the upper right-hand corner of the
                         app
     :type github_fork: bool, optional
-    :param hide_drop_rows: If true, this will hide the "Drop Rows" buton from users
+    :param hide_drop_rows: If true, this will hide the "Drop Rows" button from users
     :type hide_drop_rows: bool, optional
     :param hide_shutdown: If true, this will hide the "Shutdown" buton from users
     :type hide_shutdown: bool, optional
@@ -688,6 +688,9 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
                                     NaN values
     :type auto_hide_empty_columns: boolean, optional
+    :param highlight_filter: if True, then highlight rows on the frontend which will be filtered when applying a filter
+                             rather than hiding them from the dataframe
+    :type highlight_filter: boolean, optional
 
     :Example:
 
@@ -766,6 +769,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_shutdown=final_options.get("hide_shutdown"),
             column_edit_options=final_options.get("column_edit_options"),
             auto_hide_empty_columns=final_options.get("auto_hide_empty_columns"),
+            highlight_filter=final_options.get("highlight_filter"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

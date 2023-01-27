@@ -156,10 +156,14 @@ const lowVarianceHighlighting = (column: ColumnDef): React.CSSProperties => {
 export const updateBackgroundStyles = (
   colCfg: ColumnDef,
   rec: DataRecord,
+  row: Record<string, DataRecord>,
   settings: InstanceSettings,
   min?: number,
   max?: number,
 ): React.CSSProperties => {
+  if (settings.highlightFilter && row.__filtered?.raw) {
+    return { background: '#FFF59D' };
+  }
   switch (settings.backgroundMode) {
     case `heatmap-col-${colCfg.name}`:
       return heatMapBackground(rec, {
