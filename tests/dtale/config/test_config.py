@@ -126,6 +126,7 @@ def test_build_show_options(unittest):
         final_options["column_edit_options"], {"a": ["foo", "bar", "baz"]}
     )
     assert not final_options["auto_hide_empty_columns"]
+    assert not final_options["highlight_filter"]
 
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]

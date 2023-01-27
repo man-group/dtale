@@ -30,6 +30,7 @@ describe('FilterPopup', () => {
       predefinedFilters: {},
       contextVars: [],
       invertFilter: false,
+      highlightFilter: false,
       success: true,
     });
     saveFilterSpy = jest.spyOn(CustomFilterRepository, 'save');
@@ -114,6 +115,14 @@ describe('FilterPopup', () => {
     expect(updateQueryEngineSpy.mock.calls[0][0]).toBe('numexpr');
   });
 
+  it('toggle highlight filter', async () => {
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
+    });
+    expect(updateSettingsSpy).toHaveBeenLastCalledWith({ highlightFilter: true }, '1');
+    expect(store.getState().settings.highlightFilter).toBe(true);
+  });
+
   describe('new window', () => {
     const { location, close, opener } = window;
 
@@ -159,6 +168,14 @@ describe('FilterPopup', () => {
       await clickFilterBtn('Clear');
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('toggle highlight filter', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
+      });
+      expect(updateSettingsSpy).toHaveBeenLastCalledWith({ highlightFilter: true }, '1');
+      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
     });
   });
 });

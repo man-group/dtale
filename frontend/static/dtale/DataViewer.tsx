@@ -142,7 +142,7 @@ export const DataViewer: React.FC = () => {
               (res2, col) => ({
                 ...res2,
                 [col]: gu.buildDataProps(
-                  response.columns.find(({ name }) => name === col)!,
+                  response.columns.find(({ name }) => name === col),
                   response.results[Number(rowIdx)][col],
                   settings,
                 ),

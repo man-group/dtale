@@ -82,6 +82,10 @@ describe('FilterPanel', () => {
     await clickFilterBtn('numexpr');
     expect(store.getState().queryEngine).toBe('numexpr');
     await act(async () => {
+      await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
+    });
+    expect(store.getState().settings.highlightFilter).toBe(true);
+    await act(async () => {
       const textarea = screen.getByTestId('filter-panel').getElementsByTagName('textarea')[0];
       fireEvent.change(textarea, { target: { value: 'test' } });
     });

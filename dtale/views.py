@@ -319,16 +319,25 @@ class DtaleData(object):
         Helper function for updating instance-specific settings. For example:
         * allow_cell_edits - whether cells can be edited
         * locked - which columns are locked to the left of the grid
+        * sort - The sort to apply to the data on startup (EX: [("col1", "ASC"), ("col2", "DESC"),...])
         * custom_formats - display formatting for specific columns
         * background_mode - different background displays in grid
         * range_highlights - specify background colors for ranges of values in the grid
         * vertical_headers - if True, then rotate column headers vertically
+        * column_edit_options - the options to allow on the front-end when editing a cell for the columns specified
+        * highlight_filter - if True, then highlight rows on the frontend which will be filtered when applying a filter
+                             rather than hiding them from the dataframe
+        * hide_shutdown - if true, this will hide the "Shutdown" buton from users
+        * nan_display - if value in dataframe is :attr:`numpy:numpy.nan` then return this value on the frontend
+
+        After applying please refresh any open browsers!
         """
         name_updates = dict(
             range_highlights="rangeHighlight",
             column_formats="columnFormats",
             background_mode="backgroundMode",
             vertical_headers="verticalHeaders",
+            highlight_filter="highlightFilter",
         )
         settings = {name_updates.get(k, k): v for k, v in updates.items()}
         _update_settings(self._data_id, settings)
@@ -942,6 +951,7 @@ def startup(
     hide_shutdown=False,
     column_edit_options=None,
     auto_hide_empty_columns=False,
+    highlight_filter=False,
 ):
     """
     Loads and stores data globally
@@ -1004,6 +1014,9 @@ def startup(
     :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
                                     NaN values
     :type auto_hide_empty_columns: boolean, optional
+    :param highlight_filter: if True, then highlight rows on the frontend which will be filtered when applying a filter
+                             rather than hiding them from the dataframe
+    :type highlight_filter: boolean, optional
     """
 
     if (
@@ -1059,6 +1072,7 @@ def startup(
                 hide_shutdown=hide_shutdown,
                 column_edit_options=column_edit_options,
                 auto_hide_empty_columns=auto_hide_empty_columns,
+                highlight_filter=highlight_filter,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1103,6 +1117,7 @@ def startup(
             backgroundMode=background_mode,
             rangeHighlight=range_highlights,
             verticalHeaders=vertical_headers,
+            highlightFilter=highlight_filter,
         )
         base_predefined = predefined_filters.init_filters()
         if base_predefined:
@@ -2537,8 +2552,8 @@ def get_data(data_id):
     if not export and ids is None:
         return jsonify({})
 
-    col_types = global_state.get_dtypes(data_id)
     curr_settings = global_state.get_settings(data_id) or {}
+    col_types = global_state.get_dtypes(data_id)
     f = grid_formatter(col_types, nan_display=curr_settings.get("nanDisplay", "nan"))
     if curr_settings.get("sortInfo") != params.get("sort"):
         data = sort_df_for_grid(data, params)
@@ -2548,12 +2563,17 @@ def get_data(data_id):
     else:
         curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
     final_query = build_query(data_id, curr_settings.get("query"))
+    highlight_filter = curr_settings.get("highlightFilter") or False
+    filtered_indexes = []
     data = run_query(
         handle_predefined(data_id),
         final_query,
         global_state.get_context_variables(data_id),
         ignore_empty=True,
+        highlight_filter=highlight_filter,
     )
+    if highlight_filter:
+        data, filtered_indexes = data
     global_state.set_settings(data_id, curr_settings)
 
     total = len(data)
@@ -2574,6 +2594,8 @@ def get_data(data_id):
                     results[sub_range[0]] = dict_merge(
                         {IDX_COL: sub_range[0]}, sub_df[0]
                     )
+                    if highlight_filter and sub_range[0] in filtered_indexes:
+                        results[sub_range[0]]["__filtered"] = True
                 else:
                     [start, end] = sub_range
                     sub_df = (
@@ -2584,11 +2606,16 @@ def get_data(data_id):
                     sub_df = f.format_dicts(sub_df.itertuples())
                     for i, d in zip(range(start, end + 1), sub_df):
                         results[i] = dict_merge({IDX_COL: i}, d)
+                        if highlight_filter and i in filtered_indexes:
+                            results[i]["__filtered"] = True
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
     return_data = dict(
-        results=results, columns=columns, total=total, final_query=final_query
+        results=results,
+        columns=columns,
+        total=total,
+        final_query=None if highlight_filter else final_query,
     )
 
     if export:
@@ -3354,6 +3381,7 @@ def get_filter_info(data_id):
             "outlierFilters",
             "predefinedFilters",
             "invertFilter",
+            "highlightFilter",
         ]
     }
     return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)

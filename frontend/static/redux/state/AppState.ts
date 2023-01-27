@@ -357,6 +357,7 @@ export interface InstanceSettings {
   nanDisplay?: string;
   startup_code?: string;
   query?: string;
+  highlightFilter?: boolean;
   outlierFilters?: Record<string, OutlierFilter>;
   filteredRanges?: FilteredRanges;
   columnFilters?: Record<string, ColumnFilter>;

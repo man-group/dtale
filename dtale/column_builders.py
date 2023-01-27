@@ -956,7 +956,7 @@ class EncoderColumnBuilder(object):
             n = int(self.cfg.get("n"))
             features = (
                 FeatureHasher(n_features=n, input_type="string")
-                .transform(data[col].astype("str"))
+                .transform(data[[col]].astype("str").values)
                 .toarray()
             )
             features = pd.DataFrame(features, index=data.index)

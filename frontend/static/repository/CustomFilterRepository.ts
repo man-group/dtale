@@ -21,6 +21,7 @@ export async function save(dataId: string, query: string): Promise<GenericReposi
 export interface LoadInfoResponse extends GenericRepository.BaseResponse {
   contextVars: Array<{ name: string; value: string }>;
   query: string;
+  highlightFilter: boolean;
   columnFilters: Record<string, ColumnFilter>;
   outlierFilters: Record<string, OutlierFilter>;
   predefinedFilters: Record<string, PredefinedFilter>;

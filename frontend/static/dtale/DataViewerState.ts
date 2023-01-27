@@ -34,7 +34,7 @@ export interface ColumnDef extends Bounds {
 /** Type definition for each cell displayed in the DataViewer */
 export interface DataRecord {
   view: string;
-  raw?: string | number;
+  raw?: string | number | boolean;
   style?: React.CSSProperties;
 }
 

@@ -55,15 +55,19 @@ export const findColType = (dtype?: string): ColumnType => {
   return ColumnType.UNKNOWN;
 };
 
-const buildNumeral = (val: string | number, fmt: string, nanDisplay?: string): string =>
+const buildNumeral = (val: string | number | boolean, fmt: string, nanDisplay?: string): string =>
   ['nan', 'inf', '-', '', nanDisplay].includes(`${val}`) ? `${val}` : numeral(val).format(fmt);
-const buildString = (val: string | number, cfg?: StringColumnFormat): string =>
+const buildString = (val: string | number | boolean, cfg?: StringColumnFormat): string =>
   cfg?.truncate ? truncate(`${val}`, cfg.truncate) : `${val}`;
 
-const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: InstanceSettings): string => {
+const buildValue = (
+  colCfg: ColumnDef | undefined,
+  rawValue?: string | number | boolean,
+  settings?: InstanceSettings,
+): string => {
   if (rawValue !== undefined) {
-    const fmt = settings?.columnFormats?.[colCfg.name]?.fmt;
-    switch (findColType(colCfg.dtype)) {
+    const fmt = settings?.columnFormats?.[colCfg?.name ?? '']?.fmt;
+    switch (findColType(colCfg?.dtype)) {
       case ColumnType.FLOAT:
         return buildNumeral(
           rawValue,
@@ -73,7 +77,7 @@ const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: In
       case ColumnType.INT:
         return buildNumeral(rawValue, (fmt as string) ?? '0', settings?.nanDisplay);
       case ColumnType.DATE:
-        return fmt ? moment(new Date(rawValue)).format(fmt as string) : `${rawValue}`;
+        return fmt ? moment(new Date(`${rawValue}`)).format(fmt as string) : `${rawValue}`;
       case ColumnType.STRING:
       default:
         return buildString(rawValue, fmt as StringColumnFormat);
@@ -83,16 +87,16 @@ const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: In
 };
 
 export const buildDataProps = (
-  colCfg: ColumnDef,
-  rawValue?: string | number,
+  colCfg: ColumnDef | undefined,
+  rawValue?: string | number | boolean,
   settings?: InstanceSettings,
 ): DataRecord => ({
   raw: rawValue,
   view: buildValue(colCfg, rawValue, settings),
   style: menuFuncs.buildStyling(
     rawValue,
-    findColType(colCfg.dtype),
-    settings?.columnFormats?.[colCfg.name]?.style ?? {},
+    findColType(colCfg?.dtype),
+    settings?.columnFormats?.[colCfg?.name ?? '']?.style ?? {},
   ),
 });
 

@@ -464,7 +464,8 @@
     "context_variables_des3": "They can be referenced in filters by prefixing the variable name with '@', ",
     "context_variables_des4": "to only show rows where 'Col' is in list 'foo'",
     "No context variables are defined.": "No context variables are defined",
-    "Context Variables": "Context Variables"
+    "Context Variables": "Context Variables",
+    "Query Engine": "Query Engine"
   },
   "popup": {
     "Yes/No": "Yes/No",
@@ -933,7 +934,9 @@
     "Clear Filters": "Clear Filters",
     "Drop Filtered Rows": "Drop Filtered Rows",
     "Invert Filter": "Invert Filter",
-    "Move Filters To Custom": "Move Filters To Custom"
+    "Move Filters To Custom": "Move Filters To Custom",
+    "Hide Filtered Rows": "Hide Filtered Rows",
+    "Highlight Filtered Rows": "Highlight Filtered Rows"
   },
   "side": {
     "Close": "Close",

@@ -29,7 +29,7 @@ export const updateSort = (
 };
 
 export const buildStyling = (
-  val: string | number | undefined,
+  val: string | number | boolean | undefined,
   colType: ColumnType,
   styleProps: ColumnFormatStyle,
 ): React.CSSProperties => {
