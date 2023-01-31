@@ -211,7 +211,7 @@ def init_callbacks(dash_app):
             return dict(display="none"), None, None, None
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             config["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
-        charts, _, _ = build_chart(**config)
+        charts, _, _, _ = build_chart(**config)
         return dict(display="block"), charts, config, build_saved_header(config)
 
     dash_app.callback(

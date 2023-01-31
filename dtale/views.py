@@ -3473,6 +3473,17 @@ def chart_export(data_id):
     return send_file(output, filename, content_type)
 
 
+@dtale.route("/chart-export-all/<data_id>")
+@exception_decorator
+def chart_export_all(data_id):
+    params = chart_url_params(request.args.to_dict())
+    params["export_all"] = True
+    output = export_chart(data_id, params)
+    filename = build_chart_filename(params["chart_type"])
+    content_type = "text/html"
+    return send_file(output, filename, content_type)
+
+
 @dtale.route("/chart-csv-export/<data_id>")
 @exception_decorator
 def chart_csv_export(data_id):

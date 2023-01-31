@@ -1020,7 +1020,8 @@ def build_chart_params(
         (
             "..chart-content.children...last-chart-input-data.data...range-data.data...chart-code.value..."
             "yaxis-type.children...load-clicks.data...save-btn.style...agg-dropdown.disabled..."
-            "extended-aggregation-tooltip.children...ext-agg-warning.style.."
+            "extended-aggregation-tooltip.children...ext-agg-warning.style...export-all-chart-btn.href..."
+            "export-all-chart-btn.style.."
         ),
         "input-data.modified_timestamp",
         [

@@ -215,7 +215,9 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "dropna",
     ]
     chart_type = params.get("chart_type")
-    if chart_type == "bar":
+    if chart_type is None:
+        return ""
+    elif chart_type == "bar":
         base_props += ["barmode", "barsort", "top_bars"]
     elif chart_type == "maps":
         map_type = params.get("map_type")
@@ -291,7 +293,7 @@ def chart_url_querystring(params, data=None, group_filter=None):
         if len(list_param):
             final_params[gp] = json.dumps(list_param)
 
-    if final_params["chart_type"] in YAXIS_CHARTS:
+    if chart_type in YAXIS_CHARTS:
         params_yaxis = {}
         for y, range in (params.get("yaxis") or {}).items():
             if y not in ((data or {}).get("min") or {}):
@@ -478,6 +480,17 @@ def build_spaced_ticks(ticktext, mode="auto"):
         return {"tickmode": "auto", "nticks": size}
     nticks = len(range(factor, size - 1, factor)) + 2
     return {"tickmode": "auto", "nticks": nticks}
+
+
+def export_all_charts_link(data_id, data, url_params=None):
+    if url_params is None:
+        return ""
+
+    querystring = chart_url_querystring(url_params, data=data)
+    app_root = url_params.get("app_root") or ""
+    return fix_url_path(
+        "{}/dtale/chart-export-all/{}?{}".format(app_root, data_id, querystring)
+    )
 
 
 def chart_wrapper(data_id, data, url_params=None):
@@ -692,7 +705,7 @@ def cpg_chunker(charts, columns=2):
         return html.Div(chart, className="col-md-6")
 
     return [
-        html.Div([_formatter(c) for c in chunk], className="row")
+        html.Div([_formatter(c) for c in chunk], className="row pb-3")
         for chunk in divide_chunks(charts, columns)
     ]
 
@@ -3589,42 +3602,43 @@ def build_chart(data_id=None, data=None, **inputs):
 
     reset_charts()
     code = None
+    export_all_charts_href = export_all_charts_link(data_id, data, inputs)
     try:
         chart_type = inputs.get("chart_type")
         if chart_type == "heatmap":
             chart, code = heatmap_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "maps":
             chart, code = map_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "candlestick":
             chart, code = candlestick_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "treemap":
             chart, code = treemap_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "funnel":
             chart, code = funnel_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "clustergram":
             chart, code = clustergram_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "pareto":
             chart, code = pareto_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         data, code = build_figure_data(data_id, data=data, **inputs)
         if data is None:
-            return None, None, None
+            return None, None, None, ""
 
         if "error" in data:
-            return build_error(data["error"], data["traceback"]), None, code
+            return build_error(data["error"], data["traceback"]), None, code, ""
 
         range_data = dict(min=data["min"], max=data["max"])
         axis_inputs = inputs.get("yaxis") or {}
@@ -3663,6 +3677,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 ),
                 range_data,
                 code,
+                export_all_charts_href,
             )
 
         if chart_type == "pie":
@@ -3671,6 +3686,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 chart,
                 range_data,
                 code + pie_code,
+                export_all_charts_href,
             )
 
         axes_builder = build_axes(
@@ -3720,7 +3736,12 @@ def build_chart(data_id=None, data=None, **inputs):
                 scatter_charts = scatter_builder(
                     data, x, y, axes_builder, chart_builder, **kwargs
                 )
-            return cpg_chunker(scatter_charts), range_data, code + scatter_code
+            return (
+                cpg_chunker(scatter_charts),
+                range_data,
+                code + scatter_code,
+                export_all_charts_href,
+            )
 
         if chart_type == "surface":
             chart, chart_code = surface_builder(
@@ -3737,6 +3758,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 chart,
                 range_data,
                 code + chart_code,
+                export_all_charts_href,
             )
 
         if chart_type == "bar":
@@ -3745,6 +3767,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
                 code + chart_code,
+                export_all_charts_href,
             )
 
         if chart_type == "line":
@@ -3753,15 +3776,30 @@ def build_chart(data_id=None, data=None, **inputs):
                 line_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
                 code + line_code,
+                export_all_charts_href,
             )
 
         raise NotImplementedError("chart type: {}".format(chart_type))
     except BaseException as e:
-        return build_error(e, traceback.format_exc()), None, code
+        return build_error(e, traceback.format_exc()), None, code, ""
 
 
 def chart_builder_passthru(chart, group_filter=None):
     return chart
+
+
+def find_figures(content, figures):
+    if hasattr(content, "figure"):
+        figure = content.figure
+        figure["layout"]["colorway"] = px.colors.qualitative.D3
+        figures.append(figure)
+        return
+
+    if not hasattr(content, "children"):
+        return
+
+    for sub_content in make_list(content.children):
+        find_figures(sub_content, figures)
 
 
 def build_raw_chart(data_id=None, **inputs):
@@ -3789,6 +3827,10 @@ def build_raw_chart(data_id=None, **inputs):
     def clean_output(output):
         while isinstance(output, list):
             output = output[0]
+        if inputs.get("export_all", False):
+            formatted_output = []
+            find_figures(output, formatted_output)
+            output = formatted_output
         if isinstance(output, dcc.Graph):
             output = output.figure
             if inputs.get("title"):
@@ -3910,16 +3952,45 @@ def export_chart(data_id, params):
     )
     html_buffer = StringIO()
     config = dict(topojsonURL="")
-    write_html(
-        chart,
-        file=html_buffer,
-        include_plotlyjs=True,
-        auto_open=False,
-        post_script=post_script_css,
-        config=config,
-    )
-    html_buffer.seek(0)
-    html_str = html_buffer.getvalue()
+    if params.get("export_all", False):
+        if isinstance(chart, list):
+            write_html(
+                chart[0],
+                file=html_buffer,
+                include_plotlyjs=True,
+                auto_open=False,
+                post_script=post_script_css,
+                config=config,
+            )
+            html_buffer.seek(0)
+            html_str = html_buffer.getvalue()
+
+            from bs4 import BeautifulSoup
+
+            soup = BeautifulSoup(html_str)
+            for inner_chart in chart[1:]:
+                inner_html_buffer = StringIO()
+                write_html(
+                    inner_chart,
+                    file=inner_html_buffer,
+                    include_plotlyjs=False,
+                )
+                inner_html_buffer.seek(0)
+                inner_html_str = inner_html_buffer.getvalue()
+                inner_soup = BeautifulSoup(inner_html_str)
+                soup.body.append(BeautifulSoup(inner_soup.body.div.__str__()))
+            html_str = soup.__str__()
+    else:
+        write_html(
+            chart,
+            file=html_buffer,
+            include_plotlyjs=True,
+            auto_open=False,
+            post_script=post_script_css,
+            config=config,
+        )
+        html_buffer.seek(0)
+        html_str = html_buffer.getvalue()
     if params.get("chart_type") == "maps":
         return map_chart_post_processing(html_str, params)
     return html_str

@@ -10414,6 +10414,12 @@ li.hoverable.clickable-menu-item:hover button {
     right: unset;
     left: -2em;
 }
+.hoverable__content.export-charts {
+    min-width: 5em;
+    width: 5em;
+    right: unset;
+    left: -3em;
+}
 .hoverable__content.build-code {
     width: auto;
     right: unset;

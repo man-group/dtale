@@ -2540,6 +2540,18 @@ def charts_layout(df, settings, **inputs):
                     "",
                     top="120%",
                 ),
+                build_hoverable(
+                    html.A(
+                        html.I(className="fas fa-file-code fa-xl"),
+                        id="export-all-chart-btn",
+                        href="",
+                        className="export-chart-btn",
+                        style=dict(display="none"),
+                    ),
+                    "Export Charts",
+                    additional_classes="mt-auto mb-auto",
+                    hover_class="export-charts",
+                ),
             ],
             className="row pt-3 pb-5 charts-filters",
             id="chart-inputs",
