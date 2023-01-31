@@ -900,6 +900,8 @@ def init_callbacks(dash_app):
             Output("agg-dropdown", "disabled"),
             Output("extended-aggregation-tooltip", "children"),
             Output("ext-agg-warning", "style"),
+            Output("export-all-chart-btn", "href"),
+            Output("export-all-chart-btn", "style"),
         ],
         # Since we use the data prop in an output,
         # we cannot get the initial data on load with the data prop.
@@ -985,7 +987,7 @@ def init_callbacks(dash_app):
             raise DtalePreventUpdate
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             all_inputs["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
-        charts, range_data, code = build_chart(**all_inputs)
+        charts, range_data, code, export_all_href = build_chart(**all_inputs)
         agg_disabled = len(ext_aggs) > 0
         ext_agg_tt = text("ext_agg_desc")
         ext_agg_warning = show_style(agg_disabled)
@@ -1022,6 +1024,8 @@ def init_callbacks(dash_app):
             agg_disabled,
             ext_agg_tt,
             ext_agg_warning,
+            export_all_href,
+            dict(display="none" if export_all_href == "" else "block"),
         )
 
     def get_default_range(range_data, y, max=False):

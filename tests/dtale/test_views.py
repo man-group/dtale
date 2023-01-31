@@ -2143,6 +2143,143 @@ def test_chart_exports_pareto(pareto_data):
 
 @pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
+def test_export_all_charts(custom_data, state_data):
+    import dtale.views as views
+
+    global_state.clear_store()
+    with app.test_client() as c:
+        build_data_inst({c.port: custom_data})
+        build_dtypes({c.port: views.build_dtypes_state(custom_data)})
+        params = dict(chart_type="invalid")
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "application/json"
+
+        params = dict(
+            chart_type="line",
+            x="date",
+            y=json.dumps(["Col0"]),
+            agg="sum",
+            query="Col5 == 50",
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "application/json"
+
+        params = dict(chart_type="bar", x="date", y=json.dumps(["Col0"]), agg="sum")
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params["group"] = json.dumps(["bool_val"])
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(chart_type="line", x="date", y=json.dumps(["Col0"]), agg="sum")
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(chart_type="scatter", x="Col0", y=json.dumps(["Col1"]))
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params["trendline"] = "ols"
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(
+            chart_type="3d_scatter",
+            x="date",
+            y=json.dumps(["security_id"]),
+            z="Col0",
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(
+            chart_type="surface", x="date", y=json.dumps(["security_id"]), z="Col0"
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(
+            chart_type="pie",
+            x="security_id",
+            y=json.dumps(["Col0"]),
+            agg="sum",
+            query="security_id >= 100000 and security_id <= 100010",
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+        params = dict(
+            chart_type="heatmap", x="date", y=json.dumps(["security_id"]), z="Col0"
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+    with app.test_client() as c:
+        build_data_inst({c.port: state_data})
+        build_dtypes({c.port: views.build_dtypes_state(state_data)})
+        params = dict(
+            chart_type="maps",
+            map_type="choropleth",
+            loc_mode="USA-states",
+            loc="Code",
+            map_val="val",
+            agg="raw",
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+    df = pd.DataFrame(
+        {
+            "lat": np.random.uniform(-40, 40, 50),
+            "lon": np.random.uniform(-40, 40, 50),
+            "val": np.random.randint(0, high=100, size=50),
+        }
+    )
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        params = dict(
+            chart_type="maps",
+            map_type="scattergeo",
+            lat="lat",
+            lon="lon",
+            map_val="val",
+            scope="world",
+            agg="raw",
+        )
+        response = c.get(
+            "/dtale/chart-export-all/{}".format(c.port), query_string=params
+        )
+        assert response.content_type == "text/html"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_chart_png_export(custom_data):
     import dtale.views as views
 

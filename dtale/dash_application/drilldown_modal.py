@@ -265,7 +265,7 @@ def init_callbacks(dash_app):
                         all_inputs["modal"] = True
                         all_inputs["x"] = drilldown_x
                         all_inputs["y"] = [all_inputs["z"]]
-                        chart, _, _ = build_chart(**all_inputs)
+                        chart, _, _, _ = build_chart(**all_inputs)
                         return chart, None
 
                 elif chart_type == "maps":
@@ -310,7 +310,7 @@ def init_callbacks(dash_app):
                             )
                             x_style = dict(display="none")
                         all_inputs["y"] = [map_val]
-                        chart, _, _ = build_chart(data=data, **all_inputs)
+                        chart, _, _, _ = build_chart(data=data, **all_inputs)
                         return chart, x_style
                 else:
                     x_filter = click_point.get("x")
@@ -336,7 +336,7 @@ def init_callbacks(dash_app):
                         all_inputs["agg"] = "raw"
                         all_inputs["modal"] = True
                         all_inputs["x"] = drilldown_x
-                        chart, _, _ = build_chart(**all_inputs)
+                        chart, _, _, _ = build_chart(**all_inputs)
                         return chart, None
         return None, dict(display="none")
 
