@@ -15,7 +15,6 @@ from tests import ExitStack
 
 @pytest.mark.unit
 def test_setup_logging():
-
     with ExitStack() as stack:
         mock_fh = stack.enter_context(mock.patch("logging.FileHandler", mock.Mock()))
         mock_lbc = stack.enter_context(mock.patch("logging.basicConfig", mock.Mock()))

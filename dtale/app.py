@@ -500,7 +500,6 @@ def build_app(
     auth.setup_auth(app)
 
     with app.app_context():
-
         from .dash_application import views as dash_views
 
         app = dash_views.add_dash(app)

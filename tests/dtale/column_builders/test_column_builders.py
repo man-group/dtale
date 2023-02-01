@@ -140,7 +140,6 @@ def test_cumsum():
 @pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_cumsum_groupby(custom_data):
-
     data_id, column_type = "1", "cumsum"
     build_data_inst({data_id: custom_data})
 
