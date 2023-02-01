@@ -42,6 +42,7 @@ let storeBuilder: () => Store = () => {
   actions.loadBackgroundMode(store);
   actions.loadHideShutdown(store);
   actions.loadAllowCellEdits(store);
+  actions.loadHideHeaderEditor(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {
@@ -146,7 +147,6 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   root.render(body);
 } else {
   const store = storeBuilder();
-  store.dispatch(actions.init());
   if (store.getState().openPredefinedFiltersOnStartup) {
     store.dispatch(actions.openPredefinedFilters());
   } else if (store.getState().openCustomFilterOnStartup) {

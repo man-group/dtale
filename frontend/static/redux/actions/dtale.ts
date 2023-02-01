@@ -37,6 +37,14 @@ export const loadAllowCellEdits = (store: Store<AppState, AnyAction>): void => {
   store.dispatch({ type: ActionType.UPDATE_ALLOW_CELL_EDITS, value: settings.allow_cell_edits ?? allowCellEdits });
 };
 
+export const loadHideHeaderEditor = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideHeaderEditor } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_HEADER_EDITOR,
+    value: hideHeaderEditor ?? settings.hide_header_editor ?? hideHeaderEditor,
+  });
+};
+
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
   view: SidePanelType.FILTER,

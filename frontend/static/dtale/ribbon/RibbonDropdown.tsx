@@ -30,6 +30,7 @@ import ExportOption from '../menu/ExportOption';
 import FilterOption from '../menu/FilterOption';
 import GageRnROption from '../menu/GageRnROption';
 import HeatMapOption from '../menu/HeatMapOption';
+import HideHeaderEditor from '../menu/HideHeaderEditor';
 import HighlightOption from '../menu/HighlightOption';
 import InstancesOption from '../menu/InstancesOption';
 import LanguageOption from '../menu/LanguageOption';
@@ -257,6 +258,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
           <MaxHeightOption />
           <ShowNonNumericHeatmapColumns />
           <VerticalColumnHeaders />
+          <HideHeaderEditor />
         </ul>
       )}
     </div>

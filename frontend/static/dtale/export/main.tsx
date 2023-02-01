@@ -18,6 +18,7 @@ store.dispatch(actions.init());
 actions.loadBackgroundMode(store);
 actions.loadHideShutdown(store);
 actions.loadAllowCellEdits(store);
+actions.loadHideHeaderEditor(store);
 const root = ReactDOMClient.createRoot(document.getElementById('content')!);
 root.render(
   <Provider store={store}>

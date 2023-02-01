@@ -15,6 +15,19 @@ export const hideShutdown = (state = false, action: AppActionTypes): boolean => 
   }
 };
 
+export const hideHeaderEditor = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_header_editor'));
+    case ActionType.UPDATE_HIDE_HEADER_EDITOR:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
 export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:

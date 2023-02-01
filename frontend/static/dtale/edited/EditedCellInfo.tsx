@@ -26,11 +26,12 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   rowCount,
   t,
 }) => {
-  const { dataId, editedCell, settings, maxColumnWidth } = useSelector((state: AppState) => ({
+  const { dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor } = useSelector((state: AppState) => ({
     dataId: state.dataId,
     editedCell: state.editedCell,
     settings: state.settings,
     maxColumnWidth: state.maxColumnWidth,
+    hideHeaderEditor: state.settings?.hide_header_editor ?? state.hideHeaderEditor,
   }));
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
@@ -158,6 +159,10 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
       />
     );
   };
+
+  if (hideHeaderEditor) {
+    return null;
+  }
 
   return (
     <div className={`row edited-cell-info${editedCell ? ' is-expanded' : ''}`}>

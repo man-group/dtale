@@ -79,6 +79,13 @@ def load_app_settings(config):
     query_engine = get_config_val(
         config, curr_app_settings, "query_engine", section="app"
     )
+    hide_header_editor = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_header_editor",
+        section="app",
+        getter="getboolean",
+    )
     open_custom_filter_on_startup = get_config_val(
         config,
         curr_app_settings,
@@ -116,6 +123,7 @@ def load_app_settings(config):
             open_custom_filter_on_startup=open_custom_filter_on_startup,
             open_predefined_filters_on_startup=open_predefined_filters_on_startup,
             hide_drop_rows=hide_drop_rows,
+            hide_header_editor=hide_header_editor,
         )
     )
 
@@ -185,6 +193,7 @@ def build_show_options(options=None):
         column_edit_options=None,
         auto_hide_empty_columns=False,
         highlight_filter=False,
+        hide_header_editor=False,
     )
     config_options = {}
     config = get_config()
