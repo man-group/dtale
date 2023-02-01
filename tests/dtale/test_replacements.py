@@ -127,7 +127,6 @@ def test_value(unittest):
 
 @pytest.mark.unit
 def test_number_value(unittest):
-
     df = pd.DataFrame(
         {
             "year": [

@@ -118,7 +118,6 @@ def exception_decorator(func):
 def matplotlib_decorator(func):
     @wraps(func)
     def _handle_matplotlib(*args, **kwargs):
-
         try:
             import matplotlib
 
@@ -3831,7 +3830,6 @@ def build_merge():
 @matplotlib_decorator
 @exception_decorator
 def build_missingno_chart(chart_type, data_id):
-
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
     df = global_state.get_data(data_id)

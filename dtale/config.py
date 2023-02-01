@@ -164,7 +164,6 @@ def load_auth_settings(config):
 
 
 def build_show_options(options=None):
-
     defaults = dict(
         host=None,
         port=None,

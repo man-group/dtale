@@ -1076,7 +1076,6 @@ def build_chart_params(
 
 @pytest.mark.unit
 def test_chart_building_nones():
-
     with app.test_client() as c:
         params = build_chart_params(c.port)
         response = c.post("/dtale/charts/_dash-update-component", json=params)

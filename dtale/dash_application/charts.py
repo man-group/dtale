@@ -2781,7 +2781,6 @@ def clustergram_builder(data_id, export=False, **inputs):
 
 
 def pareto_builder(data_id, export=False, **inputs):
-
     x, bars, line, sort, sort_dir, group, dropna = (
         inputs.get(p)
         for p in [

@@ -7,7 +7,6 @@ from tests import ExitStack
 
 @pytest.mark.unit
 def test_set_mapbox_token():
-
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.charts.utils.MAPBOX_TOKEN", None))
 

@@ -39,7 +39,6 @@ CHART_SETTINGS = {
 
 
 class DtaleInstance(object):
-
     _dataset = None
     _dataset_dim = None
     _dtypes = None

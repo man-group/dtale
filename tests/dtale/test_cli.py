@@ -15,7 +15,6 @@ from tests import ExitStack
 
 @pytest.mark.unit
 def test_main(unittest):
-
     props = [
         "host",
         "port",
@@ -238,7 +237,6 @@ def test_sqlite_loader():
 def test_arctic_loader_integration(
     mongo_host, library_name, library, chunkstore_name, chunkstore_lib
 ):
-
     node = pd.DataFrame(
         [
             {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
@@ -566,7 +564,6 @@ def test_run():
 
 @pytest.mark.unit
 def test_custom_cli_loaders():
-
     custom_loader_path = os.path.join(os.path.dirname(__file__), "..", "data")
     os.environ["DTALE_CLI_LOADERS"] = custom_loader_path
 

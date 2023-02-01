@@ -5,7 +5,6 @@ LOADER_PROPS = []
 
 
 def find_loader(kwargs):
-
     if kwargs.get(LOADER_KEY, False):
 
         def _testcli():

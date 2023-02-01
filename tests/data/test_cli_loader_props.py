@@ -7,7 +7,6 @@ LOADER_PROPS = ["prop"]
 
 
 def find_loader(kwargs):
-
     test_cli_props = get_loader_options(LOADER_KEY, LOADER_PROPS, kwargs)
     if len([f for f in test_cli_props.values() if f]):
 

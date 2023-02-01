@@ -954,12 +954,13 @@ def build_label_value_inputs(
     selected_value, selected_label, selected_group, dropna = (
         inputs.get(p.format(prop)) for p in props
     )
-    (value_options, label_options,) = build_label_value_options(
+    all_options = build_label_value_options(
         df,
         selected_value=selected_value,
         selected_label=selected_label,
         all_value=multi_value and all_option,
     )
+    value_options, label_options = all_options
     return html.Div(
         [
             build_input(
