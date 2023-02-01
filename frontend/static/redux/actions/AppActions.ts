@@ -58,6 +58,7 @@ export enum ActionType {
   SET_RANGE_STATE = 'set-range-state',
   UPDATE_HIDE_SHUTDOWN = 'update-hide-shutdown',
   UPDATE_ALLOW_CELL_EDITS = 'update-allow-cell-edits',
+  UPDATE_HIDE_HEADER_EDITOR = 'update-hide-header-editor',
 }
 
 /** Action fired when a range is selected */
@@ -227,6 +228,11 @@ export interface UpdateAllowCellEdits extends Action<typeof ActionType.UPDATE_AL
   value: boolean;
 }
 
+/** Action fired when updating the hide_header_editor flag */
+export interface UpdateHideHeaderEditor extends Action<typeof ActionType.UPDATE_HIDE_HEADER_EDITOR> {
+  value: boolean;
+}
+
 /** Type definition encompassing all application actions */
 export type AppActionTypes =
   | InitAction
@@ -267,7 +273,8 @@ export type AppActionTypes =
   | OpenChartAction
   | SetRangeStateAction
   | UpdateHideShutdown
-  | UpdateAllowCellEdits;
+  | UpdateAllowCellEdits
+  | UpdateHideHeaderEditor;
 
 /** Type definition for redux application actions */
 export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;

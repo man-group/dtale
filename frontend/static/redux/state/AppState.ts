@@ -364,6 +364,7 @@ export interface InstanceSettings {
   invertFilter?: boolean;
   hide_shutdown: boolean;
   column_edit_options?: Record<string, string[]>;
+  hide_header_editor: boolean;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
@@ -372,6 +373,7 @@ export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   precision: 2,
   verticalHeaders: false,
   predefinedFilters: {},
+  hide_header_editor: false,
 });
 
 /** Type definition for semantic versioning of python */
@@ -406,6 +408,7 @@ export interface AppSettings {
   mainTitleFont: string | null;
   queryEngine: QueryEngine;
   showAllHeatmapColumns: boolean;
+  hideHeaderEditor: boolean;
 }
 
 /** Properties for specifying filtered ranges */

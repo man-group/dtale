@@ -92,6 +92,7 @@ describe('DataViewerInfo tests', () => {
       precision: 2,
       verticalHeaders: false,
       predefinedFilters: {},
+      hide_header_editor: false,
     });
     const filterMenuToggle = result.querySelector('div.filter-menu-toggle')!;
     const filterLink = filterMenuToggle.querySelector('span.pointer')!;
@@ -123,6 +124,7 @@ describe('DataViewerInfo tests', () => {
       precision: 2,
       verticalHeaders: false,
       predefinedFilters: {},
+      hide_header_editor: false,
     });
     const sortMenuToggle = result.querySelector('div.sort-menu-toggle')!;
     const sortLink = sortMenuToggle.querySelector('span.pointer')!;

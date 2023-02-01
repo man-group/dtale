@@ -327,8 +327,9 @@ class DtaleData(object):
         * column_edit_options - the options to allow on the front-end when editing a cell for the columns specified
         * highlight_filter - if True, then highlight rows on the frontend which will be filtered when applying a filter
                              rather than hiding them from the dataframe
-        * hide_shutdown - if true, this will hide the "Shutdown" buton from users
+        * hide_shutdown - if true, this will hide the "Shutdown" button from users
         * nan_display - if value in dataframe is :attr:`numpy:numpy.nan` then return this value on the frontend
+        * hide_header_editor - if true, this will hide header editor when editing cells on the frontend
 
         After applying please refresh any open browsers!
         """
@@ -952,6 +953,7 @@ def startup(
     column_edit_options=None,
     auto_hide_empty_columns=False,
     highlight_filter=False,
+    hide_header_editor=False,
 ):
     """
     Loads and stores data globally
@@ -1073,6 +1075,7 @@ def startup(
                 column_edit_options=column_edit_options,
                 auto_hide_empty_columns=auto_hide_empty_columns,
                 highlight_filter=highlight_filter,
+                hide_header_editor=hide_header_editor,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1180,9 +1183,11 @@ def base_render_template(template, data_id, **kwargs):
     hide_shutdown = global_state.load_flag(data_id, "hide_shutdown", False)
     allow_cell_edits = global_state.load_flag(data_id, "allow_cell_edits", True)
     github_fork = global_state.load_flag(data_id, "github_fork", False)
+    hide_header_editor = global_state.load_flag(data_id, "hide_header_editor", False)
     app_overrides = dict(
         allow_cell_edits=allow_cell_edits,
         hide_shutdown=hide_shutdown,
+        hide_header_editor=hide_header_editor,
         github_fork=github_fork,
     )
     return render_template(

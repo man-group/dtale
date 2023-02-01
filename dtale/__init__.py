@@ -17,6 +17,7 @@ with warnings.catch_warnings():
     ALLOW_CELL_EDITS = True
     HIDE_SHUTDOWN = False
     GITHUB_FORK = False
+    HIDE_HEADER_EDITOR = False
 
     # flake8: NOQA
     from dtale.app import show, get_instance, instances, offline_chart  # isort:skip

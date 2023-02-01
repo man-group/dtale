@@ -23,6 +23,7 @@ describe('reducer tests', () => {
     const state = {
       chartData: { visible: false, type: PopupType.HIDDEN },
       hideShutdown: false,
+      hideHeaderEditor: false,
       hideDropRows: false,
       iframe: false,
       columnMenuOpen: false,
@@ -42,6 +43,7 @@ describe('reducer tests', () => {
         precision: 2,
         predefinedFilters: {},
         verticalHeaders: false,
+        hide_header_editor: false,
       },
       pythonVersion: null,
       isPreview: false,

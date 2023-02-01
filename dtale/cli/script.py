@@ -86,6 +86,11 @@ def validate_allow_cell_edits(ctx, param, value):
     "--locked",
     help="Comma-separated string of column names you would like locked on the left-hand side of your grid on load",
 )
+@click.option(
+    "--hide-header-editor",
+    is_flag=True,
+    help="flag to hide header editor when editing cells",
+)
 @setup_loader_options()
 @click.option("--log", "logfile", help="Log file name")
 @click.option(

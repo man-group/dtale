@@ -56,7 +56,8 @@
     "Feature Analysis": "Análise de Recursos",
     "Time Series Analysis": "Time Series Analysis",
     "gage_rnr": "Gage R & R",
-    "Vertical Column Headers": "Vertical Column Headers"
+    "Vertical Column Headers": "Vertical Column Headers",
+    "Hide Header Editor": "Hide Header Editor"
   },
   "menu_description": {
     "describe": "Descreve valores das colunas (Valores únicos, Min, Max, Soma, STD, Var,...)",
@@ -104,7 +105,8 @@
     "corr_analysis": "Remover colunas (recursos) com base em suas correlações com outras colunas no seu conjunto de dados. Se houver uma forte correlação entre algumas colunas (características), então talvez eles não sejam relevantes para manter por aí?",
     "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device.",
     "vertical_headers": "Rotate column headers vertically",
-    "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions"
+    "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
+    "hide_header_editor": "If checked, hides the header editor when editing cells in the grid"
   },
   "column_menu": {
     "Asc": "Asc",

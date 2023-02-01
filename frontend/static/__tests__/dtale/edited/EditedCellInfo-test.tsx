@@ -191,4 +191,12 @@ describe('DataViewerInfo tests', () => {
     ]);
     expect(loadFilterDataSpy).not.toHaveBeenCalled();
   });
+
+  it('hides cell editor when "hide_header_editor" is true', async () => {
+    const loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
+    loadFilterDataSpy.mockResolvedValue({ success: true, hasMissing: false, uniques: ['a', 'b', 'c'] });
+    await buildInfo('2|1', { column_edit_options: { baz: ['foo', 'bar', 'bizzle'] }, hide_header_editor: true });
+    expect(result.getElementsByClassName('edited-cell-info')).toHaveLength(0);
+    expect(loadFilterDataSpy).not.toHaveBeenCalled();
+  });
 });
