@@ -72,7 +72,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="2.11.0",
+    version="2.12.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",

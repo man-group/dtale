@@ -1,5 +1,11 @@
 ## Changelog
 
+### 2.12.0 (2023-2-2)
+* [#726](https://github.com/man-group/dtale/issues/726): added option to turn off header editor
+* [#700](https://github.com/man-group/dtale/issues/700): export all charts in one HTML file
+* [#592](https://github.com/man-group/dtale/issues/592): highlight rows of a dataframe filter
+* [#647](https://github.com/man-group/dtale/issues/647): added option to auto-hide columns consisting entirely of NaN values
+
 ### 2.11.0 (2023-1-23)
 * [#659](https://github.com/man-group/dtale/issues/659): editing cells with predefined values
 * [#692](https://github.com/man-group/dtale/issues/692): updated dash to throw regular exceptions instead of 204s when in Google Colab
