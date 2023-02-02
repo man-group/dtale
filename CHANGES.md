@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.12.1 (2023-2-2)
+* [#726](https://github.com/man-group/dtale/issues/726): fix for turning off header editor using `dtale.show`
+
 ### 2.12.0 (2023-2-2)
 * [#726](https://github.com/man-group/dtale/issues/726): added option to turn off header editor
 * [#700](https://github.com/man-group/dtale/issues/700): export all charts in one HTML file
