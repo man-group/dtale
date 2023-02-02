@@ -1131,6 +1131,8 @@ def startup(
             base_settings["nanDisplay"] = nan_display
         if hide_shutdown is not None:
             base_settings["hide_shutdown"] = hide_shutdown
+        if hide_header_editor is not None:
+            base_settings["hide_header_editor"] = hide_header_editor
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)

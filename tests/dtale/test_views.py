@@ -60,7 +60,11 @@ def test_startup(unittest):
     test_data = pd.DataFrame([dict(date=pd.Timestamp("now"), security_id=1, foo=1.5)])
     test_data = test_data.set_index(["date", "security_id"])
     instance = views.startup(
-        URL, data_loader=lambda: test_data, sort=[("security_id", "ASC")]
+        URL,
+        data_loader=lambda: test_data,
+        sort=[("security_id", "ASC")],
+        hide_header_editor=True,
+        hide_shutdown=True,
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -69,7 +73,8 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             columnFormats={},
-            hide_shutdown=False,
+            hide_shutdown=True,
+            hide_header_editor=True,
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
@@ -120,6 +125,7 @@ def test_startup(unittest):
             allow_cell_edits=False,
             columnFormats={},
             hide_shutdown=False,
+            hide_header_editor=False,
             locked=[],
             precision=6,
             rangeHighlight=range_highlights,
@@ -140,6 +146,7 @@ def test_startup(unittest):
             allow_cell_edits=True,
             columnFormats={},
             hide_shutdown=False,
+            hide_header_editor=False,
             locked=["security_id"],
             precision=2,
             rangeHighlight=None,
@@ -161,6 +168,7 @@ def test_startup(unittest):
             precision=2,
             columnFormats={},
             hide_shutdown=False,
+            hide_header_editor=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
@@ -180,6 +188,7 @@ def test_startup(unittest):
             precision=2,
             columnFormats={},
             hide_shutdown=False,
+            hide_header_editor=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
