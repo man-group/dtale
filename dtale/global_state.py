@@ -4,6 +4,8 @@ import inspect
 
 from six import PY3
 
+from dtale.utils import dict_merge
+
 try:
     from collections.abc import MutableMapping
 except ImportError:
@@ -340,6 +342,12 @@ def get_dtype_info(data_id, col):
     return next((c for c in dtypes or [] if c["name"] == col), None)
 
 
+def update_settings(data_id, settings):
+    curr_settings = _default_store.get_settings(data_id) or {}
+    updated_settings = dict_merge(curr_settings, settings)
+    _default_store.set_settings(data_id, updated_settings)
+
+
 def get_app_settings():
     global APP_SETTINGS
     return APP_SETTINGS
@@ -350,6 +358,16 @@ def set_app_settings(settings):
 
     for prop, val in settings.items():
         APP_SETTINGS[prop] = val
+
+    instance_updates = {}
+    if settings.get("hide_shutdown") is not None:
+        instance_updates["hide_shutdown"] = settings.get("hide_shutdown")
+    if settings.get("hide_header_editor") is not None:
+        instance_updates["hide_header_editor"] = settings.get("hide_header_editor")
+
+    if _default_store.size() > 0 and len(instance_updates):
+        for data_id in _default_store.keys():
+            update_settings(data_id, instance_updates)
 
 
 def get_auth_settings():

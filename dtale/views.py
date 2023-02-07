@@ -340,7 +340,7 @@ class DtaleData(object):
             highlight_filter="highlightFilter",
         )
         settings = {name_updates.get(k, k): v for k, v in updates.items()}
-        _update_settings(self._data_id, settings)
+        global_state.update_settings(self._data_id, settings)
 
     def get_settings(self):
         """Helper function for retrieving any instance-specific settings."""
@@ -1435,12 +1435,6 @@ def process_keys():
     )
 
 
-def _update_settings(data_id, settings):
-    curr_settings = global_state.get_settings(data_id) or {}
-    updated_settings = dict_merge(curr_settings, settings)
-    global_state.set_settings(data_id, updated_settings)
-
-
 @dtale.route("/update-settings/<data_id>")
 @exception_decorator
 def update_settings(data_id):
@@ -1453,7 +1447,7 @@ def update_settings(data_id):
     :return: JSON
     """
 
-    _update_settings(data_id, get_json_arg(request, "settings", {}))
+    global_state.update_settings(data_id, get_json_arg(request, "settings", {}))
     return jsonify(dict(success=True))
 
 
@@ -3879,7 +3873,7 @@ def drop_filtered_rows(data_id):
     global_state.set_data(data_id, data)
     global_state.set_dtypes(data_id, build_dtypes_state(data, []))
     curr_predefined = curr_settings.get("predefinedFilters", {})
-    _update_settings(
+    global_state.update_settings(
         data_id,
         dict(
             query="",
@@ -3899,7 +3893,7 @@ def drop_filtered_rows(data_id):
 def move_filters_to_custom(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     query = build_query(data_id, curr_settings.get("query"))
-    _update_settings(
+    global_state.update_settings(
         data_id,
         {
             "columnFilters": {},

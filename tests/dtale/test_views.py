@@ -86,6 +86,25 @@ def test_startup(unittest):
         "should lock index columns",
     )
 
+    global_state.set_app_settings(dict(hide_header_editor=False))
+    unittest.assertEqual(
+        global_state.get_settings(instance._data_id),
+        dict(
+            allow_cell_edits=True,
+            columnFormats={},
+            hide_shutdown=True,
+            hide_header_editor=False,
+            locked=["date", "security_id"],
+            precision=2,
+            sortInfo=[("security_id", "ASC")],
+            rangeHighlight=None,
+            backgroundMode=None,
+            verticalHeaders=False,
+            highlightFilter=False,
+        ),
+        "should lock index columns",
+    )
+
     test_data = test_data.reset_index()
     with pytest.raises(DuplicateDataError):
         views.startup(URL, data=test_data, ignore_duplicate=False)
