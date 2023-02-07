@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.12.2 (2023-2-7)
+* [#726](https://github.com/man-group/dtale/issues/726): updated `global_state.set_app_settings` to persist updates to instance settings
+
 ### 2.12.1 (2023-2-2)
 * [#726](https://github.com/man-group/dtale/issues/726): fix for turning off header editor using `dtale.show`
 

@@ -72,7 +72,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="2.12.1",
+    version="2.12.2",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -88,7 +88,7 @@ setup(
             "dash-bio==0.7.1; python_version == '2.7'",
         ],
         "r": ["rpy2; python_version > '3.0'"],
-        "redis": ["redislite"],
+        "redis": read_file("requirements-redis.txt"),
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
         "tests": read_file("requirements-test.txt"),

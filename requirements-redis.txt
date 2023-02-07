@@ -1,0 +1,2 @@
+redis<=4.4.2
+redislite

@@ -208,7 +208,6 @@ def test_started_with_open_browser():
 @pytest.mark.unit
 def test_settings_management():
     from dtale.views import DtaleData
-    import dtale.global_state as global_state
 
     with ExitStack() as stack:
         mock_default_store = stack.enter_context(
