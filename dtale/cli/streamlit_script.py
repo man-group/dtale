@@ -1,12 +1,12 @@
 try:
     import streamlit.server.server as streamlit_server
-except ImportError:
+except BaseException:  # ImportError, ModuleNotFoundError
     import streamlit.web.server.server as streamlit_server
 import sys
 
 try:
     from streamlit.cli import main
-except ImportError:
+except BaseException:
     from streamlit.web.cli import main
 from tornado.wsgi import WSGIContainer
 from tornado.web import FallbackHandler

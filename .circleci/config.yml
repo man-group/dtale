@@ -129,6 +129,8 @@ python: &python
             if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
               pip install pybind11
               pip install -r requirements.txt
+            elif [  "${CIRCLE_JOB}" == "build_3_6" ]; then
+              pip install -r requirements.txt
             fi
             python setup.py develop
       - run:
