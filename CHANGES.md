@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.12.3 (2023-2-22)
+* Updated D-Tale streamlit startup command to have a wider exception handler for importing `streamlit.server`
+
 ### 2.12.2 (2023-2-7)
 * [#726](https://github.com/man-group/dtale/issues/726): updated `global_state.set_app_settings` to persist updates to instance settings
 
