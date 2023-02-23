@@ -300,6 +300,9 @@ def chart_url_querystring(params, data=None, group_filter=None):
                 continue
             if not (range["min"], range["max"]) == (data["min"][y], data["max"][y]):
                 params_yaxis[y] = range
+        yaxis_type = (params.get("yaxis") or {}).get("type") or "default"
+        if yaxis_type != "default":
+            params_yaxis["type"] = yaxis_type
         if len(params_yaxis):
             final_params["yaxis"] = json.dumps(params_yaxis)
 
@@ -361,7 +364,8 @@ def build_axes(
     maxs = chart_data["max"]
     data = pd.DataFrame(chart_data["data"][list(chart_data["data"].keys())[0]])
     dtypes = get_dtypes(data)
-    axis_type, axis_data = (axis_inputs.get(p) for p in ["type", "data"])
+    axis_type = axis_inputs.get("type")
+    axis_data = axis_inputs.get("data", {})
 
     def _build_axes(y):
         axes = {"xaxis": dict(title=update_label_for_freq_and_agg(x))}

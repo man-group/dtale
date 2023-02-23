@@ -1301,6 +1301,7 @@ def test_chart_building_bar_and_popup(unittest):
                 "cpg": "false",
                 "cpy": "false",
                 "y": '["b", "c"]',
+                "yaxis": '{"type": "multi"}',
             },
         )
         unittest.assertEqual(
