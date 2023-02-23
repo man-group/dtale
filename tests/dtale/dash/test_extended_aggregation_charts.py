@@ -103,6 +103,7 @@ def test_bar_and_popup(unittest):
                 "cpg": "false",
                 "cpy": "false",
                 "y": '["b", "c"]',
+                "yaxis": '{"type": "multi"}',
                 "extended_aggregation": '[{"agg": "sum", "col": "b"}, {"agg": "mean", "col": "c"}]',
             },
         )
