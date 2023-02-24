@@ -84,6 +84,7 @@ setup(
     extras_require={
         "arctic": ["arctic <= 1.79.4"],
         "dash-bio": [
+            "ParmEd==3.4.3; python_version == '3.6'",
             "dash-bio; python_version > '3.0'",
             "dash-bio==0.7.1; python_version == '2.7'",
         ],

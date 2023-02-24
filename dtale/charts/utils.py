@@ -24,7 +24,7 @@ YAXIS_CHARTS = ["line", "bar", "scatter"]
 ZAXIS_CHARTS = ["heatmap", "3d_scatter", "surface"]
 NON_EXT_AGGREGATION = ZAXIS_CHARTS + ["treemap", "maps"]
 ANIMATION_CHARTS = ["line"]
-ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps"]
+ANIMATE_BY_CHARTS = ["bar", "3d_scatter", "heatmap", "maps", "histogram"]
 MAX_GROUPS = 30
 MAPBOX_TOKEN = None
 AGGS = dict(
@@ -129,6 +129,9 @@ def valid_chart(chart_type=None, x=None, y=None, z=None, **inputs):
     if chart_type == "pareto":
         pareto_props = ["pareto_x", "pareto_bars", "pareto_line"]
         return all(inputs.get(p) is not None for p in pareto_props)
+
+    if chart_type == "histogram":
+        return inputs.get("histogram_col") is not None
 
     if not x:
         return False
