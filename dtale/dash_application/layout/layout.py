@@ -225,6 +225,7 @@ CHARTS = [
 if has_dashbio():
     CHARTS.append(dict(value="clustergram"))
 CHARTS.append(dict(value="pareto"))
+CHARTS.append(dict(value="histogram"))
 
 CHART_INPUT_SETTINGS = {
     "line": dict(
@@ -330,6 +331,18 @@ CHART_INPUT_SETTINGS = {
         treemap_group=dict(display=False),
         funnel_group=dict(display=False),
         clustergram_group=dict(display=False),
+    ),
+    "histogram": dict(
+        x=dict(display=False),
+        y=dict(display=False),
+        z=dict(display=False),
+        group=dict(display=False),
+        map_group=dict(display=False),
+        cs_group=dict(display=False),
+        treemap_group=dict(display=False),
+        funnel_group=dict(display=False),
+        clustergram_group=dict(display=False),
+        histogram_group=dict(display=True),
     ),
 }
 LOAD_TYPES = ["random", "head", "tail"]
@@ -1030,7 +1043,7 @@ def build_funnel_inputs(inputs, df, group_options):
     )
 
 
-def build_pareto_options(df, x=None, bars=None, line=None):
+def get_num_cols(df):
     dtypes = get_dtypes(df)
     cols = sorted(dtypes.keys())
     num_cols = []
@@ -1039,6 +1052,13 @@ def build_pareto_options(df, x=None, bars=None, line=None):
         classification = classify_type(dtype)
         if classification in ["F", "I"]:
             num_cols.append(c)
+    return num_cols
+
+
+def build_pareto_options(df, x=None, bars=None, line=None):
+    dtypes = get_dtypes(df)
+    cols = sorted(dtypes.keys())
+    num_cols = get_num_cols(df)
 
     x_options = [build_option(c) for c in cols if c not in [bars, line]]
     bars_options = [build_option(c) for c in num_cols if c not in [x, line]]
@@ -1130,6 +1150,68 @@ def build_pareto_inputs(inputs, df, group_options):
             build_dropna(dropna, "pareto"),
         ],
         id="pareto-inputs",
+        style={} if show_inputs else {"display": "none"},
+        className="row p-0 charts-filters",
+    )
+
+
+def build_histogram_inputs(inputs, df, group_options):
+    show_inputs = inputs.get("chart_type") == "histogram"
+    col, histogram_type, bins, group = (
+        inputs.get("histogram_{}".format(prop))
+        for prop in ["col", "type", "bins", "group"]
+    )
+    col_options = get_num_cols(df)
+
+    return html.Div(
+        [
+            build_input(
+                text("Col"),
+                dcc.Dropdown(
+                    id="histogram-col-dropdown",
+                    options=col_options,
+                    value=col,
+                    style=dict(width="inherit"),
+                ),
+            ),
+            dcc.Tabs(
+                id="histogram-type-tabs",
+                value=histogram_type or "bins",
+                children=[
+                    build_tab(text("Bins"), "bins"),
+                    build_tab(text("Density"), "density"),
+                ],
+                style=dict(height="36px", width="10em"),
+            ),
+            build_input(
+                text("Bins"),
+                dcc.Input(
+                    id="histogram-bins-input",
+                    type="number",
+                    placeholder=text("Enter Bins"),
+                    className="form-control text-center",
+                    style={"lineHeight": "inherit"},
+                    value=bins or 5,
+                ),
+                id="histogram-bins-div",
+                className="col-md-1 pr-0",
+                style={} if histogram_type == "bins" else {"display": "none"},
+            ),
+            build_input(
+                text("Group"),
+                dcc.Dropdown(
+                    id="histogram-group-dropdown",
+                    options=group_options,
+                    multi=True,
+                    placeholder=text("Select Group(s)"),
+                    value=group,
+                    style=dict(width="inherit"),
+                ),
+                className="col",
+                id="histogram-group-input",
+            ),
+        ],
+        id="histogram-inputs",
         style={} if show_inputs else {"display": "none"},
         className="row p-0 charts-filters",
     )
@@ -1525,6 +1607,20 @@ def charts_layout(df, settings, **inputs):
                 ]
             },
         ),
+        dcc.Store(
+            id="histogram-input-data",
+            data={
+                k: v
+                for k, v in inputs.items()
+                if k
+                in [
+                    "histogram_col",
+                    "histogram_type",
+                    "histogram_bins",
+                    "histogram_group",
+                ]
+            },
+        ),
         dcc.Store(id="range-data"),
         dcc.Store(id="yaxis-data", data=inputs.get("yaxis")),
         dcc.Store(id="last-chart-input-data", data=inputs),
@@ -1732,6 +1828,7 @@ def charts_layout(df, settings, **inputs):
                                         style=dict(width="inherit"),
                                     ),
                                     label_class="input-group-addon d-block pt-1 pb-0",
+                                    style=show_style(show_input("x")),
                                 ),
                                 build_input(
                                     text("Y"),
@@ -2055,6 +2152,7 @@ def charts_layout(df, settings, **inputs):
                             all_option=True,
                         ),
                         build_pareto_inputs(inputs, df, group_options),
+                        build_histogram_inputs(inputs, df, group_options),
                         html.Div(
                             [
                                 html.Div(
@@ -2195,6 +2293,10 @@ def charts_layout(df, settings, **inputs):
                                 ),
                             ],
                             className="row pt-3 pb-3 charts-filters",
+                            id="charts-filters-div",
+                            style={"display": "none"}
+                            if chart_type == "histogram"
+                            else {},
                         ),
                     ],
                     id="main-inputs",

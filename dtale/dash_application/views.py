@@ -51,6 +51,7 @@ from dtale.dash_application.layout.layout import (
     show_input_handler,
     show_yaxis_ranges,
     bootstrap_checkbox_prop,
+    get_num_cols,
 )
 from dtale.dash_application.layout.utils import show_style
 from dtale.dash_application.utils import get_data_id
@@ -221,11 +222,13 @@ def init_callbacks(dash_app):
             Output("funnel-inputs", "style"),
             Output("clustergram-inputs", "style"),
             Output("pareto-inputs", "style"),
+            Output("histogram-inputs", "style"),
             Output("colorscale-input", "style"),
             Output("drilldown-input", "style"),
             Output("lock-zoom-btn", "style"),
             Output("open-extended-agg-modal", "style"),
             Output("selected-cleaners", "children"),
+            Output("charts-filters-div", "style"),
         ],
         [
             Input("query-data", "modified_timestamp"),
@@ -335,6 +338,8 @@ def init_callbacks(dash_app):
         clustergram_style = {} if show_clustergram else {"display": "none"}
         show_pareto = chart_type == "pareto"
         pareto_style = {} if show_pareto else {"display": "none"}
+        show_histogram = chart_type == "histogram"
+        histogram_style = {} if show_histogram else {"display": "none"}
         standard_style = (
             {"display": "none"}
             if show_map
@@ -343,6 +348,7 @@ def init_callbacks(dash_app):
             or show_funnel
             or show_clustergram
             or show_pareto
+            or show_histogram
             else {}
         )
         cscale_style = colorscale_input_style(chart_type=chart_type)
@@ -363,6 +369,7 @@ def init_callbacks(dash_app):
             funnel_style,
             clustergram_style,
             pareto_style,
+            histogram_style,
             cscale_style,
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
@@ -370,6 +377,7 @@ def init_callbacks(dash_app):
             "({} Selected)".format(len(inputs["cleaners"]))
             if len(inputs["cleaners"])
             else "",
+            {"display": "none"} if chart_type == "histogram" else {},
         )
 
     @dash_app.callback(
@@ -697,6 +705,43 @@ def init_callbacks(dash_app):
             line_options,
         )
 
+    @dash_app.callback(
+        [
+            Output("histogram-input-data", "data"),
+            Output("histogram-col-dropdown", "options"),
+            Output("histogram-bins-div", "style"),
+        ],
+        [
+            Input("histogram-col-dropdown", "value"),
+            Input("histogram-type-tabs", "value"),
+            Input("histogram-bins-input", "value"),
+            Input("histogram-group-dropdown", "value"),
+        ],
+        [State("data-tabs", "value")],
+    )
+    def histogram_data_callback(
+        histogram_col,
+        histogram_type,
+        histogram_bins,
+        group,
+        data_id,
+    ):
+        histogram_data = dict(
+            histogram_col=histogram_col,
+            histogram_type=histogram_type,
+            histogram_bins=histogram_bins,
+        )
+        if group is not None:
+            histogram_data["histogram_group"] = group
+        df = global_state.get_data(data_id)
+        col_options = get_num_cols(df)
+
+        return (
+            histogram_data,
+            col_options,
+            {} if histogram_type == "bins" else {"display": "none"},
+        )
+
     dash_app.callback(
         [
             Output("treemap-input-data", "data"),
@@ -919,6 +964,7 @@ def init_callbacks(dash_app):
             Input("funnel-input-data", "modified_timestamp"),
             Input("clustergram-input-data", "modified_timestamp"),
             Input("pareto-input-data", "modified_timestamp"),
+            Input("histogram-input-data", "modified_timestamp"),
             Input("extended-aggregations", "modified_timestamp"),
             Input("load-btn", "n_clicks"),
         ],
@@ -932,6 +978,7 @@ def init_callbacks(dash_app):
             State("funnel-input-data", "data"),
             State("clustergram-input-data", "data"),
             State("pareto-input-data", "data"),
+            State("histogram-input-data", "data"),
             State("last-chart-input-data", "data"),
             State("auto-load-toggle", "on"),
             State("load-clicks", "data"),
@@ -949,6 +996,7 @@ def init_callbacks(dash_app):
         _ts8,
         _ts9,
         _ts10,
+        _ts11,
         load_clicks,
         inputs,
         chart_inputs,
@@ -959,6 +1007,7 @@ def init_callbacks(dash_app):
         funnel_data,
         clustergram_data,
         pareto_data,
+        histogram_data,
         last_chart_inputs,
         auto_load,
         prev_load_clicks,
@@ -967,6 +1016,31 @@ def init_callbacks(dash_app):
         """
         dash callback controlling the building of dash charts
         """
+        duplicate_yaxis_update = False
+        try:
+            from dash import ctx
+
+            if ctx.triggered_id == "yaxis-data":
+                yaxis_type = (yaxis_data or {}).get("type")
+                yaxis_selections = (yaxis_data or {}).get("data", {})
+                populated_range = next(
+                    (
+                        y_range
+                        for y_range in yaxis_selections.values()
+                        if y_range["min"] is not None or y_range["max"] is not None
+                    ),
+                    None,
+                )
+                if yaxis_type == "default" and populated_range is None:
+                    duplicate_yaxis_update = True
+        except BaseException:
+            logger.exception(
+                "Could not determine if yaxis data is causing a duplicate render"
+            )
+
+        if duplicate_yaxis_update:
+            raise DtalePreventUpdate
+
         all_inputs = dict_merge(
             inputs,
             chart_inputs,
@@ -977,6 +1051,7 @@ def init_callbacks(dash_app):
             funnel_data,
             clustergram_data,
             pareto_data,
+            histogram_data,
             dict(extended_aggregation=ext_aggs or [])
             if inputs.get("chart_type") not in NON_EXT_AGGREGATION
             else {},
@@ -1190,6 +1265,7 @@ def init_callbacks(dash_app):
             Input("funnel-input-data", "modified_timestamp"),
             Input("clustergram-input-data", "modified_timestamp"),
             Input("pareto-input-data", "modified_timestamp"),
+            Input("histogram-input-data", "modified_timestamp"),
         ],
         [
             State("input-data", "data"),
@@ -1199,6 +1275,7 @@ def init_callbacks(dash_app):
             State("funnel-input-data", "data"),
             State("clustergram-input-data", "data"),
             State("pareto-input-data", "data"),
+            State("histogram-input-data", "data"),
         ],
     )
     def main_input_class(
@@ -1209,6 +1286,7 @@ def init_callbacks(dash_app):
         _ts5,
         _ts6,
         _ts7,
+        _ts8,
         inputs,
         map_inputs,
         cs_inputs,
@@ -1216,6 +1294,7 @@ def init_callbacks(dash_app):
         funnel_inputs,
         clustergram_inputs,
         pareto_inputs,
+        histogram_inputs,
     ):
         return main_inputs_and_group_val_display(
             dict_merge(
@@ -1226,6 +1305,7 @@ def init_callbacks(dash_app):
                 funnel_inputs,
                 clustergram_inputs,
                 pareto_inputs,
+                histogram_inputs,
             )
         )
 
@@ -1243,6 +1323,7 @@ def init_callbacks(dash_app):
             Input("funnel-group-dropdown", "value"),
             Input("clustergram-group-dropdown", "value"),
             Input("pareto-group-dropdown", "value"),
+            Input("histogram-group-dropdown", "value"),
         ],
         [
             State("input-data", "data"),
@@ -1258,6 +1339,7 @@ def init_callbacks(dash_app):
         funnel_group_cols,
         clustergram_group_cols,
         pareto_group_cols,
+        histogram_group_cols,
         inputs,
         prev_group_vals,
     ):
@@ -1275,6 +1357,8 @@ def init_callbacks(dash_app):
             group_cols = clustergram_group_cols
         elif chart_type == "pareto":
             group_cols = pareto_group_cols
+        elif chart_type == "histogram":
+            group_cols = histogram_group_cols
         group_cols = make_list(group_cols)
         group_types = get_group_types(inputs, group_cols)
         if "groups" not in group_types:

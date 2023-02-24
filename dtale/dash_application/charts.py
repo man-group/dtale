@@ -18,6 +18,7 @@ from plotly.io import write_html, write_image
 from plotly.subplots import make_subplots
 from six import PY3, BytesIO, StringIO, string_types
 
+from dtale.column_analysis import HistogramAnalysis
 from dtale.dash_application import dcc, html
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
@@ -178,6 +179,7 @@ def chart_url_params(search):
                     "funnel_group",
                     "clustergram_group",
                     "pareto_group",
+                    "histogram_group",
                 ]
             }
 
@@ -260,6 +262,13 @@ def chart_url_querystring(params, data=None, group_filter=None):
             "pareto_dir",
             "pareto_group",
             "pareto_dropna",
+        ]
+    elif chart_type == "histogram":
+        base_props += [
+            "histogram_col",
+            "histogram_type",
+            "histogram_bins",
+            "histogram_group",
         ]
     elif chart_type == "scatter":
         base_props += ["trendline"]
@@ -2921,6 +2930,177 @@ def pareto_builder(data_id, export=False, **inputs):
     return grams, code
 
 
+def histogram_builder(data_id, export=False, **inputs):
+    histogram_col, histogram_type, bins, group = (
+        inputs.get(p)
+        for p in [
+            "histogram_col",
+            "histogram_type",
+            "histogram_bins",
+            "histogram_group",
+        ]
+    )
+
+    data, code = build_figure_data(data_id, **inputs)
+    if data is None:
+        return None, None
+    chart_builder = chart_wrapper(data_id, data, inputs)
+
+    def build_histogram_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"].get(series_key)
+        title = "{} histogram".format(histogram_col)
+        if series_key and series_key != "all":
+            title = "{} - {}".format(series_key, title)
+        if histogram_type == "bins":
+            title = "{} (bins: {})".format(title, bins)
+        if len(data["data"]) > 1:
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
+
+        pp = pprint.PrettyPrinter(indent=4)
+        histogram_code = [
+            "s = df[~pd.isnull(df['{col}'])][['{col}']]".format(
+                col=histogram_col,
+            )
+        ]
+        hist_kwargs = (
+            "density=True" if histogram_type == "density" else "bins={}".format(bins)
+        )
+        histogram_code.append(
+            "chart, labels = np.histogram(s['{col}'], {hist_kwargs})".format(
+                col=histogram_col,
+                hist_kwargs=hist_kwargs,
+            )
+        )
+        layout = pp.pformat(
+            go.Layout(
+                **{
+                    "barmode": "group",
+                    "legend": {"orientation": "h"},
+                    "title": {"text": title},
+                    "yaxis": {"title": {"text": "Frequency"}, "side": "left"},
+                }
+            )
+        )
+        histogram_code.append(
+            "figure = go.Figure(data=charts, layout=go.{layout})".format(layout=layout)
+        )
+        return histogram_code
+
+    # run this before we pop off group filters
+    code += build_histogram_code()
+
+    title = "{} Histogram".format(histogram_col)
+    if histogram_type == "bins":
+        title = "{} (bins: {})".format(title, bins)
+
+    def build_histogram_cfg(series_key, series):
+        series_title = title
+        if series_key and series_key != "all":
+            series_title = "{} - {}".format(title, series_key)
+
+        df = pd.DataFrame({col: series[col] for col in series})
+        HistogramProps = namedtuple("HistogramProps", "args")
+        req = HistogramProps(
+            args=dict(
+                target=None,
+                bins=bins,
+                density="true" if histogram_type == "density" else "false",
+            )
+        )
+        analysis = HistogramAnalysis(req)
+        return_data, _ = analysis.build_histogram_data(df["x"])
+        yaxis_title = "{}{}".format(
+            histogram_col,
+            " - {}".format(series_key) if series_key and series_key != "all" else "",
+        )
+        return {
+            "data": [dict(x=return_data["labels"], y=return_data["data"], type="bar")],
+            "layout": build_layout(
+                {
+                    "barmode": "group",
+                    "title": {"text": series_title},
+                    "xaxis": dict_merge(
+                        {
+                            "title": {"text": histogram_type.capitalize()},
+                            "type": "category",
+                        },
+                        build_spaced_ticks(return_data["labels"], mode="array"),
+                    ),
+                    "yaxis": {
+                        "title": {"text": yaxis_title},
+                        "type": "linear",
+                    },
+                }
+            ),
+        }
+
+    def build_charts():
+        for series_key, series in data["data"].items():
+            figure_cfg = build_histogram_cfg(series_key, series)
+            graph = graph_wrapper(
+                figure=figure_cfg,
+                modal=inputs.get("modal", False),
+                export=export,
+            )
+            if export:
+                yield graph
+
+            chart = chart_builder(
+                graph,
+                group_filter={}
+                if series_key == "all"
+                else dict(group=series.get("_filter_")),
+            )
+
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
+            yield chart
+
+    if export:
+        return next(build_charts())
+    data_cfgs = cpg_chunker(list(build_charts()))
+
+    if not inputs.get("animate_by"):
+        return data_cfgs, code
+
+    figure_cfg = {
+        "data": [],
+        "layout": build_layout({"title": {"text": title}, "barmode": "group"}),
+    }
+
+    for series_key, series in data["data"].items():
+        series_cfg = build_histogram_cfg(series_key, series)
+        figure_cfg["data"].append(series_cfg["data"][0])
+        break
+
+    def build_frame(frame):
+        data, layout = [], {}
+        for series_key, series in frame["data"].items():
+            series_cfg = build_histogram_cfg(series_key, series)
+            series_data = series_cfg["data"][0]
+            series_data["customdata"] = [frame["name"]] * len(series["x"])
+            data.append(series_data)
+            layout = series_cfg["layout"]
+        return dict(data=data, layout=layout, name=frame["name"])
+
+    def build_histogram_frames(data, frame_builder):
+        frames, slider_steps = [], []
+        for frame in data.get("frames", []):
+            frames.append(frame_builder(frame))
+            slider_steps.append(frame["name"])
+        return frames, slider_steps
+
+    update_cfg_w_frames(
+        figure_cfg, inputs.get("animate_by"), *build_histogram_frames(data, build_frame)
+    )
+    figure_cfg["data"] = figure_cfg["frames"][0]["data"]
+
+    return graph_wrapper(figure=figure_cfg, modal=inputs.get("modal", False)), code
+
+
 def build_map_frames(data, animate_by, frame_builder):
     freq_handler = date_freq_handler(data)
     s, _ = freq_handler(animate_by)
@@ -3416,6 +3596,7 @@ def build_figure_data(
                 or k.startswith("funnel_")
                 or k.startswith("clustergram_")
                 or k.startswith("pareto_")
+                or k.startswith("histogram_")
             },
         )
     ):
@@ -3448,6 +3629,12 @@ def build_figure_data(
         )
         y = [c for c in [bars, line, sort] if c is not None]
 
+    if chart_type == "histogram":
+        x, group = (
+            kwargs.get("histogram_{}".format(prop)) for prop in ["col", "group"]
+        )
+        y = []
+
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
@@ -3459,7 +3646,7 @@ def build_figure_data(
         agg=agg,
         extended_aggregation=extended_aggregation,
         cleaners=cleaners,
-        allow_duplicates=chart_type == "scatter",
+        allow_duplicates=chart_type in ["scatter", "histogram"],
         rolling_win=window,
         rolling_comp=rolling_comp,
     )
@@ -3467,7 +3654,9 @@ def build_figure_data(
         chart_kwargs["animate_by"] = animate_by
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs["z"] = z
-    if not y:  # this is to handle when a user wants to see the count of just the x-axis
+    if (
+        not y and chart_type != "histogram"
+    ):  # this is to handle when a user wants to see the count of just the x-axis
         data.loc[:, "count"] = 1
         y = "count"
     data, chart_code = build_base_chart(data, x, y, unlimited_data=True, **chart_kwargs)
@@ -3591,6 +3780,8 @@ def build_chart(data_id=None, data=None, **inputs):
         - treemap
         - funnel
         - clustergram
+        - pareto
+        - histogram
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -3634,6 +3825,10 @@ def build_chart(data_id=None, data=None, **inputs):
 
         if chart_type == "pareto":
             chart, code = pareto_builder(data_id, **inputs)
+            return chart, None, code, export_all_charts_href
+
+        if chart_type == "histogram":
+            chart, code = histogram_builder(data_id, **inputs)
             return chart, None, code, export_all_charts_href
 
         data, code = build_figure_data(data_id, data=data, **inputs)
@@ -3867,6 +4062,9 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "pareto":
             return pareto_builder(data_id, **inputs)
+
+        if chart_type == "histogram":
+            return histogram_builder(data_id, **inputs)
 
         data, _ = build_figure_data(data_id, **inputs)
         if data is None:
