@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.13.0 (2023-3-3)
+* [#685](https://github.com/man-group/dtale/issues/685): Histogram chart builder
+* [#730](https://github.com/man-group/dtale/issues/730): fix for exporting charts with multiple y-axis
+
 ### 2.12.3 (2023-2-22)
 * Updated D-Tale streamlit startup command to have a wider exception handler for importing `streamlit.server`
 
