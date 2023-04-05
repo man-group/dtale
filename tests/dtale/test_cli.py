@@ -4,13 +4,12 @@ from imp import reload
 
 import mock
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
 from six import PY3
 
 from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
-from tests import ExitStack
+from tests import ExitStack, pdt
 
 
 @pytest.mark.unit

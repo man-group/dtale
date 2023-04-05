@@ -7,10 +7,9 @@ import mock
 import numpy as np
 import os
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
 
-from tests import ExitStack
+from tests import ExitStack, pdt
 
 
 @pytest.mark.unit

@@ -6,7 +6,6 @@ import numpy as np
 import os
 import dtale.global_state as global_state
 import pandas as pd
-import pandas.util.testing as pdt
 import platform
 import pytest
 from pandas.tseries.offsets import Day
@@ -14,7 +13,7 @@ from six import PY3
 
 from dtale.app import build_app
 from dtale.utils import DuplicateDataError
-from tests import ExitStack
+from tests import ExitStack, pdt
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 
 
