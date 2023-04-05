@@ -207,8 +207,9 @@ def group_filter_handler(col_def, group_val, group_classifier):
     if len(col_def_segs) > 1:
         col, freq = col_def_segs
         if group_val == "NaN":
-            return "{col} != {col}".format(col=build_col_key(col)), "{}: NaN".format(
-                col
+            return (
+                "{col} != {col}".format(col=build_col_key(col)),
+                "{}: NaN".format(col),
             )
         if freq == "WD":
             return (
@@ -278,8 +279,9 @@ def group_filter_handler(col_def, group_val, group_classifier):
                 "{}.dt.year: {}".format(col, ts_val.year),
             )
     if group_val == "NaN":
-        return "{col} != {col}".format(col=build_col_key(col_def)), "{}: NaN".format(
-            col_def
+        return (
+            "{col} != {col}".format(col=build_col_key(col_def)),
+            "{}: NaN".format(col_def),
         )
     if group_classifier in ["I", "F", "B"]:
         return (

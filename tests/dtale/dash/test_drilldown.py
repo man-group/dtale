@@ -2,11 +2,7 @@ import pandas as pd
 import pytest
 
 from tests.dtale import build_data_inst
-from tests.dtale.dash.test_dash import (
-    build_dash_request,
-    print_traceback,
-    ts_builder,
-)
+from tests.dtale.dash.test_dash import build_dash_request, print_traceback, ts_builder
 from tests.dtale.test_views import app
 
 
@@ -300,16 +296,8 @@ def test_load_drilldown_content(custom_data):
             "chart-click-data-1.modified_timestamp",
             [
                 ts_builder("chart-click-data-1"),
-                {
-                    "id": "drilldown-chart-type-1",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "drilldown-x-dropdown-1",
-                    "property": "value",
-                    "value": None,
-                },
+                {"id": "drilldown-chart-type-1", "property": "value", "value": None},
+                {"id": "drilldown-x-dropdown-1", "property": "value", "value": None},
             ],
             [
                 inputs,

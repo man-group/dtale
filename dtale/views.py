@@ -33,6 +33,7 @@ import dtale.datasets as datasets
 import dtale.env_util as env_util
 import dtale.gage_rnr as gage_rnr
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, CHART_POINTS_LIMIT
@@ -750,13 +751,23 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     return _formatter
 
 
-def calc_data_ranges(data):
+def calc_data_ranges(data, dtypes={}):
     try:
         return data.agg(["min", "max"]).to_dict()
     except ValueError:
         # I've seen when transposing data and data types get combined into one column this exception emerges
         # when calling 'agg' on the new data
         return {}
+    except TypeError:
+        non_str_cols = [
+            c for c in data.columns if classify_type(dtypes.get(c, "")) != "S"
+        ]
+        if not len(non_str_cols):
+            return {}
+        try:
+            return data[non_str_cols].agg(["min", "max"]).to_dict()
+        except BaseException:
+            return {}
 
 
 def build_dtypes_state(data, prev_state=None, ranges=None):
@@ -768,8 +779,9 @@ def build_dtypes_state(data, prev_state=None, ranges=None):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     prev_dtypes = {c["name"]: c for c in prev_state or []}
+    dtypes = get_dtypes(data)
     dtype_f = dtype_formatter(
-        data, get_dtypes(data), ranges or calc_data_ranges(data), prev_dtypes
+        data, dtypes, ranges or calc_data_ranges(data, dtypes), prev_dtypes
     )
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
 
@@ -1725,12 +1737,18 @@ def build_column(data_id):
         new_col_data = builder.build_column()
         new_cols = []
         if isinstance(new_col_data, pd.Series):
-            data.loc[:, name] = new_col_data
+            if pandas_util.is_pandas2():
+                data[name] = new_col_data
+            else:
+                data.loc[:, name] = new_col_data
             new_cols.append(name)
         else:
             for i in range(len(new_col_data.columns)):
                 new_col = new_col_data.iloc[:, i]
-                data.loc[:, str(new_col.name)] = new_col
+                if pandas_util.is_pandas2():
+                    data[str(new_col.name)] = new_col
+                else:
+                    data.loc[:, str(new_col.name)] = new_col
 
         new_types = {}
         data_ranges = {}
@@ -2119,13 +2137,13 @@ def describe(data_id):
 
     if dtype["dtype"].startswith("mixed"):
         uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
-        dtype_counts = uniq_vals.groupby("type").sum().reset_index()
+        dtype_counts = uniq_vals.groupby("type")["count"].sum().reset_index()
         dtype_counts.columns = ["dtype", "count"]
         return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
         code.append(
             (
                 "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
-                "dtype_counts = uniq_vals.groupby('type').sum().reset_index()\n"
+                "dtype_counts = uniq_vals.groupby('type')['count'].sum().reset_index()\n"
                 "dtype_counts.columns = ['dtype', 'count']"
             )
         )
@@ -2160,9 +2178,7 @@ def describe(data_id):
         uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
         uniq_f, _ = build_formatters(uniq_grp)
         return_data["uniques"][uniq_type] = dict(
-            data=uniq_f.format_dicts(uniq_grp.itertuples()),
-            total=total,
-            top=top,
+            data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top
         )
 
     return_data["code"] = "\n".join(code)
@@ -2417,12 +2433,28 @@ def edit_cell(data_id):
             updated = pd.Timedelta(updated)
         else:
             if dtype.startswith("category") and updated not in data[column].unique():
-                data[column].cat.add_categories(updated, inplace=True)
-                code.append(
-                    "data['{column}'].cat.add_categories('{updated}', inplace=True)".format(
-                        column=column, updated=updated
+                if pandas_util.is_pandas2():
+                    data.loc[:, column] = pd.Categorical(
+                        data[column],
+                        categories=data[column].cat.add_categories(updated),
+                        ordered=True,
                     )
-                )
+                    code.append(
+                        (
+                            "data.loc[:, '{column}'] = pd.Categorical(\n"
+                            "\tdata['{column}'],\n"
+                            "\tcategories=data['{column}'].cat.add_categories('{updated}'),\n"
+                            "\tordered=True\n"
+                            ")"
+                        ).format(column=column, updated=updated)
+                    )
+                else:
+                    data[column].cat.add_categories(updated, inplace=True)
+                    code.append(
+                        "data['{column}'].cat.add_categories('{updated}', inplace=True)".format(
+                            column=column, updated=updated
+                        )
+                    )
             updated_str = "'{}'".format(updated)
         data.at[row_index, column] = updated
         code.append(
@@ -2836,8 +2868,11 @@ def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image
     dummy_col_mappings = {}
     if encode_strings and valid_str_corr_cols:
         data = data[valid_corr_cols + valid_str_corr_cols]
+        dummy_kwargs = {}
+        if pandas_util.is_pandas2():
+            dummy_kwargs["dtype"] = "int"
         for str_col in valid_str_corr_cols:
-            dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
+            dummies = pd.get_dummies(data[[str_col]], columns=[str_col], **dummy_kwargs)
             dummy_cols = list(dummies.columns)
             dummy_col_mappings[str_col] = dummy_cols
             data[dummy_cols] = dummies
@@ -3056,7 +3091,10 @@ def get_ppscore_matrix(df):
 def update_df_for_encoded_strings(df, dummy_cols, cols, code):
     if not dummy_cols:
         return df
-    dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols)
+    dummy_kwargs = {}
+    if pandas_util.is_pandas2():
+        dummy_kwargs["dtype"] = "int"
+    dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols, **dummy_kwargs)
     dummies = dummies[[c for c in dummies.columns if c in cols]]
     df[dummies.columns] = dummies
 

@@ -126,6 +126,14 @@ class AggregateBuilder(object):
             if agg_type == "func":
                 if cols:
                     agg_data = agg_data[cols]
+                elif pandas_util.is_pandas2():
+                    non_str_cols = [
+                        c
+                        for c in data.select_dtypes(exclude="object").columns
+                        if hasattr(agg_data, c) and c != index
+                    ]
+                    agg_data = agg_data[non_str_cols]
+
                 return (
                     agg_data.agg(stats.gmean)
                     if func == "gmean"

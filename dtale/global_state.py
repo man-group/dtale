@@ -28,16 +28,9 @@ APP_SETTINGS = {
     "hide_header_editor": False,
 }
 
-AUTH_SETTINGS = {
-    "active": False,
-    "username": None,
-    "password": None,
-}
+AUTH_SETTINGS = {"active": False, "username": None, "password": None}
 
-CHART_SETTINGS = {
-    "scatter_points": 15000,
-    "3d_points": 40000,
-}
+CHART_SETTINGS = {"scatter_points": 15000, "3d_points": 40000}
 
 
 class DtaleInstance(object):

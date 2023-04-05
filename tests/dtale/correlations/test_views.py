@@ -6,6 +6,8 @@ import pytest
 
 from pkg_resources import parse_version
 
+import dtale.pandas_util as pandas_util
+
 from dtale.charts.utils import CHART_POINTS_LIMIT
 
 from tests.dtale.test_views import app, build_ts_data
@@ -165,11 +167,7 @@ def test_get_pps_matrix(unittest, test_data):
             {"bar": 0, "column": "foo", "foo": 1, "security_id": 0},
             {"bar": 0, "column": "security_id", "foo": 0, "security_id": 1},
         ]
-        unittest.assertEqual(
-            response_data["data"],
-            expected,
-            "should return scores",
-        )
+        unittest.assertEqual(response_data["data"], expected, "should return scores")
         pps_val = next(
             (
                 p
@@ -293,10 +291,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         build_data_inst({c.port: df})
         build_dtypes({c.port: views.build_dtypes_state(df)})
         params = dict(
-            dateCol="date",
-            cols=json.dumps(["0", "1"]),
-            rolling=True,
-            rollingWindow="4",
+            dateCol="date", cols=json.dumps(["0", "1"]), rolling=True, rollingWindow="4"
         )
         response = c.get(
             "/dtale/correlations-ts/{}".format(c.port), query_string=params
@@ -406,9 +401,10 @@ def test_get_scatter(unittest, rolling_data):
         params["dummyCols"] = json.dumps(["baz"])
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
         response_data = json.loads(response.data)
-        unittest.assertEqual(
-            response_data["data"]["all"]["baz_baz"], ["1", "1", "1", "1", "1"]
+        expected_data = ([1] if pandas_util.is_pandas2() else ["1"]) * len(
+            response_data["data"]["all"]["baz_baz"]
         )
+        unittest.assertEqual(response_data["data"]["all"]["baz_baz"], expected_data)
 
     df, _ = views.format_data(rolling_data)
     with app.test_client() as c:

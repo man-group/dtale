@@ -64,10 +64,7 @@ def test_display_page(unittest):
         params = {
             "output": "popup-content.children",
             "changedPropIds": ["url.modified_timestamp"],
-            "inputs": [
-                pathname,
-                {"id": "url", "property": "search", "value": None},
-            ],
+            "inputs": [pathname, {"id": "url", "property": "search", "value": None}],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
@@ -120,11 +117,9 @@ def test_update_data_selection():
                 "..z-dropdown.value...group-dropdown.value...query-input.value.."
             ),
             "changedPropIds": ["data-tabs.value"],
-            "inputs": [
-                {"id": "chart-tabs", "property": "value", "value": "1"},
-            ],
+            "inputs": [{"id": "chart-tabs", "property": "value", "value": "1"}],
             "state": [
-                {"id": "input-data", "property": "data", "value": {"data_id": "1"}},
+                {"id": "input-data", "property": "data", "value": {"data_id": "1"}}
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -141,12 +136,8 @@ def test_collapse_data_input():
         params = {
             "output": "..collapse-data.is_open...collapse-data-btn.children..",
             "changedPropIds": ["collapse-data-btn.n_clicks"],
-            "inputs": [
-                {"id": "collapse-data-btn", "property": "n_clicks", "value": 1},
-            ],
-            "state": [
-                {"id": "collapse-data", "property": "is_open", "value": False},
-            ],
+            "inputs": [{"id": "collapse-data-btn", "property": "n_clicks", "value": 1}],
+            "state": [{"id": "collapse-data", "property": "is_open", "value": False}],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
@@ -172,10 +163,10 @@ def test_collapse_cleaners_input():
             "output": "..collapse-cleaners.is_open...collapse-cleaners-btn.children..",
             "changedPropIds": ["collapse-cleaners-btn.n_clicks"],
             "inputs": [
-                {"id": "collapse-cleaners-btn", "property": "n_clicks", "value": 1},
+                {"id": "collapse-cleaners-btn", "property": "n_clicks", "value": 1}
             ],
             "state": [
-                {"id": "collapse-cleaners", "property": "is_open", "value": False},
+                {"id": "collapse-cleaners", "property": "is_open", "value": False}
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -379,12 +370,10 @@ def test_map_data(unittest):
         )
         unittest.assertEqual(resp_data["map-lat-input"]["style"], {})
         unittest.assertEqual(
-            resp_data["map-lat-dropdown"]["options"],
-            [{"label": "lat", "value": "lat"}],
+            resp_data["map-lat-dropdown"]["options"], [{"label": "lat", "value": "lat"}]
         )
         unittest.assertEqual(
-            resp_data["map-lon-dropdown"]["options"],
-            [{"label": "lon", "value": "lon"}],
+            resp_data["map-lon-dropdown"]["options"], [{"label": "lon", "value": "lon"}]
         )
 
         params["inputs"][0]["value"] = "mapbox"
@@ -436,31 +425,15 @@ def test_group_values(unittest):
                     "property": "value",
                     "value": None,
                 },
-                {
-                    "id": "treemap-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "funnel-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
+                {"id": "treemap-group-dropdown", "property": "value", "value": None},
+                {"id": "funnel-group-dropdown", "property": "value", "value": None},
                 {
                     "id": "clustergram-group-dropdown",
                     "property": "value",
                     "value": None,
                 },
-                {
-                    "id": "pareto-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "histogram-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
+                {"id": "pareto-group-dropdown", "property": "value", "value": None},
+                {"id": "histogram-group-dropdown", "property": "value", "value": None},
             ],
             "state": [
                 {"id": "input-data", "property": "data", "value": {"data_id": c.port}},
@@ -511,8 +484,7 @@ def test_group_values(unittest):
         params["state"][1]["value"] = ['{"c": 7}']
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         unittest.assertEqual(
-            response.get_json()["response"]["group-val-dropdown"]["value"],
-            ['{"c": 7}'],
+            response.get_json()["response"]["group-val-dropdown"]["value"], ['{"c": 7}']
         )
 
 
@@ -1066,11 +1038,7 @@ def build_chart_params(
                 "property": "data",
                 "value": clustergram_inputs,
             },
-            {
-                "id": "pareto-input-data",
-                "property": "data",
-                "value": pareto_inputs,
-            },
+            {"id": "pareto-input-data", "property": "data", "value": pareto_inputs},
             {
                 "id": "histogram-input-data",
                 "property": "data",
@@ -1402,14 +1370,8 @@ def test_chart_building_bar_and_popup(unittest):
                 "barmode": "stack",
                 "legend": {"orientation": "h", "y": -0.3},
                 "title": {"text": "b, c by a"},
-                "xaxis": {
-                    "tickformat": "0:g",
-                    "title": {"text": "a"},
-                },
-                "yaxis": {
-                    "tickformat": "0:g",
-                    "title": {"text": "b"},
-                },
+                "xaxis": {"tickformat": "0:g", "title": {"text": "a"}},
+                "yaxis": {"tickformat": "0:g", "title": {"text": "b"}},
             },
         )
 
@@ -1855,11 +1817,7 @@ def test_chart_building_map_choropleth(unittest, state_data):
         df, _ = views.format_data(state_data)
         build_data_inst({c.port: df})
         inputs = {"chart_type": "maps", "agg": "raw"}
-        map_inputs = {
-            "map_type": "choropleth",
-            "loc_mode": "USA-states",
-            "loc": "Code",
-        }
+        map_inputs = {"map_type": "choropleth", "loc_mode": "USA-states", "loc": "Code"}
         chart_inputs = {"colorscale": REDS}
         params = build_chart_params(c.port, inputs, chart_inputs, map_inputs=map_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -2068,11 +2026,7 @@ def test_candlestick_data(candlestick_data, unittest):
                     "property": "value",
                     "value": "high",
                 },
-                {
-                    "id": "candlestick-low-dropdown",
-                    "property": "value",
-                    "value": "low",
-                },
+                {"id": "candlestick-low-dropdown", "property": "value", "value": "low"},
                 {
                     "id": "candlestick-group-dropdown",
                     "property": "value",
@@ -2109,10 +2063,7 @@ def test_chart_building_candlestick(candlestick_data):
     with app.test_client() as c:
         df, _ = views.format_data(candlestick_data)
         build_data_inst({c.port: df})
-        inputs = {
-            "chart_type": "candlestick",
-            "agg": "mean",
-        }
+        inputs = {"chart_type": "candlestick", "agg": "mean"}
         chart_inputs = {}
         cs_inputs = {
             "cs_x": "x",
@@ -2159,21 +2110,13 @@ def test_treemap_data(treemap_data, unittest):
                     "property": "value",
                     "value": "volume",
                 },
-                {
-                    "id": "treemap-label-dropdown",
-                    "property": "value",
-                    "value": "label",
-                },
+                {"id": "treemap-label-dropdown", "property": "value", "value": "label"},
                 {
                     "id": "treemap-group-dropdown",
                     "property": "value",
                     "value": ["group"],
                 },
-                {
-                    "id": "treemap-dropna-checkbox",
-                    "property": "value",
-                    "value": True,
-                },
+                {"id": "treemap-dropna-checkbox", "property": "value", "value": True},
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2315,31 +2258,15 @@ def test_funnel_data(treemap_data, unittest):
             ),
             "changedPropIds": ["funnel-value-dropdown.value"],
             "inputs": [
-                {
-                    "id": "funnel-value-dropdown",
-                    "property": "value",
-                    "value": "volume",
-                },
-                {
-                    "id": "funnel-label-dropdown",
-                    "property": "value",
-                    "value": "label",
-                },
+                {"id": "funnel-value-dropdown", "property": "value", "value": "volume"},
+                {"id": "funnel-label-dropdown", "property": "value", "value": "label"},
                 {
                     "id": "funnel-group-dropdown",
                     "property": "value",
                     "value": ["group"],
                 },
-                {
-                    "id": "funnel-dropna-checkbox",
-                    "property": "value",
-                    "value": True,
-                },
-                {
-                    "id": "funnel-stack-toggle",
-                    "property": "on",
-                    "value": False,
-                },
+                {"id": "funnel-dropna-checkbox", "property": "value", "value": True},
+                {"id": "funnel-stack-toggle", "property": "on", "value": False},
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2420,41 +2347,13 @@ def test_pareto_data(pareto_data, unittest):
             ),
             "changedPropIds": ["pareto-x-dropdown.value"],
             "inputs": [
-                {
-                    "id": "pareto-x-dropdown",
-                    "property": "value",
-                    "value": "desc",
-                },
-                {
-                    "id": "pareto-bars-dropdown",
-                    "property": "value",
-                    "value": "count",
-                },
-                {
-                    "id": "pareto-line-dropdown",
-                    "property": "value",
-                    "value": "cum_pct",
-                },
-                {
-                    "id": "pareto-sort-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "pareto-dir-dropdown",
-                    "property": "value",
-                    "value": "DESC",
-                },
-                {
-                    "id": "pareto-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "pareto-dropna-checkbox",
-                    "property": "value",
-                    "value": True,
-                },
+                {"id": "pareto-x-dropdown", "property": "value", "value": "desc"},
+                {"id": "pareto-bars-dropdown", "property": "value", "value": "count"},
+                {"id": "pareto-line-dropdown", "property": "value", "value": "cum_pct"},
+                {"id": "pareto-sort-dropdown", "property": "value", "value": None},
+                {"id": "pareto-dir-dropdown", "property": "value", "value": "DESC"},
+                {"id": "pareto-group-dropdown", "property": "value", "value": None},
+                {"id": "pareto-dropna-checkbox", "property": "value", "value": True},
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2481,9 +2380,7 @@ def test_chart_building_pareto(pareto_data):
         df, _ = views.format_data(pareto_data)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        inputs = {
-            "chart_type": "pareto",
-        }
+        inputs = {"chart_type": "pareto"}
         chart_inputs = {}
         pareto_inputs = {
             "pareto_x": "desc",
@@ -2516,26 +2413,10 @@ def test_histogram_data(test_data, unittest):
             "output": "..histogram-input-data.data...histogram-col-dropdown.options...histogram-bins-div.style..",
             "changedPropIds": ["histogram-col-dropdown.value"],
             "inputs": [
-                {
-                    "id": "histogram-col-dropdown",
-                    "property": "value",
-                    "value": "foo",
-                },
-                {
-                    "id": "histogram-type-tabs",
-                    "property": "value",
-                    "value": "bins",
-                },
-                {
-                    "id": "histogram-bins-input",
-                    "property": "value",
-                    "value": "5",
-                },
-                {
-                    "id": "histogram-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
+                {"id": "histogram-col-dropdown", "property": "value", "value": "foo"},
+                {"id": "histogram-type-tabs", "property": "value", "value": "bins"},
+                {"id": "histogram-bins-input", "property": "value", "value": "5"},
+                {"id": "histogram-group-dropdown", "property": "value", "value": None},
             ],
             "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
         }
@@ -2543,11 +2424,7 @@ def test_histogram_data(test_data, unittest):
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
             resp_data["histogram-input-data"]["data"],
-            {
-                "histogram_col": "foo",
-                "histogram_type": "bins",
-                "histogram_bins": "5",
-            },
+            {"histogram_col": "foo", "histogram_type": "bins", "histogram_bins": "5"},
         )
         unittest.assertEqual(
             resp_data["histogram-col-dropdown"]["options"],
@@ -2563,9 +2440,7 @@ def test_chart_building_histogram(test_data):
         df, _ = views.format_data(test_data)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        inputs = {
-            "chart_type": "histogram",
-        }
+        inputs = {"chart_type": "histogram"}
         chart_inputs = {}
         histogram_inputs = {
             "histogram_col": "foo",
@@ -2592,10 +2467,7 @@ def test_chart_building_funnel(treemap_data):
         df, _ = views.format_data(treemap_data)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        inputs = {
-            "chart_type": "funnel",
-            "agg": "mean",
-        }
+        inputs = {"chart_type": "funnel", "agg": "mean"}
         chart_inputs = {}
         funnel_inputs = {
             "funnel_value": "volume",
@@ -2654,9 +2526,7 @@ def test_chart_building_clustergram(clustergram_data):
         df, _ = views.format_data(clustergram_data)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        inputs = {
-            "chart_type": "clustergram",
-        }
+        inputs = {"chart_type": "clustergram"}
         chart_inputs = {}
         clustergram_inputs = {
             "clustergram_value": ["_all_columns_"],
@@ -3024,11 +2894,7 @@ def test_build_axes(unittest):
         (
             {
                 "xaxis": {"title": "a", "tickformat": "0:g"},
-                "yaxis": {
-                    "tickformat": "0:g",
-                    "title": "b",
-                    "type": "linear",
-                },
+                "yaxis": {"tickformat": "0:g", "title": "b", "type": "linear"},
             },
             False,
         ),

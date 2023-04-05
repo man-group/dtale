@@ -289,10 +289,7 @@ def test_get_column_analysis_word_value_count(unittest):
         response = c.get(
             "/dtale/column-analysis/{}".format(c.port),
             query_string=dict(
-                col="a",
-                type="word_value_counts",
-                ordinalCol="b",
-                ordinalAgg="pctsum",
+                col="a", type="word_value_counts", ordinalCol="b", ordinalAgg="pctsum"
             ),
         )
         response_data = json.loads(response.data)

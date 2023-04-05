@@ -50,11 +50,7 @@ def test_view(unittest):
         resp = c.get("/dtale/xarray-coordinates/{}".format(c.port))
         response_data = resp.json
         expected = [
-            {
-                "count": 3,
-                "dtype": "str64" if PY3 else "string16",
-                "name": "location",
-            },
+            {"count": 3, "dtype": "str64" if PY3 else "string16", "name": "location"},
             {"count": 731, "dtype": "datetime64[ns]", "name": "time"},
         ]
         unittest.assertEqual(
@@ -64,8 +60,7 @@ def test_view(unittest):
         resp = c.get("/dtale/xarray-dimension-values/{}/location".format(c.port))
         response_data = resp.json
         unittest.assertEqual(
-            response_data["data"],
-            [{"value": "IA"}, {"value": "IN"}, {"value": "IL"}],
+            response_data["data"], [{"value": "IA"}, {"value": "IN"}, {"value": "IL"}]
         )
 
         resp = c.get(

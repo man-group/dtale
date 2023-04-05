@@ -118,8 +118,7 @@ def test_upload(unittest):
             sheets = resp.json["sheets"]
             assert len(sheets) == 2
             unittest.assertEqual(
-                sorted([s["name"] for s in sheets]),
-                ["Sheet 1", "Sheet 2"],
+                sorted([s["name"] for s in sheets]), ["Sheet 1", "Sheet 2"]
             )
 
 
@@ -154,8 +153,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_csv.assert_called_once()
             unittest.assertEqual(
-                load_csv.call_args.kwargs,
-                {"path": "http://test.com", "proxy": None},
+                load_csv.call_args.kwargs, {"path": "http://test.com", "proxy": None}
             )
             assert global_state.size() == 1
             load_csv.reset_mock()
@@ -186,8 +184,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_excel.assert_called_once()
             unittest.assertEqual(
-                load_excel.call_args.kwargs,
-                {"path": "http://test.com", "proxy": None},
+                load_excel.call_args.kwargs, {"path": "http://test.com", "proxy": None}
             )
             assert global_state.size() == 4
             global_state.clear_store()
@@ -200,8 +197,7 @@ def test_web_upload(unittest):
             sheets = resp.json["sheets"]
             assert len(sheets) == 2
             unittest.assertEqual(
-                sorted([s["name"] for s in sheets]),
-                ["Sheet 1", "Sheet 2"],
+                sorted([s["name"] for s in sheets]), ["Sheet 1", "Sheet 2"]
             )
 
 

@@ -242,8 +242,7 @@ class HistogramAnalysis(object):
             )
             code.append(
                 "chart, labels = np.histogram(s['{col}'], {hist_kwargs})".format(
-                    col=parent.selected_col,
-                    hist_kwargs=hist_kwargs,
+                    col=parent.selected_col, hist_kwargs=hist_kwargs
                 )
             )
             code += kde_code + desc_code
@@ -376,10 +375,7 @@ class CategoryAnalysis(object):
         ]
         if self.category_agg == "pctsum":
             code.append("chart['data'] = chart['data'] / chart['data'].sum()")
-        code += [
-            "chart.index.name = 'labels'",
-            "chart = chart.reset_index()",
-        ]
+        code += ["chart.index.name = 'labels'", "chart = chart.reset_index()"]
         code += top_code
         code += [
             "charts = [",

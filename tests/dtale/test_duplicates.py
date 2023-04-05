@@ -20,7 +20,7 @@ def duplicates_data():
             fOo=[4, 5, 6, 7, 8],
             foO=[4, 4, 4, 4, 4],
             bar=[5, 5, 5, 6, 6],
-        ),
+        )
     )
     return df[["Foo", "foo", "fOo", "foO", "bar"]]
 
@@ -245,11 +245,7 @@ def test_view(unittest):
             == "'not_implemented' duplicate check not implemented yet!"
         )
 
-        params = dict(
-            type="columns",
-            action="test",
-            cfg=json.dumps({"keep": "first"}),
-        )
+        params = dict(type="columns", action="test", cfg=json.dumps({"keep": "first"}))
         resp = c.get("/dtale/duplicates/{}".format(c.port), query_string=params)
         response_data = resp.json
         unittest.assertEqual(response_data, {"results": {"Foo": ["foo"]}})
