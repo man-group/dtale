@@ -20,6 +20,7 @@ from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 from dtale.translations import text
 from dtale.utils import classify_type, apply, find_dtype_formatter
 
@@ -634,8 +635,7 @@ class TypeConversionColumnBuilder(object):
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
                     return "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
-                        s=s,
-                        name=self.name,
+                        s=s, name=self.name
                     )
                 return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
                     s=s, name=self.name, unit=unit
@@ -1033,8 +1033,12 @@ def get_cleaner_configs():
 
 
 def clean(s, cleaner, cfg):
+    replace_kwargs = {}
+    if pandas_util.is_pandas2():
+        replace_kwargs["regex"] = True
+
     if cleaner == "drop_multispace":
-        return s.str.replace(r"[ ]+", " ")
+        return s.str.replace(r"[ ]+", " ", **replace_kwargs)
     elif cleaner == "drop_punctuation":
         if six.PY3:
             return apply(
@@ -1073,7 +1077,7 @@ def clean(s, cleaner, cfg):
                 "You must install the 'nltk' package in order to use this cleaner!"
             )
     elif cleaner == "drop_numbers":
-        return s.str.replace(r"[\d]+", "")
+        return s.str.replace(r"[\d]+", "", **replace_kwargs)
     elif cleaner == "keep_alpha":
         return apply(s, lambda x: "".join(c for c in x if c.isalpha()))
     elif cleaner == "normalize_accents":
@@ -1090,7 +1094,7 @@ def clean(s, cleaner, cfg):
             .decode("utf-8"),
         )
     elif cleaner == "drop_all_space":
-        return s.str.replace(r"[ ]+", "")
+        return s.str.replace(r"[ ]+", "", **replace_kwargs)
     elif cleaner == "drop_repeated_words":
 
         def drop_repeats(val):
@@ -1106,7 +1110,7 @@ def clean(s, cleaner, cfg):
 
         return apply(s, drop_repeats)
     elif cleaner == "add_word_number_space":
-        return s.str.replace(r"(\d+(\.\d+)?)", r" \1 ")
+        return s.str.replace(r"(\d+(\.\d+)?)", r" \1 ", **replace_kwargs)
     elif cleaner == "drop_repeated_chars":
 
         def drop_repeats(val):
@@ -1124,19 +1128,23 @@ def clean(s, cleaner, cfg):
         case = cfg.get("caseType")
         return getattr(s.str, case)()
     elif cleaner == "space_vals_to_empty":
-        return s.str.replace(r"[ ]+", "")
+        return s.str.replace(r"[ ]+", "", **replace_kwargs)
     elif cleaner == "underscore_to_space":
-        return s.str.replace("_", " ")
+        return s.str.replace("_", " ", **replace_kwargs)
     elif cleaner == "hidden_chars":
         return s.str.replace(r"[^{}]+".format(printable), "")
     elif cleaner == "replace_hyphen_w_space":
-        return s.str.replace(r"[‐᠆﹣－⁃−\-]+", " ")
+        return s.str.replace(r"[‐᠆﹣－⁃−\-]+", " ", **replace_kwargs)
     return s
 
 
 def clean_code(cleaner, cfg):
+    replace_kwargs = ""
+    if pandas_util.is_pandas2():
+        replace_kwargs = ", regex = True"
+
     if cleaner == "drop_multispace":
-        return ["s = s.str.replace(r'[ ]+', ' ')"]
+        return ["s = s.str.replace(r'[ ]+', ' '{})".format(replace_kwargs)]
     elif cleaner == "drop_punctuation":
         if six.PY3:
             return [
@@ -1166,7 +1174,7 @@ def clean_code(cleaner, cfg):
             "s = s.apply(clean_nltk_stopwords)",
         ]
     elif cleaner == "drop_numbers":
-        return ["""s = s.str.replace(r'[\\d]+', '')"""]
+        return ["""s = s.str.replace(r'[\\d]+', ''{})""".format(replace_kwargs)]
     elif cleaner == "keep_alpha":
         return ["s = s.apply(lambda x: ''.join(c for c in x if c.isalpha()))"]
     elif cleaner == "normalize_accents":
@@ -1177,7 +1185,7 @@ def clean_code(cleaner, cfg):
             ")",
         ]
     elif cleaner == "drop_all_space":
-        return ["s.str.replace(r'[ ]+', '')"]
+        return ["s.str.replace(r'[ ]+', ''{})".format(replace_kwargs)]
     elif cleaner == "drop_repeated_words":
         return [
             "def drop_repeated_words(val):",
@@ -1192,7 +1200,9 @@ def clean_code(cleaner, cfg):
             "s = s.apply(drop_repeated_words)",
         ]
     elif cleaner == "add_word_number_space":
-        return ["s = s.str.replace(r'(\\d+(\\.\\d+)?)', r' \\1 ')"]
+        return [
+            "s = s.str.replace(r'(\\d+(\\.\\d+)?)', r' \\1 '{})".format(replace_kwargs)
+        ]
     elif cleaner == "drop_repeated_chars":
         return [
             "def drop_repeated_chars(val):",
@@ -1209,16 +1219,16 @@ def clean_code(cleaner, cfg):
         case = cfg.get("caseType")
         return ["s = s.str.{}()".format(case)]
     elif cleaner == "space_vals_to_empty":
-        return ["s = s.str.replace(r'[ ]+', '')"]
+        return ["s = s.str.replace(r'[ ]+', ''{})".format(replace_kwargs)]
     elif cleaner == "underscore_to_space":
-        return ["s = s.str.replace('_', ' ')"]
+        return ["s = s.str.replace('_', ' '{})".format(replace_kwargs)]
     elif cleaner == "hidden_chars":
         return [
             "printable = r'\\w \\!\"#\\$%&'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'",
             "s = s.str.replacer(r'[^{}]+'.format(printable), '')",
         ]
     elif cleaner == "replace_hyphen_w_space":
-        return ("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−-]+', ' ')",)
+        return "s = s.str.replace(r'[‐᠆﹣－⁃−-]+', ' '{})".format(replace_kwargs)
     return []
 
 
@@ -1259,9 +1269,7 @@ class DiffColumnBuilder(object):
     def build_code(self):
         col, periods = (self.cfg.get(p) for p in ["col", "periods"])
         return "df.loc[:, '{name}'] = pd.Series(df['{col}'].diff({periods}), index=df.index, name='{name}')".format(
-            name=self.name,
-            col=col,
-            periods=periods,
+            name=self.name, col=col, periods=periods
         )
 
 
@@ -1429,9 +1437,7 @@ class ShiftBuilder(object):
             fill_formatter = find_dtype_formatter(dtype)
             kwargs["fill_value"] = fill_formatter(fill_value)
         return pd.Series(
-            data[col].shift(periods or 1, **kwargs),
-            index=data.index,
-            name=self.name,
+            data[col].shift(periods or 1, **kwargs), index=data.index, name=self.name
         )
 
     def build_code(self):

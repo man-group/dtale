@@ -20,11 +20,7 @@ from dtale.charts.utils import (
     build_final_cols,
 )
 from dtale.code_export import build_final_chart_code
-from dtale.dash_application.charts import (
-    build_chart,
-    chart_url_params,
-    valid_chart,
-)
+from dtale.dash_application.charts import build_chart, chart_url_params, valid_chart
 from dtale.dash_application.layout.layout import (
     animate_styles,
     bar_input_style,
@@ -559,14 +555,7 @@ def init_callbacks(dash_app):
         [State("data-tabs", "value")],
     )
     def cs_data_callback(
-        cs_x,
-        cs_open,
-        cs_close,
-        cs_high,
-        cs_low,
-        group,
-        dropna,
-        data_id,
+        cs_x, cs_open, cs_close, cs_high, cs_low, group, dropna, data_id
     ):
         cs_data = dict(
             cs_x=cs_x,
@@ -646,11 +635,7 @@ def init_callbacks(dash_app):
         label_value_data, value_options, label_options = label_value_callback(
             "clustergram"
         )(selected_value, selected_label, group, dropna, data_id)
-        return (
-            label_value_data,
-            value_options,
-            label_options,
-        )
+        return (label_value_data, value_options, label_options)
 
     @dash_app.callback(
         [
@@ -692,18 +677,10 @@ def init_callbacks(dash_app):
             pareto_data["pareto_group"] = group
         df = global_state.get_data(data_id)
         (x_options, bars_options, line_options, _sort_options) = build_pareto_options(
-            df,
-            x=pareto_x,
-            bars=pareto_bars,
-            line=pareto_line,
+            df, x=pareto_x, bars=pareto_bars, line=pareto_line
         )
 
-        return (
-            pareto_data,
-            x_options,
-            bars_options,
-            line_options,
-        )
+        return (pareto_data, x_options, bars_options, line_options)
 
     @dash_app.callback(
         [
@@ -720,11 +697,7 @@ def init_callbacks(dash_app):
         [State("data-tabs", "value")],
     )
     def histogram_data_callback(
-        histogram_col,
-        histogram_type,
-        histogram_bins,
-        group,
-        data_id,
+        histogram_col, histogram_type, histogram_bins, group, data_id
     ):
         histogram_data = dict(
             histogram_col=histogram_col,
@@ -899,12 +872,7 @@ def init_callbacks(dash_app):
             scale=scale,
         )
 
-    @dash_app.callback(
-        Output("load-btn", "style"),
-        [
-            Input("auto-load-toggle", "on"),
-        ],
-    )
+    @dash_app.callback(Output("load-btn", "style"), [Input("auto-load-toggle", "on")])
     def load_style(auto_load):
         return dict(display="block" if not auto_load else "none")
 
@@ -1325,10 +1293,7 @@ def init_callbacks(dash_app):
             Input("pareto-group-dropdown", "value"),
             Input("histogram-group-dropdown", "value"),
         ],
-        [
-            State("input-data", "data"),
-            State("group-val-dropdown", "value"),
-        ],
+        [State("input-data", "data"), State("group-val-dropdown", "value")],
     )
     def group_values(
         chart_type,

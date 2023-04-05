@@ -52,9 +52,7 @@ def get_store_contents():
         {int(k): v.context_variables for k, v in global_state.items()},
         {int(k): v.history for k, v in global_state.items()},
     ]
-    _lengths = [
-        global_state.size(),
-    ]
+    _lengths = [global_state.size()]
     return (_get_one, _get_all, _lengths)
 
 

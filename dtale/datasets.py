@@ -13,7 +13,7 @@ def covid():
         parse_dates=["date"],
     )
     codes = load_csv(
-        path="https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.csv",
+        path="https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.csv"
     )
     codes = codes.set_index("State").to_dict()["Abbreviation"]
     data["state_code"] = data["state"].map(codes)

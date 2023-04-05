@@ -37,14 +37,12 @@ def test_spaces(unittest):
 
     builder = ColumnReplacement(data_id, "b", replacement_type, {})
     verify_builder(
-        builder,
-        lambda col: unittest.assertEqual(list(col.values), ["", np.nan, " - "]),
+        builder, lambda col: unittest.assertEqual(list(col.values), ["", np.nan, " - "])
     )
 
     builder = ColumnReplacement(data_id, "b", replacement_type, {"value": "blah"})
     verify_builder(
-        builder,
-        lambda col: unittest.assertEqual(list(col.values), ["", "blah", " - "]),
+        builder, lambda col: unittest.assertEqual(list(col.values), ["", "blah", " - "])
     )
 
 
@@ -57,8 +55,7 @@ def test_string(unittest):
     cfg = {"value": "unknown", "ignoreCase": True, "isChar": False}
     builder = ColumnReplacement(data_id, "a", replacement_type, cfg)
     verify_builder(
-        builder,
-        lambda col: unittest.assertEqual(list(col.values), ["a", np.nan, "b"]),
+        builder, lambda col: unittest.assertEqual(list(col.values), ["a", np.nan, "b"])
     )
 
     cfg = {"value": "unknown", "ignoreCase": False, "isChar": False}
@@ -83,8 +80,7 @@ def test_string(unittest):
     cfg = {"value": "-", "ignoreCase": True, "isChar": True}
     builder = ColumnReplacement(data_id, "b", replacement_type, cfg)
     verify_builder(
-        builder,
-        lambda col: unittest.assertEqual(list(col.values), ["", " ", np.nan]),
+        builder, lambda col: unittest.assertEqual(list(col.values), ["", " ", np.nan])
     )
 
     cfg = {"value": "-", "ignoreCase": True, "isChar": True, "replace": "missing"}
@@ -149,8 +145,7 @@ def test_number_value(unittest):
     cfg = [dict(value=0, type="raw", replace="nan")]
     builder = ColumnReplacement(data_id, "year", replacement_type, cfg)
     verify_builder(
-        builder,
-        lambda col: unittest.assertEqual(np.isnan(col.values[-2]), True),
+        builder, lambda col: unittest.assertEqual(np.isnan(col.values[-2]), True)
     )
 
 

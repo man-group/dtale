@@ -86,11 +86,7 @@ def test_load_app_settings_w_missing_props():
 
 @pytest.mark.unit
 def test_load_auth_settings():
-    settings = {
-        "active": True,
-        "username": "foo",
-        "password": "foo",
-    }
+    settings = {"active": True, "username": "foo", "password": "foo"}
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.AUTH_SETTINGS", settings))
 

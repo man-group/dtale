@@ -135,9 +135,7 @@ class StringFilter(MissingFilter):
             if "," in raw:
                 start, end = raw.split(",")
                 fltr["query"] = "{start} <= {col}.str.len() <= {end}".format(
-                    col=build_col_key(self.column),
-                    start=start,
-                    end=end,
+                    col=build_col_key(self.column), start=start, end=end
                 )
             else:
                 fltr["query"] = "{}.str.len() == {}".format(

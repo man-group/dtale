@@ -4,6 +4,8 @@ import pytest
 from numpy.random import randn
 from six import PY3
 
+import dtale.pandas_util as pandas_util
+
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
 from tests.dtale import build_data_inst
 
@@ -54,9 +56,10 @@ def test_transform():
         "max",
         "std",
         "var",
-        "mad",
         "prod",
     ]
+    if not pandas_util.is_pandas2():
+        aggs.append("mad")
     data_id, column_type = "1", "transform"
     i = 0
     build_data_inst({data_id: df})
@@ -276,9 +279,7 @@ def test_standardize():
 @pytest.mark.unit
 def test_encoder():
     df = pd.DataFrame(
-        {
-            "car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford", np.nan],
-        }
+        {"car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford", np.nan]}
     )
     data_id, column_type = "1", "encoder"
     build_data_inst({data_id: df})
@@ -313,10 +314,7 @@ def test_diff():
 
     cfg = {"col": "A", "periods": "1"}
     builder = ColumnBuilder(data_id, column_type, "dA", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 1 and col.sum() == -8,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 1 and col.sum() == -8)
 
 
 @pytest.mark.unit
@@ -327,10 +325,7 @@ def test_data_slope():
 
     cfg = {"col": "entity"}
     builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.sum() == 35,
-    )
+    verify_builder(builder, lambda col: col.sum() == 35)
 
 
 @pytest.mark.unit
@@ -343,10 +338,7 @@ def test_rolling(rolling_data):
 
     cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
     builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
     cfg = {
         "col": "0",
@@ -357,10 +349,7 @@ def test_rolling(rolling_data):
         "center": True,
     }
     builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit
@@ -373,10 +362,7 @@ def test_exponential_smoothing(rolling_data):
 
     cfg = {"col": "0", "alpha": 0.3}
     builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit

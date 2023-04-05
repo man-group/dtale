@@ -53,18 +53,10 @@ def load_app_settings(config):
     )
     language = get_config_val(config, curr_app_settings, "language", section="app")
     github_fork = get_config_val(
-        config,
-        curr_app_settings,
-        "github_fork",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "github_fork", section="app", getter="getboolean"
     )
     hide_shutdown = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_shutdown",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_shutdown", section="app", getter="getboolean"
     )
     max_column_width = get_config_val(
         config, curr_app_settings, "max_column_width", section="app", getter="getint"
@@ -101,11 +93,7 @@ def load_app_settings(config):
         getter="getboolean",
     )
     hide_drop_rows = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_drop_rows",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_drop_rows", section="app", getter="getboolean"
     )
 
     global_state.set_app_settings(
@@ -155,11 +143,7 @@ def load_auth_settings(config):
     password = get_config_val(config, curr_auth_settings, "password", section="auth")
 
     global_state.set_auth_settings(
-        dict(
-            active=active,
-            username=username,
-            password=password,
-        )
+        dict(active=active, username=username, password=password)
     )
 
 

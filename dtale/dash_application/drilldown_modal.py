@@ -51,9 +51,7 @@ def combine_inputs(dash_app, inputs, chart_inputs={}, yaxis_data={}, map_data={}
 
 def build_histogram(data_id, col, query, point_filter):
     data = run_query(
-        handle_predefined(data_id),
-        query,
-        global_state.get_context_variables(data_id),
+        handle_predefined(data_id), query, global_state.get_context_variables(data_id)
     )
     query, _ = build_group_inputs_filter(data, [point_filter])
     data = run_query(data, query)
@@ -252,8 +250,7 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         xy_query, _ = build_group_inputs_filter(
-                            global_state.get_data(data_id),
-                            [point_filter],
+                            global_state.get_data(data_id), [point_filter]
                         )
                         if not query:
                             query = xy_query
@@ -287,8 +284,7 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         map_query, _ = build_group_inputs_filter(
-                            global_state.get_data(data_id),
-                            [point_filter],
+                            global_state.get_data(data_id), [point_filter]
                         )
                         if not query:
                             query = map_query
@@ -324,8 +320,7 @@ def init_callbacks(dash_app):
                         return hist_chart, dict(display="none")
                     else:
                         x_query, _ = build_group_inputs_filter(
-                            global_state.get_data(data_id),
-                            [point_filter],
+                            global_state.get_data(data_id), [point_filter]
                         )
                         if not query:
                             query = x_query

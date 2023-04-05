@@ -27,9 +27,7 @@ def test_status_codes():
         stack.enter_context(
             mock.patch(
                 "dtale.auth.global_state.get_auth_settings",
-                return_value={
-                    "active": False,
-                },
+                return_value={"active": False},
             )
         )
         with build_app(url=URL).test_client() as c:

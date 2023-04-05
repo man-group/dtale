@@ -388,7 +388,7 @@ def load_type_msg():
             [
                 html.H3(
                     text("Load Types"), style=dict(display="inline"), className="pr-3"
-                ),
+                )
             ]
         ),
         html.Ul(
@@ -401,17 +401,11 @@ def load_type_msg():
                     className="mb-0",
                 ),
                 html.Li(
-                    [
-                        html.B(text("Head")),
-                        html.Span(": {}".format(text("load_head"))),
-                    ],
+                    [html.B(text("Head")), html.Span(": {}".format(text("load_head")))],
                     className="mb-0",
                 ),
                 html.Li(
-                    [
-                        html.B(text("Tail")),
-                        html.Span(": {}".format(text("load_tail"))),
-                    ],
+                    [html.B(text("Tail")), html.Span(": {}".format(text("load_tail")))],
                     className="mb-0",
                 ),
             ],
@@ -932,10 +926,7 @@ def build_dropna(dropna, prop=None):
         checkbox_kwargs[bootstrap_checkbox_prop()] = True if dropna is None else dropna
         return build_input(
             text("Dropna"),
-            html.Div(
-                dbc.Checkbox(**checkbox_kwargs),
-                className="checkbox-wrapper",
-            ),
+            html.Div(dbc.Checkbox(**checkbox_kwargs), className="checkbox-wrapper"),
             className="col-auto",
             id="{}-dropna-input".format(prop) if prop is not None else "dropna-input",
         )
@@ -1027,10 +1018,7 @@ def build_funnel_inputs(inputs, df, group_options):
     stacked_toggle = build_input(
         "{}?".format(text("Stack")),
         html.Div(
-            daq.BooleanSwitch(
-                id="funnel-stack-toggle",
-                on=False,
-            ),
+            daq.BooleanSwitch(id="funnel-stack-toggle", on=False),
             className="toggle-wrapper",
         ),
         id="funnel-stack-input",
@@ -1080,10 +1068,7 @@ def build_pareto_inputs(inputs, df, group_options):
     return html.Div(
         [
             build_input(
-                [
-                    html.Div(text("X")),
-                    html.Small("({})".format(text("Agg By"))),
-                ],
+                [html.Div(text("X")), html.Small("({})".format(text("Agg By")))],
                 dcc.Dropdown(
                     id="pareto-x-dropdown",
                     options=x_options,
@@ -1687,7 +1672,7 @@ def charts_layout(df, settings, **inputs):
                             for i, t in enumerate(CHARTS)
                         ],
                         style=dict(height="36px"),
-                    ),
+                    )
                 ]
                 + [
                     dbc.Tooltip(
@@ -1752,10 +1737,7 @@ def charts_layout(df, settings, **inputs):
                                 marks=build_slider_counts(
                                     df, inputs["data_id"], query_value
                                 ),
-                                tooltip={
-                                    "always_visible": False,
-                                    "placement": "left",
-                                },
+                                tooltip={"always_visible": False, "placement": "left"},
                             ),
                         ],
                         className="input-group mr-3",
@@ -1796,7 +1778,7 @@ def charts_layout(df, settings, **inputs):
                                     placeholder=text("Select Cleaner(s)"),
                                     value=group,
                                     style=dict(width="inherit"),
-                                ),
+                                )
                             )
                         ),
                         id="collapse-cleaners",
@@ -1912,8 +1894,7 @@ def charts_layout(df, settings, **inputs):
                                                     id="map-loc-mode-dropdown",
                                                     options=[
                                                         build_option(
-                                                            v,
-                                                            loc_modes[v].get("label"),
+                                                            v, loc_modes[v].get("label")
                                                         )
                                                         for v in [
                                                             "ISO-3",
@@ -2213,7 +2194,7 @@ def charts_layout(df, settings, **inputs):
                                             className="ext-agg-warning",
                                         ),
                                     ]
-                                ),
+                                )
                             ]
                             + extended_aggregations.build_modal(
                                 inputs.get("extended_aggregation", []), chart_type, y
@@ -2282,8 +2263,7 @@ def charts_layout(df, settings, **inputs):
                                     text("Drilldowns"),
                                     html.Div(
                                         daq.BooleanSwitch(
-                                            id="drilldown-toggle",
-                                            on=False,
+                                            id="drilldown-toggle", on=False
                                         ),
                                         className="toggle-wrapper",
                                     ),
@@ -2434,8 +2414,7 @@ def charts_layout(df, settings, **inputs):
                     text("Chart Per\nGroup"),
                     html.Div(
                         daq.BooleanSwitch(
-                            id="cpg-toggle",
-                            on=inputs.get("cpg") or False,
+                            id="cpg-toggle", on=inputs.get("cpg") or False
                         ),
                         className="toggle-wrapper",
                     ),
@@ -2447,8 +2426,7 @@ def charts_layout(df, settings, **inputs):
                     text("Chart Per\nY"),
                     html.Div(
                         daq.BooleanSwitch(
-                            id="cpy-toggle",
-                            on=inputs.get("cpy") or False,
+                            id="cpy-toggle", on=inputs.get("cpy") or False
                         ),
                         className="toggle-wrapper",
                     ),
@@ -2460,10 +2438,7 @@ def charts_layout(df, settings, **inputs):
                     text("Trendline"),
                     dcc.Dropdown(
                         id="trendline-dropdown",
-                        options=[
-                            build_option("ols"),
-                            build_option("lowess"),
-                        ],
+                        options=[build_option("ols"), build_option("lowess")],
                         value=inputs.get("trendline"),
                     ),
                     className="col-auto addon-min-width",
@@ -2512,10 +2487,7 @@ def charts_layout(df, settings, **inputs):
                 html.Div(
                     html.Div(
                         [
-                            html.Span(
-                                text("Y-Axis"),
-                                className="input-group-addon",
-                            ),
+                            html.Span(text("Y-Axis"), className="input-group-addon"),
                             html.Div(
                                 [
                                     dcc.Tabs(
@@ -2534,10 +2506,7 @@ def charts_layout(df, settings, **inputs):
                                 className="form-control col-auto pt-3",
                                 style=yaxis_type_style,
                             ),
-                            dcc.Dropdown(
-                                id="yaxis-dropdown",
-                                options=yaxis_options,
-                            ),
+                            dcc.Dropdown(id="yaxis-dropdown", options=yaxis_options),
                             html.Span(
                                 "{}:".format(text("Min")),
                                 className="input-group-addon col-auto",
@@ -2582,8 +2551,7 @@ def charts_layout(df, settings, **inputs):
                     text("Animate"),
                     html.Div(
                         daq.BooleanSwitch(
-                            id="animate-toggle",
-                            on=inputs.get("animate") or False,
+                            id="animate-toggle", on=inputs.get("animate") or False
                         ),
                         className="toggle-wrapper",
                     ),
@@ -2617,9 +2585,7 @@ def charts_layout(df, settings, **inputs):
                     ),
                     html.Div(
                         daq.BooleanSwitch(
-                            id="auto-load-toggle",
-                            on=True,
-                            color="green",
+                            id="auto-load-toggle", on=True, color="green"
                         ),
                         className="toggle-wrapper",
                     ),

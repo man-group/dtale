@@ -88,9 +88,7 @@ def test_save_chart(unittest):
         params = {
             "output": "..save-clicks.data...{}...{}..".format(config_ids, delete_ids),
             "changedPropIds": ["collapse-data-btn.n_clicks"],
-            "inputs": [
-                {"id": "save-btn", "property": "n_clicks", "value": 1},
-            ]
+            "inputs": [{"id": "save-btn", "property": "n_clicks", "value": 1}]
             + delete_clicks,
             "state": [
                 {"id": "input-data", "property": "data", "value": {}},

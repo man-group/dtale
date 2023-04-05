@@ -91,7 +91,7 @@ def build_geojson_upload(loc_mode, geojson_key=None, featureidkey=None):
                                 id="upload-geojson-btn",
                             ),
                             id="upload-geojson",
-                        ),
+                        )
                     ],
                     className="col-auto",
                 ),
