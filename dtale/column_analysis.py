@@ -442,7 +442,6 @@ class ValueCountAnalysis(object):
         )
         code += cleaner_code
         hist = self.build_hist(s, code)
-        print(hist)
 
         if self.ordinal_col is not None:
             ordinal_data, ordinal_code = self.setup_ordinal_data(parent)

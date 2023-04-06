@@ -35,6 +35,8 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
       isMulti={isMulti}
       isClearable={isClearable}
       placeholder={placeholder}
+      menuPortalTarget={document.body}
+      menuPlacement="auto"
     />
   ),
 );

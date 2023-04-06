@@ -76,11 +76,14 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
       const settingsOptions = (settings.column_edit_options ?? {})[name] ?? [];
       if (settingsOptions.length) {
         setCustomOptions(settingsOptions.map((so) => ({ value: so })));
-      } else if (ColumnType.CATEGORY === findColType(cell.colCfg.dtype)) {
-        (async () => {
-          const filterData = await ColumnFilterRepository.loadFilterData(dataId, name);
-          setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
-        })();
+      } else {
+        if (ColumnType.CATEGORY === findColType(cell.colCfg.dtype)) {
+          (async () => {
+            const filterData = await ColumnFilterRepository.loadFilterData(dataId, name);
+            setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
+          })();
+        }
+        setCustomOptions([]);
       }
     }
   }, [cell?.colCfg.name]);
