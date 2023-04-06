@@ -62,11 +62,14 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
     const settingsOptions = (settings.column_edit_options ?? {})[colCfg.name] ?? [];
     if (settingsOptions.length) {
       setCustomOptions(settingsOptions.map((so) => ({ value: so })));
-    } else if (gu.ColumnType.CATEGORY === gu.findColType(colCfg.dtype)) {
-      (async () => {
-        const filterData = await ColumnFilterRepository.loadFilterData(dataId, colCfg.name);
-        setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
-      })();
+    } else {
+      if (gu.ColumnType.CATEGORY === gu.findColType(colCfg.dtype)) {
+        (async () => {
+          const filterData = await ColumnFilterRepository.loadFilterData(dataId, colCfg.name);
+          setOptions(filterData?.uniques?.map((v) => ({ value: `${v}` })) ?? []);
+        })();
+      }
+      setCustomOptions([]);
     }
   }, [colCfg.name]);
 

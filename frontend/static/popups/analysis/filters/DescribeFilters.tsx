@@ -176,11 +176,16 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     );
   };
 
-  const buildFilter = (setter: (value: string) => void, defaultValue?: string, disabled = false): JSX.Element => {
+  const buildFilter = (
+    setter: (value: string) => void,
+    prop: string,
+    defaultValue?: string,
+    disabled = false,
+  ): JSX.Element => {
     return (
       <TextEnterFilter
         {...{
-          prop: 'value',
+          prop,
           buildChart,
           dtype,
           propagateState: (state: { value: string }) => setter(state.value),
@@ -241,14 +246,14 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         return wrapFilterMarkup(
           <React.Fragment>
             {densityToggle()}
-            {!density && buildFilter(setBins, bins)}
+            {!density && buildFilter(setBins, 'bins', bins)}
             {targetSelect()}
           </React.Fragment>,
         );
       } else {
         return wrapFilterMarkup(
           <React.Fragment>
-            {buildFilter(setTop, top)}
+            {buildFilter(setTop, 'top', top)}
             <OrdinalInputs
               {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
             />
@@ -261,14 +266,14 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         return wrapFilterMarkup(
           <React.Fragment>
             {densityToggle()}
-            {!density && buildFilter(setBins, bins)}
+            {!density && buildFilter(setBins, 'bins', bins)}
             {targetSelect()}
           </React.Fragment>,
         );
       } else {
         return wrapFilterMarkup(
           <React.Fragment>
-            {buildFilter(setTop, top)}
+            {buildFilter(setTop, 'top', top)}
             <CategoryInputs {...{ selectedCol, cols: cols ?? [], setCategoryCol, setCategoryAgg }} />
           </React.Fragment>,
         );
@@ -277,13 +282,20 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
       // date, string, bool -> Value Counts
       return wrapFilterMarkup(
         <React.Fragment>
-          {buildFilter(setTop, top)}
           {type !== AnalysisType.HISTOGRAM && (
-            <OrdinalInputs
-              {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
-            />
+            <>
+              {buildFilter(setTop, 'top', top)}
+              <OrdinalInputs
+                {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
+              />
+            </>
           )}
-          {type === AnalysisType.HISTOGRAM && densityToggle()}
+          {type === AnalysisType.HISTOGRAM && (
+            <>
+              {densityToggle()}
+              {!density && buildFilter(setBins, 'bins', bins)}
+            </>
+          )}
         </React.Fragment>,
       );
     }
