@@ -64,7 +64,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
 
   const buildCellClassName = (): string => {
     const classes = ['cell'];
-    if (allowCellEdits) {
+    if (gu.isCellEditable(allowCellEdits, colCfg)) {
       classes.push('editable');
     }
     if (isInRange(columnIndex, rowIndex, rangeState)) {

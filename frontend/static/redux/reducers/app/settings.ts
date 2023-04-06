@@ -1,6 +1,6 @@
 import { ActionType, AppActionTypes } from '../../actions/AppActions';
 import { QueryEngine, ThemeType, Version } from '../../state/AppState';
-import { getHiddenValue, toBool, toFloat } from '../utils';
+import { getHiddenValue, toBool, toFloat, toJson } from '../utils';
 
 export const hideShutdown = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
@@ -62,10 +62,11 @@ export const hideDropRows = (state = false, action: AppActionTypes): boolean => 
   }
 };
 
-export const allowCellEdits = (state = true, action: AppActionTypes): boolean => {
+export const allowCellEdits = (state: boolean | string[] = true, action: AppActionTypes): boolean | string[] => {
   switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('allow_cell_edits'));
+    case ActionType.INIT_PARAMS: {
+      return toJson(getHiddenValue('allow_cell_edits'));
+    }
     case ActionType.UPDATE_ALLOW_CELL_EDITS:
       return action.value;
     case ActionType.LOAD_PREVIEW:

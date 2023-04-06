@@ -145,7 +145,7 @@ def test_build_show_options(unittest):
 
 
 @pytest.mark.unit
-def test_build_show_options_w_missing_ini_props():
+def test_build_show_options_w_missing_ini_props(unittest):
     final_options = build_show_options()
     assert final_options["allow_cell_edits"]
 
@@ -170,3 +170,10 @@ def test_build_show_options_w_missing_ini_props():
     set_config(None)
     final_options = build_show_options(options)
     assert not final_options["allow_cell_edits"]
+
+    ini_path = os.path.join(
+        os.path.dirname(__file__), "dtale_allow_cell_edits_list.ini"
+    )
+    os.environ["DTALE_CONFIG"] = ini_path
+    final_options = build_show_options()
+    unittest.assertEqual(final_options["allow_cell_edits"], ["a", "b"])

@@ -165,7 +165,7 @@ describe('DataViewerInfo tests', () => {
     await act(async () => {
       await selectEvent.openMenu(select);
     });
-    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
       'nan',
       'a',
       'b',
@@ -183,7 +183,7 @@ describe('DataViewerInfo tests', () => {
     await act(async () => {
       await selectEvent.openMenu(select);
     });
-    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
       'nan',
       'foo',
       'bar',

@@ -1,6 +1,7 @@
 import json
 import os
 
+from six import string_types
 from six.moves.configparser import ConfigParser
 
 import dtale.global_state as global_state
@@ -206,8 +207,18 @@ def build_show_options(options=None):
         )
         config_options["app_root"] = get_config_val(config, defaults, "app_root")
         config_options["allow_cell_edits"] = get_config_val(
-            config, defaults, "allow_cell_edits", "getboolean"
+            config, defaults, "allow_cell_edits"
         )
+        if isinstance(config_options["allow_cell_edits"], string_types):
+            if config_options["allow_cell_edits"] == "True":
+                config_options["allow_cell_edits"] = True
+            elif config_options["allow_cell_edits"] == "False":
+                config_options["allow_cell_edits"] = False
+            else:
+                config_options["allow_cell_edits"] = config_options[
+                    "allow_cell_edits"
+                ].split(",")
+
         config_options["inplace"] = get_config_val(
             config, defaults, "inplace", "getboolean"
         )

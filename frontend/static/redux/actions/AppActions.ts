@@ -225,7 +225,7 @@ export interface UpdateHideShutdown extends Action<typeof ActionType.UPDATE_HIDE
 
 /** Action fired when updating the allow_cell_edits flag */
 export interface UpdateAllowCellEdits extends Action<typeof ActionType.UPDATE_ALLOW_CELL_EDITS> {
-  value: boolean;
+  value: boolean | string[];
 }
 
 /** Action fired when updating the hide_header_editor flag */

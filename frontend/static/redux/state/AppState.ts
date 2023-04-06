@@ -346,7 +346,7 @@ export interface PredefinedFilterValue extends HasActivation {
 /** Settings available to each instance (piece of data) of D-Tale */
 export interface InstanceSettings {
   locked?: string[];
-  allow_cell_edits: boolean;
+  allow_cell_edits: boolean | string[];
   precision: number;
   columnFormats?: Record<string, ColumnFormat>;
   backgroundMode?: string;
@@ -397,7 +397,7 @@ export interface AppSettings {
   openCustomFilterOnStartup: boolean;
   openPredefinedFiltersOnStartup: boolean;
   hideDropRows: boolean;
-  allowCellEdits: boolean;
+  allowCellEdits: boolean | string[];
   theme: ThemeType;
   language: string;
   pythonVersion: Version | null;
