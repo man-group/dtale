@@ -74,7 +74,7 @@ export const buildInnerHTML = (props: Record<string, string | undefined> = {}, s
     buildHidden('data_id', props.dataId ?? DATA_ID),
     buildHidden('xarray', props.xarray ?? 'False'),
     buildHidden('xarray_dim', props.xarrayDim ?? '{}'),
-    buildHidden('allow_cell_edits', props.allowCellEdits ?? 'True'),
+    buildHidden('allow_cell_edits', props.allowCellEdits ?? 'true'),
     buildHidden('is_vscode', props.isVSCode ?? 'False'),
     buildHidden('theme', props.theme ?? 'light'),
     buildHidden('language', props.language ?? 'en'),
@@ -275,6 +275,6 @@ export const selectOption = async (selectElement: HTMLElement, option: Matcher |
     await selectEvent.openMenu(selectElement);
   });
   await act(async () => {
-    await selectEvent.select(selectElement, option);
+    await selectEvent.select(selectElement, option, { container: document.body });
   });
 };

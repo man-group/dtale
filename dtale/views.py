@@ -1198,7 +1198,7 @@ def base_render_template(template, data_id, **kwargs):
     github_fork = global_state.load_flag(data_id, "github_fork", False)
     hide_header_editor = global_state.load_flag(data_id, "hide_header_editor", False)
     app_overrides = dict(
-        allow_cell_edits=allow_cell_edits,
+        allow_cell_edits=json.dumps(allow_cell_edits),
         hide_shutdown=hide_shutdown,
         hide_header_editor=hide_header_editor,
         github_fork=github_fork,

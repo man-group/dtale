@@ -352,3 +352,13 @@ export const refreshColumns = (
 };
 
 export const range = (start: number, end: number): number[] => [...Array(end - start).keys()].map((i) => i + start);
+
+export const isCellEditable = (allowCellEdits: boolean | string[], column?: ColumnDef): boolean => {
+  if (allowCellEdits === true) {
+    return true;
+  }
+  if (allowCellEdits === false) {
+    return false;
+  }
+  return allowCellEdits.indexOf(column?.name ?? '') > -1;
+};

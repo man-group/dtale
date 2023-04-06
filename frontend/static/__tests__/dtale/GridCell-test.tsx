@@ -155,11 +155,11 @@ describe('GridCell', () => {
   it('renders select for category column when edited', async () => {
     await buildMock({ columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } }, { editedCell: '3|1' }, true);
     expect(container.getElementsByClassName('Select')).toHaveLength(1);
-    const select = container.getElementsByClassName('Select')[0] as HTMLElement;
+    const select = document.body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
       await selectEvent.openMenu(select);
     });
-    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
       'nan',
       'a',
       'b',
@@ -176,11 +176,11 @@ describe('GridCell', () => {
       true,
     );
     expect(container.getElementsByClassName('Select')).toHaveLength(1);
-    const select = container.getElementsByClassName('Select')[0] as HTMLElement;
+    const select = document.body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
       await selectEvent.openMenu(select);
     });
-    expect([...select.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
       'nan',
       'foo',
       'bar',

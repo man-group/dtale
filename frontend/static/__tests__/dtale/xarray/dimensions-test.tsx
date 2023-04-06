@@ -77,7 +77,7 @@ describe('DataViewer tests', () => {
     });
     expect(select.getElementsByClassName('Select__option--is-selected')[0].textContent).toEqual('foo1');
     await act(async () => {
-      await selectEvent.select(select, 'foo2');
+      await selectEvent.select(select, 'foo2', { container: document.body });
     });
     const liElements = document.body.getElementsByClassName('modal-body')[0].getElementsByTagName('li');
     const lastLi = liElements[liElements.length - 1];

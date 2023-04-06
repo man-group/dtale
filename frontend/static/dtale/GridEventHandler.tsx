@@ -16,7 +16,7 @@ import * as chartActions from '../redux/actions/charts';
 import { AppState, Popups, PopupType, RangeState } from '../redux/state/AppState';
 
 import { ColumnDef, DataViewerData, StringColumnFormat } from './DataViewerState';
-import { convertCellIdxToCoords, getCell } from './gridUtils';
+import { convertCellIdxToCoords, getCell, isCellEditable } from './gridUtils';
 import { MeasureText } from './MeasureText';
 import { MenuTooltip } from './menu/MenuTooltip';
 import { buildCopyText, buildRangeState, buildRowCopyText, CopyText, toggleSelection } from './rangeSelectUtils';
@@ -232,7 +232,9 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
       return;
     }
 
-    if (allowCellEdits) {
+    const coords = convertCellIdxToCoords(cellIdx);
+    const clickedCol = columns.find((c) => c.index + 1 === coords[0]);
+    if (isCellEditable(allowCellEdits, clickedCol)) {
       if (clickTimeout.current === null) {
         clickTimeout.current = setTimeout(() => {
           if (clickTimeout.current) {
