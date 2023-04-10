@@ -1,5 +1,13 @@
 ## Changelog
 
+### 2.14.0 (2023-4-10)
+* [#748](https://github.com/man-group/dtale/issues/748): update auto-generated column deletion code
+* [#746](https://github.com/man-group/dtale/issues/746): editing cells while filtering
+* [#743](https://github.com/man-group/dtale/issues/743): passing a list of columns to 'allow_cell_edits'
+* [#742](https://github.com/man-group/dtale/issues/742): custom edit options bug
+* updates for pandas 2.0.0
+* bump redis & replace node-sass with sass
+
 ### 2.13.0 (2023-3-3)
 * [#685](https://github.com/man-group/dtale/issues/685): Histogram chart builder
 * [#730](https://github.com/man-group/dtale/issues/730): fix for exporting charts with multiple y-axis
