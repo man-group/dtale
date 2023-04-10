@@ -2340,11 +2340,7 @@ def delete_col(data_id):
     data = global_state.get_data(data_id)
     data = data[[c for c in data.columns if c not in columns]]
     curr_history = global_state.get_history(data_id) or []
-    curr_history += [
-        "df = df[[c for c in df.columns if c not in ['{}']]]".format(
-            "','".join(columns)
-        )
-    ]
+    curr_history += ["df = df.drop(columns=['{}'])".format("','".join(columns))]
     global_state.set_history(data_id, curr_history)
     dtypes = global_state.get_dtypes(data_id)
     dtypes = [dt for dt in dtypes if dt["name"] not in columns]
@@ -2394,7 +2390,7 @@ def edit_cell(data_id):
     updated = get_str_arg(request, "updated")
     updated_str = updated
     curr_settings = global_state.get_settings(data_id)
-    
+
     # make sure to load filtered data in order to get correct row index
     data = run_query(
         handle_predefined(data_id),
