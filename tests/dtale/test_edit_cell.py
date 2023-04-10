@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import numpy as np
 import pandas as pd
@@ -179,6 +180,35 @@ def test_edit_string():
         )
         assert "error" not in resp.json
         assert data[c.port]["h"].values[0] == "cbd"
+
+
+@pytest.mark.unit
+def test_edit_filtered_string():
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame(
+        {"a": ["yes", "no", "no", "maybe"], "b": ["AAAA", "bar", "spam", "eggs"]}
+    )
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        data = {c.port: df}
+        build_data_inst(data)
+        settings = {c.port: {"locked": ["a"]}}
+        build_settings(settings)
+        dtypes = {c.port: build_dtypes_state(df)}
+        build_dtypes(dtypes)
+        c.get(
+            "/dtale/save-column-filter/{}".format(c.port),
+            query_string=dict(
+                col="a", cfg=json.dumps({"type": "string", "value": ["maybe"]})
+            ),
+        )
+        resp = c.get(
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="b", rowIndex=0, updated=""),
+        )
+        assert "error" not in resp.json
+        assert data[c.port]["b"].values[-1] is None
 
 
 @pytest.mark.unit
