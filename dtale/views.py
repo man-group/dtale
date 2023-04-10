@@ -1755,12 +1755,8 @@ def build_column(data_id):
         for new_col in new_cols:
             dtype = find_dtype(data[new_col])
             if classify_type(dtype) == "F" and not data[new_col].isnull().all():
-                try:
-                    data_ranges[new_col] = (
-                        data[[new_col]].agg(["min", "max"]).to_dict()[new_col]
-                    )
-                except ValueError:
-                    pass
+                new_ranges = calc_data_ranges(data[[new_col]])
+                data_ranges[new_col] = new_ranges.get(new_col, data_ranges.get(new_col))
             new_types[new_col] = dtype
         dtype_f = dtype_formatter(data, new_types, data_ranges)
         global_state.set_data(data_id, data)
@@ -2398,22 +2394,26 @@ def edit_cell(data_id):
     updated = get_str_arg(request, "updated")
     updated_str = updated
     curr_settings = global_state.get_settings(data_id)
+    
+    # make sure to load filtered data in order to get correct row index
     data = run_query(
         handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
+    row_index_val = data.iloc[[row_index]].index[0]
+    data = global_state.get_data(data_id)
     dtype = find_dtype(data[column])
 
     code = []
     if updated in ["nan", "inf"]:
         updated_str = "np.{}".format(updated)
         updated = getattr(np, updated)
-        data.loc[row_index, column] = updated
+        data.loc[row_index_val, column] = updated
         code.append(
             "df.loc[{row_index}, '{column}'] = {updated}".format(
-                row_index=row_index, column=column, updated=updated_str
+                row_index=row_index_val, column=column, updated=updated_str
             )
         )
     else:
@@ -2456,10 +2456,10 @@ def edit_cell(data_id):
                         )
                     )
             updated_str = "'{}'".format(updated)
-        data.at[row_index, column] = updated
+        data.at[row_index_val, column] = updated
         code.append(
             "df.at[{row_index}, '{column}'] = {updated}".format(
-                row_index=row_index, column=column, updated=updated_str
+                row_index=row_index_val, column=column, updated=updated_str
             )
         )
     global_state.set_data(data_id, data)
@@ -2469,11 +2469,7 @@ def edit_cell(data_id):
 
     data = global_state.get_data(data_id)
     dtypes = global_state.get_dtypes(data_id)
-    ranges = {}
-    try:
-        ranges[column] = data[[column]].agg(["min", "max"]).to_dict()[column]
-    except ValueError:
-        pass
+    ranges = calc_data_ranges(data[[column]])
     dtype_f = dtype_formatter(data, {column: dtype}, ranges)
     dtypes = [
         dtype_f(dt["index"], column) if dt["name"] == column else dt for dt in dtypes
