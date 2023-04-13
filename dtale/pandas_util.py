@@ -1,17 +1,20 @@
 import pandas as pd
 
 from pkg_resources import parse_version
-from six import PY3
+
+
+def has_dropna():
+    return parse_version(pd.__version__) >= parse_version("1.1.0")
 
 
 def groupby(df, index, dropna=True):
-    if PY3:
+    if has_dropna():
         return df.groupby(index, dropna=dropna)
     return df.groupby(index)
 
 
 def groupby_code(index, dropna=True):
-    if PY3:
+    if has_dropna():
         return ".groupby(['{index}'], dropna={dropna})".format(
             index="','".join(index), dropna=dropna
         )

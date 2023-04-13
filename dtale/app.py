@@ -5,7 +5,6 @@ import jinja2
 import logging
 import os
 import pandas as pd
-import platform
 import random
 import socket
 import sys
@@ -160,10 +159,9 @@ class DtaleFlask(Flask):
                     )
                 )
             return fix_url_path("{}/{}".format(self.app_root, args[0]))
-        major, minor, revision = [int(i) for i in platform.python_version_tuple()]
-        if major == 2 or (major == 3 and minor < 7):
-            return flask_url_for(endpoint, *args, **kwargs)
-        return Flask.url_for(self, endpoint, *args, **kwargs)
+        if hasattr(Flask, "url_for"):
+            return Flask.url_for(self, endpoint, *args, **kwargs)
+        return flask_url_for(endpoint, *args, **kwargs)
 
     def _override_routes(self, rule):
         try:

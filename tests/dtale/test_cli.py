@@ -360,9 +360,9 @@ def test_artic_loader(builtin_pkg):
         pdt.assert_frame_equal(output, node)
         mock_arctic.Arctic.assert_called_with("test_host")
         mock_arctic_class.get_library.assert_called_with("test_lib")
-        read_call = mock_arctic_lib.read.mock_calls[0]
-        assert read_call.args[0] == "test_node"
-        assert "chunk_range" in read_call.kwargs
+        read_args, read_kwargs = mock_arctic_lib.read.call_args
+        assert read_args[0] == "test_node"
+        assert "chunk_range" in read_kwargs
 
         mock_arctic.reset_mock()
         mock_arctic_lib.reset_mock()
