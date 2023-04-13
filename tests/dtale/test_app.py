@@ -417,7 +417,7 @@ def test_open_browser():
         )
         mock_run.assert_not_called()
         mock_webbrowser.assert_called()
-        assert mock_webbrowser.mock_calls[0].args[
+        assert mock_webbrowser.call_args[0][
             0
         ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
         mock_browser_proc.reset_mock()
@@ -430,7 +430,7 @@ def test_open_browser():
         )
         instance.open_browser()
         mock_browser_proc.assert_called()
-        assert mock_browser_proc.mock_calls[0].args[0][
+        assert mock_browser_proc.call_args[0][0][
             1
         ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
         mock_browser_proc.reset_mock()
@@ -442,7 +442,7 @@ def test_open_browser():
 
         instance.open_browser()
         mock_browser_proc.assert_called()
-        assert mock_browser_proc.mock_calls[0].args[0][
+        assert mock_browser_proc.call_args[0][0][
             1
         ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
         mock_browser_proc.reset_mock()
@@ -454,7 +454,7 @@ def test_open_browser():
 
         instance.open_browser()
         mock_webbrowser.assert_called()
-        assert mock_webbrowser.mock_calls[0].args[
+        assert mock_webbrowser.call_args[0][
             0
         ] == "http://localhost:9999/dtale/main/{}".format(instance._data_id)
 

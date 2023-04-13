@@ -18,7 +18,7 @@ def test_show_csv():
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.csv_loader.show", mock_show):
         dtale.show_csv(path=csv_path)
-        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.call_args[1]["data_loader"]()
         mock_show.reset_mock()
 
     with open(csv_path, "r") as f:
@@ -37,10 +37,10 @@ def test_show_csv():
                 mock.patch("requests.get", mock.Mock(return_value=MockRequest()))
             )
             dtale.show_csv(path="http://test-csv")
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
             dtale.show_csv(path="http://test-csv", proxy="http://test-proxy")
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
 
 
@@ -54,7 +54,7 @@ def test_show_excel(unittest):
     if PY3:
         with mock.patch("dtale.cli.loaders.excel_loader.show", mock_show):
             dtale.show_excel(path=excel_path)
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
 
             with pytest.raises(Exception) as e:
@@ -85,16 +85,16 @@ def test_show_excel(unittest):
             )
         )
         dtale.show_excel(path="http://test-excel.xlsx", sheet="blah")
-        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.call_args[1]["data_loader"]()
         unittest.assertEqual(
-            mock_read_excel.call_args.kwargs,
+            mock_read_excel.call_args[1],
             {"sheet_name": "blah", "engine": "openpyxl"},
         )
         mock_show.mock_reset()
         mock_read_excel.mock_reset()
         dtale.show_excel(path="http://test-excel.xls", sheet="blah")
-        mock_show.call_args.kwargs["data_loader"]()
-        assert mock_read_excel.call_args.kwargs["engine"] == "xlrd"
+        mock_show.call_args[1]["data_loader"]()
+        assert mock_read_excel.call_args[1]["engine"] == "xlrd"
 
 
 @pytest.mark.unit
@@ -106,7 +106,7 @@ def test_show_json():
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.json_loader.show", mock_show):
         dtale.show_json(path=json_path)
-        mock_show.call_args.kwargs["data_loader"]()
+        mock_show.call_args[1]["data_loader"]()
         mock_show.reset_mock()
 
     with open(json_path, "r") as f:
@@ -130,15 +130,15 @@ def test_show_json():
                 mock.patch("requests.get", mock.Mock(return_value=MockRequest()))
             )
             dtale.show_json(path="http://test-json", normalize=True)
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
             dtale.show_json(
                 path="http://test-json", proxy="http://test-proxy", normalize=True
             )
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
             dtale.show_json(path="http://test-json")
-            mock_show.call_args.kwargs["data_loader"]()
+            mock_show.call_args[1]["data_loader"]()
             mock_show.reset_mock()
 
 
@@ -151,7 +151,7 @@ def test_show_parquet():
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.parquet_loader.show", mock_show):
         dtale.show_parquet(path=parquet_path)
-        df = mock_show.call_args.kwargs["data_loader"]()
+        df = mock_show.call_args[1]["data_loader"]()
         assert df is not None
 
 
@@ -163,7 +163,7 @@ def test_show_sqlite():
     mock_show = mock.Mock()
     with mock.patch("dtale.cli.loaders.sqlite_loader.show", mock_show):
         dtale.show_sqlite(path=parquet_path, table="test_simpsons")
-        df = mock_show.call_args.kwargs["data_loader"]()
+        df = mock_show.call_args[1]["data_loader"]()
         assert df is not None
 
     with mock.patch("dtale.cli.loaders.sqlite_loader.show", mock_show):

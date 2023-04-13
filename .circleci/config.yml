@@ -72,7 +72,38 @@ python_variables: &python_variables
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
   VERSION: 2.14.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
-  RUN_BLACK: true
+python_formatting: &python_formatting
+    parallelism: 1
+    shell: /bin/bash --login
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - restore_cache:
+          keys:
+            # This branch if available
+            - v1-dep-{{ .Branch }}-
+            # Default branch if not
+            - v1-dep-master-
+            # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+            - v1-dep-
+      - run:
+          name: Create and activate virtualenv
+          command: |
+            virtualenv ci
+            . ci/bin/activate
+      - run:
+          name: Run Flake8
+          command: |
+            . ci/bin/activate
+            pip install flake8
+            flake8
+      - run:
+          name: Run black
+          command: |
+            . ci/bin/activate
+            pip install black
+            black --check setup.py dtale tests
 python: &python
     parallelism: 1
     shell: /bin/bash --login
@@ -130,6 +161,11 @@ python: &python
               pip install pybind11
               pip install -r requirements.txt
             fi
+            # dash>=2.0.0 has a dependency on typing_extensions>=3.6.4 and for some reason circleci allows you to
+            # download versions greater than 4.1.1 which aren't compatible with python 3.6
+            if [ "${CIRCLE_JOB}" == "build_3_6" ]; then
+              pip install typing_extensions==4.1.1
+            fi
             python setup.py develop
       - run:
           name: Print environment
@@ -149,20 +185,6 @@ python: &python
             cp -r /tmp/dtale/static/dist ./dtale/static/
             ls -al /tmp/dtale/static/dash
             cp -r /tmp/dtale/static/dash ./dtale/static/
-      - run:
-          name: Run Flake8
-          command: |
-            . ci/bin/activate
-            pip install flake8
-            flake8
-      - run:
-          name: Run black
-          command: |
-            if [ "$RUN_BLACK" = "true" ]; then
-              . ci/bin/activate
-              pip install black
-              black --check setup.py dtale tests
-            fi
       - run:
           name: Setup tests
           command: |
@@ -248,13 +270,19 @@ jobs:
     docker:
       - image: cimg/node:19.0.1
     <<: *javascript
+  check_python_formatting:
+    working_directory: ~/man-group/dtale_python_formatting
+    docker:
+        - image: circleci/python:3.10-buster
+    environment:
+      <<: *python_variables
+    <<: *python_formatting
   build_2_7:
     working_directory: ~/man-group/dtale_2_7
     docker:
       - image: circleci/python:2.7-buster
     environment:
       <<: *python_variables
-      RUN_BLACK: false
     <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
@@ -296,21 +324,28 @@ workflows:
   build_all:
     jobs:
       - build_JS
+      - check_python_formatting
       - build_2_7:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_6:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_7:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_8:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_9:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_10:
           requires:
             - build_JS
+            - check_python_formatting
