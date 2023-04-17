@@ -165,6 +165,7 @@ python: &python
             # download versions greater than 4.1.1 which aren't compatible with python 3.6
             if [ "${CIRCLE_JOB}" == "build_3_6" ]; then
               pip install typing_extensions==4.1.1
+              pip install soupsieve==2.3.2
             fi
             python setup.py develop
       - run:
