@@ -26,7 +26,6 @@ itsdangerous<=1.1.0; python_version < '3.7'
 itsdangerous; python_version >= '3.7'
 # required for loading scikit-learn
 joblib<=1.1.1; python_version == '3.6'
-# kaleido<=0.1.0; python_version <= '3.6'
 kaleido
 kiwisolver<=1.1.0; python_version <= '3.6'
 MarkupSafe<=1.1.1; python_version == '2.7'
