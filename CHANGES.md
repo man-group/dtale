@@ -1,9 +1,13 @@
 ## Changelog
 
+### 2.14.2 (2023-4-18)
+* removed extraneous dependency `soupsieve`
+
 ### 2.14.1 (2023-4-17)
 * update requirements to no longer pin and allow for older versions of packages
 * update unit tests to allow for backwards compatibility with older versions of mock library
 * update how `Flask.url_for` is detected rather than pinning to specific version of python
+* separated black & Flake8 code formatting checks into own job in CircleCI
 
 ### 2.14.0 (2023-4-10)
 * [#748](https://github.com/man-group/dtale/issues/748): update auto-generated column deletion code
