@@ -2171,7 +2171,13 @@ def describe(data_id):
             .sort_values(["count", "value"], ascending=[False, True])
             .head(100)
         )
-        uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
+        # pandas started supporting string dtypes in 1.1.0
+        conversion_type = (
+            "object"
+            if pandas_util.check_pandas_version("1.1.0") and uniq_type == "string"
+            else uniq_type
+        )
+        uniq_grp["value"] = uniq_grp["value"].astype(conversion_type)
         uniq_f, _ = build_formatters(uniq_grp)
         return_data["uniques"][uniq_type] = dict(
             data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top

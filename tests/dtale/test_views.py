@@ -6,9 +6,9 @@ import numpy as np
 import os
 import dtale.global_state as global_state
 import pandas as pd
-import platform
 import pytest
 from pandas.tseries.offsets import Day
+from pkg_resources import parse_version
 from six import PY3
 
 import dtale.pandas_util as pandas_util
@@ -1233,8 +1233,7 @@ def test_variance(unittest):
         response = c.get(
             "/dtale/variance/{}".format(c.port), query_string=dict(col="x")
         )
-        major, minor, revision = [int(i) for i in platform.python_version_tuple()]
-        if major == 3 and minor > 6:
+        if parse_version(pd.__version__) >= parse_version("1.3.0"):
             expected["x"]["check2"]["val1"]["val"] = 0
             expected["x"]["check2"]["val2"]["val"] = 1
         response_data = json.loads(response.data)
