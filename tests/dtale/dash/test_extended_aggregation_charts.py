@@ -1,6 +1,6 @@
 import pandas as pd
-import platform
 import pytest
+from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 
@@ -121,8 +121,7 @@ def test_bar_and_popup(unittest):
                 "title": {"text": "Mean of c"},
             },
         }
-        major, minor, revision = [int(i) for i in platform.python_version_tuple()]
-        if major == 3 and minor > 6:
+        if parse_version(pd.__version__) >= parse_version("1.3.0"):
             del expected["yaxis2"]["tickformat"]
         unittest.assertEqual(
             resp_data["chart-content"]["children"]["props"]["children"][1]["props"][
