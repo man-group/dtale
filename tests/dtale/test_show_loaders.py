@@ -144,7 +144,9 @@ def test_show_json():
 
 @pytest.mark.unit
 def test_show_parquet():
-    pytest.importorskip("pyarrrow")
+    # the parquet data was built using these versions of pyarrow & pandas
+    pytest.importorskip("pyarrow", minversion="0.17.1")
+    pytest.importorskip("pandas", minversion="1.1.0")
     import dtale
 
     parquet_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.parquet")
