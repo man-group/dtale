@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.14.4 (2023-4-19)
+* Added dataclasses requirement for python environments >= 3.6 and < 3.7
+
 ### 2.14.3 (2023-4-19)
 * backwards compatability for pandas `string` dtype and tests
 
