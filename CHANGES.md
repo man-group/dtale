@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.14.3 (2023-4-19)
+* backwards compatability for pandas `string` dtype and tests
+
 ### 2.14.2 (2023-4-18)
 * removed extraneous dependency `soupsieve`
 
