@@ -457,7 +457,8 @@ div.tab {
 #colorscale-dropdown .Select-menu-outer,
 #animate-by-dropdown .Select-menu-outer,
 #trendline-dropdown .Select-menu-outer,
-.drilldown-x-dropdown .Select-menu-outer {
+.drilldown-x-dropdown .Select-menu-outer,
+#stratified-group-dropdown .Select-menu-outer {
     z-index: 7;
 }
 #colorscale-picker {
@@ -747,6 +748,10 @@ div#bins-val-input input {
 #load-type-dropdown .Select-control,
 #load-type-dropdown .Select-menu-outer {
   width: 7.5em;
+}
+
+#stratified-group-dropdown {
+  padding-left: 25px;
 }
 
 body.dark-mode .tab-container .tab {

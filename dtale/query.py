@@ -37,6 +37,7 @@ def run_query(
     ignore_empty=False,
     pct=100,
     pct_type="random",
+    stratified_group=None,
     highlight_filter=False,
 ):
     """
@@ -54,6 +55,8 @@ def run_query(
     :type context_vars: dict, optional
     :param pct: random percentage of dataframe to load
     :type pct: int, optional
+    :param stratified_group: the grouping to use when load a stratified random sample of dataframe
+    :type stratified_group: str, optional
     :param highlight_filter: if true, then highlight which rows will be filtered rather than drop them
     :type highlight_filter: boolean, optional
     :return: filtered dataframe
@@ -63,6 +66,14 @@ def run_query(
         if pct is not None and pct < 100:
             if pct_type == "random":
                 return df.sample(frac=pct / 100.0)
+            elif pct_type == "stratified":
+                sampling_rate = pct / 100.0
+                num_rows = int((df.shape[0] * sampling_rate) // 1)
+                num_classes = len(df[stratified_group].unique())
+                num_rows_per_class = int(max(1, ((num_rows / num_classes) // 1)))
+                return df.groupby(stratified_group, group_keys=False).apply(
+                    lambda x: x.sample(min(len(x), num_rows_per_class))
+                )
             records = int(len(df) * (pct / 100.0))
             return df.head(records) if pct_type == "head" else df.tail(records)
 

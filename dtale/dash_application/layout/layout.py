@@ -345,7 +345,7 @@ CHART_INPUT_SETTINGS = {
         histogram_group=dict(display=True),
     ),
 }
-LOAD_TYPES = ["random", "head", "tail"]
+LOAD_TYPES = ["random", "head", "tail", "stratified"]
 MAP_TYPES = [
     dict(value="choropleth", image=True),
     dict(value="scattergeo", label="ScatterGeo", image=True),
@@ -406,6 +406,13 @@ def load_type_msg():
                 ),
                 html.Li(
                     [html.B(text("Tail")), html.Span(": {}".format(text("load_tail")))],
+                    className="mb-0",
+                ),
+                html.Li(
+                    [
+                        html.B(text("Stratified")),
+                        html.Span(": {}".format(text("load_stratified"))),
+                    ],
                     className="mb-0",
                 ),
             ],
@@ -788,6 +795,7 @@ def build_input_options(df, extended_aggregation=[], **inputs):
         group_options,
         barsort_options,
         yaxis_options,
+        [build_option(c, l) for c, l in col_opts],
     )
 
 
@@ -1422,7 +1430,7 @@ def charts_layout(df, settings, **inputs):
     :type param: dict
     :return: dash markup
     """
-    chart_type, x, y, z, group, dropna, agg, load, load_type = (
+    chart_type, x, y, z, group, dropna, agg, load, load_type, stratified_group = (
         inputs.get(p)
         for p in [
             "chart_type",
@@ -1434,6 +1442,7 @@ def charts_layout(df, settings, **inputs):
             "agg",
             "load",
             "load_type",
+            "stratified_group",
         ]
     )
     loc_modes = loc_mode_info()
@@ -1455,6 +1464,7 @@ def charts_layout(df, settings, **inputs):
         group_options,
         barsort_options,
         yaxis_options,
+        stratified_groups,
     ) = options
     query_placeholder = "{} (ex: col1 == 1)".format(text("Enter pandas query"))
     query_value = inputs.get("query") or inner_build_query(
@@ -1726,6 +1736,15 @@ def charts_layout(df, settings, **inputs):
                                 className="pl-5",
                                 value=load_type or "random",
                                 clearable=False,
+                            ),
+                            dcc.Dropdown(
+                                id="stratified-group-dropdown",
+                                options=stratified_groups,
+                                value=stratified_group,
+                                clearable=False,
+                                style={}
+                                if load_type == "stratified"
+                                else {"display": "none"},
                             ),
                             dcc.Slider(
                                 id="load-input",

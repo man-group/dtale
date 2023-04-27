@@ -19,7 +19,8 @@ decorator<=4.4.2; python_version == '2.7'
 et_xmlfile<=1.0.1; python_version < '3.6'
 et_xmlfile; python_version >= '3.6'
 Flask<=1.1.4; python_version < '3.7'
-Flask; python_version >= '3.7'
+Flask<2.3; python_version == '3.7'
+Flask; python_version >= '3.8'
 Flask-Compress
 flask-ngrok; python_version > '3.0'
 future>=0.14.0
@@ -104,6 +105,8 @@ strsimpy
 six
 # required for loading plotly
 tenacity<=7.0.0; python_version == '3.6'
+werkzeug==1.0.1; python_version <= '3.6'
+werkzeug<2.3; python_version == '3.7'
 xarray<=0.11.3; python_version < '3.0'
 xarray; python_version >= '3.0'
 xlrd
