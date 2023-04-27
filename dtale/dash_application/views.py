@@ -225,6 +225,7 @@ def init_callbacks(dash_app):
             Output("open-extended-agg-modal", "style"),
             Output("selected-cleaners", "children"),
             Output("charts-filters-div", "style"),
+            Output("stratified-group-dropdown", "style"),
         ],
         [
             Input("query-data", "modified_timestamp"),
@@ -244,6 +245,7 @@ def init_callbacks(dash_app):
             Input("rolling-comp-dropdown", "value"),
             Input("load-input", "value"),
             Input("load-type-dropdown", "value"),
+            Input("stratified-group-dropdown", "value"),
             Input("cleaners-dropdown", "value"),
             Input("dropna-checkbox", bootstrap_checkbox_prop()),
         ],
@@ -272,6 +274,7 @@ def init_callbacks(dash_app):
         rolling_comp,
         load,
         load_type,
+        stratified_group,
         cleaners,
         dropna,
         pathname,
@@ -305,6 +308,7 @@ def init_callbacks(dash_app):
             rolling_comp=rolling_comp,
             load=load,
             load_type=load_type,
+            stratified_group=stratified_group,
             cleaners=make_list(cleaners),
             dropna=True if dropna is None else dropna,
         )
@@ -321,6 +325,7 @@ def init_callbacks(dash_app):
             group_options,
             barsort_options,
             yaxis_options,
+            stratified_groups,
         ) = options
         show_map = chart_type == "maps"
         map_style = {} if show_map else {"display": "none"}
@@ -374,6 +379,7 @@ def init_callbacks(dash_app):
             if len(inputs["cleaners"])
             else "",
             {"display": "none"} if chart_type == "histogram" else {},
+            {} if load_type == "stratified" else {"display": "none"},
         )
 
     @dash_app.callback(

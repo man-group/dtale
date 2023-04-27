@@ -209,7 +209,8 @@ def test_input_changes(unittest):
                 "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
                 "..funnel-inputs.style...clustergram-inputs.style...pareto-inputs.style...histogram-inputs.style."
                 "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
-                "..open-extended-agg-modal.style...selected-cleaners.children...charts-filters-div.style.."
+                "..open-extended-agg-modal.style...selected-cleaners.children...charts-filters-div.style."
+                "..stratified-group-dropdown.style.."
             ),
             "changedPropIds": ["chart-tabs.value"],
             "inputs": [
@@ -236,6 +237,7 @@ def test_input_changes(unittest):
                 {"id": "load-type-dropdown", "property": "value"},
                 {"id": "cleaners-dropdown", "property": "value"},
                 {"id": "dropna-checkbox", "property": "value"},
+                {"id": "stratified-group-dropdown", "property": "value"},
             ],
             "state": [
                 pathname,
@@ -267,6 +269,7 @@ def test_input_changes(unittest):
                 "group_type": "groups",
                 "data_id": c.port,
                 "cleaners": [],
+                "stratified_group": None,
             },
         )
         unittest.assertEqual(
@@ -1112,6 +1115,16 @@ def test_chart_building_wordcloud():
         )
 
         inputs["load_type"] = "head"
+        params = build_chart_params(c.port, inputs, chart_inputs)
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        resp_data = response.get_json()["response"]
+        assert (
+            resp_data["chart-content"]["children"]["props"]["children"][1]["type"]
+            == "Wordcloud"
+        )
+
+        inputs["load_type"] = "stratified"
+        inputs["stratified_group"] = "a"
         params = build_chart_params(c.port, inputs, chart_inputs)
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]

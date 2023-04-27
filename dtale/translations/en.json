@@ -179,5 +179,6 @@
   "Tail": "Tail",
   "load_random": "Take a random percentage of records from this dataframe.",
   "load_head": "Take the first N (percentage of records) from this dataframe.",
-  "load_tail": "Take the last N (percentage of records) from this dataframe."
+  "load_tail": "Take the last N (percentage of records) from this dataframe.",
+  "load_stratified": "Take a stratified random sample of records from this dataframe based on a specific grouping."
 }
