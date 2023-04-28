@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
+import sklearn as skl
 from numpy.random import randn
+from pkg_resources import parse_version
 from six import PY3
 
 import dtale.pandas_util as pandas_util
@@ -263,17 +265,20 @@ def test_standardize():
     data_id, column_type = "1", "standardize"
     build_data_inst({data_id: df})
 
-    cfg = {"col": "a", "algo": "power"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.20.0"):
+        cfg = {"col": "a", "algo": "power"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "a", "algo": "quantile"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.19.0"):
+        cfg = {"col": "a", "algo": "quantile"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "a", "algo": "robust"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.17.0"):
+        cfg = {"col": "a", "algo": "robust"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit
@@ -293,17 +298,20 @@ def test_encoder():
         ),
     )
 
-    cfg = {"col": "car", "algo": "ordinal"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.20.0"):
+        cfg = {"col": "car", "algo": "ordinal"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "car", "algo": "label"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.12.0"):
+        cfg = {"col": "car", "algo": "label"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.13.0"):
+        cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
 
 
 @pytest.mark.unit
