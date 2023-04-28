@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.15.0 (2023-4-28)
+* https://github.com/man-group/dtale/issues/490: stratified random sample in charts
+* Updated sklearn column_builders to handle import failures
+
 ### 2.14.4 (2023-4-19)
 * Added dataclasses requirement for python environments >= 3.6 and < 3.7
 
