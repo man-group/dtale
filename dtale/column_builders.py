@@ -9,14 +9,6 @@ import unicodedata
 import numpy as np
 import pandas as pd
 from scipy.stats import mstats
-from sklearn.preprocessing import (
-    LabelEncoder,
-    OrdinalEncoder,
-    PowerTransformer,
-    QuantileTransformer,
-    RobustScaler,
-)
-from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
@@ -897,11 +889,32 @@ class StandardizedColumnBuilder(object):
     def build_column(self, data):
         col, algo = (self.cfg.get(p) for p in ["col", "algo"])
         if algo == "robust":
-            transformer = RobustScaler()
+            try:
+                from sklearn.preprocessing import RobustScaler
+
+                transformer = RobustScaler()
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.17.0 installed in order to use the RobustScaler!"
+                )
         elif algo == "quantile":
-            transformer = QuantileTransformer()
+            try:
+                from sklearn.preprocessing import QuantileTransformer
+
+                transformer = QuantileTransformer()
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.19.0 installed in order to use the QuantileTransformer!"
+                )
         elif algo == "power":
-            transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+            try:
+                from sklearn.preprocessing import PowerTransformer
+
+                transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.20.0 installed in order to use the PowerTransformer!"
+                )
         standardized = transformer.fit_transform(data[[col]]).reshape(-1)
         return pd.Series(standardized, index=data.index, name=self.name)
 
@@ -941,27 +954,54 @@ class EncoderColumnBuilder(object):
         if algo == "one_hot":
             return pd.get_dummies(data, columns=[col], drop_first=True)
         elif algo == "ordinal":
-            is_nan = data[col].isnull()
-            ordinals = (
-                OrdinalEncoder().fit_transform(data[[col]].astype("str")).reshape(-1)
-            )
-            return pd.Series(ordinals, index=data.index, name=self.name).where(
-                ~is_nan, 0
-            )
+            try:
+                from sklearn.preprocessing import OrdinalEncoder
+
+                is_nan = data[col].isnull()
+                ordinals = (
+                    OrdinalEncoder()
+                    .fit_transform(data[[col]].astype("str"))
+                    .reshape(-1)
+                )
+                return pd.Series(ordinals, index=data.index, name=self.name).where(
+                    ~is_nan, 0
+                )
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.20.0 installed in order to use the OrdinalEncoder!"
+                )
         elif algo == "label":
-            is_nan = data[col].isnull()
-            labels = LabelEncoder().fit_transform(data[col].astype("str"))
-            return pd.Series(labels, index=data.index, name=self.name).where(~is_nan, 0)
+            try:
+                from sklearn.preprocessing import LabelEncoder
+
+                is_nan = data[col].isnull()
+                labels = LabelEncoder().fit_transform(data[col].astype("str"))
+                return pd.Series(labels, index=data.index, name=self.name).where(
+                    ~is_nan, 0
+                )
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.12.0 installed in order to use the LabelEncoder!"
+                )
         elif algo == "feature_hasher":
-            n = int(self.cfg.get("n"))
-            features = (
-                FeatureHasher(n_features=n, input_type="string")
-                .transform(data[[col]].astype("str").values)
-                .toarray()
-            )
-            features = pd.DataFrame(features, index=data.index)
-            features.columns = ["{}_{}".format(col, col2) for col2 in features.columns]
-            return features
+            try:
+                from sklearn.feature_extraction import FeatureHasher
+
+                n = int(self.cfg.get("n"))
+                features = (
+                    FeatureHasher(n_features=n, input_type="string")
+                    .transform(data[[col]].astype("str").values)
+                    .toarray()
+                )
+                features = pd.DataFrame(features, index=data.index)
+                features.columns = [
+                    "{}_{}".format(col, col2) for col2 in features.columns
+                ]
+                return features
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.13.0 installed in order to use the FeatureHasher!"
+                )
         raise NotImplementedError("{} not implemented yet!".format(algo))
 
     def build_code(self):
