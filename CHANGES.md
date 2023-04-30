@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2.15.1 (2023-4-29)
+* updates to how app's _override_routes rebuilds url_map
+* requirement tweaks to werkzeug
+
 ### 2.15.0 (2023-4-28)
 * https://github.com/man-group/dtale/issues/490: stratified random sample in charts
 * Updated sklearn column_builders to handle import failures
