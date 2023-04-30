@@ -172,19 +172,24 @@ class DtaleFlask(Flask):
                     for r in self.url_map._rules
                     if not contains_route(routes_to_remove, r)
                 ]
-                self.url_map = Map(
-                    rules=updated_rules,
-                    default_subdomain=self.url_map.default_subdomain,
-                    charset=self.url_map.charset,
-                    strict_slashes=self.url_map.strict_slashes,
-                    merge_slashes=self.url_map.merge_slashes,
-                    redirect_defaults=self.url_map.redirect_defaults,
-                    converters=self.url_map.converters,
-                    sort_parameters=self.url_map.sort_parameters,
-                    sort_key=self.url_map.sort_key,
-                    encoding_errors=self.url_map.encoding_errors,
-                    host_matching=self.url_map.host_matching,
-                )
+                url_map_keys = [
+                    "default_subdomains",
+                    "charset",
+                    "strict_slashes",
+                    "merge_slashes",
+                    "redirect_defaults",
+                    "converters",
+                    "sort_parameters",
+                    "sort_key",
+                    "encoding_errors",
+                    "host_matching",
+                ]
+                url_map_data = {
+                    k: getattr(self.url_map, k)
+                    for k in url_map_keys
+                    if hasattr(self.url_map, k)
+                }
+                self.url_map = Map(rules=updated_rules, **url_map_data)
 
             self.url_map._remap = True
             self.url_map.update()

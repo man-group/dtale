@@ -105,7 +105,7 @@ strsimpy
 six
 # required for loading plotly
 tenacity<=7.0.0; python_version == '3.6'
-werkzeug==1.0.1; python_version <= '3.6'
+werkzeug<=1.0.1; python_version <= '3.6'
 werkzeug<2.3; python_version == '3.7'
 xarray<=0.11.3; python_version < '3.0'
 xarray; python_version >= '3.0'
