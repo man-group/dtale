@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.15.2 (2023-5-1)
+* tweaked requirements for older versions of python
+
 ### 2.15.1 (2023-4-29)
 * updates to how app's _override_routes rebuilds url_map
 * requirement tweaks to werkzeug
