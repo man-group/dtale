@@ -280,10 +280,17 @@ class DefaultStore(object):
 
     def delete_instance(self, data_id):
         data_id = int(data_id)
-        try:
-            del self._data_store[data_id]
-        except KeyError:
-            pass
+        instance = self._data_store.get(data_id)
+        if instance:
+            if instance.name:
+                try:
+                    del self._data_names[instance.name]
+                except KeyError:
+                    pass
+            try:
+                del self._data_store[data_id]
+            except KeyError:
+                pass
 
     def clear_store(self):
         self._data_store.clear()
