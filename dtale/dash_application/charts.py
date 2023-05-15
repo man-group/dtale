@@ -1877,6 +1877,8 @@ def heatmap_builder(data_id, export=False, **inputs):
             handle_predefined(data_id),
             query,
             global_state.get_context_variables(data_id),
+            pct=inputs.get("load"),
+            pct_type=inputs.get("load_type"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)

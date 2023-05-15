@@ -42,7 +42,7 @@ def test_upload(unittest):
             },
         )
         assert global_state.size() == 2
-        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
@@ -62,7 +62,7 @@ def test_upload(unittest):
             },
         )
         assert global_state.size() == 2
-        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
@@ -83,7 +83,7 @@ def test_upload(unittest):
                 },
             )
             assert global_state.size() == 2
-            new_key = next((k for k in global_state.keys() if k != c.port), None)
+            new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
             assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:

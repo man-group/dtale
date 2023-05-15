@@ -133,8 +133,18 @@ class DefaultStore(object):
     # Use int for data_id for easier sorting
     def build_data_id(self):
         if len(self._data_store) == 0:
-            return 1
-        return max(list(map(lambda x: int(x), self._data_store.keys()))) + 1
+            return "1"
+
+        def parse_int(x):
+            try:
+                return int(x)
+            except ValueError:
+                return None
+
+        ids = list(filter(None, map(parse_int, self._data_store.keys())))
+        if not len(ids):
+            return "1"
+        return str(max(ids) + 1)
 
     # exposing  _data_store for custom data store plugins.
     @property
@@ -154,7 +164,7 @@ class DefaultStore(object):
     def contains(self, key):
         if key is None:
             return False
-        return int(key) in self._data_store
+        return str(key) in self._data_store
 
     # this should be a property but somehow it stays 0 no matter what.
     def size(self):
@@ -162,18 +172,16 @@ class DefaultStore(object):
 
     def get_data_inst(self, data_id):
         # handle non-exist data_id
-        if data_id is None or int(data_id) not in self._data_store:
+        if data_id is None or str(data_id) not in self._data_store:
             return DtaleInstance(None)
 
-        # force convert data_id to int
-        data_id = int(data_id)
-        return self._data_store.get(data_id)
+        return self._data_store.get(str(data_id))
 
     def new_data_inst(self, data_id=None, instance=None):
         if data_id is None:
             data_id = self.build_data_id()
+        data_id = str(data_id)
         new_data = instance or DtaleInstance(None)
-        data_id = int(data_id)
         self._data_store[data_id] = new_data
         return data_id
 
@@ -218,27 +226,27 @@ class DefaultStore(object):
     def set_data(self, data_id=None, val=None):
         if data_id is None:
             data_id = self.new_data_inst()
-        data_id = int(data_id)
+        data_id = str(data_id)
         if data_id not in self._data_store.keys():
-            data_id = self.new_data_inst(int(data_id))
+            data_id = self.new_data_inst(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.data = val
         self._data_store[data_id] = data_inst
 
     def set_dataset(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dataset = val
         self._data_store[data_id] = data_inst
 
     def set_dataset_dim(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dataset_dim = val
         self._data_store[data_id] = data_inst
 
     def set_dtypes(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.dtypes = val
         self._data_store[data_id] = data_inst
@@ -248,38 +256,38 @@ class DefaultStore(object):
             return
         if val in self._data_names:
             raise Exception("Name {} already exists!".format(val))
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
-        data_id = int(data_id)
         self._data_names[val] = data_id
         data_inst.name = val
         self._data_store[data_id] = data_inst
 
     def set_context_variables(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.context_variables = val
         self._data_store[data_id] = data_inst
 
     def set_settings(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.settings = val
         self._data_store[data_id] = data_inst
 
     def set_metadata(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.metadata = val
         self._data_store[data_id] = data_inst
 
     def set_history(self, data_id, val):
-        data_id = int(data_id)
+        data_id = str(data_id)
         data_inst = self.get_data_inst(data_id)
         data_inst.history = val
         self._data_store[data_id] = data_inst
 
     def delete_instance(self, data_id):
-        data_id = int(data_id)
+        data_id = str(data_id)
         instance = self._data_store.get(data_id)
         if instance:
             if instance.name:
@@ -317,7 +325,7 @@ for fn_name in fn_list:
 def use_default_store():
     new_store = dict()
     for k, v in _as_dict(_default_store.store).items():
-        new_store[int(k)] = v
+        new_store[str(k)] = v
     _default_store.store.clear()
     _default_store.store = new_store
     pass
@@ -406,9 +414,9 @@ def update_id(old_data_id, new_data_id):
         raise Exception("Data already exists for id ({})".format(new_data_id))
     curr_data = _default_store.get_data_inst(old_data_id)
     _default_store.delete_instance(old_data_id)
-    data_id = int(new_data_id)
+    data_id = str(new_data_id)
     _default_store.new_data_inst(data_id, curr_data)
-    return data_id
+    return new_data_id
 
 
 def load_flag(data_id, flag_name, default):
@@ -591,7 +599,7 @@ def use_redis_store(directory, *args, **kwargs):
                 return pickle.loads(value)
 
         def keys(self):
-            return [int(k) for k in super(DtaleRedis, self).keys()]
+            return [str(k) for k in super(DtaleRedis, self).keys()]
 
         def set(self, name, value, *args, **kwargs):
             value = pickle.dumps(value)
