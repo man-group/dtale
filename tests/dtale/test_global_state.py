@@ -258,10 +258,10 @@ def test_build_data_id():
     import dtale.global_state as global_state
 
     global_state.cleanup()
-    assert global_state.build_data_id() == 1
+    assert global_state.build_data_id() == "1"
 
     df = pd.DataFrame([1, 2, 3, 4, 5])
     data = {str(idx + 1): df for idx in range(10)}
     for k, v in data.items():
         global_state.set_data(k, v)
-    assert global_state.build_data_id() == 11
+    assert global_state.build_data_id() == "11"

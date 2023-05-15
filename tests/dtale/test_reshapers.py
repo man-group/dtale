@@ -31,7 +31,7 @@ def test_pivot(custom_data, unittest):
             query_string=dict(output="new", type="pivot", cfg=json.dumps(reshape_cfg)),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(
@@ -105,7 +105,7 @@ def test_aggregate(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(
@@ -218,7 +218,7 @@ def test_transpose(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert "error" in response_data
 
         min_date = custom_data["date"].min().strftime("%Y-%m-%d")
@@ -253,7 +253,7 @@ def test_transpose(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        assert response_data["data_id"] == c.port
+        assert response_data["data_id"] == str(c.port)
 
 
 @pytest.mark.unit
@@ -285,7 +285,7 @@ def test_resample(unittest):
         )
 
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(

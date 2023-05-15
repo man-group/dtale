@@ -1,4 +1,3 @@
-import json
 import mock
 import numpy as np
 import os
@@ -29,7 +28,7 @@ def test_get_column_analysis(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", filtered="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             expected = dict(
                 labels=[
                     "0.55",
@@ -85,7 +84,7 @@ def test_get_column_analysis(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", bins=5, filtered="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             expected = dict(
                 labels=["0.7", "0.9", "1.1", "1.3", "1.5"],
                 data=[0, 0, 50, 0, 0],
@@ -118,7 +117,7 @@ def test_get_column_analysis(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", bins=5, target="baz", filtered="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert len(response_data["targets"])
             assert response_data["targets"][0]["target"] == "baz"
 
@@ -127,7 +126,7 @@ def test_get_column_analysis(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", bins=5, filtered="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             expected = dict(
                 labels=["0.7", "0.9", "1.1", "1.3", "1.5"],
                 data=[0, 0, 39, 0, 0],
@@ -163,7 +162,7 @@ def test_get_column_analysis(unittest, test_data):
                     col="foo", type="value_counts", top=2, filtered="true"
                 ),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert response_data["chart_type"] == "value_counts"
 
             response = c.get(
@@ -176,7 +175,7 @@ def test_get_column_analysis(unittest, test_data):
                     filtered="true",
                 ),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert "ordinal" in response_data
 
             response = c.get(
@@ -189,7 +188,7 @@ def test_get_column_analysis(unittest, test_data):
                     filtered="true",
                 ),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert "ordinal" in response_data
 
             response = c.get(
@@ -202,7 +201,7 @@ def test_get_column_analysis(unittest, test_data):
                     filtered="true",
                 ),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert "count" in response_data
 
             response = c.get(
@@ -215,7 +214,7 @@ def test_get_column_analysis(unittest, test_data):
                     filtered="true",
                 ),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert "count" in response_data
 
     with app.test_client() as c:
@@ -232,7 +231,7 @@ def test_get_column_analysis(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", filtered="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             unittest.assertEqual(
                 response_data["error"],
                 "histogram failure",
@@ -253,7 +252,7 @@ def test_probability_histogram(unittest, test_data):
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", density="true"),
             )
-            response_data = json.loads(response.data)
+            response_data = response.get_json()
             assert response.status_code == 200
             assert "np.histogram(s['foo'], density=True)" in response_data["code"]
 
@@ -269,7 +268,7 @@ def test_get_column_analysis_word_value_count(unittest):
             "/dtale/column-analysis/{}".format(c.port),
             query_string=dict(col="a", type="word_value_counts"),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["labels"], ["a", "b", "c", "d", "e", "f", "g", "h", "i"]
         )
@@ -283,7 +282,7 @@ def test_get_column_analysis_word_value_count(unittest):
                 cleaner="underscore_to_space",
             ),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(response_data["ordinal"], [3, 3, 3, 4, 4, 4, 5, 5, 5])
 
         response = c.get(
@@ -292,7 +291,7 @@ def test_get_column_analysis_word_value_count(unittest):
                 col="a", type="word_value_counts", ordinalCol="b", ordinalAgg="pctsum"
             ),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["ordinal"],
             [
@@ -323,7 +322,7 @@ def test_get_column_analysis_kde():
             "/dtale/column-analysis/{}".format(c.port),
             query_string=dict(col="a", type="histogram", bins=50),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         assert len(response_data["kde"]) == 51
 
 
@@ -338,7 +337,7 @@ def test_get_column_analysis_geolocation(unittest):
             "/dtale/column-analysis/{}".format(c.port),
             query_string=dict(col="a", type="geolocation", latCol="a", lonCol="b"),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(response_data["lat"], [1, 2, 3])
         unittest.assertEqual(response_data["lon"], [3, 4, 5])
 
@@ -357,5 +356,5 @@ def test_get_column_analysis_qq():
             "/dtale/column-analysis/{}".format(c.port),
             query_string=dict(col="a", type="qq"),
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         assert all(len(response_data[prop]) == 100 for prop in ["x", "y", "x2", "y2"])

@@ -229,8 +229,6 @@ class DtaleData(object):
     """
 
     def __init__(self, data_id, url, is_proxy=False, app_root=None):
-        if data_id is not None:
-            data_id = int(data_id)
         self._data_id = data_id
         self._url = url
         self._notebook_handle = None

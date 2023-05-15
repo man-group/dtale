@@ -44,7 +44,7 @@ def test_correlation_analysis(unittest, rolling_data):
         build_data_inst({c.port: df})
         build_dtypes({c.port: views.build_dtypes_state(df)})
         response = c.get("/dtale/corr-analysis/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         ranks = response_data["ranks"]
         corrs = response_data["corrs"]
         assert len(ranks) == 5
@@ -61,7 +61,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
         response = c.get("/dtale/correlations/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected = dict(
             data=[
                 dict(column="security_id", security_id=1.0, foo=None, bar=None),
@@ -84,7 +84,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
             "/dtale/correlations/{}".format(c.port),
             query_string={"encodeStrings": True},
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(response_data["dummyColMappings"], {"baz": ["baz_baz"]})
 
     with app.test_client() as c:
@@ -93,7 +93,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["error"],
             "name 'missing_col' is not defined",
@@ -108,7 +108,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
         response = c.get("/dtale/correlations/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected = dict(
             data=[
                 dict(column="security_id", security_id=1.0, foo=None, bar=None),
@@ -131,7 +131,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
         build_data_inst({c.port: df})
         build_dtypes({c.port: views.build_dtypes_state(df)})
         response = c.get("/dtale/correlations/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["dates"],
             [dict(name="date", rolling=True)],
@@ -227,7 +227,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         response = c.get(
             "/dtale/correlations-ts/{}".format(c.port), query_string=params
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected = {
             "data": {
                 "all": {
@@ -270,7 +270,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         response = c.get(
             "/dtale/correlations-ts/{}".format(c.port), query_string=params
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         assert response_data["success"]
 
         params["cols"] = json.dumps(["foo", "bar"])
@@ -281,7 +281,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         response = c.get(
             "/dtale/correlations-ts/{}".format(c.port), query_string=params
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["data"]["all"]["x"], ["2000-01-04", "2000-01-05"]
         )
@@ -296,7 +296,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         response = c.get(
             "/dtale/correlations-ts/{}".format(c.port), query_string=params
         )
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["success"], True, "should return rolling correlation"
         )
@@ -306,7 +306,7 @@ def test_get_correlations_ts(unittest, rolling_data):
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations-ts/{}".format(c.port))
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["error"],
             "name 'missing_col' is not defined",
@@ -355,7 +355,7 @@ def test_get_scatter(unittest, rolling_data):
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
         params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), index=0)
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected = dict(
             y="bar",
             stats={
@@ -400,7 +400,7 @@ def test_get_scatter(unittest, rolling_data):
         params["cols"] = json.dumps(["foo", "baz_baz"])
         params["dummyCols"] = json.dumps(["baz"])
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected_data = ([1] if pandas_util.is_pandas2() else ["1"]) * len(
             response_data["data"]["all"]["baz_baz"]
         )
@@ -418,7 +418,7 @@ def test_get_scatter(unittest, rolling_data):
             window="4",
         )
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         assert len(response_data["data"]["all"]["1"]) == 4
         assert sorted(response_data["data"]["all"]) == ["1", "_corr_index", "date", "x"]
         unittest.assertEqual(
@@ -436,7 +436,7 @@ def test_get_scatter(unittest, rolling_data):
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
         params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         expected = dict(
             stats={
                 "correlated": 15001,
@@ -474,7 +474,7 @@ def test_get_scatter(unittest, rolling_data):
         build_settings(settings)
         params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")
         response = c.get("/dtale/scatter/{}".format(c.port), query_string=params)
-        response_data = json.loads(response.data)
+        response_data = response.get_json()
         unittest.assertEqual(
             response_data["error"],
             "name 'missing_col' is not defined",
