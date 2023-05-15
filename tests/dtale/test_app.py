@@ -197,6 +197,9 @@ def test_show(unittest):
         instance3 = get_instance("its_here")
         assert instance3._url == instance._url
         pdt.assert_frame_equal(instance3.data, test_data)
+        instance3.cleanup()
+
+        assert "Its Here" not in global_state._default_store._data_names
 
     with ExitStack() as stack:
         mock_run = stack.enter_context(
