@@ -60,7 +60,7 @@ export const DataViewer: React.FC = () => {
     theme: state.theme,
     settings: state.settings,
     menuPinned: state.menuPinned,
-    ribbonMenuOpen: state.ribbonMenuOpen,
+    ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
     dataViewerUpdate: state.dataViewerUpdate,
     maxColumnWidth: state.maxColumnWidth || undefined,
     maxRowHeight: state.maxRowHeight || undefined,

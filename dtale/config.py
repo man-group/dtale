@@ -79,6 +79,13 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    lock_header_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "lock_header_menu",
+        section="app",
+        getter="getboolean",
+    )
     open_custom_filter_on_startup = get_config_val(
         config,
         curr_app_settings,
@@ -113,6 +120,7 @@ def load_app_settings(config):
             open_predefined_filters_on_startup=open_predefined_filters_on_startup,
             hide_drop_rows=hide_drop_rows,
             hide_header_editor=hide_header_editor,
+            lock_header_menu=lock_header_menu,
         )
     )
 
@@ -173,11 +181,12 @@ def build_show_options(options=None):
         background_mode=None,
         range_highlights=None,
         vertical_headers=False,
-        hide_shutdown=False,
+        hide_shutdown=None,
         column_edit_options=None,
         auto_hide_empty_columns=False,
         highlight_filter=False,
-        hide_header_editor=False,
+        hide_header_editor=None,
+        lock_header_menu=None,
     )
     config_options = {}
     config = get_config()

@@ -43,6 +43,7 @@ let storeBuilder: () => Store = () => {
   actions.loadHideShutdown(store);
   actions.loadAllowCellEdits(store);
   actions.loadHideHeaderEditor(store);
+  actions.loadLockHeaderMenu(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {

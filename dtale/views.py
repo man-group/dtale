@@ -328,6 +328,8 @@ class DtaleData(object):
         * hide_shutdown - if true, this will hide the "Shutdown" button from users
         * nan_display - if value in dataframe is :attr:`numpy:numpy.nan` then return this value on the frontend
         * hide_header_editor - if true, this will hide header editor when editing cells on the frontend
+        * lock_header_menu - if true, this will always the display the header menu which usually only displays when you
+                             hover over the top
 
         After applying please refresh any open browsers!
         """
@@ -958,11 +960,12 @@ def startup(
     app_root=None,
     is_proxy=None,
     vertical_headers=False,
-    hide_shutdown=False,
+    hide_shutdown=None,
     column_edit_options=None,
     auto_hide_empty_columns=False,
     highlight_filter=False,
-    hide_header_editor=False,
+    hide_header_editor=None,
+    lock_header_menu=None,
 ):
     """
     Loads and stores data globally
@@ -1085,6 +1088,7 @@ def startup(
                 auto_hide_empty_columns=auto_hide_empty_columns,
                 highlight_filter=highlight_filter,
                 hide_header_editor=hide_header_editor,
+                lock_header_menu=lock_header_menu,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1143,6 +1147,8 @@ def startup(
             base_settings["hide_shutdown"] = hide_shutdown
         if hide_header_editor is not None:
             base_settings["hide_header_editor"] = hide_header_editor
+        if lock_header_menu is not None:
+            base_settings["lock_header_menu"] = lock_header_menu
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
@@ -1195,10 +1201,12 @@ def base_render_template(template, data_id, **kwargs):
     allow_cell_edits = global_state.load_flag(data_id, "allow_cell_edits", True)
     github_fork = global_state.load_flag(data_id, "github_fork", False)
     hide_header_editor = global_state.load_flag(data_id, "hide_header_editor", False)
+    lock_header_menu = global_state.load_flag(data_id, "lock_header_menu", False)
     app_overrides = dict(
         allow_cell_edits=json.dumps(allow_cell_edits),
         hide_shutdown=hide_shutdown,
         hide_header_editor=hide_header_editor,
+        lock_header_menu=lock_header_menu,
         github_fork=github_fork,
     )
     return render_template(

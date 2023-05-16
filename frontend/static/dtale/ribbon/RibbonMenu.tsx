@@ -38,12 +38,14 @@ export const RibbonMenuItem: React.FC<React.PropsWithChildren<RibbonMenuItemProp
 };
 
 const RibbonMenu: React.FC<WithTranslation> = ({ t }) => {
-  const { visible, ribbonDropdown, mainTitle, mainTitleFont } = useSelector((state: AppState) => ({
-    visible: state.ribbonMenuOpen,
-    ribbonDropdown: state.ribbonDropdown.name,
-    mainTitle: state.mainTitle,
-    mainTitleFont: state.mainTitleFont,
-  }));
+  const { visible, ribbonDropdown, mainTitle, mainTitleFont } = useSelector((state: AppState) => {
+    return {
+      visible: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
+      ribbonDropdown: state.ribbonDropdown.name,
+      mainTitle: state.mainTitle,
+      mainTitleFont: state.mainTitleFont,
+    };
+  });
   const titleStyle: React.CSSProperties = React.useMemo(
     () => ({ fontSize: '16px', cursor: 'default', ...(mainTitleFont ? { fontFamily: mainTitleFont } : {}) }),
     [mainTitleFont],

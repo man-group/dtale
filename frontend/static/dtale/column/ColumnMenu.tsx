@@ -36,7 +36,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     selectedCol: state.selectedCol,
     selectedColRef: state.selectedColRef,
     isPreview: state.isPreview,
-    ribbonMenuOpen: state.ribbonMenuOpen,
+    ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
     filteredRanges: state.filteredRanges,
     columnFilters: state.settings.columnFilters,
     outlierFilters: state.settings.outlierFilters,
